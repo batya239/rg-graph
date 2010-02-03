@@ -8,7 +8,6 @@ class Line:
         idx, type, Momenta, In, Out 
     """
     def __init__(self,Lidx,Ltype,LIn, LOut, LMomenta):
-         self.idx=Lidx
          self.Type=Ltype
          self.In=LIn
          self.Out=LOut
@@ -27,7 +26,7 @@ class Node:
      def __init__(self,Nidx,G,**kwargs):
           """  в кваргз можно было бы указать например что вершина продиференцированна или тип вершины.
           """
-          idx=Nidx
+          self.Lines=[]
 
 
 
