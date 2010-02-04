@@ -39,14 +39,16 @@ class Graph:
          subgraphs - list of Graph objects
      """
      def __init__(self, vModel):
-          self.Lines = dict()
-          self.Nodes = dict()
-          self.adjList = dict()
-          self.subgraphs = list()
-          self.model = vModel
+         self.Lines = dict()
+         self.Nodes = dict()
+         self.adjList = dict()
+         self.subgraphs = list()
+         self.model = vModel
         
      def addLine(self, idx, Line):
-          self.Lines[idx] = Line
+         self.Lines[idx] = Line
+          
+         
           
      def LoadLinesfromFile(self,filename):
 # подразумевается что пока что линии одного типа!! для линий разного типа должен быть другой формат файла
@@ -91,4 +93,11 @@ class Graph:
                            break
                    if tmpType < 0: raise "no such node in model (node=%s)" %idxN
                    
-               self.Nodes[idxN]=Node(Type=tmpType,Lines=tmpLines)               
+               self.Nodes[idxN]=Node(Type=tmpType,Lines=tmpLines)    
+     def SaveAsPNG(self, filename):
+         from visualization import Graph2dot
+         import pydot
+         gdot=pydot.graph_from_dot_data(Graph2dot(self))
+         gdot.write_png(filename,prog="dot")
+         
+            

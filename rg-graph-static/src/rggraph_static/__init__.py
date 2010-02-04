@@ -2,3 +2,4 @@
 
 from model import Model
 from graph import *
+import visualization

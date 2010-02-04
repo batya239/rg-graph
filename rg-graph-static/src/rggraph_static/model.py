@@ -14,16 +14,18 @@ class Model:
         self.LineTypes=dict()
         self.NodeTypes=dict()
     def addLineType(self,LineIdx,**kwargs):
-        """ propagator,directed
+        """ propagator,directed,Graphviz
             propagator="1/(p*p+tau)", directed=0 (simple massive line)
             only for static!!! для динамики нужно оперировать полями
+            Graphviz - additional options for vizualization, Ex. color="red"
         """
         self.LineTypes[LineIdx]=kwargs
     def addNodeType(self,NodeIdx,**kwargs):
-        """ Lines(types),Factor
+        """ Lines(types),Factor, graphviz
             Lines=[1,1,1], Factor=1 (simple phi3 vertex)
             Lines=[1,1], Factor=p1*p1 ( phi2 vertex with p^2 in it )
             Lines=[], Factor=1 (External node?)
+            Graphviz - additional options for vizualization, Ex. color="red"
 
         """
         self.NodeTypes[NodeIdx]=kwargs
