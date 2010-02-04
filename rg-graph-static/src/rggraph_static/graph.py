@@ -93,7 +93,8 @@ class Graph:
                            break
                    if tmpType < 0: raise "no such node in model (node=%s)" %idxN
                    
-               self.Nodes[idxN]=Node(Type=tmpType,Lines=tmpLines)    
+               self.Nodes[idxN]=Node(Type=tmpType,Lines=tmpLines) 
+                  
      def SaveAsPNG(self, filename):
          from visualization import Graph2dot
          import pydot
