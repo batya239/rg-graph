@@ -17,12 +17,7 @@ phi3.addNodeType(2,Lines=[1,1],Factor=p1*p1)
 print phi3
 
 G=rggrf.Graph(phi3)
-(moment,Lines)=eval(open("moment").read())
-print moment
-print Lines
-for idxL in Lines:
-    tmpLine=rggrf.Line(1,Lines[idxL][0],Lines[idxL][1],moment[idxL])
-    G.addLine(idxL,tmpLine)
+G.LoadLinesfromFile("moment")
 G.defineNodes({0:0,1:0})
 
 for idxN in G.Nodes:

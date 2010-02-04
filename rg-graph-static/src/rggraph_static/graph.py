@@ -26,7 +26,7 @@ class Node:
      def __init__(self, **kwargs):
           """  в кваргз можно было бы указать например что вершина продифференцированна или тип вершины.
           """
-          self.Lines=kwargs["Lines"]
+          self.Lines=tuple(kwargs["Lines"])
           self.Type=kwargs["Type"]
 
 
@@ -47,6 +47,14 @@ class Graph:
         
      def addLine(self, idx, Line):
           self.Lines[idx] = Line
+          
+     def LoadLinesfromFile(self,filename):
+# подразумевается что пока что линии одного типа!! для линий разного типа должен быть другой формат файла
+ 
+         (moment,Lines)=eval(open("moment").read())
+         for idxL in Lines:
+            tmpLine=Line(1,Lines[idxL][0],Lines[idxL][1],moment[idxL])
+            self.addLine(idxL,tmpLine)
         
     
      def defineNodes(self, dictNodeType):
