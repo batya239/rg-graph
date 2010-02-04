@@ -51,10 +51,9 @@ class Graph:
      def LoadLinesfromFile(self,filename):
 # подразумевается что пока что линии одного типа!! для линий разного типа должен быть другой формат файла
  
-         (moment,Lines)=eval(open("moment").read())
+         (moment,Lines)=eval(open(filename).read())
          for idxL in Lines:
-            tmpLine=Line(1,Lines[idxL][0],Lines[idxL][1],moment[idxL])
-            self.addLine(idxL,tmpLine)
+            self.addLine(idxL,Line(1,Lines[idxL][0],Lines[idxL][1],moment[idxL]))
         
     
      def defineNodes(self, dictNodeType):
