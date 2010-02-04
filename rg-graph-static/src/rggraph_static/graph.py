@@ -45,20 +45,20 @@ class Graph:
          self.subgraphs = list()
          self.model = vModel
         
-     def addLine(self, idx, Line):
+     def AddLine(self, idx, Line):
          self.Lines[idx] = Line
           
          
           
-     def LoadLinesfromFile(self,filename):
+     def LoadLinesFromFile(self,filename):
 # подразумевается что пока что линии одного типа!! для линий разного типа должен быть другой формат файла
  
          (moment,Lines)=eval(open(filename).read())
          for idxL in Lines:
-            self.addLine(idxL,Line(1,Lines[idxL][0],Lines[idxL][1],moment[idxL]))
+            self.AddLine(idxL,Line(1,Lines[idxL][0],Lines[idxL][1],moment[idxL]))
         
     
-     def defineNodes(self, dictNodeType):
+     def DefineNodes(self, dictNodeType):
                                
            tmpNodeLines = dict()
 # пробегаем по всем линиям для каждой вершины строим множество линий входящих/исходящих в нее
@@ -93,7 +93,7 @@ class Graph:
                            break
                    if tmpType < 0: raise "no such node in model (node=%s)" %idxN
                    
-               self.Nodes[idxN]=Node(Type=tmpType,Lines=tmpLines) 
+               self.Nodes[idxN]=Node(Type=tmpType,Lines=tmpLines)     
                   
      def SaveAsPNG(self, filename):
          from visualization import Graph2dot
