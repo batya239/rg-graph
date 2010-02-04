@@ -31,3 +31,7 @@ for idxL in G.Lines:
     print "idxL=",idxL, "type=", G.Lines[idxL].Type, "In=",G.Lines[idxL].In, "Out=",G.Lines[idxL].Out , "Moment=",G.Lines[idxL].Momenta
     
 G.SaveAsPNG("graph.png") 
+print G.ExternalLines
+print G.InternalLines
+print
+print rggrf.subgraph.Find(G, phi3.SubGraphTypes)

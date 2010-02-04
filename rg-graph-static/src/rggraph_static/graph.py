@@ -44,6 +44,8 @@ class Graph:
          self.adjList = dict()
          self.subgraphs = list()
          self.model = vModel
+         self.InternalLines = set([])
+         self.ExternalLines = set([])
         
      def AddLine(self, idx, Line):
          self.Lines[idx] = Line
@@ -53,13 +55,14 @@ class Graph:
      def LoadLinesFromFile(self,filename):
 # подразумевается что пока что линии одного типа!! для линий разного типа должен быть другой формат файла
  
-         (moment,Lines)=eval(open(filename).read())
+         (moment,Lines) = eval(open(filename).read())
          for idxL in Lines:
             self.AddLine(idxL,Line(1,Lines[idxL][0],Lines[idxL][1],moment[idxL]))
         
     
      def DefineNodes(self, dictNodeType):
-                               
+           
+           tmpExternalLines = set([])                    
            tmpNodeLines = dict()
 # пробегаем по всем линиям для каждой вершины строим множество линий входящих/исходящих в нее
 # вместе с типами этих линий  (для определения типа вершины)         
@@ -74,26 +77,29 @@ class Graph:
            for idxN in tmpNodeLines:
                # определяем тип вершины.
                (tmpLines,tmpLineTypes) = zip(*tmpNodeLines[idxN])
-               tmplstLineTypes=list(tmpLineTypes)
-               tmplstLineTypes.sort()
-               if idxN in dictNodeType:
+               tmplstLineTypes = list(tmpLineTypes)
+               tmplstLineTypes.sort() # отсортированный список типов линий в текущей вершине
+               if idxN in dictNodeType: # если эта вершина указана в словаре который подан на вход, то надо проверить правильный ли тип вершины. 
                    tmpType = dictNodeType[idxN]
                    if tmpType <> 0:
-                       tmpNodeTypes=list(self.model.NodeTypes[idxT]["Lines"])
+                       tmpNodeTypes = list(self.model.NodeTypes[idxT]["Lines"])
                        tmpNodeTypes.sort()
                        if tmpNodeTypes == tmplstLineTypes:
                            raise Exception, "invalid node type in dictNodeType"
                else:
                    tmpType = -1
                    for idxT in self.model.NodeTypes:
-                       tmpNodeTypes=list(self.model.NodeTypes[idxT]["Lines"])
+                       tmpNodeTypes = list(self.model.NodeTypes[idxT]["Lines"])
                        tmpNodeTypes.sort()
                        if tmpNodeTypes == tmplstLineTypes:
                            tmpType = idxT
                            break
                    if tmpType < 0: raise "no such node in model (node=%s)" %idxN
-                   
-               self.Nodes[idxN]=Node(Type=tmpType,Lines=tmpLines)     
+              
+               if tmpType == 0: tmpExternalLines=tmpExternalLines | set(tmpLines)     
+               self.Nodes[idxN] = Node(Type = tmpType, Lines = tmpLines)
+           self.ExternalLines=tmpExternalLines
+           self.InternalLines=set(self.Lines.keys())-self.ExternalLines     
                   
      def SaveAsPNG(self, filename):
          from visualization import Graph2dot
