@@ -14,6 +14,7 @@ class Model:
         self.LineTypes=dict()
         self.NodeTypes=dict()
         self.SubGraphTypes=dict()
+        
     def AddLineType(self,LineIdx,**kwargs):
         """ propagator,directed,Graphviz
             propagator="1/(p*p+tau)", directed=0 (simple massive line)
@@ -44,10 +45,8 @@ class Model:
         if SGIdx not in self.SubGraphTypes:
             self.SubGraphTypes[SGIdx]=kwargs
         else:
-            raise Exception, "SubGraphType %s allready defined" %SGIdx
-    
-    
-        
+            raise Exception, "SubGraphType %s allready defined" %SGId  
+                
     def __str__(self):
         res="Model Name = %s\n\nLine types:\n" %self.Name
         for idxL in self.LineTypes:

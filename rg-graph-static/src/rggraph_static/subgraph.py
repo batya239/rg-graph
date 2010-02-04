@@ -98,7 +98,7 @@ def Find(G, SubGraphTypes):
         
     for idxS in subgraphs:
         if FindSubgraphType(G,idxS)>0 and IsSubgraph1PI(G, idxS):
-            print idxS, FindExternalLines(G, idxS), FindSubgraphType(G,idxS), IsSubgraph1PI(G, idxS)
+            #print idxS, FindExternalLines(G, idxS), FindSubgraphType(G,idxS), IsSubgraph1PI(G, idxS)
             res.append(CreateSubgraph(G, idxS))
     return res
             

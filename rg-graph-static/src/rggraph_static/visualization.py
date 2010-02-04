@@ -23,4 +23,5 @@ def Graph2dot(G):
         strdot=strdot+"];\n"
     strdot=strdot+"}\n"
     return strdot
+
     
