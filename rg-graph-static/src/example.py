@@ -27,7 +27,4 @@ for idxN in G.Nodes:
 for idxL in G.Lines:
     print "idxL=",idxL, "type=", G.Lines[idxL].Type, "In=",G.Lines[idxL].In, "Out=",G.Lines[idxL].Out , "Moment=",G.Lines[idxL].Momenta
     
-print rggrf.visualization.Graph2dot(G)
-#gviz=pydot.graph_from_dot_data(rggrf.visualization.Graph2dot(G))
-#gviz.write_png('graph.png', prog='dot')
 G.SaveAsPNG("graph.png") 
