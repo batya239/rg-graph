@@ -46,6 +46,13 @@ class Graph:
          self.model = vModel
          self.InternalLines = set([])
          self.ExternalLines = set([])
+         
+     def __str__(self):
+         res="Model = %s\n Lines: {" %(self.model.Name)
+         for idxL in self.Lines:
+             res=res+" %s: [%s, %s]," %(idxL,self.Lines[idxL].In,self.Lines[idxL].Out)
+         res=res[:-1]+ "}\n"
+         return res
         
      def AddLine(self, idx, Line):
          self.Lines[idx] = Line
@@ -82,10 +89,10 @@ class Graph:
                if idxN in dictNodeType: # если эта вершина указана в словаре который подан на вход, то надо проверить правильный ли тип вершины. 
                    tmpType = dictNodeType[idxN]
                    if tmpType <> 0:
-                       tmpNodeTypes = list(self.model.NodeTypes[idxT]["Lines"])
+                       tmpNodeTypes = list(self.model.NodeTypes[tmpType]["Lines"])
                        tmpNodeTypes.sort()
-                       if tmpNodeTypes == tmplstLineTypes:
-                           raise Exception, "invalid node type in dictNodeType"
+                       if tmpNodeTypes <> tmplstLineTypes:
+                           raise Exception, "invalid node type in dictNodeType model:%s Graph:%s" %(tmpNodeTypes,tmplstLineTypes)
                else:
                    tmpType = -1
                    for idxT in self.model.NodeTypes:
@@ -99,7 +106,13 @@ class Graph:
                if tmpType == 0: tmpExternalLines=tmpExternalLines | set(tmpLines)     
                self.Nodes[idxN] = Node(Type = tmpType, Lines = tmpLines)
            self.ExternalLines=tmpExternalLines
-           self.InternalLines=set(self.Lines.keys())-self.ExternalLines     
+           self.InternalLines=set(self.Lines.keys())-self.ExternalLines
+    
+     def GetNodesTypes(self):
+         res=dict()
+         for idxN in self.Nodes:
+             res[idxN]=self.Nodes[idxN].Type
+         return res
                   
      def SaveAsPNG(self, filename):
          from visualization import Graph2dot

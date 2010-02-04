@@ -34,4 +34,9 @@ G.SaveAsPNG("graph.png")
 print G.ExternalLines
 print G.InternalLines
 print
-print rggrf.subgraph.Find(G, phi3.SubGraphTypes)
+
+print G
+print "subgraphs"
+for i in rggrf.subgraph.Find(G, phi3.SubGraphTypes):
+    print i
+    

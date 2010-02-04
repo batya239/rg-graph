@@ -63,19 +63,45 @@ def Find(G, SubGraphTypes):
                 res=False
         return res
                          
-            
-
+    def CreateSubgraph(G, subgraph):
+        graphNodesTypes=G.GetNodesTypes()
+        subgraphNodes=FindSubgraphNodes(G, subgraph)
+        for idxN in graphNodesTypes:
+            if idxN not in subgraphNodes:
+                graphNodesTypes[idxN]=0  # External node
+                
+        sub=Graph(G.model)
+        for idxL in subgraph:
+            sub.AddLine(idxL, G.Lines[idxL])
+        for idxL in FindExternalLines(G, subgraph):
+            if len(set(G.Lines[idxL].Nodes())&set(subgraph)) == 2: # внешняя линия соединяет вершины принадлежащие подграфу
+                fakeNode=100000
+                idxL1=idxL*1000+1
+                idxL2=idxL*1000+2
+                sub.AddLine(idxL1, Line(G.Lines[idxL].Type, G.Lines[idxL].In,fakeNode,G.Lines[idxL].Momenta))
+                sub.AddLine(idxL2, Line(G.Lines[idxL].Type, fakeNode, G.Lines[idxL].Out,G.Lines[idxL].Momenta))
+                if fakeNode not in graphNodesTypes: graphNodesTypes[fakeNode]=0
+            else:
+                sub.AddLine(idxL, G.Lines[idxL])
+        sub.DefineNodes(graphNodesTypes)
+        return sub
+                 
+                 
+                
+    
+    res=[]
     internallines = list(G.InternalLines)
     internallines.sort()
     subgraphs = []
     for idx in range(2,len(internallines)): # количество внтренних линий подграфа
         subgraphs=subgraphs+[i for i in xuniqueCombinations(internallines,idx)]
-#    print subgraphs
+        
     for idxS in subgraphs:
-#        print idxS
-# количество и типы внешних линий.        
         if FindSubgraphType(G,idxS)>0 and IsSubgraph1PI(G, idxS):
             print idxS, FindExternalLines(G, idxS), FindSubgraphType(G,idxS), IsSubgraph1PI(G, idxS)
+            res.append(CreateSubgraph(G, idxS))
+    return res
+            
         
                 
            
