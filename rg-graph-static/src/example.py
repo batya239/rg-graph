@@ -43,11 +43,11 @@ print
 
 print G
 print "subgraphs"
-n=1
+n = 1
 for i in rggrf.subgraph.Find(G, phi3.SubGraphTypes):
     print "sub %s" %n
     print i
 #    print rggrf.visualization.Graph2dot(i)
     i.SaveAsPNG("sub%s.png" %n)
-    n=n+1
+    n = n + 1
     
