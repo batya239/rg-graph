@@ -46,9 +46,10 @@ class Graph:
          self.model = vModel
          self.InternalLines = set([])
          self.ExternalLines = set([])
+         self.Type=-1
          
      def __str__(self):
-         res="Model = %s\n Lines: {" %(self.model.Name)
+         res="Model = %s , Type = %s \n Lines: {" %(self.model.Name, self.Type)
          for idxL in self.Lines:
              res=res+" %s: [%s, %s]," %(idxL,self.Lines[idxL].In,self.Lines[idxL].Out)
          res=res[:-1]+ "}\n"
@@ -111,6 +112,8 @@ class Graph:
                self.Nodes[idxN] = Node(Type = tmpType, Lines = tmpLines)
            self.ExternalLines=tmpExternalLines
            self.InternalLines=set(self.Lines.keys())-self.ExternalLines
+           import subgraph
+           self.Type=subgraph.FindSubgraphType(self, list(self.InternalLines), self.model.SubGraphTypes)
     
      def GetNodesTypes(self):
          res=dict()

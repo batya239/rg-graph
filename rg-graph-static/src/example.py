@@ -18,12 +18,13 @@ var('p tau p1')
 phi3=rggrf.Model("phi3")
 phi3.AddLineType(1, propagator = 1/(p*p+tau), directed = 0)
 
-phi3.AddNodeType(0,Lines = [],Factor = 1,Graphviz = "color=\"red\"")  #External Node
-phi3.AddNodeType(1,Lines = [1, 1, 1], Factor = 1)
-phi3.AddNodeType(2,Lines = [1, 1], Factor = p1 * p1)
+phi3.AddNodeType(0, Lines = [],Factor = 1,Graphviz = "color=\"red\"")  #External Node
+phi3.AddNodeType(1, Lines = [1, 1, 1], Factor = 1)
+phi3.AddNodeType(2, Lines = [1, 1], Factor = p1 * p1) # nodes from Sigma subgraphs
+phi3.AddNodeType(3, Lines = [1, 1], Factor = 1 )
 
-phi3.AddSubGraphType(1, Lines = [1, 1])
-phi3.AddSubGraphType(2, Lines = [1, 1, 1])
+phi3.AddSubGraphType(1, Lines = [1, 1], dim = 2)
+phi3.AddSubGraphType(2, Lines = [1, 1, 1], dim = 0)
 
 print phi3
 
