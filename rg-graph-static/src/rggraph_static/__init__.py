@@ -4,3 +4,4 @@ from model import Model
 from graph import *
 import visualization
 import subgraph
+import roperation
