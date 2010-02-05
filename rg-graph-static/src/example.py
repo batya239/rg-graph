@@ -29,7 +29,7 @@ print phi3
 
 G = rggrf.Graph(phi3)
 G.LoadLinesFromFile(filename)
-G.DefineNodes({0:0,1:0})
+G.DefineNodes({})
 
 for idxN in G.Nodes:
     print "idxN=",idxN, "type=", G.Nodes[idxN].Type, "Lines=",G.Nodes[idxN].Lines

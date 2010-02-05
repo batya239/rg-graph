@@ -101,7 +101,11 @@ class Graph:
                        if tmpNodeTypes == tmplstLineTypes:
                            tmpType = idxT
                            break
-                   if tmpType < 0: raise "no such node in model (node=%s)" %idxN
+                   if tmpType < 0:
+                       if len(tmplstLineTypes) == 1: #если в вершину входит всего одна линия - она определенно внешняя
+                           tmpType = 0
+                       else:
+                           raise "no such node in model (node=%s , %s)" %(idxN,tmplstLineTypes) 
               
                if tmpType == 0: tmpExternalLines=tmpExternalLines | set(tmpLines)     
                self.Nodes[idxN] = Node(Type = tmpType, Lines = tmpLines)
