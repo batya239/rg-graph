@@ -27,7 +27,9 @@ def Find(G, SubGraphTypes):
             allLines = allLines | set(G.Nodes[idxN].Lines)
         return allLines-set(subgraph)
     
-    def FindSubgraphType(G, subgraph):
+    def FindSubgraphType(G, subgraph, SubGraphTypes = False):
+        if SubGraphTypes == False:
+            SubGraphTypes=G.model.SubGraphTypes
         subtype = []
         subNodes=FindSubgraphNodes(G,subgraph)
         for idxL in FindExternalLines(G, subgraph):
@@ -102,7 +104,7 @@ def Find(G, SubGraphTypes):
         
     for idxS in subgraphs:
 #        print idxS, FindExternalLines(G, idxS), FindSubgraphType(G,idxS), IsSubgraph1PI(G, idxS)
-        if FindSubgraphType(G,idxS)>0 and IsSubgraph1PI(G, idxS):
+        if FindSubgraphType(G,idxS,SubGraphTypes)>0 and IsSubgraph1PI(G, idxS):
             #print idxS, FindExternalLines(G, idxS), FindSubgraphType(G,idxS), IsSubgraph1PI(G, idxS)
             res.append(CreateSubgraph(G, idxS))
     return res

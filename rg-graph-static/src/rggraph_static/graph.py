@@ -117,7 +117,13 @@ class Graph:
          for idxN in self.Nodes:
              res[idxN]=self.Nodes[idxN].Type
          return res
-                  
+     
+     def FindSubgraphs(self,SubGraphTypes = False):
+         import subgraph
+         if SubGraphTypes == False:
+             SubGraphTypes=self.model.SubGraphTypes
+         self.subgraphs=subgraph.Find(self, SubGraphTypes)
+         
      def SaveAsPNG(self, filename):
          from visualization import Graph2dot
          import pydot
