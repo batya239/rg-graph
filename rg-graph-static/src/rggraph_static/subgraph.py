@@ -29,8 +29,11 @@ def Find(G, SubGraphTypes):
     
     def FindSubgraphType(G, subgraph):
         subtype = []
+        subNodes=FindSubgraphNodes(G,subgraph)
         for idxL in FindExternalLines(G, subgraph):
             subtype.append(G.Lines[idxL].Type)
+            if len(set(G.Lines[idxL].Nodes())&set(subNodes)) == 2:
+                subtype.append(G.Lines[idxL].Type)
         subtype.sort()
         res=-1
         for idxST in G.model.SubGraphTypes:
@@ -59,8 +62,8 @@ def Find(G, SubGraphTypes):
                             if len(nodes & set(G.Lines[idxNL].Nodes())) < 2:
                                 nodes = nodes | set(G.Lines[idxNL].Nodes())
                                 flag = 0
-            if nodes <>  FindExternalLines(G, subgraph):
-                res=False
+            if nodes <>  FindSubgraphNodes(G, subgraph):
+                res = False
         return res
                          
     def CreateSubgraph(G, subgraph):
@@ -73,8 +76,9 @@ def Find(G, SubGraphTypes):
         sub=Graph(G.model)
         for idxL in subgraph:
             sub.AddLine(idxL, G.Lines[idxL])
+#        print subgraph, subgraphNodes, FindExternalLines(G, subgraph)
         for idxL in FindExternalLines(G, subgraph):
-            if len(set(G.Lines[idxL].Nodes())&set(subgraph)) == 2: # внешняя линия соединяет вершины принадлежащие подграфу
+            if len(set(G.Lines[idxL].Nodes())&set(subgraphNodes)) == 2: # внешняя линия соединяет вершины принадлежащие подграфу
                 fakeNode=100000
                 idxL1=idxL*1000+1
                 idxL2=idxL*1000+2
@@ -97,6 +101,7 @@ def Find(G, SubGraphTypes):
         subgraphs=subgraphs+[i for i in xuniqueCombinations(internallines,idx)]
         
     for idxS in subgraphs:
+#        print idxS, FindExternalLines(G, idxS), FindSubgraphType(G,idxS), IsSubgraph1PI(G, idxS)
         if FindSubgraphType(G,idxS)>0 and IsSubgraph1PI(G, idxS):
             #print idxS, FindExternalLines(G, idxS), FindSubgraphType(G,idxS), IsSubgraph1PI(G, idxS)
             res.append(CreateSubgraph(G, idxS))
