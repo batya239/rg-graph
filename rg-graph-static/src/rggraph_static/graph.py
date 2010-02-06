@@ -41,7 +41,7 @@ class Graph:
     def __init__(self, vModel):
         self.Lines = dict()
         self.Nodes = dict()
-        self.adjList = dict()
+#        self.adjList = dict()
         self.subgraphs = list()
         self.model = vModel
         self.InternalLines = set([])
