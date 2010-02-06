@@ -13,17 +13,26 @@ class TestNickel(unittest.TestCase):
 
 class TestStep(unittest.TestCase):
   def compareSteps(self, l, r):
+    self.assertEqual(l.curr_node, r.curr_node)
+    self.assertEqual(l.free_node, r.free_node)
     self.assertEqual(l.edges, r.edges)
     self.assertEqual(l.nickel_list, r.nickel_list)
     self.assertEqual(l.node_map, r.node_map)
-    self.assertEqual(l.curr_node, r.curr_node)
-    self.assertEqual(l.free_node, r.free_node)
 
   def testExpand(self):
-    ss = nickel.Step([[0,10]], [], {}, 0, 1)
-    l = list(ss.Expand())
+    input = nickel.Step([[-1, 0], [0, 10]], [], {}, 0, 1)
+    output = nickel.Step([], [[-1, 1]], {10: 1}, 1, 2)
+    l = list(input.Expand())
     self.assertEqual(len(l), 1)
-    self.compareSteps(l[0], nickel.Step([], [[1]], {10: 1}, 1, 2))
+    self.compareSteps(l[0], output)
+
+    input = nickel.Step([[-1, 1], [1, 2], [1, 13], [1, 14]], [[1, 2]],
+                        {10: 0, 11: 1, 12: 2}, 1, 3)
+    output = nickel.Step([], [[1, 2], [-1, 2, 3, 4]],
+                         {10: 0, 11: 1, 12: 2, 13: 3, 14: 4}, 2, 5)
+    l = list(input.Expand())
+    self.assertEqual(len(l), 2)
+    self.compareSteps(l[0], output)
 
 
 class TestUtil(unittest.TestCase):
