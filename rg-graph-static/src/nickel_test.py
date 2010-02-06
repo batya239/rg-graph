@@ -13,6 +13,11 @@ class TestNickel(unittest.TestCase):
     self.assertEqual(nickel.Nickel(g).GetString(), 'ee1-2-')
 
 
+class TestCannon(unittest.TestCase):
+  def testInit(self):
+    c = nickel.Cannon([[-1,0]])
+
+
 class TestStep(unittest.TestCase):
   def compareSteps(self, l, r):
     self.assertEqual(l.curr_node, r.curr_node)
@@ -35,7 +40,13 @@ class TestStep(unittest.TestCase):
     l = list(input.Expand())
     self.assertEqual(len(l), 2)
     self.compareSteps(l[0], output)
-    
+
+  def testCmp(self):
+    input = nickel.Step([[-1, 0], [0, 10]], [], {}, 0, 1)
+    output = nickel.Step([], [[-1, 1]], {10: 1}, 1, 2)
+    self.assertEqual(input, output)
+
+
 
 class TestUtil(unittest.TestCase):
   def testAdjacentNodes(self):

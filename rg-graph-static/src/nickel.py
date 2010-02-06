@@ -26,14 +26,41 @@ class Nickel(object):
     nodes = [str(self.node_to_char.get(n, n)) for n in nodes]
     return ''.join(nodes)
 
+class Cannon(object):
+  def __init__(self, edges):
+    self.orig = edges
+    offset = max(100, max(sum(edges, [])) + 1)
+    def shift(n):
+      return n + offset if n >= 0 else -1
+    self.edges = [[shift(n), shift(m)] for [n, m] in edges]
+
+    boundary_nodes = AdjacentNodes(-1, edges)
+    steps = []
+    for bound in boundary_nodes:
+      steps.append(Step(MapNodes2({bound: 0}, self.edges),
+                        [], {bound: 0}, 0, 1))
+    self.steps = steps
+
+  def DoStep():
+    steps = [[s.Expand()] for s in self.steps]
+    steps = sum(steps, [])
+    min = min(steps)
+    self.steps = [s for s in steps if s == min]
 
 class Step(object):
   def __init__(self, edges, nickel_list, node_map, curr_node, free_node):
     self.edges = edges
     self.nickel_list = nickel_list
+    for nn in self.nickel_list:
+      nn.sort()
     self.node_map = node_map
     self.curr_node = curr_node
     self.free_node = free_node
+
+  def __cmp__(self, other):
+    # Shorten the long list to not let unexpanded one win.
+    min_len = min(len(self.nickel_list), len(other.nickel_list))
+    return cmp(self.nickel_list[:min_len], other.nickel_list[:min_len])
 
   def Expand(self):
     nodes = AdjacentNodes(self.curr_node, self.edges)
@@ -43,12 +70,9 @@ class Step(object):
     free_nodes = range(self.free_node, self.free_node + len(new_nodes))
     for perm in Permutations(free_nodes):
       node_map = dict(zip(new_nodes, perm))
-      def ex(n):
-        return node_map.get(n, n)
-
-      expanded_nodes = [ex(n) for n in nodes]
+      expanded_nodes = MapNodes1(node_map, nodes)
       expanded_nodes.sort()
-      edges = [[ex(n), ex(m)] for [n, m] in edge_rest]
+      edges = MapNodes2(node_map, edge_rest)
       node_map.update(self.node_map)
       yield Step(edges, self.nickel_list + [expanded_nodes],
                  node_map, self.curr_node + 1,
@@ -80,6 +104,14 @@ def Permutations(seq):
   """Generator of all the permutations of the given sequence.
   """
   return Combinations(seq, len(seq))
+
+
+def MapNodes1(dict, list_of_nodes):
+  return [dict.get(n, n) for n in list_of_nodes]
+
+
+def MapNodes2(dict, list_of_lists):
+  return [MapNodes1(dict, x) for x in list_of_lists]
 
 
 if __name__ == "__main__":
