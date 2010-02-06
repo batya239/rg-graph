@@ -45,7 +45,7 @@ class Model:
         if SGIdx not in self.SubGraphTypes:
             self.SubGraphTypes[SGIdx]=kwargs
         else:
-            raise Exception, "SubGraphType %s allready defined" %SGId  
+            raise Exception, "SubGraphType %s allready defined" %SGIdx  
                 
     def __str__(self):
         res="Model Name = %s\n\nLine types:\n" %self.Name
