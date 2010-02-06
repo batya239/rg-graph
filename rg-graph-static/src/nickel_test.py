@@ -7,8 +7,10 @@ class TestNickel(unittest.TestCase):
   def testGetList(self):
     g = [[0, -1], [-1, 0]]
     self.assertEqual(nickel.Nickel(g).GetList(), [[-1, -1]])
+    self.assertEqual(nickel.Nickel(g).GetString(), 'ee-')
     g.extend([[2, 1], [1, 0]])
-    self.assertEqual(nickel.Nickel(g).GetList(), [[-1, -1, 1],[2]])
+    self.assertEqual(nickel.Nickel(g).GetList(), [[-1, -1, 1], [2]])
+    self.assertEqual(nickel.Nickel(g).GetString(), 'ee1-2-')
 
 
 class TestStep(unittest.TestCase):
@@ -33,7 +35,7 @@ class TestStep(unittest.TestCase):
     l = list(input.Expand())
     self.assertEqual(len(l), 2)
     self.compareSteps(l[0], output)
-
+    
 
 class TestUtil(unittest.TestCase):
   def testAdjacentNodes(self):

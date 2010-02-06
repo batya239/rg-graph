@@ -3,37 +3,28 @@
 class Nickel(object):
   """Class to generate graph notations by Nickel.
   """
-  def __init__(self, graph):
-    self.graph = graph
-    self.end_mapped = max(sum(graph, [])) + 1
-
-  def IsExternal(self, vertex):
-    return vertex < 0
-
-  def IsInternal(self, vertex):
-    return vertex >= 0 and vertex < self.end_mapped
-
-  def IsMapped(self, vertex):
-    return vertex < self.end_mapped
-
-  def SortEdges(self, g):
-    for e in g:
-      e.sort(key=lambda v: v if not self.IsExternal(v) else v + 1000)
-    g.sort()
-
-  def MaxInternal(self, g):
-    return max(sum(g, []), key=lambda v: v if self.IsMapped(v) else v - 1000)
+  def __init__(self, edges):
+    self.edges = edges
+    self.node_to_char = {-2: '-', -1: 'e'}
 
   def GetList(self):
     """Generates list signature of the diagram"""
-    maxv = self.MaxInternal(self.graph)
-    nick = [[] for i in range(max(1, maxv))]
-    for e in self.graph:
-      se = sorted(e, key=lambda v: v if not self.IsExternal(v) else v + 1000)
-      nick[se[0]].append(se[1])
-    for vv in nick:
-      vv.sort()
-    return nick
+    max_node = max(sum(self.edges, []))
+    nodes = [[] for i in range(max(1, max_node))]
+    for e in self.edges:
+      [s, d] = sorted(e, key=lambda n: n if n >= 0 else 1000)
+      nodes[s].append(d)
+    for nn in nodes:
+      nn.sort()
+    return nodes
+
+  def GetString(self):
+    nodes = self.GetList()
+    for nn in nodes:
+      nn.append(-2)
+    nodes = sum(nodes, [])
+    nodes = [str(self.node_to_char.get(n, n)) for n in nodes]
+    return ''.join(nodes)
 
 
 class Step(object):
