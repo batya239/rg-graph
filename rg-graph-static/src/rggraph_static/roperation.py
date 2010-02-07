@@ -1,6 +1,41 @@
 #!/usr/bin/python
 # -*- coding: utf8
 
+def ExtractSubgraph( G, SubgraphList ):
+    import copy
+    from graph import *
+    if len( SubgraphList ) == 0:
+        return ( copy.deepcopy( G ), [] )
+    CTGLines = set( G.Lines.keys() )
+    MapReducedNodes = dict()
+    NodeTypes = G.GetNodeTypes()
+    CurNodeidx=1000  # номер вершины на который бузем заменять текущие вершины подграфа.
+    for idxS in SubgraphList:
+        while ( CurNodeidx in NodeTypes):
+            CurNodeidx=CurNodeidx+1
+        NodeTypes[ CurNodeidx ] = G.model.K_nodetypeR1[ G.subgraphs[idxS].Type ]
+
+        # не факт что K_nodetype хорошее решение.
+        
+        CTGLines = CTGLines - G.subgraphs[idxS].InternalLines
+        for idxN in G.subgraphs[idxS].InternalNodes:
+            MapReducedNodes[idxN] = CurNodeidx
+            
+    CTGraph=Graph(G.model)
+    for idxL in CTGLines:
+        if G.Lines[idxL].In in MapReducedNodes:
+            In = MapReducedNodes[ G.Lines[idxL].In ] 
+        if G.Lines[idxL].Out in MapReducedNodes:
+            Out = MapReducedNodes[ G.Lines[idxL].Out ]
+        CTGraph.AddLine( idxL, Line( G.Lines[idxL].Type, 
+                                     In, Out, G.Lines[idxL].Momenta ) )
+    CTGraph.DefineNodes(NodeTypes)
+    CTGraph.FindSubgraphs()
+    return CTGraph    
+        
+    
+    
+
 
 class R1Term:
     """ CTGraph - counterterm graph (Graph class)
@@ -9,21 +44,28 @@ class R1Term:
     """
     def __init__( self, G, SubgraphList ):
         ( self.CTGraph, self.SubgraphMap ) = G.ExtractSubgraphs( SubgraphList )
-        self.subgraphs=tuple( [ G.subgraphs[idxS] for idxS in SubgraphList ] )
+        self.subgraphs = tuple( [ G.subgraphs[idxS] for idxS in SubgraphList ] )
 
 
 class R1:
     def __init__( self, G ):
 
         def IsIntersect( G, SubgraphList ):
-            res = True
+            res = False
             lineset=set([])
+            intSubNodes=set([])
             for idx in SubgraphList:
-                if len( lineset & G.subgraphs[idx].InternalLines) == 0:
+                
+                if len( intSubNodes & G.subgraph[idx].InternalNodes ) == 0: # поиск общих вершин
+                    intSubNodes = intSubNodes | G.subgraph[idx].InternalNodes
+                else:
+                    return True
+
+                if len( lineset & G.subgraphs[idx].InternalLines) == 0: # поиск общих линий
                     lineset = lineset | G.subgraphs[idx].InternalLines
                 else:
-                    res = False
-                    break
+                    return True
+                                    
             return res
 
         def xuniqueCombinations( items, n):
