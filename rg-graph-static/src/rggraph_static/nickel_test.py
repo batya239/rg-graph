@@ -6,19 +6,19 @@ import unittest
 class TestNickel(unittest.TestCase):
   def testNickelFromEdges(self):
     e = nickel.Nickel(edges=[[0, -1], [-1, 0]])
-    self.assertEqual(e.nodes, [[-1, -1]])
+    self.assertEqual(e.nickel, [[-1, -1]])
     self.assertEqual(e.string, 'ee-')
 
     s = nickel.Nickel(string='ee-')
-    self.assertEqual(s.nodes, [[-1, -1]])
+    self.assertEqual(s.nickel, [[-1, -1]])
     self.assertEqual(s.edges, e.edges)
 
     ee = nickel.Nickel(edges=[[0, -1], [-1, 0], [2, 1], [1, 0]])
-    self.assertEqual(ee.nodes, [[-1, -1, 1], [2]])
+    self.assertEqual(ee.nickel, [[-1, -1, 1], [2]])
     self.assertEqual(ee.string, 'ee1-2-')
 
     ss = nickel.Nickel(string='ee1-2-')
-    self.assertEqual(ss.nodes, [[-1, -1, 1], [2]])
+    self.assertEqual(ss.nickel, [[-1, -1, 1], [2]])
     self.assertEqual(ss.edges, ee.edges)
 
 
@@ -82,7 +82,7 @@ class TestCanonicalize(unittest.TestCase):
   def testCanon7(self):
     c = nickel.Canonicalize([[-1, 2], [-1, 3], [2, 3], [2, 4], [3, 5], [4, 6], 
                              [4, 7], [5, 6], [5, 7], [6, 8], [7, 9], [8, 9], [8, 9]])
-    print c.nickel, c.num_symmetries, c.is_valid
+#    print c.nickel, c.num_symmetries, c.is_valid
     self.assertEqual(c.num_symmetries, 4)
     self.assertEqual(c.nickel, [[-1, 1, 2], [-1, 3], [4, 5], [4, 5], [6], [7], [7, 7], []])
     self.assertTrue(c.is_valid)

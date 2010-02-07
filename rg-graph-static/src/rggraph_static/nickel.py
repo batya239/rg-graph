@@ -10,10 +10,10 @@ class Nickel(object):
   >>> n.string
   'e1-e-'
   """
-  def __init__(self, edges=None, nodes=None, string=None):
+  def __init__(self, edges=None, nickel=None, string=None):
     self.node_to_char = {-2: '-', -1: 'e'}
     self.edges = edges
-    self.nodes = nodes
+    self.nickel = nickel
     self.string = string
 
     if self.edges:
@@ -21,61 +21,61 @@ class Nickel(object):
         e.sort()
       self.edges.sort()
 
-    if self.nodes:
-      for nn in self.nodes:
+    if self.nickel:
+      for nn in self.nickel:
         nn.sort()
 
     if edges != None:
       self.edges = edges
-      self.nodes = self.NodesFromEdges(edges)
-      self.string = self.StringFromNodes(self.nodes)
-    elif nodes != None:
-      self.edges = self.EdgesFromNodes(nodes)
-      self.nodes = nodes
-      self.string = self.StringFromNodes(nodes)
+      self.nickel = self.NickelFromEdges(edges)
+      self.string = self.StringFromNickel(self.nickel)
+    elif nickel != None:
+      self.edges = self.EdgesFromNickel(nickel)
+      self.nickel = nickel
+      self.string = self.StringFromNickel(nickel)
     elif string != None:
       self.string = string
-      self.nodes = self.NodesFromString(string)
-      self.edges = self.EdgesFromNodes(self.nodes)
+      self.nickel = self.NickelFromString(string)
+      self.edges = self.EdgesFromNickel(self.nickel)
 
 
-  def NodesFromEdges(self, edges):
+  def NickelFromEdges(self, edges):
     max_node = max(sum(edges, []))
-    nodes = [[] for i in range(max(1, max_node))]
+    nickel = [[] for i in range(max(1, max_node))]
     for e in edges:
       [s, d] = sorted(e, key=lambda n: n if n >= 0 else 1000)
-      nodes[s].append(d)
-    for nn in nodes:
+      nickel[s].append(d)
+    for nn in nickel:
       nn.sort()
-    return nodes
+    return nickel
 
-  def EdgesFromNodes(self, nodes):
+  def EdgesFromNickel(self, nickel):
     edges = []
-    for n in range(len(nodes)):
-      for m in nodes[n]:
+    for n in range(len(nickel)):
+      for m in nickel[n]:
         edges.append(sorted([n, m]))
     edges.sort()
     return edges
 
-  def StringFromNodes(self, nodes):
-    temp = [nn + [-2] for nn in nodes]
+  def StringFromNickel(self, nickel):
+    temp = [nn + [-2] for nn in nickel]
     temp = sum(temp, [])
     temp = [str(self.node_to_char.get(n, n)) for n in temp]
     return ''.join(temp)
 
-  def NodesFromString(self, string):
+  def NickelFromString(self, string):
     char_to_node = dict(zip(self.node_to_char.values(),
                             self.node_to_char.keys()))
-    flat_nodes = [int(char_to_node.get(c, c)) for c in string]
-    nodes = []
+    flat_nickel = [int(char_to_node.get(c, c)) for c in string]
+    nickel = []
     accum = []
-    for n in flat_nodes:
+    for n in flat_nickel:
       if n != -2:
         accum.append(n)
       else:
-        nodes.append(accum)
+        nickel.append(accum)
         accum = []
-    return nodes
+    return nickel
 
 
 class Canonicalize(object):
@@ -124,6 +124,9 @@ class Canonicalize(object):
       for key, value in state.node_map.items():
         curr_node_map[key - self.offset] = value
       self.node_maps.append(curr_node_map)
+      
+  def __str__(self):
+      return Nickel(nickel=self.nickel).string
 
   def InitStates(self, edges):
     """Creates all possible initial states for node 0."""

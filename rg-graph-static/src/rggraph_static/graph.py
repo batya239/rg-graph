@@ -49,7 +49,7 @@ class Graph:
         self.ExternalLines = set([])
         self.InternalNodes = set([]) # nodes with types >0
         self.Type=-1
-        self.Nikel=list()
+        self.nickel=None
         
     def __str__(self):
         res="Model = %s , Type = %s \n Lines: {" %(self.model.Name, self.Type)
@@ -143,7 +143,7 @@ class Graph:
              else:
                  Out = self.Lines[idxL].Out
              edges.append([In, Out])
-        return nickel.Canonicalize(edges).nickel
+        self.nickel=nickel.Canonicalize(edges)
         
     def FindSubgraphs(self,SubGraphTypes = False):
         import subgraph
