@@ -4,22 +4,66 @@ import nickel
 import unittest
 
 class TestNickel(unittest.TestCase):
-  def testGetList(self):
-    g = [[0, -1], [-1, 0]]
-    self.assertEqual(nickel.Nickel(g).GetList(), [[-1, -1]])
-    self.assertEqual(nickel.Nickel(g).GetString(), 'ee-')
-    g.extend([[2, 1], [1, 0]])
-    self.assertEqual(nickel.Nickel(g).GetList(), [[-1, -1, 1], [2]])
-    self.assertEqual(nickel.Nickel(g).GetString(), 'ee1-2-')
+  def testNickelFromEdges(self):
+    e = nickel.Nickel(edges=[[0, -1], [-1, 0]])
+    self.assertEqual(e.nodes, [[-1, -1]])
+    self.assertEqual(e.string, 'ee-')
+
+    s = nickel.Nickel(string='ee-')
+    self.assertEqual(s.nodes, [[-1, -1]])
+    self.assertEqual(s.edges, e.edges)
+
+    ee = nickel.Nickel(edges=[[0, -1], [-1, 0], [2, 1], [1, 0]])
+    self.assertEqual(ee.nodes, [[-1, -1, 1], [2]])
+    self.assertEqual(ee.string, 'ee1-2-')
+
+    ss = nickel.Nickel(string='ee1-2-')
+    self.assertEqual(ss.nodes, [[-1, -1, 1], [2]])
+    self.assertEqual(ss.edges, ee.edges)
 
 
-class TestCannon(unittest.TestCase):
+class TestCanonicalize(unittest.TestCase):
   def testInit(self):
-    c = nickel.Cannon([[-1,0]])
+    c = nickel.Canonicalize([[-1, 0]])
+    init = c.InitStates([[-1, 10]])
+    self.assertEqual(len(init), 1)
+    self.assertEqual(len(c.InitStates([[-1, 10], [10, 11], [11, -1]])), 2)
+
+  def testCanon(self):
+    c = nickel.Canonicalize([[-1, 0]])
+    self.assertEqual(c.num_symmetries, 1)
+    self.assertEqual(c.nickel, [[-1]])
+    self.assertTrue(c.is_valid)
+
+  def testCanon1(self):
+    c = nickel.Canonicalize([[-1, 0], [-1, 0]])
+    self.assertEqual(c.num_symmetries, 1)
+    self.assertEqual(c.nickel, [[-1, -1]])
+    self.assertTrue(c.is_valid)
+
+  def testCanon2(self):
+    c = nickel.Canonicalize([[-1, 10], [-1, 11], [10, 11]])
+    self.assertEqual(c.nickel, [[-1, 1], [-1]])
+    self.assertEqual(c.num_symmetries, 2)
+    self.assertEqual(c.node_maps, [{10: 0, 11: 1}, {10: 1, 11: 0}])
+    self.assertTrue(c.is_valid)
+
+  def testCanon3(self):
+    c = nickel.Canonicalize([[-1, 11], [-1, 11], [-1, 10], [10, 11]])
+    self.assertEqual(c.num_symmetries, 1)
+    self.assertEqual(c.nickel, [[-1, -1, 1], [-1]])
+    self.assertTrue(c.is_valid)
+
+  def testCanon4(self):
+    c = nickel.Canonicalize([[-1, 0], [0, 1], [0, 2], [1, 2], [1, 3], [2, 3],
+                            [3, -1]])
+    self.assertEqual(c.num_symmetries, 4)
+    self.assertEqual(c.nickel, [[-1, 1, 2], [2, 3], [3], [-1]])
+    self.assertTrue(c.is_valid)
 
 
-class TestStep(unittest.TestCase):
-  def compareSteps(self, l, r):
+class TestExpander(unittest.TestCase):
+  def compareExpanders(self, l, r):
     self.assertEqual(l.curr_node, r.curr_node)
     self.assertEqual(l.free_node, r.free_node)
     self.assertEqual(l.edges, r.edges)
@@ -27,23 +71,29 @@ class TestStep(unittest.TestCase):
     self.assertEqual(l.node_map, r.node_map)
 
   def testExpand(self):
-    input = nickel.Step([[-1, 0], [0, 10]], [], {}, 0, 1)
-    output = nickel.Step([], [[-1, 1]], {10: 1}, 1, 2)
+    input = nickel.Expander([[-1, 0]], [], {}, 0, 1)
+    output = nickel.Expander([], [[-1]], {}, 1, 1)
     l = list(input.Expand())
     self.assertEqual(len(l), 1)
-    self.compareSteps(l[0], output)
+    self.compareExpanders(l[0], output)
 
-    input = nickel.Step([[-1, 1], [1, 2], [1, 13], [1, 14]], [[1, 2]],
+  def testExpand2(self):
+    input = nickel.Expander([[-1, 1], [1, 2], [1, 13], [1, 14]], [[1, 2]],
                         {10: 0, 11: 1, 12: 2}, 1, 3)
-    output = nickel.Step([], [[1, 2], [-1, 2, 3, 4]],
+    output = nickel.Expander([], [[1, 2], [-1, 2, 3, 4]],
                          {10: 0, 11: 1, 12: 2, 13: 3, 14: 4}, 2, 5)
     l = list(input.Expand())
     self.assertEqual(len(l), 2)
-    self.compareSteps(l[0], output)
+    self.compareExpanders(l[0], output)
+
+  def testStopExpand(self):
+    output = nickel.Expander([], [[-1, 1]], {10: 1}, 1, 2)
+    l = list(output.Expand())
+    self.assertEqual(l[0].nickel_list, [[-1, 1], []])
 
   def testCmp(self):
-    input = nickel.Step([[-1, 0], [0, 10]], [], {}, 0, 1)
-    output = nickel.Step([], [[-1, 1]], {10: 1}, 1, 2)
+    input = nickel.Expander([[-1, 0], [0, 10]], [], {}, 0, 1)
+    output = nickel.Expander([], [[-1, 1]], {10: 1}, 1, 2)
     self.assertEqual(input, output)
 
 
@@ -52,6 +102,7 @@ class TestUtil(unittest.TestCase):
   def testAdjacentNodes(self):
     self.assertEqual(nickel.AdjacentNodes(1, [[1, 0], [0, 2], [2,1]]),
                      [0, 2])
+    self.assertEqual(nickel.AdjacentNodes(0, [[-1, 0]]), [-1])
 
   def testCombinations(self):
     xcomb = nickel.Combinations
