@@ -38,7 +38,6 @@ class Nickel(object):
       self.nickel = self.NickelFromString(string)
       self.edges = self.EdgesFromNickel(self.nickel)
 
-
   def NickelFromEdges(self, edges):
     max_node = max(sum(edges, []))
     nickel = [[] for i in range(max(1, max_node))]
