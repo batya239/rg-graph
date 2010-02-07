@@ -26,33 +26,62 @@ class Nickel(object):
     nodes = [str(self.node_to_char.get(n, n)) for n in nodes]
     return ''.join(nodes)
 
-class Cannon(object):
+class Canonicalize(object):
   def __init__(self, edges):
+    # TODO: Check that there is an external node.
+    # TODO: Check that the graph is connected.
+    # TODO: Raise exception?
     self.orig = edges
-    offset = max(100, max(sum(edges, [])) + 1)
+
+    self.num_internal_nodes = 0
+    for n in set(sum(edges, [])):
+      if n >= 0:
+        self.num_internal_nodes += 1
+
+    # Shift original nodes to free space for canonical numbers.
+    self.offset = max(100, self.num_internal_nodes)
     def shift(n):
-      return n + offset if n >= 0 else -1
+      return n + self.offset if n >= 0 else -1
     self.edges = [[shift(n), shift(m)] for [n, m] in edges]
 
+    # Do the work.
+    self.curr_states = self.InitStates(self.edges)
+    for _ in range(self.num_internal_nodes):
+      self.curr_states = self.DoExpand(self.curr_states)
+
+    # Collect results.
+    self.node_maps = [s.node_map for s in self.curr_states]
+    nickels = [s.nickel_list for s in self.curr_states]
+    self.num_symmetries = len(nickels)
+    self.nickel = min(nickels)
+
+    is_valid = self.nickel == max(nickels)
+    self.is_valid = is_valid and (len(sum(self.nickel, [])) == len(self.edges))
+
+  def InitStates(self, edges):
+    """Creates all possible initial states for node 0."""
     boundary_nodes = AdjacentNodes(-1, edges)
-    steps = []
+    states = []
     for bound in boundary_nodes:
-      steps.append(Step(MapNodes2({bound: 0}, self.edges),
-                        [], {bound: 0}, 0, 1))
-    self.steps = steps
+      states.append(Expander(MapNodes2({bound: 0}, self.edges),
+                             [], {bound: 0}, 0, 1))
+    return states
 
-  def DoStep():
-    steps = [[s.Expand()] for s in self.steps]
-    steps = sum(steps, [])
-    min = min(steps)
-    self.steps = [s for s in steps if s == min]
+  def DoExpand(self, curr_states):
+    states = [list(s.Expand()) for s in curr_states]
+    states = sum(states, [])
+    minimum = min(states)
+    return [s for s in states if s == minimum]
 
-class Step(object):
+
+class Expander(object):
+  """A helper class for Canonicalize.
+
+  Eats edges adjacent to already canonicalized nodes and canonicalizes them.
+  """
   def __init__(self, edges, nickel_list, node_map, curr_node, free_node):
     self.edges = edges
-    self.nickel_list = nickel_list
-    for nn in self.nickel_list:
-      nn.sort()
+    self.nickel_list = nickel_list  # Nested lists must be sorted.
     self.node_map = node_map
     self.curr_node = curr_node
     self.free_node = free_node
@@ -74,9 +103,9 @@ class Step(object):
       expanded_nodes.sort()
       edges = MapNodes2(node_map, edge_rest)
       node_map.update(self.node_map)
-      yield Step(edges, self.nickel_list + [expanded_nodes],
-                 node_map, self.curr_node + 1,
-                 self.free_node + len(new_nodes))
+      yield Expander(edges, self.nickel_list + [expanded_nodes],
+                     node_map, self.curr_node + 1,
+                     self.free_node + len(new_nodes))
 
 
 def AdjacentNodes(node, edges):
