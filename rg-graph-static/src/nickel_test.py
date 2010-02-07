@@ -53,6 +53,13 @@ class TestCanonicalize(unittest.TestCase):
     self.assertEqual(c.nickel, [[-1, -1, 1], [-1]])
     self.assertTrue(c.is_valid)
 
+  def testCanon4(self):
+    c = nickel.Canonicalize([[-1, 0], [0, 1], [0, 2], [1, 2], [1, 3], [2, 3],
+                            [3, -1]])
+    self.assertEqual(c.num_symmetries, 4)
+    self.assertEqual(c.nickel, [[-1, 1, 2], [2, 3], [3], [-1]])
+    self.assertTrue(c.is_valid)
+
 
 class TestExpander(unittest.TestCase):
   def compareExpanders(self, l, r):
