@@ -20,7 +20,7 @@ class Nickel(object):
       for e in self.edges:
         e.sort()
       self.edges.sort()
-      
+
     if self.nodes:
       for nn in self.nodes:
         nn.sort()
@@ -77,7 +77,17 @@ class Nickel(object):
         accum = []
     return nodes
 
+
 class Canonicalize(object):
+  """Class to find canonical node maping and to give Nickel node list for it.
+
+  Negative nodes assumed to be external. Non-negative ones - internal.
+  Usage:
+  c = nickel.Canonicalize([[-1, 11], [-1, 11], [-1, 10], [10, 11]])
+  assertTrue(c.is_valid)
+  assertEqual(c.nickel, [[-1, -1, 1], [-1]])
+  assertEqual(c.num_symmetries, 1)
+  """
   def __init__(self, edges):
     # TODO: Check that there is an external node.
     # TODO: Check that the graph is connected.
