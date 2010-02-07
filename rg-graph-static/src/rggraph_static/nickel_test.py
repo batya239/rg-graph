@@ -79,9 +79,9 @@ class TestExpander(unittest.TestCase):
 
   def testExpand2(self):
     input = nickel.Expander([[-1, 1], [1, 2], [1, 13], [1, 14]], [[1, 2]],
-                        {10: 0, 11: 1, 12: 2}, 1, 3)
+                            {10: 0, 11: 1, 12: 2}, 1, 3)
     output = nickel.Expander([], [[1, 2], [-1, 2, 3, 4]],
-                         {10: 0, 11: 1, 12: 2, 13: 3, 14: 4}, 2, 5)
+                             {10: 0, 11: 1, 12: 2, 13: 3, 14: 4}, 2, 5)
     l = list(input.Expand())
     self.assertEqual(len(l), 2)
     self.compareExpanders(l[0], output)
