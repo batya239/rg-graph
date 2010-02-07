@@ -2,6 +2,7 @@
 
 from model import Model
 from graph import *
-import visualization
-import subgraph
+import nickel
 import roperation
+import subgraph
+import visualization
