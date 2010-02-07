@@ -48,6 +48,7 @@ class Graph:
         self.ExternalLines = set([])
         self.InternalNodes = set([]) # nodes with types >0
         self.Type=-1
+        self.Nikel=list()
         
     def __str__(self):
         res="Model = %s , Type = %s \n Lines: {" %(self.model.Name, self.Type)
@@ -128,6 +129,17 @@ class Graph:
         for idxN in self.Nodes:
             res[idxN]=self.Nodes[idxN].Type
         return res
+    
+    def GenerateNikel(self):
+        edges=[]
+        for idxL in self.Lines:
+             if self.Nodes[self.Lines[idxL].In].Type == 0:  In = -1
+             else: In = self.Lines[idxL].In
+             if self.Nodes[self.Lines[idxL].Out].Type == 0:  In = -1
+             else: Out = self.Lines[idxL].Out
+             edges.append([In,Out])
+        print edges
+
      
     def FindSubgraphs(self,SubGraphTypes = False):
         import subgraph

@@ -61,5 +61,7 @@ for i in range(len(r1.terms)):
     print "\t term subgraphs:"
     for j in r1.terms[i].subgraphs:
         print "\t %s" %j
+        
+G.GenerateNikel()
     
     
