@@ -9,7 +9,7 @@ def ExtractSubgraph( G, SubgraphList ):
     CTGLines = set( G.Lines.keys() )
     MapReducedNodes = dict()
     NodeTypes = G.GetNodeTypes()
-    CurNodeidx=1000  # номер вершины на который бузем заменять текущие вершины подграфа.
+    CurNodeidx=1000  # номер вершины на который будем заменять вершины текущего  подграфа.
     for idxS in SubgraphList:
         while ( CurNodeidx in NodeTypes):
             CurNodeidx=CurNodeidx+1
