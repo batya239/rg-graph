@@ -46,6 +46,7 @@ class Graph:
         self.model = vModel
         self.InternalLines = set([])
         self.ExternalLines = set([])
+        self.InternalNodes = set([]) # nodes with types >0
         self.Type=-1
         
     def __str__(self):
@@ -69,7 +70,8 @@ class Graph:
         
     
     def DefineNodes(self, dictNodeType):
-           
+        
+        tmpIntNodes=set([])   
         tmpExternalLines = set([])                    
         tmpNodeLines = dict()
 # пробегаем по всем линиям для каждой вершины строим множество линий входящих/исходящих в нее
@@ -108,12 +110,18 @@ class Graph:
                     else:
                         raise "no such node in model (node=%s , %s)" %(idxN,tmplstLineTypes) 
              
-            if tmpType == 0: tmpExternalLines=tmpExternalLines | set(tmpLines)     
+            if tmpType == 0: 
+                tmpExternalLines = tmpExternalLines | set(tmpLines)
+            else:
+                tmpIntNodes = tmpIntNodes | set([idxN,])    
+                 
             self.Nodes[idxN] = Node(Type = tmpType, Lines = tmpLines)
+            
         self.ExternalLines=tmpExternalLines
         self.InternalLines=set(self.Lines.keys())-self.ExternalLines
         import subgraph
         self.Type=subgraph.FindSubgraphType(self, list(self.InternalLines), self.model.SubGraphTypes)
+        self.InternalNodes=tmpIntNodes
     
     def GetNodesTypes(self):
         res=dict()

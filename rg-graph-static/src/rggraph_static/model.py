@@ -14,6 +14,7 @@ class Model:
         self.LineTypes=dict()
         self.NodeTypes=dict()
         self.SubGraphTypes=dict()
+        self.K_nodetypeR1=dict()
         
     def AddLineType(self,LineIdx,**kwargs):
         """ propagator,directed,Graphviz
@@ -41,9 +42,12 @@ class Model:
     
     def AddSubGraphType(self,SGIdx,**kwargs):
         """ Lines(types), dim?? 
+            K_nodetypeR1 - Maps  subgraph types to node types 
         """
         if SGIdx not in self.SubGraphTypes:
             self.SubGraphTypes[SGIdx]=kwargs
+            if "K_nodetypeR1" in kwargs :
+                self.K_nodetypeR1[SGIdx]=kwargs["K_nodetypeR1"]
         else:
             raise Exception, "SubGraphType %s allready defined" %SGIdx  
                 
