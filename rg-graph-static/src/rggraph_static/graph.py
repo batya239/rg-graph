@@ -2,6 +2,7 @@
 # -*- coding: utf8
 
 from model import Model
+import nickel
 
 class Line:
     """ Class represents information about Line of a graph
@@ -130,17 +131,20 @@ class Graph:
             res[idxN]=self.Nodes[idxN].Type
         return res
     
-    def GenerateNikel(self):
-        edges=[]
+    def GenerateNickel(self):
+        edges = []
         for idxL in self.Lines:
-             if self.Nodes[self.Lines[idxL].In].Type == 0:  In = -1
-             else: In = self.Lines[idxL].In
-             if self.Nodes[self.Lines[idxL].Out].Type == 0:  In = -1
-             else: Out = self.Lines[idxL].Out
-             edges.append([In,Out])
-        print edges
-
-     
+             if self.Nodes[self.Lines[idxL].In].Type == 0:
+                 In = -1
+             else:
+                 In = self.Lines[idxL].In
+             if self.Nodes[self.Lines[idxL].Out].Type == 0:
+                 In = -1
+             else:
+                 Out = self.Lines[idxL].Out
+             edges.append([In, Out])
+        return nickel.Canonicalize(edges).nickel
+        
     def FindSubgraphs(self,SubGraphTypes = False):
         import subgraph
         if SubGraphTypes == False:
