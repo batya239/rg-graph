@@ -2,6 +2,13 @@
 
 class Nickel(object):
   """Class to generate Nickel-like graph notations.
+
+  Usage:
+  >>> n = nickel.Nickel(edges=[[-1, 0], [0, 1], [1, -1]])
+  >>> n.nodes
+  [[-1, 1], [-1]]
+  >>> n.string
+  'e1-e-'
   """
   def __init__(self, edges=None, nodes=None, string=None):
     self.node_to_char = {-2: '-', -1: 'e'}
