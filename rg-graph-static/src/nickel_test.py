@@ -42,9 +42,10 @@ class TestCanonicalize(unittest.TestCase):
     self.assertTrue(c.is_valid)
 
   def testCanon2(self):
-    c = nickel.Canonicalize([[-1, 0], [-1, 1], [0, 1]])
-    self.assertEqual(c.num_symmetries, 2)
+    c = nickel.Canonicalize([[-1, 10], [-1, 11], [10, 11]])
     self.assertEqual(c.nickel, [[-1, 1], [-1]])
+    self.assertEqual(c.num_symmetries, 2)
+    self.assertEqual(c.node_maps, [{10: 0, 11: 1}, {10: 1, 11: 0}])
     self.assertTrue(c.is_valid)
 
   def testCanon3(self):

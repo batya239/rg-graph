@@ -83,10 +83,11 @@ class Canonicalize(object):
 
   Negative nodes assumed to be external. Non-negative ones - internal.
   Usage:
-  c = nickel.Canonicalize([[-1, 11], [-1, 11], [-1, 10], [10, 11]])
-  assertTrue(c.is_valid)
-  assertEqual(c.nickel, [[-1, -1, 1], [-1]])
-  assertEqual(c.num_symmetries, 1)
+    c = nickel.Canonicalize([[-1, 10], [-1, 11], [10, 11]])
+    assertEqual(c.nickel, [[-1, 1], [-1]])
+    assertEqual(c.num_symmetries, 2)
+    assertEqual(c.node_maps, [{10: 0, 11: 1}, {10: 1, 11: 0}])
+    assertTrue(c.is_valid)
   """
   def __init__(self, edges):
     # TODO: Check that there is an external node.
@@ -111,13 +112,18 @@ class Canonicalize(object):
       self.curr_states = self.DoExpand(self.curr_states)
 
     # Collect results.
-    self.node_maps = [s.node_map for s in self.curr_states]
     nickels = [s.nickel_list for s in self.curr_states]
     self.num_symmetries = len(nickels)
     self.nickel = min(nickels)
-
     is_valid = self.nickel == max(nickels)
     self.is_valid = is_valid and (len(sum(self.nickel, [])) == len(self.edges))
+    # Shift back original nodes.
+    self.node_maps = []
+    for state in self.curr_states:
+      curr_node_map = {}
+      for key, value in state.node_map.items():
+        curr_node_map[key - self.offset] = value
+      self.node_maps.append(curr_node_map)
 
   def InitStates(self, edges):
     """Creates all possible initial states for node 0."""
