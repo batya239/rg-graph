@@ -3,6 +3,7 @@
 # Filenames that should be ignored wherever they appear
 ~$
 \.py(c|o)$
+\.png$
 
 # User files that may appear at the root
 ^\.do_not_commit
