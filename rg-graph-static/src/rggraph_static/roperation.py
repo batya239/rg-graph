@@ -1,19 +1,22 @@
 #!/usr/bin/python
 # -*- coding: utf8
 
-def ExtractSubgraph( G, SubgraphList ):
+def ExtractSubgraphs( G, SubgraphList ):
     import copy
     from graph import *
-    if len( SubgraphList ) == 0:
-        return ( copy.deepcopy( G ), [] )
+#    copyG=copy.deepcopy(G)
+#    if len( SubgraphList ) == 0:
+#        return ( copy.deepcopy( G ), [] )
     CTGLines = set( G.Lines.keys() )
     MapReducedNodes = dict()
-    NodeTypes = G.GetNodeTypes()
+    NodeTypes = G.GetNodesTypes()
     CurNodeidx=1000  # номер вершины на который будем заменять вершины текущего  подграфа.
+    SubgraphMap=dict()
     for idxS in SubgraphList:
         while ( CurNodeidx in NodeTypes):
             CurNodeidx=CurNodeidx+1
         NodeTypes[ CurNodeidx ] = G.model.K_nodetypeR1[ G.subgraphs[idxS].Type ]
+        SubgraphMap[CurNodeidx] = idxS
 
         # не факт что K_nodetype хорошее решение.
         
@@ -25,13 +28,17 @@ def ExtractSubgraph( G, SubgraphList ):
     for idxL in CTGLines:
         if G.Lines[idxL].In in MapReducedNodes:
             In = MapReducedNodes[ G.Lines[idxL].In ] 
+        else:
+            In = G.Lines[idxL].In
         if G.Lines[idxL].Out in MapReducedNodes:
             Out = MapReducedNodes[ G.Lines[idxL].Out ]
+        else:
+            Out = G.Lines[idxL].Out
         CTGraph.AddLine( idxL, Line( G.Lines[idxL].Type, 
                                      In, Out, G.Lines[idxL].Momenta ) )
     CTGraph.DefineNodes(NodeTypes)
     CTGraph.FindSubgraphs()
-    return CTGraph    
+    return (CTGraph , SubgraphMap)    
         
     
     
@@ -43,7 +50,7 @@ class R1Term:
         subgraphs - tuple of subgraphs (each - Graph class)
     """
     def __init__( self, G, SubgraphList ):
-        ( self.CTGraph, self.SubgraphMap ) = G.ExtractSubgraphs( SubgraphList )
+        ( self.CTGraph, self.SubgraphMap ) = ExtractSubgraphs( G, SubgraphList )
         self.subgraphs = tuple( [ G.subgraphs[idxS] for idxS in SubgraphList ] )
 
 
@@ -55,9 +62,9 @@ class R1:
             lineset=set([])
             intSubNodes=set([])
             for idx in SubgraphList:
-                
-                if len( intSubNodes & G.subgraph[idx].InternalNodes ) == 0: # поиск общих вершин
-                    intSubNodes = intSubNodes | G.subgraph[idx].InternalNodes
+                print intSubNodes, idx, SubgraphList, G.subgraphs[idx].InternalNodes
+                if len( intSubNodes & G.subgraphs[idx].InternalNodes ) == 0: # поиск общих вершин
+                    intSubNodes = intSubNodes | G.subgraphs[idx].InternalNodes
                 else:
                     return True
 
@@ -78,9 +85,10 @@ class R1:
         self.terms = [ ]
         self.terms.append( R1Term( G, [ ] ) )
         for idx in range(1, len( G.subgraphs ) + 1 ):
-            SubgraphList = xuniqueCombinations( range( len( G.subgraphs ) ), idx )
-            if not IsIntersect( G, SubgraphList ):
-                self.terms.append( R1Term( G, SubgraphList ) )
+            
+            for SubgraphList in xuniqueCombinations( range( len( G.subgraphs ) ), idx ):
+                if not IsIntersect( G, SubgraphList ):
+                    self.terms.append( R1Term( G, SubgraphList ) )
             
 
 

@@ -53,4 +53,13 @@ for i in range(len(G.subgraphs)):
 #    print rggrf.visualization.Graph2dot(i)
     G.subgraphs[i].SaveAsPNG("sub%s.png" %i)
     
+r1=rggrf.roperation.R1(G)
+print "R1(G)"
+for i in range(len(r1.terms)):
+    print "term %s:"  %i
+    print r1.terms[i].CTGraph
+    print "\t term subgraphs:"
+    for j in r1.terms[i].subgraphs:
+        print "\t %s" %j
+    
     
