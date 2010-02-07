@@ -1,30 +1,74 @@
 ﻿#!/usr/bin/python
 
 class Nickel(object):
-  """Class to generate graph notations by Nickel.
+  """Class to generate Nickel-like graph notations.
   """
-  def __init__(self, edges):
-    self.edges = edges
+  def __init__(self, edges=None, nodes=None, string=None):
     self.node_to_char = {-2: '-', -1: 'e'}
+    self.edges = edges
+    self.nodes = nodes
+    self.string = string
 
-  def GetList(self):
-    """Generates list signature of the diagram"""
-    max_node = max(sum(self.edges, []))
+    if self.edges:
+      for e in self.edges:
+        e.sort()
+      self.edges.sort()
+      
+    if self.nodes:
+      for nn in self.nodes:
+        nn.sort()
+
+    if edges != None:
+      self.edges = edges
+      self.nodes = self.NodesFromEdges(edges)
+      self.string = self.StringFromNodes(self.nodes)
+    elif nodes != None:
+      self.edges = self.EdgesFromNodes(nodes)
+      self.nodes = nodes
+      self.string = self.StringFromNodes(nodes)
+    elif string != None:
+      self.string = string
+      self.nodes = self.NodesFromString(string)
+      self.edges = self.EdgesFromNodes(self.nodes)
+
+
+  def NodesFromEdges(self, edges):
+    max_node = max(sum(edges, []))
     nodes = [[] for i in range(max(1, max_node))]
-    for e in self.edges:
+    for e in edges:
       [s, d] = sorted(e, key=lambda n: n if n >= 0 else 1000)
       nodes[s].append(d)
     for nn in nodes:
       nn.sort()
     return nodes
 
-  def GetString(self):
-    nodes = self.GetList()
-    for nn in nodes:
-      nn.append(-2)
-    nodes = sum(nodes, [])
-    nodes = [str(self.node_to_char.get(n, n)) for n in nodes]
-    return ''.join(nodes)
+  def EdgesFromNodes(self, nodes):
+    edges = []
+    for n in range(len(nodes)):
+      for m in nodes[n]:
+        edges.append(sorted([n, m]))
+    edges.sort()
+    return edges
+
+  def StringFromNodes(self, nodes):
+    temp = [nn + [-2] for nn in nodes]
+    temp = sum(temp, [])
+    temp = [str(self.node_to_char.get(n, n)) for n in temp]
+    return ''.join(temp)
+
+  def NodesFromString(self, string):
+    char_to_node = dict(zip(self.node_to_char.values(),
+                            self.node_to_char.keys()))
+    flat_nodes = [int(char_to_node.get(c, c)) for c in string]
+    nodes = []
+    accum = []
+    for n in flat_nodes:
+      if n != -2:
+        accum.append(n)
+      else:
+        nodes.append(accum)
+        accum = []
+    return nodes
 
 class Canonicalize(object):
   def __init__(self, edges):

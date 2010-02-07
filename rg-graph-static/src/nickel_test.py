@@ -4,13 +4,22 @@ import nickel
 import unittest
 
 class TestNickel(unittest.TestCase):
-  def testGetList(self):
-    g = [[0, -1], [-1, 0]]
-    self.assertEqual(nickel.Nickel(g).GetList(), [[-1, -1]])
-    self.assertEqual(nickel.Nickel(g).GetString(), 'ee-')
-    g.extend([[2, 1], [1, 0]])
-    self.assertEqual(nickel.Nickel(g).GetList(), [[-1, -1, 1], [2]])
-    self.assertEqual(nickel.Nickel(g).GetString(), 'ee1-2-')
+  def testNickelFromEdges(self):
+    e = nickel.Nickel(edges=[[0, -1], [-1, 0]])
+    self.assertEqual(e.nodes, [[-1, -1]])
+    self.assertEqual(e.string, 'ee-')
+
+    s = nickel.Nickel(string='ee-')
+    self.assertEqual(s.nodes, [[-1, -1]])
+    self.assertEqual(s.edges, e.edges)
+
+    ee = nickel.Nickel(edges=[[0, -1], [-1, 0], [2, 1], [1, 0]])
+    self.assertEqual(ee.nodes, [[-1, -1, 1], [2]])
+    self.assertEqual(ee.string, 'ee1-2-')
+
+    ss = nickel.Nickel(string='ee1-2-')
+    self.assertEqual(ss.nodes, [[-1, -1, 1], [2]])
+    self.assertEqual(ss.edges, ee.edges)
 
 
 class TestCanonicalize(unittest.TestCase):
