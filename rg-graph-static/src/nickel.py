@@ -60,7 +60,7 @@ class Canonicalize(object):
 
   def InitStates(self, edges):
     """Creates all possible initial states for node 0."""
-    boundary_nodes = AdjacentNodes(-1, edges)
+    boundary_nodes = list(set(AdjacentNodes(-1, edges)))
     states = []
     for bound in boundary_nodes:
       states.append(Expander(MapNodes2({bound: 0}, self.edges),
