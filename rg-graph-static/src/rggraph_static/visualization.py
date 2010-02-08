@@ -27,45 +27,56 @@ def Graph2dot(G):
 def GraphSubgraph2dot(G):
     dot=pydot.Dot(graph_type='digraph')
     s1=pydot.Cluster('s',label='graph')
-    for idxN in G.Nodes:
-        if "gv" in  G.model.NodeTypes[G.Nodes[idxN].Type]:
-            s1.add_node( pydot.Node(str(idxN)+"s",label=str(idxN),**G.model.NodeTypes[G.Nodes[idxN].Type]["gv"]))
-        else:
-            s1.add_node( pydot.Node(str(idxN)+"s",label=str(idxN)))
-        
-    for idxL in G.Lines:
-        if "gv" in  G.model.LineTypes[G.Lines[idxL].Type]:
-            s1.add_edge(pydot.Edge( str(G.Lines[idxL].In)+"s", 
-                                str(G.Lines[idxL].Out)+"s", 
-                                label = " (%s) %s" %(idxL, G.Lines[idxL].Momenta),**G.model.LineTypes[G.Lines[idxL].Type]["gv"]) )
-        else:
-            s1.add_edge(pydot.Edge( str(G.Lines[idxL].In)+"s", 
-                                str(G.Lines[idxL].Out)+"s", 
-                                label = " (%s) %s" %(idxL, G.Lines[idxL].Momenta)) )
+    s1=Graph2Cluster(G,"graph")
     dot.add_subgraph(s1)
     for idxS in range(len(G.subgraphs)):
-        subname="s%s" %idxS
-        sub=pydot.Cluster(subname, label="subgraph %s" %idxS)
-        curS=G.subgraphs[idxS]
-        for idxN in curS.Nodes:
-            if "gv" in  G.model.NodeTypes[curS.Nodes[idxN].Type]:
-                sub.add_node( pydot.Node(str(idxN)+subname, label=str(idxN),
-                                **G.model.NodeTypes[curS.Nodes[idxN].Type]["gv"]))
-            else:
-                sub.add_node( pydot.Node(str(idxN)+subname, label=str(idxN)))
-        for idxL in curS.Lines:
-            if "gv" in  G.model.LineTypes[curS.Lines[idxL].Type]:
-                sub.add_edge(pydot.Edge( str(curS.Lines[idxL].In)+subname, 
-                                str(curS.Lines[idxL].Out)+subname, 
-                                label = " (%s) %s" %(idxL, curS.Lines[idxL].Momenta), 
-                                **G.model.LineTypes[curS.Lines[idxL].Type]["gv"]) )
-            else:
-                sub.add_edge(pydot.Edge( str(curS.Lines[idxL].In)+subname, 
-                                str(curS.Lines[idxL].Out)+subname, 
-                                label = " (%s) %s" %(idxL, curS.Lines[idxL].Momenta)) )
+        sub=Graph2Cluster(G.subgraphs[idxS],"sub_%s" %idxS)
         dot.add_subgraph(sub)    
-        
-        
-    
+
     return dot
+
+def Graph2Cluster(G,name):
+    res= pydot.Cluster(name)
+    for idxN in G.Nodes:
+        curNode=G.Nodes[idxN]
+        if "gv" in  G.model.NodeTypes[curNode.Type]:
+                res.add_node( pydot.Node(str(idxN)+name, label=str(idxN),
+                                **G.model.NodeTypes[curNode.Type]["gv"]))
+        else:
+            res.add_node( pydot.Node(str(idxN)+name, label=str(idxN)))
+    for idxL in G.Lines:
+        curLine=G.Lines[idxL]
+        if "gv" in  G.model.LineTypes[curLine.Type]:
+                res.add_edge(pydot.Edge( str(curLine.In)+name, 
+                                str(curLine.Out)+name, 
+                                label = " (%s) %s" %(idxL, curLine.Momenta), 
+                                **G.model.LineTypes[curLine.Type]["gv"]) )
+        else:
+            res.add_edge(pydot.Edge( str(curLine.In)+name, 
+                                str(curLine.Out)+name, 
+                                label = " (%s) %s" %(idxL, curLine.Momenta)) )
+    return res
+    
+                    
+
+     
+
+def R12dot(R1):
+    dot=pydot.Dot(graph_type='digraph')
+    for idxR1 in range(len(R1.terms)):
+        cluster=R1Term2Cluster(R1.terms[idxR1],'term %s' %idxR1)
+        dot.add_subgraph(cluster)
+    return dot
+
+def R1Term2Cluster(R1Term, name):
+    res = pydot.Cluster(name)
+    for idxCTGN in R1Term.CTGraph.Nodes:
+        curNode=R1Term.CTGraph.Nodes[idxCTGN]
+        if "gv" in  R1Term.CTGraph.model.NodeTypes[curNode.Type]:
+                sub.add_node( pydot.Node(str(idxCTGN)+name, label=str(idxCTGN),
+                                **R1Term.CTGraph.model.NodeTypes[curNode.Type]["gv"]))
+        else:
+            sub.add_node( pydot.Node(str(idxCTGN)+name, label=str(idxCTGN)))        
+        
+        
     
