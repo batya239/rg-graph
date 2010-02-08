@@ -152,9 +152,9 @@ class Graph:
         self.subgraphs=subgraph.Find(self, SubGraphTypes)
          
     def SaveAsPNG(self, filename):
-        from visualization import Graph2dot
-        import pydot
-        gdot=pydot.graph_from_dot_data(Graph2dot(self))
+        from visualization import GraphSubgraph2dot
+#        import pydot
+        gdot=GraphSubgraph2dot(self)
         gdot.write_png(filename,prog="dot")
         
             

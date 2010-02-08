@@ -18,7 +18,7 @@ var('p tau p1 K')
 phi3=rggrf.Model("phi3")
 phi3.AddLineType(1, propagator = 1/(p*p+tau), directed = 0)
 
-phi3.AddNodeType(0, Lines = [],Factor = 1,Graphviz = "color=\"red\"")  #External Node
+phi3.AddNodeType(0, Lines = [],Factor = 1,Graphviz = "color=\"red\"",gv={"color":"red"})  #External Node
 phi3.AddNodeType(1, Lines = [1, 1, 1], Factor = 1)
 phi3.AddNodeType(2, Lines = [1, 1], Factor = p1 * p1) # nodes from Sigma subgraphs
 phi3.AddNodeType(3, Lines = [1, 1 , 1], Factor = K )
@@ -51,7 +51,7 @@ for i in range(len(G.subgraphs)):
     print "sub %s" %i
     print G.subgraphs[i]
 #    print rggrf.visualization.Graph2dot(i)
-    G.subgraphs[i].SaveAsPNG("sub%s.png" %i)
+#    G.subgraphs[i].SaveAsPNG("sub%s.png" %i)
     
 r1=rggrf.roperation.R1(G)
 print "R1(G)"
@@ -64,5 +64,7 @@ for i in range(len(r1.terms)):
         
 G.GenerateNickel()
 print G.nickel
-    
+G.SaveAsPNG("graph_and_subgraphs.png")
+#dot=rggrf.visualization.GraphSubgraph2dot(G)
+#dot.write_png("test.png",prog="dot")
     
