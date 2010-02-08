@@ -36,7 +36,7 @@ def GraphSubgraph2dot(G):
     return dot
 
 def Graph2Cluster(G,name):
-    res= pydot.Cluster(name,label=name)
+    res= pydot.Cluster(name,label="\"%s\"" %name)
     for idxN in G.Nodes:
         curNode=G.Nodes[idxN]
         if "gv" in  G.model.NodeTypes[curNode.Type]:
