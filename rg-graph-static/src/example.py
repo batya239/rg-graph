@@ -18,11 +18,11 @@ var('p tau p1 K')
 phi3=rggrf.Model("phi3")
 phi3.AddLineType(1, propagator = 1/(p*p+tau), directed = 0)
 
-phi3.AddNodeType(0, Lines = [],Factor = 1,Graphviz = "color=\"red\"",gv={"color":"red"})  #External Node
+phi3.AddNodeType(0, Lines = [],Factor = 1,Graphviz = "color=\"red\"",gv = {"color":"red"})  #External Node
 phi3.AddNodeType(1, Lines = [1, 1, 1], Factor = 1)
 phi3.AddNodeType(2, Lines = [1, 1], Factor = p1 * p1) # nodes from Sigma subgraphs
-phi3.AddNodeType(3, Lines = [1, 1 , 1], Factor = K )
-phi3.AddNodeType(4, Lines = [1, 1], Factor = K )
+phi3.AddNodeType(3, Lines = [1, 1 , 1], Factor = K , gv = {"color":"blue"})
+phi3.AddNodeType(4, Lines = [1, 1], Factor = K , gv = {"color":"blue"})
 
 
 phi3.AddSubGraphType(1, Lines = [1, 1, 1], dim = 0, K_nodetypeR1 = 3)
@@ -58,6 +58,7 @@ print "R1(G)"
 for i in range(len(r1.terms)):
     print "term %s:"  %i
     print r1.terms[i].CTGraph
+    print r1.terms[i].SubgraphMap    
     print "\t term subgraphs:"
     for j in r1.terms[i].subgraphs:
         print "\t %s" %j
@@ -65,6 +66,7 @@ for i in range(len(r1.terms)):
 G.GenerateNickel()
 print G.nickel
 G.SaveAsPNG("graph_and_subgraphs.png")
+r1.SaveAsPNG("R1.png")
 #dot=rggrf.visualization.GraphSubgraph2dot(G)
 #dot.write_png("test.png",prog="dot")
     

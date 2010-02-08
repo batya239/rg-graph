@@ -16,7 +16,7 @@ def ExtractSubgraphs( G, SubgraphList ):
         while ( CurNodeidx in NodeTypes):
             CurNodeidx=CurNodeidx+1
         NodeTypes[ CurNodeidx ] = G.model.K_nodetypeR1[ G.subgraphs[idxS].Type ]
-        SubgraphMap[CurNodeidx] = idxS
+        SubgraphMap[CurNodeidx] = SubgraphList.index(idxS)
 
         # не факт что K_nodetype хорошее решение.
         
@@ -89,7 +89,11 @@ class R1:
             for SubgraphList in xuniqueCombinations( range( len( G.subgraphs ) ), idx ):
                 if not IsIntersect( G, SubgraphList ):
                     self.terms.append( R1Term( G, SubgraphList ) )
-            
+    def SaveAsPNG(self, filename):
+        from visualization import R12dot
+#        import pydot
+        gdot=R12dot(self)
+        gdot.write_png(filename,prog="dot")            
 
 
 class Delta:

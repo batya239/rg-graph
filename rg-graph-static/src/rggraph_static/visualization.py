@@ -36,7 +36,7 @@ def GraphSubgraph2dot(G):
     return dot
 
 def Graph2Cluster(G,name):
-    res= pydot.Cluster(name)
+    res= pydot.Cluster(name,label=name)
     for idxN in G.Nodes:
         curNode=G.Nodes[idxN]
         if "gv" in  G.model.NodeTypes[curNode.Type]:
@@ -62,21 +62,22 @@ def Graph2Cluster(G,name):
      
 
 def R12dot(R1):
-    dot=pydot.Dot(graph_type='digraph')
+    dot = pydot.Dot(graph_type='digraph')
     for idxR1 in range(len(R1.terms)):
-        cluster=R1Term2Cluster(R1.terms[idxR1],'term %s' %idxR1)
+        cluster = R1Term2Cluster(R1.terms[idxR1],'term_%s' %idxR1)
         dot.add_subgraph(cluster)
     return dot
 
 def R1Term2Cluster(R1Term, name):
-    res = pydot.Cluster(name)
-    for idxCTGN in R1Term.CTGraph.Nodes:
-        curNode=R1Term.CTGraph.Nodes[idxCTGN]
-        if "gv" in  R1Term.CTGraph.model.NodeTypes[curNode.Type]:
-                sub.add_node( pydot.Node(str(idxCTGN)+name, label=str(idxCTGN),
-                                **R1Term.CTGraph.model.NodeTypes[curNode.Type]["gv"]))
-        else:
-            sub.add_node( pydot.Node(str(idxCTGN)+name, label=str(idxCTGN)))        
+    
+    res = Graph2Cluster(R1Term.CTGraph, name) 
+    for idxN in R1Term.SubgraphMap:
+        subname="%s_%s" %(name,idxN)
+        print subname,R1Term.SubgraphMap, len(R1Term.subgraphs)
+        sub=Graph2Cluster(R1Term.subgraphs[R1Term.SubgraphMap[idxN]],subname)
+        res.add_subgraph(sub) 
+    
+    return res
         
         
     
