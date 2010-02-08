@@ -73,7 +73,7 @@ def R1Term2Cluster(R1Term, name):
     res = Graph2Cluster(R1Term.CTGraph, name) 
     for idxN in R1Term.SubgraphMap:
         subname="%s_%s" %(name,idxN)
-        print subname,R1Term.SubgraphMap, len(R1Term.subgraphs)
+#        print subname,R1Term.SubgraphMap, len(R1Term.subgraphs)
         sub=Graph2Cluster(R1Term.subgraphs[R1Term.SubgraphMap[idxN]],subname)
         res.add_subgraph(sub) 
     

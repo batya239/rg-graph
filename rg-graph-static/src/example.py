@@ -45,28 +45,26 @@ print G.InternalLines
 print
 
 print G
-print "subgraphs"
+#print "subgraphs"
+
 G.FindSubgraphs()
-for i in range(len(G.subgraphs)):
-    print "sub %s" %i
-    print G.subgraphs[i]
-#    print rggrf.visualization.Graph2dot(i)
-#    G.subgraphs[i].SaveAsPNG("sub%s.png" %i)
+
+#for i in range(len(G.subgraphs)):
+#    print "sub %s" %i
+#    print G.subgraphs[i]
     
 r1=rggrf.roperation.R1(G)
-print "R1(G)"
-for i in range(len(r1.terms)):
-    print "term %s:"  %i
-    print r1.terms[i].CTGraph
-    print r1.terms[i].SubgraphMap    
-    print "\t term subgraphs:"
-    for j in r1.terms[i].subgraphs:
-        print "\t %s" %j
+#print "R1(G)"
+#for i in range(len(r1.terms)):
+#    print "term %s:"  %i
+#    print r1.terms[i].CTGraph
+#    print r1.terms[i].SubgraphMap    
+#    print "\t term subgraphs:"
+#    for j in r1.terms[i].subgraphs:
+#        print "\t %s" %j
         
 G.GenerateNickel()
 print G.nickel
 G.SaveAsPNG("graph_and_subgraphs.png")
 r1.SaveAsPNG("R1.png")
-#dot=rggrf.visualization.GraphSubgraph2dot(G)
-#dot.write_png("test.png",prog="dot")
     
