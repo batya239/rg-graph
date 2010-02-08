@@ -77,6 +77,12 @@ class Nickel(object):
     return nickel
 
 
+class InputError(Exception):
+  """Rased when when Canonicalization is called with wrong input.
+  """
+  pass
+
+
 class Canonicalize(object):
   """Class to find canonical node maping and to give Nickel node list for it.
 
@@ -89,7 +95,8 @@ class Canonicalize(object):
     assertTrue(c.is_valid)
   """
   def __init__(self, edges):
-    # TODO: Check that there is an external node.
+    if not [n for n in sum(edges, []) if n < 0]:
+      raise InputError('No external (negative) nodes found in the input.')
     # TODO: Check that the graph is connected.
     # TODO: Raise exception?
     self.orig = edges
@@ -123,7 +130,7 @@ class Canonicalize(object):
       for key, value in state.node_map.items():
         curr_node_map[key - self.offset] = value
       self.node_maps.append(curr_node_map)
-      
+
   def __str__(self):
       return Nickel(nickel=self.nickel).string
 
