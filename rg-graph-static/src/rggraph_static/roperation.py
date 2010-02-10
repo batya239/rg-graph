@@ -2,11 +2,7 @@
 # -*- coding: utf8
 
 def ExtractSubgraphs( G, SubgraphList ):
-    import copy
-    from graph import *
-#    copyG=copy.deepcopy(G)
-#    if len( SubgraphList ) == 0:
-#        return ( copy.deepcopy( G ), [] )
+    from graph import Graph, Line
     CTGLines = set( G.Lines.keys() )
     MapReducedNodes = dict()
     NodeTypes = G.GetNodesTypes()
@@ -26,16 +22,16 @@ def ExtractSubgraphs( G, SubgraphList ):
             
     CTGraph=Graph(G.model)
     for idxL in CTGLines:
-        if G.Lines[idxL].In in MapReducedNodes:
-            In = MapReducedNodes[ G.Lines[idxL].In ] 
+        if G.Lines[idxL].start in MapReducedNodes:
+            In = MapReducedNodes[ G.Lines[idxL].start ] 
         else:
-            In = G.Lines[idxL].In
-        if G.Lines[idxL].Out in MapReducedNodes:
-            Out = MapReducedNodes[ G.Lines[idxL].Out ]
+            In = G.Lines[idxL].start
+        if G.Lines[idxL].end in MapReducedNodes:
+            Out = MapReducedNodes[ G.Lines[idxL].end ]
         else:
-            Out = G.Lines[idxL].Out
-        CTGraph.AddLine( idxL, Line( G.Lines[idxL].Type, 
-                                     In, Out, G.Lines[idxL].Momenta ) )
+            Out = G.Lines[idxL].end
+        CTGraph.AddLine( idxL, Line( G.Lines[idxL].type, 
+                                     In, Out, G.Lines[idxL].momenta ) )
     CTGraph.DefineNodes(NodeTypes)
     CTGraph.FindSubgraphs()
     return (CTGraph , SubgraphMap)    

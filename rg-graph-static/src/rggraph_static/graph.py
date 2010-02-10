@@ -6,16 +6,16 @@ import nickel
 
 class Line:
     """ Class represents information about Line of a graph
-        idx, type, Momenta, In, Out 
+        idx, type, momenta, start, end 
     """
-    def __init__(self, Ltype, LIn, LOut, LMomenta):
-        self.Type = Ltype
-        self.In = LIn
-        self.Out = LOut
-        self.Momenta = LMomenta
+    def __init__(self, type_, start_, end_, momenta_):
+        self.type = type_
+        self.start = start_
+        self.end = end_
+        self.momenta = momenta_
          
     def Nodes(self):
-        return (self.In, self.Out)
+        return (self.start, self.end)
      
 
 
@@ -54,7 +54,7 @@ class Graph:
     def __str__(self):
         res="Model = %s , Type = %s \n Lines: {" %(self.model.name, self.Type)
         for idxL in self.Lines:
-            res=res+" %s: [%s, %s]," %(idxL,self.Lines[idxL].In,self.Lines[idxL].Out)
+            res=res+" %s: [%s, %s]," %(idxL,self.Lines[idxL].start,self.Lines[idxL].end)
         res=res[:-1]+ "}\n"
         return res
         
@@ -81,9 +81,9 @@ class Graph:
         for idxL in self.Lines:
             for idxN in self.Lines[idxL].Nodes():
                 if idxN in tmpNodeLines:
-                    tmpNodeLines[idxN] = tmpNodeLines[idxN] | set([(idxL,self.Lines[idxL].Type),])
+                    tmpNodeLines[idxN] = tmpNodeLines[idxN] | set([(idxL,self.Lines[idxL].type),])
                 else:
-                    tmpNodeLines[idxN] = set([(idxL,self.Lines[idxL].Type),])
+                    tmpNodeLines[idxN] = set([(idxL,self.Lines[idxL].type),])
                          
 
         for idxN in tmpNodeLines:
@@ -134,14 +134,14 @@ class Graph:
     def GenerateNickel(self):
         edges = []
         for idxL in self.Lines:
-            if self.Nodes[self.Lines[idxL].In].Type == 0:
+            if self.Nodes[self.Lines[idxL].start].Type == 0:
                 In = -1
             else:
-                In = self.Lines[idxL].In
-            if self.Nodes[self.Lines[idxL].Out].Type == 0:
+                In = self.Lines[idxL].start
+            if self.Nodes[self.Lines[idxL].end].Type == 0:
                 In = -1
             else:
-                Out = self.Lines[idxL].Out
+                Out = self.Lines[idxL].end
             edges.append([In, Out])
         self.nickel=nickel.Canonicalize(edges)
         

@@ -29,15 +29,15 @@ def Graph2Cluster(G,name):
             res.add_node( pydot.Node(str(idxN)+name, label=str(idxN)))
     for idxL in G.Lines:
         curLine=G.Lines[idxL]
-        if "gv" in  G.model.line_types[curLine.Type]:
-                res.add_edge(pydot.Edge( str(curLine.In)+name, 
-                                str(curLine.Out)+name, 
-                                label = " (%s) %s" %(idxL, curLine.Momenta), 
-                                **G.model.line_types[curLine.Type]["gv"]) )
+        if "gv" in  G.model.line_types[curLine.type]:
+                res.add_edge(pydot.Edge( str(curLine.start)+name, 
+                                str(curLine.end)+name, 
+                                label = " (%s) %s" %(idxL, curLine.momenta), 
+                                **G.model.line_types[curLine.type]["gv"]) )
         else:
-            res.add_edge(pydot.Edge( str(curLine.In)+name, 
-                                str(curLine.Out)+name, 
-                                label = " (%s) %s" %(idxL, curLine.Momenta)) )
+            res.add_edge(pydot.Edge( str(curLine.start)+name, 
+                                str(curLine.end)+name, 
+                                label = " (%s) %s" %(idxL, curLine.momenta)) )
     return res
     
                     

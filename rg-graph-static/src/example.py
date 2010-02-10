@@ -34,7 +34,7 @@ G.DefineNodes({})
 for idxN in G.Nodes:
     print "idxN=",idxN, "type=", G.Nodes[idxN].Type, "Lines=",G.Nodes[idxN].Lines
 for idxL in G.Lines:
-    print "idxL=",idxL, "type=", G.Lines[idxL].Type, "In=",G.Lines[idxL].In, "Out=",G.Lines[idxL].Out , "Moment=",G.Lines[idxL].Momenta
+    print "idxL=",idxL, "type=", G.Lines[idxL].type, "In=",G.Lines[idxL].start, "Out=",G.Lines[idxL].end , "Moment=",G.Lines[idxL].momenta
     
 G.SaveAsPNG("graph.png") 
 print G.ExternalLines

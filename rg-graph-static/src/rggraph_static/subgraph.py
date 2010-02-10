@@ -10,9 +10,9 @@ def FindSubgraphType(G, subgraph, SubGraphTypes = False):
     subtype = []
     subNodes=FindSubgraphNodes(G,subgraph)
     for idxL in FindExternalLines(G, subgraph):
-        subtype.append(G.Lines[idxL].Type)
+        subtype.append(G.Lines[idxL].type)
         if len(set(G.Lines[idxL].Nodes())&set(subNodes)) == 2:
-            subtype.append(G.Lines[idxL].Type)
+            subtype.append(G.Lines[idxL].type)
     subtype.sort()
     res=-1
     for idxST in SubGraphTypes:
@@ -73,8 +73,8 @@ def CreateSubgraph(G, subgraph):
             fakeNode=100000
             idxL1=idxL*1000+1
             idxL2=idxL*1000+2
-            sub.AddLine(idxL1, Line(G.Lines[idxL].Type, G.Lines[idxL].In,fakeNode,G.Lines[idxL].Momenta))
-            sub.AddLine(idxL2, Line(G.Lines[idxL].Type, fakeNode, G.Lines[idxL].Out,G.Lines[idxL].Momenta))
+            sub.AddLine(idxL1, Line(G.Lines[idxL].type, G.Lines[idxL].start,fakeNode,G.Lines[idxL].momenta))
+            sub.AddLine(idxL2, Line(G.Lines[idxL].type, fakeNode, G.Lines[idxL].end,G.Lines[idxL].momenta))
             if fakeNode not in graphNodesTypes: graphNodesTypes[fakeNode]=0
         else:
             sub.AddLine(idxL, G.Lines[idxL])
