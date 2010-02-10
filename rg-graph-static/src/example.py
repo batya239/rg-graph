@@ -31,14 +31,14 @@ G = rggrf.Graph(phi3)
 G.LoadLinesFromFile(filename)
 G.DefineNodes({})
 
-for idxN in G.Nodes:
-    print "idxN=",idxN, "type=", G.Nodes[idxN].Type, "Lines=",G.Nodes[idxN].Lines
-for idxL in G.Lines:
-    print "idxL=",idxL, "type=", G.Lines[idxL].type, "In=",G.Lines[idxL].start, "Out=",G.Lines[idxL].end , "Moment=",G.Lines[idxL].momenta
+for idxN in G.nodes:
+    print "idxN=",idxN, "type=", G.nodes[idxN].type, "Lines=",G.nodes[idxN].lines
+for idxL in G.lines:
+    print "idxL=",idxL, "type=", G.lines[idxL].type, "In=",G.lines[idxL].start, "Out=",G.lines[idxL].end , "Moment=",G.lines[idxL].momenta
     
 G.SaveAsPNG("graph.png") 
-print G.ExternalLines
-print G.InternalLines
+print G.external_lines
+print G.internal_lines
 print
 
 print G

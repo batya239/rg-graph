@@ -27,8 +27,8 @@ class Node:
     def __init__(self, **kwargs):
         """  в кваргз можно было бы указать например что вершина продифференцированна или тип вершины.
         """
-        self.Lines=tuple(kwargs["Lines"])
-        self.Type=kwargs["Type"]
+        self.lines=tuple(kwargs["Lines"])
+        self.type=kwargs["Type"]
 
 
 
@@ -39,122 +39,124 @@ class Graph:
              adjList
          subgraphs - list of Graph objects
     """
-    def __init__(self, vModel):
-        self.Lines = dict()
-        self.Nodes = dict()
+    def __init__(self, model_):
+        self.lines = dict()
+        self.nodes = dict()
 #        self.adjList = dict()
         self.subgraphs = list()
-        self.model = vModel
-        self.InternalLines = set([])
-        self.ExternalLines = set([])
-        self.InternalNodes = set([]) # nodes with types >0
-        self.Type=-1
+        self.model = model_
+        self.internal_lines = set([])
+        self.external_lines = set([])
+        self.internal_nodes = set([]) # nodes with types >0
+        self.type=-1
         self.nickel=None
         
     def __str__(self):
-        res="Model = %s , Type = %s \n Lines: {" %(self.model.name, self.Type)
-        for idxL in self.Lines:
-            res=res+" %s: [%s, %s]," %(idxL,self.Lines[idxL].start,self.Lines[idxL].end)
+        res="Model = %s , Type = %s \n Lines: {" %(self.model.name, self.type)
+        for idxL in self.lines:
+            res=res+" %s: [%s, %s]," %(idxL,self.lines[idxL].start,self.lines[idxL].end)
         res=res[:-1]+ "}\n"
         return res
         
-    def AddLine(self, idx, Line):
-        self.Lines[idx] = Line
+    def AddLine(self, idx, line):
+        self.lines[idx] = line
           
          
           
     def LoadLinesFromFile(self,filename):
 # подразумевается что пока что линии одного типа!! для линий разного типа должен быть другой формат файла
  
-        (moment,Lines) = eval(open(filename).read())
-        for idxL in Lines:
-            self.AddLine(idxL,Line(1,Lines[idxL][0],Lines[idxL][1],moment[idxL]))
+        (moment,lines) = eval(open(filename).read())
+        for idxL in lines:
+            self.AddLine(idxL,Line(1,lines[idxL][0],lines[idxL][1],moment[idxL]))
         
     
-    def DefineNodes(self, dictNodeType):
+    def DefineNodes(self, dict_node_type):
         
-        tmpIntNodes=set([])   
-        tmpExternalLines = set([])                    
-        tmpNodeLines = dict()
+        tmp_int_nodes=set([])   
+        tmp_external_lines = set([])                    
+        tmp_node_lines = dict()
 # пробегаем по всем линиям для каждой вершины строим множество линий входящих/исходящих в нее
 # вместе с типами этих линий  (для определения типа вершины)         
-        for idxL in self.Lines:
-            for idxN in self.Lines[idxL].Nodes():
-                if idxN in tmpNodeLines:
-                    tmpNodeLines[idxN] = tmpNodeLines[idxN] | set([(idxL,self.Lines[idxL].type),])
+        for idxL in self.lines:
+            for idxN in self.lines[idxL].Nodes():
+                if idxN in tmp_node_lines:
+                    tmp_node_lines[idxN] = tmp_node_lines[idxN] | set([(idxL,self.lines[idxL].type),])
                 else:
-                    tmpNodeLines[idxN] = set([(idxL,self.Lines[idxL].type),])
+                    tmp_node_lines[idxN] = set([(idxL,self.lines[idxL].type),])
                          
 
-        for idxN in tmpNodeLines:
+        for idxN in tmp_node_lines:
+
+
             # определяем тип вершины.
-            (tmpLines,tmpLineTypes) = zip(*tmpNodeLines[idxN])
-            tmplstLineTypes = list(tmpLineTypes)
-            tmplstLineTypes.sort() # отсортированный список типов линий в текущей вершине
-            if idxN in dictNodeType: # если эта вершина указана в словаре который подан на вход, то надо проверить правильный ли тип вершины. 
-                tmpType = dictNodeType[idxN]
-                if tmpType <> 0:
-                    tmpNodeTypes = list(self.model.node_types[tmpType]["Lines"])
-                    tmpNodeTypes.sort()
-                    if tmpNodeTypes <> tmplstLineTypes:
-                        raise Exception, "invalid node type in dictNodeType model:%s Graph:%s" %(tmpNodeTypes,tmplstLineTypes)
+            (tmp_lines, tmp_line_types) = zip(*tmp_node_lines[idxN])
+            tmp_lst_line_types = list(tmp_line_types)
+            tmp_lst_line_types.sort() # отсортированный список типов линий в текущей вершине
+            if idxN in dict_node_type: # если эта вершина указана в словаре который подан на вход, то надо проверить правильный ли тип вершины. 
+                tmp_type = dict_node_type[idxN]
+                if tmp_type <> 0:
+                    tmp_node_types = list(self.model.node_types[tmp_type]["Lines"])
+                    tmp_node_types.sort()
+                    if tmp_node_types <> tmp_lst_line_types:
+                        raise Exception, "invalid node type in dictNodeType model:%s Graph:%s" %(tmp_node_types, tmp_lst_line_types)
             else:
-                tmpType = -1
+                tmp_type = -1
                 for idxT in self.model.node_types:
-                    tmpNodeTypes = list(self.model.node_types[idxT]["Lines"])
-                    tmpNodeTypes.sort()
-                    if tmpNodeTypes == tmplstLineTypes:
-                        tmpType = idxT
+                    tmp_node_types = list(self.model.node_types[idxT]["Lines"])
+                    tmp_node_types.sort()
+                    if tmp_node_types == tmp_lst_line_types:
+                        tmp_type = idxT
                         break
-                if tmpType < 0:
-                    if len(tmplstLineTypes) == 1: #если в вершину входит всего одна линия - она определенно внешняя
-                        tmpType = 0
+                if tmp_type < 0:
+                    if len(tmp_lst_line_types) == 1: #если в вершину входит всего одна линия - она определенно внешняя
+                        tmp_type = 0
                     else:
-                        raise "no such node in model (node=%s , %s)" %(idxN,tmplstLineTypes) 
+                        raise "no such node in model (node=%s , %s)" %(idxN,tmp_lst_line_types) 
              
-            if tmpType == 0: 
-                tmpExternalLines = tmpExternalLines | set(tmpLines)
+            if tmp_type == 0: 
+                tmp_external_lines = tmp_external_lines | set(tmp_lines)
             else:
-                tmpIntNodes = tmpIntNodes | set([idxN,])    
+                tmp_int_nodes = tmp_int_nodes | set([idxN,])    
                  
-            self.Nodes[idxN] = Node(Type = tmpType, Lines = tmpLines)
+            self.nodes[idxN] = Node(Type=tmp_type, Lines=tmp_lines)
             
-        self.ExternalLines=tmpExternalLines
-        self.InternalLines=set(self.Lines.keys())-self.ExternalLines
+        self.external_lines=tmp_external_lines
+        self.internal_lines=set(self.lines.keys())-self.external_lines
         import subgraph
-        self.Type=subgraph.FindSubgraphType(self, list(self.InternalLines), self.model.subgraph_types)
-        self.InternalNodes=tmpIntNodes
+        self.type=subgraph.FindSubgraphType(self, list(self.internal_lines), self.model.subgraph_types)
+        self.internal_nodes=tmp_int_nodes
     
     def GetNodesTypes(self):
         res=dict()
-        for idxN in self.Nodes:
-            res[idxN]=self.Nodes[idxN].Type
+        for idxN in self.nodes:
+            res[idxN]=self.nodes[idxN].type
         return res
     
     def GenerateNickel(self):
         edges = []
-        for idxL in self.Lines:
-            if self.Nodes[self.Lines[idxL].start].Type == 0:
+        for idxL in self.lines:
+            if self.nodes[self.lines[idxL].start].type == 0:
                 In = -1
             else:
-                In = self.Lines[idxL].start
-            if self.Nodes[self.Lines[idxL].end].Type == 0:
+                In = self.lines[idxL].start
+            if self.nodes[self.lines[idxL].end].type == 0:
                 In = -1
             else:
-                Out = self.Lines[idxL].end
+                Out = self.lines[idxL].end
             edges.append([In, Out])
         self.nickel=nickel.Canonicalize(edges)
         
-    def FindSubgraphs(self,SubGraphTypes = False):
+    def FindSubgraphs(self, subgraph_types = False):
         import subgraph
-        if SubGraphTypes == False:
-            SubGraphTypes=self.model.subgraph_types
-        self.subgraphs=subgraph.Find(self, SubGraphTypes)
+        if subgraph_types == False:
+            subgraph_types=self.model.subgraph_types
+        self.subgraphs=subgraph.Find(self, subgraph_types)
          
     def SaveAsPNG(self, filename):
         from visualization import GraphSubgraph2dot
 #        import pydot
         gdot=GraphSubgraph2dot(self)
-        gdot.write_png(filename,prog="dot")
+        gdot.write_png(filename, prog="dot")
         
             

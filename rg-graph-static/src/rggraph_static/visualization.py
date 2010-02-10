@@ -20,24 +20,24 @@ def GraphSubgraph2dot(G):
 
 def Graph2Cluster(G,name):
     res= pydot.Cluster(name,label="\"%s\"" %name)
-    for idxN in G.Nodes:
-        curNode=G.Nodes[idxN]
-        if "gv" in  G.model.node_types[curNode.Type]:
+    for idxN in G.nodes:
+        cur_node=G.nodes[idxN]
+        if "gv" in  G.model.node_types[cur_node.type]:
                 res.add_node( pydot.Node(str(idxN)+name, label=str(idxN),
-                                **G.model.node_types[curNode.Type]["gv"]))
+                                **G.model.node_types[cur_node.type]["gv"]))
         else:
             res.add_node( pydot.Node(str(idxN)+name, label=str(idxN)))
-    for idxL in G.Lines:
-        curLine=G.Lines[idxL]
-        if "gv" in  G.model.line_types[curLine.type]:
-                res.add_edge(pydot.Edge( str(curLine.start)+name, 
-                                str(curLine.end)+name, 
-                                label = " (%s) %s" %(idxL, curLine.momenta), 
-                                **G.model.line_types[curLine.type]["gv"]) )
+    for idxL in G.lines:
+        cur_line=G.lines[idxL]
+        if "gv" in  G.model.line_types[cur_line.type]:
+                res.add_edge(pydot.Edge( str(cur_line.start)+name, 
+                                str(cur_line.end)+name, 
+                                label = " (%s) %s" %(idxL, cur_line.momenta), 
+                                **G.model.line_types[cur_line.type]["gv"]) )
         else:
-            res.add_edge(pydot.Edge( str(curLine.start)+name, 
-                                str(curLine.end)+name, 
-                                label = " (%s) %s" %(idxL, curLine.momenta)) )
+            res.add_edge(pydot.Edge( str(cur_line.start)+name, 
+                                str(cur_line.end)+name, 
+                                label = " (%s) %s" %(idxL, cur_line.momenta)) )
     return res
     
                     
@@ -51,13 +51,13 @@ def R12dot(R1):
         dot.add_subgraph(cluster)
     return dot
 
-def R1Term2Cluster(R1Term, name):
+def R1Term2Cluster(r1_term, name):
     
-    res = Graph2Cluster(R1Term.CTGraph, name) 
-    for idxN in R1Term.SubgraphMap:
+    res = Graph2Cluster(r1_term.ct_graph, name) 
+    for idxN in r1_term.subgraph_map:
         subname="%s_%s" %(name,idxN)
 #        print subname,R1Term.SubgraphMap, len(R1Term.subgraphs)
-        sub=Graph2Cluster(R1Term.subgraphs[R1Term.SubgraphMap[idxN]],subname)
+        sub=Graph2Cluster(r1_term.subgraphs[r1_term.subgraph_map[idxN]],subname)
         res.add_subgraph(sub) 
     
     return res

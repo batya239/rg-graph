@@ -4,23 +4,23 @@
 #from model import Model
 from graph import *
 
-def FindSubgraphType(G, subgraph, SubGraphTypes = False):
-    if SubGraphTypes == False:
-        SubGraphTypes=G.model.subgraph_types
-    subtype = []
-    subNodes=FindSubgraphNodes(G,subgraph)
+def FindSubgraphType(G, subgraph, subgraph_types=False):
+    if subgraph_types == False:
+        subgraph_types=G.model.subgraph_types
+    sub_type = []
+    sub_nodes=FindSubgraphNodes(G,subgraph)
     for idxL in FindExternalLines(G, subgraph):
-        subtype.append(G.Lines[idxL].type)
-        if len(set(G.Lines[idxL].Nodes())&set(subNodes)) == 2:
-            subtype.append(G.Lines[idxL].type)
-    subtype.sort()
+        sub_type.append(G.lines[idxL].type)
+        if len(set(G.lines[idxL].Nodes())&set(sub_nodes)) == 2:
+            sub_type.append(G.lines[idxL].type)
+    sub_type.sort()
     res=-1
-    for idxST in SubGraphTypes:
+    for idxST in subgraph_types:
         if idxST <> 0:
-            tmpSGType = list(SubGraphTypes[idxST]["Lines"])
+            tmpSGType = list(subgraph_types[idxST]["Lines"])
             tmpSGType.sort()
             #print subtype,tmpSGType
-            if subtype == tmpSGType: 
+            if sub_type == tmpSGType: 
                 res = idxST
                 break
     return res
@@ -28,61 +28,61 @@ def FindSubgraphType(G, subgraph, SubGraphTypes = False):
 def FindSubgraphNodes(G, subgraph):
     res = set([])
     for idxL in subgraph:
-        res = res | set(G.Lines[idxL].Nodes())
+        res = res | set(G.lines[idxL].Nodes())
     return res
 
 def FindExternalLines(G, subgraph):
-    allLines = set([])
+    all_lines = set([])
     for idxN in FindSubgraphNodes(G, subgraph):
-        allLines = allLines | set(G.Nodes[idxN].Lines)
-    return allLines-set(subgraph)
+        all_lines = all_lines | set(G.nodes[idxN].lines)
+    return all_lines-set(subgraph)
 
 def IsSubgraph1PI(G, subgraph):
     res = True
     for idxL in subgraph:
         rsubgraph = set(subgraph) - set([idxL,])
 #            print "\n---", rsubgraph, G.Lines[list(rsubgraph)[0]].Nodes()
-        nodes = set(G.Lines[list(rsubgraph)[0]].Nodes())
+        nodes = set(G.lines[list(rsubgraph)[0]].Nodes())
         
         flag = 0
         while(flag == 0):
             flag = 1
             for idxN in nodes:
-                for idxNL in G.Nodes[idxN].Lines:
+                for idxNL in G.nodes[idxN].lines:
                     if idxNL in rsubgraph:
-                        if len(nodes & set(G.Lines[idxNL].Nodes())) < 2:
-                            nodes = nodes | set(G.Lines[idxNL].Nodes())
+                        if len(nodes & set(G.lines[idxNL].Nodes())) < 2:
+                            nodes = nodes | set(G.lines[idxNL].Nodes())
                             flag = 0
         if nodes <>  FindSubgraphNodes(G, subgraph):
             res = False
     return res
                      
 def CreateSubgraph(G, subgraph):
-    graphNodesTypes=G.GetNodesTypes()
-    subgraphNodes=FindSubgraphNodes(G, subgraph)
-    for idxN in graphNodesTypes:
-        if idxN not in subgraphNodes:
-            graphNodesTypes[idxN]=0  # External node
+    graph_node_types=G.GetNodesTypes()
+    subgraph_nodes=FindSubgraphNodes(G, subgraph)
+    for idxN in graph_node_types:
+        if idxN not in subgraph_nodes:
+            graph_node_types[idxN]=0  # External node
             
     sub=Graph(G.model)
     for idxL in subgraph:
-        sub.AddLine(idxL, G.Lines[idxL])
+        sub.AddLine(idxL, G.lines[idxL])
 #        print subgraph, subgraphNodes, FindExternalLines(G, subgraph)
     for idxL in FindExternalLines(G, subgraph):
-        if len(set(G.Lines[idxL].Nodes())&set(subgraphNodes)) == 2: # внешняя линия соединяет вершины принадлежащие подграфу
-            fakeNode=100000
+        if len(set(G.lines[idxL].Nodes())&set(subgraph_nodes)) == 2: # внешняя линия соединяет вершины принадлежащие подграфу
+            fake_node=100000
             idxL1=idxL*1000+1
             idxL2=idxL*1000+2
-            sub.AddLine(idxL1, Line(G.Lines[idxL].type, G.Lines[idxL].start,fakeNode,G.Lines[idxL].momenta))
-            sub.AddLine(idxL2, Line(G.Lines[idxL].type, fakeNode, G.Lines[idxL].end,G.Lines[idxL].momenta))
-            if fakeNode not in graphNodesTypes: graphNodesTypes[fakeNode]=0
+            sub.AddLine(idxL1, Line(G.lines[idxL].type, G.lines[idxL].start, fake_node,G.lines[idxL].momenta))
+            sub.AddLine(idxL2, Line(G.lines[idxL].type, fake_node, G.lines[idxL].end,G.lines[idxL].momenta))
+            if fake_node not in graph_node_types: graph_node_types[fake_node]=0
         else:
-            sub.AddLine(idxL, G.Lines[idxL])
-    sub.DefineNodes(graphNodesTypes)
+            sub.AddLine(idxL, G.lines[idxL])
+    sub.DefineNodes(graph_node_types)
     return sub
 
 
-def Find(G, SubGraphTypes):
+def Find(G, subgraph_types):
     """ G -graph
         SubGraphTypes - dict of subgraph types as defined in Model
     """
@@ -94,15 +94,15 @@ def Find(G, SubGraphTypes):
                     yield [items[i]]+cc
                   
     res=[]
-    internallines = list(G.InternalLines)
-    internallines.sort()
+    internal_lines = list(G.internal_lines)
+    internal_lines.sort()
     subgraphs = []
-    for idx in range(2,len(internallines)): # количество внтренних линий подграфа
-        subgraphs=subgraphs+[i for i in xuniqueCombinations(internallines,idx)]
+    for idx in range(2,len(internal_lines)): # количество внтренних линий подграфа
+        subgraphs=subgraphs+[i for i in xuniqueCombinations(internal_lines,idx)]
         
     for idxS in subgraphs:
 #        print idxS, FindExternalLines(G, idxS), FindSubgraphType(G,idxS), IsSubgraph1PI(G, idxS)
-        if FindSubgraphType(G,idxS,SubGraphTypes)>0 and IsSubgraph1PI(G, idxS):
+        if FindSubgraphType(G, idxS, subgraph_types)>0 and IsSubgraph1PI(G, idxS):
             #print idxS, FindExternalLines(G, idxS), FindSubgraphType(G,idxS), IsSubgraph1PI(G, idxS)
             res.append(CreateSubgraph(G, idxS))
     return res
