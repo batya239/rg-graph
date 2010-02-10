@@ -97,8 +97,9 @@ class Canonicalize(object):
   def __init__(self, edges):
     if not [n for n in sum(edges, []) if n < 0]:
       raise InputError('No external (negative) nodes found in the input.')
-    # TODO: Check that the graph is connected.
-    # TODO: Raise exception?
+    if not IsConnected(edges):
+      raise InputError('Input edge list is an unconnected graph.')
+
     self.orig = edges
 
     self.num_internal_nodes = 0
@@ -192,6 +193,20 @@ def AdjacentNodes(node, edges):
     elif e[1] == node:
       nodes.append(e[0])
   return nodes
+
+
+def IsConnected(edges):
+  if not edges:
+    return False
+  else:
+    old_len = 0
+    visited = set(edges[0])
+    while old_len < len(visited):
+      old_len = len(visited)
+      for [s, d] in edges:
+        if s in visited or d in visited:
+          visited.update([s, d])
+    return visited == set(sum(edges, []))
 
 
 def Combinations(seq, n):

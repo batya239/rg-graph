@@ -30,7 +30,8 @@ class TestCanonicalize(unittest.TestCase):
     self.assertEqual(len(c.InitStates([[-1, 10], [10, 11], [11, -1]])), 2)
 
   def testRaise(self):
-    self.assertRaises(nickel.InputError, nickel.Canonicalize, [[0,1]])
+    self.assertRaises(nickel.InputError, nickel.Canonicalize, [[0, 1]])
+    self.assertRaises(nickel.InputError, nickel.Canonicalize, [[0, 1], [2, 3]])
 
   def testCanon(self):
     c = nickel.Canonicalize([[-1, 0]])
@@ -154,6 +155,13 @@ class TestUtil(unittest.TestCase):
     self.assertEqual(list(xperm([1, 2, 3])), perm3)
     for p in xperm([1, 2, 3]):
       self.assertEqual(p, perm3.pop(0))
+
+  def testIsConnected(self):
+    conn = nickel.IsConnected
+    self.assertFalse(conn([]))
+    self.assertTrue(conn([[-1, 2]]))
+    self.assertTrue(conn([[-1, 0], [0, 1]]))
+    self.assertFalse(conn([[-1, 0], [2, 1]]))
 
 
 unittest.main()  # Calling from the command line invokes all tests.
