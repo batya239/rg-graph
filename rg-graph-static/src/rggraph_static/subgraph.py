@@ -6,7 +6,7 @@ from graph import *
 
 def FindSubgraphType(G, subgraph, SubGraphTypes = False):
     if SubGraphTypes == False:
-        SubGraphTypes=G.model.SubGraphTypes
+        SubGraphTypes=G.model.subgraph_types
     subtype = []
     subNodes=FindSubgraphNodes(G,subgraph)
     for idxL in FindExternalLines(G, subgraph):
@@ -15,9 +15,9 @@ def FindSubgraphType(G, subgraph, SubGraphTypes = False):
             subtype.append(G.Lines[idxL].Type)
     subtype.sort()
     res=-1
-    for idxST in G.model.SubGraphTypes:
+    for idxST in SubGraphTypes:
         if idxST <> 0:
-            tmpSGType = list(G.model.SubGraphTypes[idxST]["Lines"])
+            tmpSGType = list(SubGraphTypes[idxST]["Lines"])
             tmpSGType.sort()
             #print subtype,tmpSGType
             if subtype == tmpSGType: 

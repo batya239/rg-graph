@@ -7,23 +7,6 @@ import pydot
 
 
 
-def Graph2dot(G):
-    strdot = "digraph G {\n"
-    #adding Nodes
-    for idxN in G.Nodes:
-        strdot=strdot + str(idxN) + "000 [ label=\"" + str(idxN) + "\""
-        if "Graphviz" in G.model.NodeTypes[G.Nodes[idxN].Type]: 
-            strdot = strdot + ", " + G.model.NodeTypes[G.Nodes[idxN].Type]["Graphviz"]
-        strdot = strdot + "];\n"
-    #adding Lines
-    for idxL in G.Lines:
-        strdot = strdot + str(G.Lines[idxL].In) + "000 -> " + str(G.Lines[idxL].Out) + "000 [label=\"" + G.Lines[idxL].Momenta + " (" + str(idxL) + ")\""
-        if "Graphviz" in G.model.LineTypes[G.Lines[idxL].Type]: 
-            strdot = strdot + ", " + G.model.LineTypes[G.Lines[idxL].Type]["Graphviz"]
-        strdot = strdot + "];\n"
-    strdot = strdot + "}\n"
-    return strdot
-
 def GraphSubgraph2dot(G):
     dot=pydot.Dot(graph_type='digraph')
     s1=pydot.Cluster('s',label='graph')
@@ -39,18 +22,18 @@ def Graph2Cluster(G,name):
     res= pydot.Cluster(name,label="\"%s\"" %name)
     for idxN in G.Nodes:
         curNode=G.Nodes[idxN]
-        if "gv" in  G.model.NodeTypes[curNode.Type]:
+        if "gv" in  G.model.node_types[curNode.Type]:
                 res.add_node( pydot.Node(str(idxN)+name, label=str(idxN),
-                                **G.model.NodeTypes[curNode.Type]["gv"]))
+                                **G.model.node_types[curNode.Type]["gv"]))
         else:
             res.add_node( pydot.Node(str(idxN)+name, label=str(idxN)))
     for idxL in G.Lines:
         curLine=G.Lines[idxL]
-        if "gv" in  G.model.LineTypes[curLine.Type]:
+        if "gv" in  G.model.line_types[curLine.Type]:
                 res.add_edge(pydot.Edge( str(curLine.In)+name, 
                                 str(curLine.Out)+name, 
                                 label = " (%s) %s" %(idxL, curLine.Momenta), 
-                                **G.model.LineTypes[curLine.Type]["gv"]) )
+                                **G.model.line_types[curLine.Type]["gv"]) )
         else:
             res.add_edge(pydot.Edge( str(curLine.In)+name, 
                                 str(curLine.Out)+name, 

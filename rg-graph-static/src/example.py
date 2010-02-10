@@ -5,9 +5,6 @@ from sympy import *
 import rggraph_static as rggrf
 import pydot
 
-print dir(rggrf)
-print dir(rggrf.Model)
-
 if len(sys.argv) == 2:
     filename = sys.argv[1]
 else:

@@ -52,7 +52,7 @@ class Graph:
         self.nickel=None
         
     def __str__(self):
-        res="Model = %s , Type = %s \n Lines: {" %(self.model.Name, self.Type)
+        res="Model = %s , Type = %s \n Lines: {" %(self.model.name, self.Type)
         for idxL in self.Lines:
             res=res+" %s: [%s, %s]," %(idxL,self.Lines[idxL].In,self.Lines[idxL].Out)
         res=res[:-1]+ "}\n"
@@ -94,14 +94,14 @@ class Graph:
             if idxN in dictNodeType: # если эта вершина указана в словаре который подан на вход, то надо проверить правильный ли тип вершины. 
                 tmpType = dictNodeType[idxN]
                 if tmpType <> 0:
-                    tmpNodeTypes = list(self.model.NodeTypes[tmpType]["Lines"])
+                    tmpNodeTypes = list(self.model.node_types[tmpType]["Lines"])
                     tmpNodeTypes.sort()
                     if tmpNodeTypes <> tmplstLineTypes:
                         raise Exception, "invalid node type in dictNodeType model:%s Graph:%s" %(tmpNodeTypes,tmplstLineTypes)
             else:
                 tmpType = -1
-                for idxT in self.model.NodeTypes:
-                    tmpNodeTypes = list(self.model.NodeTypes[idxT]["Lines"])
+                for idxT in self.model.node_types:
+                    tmpNodeTypes = list(self.model.node_types[idxT]["Lines"])
                     tmpNodeTypes.sort()
                     if tmpNodeTypes == tmplstLineTypes:
                         tmpType = idxT
@@ -122,7 +122,7 @@ class Graph:
         self.ExternalLines=tmpExternalLines
         self.InternalLines=set(self.Lines.keys())-self.ExternalLines
         import subgraph
-        self.Type=subgraph.FindSubgraphType(self, list(self.InternalLines), self.model.SubGraphTypes)
+        self.Type=subgraph.FindSubgraphType(self, list(self.InternalLines), self.model.subgraph_types)
         self.InternalNodes=tmpIntNodes
     
     def GetNodesTypes(self):
@@ -134,21 +134,21 @@ class Graph:
     def GenerateNickel(self):
         edges = []
         for idxL in self.Lines:
-             if self.Nodes[self.Lines[idxL].In].Type == 0:
-                 In = -1
-             else:
-                 In = self.Lines[idxL].In
-             if self.Nodes[self.Lines[idxL].Out].Type == 0:
-                 In = -1
-             else:
-                 Out = self.Lines[idxL].Out
-             edges.append([In, Out])
+            if self.Nodes[self.Lines[idxL].In].Type == 0:
+                In = -1
+            else:
+                In = self.Lines[idxL].In
+            if self.Nodes[self.Lines[idxL].Out].Type == 0:
+                In = -1
+            else:
+                Out = self.Lines[idxL].Out
+            edges.append([In, Out])
         self.nickel=nickel.Canonicalize(edges)
         
     def FindSubgraphs(self,SubGraphTypes = False):
         import subgraph
         if SubGraphTypes == False:
-            SubGraphTypes=self.model.SubGraphTypes
+            SubGraphTypes=self.model.subgraph_types
         self.subgraphs=subgraph.Find(self, SubGraphTypes)
          
     def SaveAsPNG(self, filename):
