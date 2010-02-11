@@ -25,6 +25,8 @@ phi3.AddNodeType(4, Lines = [1, 1], Factor = K , gv = {"color":"blue"})
 phi3.AddSubGraphType(1, Lines = [1, 1, 1], dim = 0, K_nodetypeR1 = 3)
 phi3.AddSubGraphType(2, Lines = [1, 1], dim = 2, K_nodetypeR1 = 4)
 
+phi3.AddDotType(1, dim=2, gv={"penwidth":"3"})
+
 print phi3
 
 G = rggrf.Graph(phi3)

@@ -32,7 +32,8 @@ def ExtractSubgraphs( G, subgraph_list ):
         else:
             Out = G.lines[idxL].end
         ct_graph.AddLine( idxL, Line( G.lines[idxL].type, 
-                                     In, Out, G.lines[idxL].momenta ) )
+                                     In, Out, G.lines[idxL].momenta, 
+                                     G.lines[idxL].dots ) )
     ct_graph.DefineNodes(node_types)
     ct_graph.FindSubgraphs()
     return (ct_graph , subgraph_map)    

@@ -19,6 +19,9 @@ def GraphSubgraph2dot(G):
     return dot
 
 def Graph2Cluster(G,name):
+    """
+        TODO: add Line.dots visualization 
+    """
     res= pydot.Cluster(name,label="\"%s\"" %name)
     for idxN in G.nodes:
         cur_node=G.nodes[idxN]
