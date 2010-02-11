@@ -42,23 +42,14 @@ print G.internal_lines
 print
 
 print G
-#print "subgraphs"
+
 
 G.FindSubgraphs()
 
-#for i in range(len(G.subgraphs)):
-#    print "sub %s" %i
-#    print G.subgraphs[i]
+
     
 r1=rggrf.roperation.R1(G)
-#print "R1(G)"
-#for i in range(len(r1.terms)):
-#    print "term %s:"  %i
-#    print r1.terms[i].CTGraph
-#    print r1.terms[i].SubgraphMap    
-#    print "\t term subgraphs:"
-#    for j in r1.terms[i].subgraphs:
-#        print "\t %s" %j
+
         
 G.GenerateNickel()
 print G.nickel
