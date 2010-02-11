@@ -15,6 +15,7 @@ class Model:
         self.node_types = dict()
         self.subgraph_types = dict()
         self.k_nodetype_r1 = dict()
+        self.dot_types = dict()
         
     def AddLineType(self, line_idx, **kwargs):
         """ propagator,directed,Graphviz
@@ -50,6 +51,15 @@ class Model:
                 self.k_nodetype_r1[subgraph_idx] = kwargs["K_nodetypeR1"]
         else:
             raise Exception, "SubGraphType %s allready defined" %subgraph_idx  
+
+    def AddDotType(self, dot_idx, **kwargs):
+        """ dim  
+        """
+        if dot_idx not in self.dot_types:
+            self.dot_types[dot_idx] = kwargs
+        else:
+            raise Exception, "DotType %s allready defined,%s" %(dot_idx,self.dot_types)  
+
                 
     def __str__(self):
         res = "Model Name = %s\n\nLine types:\n" %self.name
@@ -61,7 +71,8 @@ class Model:
         res = res + " \nSubGraph types:\n"
         for idxS in self.subgraph_types:
             res = res + "\ttype %s : %s\n" %(idxS,self.subgraph_types[idxS])
-            
-    
+        res = res + " \nDot types:\n"
+        for idxD in self.dot_types:
+            res = res + "\ttype %s : %s\n" %(idxS,self.dot_types[idxD])
         return res
         

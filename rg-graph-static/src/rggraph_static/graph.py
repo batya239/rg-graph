@@ -7,11 +7,13 @@ class Line:
     """ Class represents information about Line of a graph
         idx, type, momenta, start, end 
     """
-    def __init__(self, type_, start_, end_, momenta_):
+    def __init__(self, type_, start_, end_, momenta_, dots_):
         self.type = type_
         self.start = start_
         self.end = end_
         self.momenta = momenta_
+        self.dots = dots_
+        
          
     def Nodes(self):
         return (self.start, self.end)
@@ -91,7 +93,7 @@ class Graph:
         (moment,lines) = eval(open(filename).read())
         for idxL in lines:
             self.AddLine(idxL, Line(1, lines[idxL][0], lines[idxL][1], 
-                                    moment[idxL]))
+                                    moment[idxL], list()))
         
     
     def DefineNodes(self, dict_node_type):
@@ -213,4 +215,3 @@ class Graph:
         gdot=GraphSubgraph2dot(self)
         gdot.write_png(filename, prog="dot")
         
-            

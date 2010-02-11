@@ -69,12 +69,25 @@ def CreateSubgraph(G, subgraph):
         sub.AddLine(idxL, G.lines[idxL])
 #        print subgraph, subgraphNodes, FindExternalLines(G, subgraph)
     for idxL in FindExternalLines(G, subgraph):
-        if len(set(G.lines[idxL].Nodes())&set(subgraph_nodes)) == 2: # внешняя линия соединяет вершины принадлежащие подграфу
+
+# внешняя линия соединяет вершины принадлежащие подграфу:
+# чтобы интерпретировать ее как внешнюю для подграфа необходимо ее 
+# разорвать и обрывки линий прицепить к некоей фиктивной внешней
+# вершине. типичный пример четереххвостый подграф в арбузе.
+
+        if len(set(G.lines[idxL].Nodes())&set(subgraph_nodes)) == 2: 
+            
             fake_node=100000
             idxL1=idxL*1000+1
             idxL2=idxL*1000+2
-            sub.AddLine(idxL1, Line(G.lines[idxL].type, G.lines[idxL].start, fake_node,G.lines[idxL].momenta))
-            sub.AddLine(idxL2, Line(G.lines[idxL].type, fake_node, G.lines[idxL].end,G.lines[idxL].momenta))
+            sub.AddLine(idxL1, Line(G.lines[idxL].type, G.lines[idxL].start, 
+                                    fake_node, G.lines[idxL].momenta,
+                                    G.lines[idxL].dots))
+            
+            sub.AddLine(idxL2, Line(G.lines[idxL].type, fake_node, 
+                                    G.lines[idxL].end,G.lines[idxL].momenta, 
+                                    G.lines[idxL].dots))
+            
             if fake_node not in graph_node_types: graph_node_types[fake_node]=0
         else:
             sub.AddLine(idxL, G.lines[idxL])
