@@ -93,7 +93,7 @@ class Graph:
         (moment,lines) = eval(open(filename).read())
         for idxL in lines:
             self.AddLine(idxL, Line(1, lines[idxL][0], lines[idxL][1], 
-                                    moment[idxL], list()))
+                                    moment[idxL], dict()))
         
     
     def DefineNodes(self, dict_node_type):
@@ -171,8 +171,9 @@ class Graph:
         self.external_lines=tmp_external_lines
         self.internal_lines=set(self.lines.keys())-self.external_lines
         import subgraph
-        self.type=subgraph.FindSubgraphType(self, list(self.internal_lines), 
-                                            self.model.subgraph_types)
+        (self.type, self.dim) = subgraph.FindSubgraphType(self, 
+                                list(self.internal_lines), 
+                                self.model.subgraph_types)
         self.internal_nodes=tmp_int_nodes
     
     def GetNodesTypes(self):

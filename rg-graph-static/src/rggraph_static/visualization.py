@@ -25,22 +25,33 @@ def Graph2Cluster(G,name):
     res= pydot.Cluster(name,label="\"%s\"" %name)
     for idxN in G.nodes:
         cur_node=G.nodes[idxN]
+        gv_options=dict()
         if "gv" in  G.model.node_types[cur_node.type]:
-                res.add_node( pydot.Node(str(idxN)+name, label=str(idxN),
-                                **G.model.node_types[cur_node.type]["gv"]))
-        else:
-            res.add_node( pydot.Node(str(idxN)+name, label=str(idxN)))
+            for idxGV in G.model.node_types[cur_node.type]["gv"]:
+                gv_options[idxGV] = G.model.node_types[cur_node.type]["gv"][idxGV]
+        res.add_node( pydot.Node(str(idxN)+name, label=str(idxN),
+                                **gv_options))   
+#TODO: dots on nodes
+
     for idxL in G.lines:
         cur_line=G.lines[idxL]
+        gv_options=dict()
         if "gv" in  G.model.line_types[cur_line.type]:
-                res.add_edge(pydot.Edge( str(cur_line.start)+name, 
+            for idxGV in G.model.line_types[cur_line.type]["gv"]:
+                gv_options[idxGV]=G.model.line_types[cur_line.type]["gv"][idxGV]
+                
+# TODO: check if gv options overwrites one another
+
+        for idxD in cur_line.dots:
+            if "gv" in  G.model.dot_types[idxD]:
+                for idxGV in G.model.dot_types[idxD]["gv"]:
+                    gv_options[idxGV]=G.model.dot_types[idxD]["gv"][idxGV]
+            
+        res.add_edge(pydot.Edge( str(cur_line.start)+name, 
                                 str(cur_line.end)+name, 
                                 label = " (%s) %s" %(idxL, cur_line.momenta), 
-                                **G.model.line_types[cur_line.type]["gv"]) )
-        else:
-            res.add_edge(pydot.Edge( str(cur_line.start)+name, 
-                                str(cur_line.end)+name, 
-                                label = " (%s) %s" %(idxL, cur_line.momenta)) )
+                                **gv_options) )
+            
     return res
     
                     

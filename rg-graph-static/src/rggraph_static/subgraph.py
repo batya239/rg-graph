@@ -6,7 +6,7 @@ from graph import *
 
 def FindSubgraphType(G, subgraph, subgraph_types=False):
     if subgraph_types == False:
-        subgraph_types=G.model.subgraph_types
+        subgraph_types = G.model.subgraph_types
     sub_type = []
     sub_nodes=FindSubgraphNodes(G,subgraph)
     for idxL in FindExternalLines(G, subgraph):
@@ -14,16 +14,22 @@ def FindSubgraphType(G, subgraph, subgraph_types=False):
         if len(set(G.lines[idxL].Nodes())&set(sub_nodes)) == 2:
             sub_type.append(G.lines[idxL].type)
     sub_type.sort()
-    res=-1
+    res_subgraph_type = -1
+    res_divergence = -1
     for idxST in subgraph_types:
         if idxST <> 0:
             tmpSGType = list(subgraph_types[idxST]["Lines"])
             tmpSGType.sort()
             #print subtype,tmpSGType
             if sub_type == tmpSGType: 
-                res = idxST
+                res_subgraph_type = idxST
+                res_divergence = subgraph_types[idxST]["dim"] 
                 break
-    return res
+    subgraph_dot_count=SubgraphDotCount(G, subgraph)
+    for idxD in subgraph_dot_count:
+        res_divergence=res_divergence-subgraph_dot_count[idxD]*G.model.dot_types[idxD]["dim"]
+    
+    return (res_subgraph_type,res_divergence)
 
 def FindSubgraphNodes(G, subgraph):
     res = set([])
@@ -94,6 +100,15 @@ def CreateSubgraph(G, subgraph):
     sub.DefineNodes(graph_node_types)
     return sub
 
+def SubgraphDotCount(G, subgraph):
+    res = dict()
+    for idxL in subgraph:
+        for idxD in G.lines[idxL].dots:
+            if idxD in res:
+                res[idxD] = res[idxD] + 1
+            else:
+                res[idxD] = 1
+    return res
 
 def Find(G, subgraph_types):
     """ G -graph
@@ -115,7 +130,8 @@ def Find(G, subgraph_types):
         
     for idxS in subgraphs:
 #        print idxS, FindExternalLines(G, idxS), FindSubgraphType(G,idxS), IsSubgraph1PI(G, idxS)
-        if FindSubgraphType(G, idxS, subgraph_types)>0 and IsSubgraph1PI(G, idxS):
+        (subgraph_type, subgraph_divergence) = FindSubgraphType(G, idxS, subgraph_types) 
+        if subgraph_type > 0 and subgraph_divergence >= 0 and IsSubgraph1PI(G, idxS):
             #print idxS, FindExternalLines(G, idxS), FindSubgraphType(G,idxS), IsSubgraph1PI(G, idxS)
             res.append(CreateSubgraph(G, idxS))
     return res

@@ -32,6 +32,7 @@ print phi3
 
 G = rggrf.Graph(phi3)
 G.LoadLinesFromFile(filename)
+G.lines[6].dots[1] = 1
 G.DefineNodes({})
 
 for idxN in G.nodes:

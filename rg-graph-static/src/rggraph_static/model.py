@@ -70,9 +70,9 @@ class Model:
             res = res + "\ttype %s : %s\n" %(idxN, self.node_types[idxN])
         res = res + " \nSubGraph types:\n"
         for idxS in self.subgraph_types:
-            res = res + "\ttype %s : %s\n" %(idxS,self.subgraph_types[idxS])
+            res = res + "\ttype %s : %s\n" %(idxS, self.subgraph_types[idxS])
         res = res + " \nDot types:\n"
         for idxD in self.dot_types:
-            res = res + "\ttype %s : %s\n" %(idxS,self.dot_types[idxD])
+            res = res + "\ttype %s : %s\n" %(idxD, self.dot_types[idxD])
         return res
         

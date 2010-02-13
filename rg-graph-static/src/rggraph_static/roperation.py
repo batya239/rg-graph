@@ -12,6 +12,7 @@ def ExtractSubgraphs( G, subgraph_list ):
     for idxS in subgraph_list:
         while ( cur_node_idx in node_types):
             cur_node_idx=cur_node_idx+1
+#        print cur_node_idx, node_types, G.model.k_nodetype_r1, G.subgraphs[idxS].type
         node_types[ cur_node_idx ] = G.model.k_nodetype_r1[ G.subgraphs[idxS].type ]
         subgraph_map[cur_node_idx] = subgraph_list.index(idxS)
 
