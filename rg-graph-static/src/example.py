@@ -32,6 +32,9 @@ def dot_action(**kwargs):
     propagator=kwargs["propagator"]
     return propagator.diff(tau)
 
+def K(**kwargs):
+    pass
+
             
 
 phi3=rggrf.Model("phi3")

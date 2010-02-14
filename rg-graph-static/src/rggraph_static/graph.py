@@ -311,28 +311,28 @@ class Graph:
         gdot=GraphSubgraph2dot(self)
         gdot.write_png(filename, prog="dot")
         
-    def LinePropagator(self, idxL, zero_moments=[]):
-        cur_line = self.lines[idxL]
-        cur_momenta = cur_line.momenta.SetZeros(zero_moments)
-        propagator = self.model.line_types[cur_line.type]["propagator"](momenta=cur_momenta)
-        for idxD in cur_line.dots:
-            for idx in range(cur_line.dots[idxD]):
-                propagator = cur_line[idxD]["action"](propagator=propagator)
-        return propagator
-    
-    def NodeFactor(self, idxN, zero_moments=[]):
-#TODO:  в реальности работает только со скалярными вершинами и врешинами в которые входит ровно один тип линий.         
-        cur_node = self.nodes[idxN]
-        moments = dict()
-        cnt_moment = 0
-        for idxL in cur_node.lines:
-            cur_line = cur_node.lines[idxL]
-            if cur_line.snd == idxN :
-                moment["momenta%s"%cnt_moment] = cur_line.momenta.SetZeros(zero_moments)
-            else:
-                moment["momenta%s"%cnt_moment] = - cur_line.momenta.SetZeros(zero_moments)
-            cnt_moment = cnt_mode + 1
-        factor = self.model.node_types[cur_node.type]["Factor"](graph=self, **moment)
-        return 
+#    def LinePropagator(self, idxL, zero_moments=[]):
+#        cur_line = self.lines[idxL]
+#        cur_momenta = cur_line.momenta.SetZeros(zero_moments)
+#        propagator = self.model.line_types[cur_line.type]["propagator"](momenta=cur_momenta)
+#        for idxD in cur_line.dots:
+#            for idx in range(cur_line.dots[idxD]):
+#                propagator = cur_line[idxD]["action"](propagator=propagator)
+#        return propagator
+#    
+#    def NodeFactor(self, idxN, zero_moments=[]):
+##TODO:  в реальности работает только со скалярными вершинами и врешинами в которые входит ровно один тип линий.         
+#        cur_node = self.nodes[idxN]
+#        moments = dict()
+#        cnt_moment = 0
+#        for idxL in cur_node.lines:
+#            cur_line = cur_node.lines[idxL]
+#            if cur_line.snd == idxN :
+#                moment["momenta%s"%cnt_moment] = cur_line.momenta.SetZeros(zero_moments)
+#            else:
+#                moment["momenta%s"%cnt_moment] = - cur_line.momenta.SetZeros(zero_moments)
+#            cnt_moment = cnt_mode + 1
+#        factor = self.model.node_types[cur_node.type]["Factor"](graph=self, **moment)
+#        return 
              
             
