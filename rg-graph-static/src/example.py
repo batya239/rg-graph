@@ -32,34 +32,7 @@ def dot_action(**kwargs):
     propagator=kwargs["propagator"]
     return propagator.diff(tau)
 
-def K(**kwargs):
-    cur_graph = kwargs["graph"]
-    if cur_graph.dim == 0 : 
-        return K0(**kwargs)
-    elif cur_graph.dim == 2:
-        return K0(**kwargs) + K2(**kwargs)
-    else:
-        raise Exception, " invalid graph dimension %s " %cur_graph.dim
-
-def K0(**kwargs):
-    cur_graph = kwargs["graph"]
-    zero_moments = []
-    for idxL in cur_graph.external_lines:
-        if cur_graph.lines[idxL]["Momenta"] <> '':
-            zero_moments.append(cur_graph.lines[idxL]["Momenta"])
-    res=1
-    for idxL in cur_graph.internal_lines:
-        res=res*cur_graph.LinePropagator(idxL, zero_moments)
-    
-    for idxN in cur_graph.internal_nodes:
-        momenta=''
-        res=res*cur_graph.NodeFactor(idxN, zero_moments)
-    return res
-        
-
-def K2(**kwargs):
-    cur_graph=kwargs["graph"]
-    pass    
+            
 
 phi3=rggrf.Model("phi3")
 phi3.AddLineType(1, propagator=propagator, directed=0)
