@@ -10,15 +10,70 @@ if len(sys.argv) == 2:
 else:
     filename = "moment"
 
-var('p tau p1 K')
+var('p tau p1')
+
+def propagator(**kwargs):
+    var('tau')
+    momenta = kwargs["momenta"]
+    return 1 / (rggrf.SquaredMomenta(momenta) + tau)
+
+def external_node_factor(**kwargs):
+    return 1
+
+def triple_node_factor(**kwargs):
+    return 1
+
+def double_node_factor(**kwargs):
+    squared_momenta = rggrf.SquaredMomenta(kwargs["momenta"])
+    return squared_momenta
+
+def dot_action(**kwargs):
+    var('tau')
+    propagator=kwargs["propagator"]
+    return propagator.diff(tau)
+
+def K(**kwargs):
+    cur_graph = kwargs["graph"]
+    if cur_graph.dim == 0 : 
+        return K0(**kwargs)
+    elif cur_graph.dim == 2:
+        return K0(**kwargs) + K2(**kwargs)
+    else:
+        raise Exception, " invalid graph dimension %s " %cur_graph.dim
+
+def K0(**kwargs):
+    cur_graph = kwargs["graph"]
+    zero_moments = []
+    for idxL in cur_graph.external_lines:
+        if cur_graph.lines[idxL]["Momenta"] <> '':
+            zero_moments.append(cur_graph.lines[idxL]["Momenta"])
+    res=1
+    for idxL in cur_graph.internal_lines:
+        res=res*cur_graph.LinePropagator(idxL, zero_moments)
+    
+    for idxN in cur_graph.internal_nodes:
+        momenta=''
+        for idxL in cur_graph.nodes[idxN].lines:
+            if len(cur_graph.lines[idxL].momenta) > 0 :
+                if cur_graph.lines[idxL].end == idxN :
+                    momenta = cur_graph.lines[idxL].momenta
+                else:
+                    momenta = cur_graph.lines[idxL].momenta.replace("+","_+_").replace("-","_-_").replace("_+_","-").replace("_-_","+")
+        res=res*cur_graph.NodeFactor(idxN, zero_moments)
+        
+
+def K2(**kwargs):
+    cur_graph=kwargs["graph"]
+    
+    pass    
 
 phi3=rggrf.Model("phi3")
-phi3.AddLineType(1, propagator=1 / (p * p + tau), directed=0)
+phi3.AddLineType(1, propagator=propagator, directed=0)
 
-phi3.AddNodeType(0, Lines=[], Factor=1, Graphviz="color='red'",
+phi3.AddNodeType(0, Lines=[], Factor=external_node_factor,
                  gv={"color": "red"})  #External Node
-phi3.AddNodeType(1, Lines=[1, 1, 1], Factor=1)
-phi3.AddNodeType(2, Lines=[1, 1], Factor=p1 * p1) # nodes from Sigma subgraphs
+phi3.AddNodeType(1, Lines=[1, 1, 1], Factor=triple_node_factor)
+phi3.AddNodeType(2, Lines=[1, 1], Factor=double_node_factor) # nodes from Sigma subgraphs
 phi3.AddNodeType(3, Lines=[1, 1, 1], Factor=K, gv={"color": "blue"})
 phi3.AddNodeType(4, Lines=[1, 1], Factor=K, gv={"color": "blue"})
 
@@ -26,7 +81,8 @@ phi3.AddNodeType(4, Lines=[1, 1], Factor=K, gv={"color": "blue"})
 phi3.AddSubGraphType(1, Lines=[1, 1, 1], dim=0, K_nodetypeR1=3)
 phi3.AddSubGraphType(2, Lines=[1, 1], dim=2, K_nodetypeR1=4)
 
-phi3.AddDotType(1, dim=2, gv={"penwidth":"3"})
+phi3.AddDotType(1, dim=2, action=dot_action, gv={"penwidth":"3"})
+print phi3.line_types[1]["propagator"](momenta="+p-q1")
 
 print phi3
 

@@ -2,6 +2,50 @@
 # -*- coding: utf8
 
 import nickel
+from sympy import *
+
+class Momenta:
+    def __init__(self,**kwargs):
+        def str2dict(string):
+            t_string=string.replace("+",",+").replace("-",",-")
+            if t_string[0] == ",":
+                t_string = t_string[1:]
+            t_list=t_string.split(",")
+            t_dict={}
+            for idxM in t_list:
+                if "+" in idxM:
+                    t_dict[idxM.replace("+","")]=1
+                elif "-" in idxM:
+                    t_dict[idxM.replace("-","")]=-1
+                else:
+                    t_dict[idxM]=1
+            return t_dict
+            
+        if "string" in kwargs:
+            self.string = kwargs["string"]
+            self.dict = str2dict(self.string)
+            for idxM in self.dict:
+                var(idxM)
+            self.sympy = eval(self.string)
+            
+        elif "dict" in kwargs:
+            self.dict = kwargs["dict"]
+            self.string = ""
+            for idxM in self.dict:
+                var(idxM)
+                if self.dict[idxM] == 1 :
+                    self.string = "%s+%s" %(self.string, idxM)
+                elif self.dict[idxM] == -1 :
+                    self.string = "%s-%s" %(self.string, idxM)
+                else:
+                    raise ValueError, "invalid momenta %s" %self.dict
+            self.sympy = eval(self.string)
+        elif "sympy" in kwargs:
+            self.sympy = kwargs[sympy]
+            self.string = str(self.sympy) 
+            self.dict = str2dict(self.sympy)
+        else:
+            raise TypeError, "unknown moment datatype kwargs = %s" %kwargs 
 
 class Line:
     """ Class represents information about Line of a graph
@@ -17,6 +61,7 @@ class Line:
          
     def Nodes(self):
         return (self.start, self.end)
+    
      
 
 
@@ -168,8 +213,8 @@ class Graph:
                  
             self.nodes[idxN] = Node(Type=tmp_type, Lines=tmp_lines)
             
-        self.external_lines=tmp_external_lines
-        self.internal_lines=set(self.lines.keys())-self.external_lines
+        self.external_lines = tmp_external_lines
+        self.internal_lines = set(self.lines.keys()) - self.external_lines
         import subgraph
         (self.type, self.dim) = subgraph.FindSubgraphType(self, 
                                 list(self.internal_lines), 
@@ -216,3 +261,19 @@ class Graph:
         gdot=GraphSubgraph2dot(self)
         gdot.write_png(filename, prog="dot")
         
+    def LinePropagator(self, idxL, zero_moments=[]):
+        cur_line = self.lines[idxL]
+        cur_momenta = self.model.ZeroMomenta(cur_line.momenta, zero_moments)
+        propagator = self.model.line_types[cur_line.type]["propagator"](momenta=cur_momenta)
+        for idxD in cur_line.dots:
+            for idx in range(cur_line.dots[idxD]):
+                propagator = cur_line[idxD]["action"](propagator=propagator)
+        return propagator
+    
+    def NodeFactor(self, idxN, zero_moments=[]):
+        cur_node = self.nodes[idxN]
+        moments = dict()
+        for idxL in cur_node.lines:
+            cur_line=cur_node.lines[idxL]
+            moment[idxL] = self.model.ZeroMomenta(cur_line.momenta, zero_moments)
+            
