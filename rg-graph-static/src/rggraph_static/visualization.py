@@ -49,7 +49,7 @@ def Graph2Cluster(G,name):
             
         res.add_edge(pydot.Edge( str(cur_line.start)+name, 
                                 str(cur_line.end)+name, 
-                                label = " (%s) %s" %(idxL, cur_line.momenta), 
+                                label = " (%s) %s" %(idxL, cur_line.momenta.string), 
                                 **gv_options) )
             
     return res

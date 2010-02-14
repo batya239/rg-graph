@@ -45,7 +45,14 @@ class Momenta:
             self.string = str(self.sympy) 
             self.dict = str2dict(self.sympy)
         else:
-            raise TypeError, "unknown moment datatype kwargs = %s" %kwargs 
+            raise TypeError, "unknown moment datatype kwargs = %s" %kwargs
+         
+    def __neg__(self):
+        t_dict=dict()
+        for idxD in self.dict:
+            t_dict[idxD] = - self.dict[idxD]
+        return Momenta(dict=t_dict) 
+            
 
 class Line:
     """ Class represents information about Line of a graph
@@ -138,7 +145,7 @@ class Graph:
         (moment,lines) = eval(open(filename).read())
         for idxL in lines:
             self.AddLine(idxL, Line(1, lines[idxL][0], lines[idxL][1], 
-                                    moment[idxL], dict()))
+                                    Momenta(string=moment[idxL]), dict()))
         
     
     def DefineNodes(self, dict_node_type):

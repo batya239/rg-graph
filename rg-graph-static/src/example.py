@@ -53,18 +53,12 @@ def K0(**kwargs):
     
     for idxN in cur_graph.internal_nodes:
         momenta=''
-        for idxL in cur_graph.nodes[idxN].lines:
-            if len(cur_graph.lines[idxL].momenta) > 0 :
-                if cur_graph.lines[idxL].end == idxN :
-                    momenta = cur_graph.lines[idxL].momenta
-                else:
-                    momenta = cur_graph.lines[idxL].momenta.replace("+","_+_").replace("-","_-_").replace("_+_","-").replace("_-_","+")
         res=res*cur_graph.NodeFactor(idxN, zero_moments)
+    return res
         
 
 def K2(**kwargs):
     cur_graph=kwargs["graph"]
-    
     pass    
 
 phi3=rggrf.Model("phi3")
