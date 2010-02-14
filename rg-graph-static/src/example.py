@@ -15,7 +15,7 @@ var('p tau p1')
 def propagator(**kwargs):
     var('tau')
     momenta = kwargs["momenta"]
-    return 1 / (rggrf.SquaredMomenta(momenta) + tau)
+    return 1 / (momenta.Squared() + tau)
 
 def external_node_factor(**kwargs):
     return 1
@@ -24,7 +24,7 @@ def triple_node_factor(**kwargs):
     return 1
 
 def double_node_factor(**kwargs):
-    squared_momenta = rggrf.SquaredMomenta(kwargs["momenta"])
+    squared_momenta = kwargs["momenta0"].Squared()
     return squared_momenta
 
 def dot_action(**kwargs):
@@ -76,7 +76,7 @@ phi3.AddSubGraphType(1, Lines=[1, 1, 1], dim=0, K_nodetypeR1=3)
 phi3.AddSubGraphType(2, Lines=[1, 1], dim=2, K_nodetypeR1=4)
 
 phi3.AddDotType(1, dim=2, action=dot_action, gv={"penwidth":"3"})
-print phi3.line_types[1]["propagator"](momenta="+p-q1")
+print phi3.line_types[1]["propagator"](momenta=rggrf.Momenta(string="+p-q1"))
 
 print phi3
 

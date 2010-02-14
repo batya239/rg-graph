@@ -52,7 +52,44 @@ class Momenta:
         for idxD in self.dict:
             t_dict[idxD] = - self.dict[idxD]
         return Momenta(dict=t_dict) 
+    
+    def Squared(self):
+        res = 0
+        for idxM in self.dict:
+            var(idxM)
+        t_list=self.dict.keys()
+        t_list.sort()
+        for idxM in t_list:            
+            res=res+eval(idxM)*eval(idxM)
+            for idxM2 in t_list[t_list.index(idxM)+1:]:
+                var(idxM+idxM2)
+                res = res + 2 * self.dict[idxM] * eval(idxM) * self.dict[idxM2] * eval(idxM2) * eval(idxM+idxM2)
+        return res
+    
+    def SetZeroes(self, zero_momenta):
+        t_sympy=self.sympy
+        z_moment=list()
+
+        for idxZM in zero_momenta:
+            if len(idxZM) == 1:
+                z_moment.append( (idxZM.sympy, 0) )
+            else:
+                t_list=idxZM.dict.keys()
+                t_left=t_list[0]
+                t_right=dict()
+                for idxM in t_list[1:]:
+                    t_right[idxM]=idxZM.dict[idxM]/idxZM.dict[t_left]*(-1)
+                z_moment.append( (Momenta(string=t_left).sympy, Momenta(dict=t_right).sympy) )
+
+        for idxZeq in z_moment:
+            t_sympy=t_sympy.subs(idxZeq[0],idxZeq[1])
+
+        return Momenta(sympy=t_sympy)
+                    
+                
             
+    
+    
 
 class Line:
     """ Class represents information about Line of a graph
@@ -270,7 +307,7 @@ class Graph:
         
     def LinePropagator(self, idxL, zero_moments=[]):
         cur_line = self.lines[idxL]
-        cur_momenta = self.model.ZeroMomenta(cur_line.momenta, zero_moments)
+        cur_momenta = cur_line.momenta.SetZeroes(zero_moments)
         propagator = self.model.line_types[cur_line.type]["propagator"](momenta=cur_momenta)
         for idxD in cur_line.dots:
             for idx in range(cur_line.dots[idxD]):
@@ -278,9 +315,18 @@ class Graph:
         return propagator
     
     def NodeFactor(self, idxN, zero_moments=[]):
+#TODO:  в реальности работает только со скалярными вершинами и врешинами в которые входит ровно один тип линий.         
         cur_node = self.nodes[idxN]
         moments = dict()
+        cnt_moment = 0
         for idxL in cur_node.lines:
-            cur_line=cur_node.lines[idxL]
-            moment[idxL] = self.model.ZeroMomenta(cur_line.momenta, zero_moments)
+            cur_line = cur_node.lines[idxL]
+            if cur_line.snd == idxN :
+                moment["momenta%s"%cnt_moment] = cur_line.momenta.SetZeroes(zero_moments)
+            else:
+                moment["momenta%s"%cnt_moment] = - cur_line.momenta.SetZeroes(zero_moments)
+            cnt_moment = cnt_mode + 1
+        factor = self.model.node_types[cur_node.type]["Factor"](graph=self, **moment)
+        return 
+             
             
