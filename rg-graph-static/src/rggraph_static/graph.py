@@ -7,6 +7,8 @@ from sympy import *
 class Momenta:
     def __init__(self,**kwargs):
         def str2dict(string):
+            if len(string) == 0:
+                return dict()
             t_string=string.replace("+",",+").replace("-",",-")
             if t_string[0] == ",":
                 t_string = t_string[1:]
@@ -22,11 +24,14 @@ class Momenta:
             return t_dict
             
         if "string" in kwargs:
-            self.string = kwargs["string"]
+            self.string = kwargs["string"].replace(" ","")
             self.dict = str2dict(self.string)
             for idxM in self.dict:
                 var(idxM)
-            self.sympy = eval(self.string)
+            if len(self.string) == 0:
+                self.sympy = 0
+            else:
+                self.sympy = eval(self.string)
             
         elif "dict" in kwargs:
             self.dict = kwargs["dict"]
@@ -39,11 +44,16 @@ class Momenta:
                     self.string = "%s-%s" %(self.string, idxM)
                 else:
                     raise ValueError, "invalid momenta %s" %self.dict
-            self.sympy = eval(self.string)
+            self.string=self.string.replace(" ","")
+            if len(self.string) == 0:
+                self.sympy = 0
+            else:
+                self.sympy = eval(self.string)
+
         elif "sympy" in kwargs:
-            self.sympy = kwargs[sympy]
-            self.string = str(self.sympy) 
-            self.dict = str2dict(self.sympy)
+            self.sympy = kwargs["sympy"]
+            self.string = str(self.sympy).replace(" ","") 
+            self.dict = str2dict(self.string)
         else:
             raise TypeError, "unknown moment datatype kwargs = %s" %kwargs
          
@@ -65,6 +75,7 @@ class Momenta:
             var(idxM)
         t_list=self.dict.keys()
         t_list.sort()
+        print t_list
         for idxM in t_list:            
             res=res+eval(idxM)*eval(idxM)
             for idxM2 in t_list[t_list.index(idxM)+1:]:
@@ -77,25 +88,21 @@ class Momenta:
         z_moment=list()
 
         for idxZM in zero_momenta:
-            if len(idxZM) == 1:
+            if len(idxZM.dict) == 1:
                 z_moment.append( (idxZM.sympy, 0) )
             else:
                 t_list=idxZM.dict.keys()
-                t_left=t_list[0]
-                t_right=dict()
-                for idxM in t_list[1:]:
-                    t_right[idxM]=idxZM.dict[idxM]/idxZM.dict[t_left]*(-1)
-                z_moment.append( (Momenta(string=t_left).sympy, Momenta(dict=t_right).sympy) )
+                if len(t_list)>0:
+                    t_left=t_list[0]
+                    t_right=dict()
+                    for idxM in t_list[1:]:
+                        t_right[idxM]=idxZM.dict[idxM]/idxZM.dict[t_left]*(-1)
+                    z_moment.append( (Momenta(string=t_left).sympy, Momenta(dict=t_right).sympy) )
 
         for idxZeq in z_moment:
             t_sympy=t_sympy.subs(idxZeq[0],idxZeq[1])
 
         return Momenta(sympy=t_sympy)
-                    
-                
-            
-    
-    
 
 class Line:
     """ Class represents information about Line of a graph
@@ -187,11 +194,13 @@ class Graph:
  
         (moment,lines) = eval(open(filename).read())
         for idxL in lines:
+            print idxL
+            print moment[idxL]
             self.AddLine(idxL, Line(1, lines[idxL][0], lines[idxL][1], 
                                     Momenta(string=moment[idxL]), dict()))
         
     
-    def DefineNodes(self, dict_node_type):
+    def DefineNodes(self, dict_node_type, **kwargs):
         """ after definition of lines of the graph we construct self.nodes dict.
             self.nodes includes information about lines in nodes and node types
             
@@ -204,8 +213,12 @@ class Graph:
             types from one graph to another (ex. from graph to counterterm 
             subgraph.)
             
-            TODO: avoid to run DefineNodes twice on graph.   
-             
+            TODO: avoid to run DefineNodes twice on graph.
+            
+            TODO: dimension count should be rewriten, for now there is 
+            additional kwargs["dim"] argument to force dims of dotted ctgraphs
+            to be correct
+                       
         """
         tmp_int_nodes=set([])   
         tmp_external_lines = set([])                    
@@ -269,6 +282,11 @@ class Graph:
         (self.type, self.dim) = subgraph.FindSubgraphType(self, 
                                 list(self.internal_lines), 
                                 self.model.subgraph_types)
+        
+#TODO : we must determine dim by power counting  
+        if "dim" in kwargs :
+            self.dim = kwargs["dim"]
+
         self.internal_nodes=tmp_int_nodes
     
     def GetNodesTypes(self):
@@ -310,6 +328,26 @@ class Graph:
 #        import pydot
         gdot=GraphSubgraph2dot(self)
         gdot.write_png(filename, prog="dot")
+
+    def Clone(self, **kwargs):
+        G=self
+        if "zero_moments" in kwargs:
+            zm = kwargs["zero_moments"]
+        else:
+            zm = []
+        from copy import deepcopy
+    # TODO: python 2.5 has buggy copy.deepcopy function    
+        graph_copy = Graph(G.model)
+    #    graph_copy.lines = deepcopy(G.lines)
+        for idxL in G.lines :
+            graph_copy.AddLine(idxL, Line(G.lines[idxL].type, G.lines[idxL].start, G.lines[idxL].end, G.lines[idxL].momenta.SetZeros(zm), deepcopy(G.lines[idxL].dots)))
+        graph_copy.nodes = dict()
+        graph_copy.subgraphs = list()
+        graph_copy.DefineNodes(G.GetNodesTypes())
+        graph_copy.FindSubgraphs()
+        return graph_copy
+            
+
         
 #    def LinePropagator(self, idxL, zero_moments=[]):
 #        cur_line = self.lines[idxL]
@@ -335,4 +373,4 @@ class Graph:
 #        factor = self.model.node_types[cur_node.type]["Factor"](graph=self, **moment)
 #        return 
              
-            
+      

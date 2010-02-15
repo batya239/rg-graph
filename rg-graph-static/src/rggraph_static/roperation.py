@@ -35,8 +35,17 @@ def ExtractSubgraphs( G, subgraph_list ):
         ct_graph.AddLine( idxL, Line( G.lines[idxL].type, 
                                      In, Out, G.lines[idxL].momenta, 
                                      G.lines[idxL].dots ) )
-    ct_graph.DefineNodes(node_types)
-    ct_graph.FindSubgraphs()
+
+# TODO: we must determine dims by power counting        
+    ct_graph.DefineNodes(node_types, dim=G.dim )
+    
+# inherit subgraphs from original graph.
+# order of subgraphs must be the same as in subgraph_list
+    subgraphs=list()
+    for idxS in subgraph_list:
+        subgraphs.append(G.subgraphs[idxS])
+        
+    ct_graph.subgraphs = tuple(subgraphs)
     return (ct_graph , subgraph_map)    
         
     
