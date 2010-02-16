@@ -318,7 +318,7 @@ if len(G.external_lines) == 2:
     tmp = K2(r1)
     print tmp , "\n\n"
     pretty_print(tmp)
-elif len(G.extrenal_lines) == 3:
+elif len(G.external_lines) == 3:
     tmp = K0(r1) 
     print tmp , "\n\n"
     pretty_print(tmp)
