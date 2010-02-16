@@ -373,4 +373,3 @@ class Graph:
 #        factor = self.model.node_types[cur_node.type]["Factor"](graph=self, **moment)
 #        return 
              
-      

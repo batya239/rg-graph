@@ -3,7 +3,8 @@
 import sys
 from sympy import *
 import rggraph_static as rggrf
-import pydot
+#import pydot
+import copy
 
 if len(sys.argv) == 2:
     filename = sys.argv[1]
@@ -13,7 +14,7 @@ else:
 var('p tau p1')
 
 def propagator(**kwargs):
-    var('tau')
+    tau=var('tau')
     momenta = kwargs["momenta"]
     return 1 / (momenta.Squared() + tau)
 
@@ -28,7 +29,7 @@ def double_node_factor(r1term,**kwargs):
     return squared_momenta
 
 def dot_action(**kwargs):
-    var('tau')
+    tau = var('tau')
     propagator=kwargs["propagator"]
     return propagator.diff(tau)
 
@@ -42,21 +43,16 @@ def K(arg, **kwargs):
     if isinstance(arg, rggrf.roperation.R1) :
         res = 0
         r1 = arg 
-        for r1term in r1.terms:
-            res = res + K(r1term)
-        return -res # KR' for subgraphs should have "-"
-    elif isinstance(arg, rggrf.roperation.R1Term) :
-        r1term = arg
-        ctgraph = r1term.ct_graph
-        ctgraph.GenerateNickel()
-        print "K " , ctgraph.nickel , ctgraph.dim ,ctgraph.internal_nodes       
-        if ctgraph.dim == 2 : 
-            return K0(arg) + sum(K2(arg))
-        elif ctgraph.dim == 0 :
-            return K0(arg)
+        dim = r1.terms[0].ct_graph.dim
+        if dim == 2:
+            res = K0(arg, **kwargs) + sum(K2(arg, **kwargs))
+        elif dim == 0:
+            res = K0(arg)
         else : 
-            ctgraph.GenerateNickel()
-            raise ValueError , "unknown graph dim %s,%s " %(ctgraph.dim,ctgraph.nickel)
+            r1.terms[0].ct_graph.GenerateNickel()
+            raise ValueError , "unknown graph dim %s,%s " %(r1.terms[0].ct_graph.dim, r1.terms[0].ct_graph.nickel)
+        
+        return -res # KR' for subgraphs should have "-"
     else:
         raise TypeError , "unknown type for K operation %s" %type(arg)
     
@@ -65,7 +61,7 @@ def K0(arg, **kwargs):
         res = 0
         r1 = arg 
         for r1term in r1.terms:
-            res = res + K0(r1term)
+            res = res + K0(r1term, **kwargs)
         return res  
     elif isinstance(arg, rggrf.roperation.R1Term) :
         r1term = arg
@@ -97,15 +93,16 @@ def K0(arg, **kwargs):
                 else :
                     moment["moment%s"%idx] = - ctgraph.lines[curnode.lines[idx]].momenta
 
-            print ctgraph.nodes.keys(), r1term.subgraphs, idxN, r1term.subgraph_map
+#            print ctgraph.nodes.keys(), r1term.subgraphs, idxN, r1term.subgraph_map
             if idxN in r1term.subgraph_map:
                 f_arg = rggrf.roperation.R1(r1term.subgraphs[r1term.subgraph_map[idxN]].Clone(zero_moments=zm))
             else:
                 f_arg = None
             factor = ctgraph.model.node_types[curnode.type]["Factor"](f_arg,**moment)
 # дифференцирования вершин?            
-            res = res * factor 
-        
+            res = res * factor
+             
+        print "res K0 %s" %res
         return res
         
             
@@ -113,24 +110,156 @@ def K0(arg, **kwargs):
     else:
         raise TypeError , "unknown type for K0 operation %s" %arg
 
-def K2(arg, **kwargs):
-    if not isinstance(arg,rggrf.roperation.R1):
+def xselections(items, n):
+    if n==0: yield []
+    else:
+        for i in xrange(len(items)):
+            for ss in xselections(items, n-1):
+                yield [items[i]]+ss
+
+
+
+def K2(arg, diff_list=[], **kwargs):
+    
+    def FindExtMomenta(G):
+        if len(G.external_lines) <> 2:
+            raise ValueError, "not self-energy subgraph"
+        else:
+#TODO: понять важен ли знак втекающего импульса?
+            if G.lines[list(G.external_lines)[0]].end in G.internal_nodes :
+                res = G.lines[list(G.external_lines)[0]].momenta
+            else:
+                res = - G.lines[list(G.external_lines)[0]].momenta
+        return res
+    
+    def FindFreeMomenta(G):
+# TODO: rename function
+        ext_nodes = set([])
+        for idxL in G.external_lines:
+            ext_nodes = ext_nodes | set(G.lines[idxL].Nodes())
+        ext_nodes = ext_nodes & G.internal_nodes
+        t_list = list(ext_nodes)
+        t_list.sort()
+        res = "Q"
+        for idx in t_list:
+            res = res + "_" + str(idx) 
+        return res
+    
+    def SubsMoments(G, zm=[]):
+        moments=dict()
+        for idxL in G.lines:
+            moments[idxL] = G.lines[idxL].momenta.SetZeros(zm)
+        return moments 
+    
+    def SubsExtMomenta(G, zm):
+        
+        ext_momenta_atom = FindFreeMomenta(G)
+        ext_momenta = FindExtMomenta(G).string
+        zm2=[rggrf.Momenta(string="%s-%s" %(ext_momenta,ext_momenta_atom)),]
+        moments=SubsMoments(G, zm+zm2)
+        return (moments, ext_momenta, ext_momenta_atom, zm+zm2)
+    
+    def FindDiffList(G, moments, ext_momenta_atom):
+        ext_moment_path=list()
+        nodes_in_path = set()
+        for idxL in G.internal_lines:
+            if ext_momenta_atom in moments[idxL].dict.keys() :
+                ext_moment_path.append((idxL,"L"))
+                nodes_in_path = nodes_in_path |  set(G.lines[idxL].Nodes())
+            print idxL, moments[idxL].string , ext_moment_path, nodes_in_path
+            
+        for idxN in nodes_in_path:
+            if  G.nodes[idxN].type in [2,4] : # nodes with two fields
+                ext_moment_path.append((idxN,"N"))
+                
+        t_sel = [i for i in xselections(ext_moment_path,2)]
+# TODO: возможно стоит сделать так чтобы [1,2] и [2,1] считались всместе 
+        return t_sel
+    
+    if isinstance(arg,rggrf.roperation.R1):
         res = 0
         r1 = arg
-        res = K2(r1.terms[0]) 
+        if "zero_moments" in kwargs:
+            zm = kwargs["zero_moments"]
+        else:
+            zm=[]
+        
+        
+        t_graph = r1.terms[0].ct_graph
+        (moments, ext_momenta, ext_momenta_atom, zm) = SubsExtMomenta(t_graph, zm)
+        t_diff_list = FindDiffList(t_graph, moments, ext_momenta_atom)
+        print "K2 R1 ", t_diff_list, ext_momenta_atom
+ 
+        res = K2(r1.terms[0], t_diff_list, **kwargs) 
         for r1term in r1.terms[1:]:
-            t_res = K2(r1term)
+            t_res = K2(r1term, t_diff_list, **kwargs)
             if len(res) <> len(t_res):
                 raise ValueError, "K2 operation on different terms returns lists with different length  %s %s" %(len(res),len(t_res))
             for idx in range(len(res)):
                 res[idx] = res[idx] + t_res[idx]
         return res  
+    
+    
+    
     elif isinstance(arg, rggrf.roperation.R1Term) :
         
+        r1term=arg
+        ctgraph=r1term.ct_graph
         
-        pass
+        if "zero_moments" in kwargs:
+            zm = kwargs["zero_moments"]
+        else:
+            zm=[]
+            
+        (moments, ext_momenta, ext_momenta_atom,  zm) = SubsExtMomenta(ctgraph, zm)
+        print "K2 ", ctgraph.nickel, ctgraph.dim , ctgraph.internal_nodes , diff_list 
+        res=[]
+        for cur_diff in diff_list:
+            t_res=1
+            for idxL in ctgraph.internal_lines:
+                curline = ctgraph.lines[idxL]
+                prop = ctgraph.model.line_types[curline.type]["propagator"](momenta=moments[idxL])
+                for idxD in curline.dots:
+                    for idx in range(curline.dots[idxD]):
+                        prop = ctgraph.model.dot_types[idxD]["action"](propagator=prop)
+                for idx in range(cur_diff.count((idxL,"L"))):
+                    prop = prop.diff(rggrf.Momenta(string=ext_momenta_atom).sympy)
+                
+                
+                t_res = t_res*prop
+                
+            for idxN in ctgraph.internal_nodes:
+                curnode = ctgraph.nodes[idxN]
+                moment=dict()
+                for idx in range(len(curnode.lines)):
+                    if ctgraph.lines[curnode.lines[idx]].end == idxN :
+                        moment["moment%s"%idx] = ctgraph.lines[curnode.lines[idx]].momenta
+                    else :
+                        moment["moment%s"%idx] = - ctgraph.lines[curnode.lines[idx]].momenta
+    
+    #            print ctgraph.nodes.keys(), r1term.subgraphs, idxN, r1term.subgraph_map
+                factor_diff=0
+                if idxN in r1term.subgraph_map:
+                    f_arg = rggrf.roperation.R1(r1term.subgraphs[r1term.subgraph_map[idxN]].Clone(zero_moments=zm))
+                    for idx in cur_diff: 
+                        if idx[0] in r1term.subgraphs[r1term.subgraph_map[idxN]].internal_lines :
+                            factor_diff=factor_diff +1
+                        
+                else:
+                    f_arg = None
+                factor = ctgraph.model.node_types[curnode.type]["Factor"](f_arg,**moment)
+# дифференцирования вершин?             
+                for idx in range(cur_diff.count((idxN,"N")) + factor_diff):
+                    factor = factor.diff(rggrf.Momenta(string=ext_momenta_atom).sympy)
+                
+            
+                t_res = t_res * factor
+            t_res = rggrf.Momenta(string=ext_momenta_atom).sympy*rggrf.Momenta(string=ext_momenta_atom).sympy*t_res.subs(rggrf.Momenta(string=ext_momenta_atom).sympy,0)
+            res.append(t_res) 
+        print "res K2 %s" %res
+        return res
     else:
-        raise TypeError , "unknown type for K0 operation %s" %type(arg)
+        raise TypeError , "unknown type for K2 operation %s " %type(arg)
 
             
 
@@ -155,7 +284,7 @@ print phi3
 
 G = rggrf.Graph(phi3)
 G.LoadLinesFromFile(filename)
-G.lines[6].dots[1] = 1
+G.lines[5].dots[1] = 1
 G.DefineNodes({})
 
 for idxN in G.nodes:
@@ -183,5 +312,12 @@ print G.nickel
 G.SaveAsPNG("graph_and_subgraphs.png")
 r1.SaveAsPNG("R1.png")
 
-print K0(r1)
+if len(G.external_lines) == 2:
+    tmp = K2(r1)
+    print tmp , "\n\n"
+    pretty_print(tmp)
+elif len(G.extrenal_lines) == 3:
+    tmp = K0(r1) 
+    print tmp , "\n\n"
+    pretty_print(tmp)
     
