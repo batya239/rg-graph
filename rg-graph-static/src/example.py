@@ -254,7 +254,9 @@ def K2(arg, diff_list=[], **kwargs):
                 
             
                 t_res = t_res * factor
-            t_res = rggrf.Momenta(string=ext_momenta_atom).sympy*rggrf.Momenta(string=ext_momenta_atom).sympy*t_res.subs(rggrf.Momenta(string=ext_momenta_atom).sympy,0)
+# TODO: квадрат импульса должен быть в терминах Q охватывающих подграфов.
+#            t_res = rggrf.Momenta(string=ext_momenta_atom).sympy*rggrf.Momenta(string=ext_momenta_atom).sympy*t_res.subs(rggrf.Momenta(string=ext_momenta_atom).sympy,0)
+            t_res = rggrf.Momenta(string=ext_momenta).sympy*rggrf.Momenta(string=ext_momenta).sympy*t_res.subs(rggrf.Momenta(string=ext_momenta_atom).sympy,0)
             res.append(t_res) 
         print "res K2 %s" %res
         return res
