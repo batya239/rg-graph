@@ -75,7 +75,7 @@ class Momenta:
             var(idxM)
         t_list=self.dict.keys()
         t_list.sort()
-        print t_list
+#        print t_list
         for idxM in t_list:            
             res=res+eval(idxM)*eval(idxM)
             for idxM2 in t_list[t_list.index(idxM)+1:]:
@@ -194,8 +194,8 @@ class Graph:
  
         (moment,lines) = eval(open(filename).read())
         for idxL in lines:
-            print idxL
-            print moment[idxL]
+#            print idxL
+#            print moment[idxL]
             self.AddLine(idxL, Line(1, lines[idxL][0], lines[idxL][1], 
                                     Momenta(string=moment[idxL]), dict()))
         
@@ -305,7 +305,7 @@ class Graph:
             else:
                 In = self.lines[idxL].start
             if self.nodes[self.lines[idxL].end].type == 0:
-                In = -1
+                Out = -1
             else:
                 Out = self.lines[idxL].end
             edges.append([In, Out])

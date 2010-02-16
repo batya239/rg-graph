@@ -66,8 +66,9 @@ def K0(arg, **kwargs):
     elif isinstance(arg, rggrf.roperation.R1Term) :
         r1term = arg
         ctgraph = r1term.ct_graph
+#        print "K0_t ",  ctgraph.internal_nodes
         ctgraph.GenerateNickel()
-        print "K0 ", ctgraph.nickel, ctgraph.dim , ctgraph.internal_nodes
+#        print "K0 ", ctgraph.nickel, ctgraph.dim , ctgraph.internal_nodes
         
         if "zero_moments" in kwargs:
             zm = kwargs["zero_moments"]
@@ -102,7 +103,7 @@ def K0(arg, **kwargs):
 # дифференцирования вершин?            
             res = res * factor
              
-        print "res K0 %s" %res
+#        print "res K0 %s" %res
         return res
         
             
@@ -166,7 +167,7 @@ def K2(arg, diff_list=[], **kwargs):
             if ext_momenta_atom in moments[idxL].dict.keys() :
                 ext_moment_path.append((idxL,"L"))
                 nodes_in_path = nodes_in_path |  set(G.lines[idxL].Nodes())
-            print idxL, moments[idxL].string , ext_moment_path, nodes_in_path
+#            print idxL, moments[idxL].string , ext_moment_path, nodes_in_path
             
         for idxN in nodes_in_path:
             if  G.nodes[idxN].type in [2,4] : # nodes with two fields
@@ -188,7 +189,7 @@ def K2(arg, diff_list=[], **kwargs):
         t_graph = r1.terms[0].ct_graph
         (moments, ext_momenta, ext_momenta_atom, zm) = SubsExtMomenta(t_graph, zm)
         t_diff_list = FindDiffList(t_graph, moments, ext_momenta_atom)
-        print "K2 R1 ", t_diff_list, ext_momenta_atom
+#        print "K2 R1 ", t_diff_list, ext_momenta_atom
  
         res = K2(r1.terms[0], t_diff_list, **kwargs) 
         for r1term in r1.terms[1:]:
@@ -212,7 +213,7 @@ def K2(arg, diff_list=[], **kwargs):
             zm=[]
             
         (moments, ext_momenta, ext_momenta_atom,  zm) = SubsExtMomenta(ctgraph, zm)
-        print "K2 ", ctgraph.nickel, ctgraph.dim , ctgraph.internal_nodes , diff_list 
+#        print "K2 ", ctgraph.nickel, ctgraph.dim , ctgraph.internal_nodes , diff_list 
         res=[]
         for cur_diff in diff_list:
             t_res=1
@@ -258,7 +259,7 @@ def K2(arg, diff_list=[], **kwargs):
 #            t_res = rggrf.Momenta(string=ext_momenta_atom).sympy*rggrf.Momenta(string=ext_momenta_atom).sympy*t_res.subs(rggrf.Momenta(string=ext_momenta_atom).sympy,0)
             t_res = rggrf.Momenta(string=ext_momenta).sympy*rggrf.Momenta(string=ext_momenta).sympy*t_res.subs(rggrf.Momenta(string=ext_momenta_atom).sympy,0)
             res.append(t_res) 
-        print "res K2 %s" %res
+#        print "res K2 %s" %res
         return res
     else:
         raise TypeError , "unknown type for K2 operation %s " %type(arg)
