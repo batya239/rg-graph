@@ -69,19 +69,45 @@ class Momenta:
     def __sub__(self, other):
         return Momenta(sympy=self.sympy+other.sympy)
     
-    def Squared(self):
-        res = 0
-        for idxM in self.dict:
-            var(idxM)
-        t_list=self.dict.keys()
-        t_list.sort()
-#        print t_list
-        for idxM in t_list:            
-            res=res+eval(idxM)*eval(idxM)
-            for idxM2 in t_list[t_list.index(idxM)+1:]:
-                var(idxM+idxM2)
-                res = res + 2 * self.dict[idxM] * eval(idxM) * self.dict[idxM2] * eval(idxM2) * eval(idxM+idxM2)
+    def __str__(self):
+        return self.string
+    
+    def __abs__(self):
+        return sqrt(self.Squared())
+    
+    def __mul__(self,other):
+        if not isinstance(other,Momenta): 
+            raise TypeError, "Cant multiply Momenta on non-Momenta %s" %other
+        else:
+            res = 0
+            for atom1 in self.dict.keys():
+                s_atom1=var(atom1)
+                for atom2 in other.dict.keys():
+                    s_atom2 = var(atom2)
+                    if atom1 == atom2 :
+                        res = res + self.dict[atom1]*self.dict[atom2]*s_atom1*s_atom2
+                    elif atom1 > atom2 :
+                        s_atom12 = var(atom2+atom1)
+                        res = res + self.dict[atom1]*self.dict[atom2]*s_atom1*s_atom2*s_atom12
+                    else:
+                        s_atom12 = var(atom1+atom2)
+                        res = res + self.dict[atom1]*self.dict[atom2]*s_atom1*s_atom2*s_atom12
         return res
+    
+    def Squared(self):
+        return self*self
+#        res = 0
+#        for idxM in self.dict:
+#            var(idxM)
+#        t_list=self.dict.keys()
+#        t_list.sort()
+##        print t_list
+#        for idxM in t_list:            
+#            res=res+eval(idxM)*eval(idxM)
+#            for idxM2 in t_list[t_list.index(idxM)+1:]:
+#                var(idxM+idxM2)
+#                res = res + 2 * self.dict[idxM] * eval(idxM) * self.dict[idxM2] * eval(idxM2) * eval(idxM+idxM2)
+#        return res
     
     def SetZeros(self, zero_momenta):
         t_sympy=self.sympy

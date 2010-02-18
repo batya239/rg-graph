@@ -174,6 +174,9 @@ def K2(arg, diff_list=[], **kwargs):
 # TODO: возможно стоит сделать так чтобы [1,2] и [2,1] считались всместе 
         return t_sel
     
+    def CosSubstitution(moment1, moment2):
+        res = moment1*moment2/sqrt(moment1.Squared()*moment2.Squared())
+    
     if isinstance(arg,rggrf.roperation.R1):
         res = 0
         r1 = arg
