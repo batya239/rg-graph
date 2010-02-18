@@ -75,7 +75,7 @@ class Momenta:
     def __abs__(self):
         return sqrt(self.Squared())
     
-    def __mul__(self,other):
+    def __mul__(self, other):
         if not isinstance(other,Momenta): 
             raise TypeError, "Cant multiply Momenta on non-Momenta %s" %other
         else:
@@ -85,29 +85,17 @@ class Momenta:
                 for atom2 in other.dict.keys():
                     s_atom2 = var(atom2)
                     if atom1 == atom2 :
-                        res = res + self.dict[atom1]*self.dict[atom2]*s_atom1*s_atom2
+                        res = res + self.dict[atom1]*other.dict[atom2]*s_atom1*s_atom2
                     elif atom1 > atom2 :
-                        s_atom12 = var(atom2+atom1)
-                        res = res + self.dict[atom1]*self.dict[atom2]*s_atom1*s_atom2*s_atom12
+                        s_atom12 = var(atom2+"x"+atom1)
+                        res = res + self.dict[atom1]*other.dict[atom2]*s_atom12
                     else:
-                        s_atom12 = var(atom1+atom2)
-                        res = res + self.dict[atom1]*self.dict[atom2]*s_atom1*s_atom2*s_atom12
+                        s_atom12 = var(atom1+"x"+atom2)
+                        res = res + self.dict[atom1]*other.dict[atom2]*s_atom12
         return res
     
     def Squared(self):
         return self*self
-#        res = 0
-#        for idxM in self.dict:
-#            var(idxM)
-#        t_list=self.dict.keys()
-#        t_list.sort()
-##        print t_list
-#        for idxM in t_list:            
-#            res=res+eval(idxM)*eval(idxM)
-#            for idxM2 in t_list[t_list.index(idxM)+1:]:
-#                var(idxM+idxM2)
-#                res = res + 2 * self.dict[idxM] * eval(idxM) * self.dict[idxM2] * eval(idxM2) * eval(idxM+idxM2)
-#        return res
     
     def SetZeros(self, zero_momenta):
         t_sympy=self.sympy
@@ -129,6 +117,43 @@ class Momenta:
             t_sympy=t_sympy.subs(idxZeq[0],idxZeq[1])
 
         return Momenta(sympy=t_sympy)
+
+def Streching(expr, moment_atom, strech):
+    try:
+        atoms = expr.atoms()
+    except AttributeError:
+        return expr
+    t_expr = expr
+    if strech in atoms:
+        raise Exception, " %s  internal variable of Diff function, it shouldn't present in expression %s" %(strech, expr)
+    
+    for atom in atoms:
+        if ("%sx" %moment_atom in str(atom)) or ("x%s" %moment_atom in str(atom)) or ("%s" %moment_atom == str(atom) ):
+            t_expr = t_expr.subs(atom, strech * atom)
+            
+    return t_expr
+
+def ExpandScalarProd(expr, moment_atom, moment):
+    try:
+        atoms = expr.atoms()
+    except AttributeError:
+        return expr
+    t_expr = expr
+    for atom in atoms:
+        
+        if "%sx" %moment_atom in str(atom):
+            vectors = str(atom).split('x')
+            t_expr = t_expr.subs(atom, moment*Momenta(string=vectors[1]))
+                                 
+        elif "x%s" %moment_atom in str(atom):
+            vectors = str(atom).split('x')
+            t_expr = t_expr.subs(atom, moment*Momenta(string=vectors[0]))
+            
+        elif "%s" %moment_atom == str(atom):
+            t_expr = t_expr.subs(atom,sqrt(moment*moment))
+            
+    return t_expr
+            
 
 class Line:
     """ Class represents information about Line of a graph

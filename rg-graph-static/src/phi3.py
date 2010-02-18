@@ -174,8 +174,6 @@ def K2(arg, diff_list=[], **kwargs):
 # TODO: возможно стоит сделать так чтобы [1,2] и [2,1] считались всместе 
         return t_sel
     
-    def CosSubstitution(moment1, moment2):
-        res = moment1*moment2/sqrt(moment1.Squared()*moment2.Squared())
     
     if isinstance(arg,rggrf.roperation.R1):
         res = 0
@@ -217,14 +215,16 @@ def K2(arg, diff_list=[], **kwargs):
         res=[]
         for cur_diff in diff_list:
             t_res=1
+            strech = var('L_temp_strech')
             for idxL in ctgraph.internal_lines:
                 curline = ctgraph.lines[idxL]
                 prop = ctgraph.model.line_types[curline.type]["propagator"](momenta=moments[idxL])
                 for idxD in curline.dots:
                     for idx in range(curline.dots[idxD]):
                         prop = ctgraph.model.dot_types[idxD]["action"](propagator=prop)
+                prop = rggrf.Streching(prop, rggrf.Momenta(string=ext_momenta_atom).sympy, strech)
                 for idx in range(cur_diff.count((idxL,"L"))):
-                    prop = prop.diff(rggrf.Momenta(string=ext_momenta_atom).sympy)
+                    prop = prop.diff(strech)
                 
                 
                 t_res = t_res*prop
@@ -249,16 +249,20 @@ def K2(arg, diff_list=[], **kwargs):
                 else:
                     f_arg = None
                 factor = ctgraph.model.node_types[curnode.type]["Factor"](f_arg,**moment)
-# дифференцирования вершин?             
+# дифференцирования вершин?
+                factor = rggrf.Streching(factor, rggrf.Momenta(string=ext_momenta_atom).sympy, strech)             
                 for idx in range(cur_diff.count((idxN,"N")) + factor_diff):
-                    factor = factor.diff(rggrf.Momenta(string=ext_momenta_atom).sympy)
+                    factor = factor.diff(strech)
                 
             
                 t_res = t_res * factor
 # TODO: ПРОВЕРИТЬ!!! квадрат импульса должен быть в терминах Q охватывающих подграфов.
 #            t_res = rggrf.Momenta(string=ext_momenta_atom).sympy*rggrf.Momenta(string=ext_momenta_atom).sympy*t_res.subs(rggrf.Momenta(string=ext_momenta_atom).sympy,0)
-            print "K2 substituing %s = %s" %(ext_momenta_atom,ext_momenta) 
-            t_res = rggrf.Momenta(string=ext_momenta).sympy*rggrf.Momenta(string=ext_momenta).sympy*t_res.subs(rggrf.Momenta(string=ext_momenta_atom).sympy,0)
+#            print "K2 substituing %s = %s" %(ext_momenta_atom,ext_momenta) 
+            t_res = Rational(1,2)*rggrf.ExpandScalarProd(t_res.subs(strech,0), 
+                        rggrf.Momenta(string=ext_momenta_atom), 
+                        rggrf.Momenta(string=ext_momenta))
+
             res.append(t_res) 
 #        print "res K2 %s" %res
         return res
