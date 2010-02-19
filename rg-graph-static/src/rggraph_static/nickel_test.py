@@ -1,7 +1,10 @@
 ﻿#!/usr/bin/python
 
 import nickel
+import utils
 import unittest
+
+#TODO: Exclude generator tests from nickel tests
 
 class TestNickel(unittest.TestCase):
     def testNickelFromEdges(self):
@@ -136,14 +139,14 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(nickel.AdjacentNodes(0, [[-1, 0]]), [-1])
 
     def testCombinations(self):
-        xcomb = nickel.Combinations
+        xcomb = utils.xCombinations
         self.assertEqual(list(xcomb([1, 2, 3], 4)), [])
         self.assertEqual(list(xcomb(('1', 2), 1)), [('1',), (2,)])
         self.assertEqual(list(xcomb([1, 2, 3], 2)),
                          [[1, 2], [1, 3], [2, 1], [2, 3], [3, 1], [3, 2]])
 
     def testPermutations(self):
-        xperm = nickel.Permutations
+        xperm = utils.xPermutations
         self.assertEqual(list(xperm([])), [[]])
         self.assertEqual(list(xperm(('1',))), [('1',)])
         self.assertEqual(list(xperm('ab')), ['ab', 'ba'])

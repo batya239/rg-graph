@@ -1,4 +1,7 @@
-﻿#!/usr/bin/python
+#!/usr/bin/python
+# -*- coding:utf8
+
+from utils import xCombinations, xPermutations 
 
 class Nickel(object):
     """Class to generate Nickel-like graph notations.
@@ -175,7 +178,7 @@ class Expander(object):
         new_nodes = [n for n in nodes if n > self.free_node]
         new_nodes = list(set(new_nodes))
         free_nodes = range(self.free_node, self.free_node + len(new_nodes))
-        for perm in Permutations(free_nodes):
+        for perm in xPermutations(free_nodes):
             node_map = dict(zip(new_nodes, perm))
             expanded_nodes = MapNodes1(node_map, nodes)
             expanded_nodes.sort()
@@ -209,22 +212,6 @@ def IsConnected(edges):
                     visited.update([s, d])
         return visited == set(sum(edges, []))
 
-
-def Combinations(seq, n):
-    """Generator of all the n-element combinations of the given sequence.
-    """
-    if n == 0:
-        yield seq[0:0]
-    else:
-        for i in range(len(seq)):
-            for tail in Combinations(seq[:i] + seq[i+1:], n - 1):
-                yield seq[i:i+1] + tail
-
-
-def Permutations(seq):
-    """Generator of all the permutations of the given sequence.
-    """
-    return Combinations(seq, len(seq))
 
 
 def MapNodes1(dict, list_of_nodes):
