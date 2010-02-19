@@ -50,7 +50,11 @@ if len(G.external_lines) == 2:
     tmp = K2(r1)
     print tmp , "\n\n"
     pretty_print(tmp)
-    print rggrf.ginac.ginac(tmp[0])
+#    print rggrf.ginac.Swiginac(tmp[0])
+    s_ginac = rggrf.ginac.sympy2swiginac(tmp[0])
+    s_ginac.set_print_context('c')
+    print s_ginac
+    
 elif len(G.external_lines) == 3:
     tmp = K0(r1) 
     print tmp , "\n\n"

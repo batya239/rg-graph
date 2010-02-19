@@ -6,8 +6,10 @@ Created on Feb 19, 2010
 
 @author: mkompan
 '''
+import swiginac
 
-def GenerateGinacCode(k_op, space_dim, n_epsilon_series, n_threads=4, mc_size=10000):
+
+def Prepare(k_op, space_dim, n_epsilon_series, n_threads=4, mc_size=10000):
     atoms = k_op.atoms()
 # TODO: p=1 m=1
 # TODO: усреднение по направлениям p (eps)

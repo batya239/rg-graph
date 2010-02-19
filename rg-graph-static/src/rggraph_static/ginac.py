@@ -5,7 +5,7 @@ Created on Feb 19, 2010
 
 @author: 
 '''
-
+import swiginac
 
 import sympy
 from sympy.printing.repr import ReprPrinter
@@ -81,3 +81,29 @@ def ginac(expr):
 def print_ginac(expr):
     """Print output of ginac() function"""
     print ginac(expr)
+    
+def Swiginac(expr):
+    """Return Ginac interpretation for swiginac of passed expression
+    """
+
+    printer = GinacPrinter()
+    expr = printer.doprint(expr)
+
+    result = ''
+    # Returning found symbols and functions
+    for symbol in printer.symbols:
+        result +=symbol + ' = swiginac.symbol'+'(\"' + symbol + '\")\n'
+#    for function in printer.functions:
+#        result += function + ' = Function(\'' + function + '\')\n'
+
+    result += 'swiginac_expr = ' + printer._str(expr) 
+    return result
+
+def print_swiginac(expr):
+    """Print output of swiginac() function"""
+    print Swiginac(expr)   
+    
+def sympy2swiginac(expr):
+    str = Swiginac(expr)
+    exec(str)
+    return swiginac_expr
