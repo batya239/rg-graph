@@ -6,3 +6,4 @@ import nickel
 import roperation
 import subgraph
 import visualization
+import ginac
