@@ -166,67 +166,13 @@ def K0(arg, **kwargs):
     else:
         raise TypeError , "unknown type for K0 operation %s" %arg
 
-def K1(arg, diff_list=[], **kwargs):
-        
-    if isinstance(arg,rggrf.roperation.R1):
-        res = 0
-        r1 = arg
-        if "zero_moments" in kwargs:
-            zm = kwargs["zero_moments"]
+def K_n(r1_term, diff_list=[], **kwargs):
+    if isinstance(r1_term, rggrf.roperation.R1Term):
+        if len(diff_list)>0:
+            _N = len(diff_list[0])
         else:
-            zm=[]
-        
-        
-        t_graph = r1.terms[0].ct_graph
-        (moments, ext_momenta, ext_momenta_atom, zm) = SubsExtMomenta(t_graph, zm)
-        t_diff_list = FindDiffList(t_graph, moments, ext_momenta_atom, 1)
-#        print "K2 R1 ", t_diff_list, ext_momenta_atom
- 
-        res = K1(r1.terms[0], t_diff_list, **kwargs) 
-        for r1term in r1.terms[1:]:
-            t_res = K1(r1term, t_diff_list, **kwargs)
-            if len(res) <> len(t_res):
-                raise ValueError, "K1 operation on different terms returns lists with different length  %s %s" %(len(res),len(t_res))
-            for idx in range(len(res)):
-                res[idx] = res[idx] + t_res[idx]
-        return res  
-    
-    
-    
-    elif isinstance(arg, rggrf.roperation.R1Term) :
-#TODO: выделить общий код в отдельную функцию
-        return 2 * K2( arg , diff_list, **kwargs)
-                
-def K2(arg, diff_list=[], **kwargs):
-    
-    if isinstance(arg,rggrf.roperation.R1):
-        res = 0
-        r1 = arg
-        if "zero_moments" in kwargs:
-            zm = kwargs["zero_moments"]
-        else:
-            zm=[]
-        
-        
-        t_graph = r1.terms[0].ct_graph
-        (moments, ext_momenta, ext_momenta_atom, zm) = SubsExtMomenta(t_graph, zm)
-        t_diff_list = FindDiffList(t_graph, moments, ext_momenta_atom, 2)
-#        print "K2 R1 ", t_diff_list, ext_momenta_atom
- 
-        res = K2(r1.terms[0], t_diff_list, **kwargs) 
-        for r1term in r1.terms[1:]:
-            t_res = K2(r1term, t_diff_list, **kwargs)
-            if len(res) <> len(t_res):
-                raise ValueError, "K2 operation on different terms returns lists with different length  %s %s" %(len(res),len(t_res))
-            for idx in range(len(res)):
-                res[idx] = res[idx] + t_res[idx]
-        return res  
-    
-    
-    
-    elif isinstance(arg, rggrf.roperation.R1Term) :
-        
-        r1term=arg
+            raise ValueError, "empty diff_list! "
+        r1term=r1_term
         ctgraph=r1term.ct_graph
         
         if "zero_moments" in kwargs:
@@ -283,13 +229,74 @@ def K2(arg, diff_list=[], **kwargs):
 # TODO: ПРОВЕРИТЬ!!! квадрат импульса должен быть в терминах Q охватывающих подграфов.
 #            t_res = rggrf.Momenta(string=ext_momenta_atom).sympy*rggrf.Momenta(string=ext_momenta_atom).sympy*t_res.subs(rggrf.Momenta(string=ext_momenta_atom).sympy,0)
 #            print "K2 substituing %s = %s" %(ext_momenta_atom,ext_momenta) 
-            t_res = Rational(1,2)*rggrf.ExpandScalarProdAsVectors(t_res.subs(strech,0), 
+            t_res = Rational(1, Factorial(_N))*rggrf.ExpandScalarProdAsVectors(t_res.subs(strech,0), 
                         rggrf.Momenta(string=ext_momenta_atom), 
                         rggrf.Momenta(string=ext_momenta))
             
             res.append(t_res) 
 #        print "res K2 %s" %res
         return res
+    else:
+        raise TypeError , "unknown type for K_n operation %s " %type(arg)
+    
+
+def K1(arg, diff_list=[], **kwargs):
+        
+    if isinstance(arg,rggrf.roperation.R1):
+        res = 0
+        r1 = arg
+        if "zero_moments" in kwargs:
+            zm = kwargs["zero_moments"]
+        else:
+            zm=[]
+        
+        
+        t_graph = r1.terms[0].ct_graph
+        (moments, ext_momenta, ext_momenta_atom, zm) = SubsExtMomenta(t_graph, zm)
+        t_diff_list = FindDiffList(t_graph, moments, ext_momenta_atom, 1)
+#        print "K2 R1 ", t_diff_list, ext_momenta_atom
+ 
+        res = K1(r1.terms[0], t_diff_list, **kwargs) 
+        for r1term in r1.terms[1:]:
+            t_res = K1(r1term, t_diff_list, **kwargs)
+            if len(res) <> len(t_res):
+                raise ValueError, "K1 operation on different terms returns lists with different length  %s %s" %(len(res),len(t_res))
+            for idx in range(len(res)):
+                res[idx] = res[idx] + t_res[idx]
+        return res  
+    
+    
+    
+    elif isinstance(arg, rggrf.roperation.R1Term) :
+#TODO: выделить общий код в отдельную функцию
+        return  K_n( arg , diff_list, **kwargs)
+                
+def K2(arg, diff_list=[], **kwargs):
+    
+    if isinstance(arg,rggrf.roperation.R1):
+        res = 0
+        r1 = arg
+        if "zero_moments" in kwargs:
+            zm = kwargs["zero_moments"]
+        else:
+            zm=[]
+        
+        
+        t_graph = r1.terms[0].ct_graph
+        (moments, ext_momenta, ext_momenta_atom, zm) = SubsExtMomenta(t_graph, zm)
+        t_diff_list = FindDiffList(t_graph, moments, ext_momenta_atom, 2)
+#        print "K2 R1 ", t_diff_list, ext_momenta_atom
+ 
+        res = K2(r1.terms[0], t_diff_list, **kwargs) 
+        for r1term in r1.terms[1:]:
+            t_res = K2(r1term, t_diff_list, **kwargs)
+            if len(res) <> len(t_res):
+                raise ValueError, "K2 operation on different terms returns lists with different length  %s %s" %(len(res),len(t_res))
+            for idx in range(len(res)):
+                res[idx] = res[idx] + t_res[idx]
+        return res      
+    elif isinstance(arg, rggrf.roperation.R1Term) :
+        return  K_n( arg , diff_list, **kwargs)
     else:
         raise TypeError , "unknown type for K2 operation %s " %type(arg)
 
