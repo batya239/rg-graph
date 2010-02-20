@@ -52,11 +52,12 @@ if len(G.external_lines) == 2:
     pretty_print(tmp)
     s_prep =   ExpandScalarProdsAndPrepare(tmp[0])
     print "s_prep", s_prep
-    print "Prepare", rggrf.integration.Prepare(s_prep, 6, 2)
-#    print rggrf.ginac.Swiginac(tmp[0])
-    s_ginac = rggrf.ginac.sympy2swiginac(tmp[0])
-    s_ginac.set_print_context('c')
-    print "ginac", s_ginac
+    (g_expr, g_vars) = rggrf.integration.Prepare(s_prep, 6)
+    print "Prepare", g_expr
+
+    
+#    s_ginac.set_print_context('c')
+
     
 elif len(G.external_lines) == 3:
     tmp = K0(r1) 

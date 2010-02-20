@@ -106,15 +106,15 @@ def print_swiginac(expr):
     
 def sympy2swiginac(expr):
     str = Swiginac(expr)
-    vars = dict()
-    for idx in str.split():
+    g_vars = dict()
+    for idx in str.split("\n"):
         reg = regex.match("^([a-zA-Z].*) = swiginac.symbol", idx)
         if reg:
             exec(idx)
-            vars[reg.groups()[0]] = eval(reg.groups()[0])
+            g_vars[reg.groups()[0]] = eval(reg.groups()[0])
         else:
             exec(idx)
-    return (swiginac_expr, vars)
+    return (swiginac_expr, g_vars)
 
 def GetVarsAsStr(sympy_expr):
     import re
