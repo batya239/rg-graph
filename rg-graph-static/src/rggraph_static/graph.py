@@ -133,7 +133,7 @@ def Streching(expr, moment_atom, strech):
             
     return t_expr
 
-def ExpandScalarProd(expr, moment_atom, moment):
+def ExpandScalarProdAsVectors(expr, moment_atom, moment):
     try:
         atoms = expr.atoms()
     except AttributeError:

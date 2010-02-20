@@ -110,12 +110,7 @@ def K0(arg, **kwargs):
     else:
         raise TypeError , "unknown type for K0 operation %s" %arg
 
-def xselections(items, n):
-    if n==0: yield []
-    else:
-        for i in xrange(len(items)):
-            for ss in xselections(items, n-1):
-                yield [items[i]]+ss
+
                 
 def K2(arg, diff_list=[], **kwargs):
     
@@ -170,7 +165,7 @@ def K2(arg, diff_list=[], **kwargs):
             if  G.nodes[idxN].type in [2,4] : # nodes with two fields
                 ext_moment_path.append((idxN,"N"))
                 
-        t_sel = [i for i in xselections(ext_moment_path,2)]
+        t_sel = [i for i in rggrf.utils.xSelections(ext_moment_path,2)]
 # TODO: возможно стоит сделать так чтобы [1,2] и [2,1] считались всместе 
         return t_sel
     
@@ -259,17 +254,34 @@ def K2(arg, diff_list=[], **kwargs):
 # TODO: ПРОВЕРИТЬ!!! квадрат импульса должен быть в терминах Q охватывающих подграфов.
 #            t_res = rggrf.Momenta(string=ext_momenta_atom).sympy*rggrf.Momenta(string=ext_momenta_atom).sympy*t_res.subs(rggrf.Momenta(string=ext_momenta_atom).sympy,0)
 #            print "K2 substituing %s = %s" %(ext_momenta_atom,ext_momenta) 
-            t_res = Rational(1,2)*rggrf.ExpandScalarProd(t_res.subs(strech,0), 
+            t_res = Rational(1,2)*rggrf.ExpandScalarProdAsVectors(t_res.subs(strech,0), 
                         rggrf.Momenta(string=ext_momenta_atom), 
                         rggrf.Momenta(string=ext_momenta))
-
+            
             res.append(t_res) 
 #        print "res K2 %s" %res
         return res
     else:
         raise TypeError , "unknown type for K2 operation %s " %type(arg)
 
-            
+
+def ExpandScalarProdsAndPrepare(expr):
+    import re as regex
+    atoms = expr.atoms()
+    t_expr = expr
+    for atom in atoms:
+        reg = regex.match("^(.+)x(.+)$",str(atom))
+        if reg :
+            atom1 = var(reg.groups()[0])
+            atom2 = var(reg.groups()[1])
+            t_expr = t_expr.subs(atom,atom*atom1*atom2)
+    #Prepare p=1, tau=1
+    p=var('p')
+    tau=var('tau')
+    t_expr = t_expr.subs(p,1).subs(tau,1)
+    return t_expr            
+
+           
 # model initialization
 phi3=rggrf.Model("phi3")
 

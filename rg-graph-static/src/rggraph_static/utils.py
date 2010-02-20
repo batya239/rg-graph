@@ -21,7 +21,7 @@ def xUniqueSelections(items, n):
     if n==0: yield []
     else:
         for i in xrange(len(items)):
-            for ss in xSelections(items[i:], n-1):
+            for ss in xUniqueSelections(items[i:], n-1):
                 yield [items[i]]+ss
 
 def UniqueSelections(items,n):

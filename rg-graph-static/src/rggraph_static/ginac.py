@@ -13,6 +13,7 @@ from sympy.printing.str import StrPrinter
 from sympy.printing.precedence import precedence, PRECEDENCE
 from sympy.core.basic import S
 
+import re as regex
 
 # A list of classes that should be printed using StrPrinter
 STRPRINT = ("Add", "Infinity", "Integer", "Mul", "NegativeInfinity",
@@ -105,5 +106,27 @@ def print_swiginac(expr):
     
 def sympy2swiginac(expr):
     str = Swiginac(expr)
-    exec(str)
-    return swiginac_expr
+    vars = dict()
+    for idx in str.split():
+        reg = regex.match("^([a-zA-Z].*) = swiginac.symbol", idx)
+        if reg:
+            exec(idx)
+            vars[reg.groups()[0]] = eval(reg.groups()[0])
+        else:
+            exec(idx)
+    return (swiginac_expr, vars)
+
+def GetVarsAsStr(sympy_expr):
+    import re
+    atoms = sympy_expr.atoms()
+    atom_set = set([])
+    for atom in atoms:
+        
+        reg = re.match("^[a-zA-Z]",str(atom))
+        if reg :
+            atom_set = atom_set | set([str(atom),])
+#        reg = re.match("^(.+)x(.+)$",str(atom))
+#        if reg :
+#            atom_set = atom_set | set(reg.groups()) 
+    return atom_set
+        
