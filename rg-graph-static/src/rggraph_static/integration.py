@@ -112,6 +112,7 @@ def Prepare(k_op, space_dim):
             
 # общий знаменатель
     g_expr = swiginac.normal(g_expr)
+    print g_expr
 
     d = g_vars["d"]
 # детерминанты по импульсам
@@ -128,7 +129,12 @@ def Prepare(k_op, space_dim):
             g_vars[t_inv] = swiginac.symbol(t_inv)
             g_expr = g_expr.subs(g_vars[idx] == (1 - g_vars[t_inv]) / g_vars[t_inv]) / g_vars[t_inv] / g_vars[t_inv] 
         else:
-            raise ValueError, "Unknown internal momenta %s" %idx 
+            raise ValueError, "Unknown internal momenta %s" %idx
+        
+# TODO: это приведение к общ. знаменателю может занимать много времени 
+# общий знаменатель
+    g_expr = swiginac.normal(g_expr)
+    
         
 #замена на полярные углы
 
@@ -182,7 +188,7 @@ def Prepare(k_op, space_dim):
                          g_cos(idx1, idx2, g_vars)))
             else:
                 raise NotImplementedError, " number of independent moments more then d-2 . d = %s" %space_dim
-
+            print "\n\n subst = %s\n det = %s\n\n" %(subst, det)
             g_expr = g_expr.subs(g_vars[atom] == subst) * det
         else:
             raise ValueError,  "Unknown scalar product of internal moments  %s " %atom
@@ -191,4 +197,105 @@ def Prepare(k_op, space_dim):
     
     return (g_expr,g_vars)
 
+def SavePThreadsMCCode(name, g_expr, c_vars, str_region, points, nthreads):
+    template = '''
+    
+#include <math.h>
+#include <stdio.h>
+#include <vegas.h>
 
+#define DIMENSION <-DIMENSION->
+#define FUNCTIONS 1
+#define ITERATIONS <-ITERATIONS->
+#define NTHREADS <-NTHREADS->
+#define NEPS 0
+double reg[2*DIMENSION]= <-REGION->;
+void func (double k[DIMENSION], double f[FUNCTIONS]) {
+<-VARS->
+f[0]=<-INTEGRAND->;  }
+
+#ifndef PI
+#define PI     3.14159265358979323846
+#endif
+
+int t_gfsr_k;
+unsigned int t_gfsr_m[SR_P];
+double gfsr_norm;
+
+
+int main(int argc, char **argv)
+{
+  int i;
+  double estim[FUNCTIONS];   /* estimators for integrals                     */
+  double std_dev[FUNCTIONS]; /* standard deviations                          */
+  double chi2a[FUNCTIONS];   /* chi^2/n                                      */
+
+  vegas(reg, DIMENSION, func,
+        0, ITERATIONS/10, 5, NPRN_INPUT | NPRN_RESULT,
+        FUNCTIONS, 0, NTHREADS,
+        estim, std_dev, chi2a);
+  vegas(reg, DIMENSION, func,
+        2, ITERATIONS , 2, NPRN_INPUT | NPRN_RESULT,
+        FUNCTIONS, 0, NTHREADS,
+        estim, std_dev, chi2a);
+double delta= std_dev[0]/estim[0];
+  printf ("Result %d:\\t%g +/- %g  \\tdelta=%g\\n",NEPS, estim[0], std_dev[0], delta);
+//  for (i=1; i<FUNCTIONS; ++i)
+//    printf("Result %i:\\t%g +/- %g  \\tdelta=%g\\n", i, estim[i], std_dev[i],std_dev[i]/estim[i]);
+  return(0);
+}
+    '''
+    res = template.replace("<-DIMENSION->", str(len(c_vars.splitlines())))
+    res = res.replace("<-ITERATIONS->", str(int(points)))
+    res = res.replace("<-NTHREADS->",str(int(nthreads)))
+    res = res.replace("<-REGION->",str_region)
+    res = res.replace("<-VARS->",c_vars)
+    g_expr.set_print_context('c')
+    res = res.replace("<-INTEGRAND->",g_expr.str())
+    file = open(name+".c", 'w')
+    file.write(res)
+    file.close()
+    
+def GenerateCVars(g_vars):
+    c_vars = ""
+    region = list()
+    var_cnt = 0
+    for atom in g_vars:
+        reg = regex.match("^y\d+$", atom)
+        if reg :
+            c_vars = c_vars + "double %s = k[%s];\n" %(atom,var_cnt)
+            var_cnt = var_cnt + 1
+            region.append((0,1))
+            continue
+        
+        reg = regex.match("^ct_\d+_\d+$", atom)
+        if reg :
+            c_vars = c_vars + "double %s = k[%s];\n" %(atom,var_cnt)
+            var_cnt = var_cnt + 1
+            region.append((-1,1))
+            continue
+        
+    str_region = ""
+    for idx1 in [0,1]:
+        for c_region in region:
+            str_region = "%s, %s" %(str_region, str(c_region[idx1]))
+    str_region = " { %s}" %str_region[1:]
+    return (c_vars, str_region)
+        
+
+def GenerateMCCode(name, g_expr, g_vars, space_dim, n_epsilon_series, points, nthreads):
+    e = g_vars["e"]
+    d = g_vars["d"]
+    prog_names = list()
+    t_expr = g_expr.subs(d == float(space_dim) - e)
+    
+    for idxE in range(n_epsilon_series+1):
+        cur_name = "%s_e%s" %(name,idxE)
+        cur_expr = t_expr.subs(e == 0)
+#        print swiginac.normal(cur_expr.subs(g_vars["y1"] == 0.99900000000001).subs(g_vars["y2"] == 0.99900000000001).subs(g_vars["ct_0_1"] == 0.999999))
+        (c_vars, str_region) = GenerateCVars(g_vars)
+        SavePThreadsMCCode(cur_name, cur_expr, c_vars, str_region, points, nthreads)
+        prog_names.append(cur_name)
+        t_expr = t_expr.diff(e)/(idxE+1)
+        
+    return prog_names 
