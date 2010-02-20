@@ -32,6 +32,62 @@ def dot_action(**kwargs):
     propagator=kwargs["propagator"]
     return propagator.diff(tau)
 
+def FindExtMomenta(G):
+    if len(G.external_lines) <> 2:
+        raise ValueError, "not self-energy subgraph"
+    else:
+#TODO: понять важен ли знак втекающего импульса?
+        if G.lines[list(G.external_lines)[0]].end in G.internal_nodes :
+            res = G.lines[list(G.external_lines)[0]].momenta
+        else:
+            res = - G.lines[list(G.external_lines)[0]].momenta
+    return res
+
+def FindFreeMomenta(G):
+# TODO: rename function
+    ext_nodes = set([])
+    for idxL in G.external_lines:
+        ext_nodes = ext_nodes | set(G.lines[idxL].Nodes())
+    ext_nodes = ext_nodes & G.internal_nodes
+    t_list = list(ext_nodes)
+    t_list.sort()
+    res = "Q"
+    for idx in t_list:
+        res = res + "_" + str(idx) 
+    return res
+
+def SubsMoments(G, zm=[]):
+    moments=dict()
+    for idxL in G.lines:
+        moments[idxL] = G.lines[idxL].momenta.SetZeros(zm)
+    return moments 
+
+def SubsExtMomenta(G, zm):
+    
+    ext_momenta_atom = FindFreeMomenta(G)
+    ext_momenta = FindExtMomenta(G).string
+    zm2=[rggrf.Momenta(string="%s-%s" %(ext_momenta,ext_momenta_atom)),]
+    moments=SubsMoments(G, zm+zm2)
+    return (moments, ext_momenta, ext_momenta_atom, zm+zm2)
+
+def FindDiffList(G, moments, ext_momenta_atom, degree):
+    ext_moment_path=list()
+    nodes_in_path = set()
+    for idxL in G.internal_lines:
+        if ext_momenta_atom in moments[idxL].dict.keys() :
+            ext_moment_path.append((idxL,"L"))
+            nodes_in_path = nodes_in_path |  set(G.lines[idxL].Nodes())
+#            print idxL, moments[idxL].string , ext_moment_path, nodes_in_path
+        
+    for idxN in nodes_in_path:
+        if  G.nodes[idxN].type in [2,4] : # nodes with two fields
+            ext_moment_path.append((idxN,"N"))
+            
+    t_sel = [i for i in rggrf.utils.xSelections(ext_moment_path,degree)]
+# TODO: возможно стоит сделать так чтобы [1,2] и [2,1] считались всместе 
+    return t_sel
+
+
 def K(arg, **kwargs):
     def sum(list_):
         res = 0
@@ -44,7 +100,7 @@ def K(arg, **kwargs):
         r1 = arg 
         dim = r1.terms[0].ct_graph.dim
         if dim == 2:
-            res = K0(arg, **kwargs) + sum(K2(arg, **kwargs))
+            res = K0(arg, **kwargs) + sum(K1(arg, **kwargs))+ sum(K2(arg, **kwargs))
         elif dim == 0:
             res = K0(arg)
         else : 
@@ -110,65 +166,38 @@ def K0(arg, **kwargs):
     else:
         raise TypeError , "unknown type for K0 operation %s" %arg
 
-
+def K1(arg, diff_list=[], **kwargs):
+        
+    if isinstance(arg,rggrf.roperation.R1):
+        res = 0
+        r1 = arg
+        if "zero_moments" in kwargs:
+            zm = kwargs["zero_moments"]
+        else:
+            zm=[]
+        
+        
+        t_graph = r1.terms[0].ct_graph
+        (moments, ext_momenta, ext_momenta_atom, zm) = SubsExtMomenta(t_graph, zm)
+        t_diff_list = FindDiffList(t_graph, moments, ext_momenta_atom, 1)
+#        print "K2 R1 ", t_diff_list, ext_momenta_atom
+ 
+        res = K1(r1.terms[0], t_diff_list, **kwargs) 
+        for r1term in r1.terms[1:]:
+            t_res = K1(r1term, t_diff_list, **kwargs)
+            if len(res) <> len(t_res):
+                raise ValueError, "K1 operation on different terms returns lists with different length  %s %s" %(len(res),len(t_res))
+            for idx in range(len(res)):
+                res[idx] = res[idx] + t_res[idx]
+        return res  
+    
+    
+    
+    elif isinstance(arg, rggrf.roperation.R1Term) :
+#TODO: выделить общий код в отдельную функцию
+        return 2 * K2( arg , diff_list, **kwargs)
                 
 def K2(arg, diff_list=[], **kwargs):
-    
-    def FindExtMomenta(G):
-        if len(G.external_lines) <> 2:
-            raise ValueError, "not self-energy subgraph"
-        else:
-#TODO: понять важен ли знак втекающего импульса?
-            if G.lines[list(G.external_lines)[0]].end in G.internal_nodes :
-                res = G.lines[list(G.external_lines)[0]].momenta
-            else:
-                res = - G.lines[list(G.external_lines)[0]].momenta
-        return res
-    
-    def FindFreeMomenta(G):
-# TODO: rename function
-        ext_nodes = set([])
-        for idxL in G.external_lines:
-            ext_nodes = ext_nodes | set(G.lines[idxL].Nodes())
-        ext_nodes = ext_nodes & G.internal_nodes
-        t_list = list(ext_nodes)
-        t_list.sort()
-        res = "Q"
-        for idx in t_list:
-            res = res + "_" + str(idx) 
-        return res
-    
-    def SubsMoments(G, zm=[]):
-        moments=dict()
-        for idxL in G.lines:
-            moments[idxL] = G.lines[idxL].momenta.SetZeros(zm)
-        return moments 
-    
-    def SubsExtMomenta(G, zm):
-        
-        ext_momenta_atom = FindFreeMomenta(G)
-        ext_momenta = FindExtMomenta(G).string
-        zm2=[rggrf.Momenta(string="%s-%s" %(ext_momenta,ext_momenta_atom)),]
-        moments=SubsMoments(G, zm+zm2)
-        return (moments, ext_momenta, ext_momenta_atom, zm+zm2)
-    
-    def FindDiffList(G, moments, ext_momenta_atom):
-        ext_moment_path=list()
-        nodes_in_path = set()
-        for idxL in G.internal_lines:
-            if ext_momenta_atom in moments[idxL].dict.keys() :
-                ext_moment_path.append((idxL,"L"))
-                nodes_in_path = nodes_in_path |  set(G.lines[idxL].Nodes())
-#            print idxL, moments[idxL].string , ext_moment_path, nodes_in_path
-            
-        for idxN in nodes_in_path:
-            if  G.nodes[idxN].type in [2,4] : # nodes with two fields
-                ext_moment_path.append((idxN,"N"))
-                
-        t_sel = [i for i in rggrf.utils.xSelections(ext_moment_path,2)]
-# TODO: возможно стоит сделать так чтобы [1,2] и [2,1] считались всместе 
-        return t_sel
-    
     
     if isinstance(arg,rggrf.roperation.R1):
         res = 0
@@ -181,7 +210,7 @@ def K2(arg, diff_list=[], **kwargs):
         
         t_graph = r1.terms[0].ct_graph
         (moments, ext_momenta, ext_momenta_atom, zm) = SubsExtMomenta(t_graph, zm)
-        t_diff_list = FindDiffList(t_graph, moments, ext_momenta_atom)
+        t_diff_list = FindDiffList(t_graph, moments, ext_momenta_atom, 2)
 #        print "K2 R1 ", t_diff_list, ext_momenta_atom
  
         res = K2(r1.terms[0], t_diff_list, **kwargs) 
