@@ -103,7 +103,10 @@ class Momenta:
 
         for idxZM in zero_momenta:
             if len(idxZM.dict) == 1:
-                z_moment.append( (idxZM.sympy, 0) )
+                if idxZM.string[0] == "-":
+                    z_moment.append( (-idxZM.sympy, 0) )
+                else:
+                    z_moment.append( (idxZM.sympy, 0) )
             else:
                 t_list=idxZM.dict.keys()
                 if len(t_list)>0:
@@ -113,6 +116,9 @@ class Momenta:
                         t_right[idxM]=idxZM.dict[idxM]/idxZM.dict[t_left]*(-1)
                     z_moment.append( (Momenta(string=t_left).sympy, Momenta(dict=t_right).sympy) )
 
+# TODO: нужна ли сортировка?
+        z_moment.sort()
+#        print "SetZeros z_moment: ", z_moment
         for idxZeq in z_moment:
             t_sympy=t_sympy.subs(idxZeq[0],idxZeq[1])
 
