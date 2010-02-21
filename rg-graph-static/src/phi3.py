@@ -170,6 +170,8 @@ def K0(arg, **kwargs):
         raise TypeError , "unknown type for K0 operation %s" %arg
 
 def K_n(r1_term, diff_list=[], **kwargs):
+#    print "K_n diff_list = %s" %diff_list
+#    print "nodes of r1term: %s" %r1_term.ct_graph.internal_nodes
     if isinstance(r1_term, rggrf.roperation.R1Term):
         if len(diff_list)>0:
             _N = len(diff_list[0])
@@ -253,7 +255,7 @@ def K_n(r1_term, diff_list=[], **kwargs):
     
 
 def K1(arg, diff_list=[], **kwargs):
-        
+#    print "K1 diff_list = %s" %diff_list        
     if isinstance(arg,rggrf.roperation.R1):
         res = 0
         r1 = arg
@@ -265,6 +267,11 @@ def K1(arg, diff_list=[], **kwargs):
         
         t_graph = r1.terms[0].ct_graph
         (moments, ext_momenta, ext_momenta_atom, zm) = SubsExtMomenta(t_graph, zm)
+#        print ext_momenta, ext_momenta_atom
+#        for idx in moments:
+#            print "moment %s: %s" %(idx, moments[idx].string)
+#        for idx in zm:
+#            print "zm: %s" %idx.string 
         t_diff_list = FindDiffList(t_graph, moments, ext_momenta_atom, 1)
 #        print "K2 R1 ", t_diff_list, ext_momenta_atom
  
@@ -284,7 +291,7 @@ def K1(arg, diff_list=[], **kwargs):
         return  K_n( arg , diff_list, **kwargs)
                 
 def K2(arg, diff_list=[], **kwargs):
-    #print "diff_list = %s" %diff_list
+#    print "K2 diff_list = %s" %diff_list
     if isinstance(arg,rggrf.roperation.R1):
         res = 0
         r1 = arg
@@ -361,3 +368,31 @@ phi3.AddSubGraphType(2, Lines=[1, 1], dim=2, K_nodetypeR1=4)
 # definition of dots
 phi3.AddDotType(1, dim=2, action=dot_action, gv={"penwidth":"3"})
 
+def ResultWithSd(_dict, nloops, n_eps_series):
+    eps = var('eps')
+    t_mnog=[1, 
+            Real('0.84882636315677518', prec=15) - Real('0.093212888565618754', prec=15)*eps
+            - Real('0.0050067349361000383', prec=15)*pow(eps,2) - 
+            Real('0.00052717817355572589', prec=15)*pow(eps,3) - Real('6.8133402095973142e-5', prec=15)*pow(eps,4),
+            Real('0.54037964609246814', prec=15) - Real('0.19443607942348598', prec=15)*eps 
+            + Real('0.011647905519767411', prec=15)*pow(eps,2) + Real('0.00046123456498500229', prec=15)*pow(eps,3) + Real('4.052794127858356e-5', prec=15)*pow(eps,4),
+            Real('0.21900762143326583', prec=15) - Real('0.17585458479914437', prec=15)*eps
+            + Real('0.04636648202336683', prec=15)*pow(eps,2) - Real('0.0040301692384473609', prec=15)*pow(eps,3) + Real('3.08374601549584e-7', prec=15)*pow(eps,4),
+            Real('0.044380222860623028', prec=15) - Real('0.068920756507029612', prec=15)*eps + Real('0.041670033558627036', prec=15)*pow(eps,2) 
+            - Real('0.012317991965140199', prec=15)*pow(eps,3) + Real('0.0017870514760215828', prec=15)*pow(eps,4)
+            ]
+    expr = 0
+    for idx in _dict:
+        expr = expr + eps**idx*_dict[idx][0]
+    expr = expr * t_mnog[nloops-1]
+    #print series(expr,eps,0)
+    return rggrf.utils.SimpleSeries(expr, eps,0,n_eps_series)
+
+def ResultOldNotation(_dict):
+    eps = var('eps')
+    expr = 0
+    for idx in _dict:
+        expr = expr + eps**idx*_dict[idx][0]
+     
+    #print series(expr,eps,0)
+    return expr*2

@@ -100,27 +100,31 @@ class Momenta:
     def SetZeros(self, zero_momenta):
         t_sympy=self.sympy
         z_moment=list()
-
+#        print t_sympy
         for idxZM in zero_momenta:
+#            print "ZM : %s" %idxZM.string
             if len(idxZM.dict) == 1:
                 if idxZM.string[0] == "-":
                     z_moment.append( (-idxZM.sympy, 0) )
                 else:
                     z_moment.append( (idxZM.sympy, 0) )
             else:
-                t_list=idxZM.dict.keys()
-                if len(t_list)>0:
-                    t_left=t_list[0]
+                atoms_list = list(set(self.dict.keys()) & set(idxZM.dict.keys()))
+                if len(atoms_list) > 0 :
+                    t_left = atoms_list[0]
+                    t_list=idxZM.dict.keys()
+                    t_list.remove(t_left)
                     t_right=dict()
-                    for idxM in t_list[1:]:
+                    for idxM in t_list:
                         t_right[idxM]=idxZM.dict[idxM]/idxZM.dict[t_left]*(-1)
                     z_moment.append( (Momenta(string=t_left).sympy, Momenta(dict=t_right).sympy) )
 
 # TODO: нужна ли сортировка?
         z_moment.sort()
 #        print "SetZeros z_moment: ", z_moment
-        for idxZeq in z_moment:
-            t_sympy=t_sympy.subs(idxZeq[0],idxZeq[1])
+        if not( isinstance(t_sympy,int) or isinstance(t_sympy,float)):
+            for idxZeq in z_moment:
+                t_sympy=t_sympy.subs(idxZeq[0],idxZeq[1])
 
         return Momenta(sympy=t_sympy)
 

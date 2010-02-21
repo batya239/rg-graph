@@ -8,6 +8,8 @@ Created on Feb 20, 2010
 '''
 #Common generators
 
+from sympy import *
+
 def xSelections(items, n):
     if n==0: yield []
     else:
@@ -50,4 +52,29 @@ def xPermutations(seq):
     """Generator of all the permutations of the given sequence.
     """
     return xCombinations(seq, len(seq))
+
+def SimpleSeries(func,var,point,num):
+    level=0
+    flag=1
+    f=func
+    res=0
+    while(flag>0):
+        tmp=limit(abs(f),var,point) 
+        if type(tmp)==core.numbers.Infinity :
+            level=level-1
+            f=f*(var-point)
+        else:
+            if level<=num :
+                res=limit(f,var,point)*pow(var-point,level)
+            else:
+                res=0
+            flag=0
+
+    N=1
+    for i in range(level,num):
+        f=expand(f.diff(var)/N)
+        N=N+1
+        res=res+limit(expand(f),var,point)*pow(var-point,i+1)
+
+    return res
 

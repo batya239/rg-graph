@@ -138,7 +138,7 @@ def Prepare(k_op, space_dim):
         
 # TODO: это приведение к общ. знаменателю может занимать много времени 
 # общий знаменатель
-    g_expr = swiginac.normal(g_expr)
+#    g_expr = swiginac.normal(g_expr)
     
         
 #замена на полярные углы
