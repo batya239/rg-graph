@@ -14,7 +14,7 @@ else:
 from phi3 import *
 
 
-print phi3
+print phi3.name
 
 G = rggrf.Graph(phi3)
 G.LoadLinesFromFile(filename)
@@ -43,10 +43,11 @@ for idxL in G.internal_lines:
 
     if len(G.external_lines) == 2:
         K2res = K2(cur_r1)
-        for k2term in K2res:  
+        for idxK2 in range(len(K2res)):
+            k2term = K2res[idxK2]  
             s_prep =   ExpandScalarProdsAndPrepare(k2term)
             (g_expr, g_vars) = rggrf.integration.Prepare(s_prep, SPACE_DIM)
-            name = "MC_%s_dm%s_p%s" %(base_name, idxL, K2res.index(k2term))
+            name = "MC_%s_dm%s_p%s" %(base_name, idxL, idxK2)
             prog_names = prog_names + rggrf.integration.GenerateMCCode(name, g_expr, g_vars, SPACE_DIM, n_epsilon_series, NPOINTS, NTHREADS)
     
     elif len(G.external_lines) == 3:
@@ -57,7 +58,7 @@ for idxL in G.internal_lines:
         name = "MC_%s_dm%s_p%s" %(base_name, idxL, 0)
         prog_names = prog_names+rggrf.integration.GenerateMCCode(name, g_expr, g_vars, SPACE_DIM, n_epsilon_series, NPOINTS, NTHREADS)
         
-print prog_names
+#print prog_names
 
 res = rggrf.integration.CalculateEpsilonSeries(prog_names)
 print res
