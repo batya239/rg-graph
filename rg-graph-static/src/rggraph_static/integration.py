@@ -11,22 +11,22 @@ import ginac
 import utils
 import re as regex
 from sympy import *
+import subprocess
 
 def SplitAtoms(str_atom_set):
-    import re
     ext_moment_atoms = []
     ext_cos_atoms = []
     int_moment_atoms = []
     int_cos_atoms = []
     other_atoms = []
     for atom in list(str_atom_set):
-        if re.match('^p\d*$', atom):
+        if regex.match('^p\d*$', atom):
             ext_moment_atoms.append(atom)
-        elif re.match('^p\d*x.+', atom) or re.match('.+xp\d*$', atom):
+        elif regex.match('^p\d*x.+', atom) or regex.match('.+xp\d*$', atom):
             ext_cos_atoms.append(atom)
-        elif re.match('^q\d+$', atom):
+        elif regex.match('^q\d+$', atom):
             int_moment_atoms.append(atom)
-        elif re.match('^q\d+xq\d+', atom):
+        elif regex.match('^q\d+xq\d+', atom):
             int_cos_atoms.append(atom)
         else:
             other_atoms.append(atom)
@@ -237,7 +237,8 @@ int main(int argc, char **argv)
         FUNCTIONS, 0, NTHREADS,
         estim, std_dev, chi2a);
 double delta= std_dev[0]/estim[0];
-  printf ("Result %d:\\t%g +/- %g  \\tdelta=%g\\n",NEPS, estim[0], std_dev[0], delta);
+printf ("result = %g\\nstd_dev = %g\\ndelta = %g\\n", estim[0], std_dev[0], delta);
+//  printf ("Result %d: %g +/- %g delta=%g\\n",NEPS, estim[0], std_dev[0], delta);
 //  for (i=1; i<FUNCTIONS; ++i)
 //    printf("Result %i:\\t%g +/- %g  \\tdelta=%g\\n", i, estim[i], std_dev[i],std_dev[i]/estim[i]);
   return(0);
@@ -282,6 +283,7 @@ def GenerateCVars(g_vars):
         
 
 def GenerateMCCode(name, g_expr, g_vars, space_dim, n_epsilon_series, points, nthreads):
+
     e = g_vars["e"]
     d = g_vars["d"]
     prog_names = list()
@@ -297,3 +299,92 @@ def GenerateMCCode(name, g_expr, g_vars, space_dim, n_epsilon_series, points, nt
         t_expr = t_expr.diff(e)/(idxE+1)
         
     return prog_names 
+
+def ExecMCCode(prog_name):
+#>>> process = subprocess.Popen(['./test', ], shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+#>>> process.wait()
+#>>> process.communicate()
+#gcc e12-e3-33--_m0_e0.c -lm -lpthread -lpvegas -o test
+
+    code_name="%s.c"%prog_name
+    process = subprocess.Popen(["rm", "-f", prog_name], shell=False, 
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    exit_code = process.wait()
+    (std_out, std_err) = process.communicate()
+        
+    print "Compiling %s ... " %prog_name,
+    process = subprocess.Popen(["gcc", code_name, "-lm", "-lpthread", 
+                                "-lpvegas", "-o", prog_name], shell=False, 
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    exit_code = process.wait()
+    (std_out, std_err) = process.communicate()
+    
+    if exit_code <> 0 :
+        print "FAILED"
+        print std_err
+        return None
+    else: 
+        if len(std_err) == 0:
+            print "OK"
+        else:
+            print "CHECK"
+            print std_err
+    
+    print "Executing %s ... " %prog_name ,
+    process = subprocess.Popen(["./%s"%prog_name,], shell=False, 
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    exit_code = process.wait()
+    (std_out,std_err) = process.communicate()
+    
+    if exit_code <> 0 :
+        print "FAILED"
+        print std_err
+        return None
+    else: 
+        if len(std_err) == 0:
+            print "OK ",
+#Result 0:\t0.00599252 +/- 0.000130637  \tdelta=0.0217999\n
+            res = None
+            err = None
+            delta = None
+            for line in std_out.splitlines():
+                reg = regex.match("^result = (.+)$", line)
+                if reg:
+                    res = float(reg.groups()[0])
+                reg = regex.match("^std_dev = (.+)$", line)
+                if reg:
+                    err = float(reg.groups()[0])
+                reg = regex.match("^delta = (.+)$", line)
+                if reg:
+                    delta = float(reg.groups()[0])
+            if res <> None and err <> None and delta <> None:
+                print "res = %s, err = %s, delta = %s" %(res, err, delta)
+                return (res, err, delta)
+            else:
+                print "CHECK"
+                print std_out
+                return None
+        else:
+            print "CHECK"
+            print std_err
+            return None
+
+def CalculateEpsilonSeries(prog_names):
+    res_by_eps = dict()
+    for prog in prog_names:
+        exec_res = ExecMCCode(prog)
+        if exec_res == None:
+            raise ValueError , "ExecMCCode function returns None"
+        (res, dev, delta) = exec_res
+        reg = regex.search("_e(\d+)$",prog)
+        if reg:
+            eps = int(reg.groups()[0])
+        else:
+            raise ValueError, "Can't determine eps power for %s" %prog
+        if eps in res_by_eps:
+            cur = res_by_eps[eps]
+            res_by_eps[eps] = (cur[0]+res, cur[1]+dev)
+        else:
+            res_by_eps[eps] = (res, dev)
+    return res_by_eps
+    

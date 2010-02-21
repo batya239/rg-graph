@@ -57,4 +57,10 @@ for idxL in G.internal_lines:
         name = "MC_%s_dm%s_p%s" %(base_name, idxL, 0)
         prog_names = prog_names+rggrf.integration.GenerateMCCode(name, g_expr, g_vars, SPACE_DIM, n_epsilon_series, NPOINTS, NTHREADS)
         
-print prog_names    
+print prog_names
+
+res = rggrf.integration.CalculateEpsilonSeries(prog_names)
+print res
+#for idx in prog_names:
+#    res = rggrf.integration.ExecMCCode(idx)
+    
