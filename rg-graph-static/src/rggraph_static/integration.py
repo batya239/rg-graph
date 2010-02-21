@@ -35,7 +35,9 @@ def SplitAtoms(str_atom_set):
                                    set(int_cos_atoms), set(other_atoms))
 
 def AvarageByExtDirection(s_expr,str_ext_cos_atoms,degree):
-#TODO: need lots of verifications to work in general case now only 0 and 2
+#TODO: need lots of verifications to work in general case; now only 0 and 2 degree
+#    print "==== AvarageByExtDirection "
+#    print str_ext_cos_atoms,degree
     res = 0
     d = var('d')
     if degree not in [0,2]:
@@ -47,10 +49,11 @@ def AvarageByExtDirection(s_expr,str_ext_cos_atoms,degree):
             for atom in str_ext_cos_atoms:
                 s_atom = var(atom)
                 t_expr = t_expr.subs(s_atom, 0)
+#            print "degree 0 ", t_expr
             res = res + t_expr
 #            print s_atom, t_expr
         if degree >=2:
-            
+#            print "degree2"
             for selection in utils.xUniqueSelections(list(str_ext_cos_atoms), 2):
 #                print selection
                 t_expr = s_expr
@@ -65,6 +68,7 @@ def AvarageByExtDirection(s_expr,str_ext_cos_atoms,degree):
                     if reg2:
                         t_lst.append(reg2.groups()[1])
                 t_lst.sort()
+#                print "t_lst = %s"%t_lst
                 atom1 = var(selection[0])        
                 atom2 = var(selection[1])
                 atom12 = var("%sx%s"%(t_lst[0],t_lst[1]))
@@ -76,8 +80,9 @@ def AvarageByExtDirection(s_expr,str_ext_cos_atoms,degree):
                     t_expr = t_expr/2/d
                 else:
                     t_expr = t_expr*atom12/d
+                
 #            print t_expr
-            res = res + t_expr
+                res = res + t_expr
         return res
                     
 
@@ -102,6 +107,8 @@ def Prepare(k_op, space_dim):
     if len(ext_moment_atoms | other_atoms)>0:
         raise  NotImplementedError, "Don't know what to do with following atoms: %s" %(ext_moment_atoms|other_atoms)
     expr = AvarageByExtDirection(expr, ext_cos_atoms, 2)
+#    print "\nExtDir:\n"
+#    pretty_print(expr)
     (g_expr, g_vars) = ginac.sympy2swiginac(expr)
 
 # доопределяем недостающие переменные самое важное d и e, остальное на самом деле вроде не нужно.

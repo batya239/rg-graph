@@ -24,7 +24,7 @@ def triple_node_factor(r1term,**kwargs):
     return 1
 
 def double_node_factor(r1term,**kwargs):
-    squared_momenta = kwargs["momenta0"].Squared()
+    squared_momenta = kwargs["moment0"].Squared()
     return squared_momenta
 
 def dot_action(**kwargs):
@@ -130,14 +130,17 @@ def K0(arg, **kwargs):
         else:
             zm=[]
         for idxL in ctgraph.external_lines:
+#            print "K0 ext moments: %s, %s" %(idxL,ctgraph.lines[idxL].momenta)
             zm.append(ctgraph.lines[idxL].momenta)
         res=1
         for idxL in ctgraph.internal_lines:
             curline = ctgraph.lines[idxL]
+#            print "line before/after zm : %s     %s / %s " %(idxL, curline.momenta, curline.momenta.SetZeros(zm))
             prop = ctgraph.model.line_types[curline.type]["propagator"](momenta=curline.momenta.SetZeros(zm))
             for idxD in curline.dots:
                 for idx in range(curline.dots[idxD]):
                     prop = ctgraph.model.dot_types[idxD]["action"](propagator=prop)
+#            print "prop = %s" %prop
             res = res*prop
             
         for idxN in ctgraph.internal_nodes:
@@ -184,6 +187,7 @@ def K_n(r1_term, diff_list=[], **kwargs):
 #        print "K2 ", ctgraph.nickel, ctgraph.dim , ctgraph.internal_nodes , diff_list 
         res=[]
         for cur_diff in diff_list:
+#            print "----- cur_diff %s" %cur_diff
             t_res=1
             strech = var('L_temp_strech')
             for idxL in ctgraph.internal_lines:
@@ -204,9 +208,9 @@ def K_n(r1_term, diff_list=[], **kwargs):
                 moment=dict()
                 for idx in range(len(curnode.lines)):
                     if ctgraph.lines[curnode.lines[idx]].end == idxN :
-                        moment["moment%s"%idx] = ctgraph.lines[curnode.lines[idx]].momenta
+                        moment["moment%s"%idx] = ctgraph.lines[curnode.lines[idx]].momenta.SetZeros(zm)
                     else :
-                        moment["moment%s"%idx] = - ctgraph.lines[curnode.lines[idx]].momenta
+                        moment["moment%s"%idx] = - ctgraph.lines[curnode.lines[idx]].momenta.SetZeros(zm)
     
     #            print ctgraph.nodes.keys(), r1term.subgraphs, idxN, r1term.subgraph_map
                 factor_diff=0
@@ -219,10 +223,17 @@ def K_n(r1_term, diff_list=[], **kwargs):
                 else:
                     f_arg = None
                 factor = ctgraph.model.node_types[curnode.type]["Factor"](f_arg,**moment)
+#                print "start -> %s" %(factor)
+#                for tmpidx in zm:
+#                    print "--zm: %s %s" %(tmpidx,tmpidx.string)
 # дифференцирования вершин?
-                factor = rggrf.Streching(factor, rggrf.Momenta(string=ext_momenta_atom).sympy, strech)             
+#                print "strech args -> %s %s %s"  %(factor, rggrf.Momenta(string=ext_momenta_atom).sympy, strech)
+                factor = rggrf.Streching(factor, rggrf.Momenta(string=ext_momenta_atom).sympy, strech)
+#                print "strech -> %s" %factor    
+#                print "diff count -> %s, %s" %(cur_diff.count((idxN,"N")), factor_diff)                  
                 for idx in range(cur_diff.count((idxN,"N")) + factor_diff):
                     factor = factor.diff(strech)
+#                print "res -> %s" %factor
                 
             
                 t_res = t_res * factor
@@ -232,7 +243,8 @@ def K_n(r1_term, diff_list=[], **kwargs):
             t_res = Rational(1, Factorial(_N))*rggrf.ExpandScalarProdAsVectors(t_res.subs(strech,0), 
                         rggrf.Momenta(string=ext_momenta_atom), 
                         rggrf.Momenta(string=ext_momenta))
-            
+#            print "<------>"
+#            pretty_print(t_res)
             res.append(t_res) 
 #        print "res K2 %s" %res
         return res
@@ -272,7 +284,7 @@ def K1(arg, diff_list=[], **kwargs):
         return  K_n( arg , diff_list, **kwargs)
                 
 def K2(arg, diff_list=[], **kwargs):
-    
+    #print "diff_list = %s" %diff_list
     if isinstance(arg,rggrf.roperation.R1):
         res = 0
         r1 = arg

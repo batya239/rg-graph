@@ -34,6 +34,7 @@ NTHREADS = 2
 SPACE_DIM = 6.
 prog_names = []
 for idxL in G.internal_lines:
+#    print "======= %s ======="%idxL
     cur_G = G.Clone()
     cur_G.lines[idxL].dots[1] = 1
     cur_G.DefineNodes()
@@ -46,14 +47,17 @@ for idxL in G.internal_lines:
         for idxK2 in range(len(K2res)):
             k2term = K2res[idxK2]  
             s_prep =   ExpandScalarProdsAndPrepare(k2term)
+#            print "---------dm_%s_p%s --------- " %(idxL,idxK2)
+#            pretty_print(s_prep)
             (g_expr, g_vars) = rggrf.integration.Prepare(s_prep, SPACE_DIM)
+#            print "\ng_expr:\n%s\n"%g_expr
             name = "MC_%s_dm%s_p%s" %(base_name, idxL, idxK2)
             prog_names = prog_names + rggrf.integration.GenerateMCCode(name, g_expr, g_vars, SPACE_DIM, n_epsilon_series, NPOINTS, NTHREADS)
     
     elif len(G.external_lines) == 3:
         K0res = K0(cur_r1) 
         s_prep =   ExpandScalarProdsAndPrepare(K0res)
-        pretty_print(s_prep)
+#        pretty_print(s_prep)
         (g_expr, g_vars) = rggrf.integration.Prepare(s_prep, SPACE_DIM)
         name = "MC_%s_dm%s_p%s" %(base_name, idxL, 0)
         prog_names = prog_names+rggrf.integration.GenerateMCCode(name, g_expr, g_vars, SPACE_DIM, n_epsilon_series, NPOINTS, NTHREADS)
