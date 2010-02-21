@@ -371,6 +371,20 @@ class Graph:
                 Out = self.lines[idxL].end
             edges.append([In, Out])
         self.nickel=nickel.Canonicalize(edges)
+        # calculate sym coefficient:
+        import copy
+        edges = copy.copy(nickel.Nickel(nickel=self.nickel.nickel).edges)
+        unique_edges = dict()
+        for idx in edges:
+            idx.sort()
+            if str(idx) in unique_edges:
+                unique_edges[str(idx)] = unique_edges[str(idx)] +1
+            else:
+                unique_edges[str(idx)] = 1
+        C=Factorial(len(self.external_lines))/self.nickel.num_symmetries
+        for idxE in unique_edges:
+            C = C / Factorial(unique_edges[idxE])
+        self.sym_coeff = C
         
     def FindSubgraphs(self, subgraph_types = False):
         """ Finds subgraphs and put them in to self.subgraphs list

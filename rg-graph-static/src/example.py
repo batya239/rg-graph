@@ -66,7 +66,7 @@ for idxL in G.internal_lines:
 
 res = rggrf.integration.CalculateEpsilonSeries(prog_names)
 print res
-print "симметрийное число: %s" %(Factorial(len(G.internal_nodes))/G.nickel.num_symmetries)
+print "симметрийный коэффициент: %s" %(G.sym_coeff)
 
 print "With Sd: %s" %ResultWithSd(res, NLOOPS, n_epsilon_series)
 
