@@ -91,7 +91,6 @@ def Prepare(k_op, space_dim):
 # TODO: вывод.    
 
     def g_cos(idx1, idx2, vars_dict):
-        print vars_dict
         return vars_dict["ct_%s_%s" %(idx1,idx2)]
     def g_sin(idx1, idx2, vars_dict):
         return (1-g_cos(idx1,idx2,vars_dict)**2)**0.5 
@@ -112,7 +111,6 @@ def Prepare(k_op, space_dim):
             
 # общий знаменатель
     g_expr = swiginac.normal(g_expr)
-    print g_expr
 
     d = g_vars["d"]
 # детерминанты по импульсам
@@ -188,7 +186,7 @@ def Prepare(k_op, space_dim):
                          g_cos(idx1, idx2, g_vars)))
             else:
                 raise NotImplementedError, " number of independent moments more then d-2 . d = %s" %space_dim
-            print "\n\n subst = %s\n det = %s\n\n" %(subst, det)
+#            print "\n\n subst = %s\n det = %s\n\n" %(subst, det)
             g_expr = g_expr.subs(g_vars[atom] == subst) * det
         else:
             raise ValueError,  "Unknown scalar product of internal moments  %s " %atom

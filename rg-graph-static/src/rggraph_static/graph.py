@@ -251,7 +251,7 @@ class Graph:
                                     Momenta(string=moment[idxL]), dict()))
         
     
-    def DefineNodes(self, dict_node_type, **kwargs):
+    def DefineNodes(self, dict_node_type=dict(), **kwargs):
         """ after definition of lines of the graph we construct self.nodes dict.
             self.nodes includes information about lines in nodes and node types
             
