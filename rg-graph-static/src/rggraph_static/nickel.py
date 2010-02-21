@@ -8,7 +8,7 @@ class Nickel(object):
 
     Usage:
     >>> n = nickel.Nickel(edges=[[-1, 0], [0, 1], [1, -1]])
-    >>> n.nodes
+    >>> n.nickel
     [[-1, 1], [-1]]
     >>> n.string
     'e1-e-'
