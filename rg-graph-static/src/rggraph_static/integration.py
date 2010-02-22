@@ -235,7 +235,8 @@ int main(int argc, char **argv)
 {
   int i;
   long long npoints;
-  if(argc == 2)
+  int nthreads;
+  if(argc >= 2)
     {
       npoints = atoll(argv[1]);
 
@@ -245,17 +246,26 @@ int main(int argc, char **argv)
       npoints = ITERATIONS;
     }
 
+  if(argc == 3)
+    {
+      nthreads = atoi(argv[2]);
+
+    }
+  else 
+    {
+      nthreads = NTHREADS;
+    }
   double estim[FUNCTIONS];   /* estimators for integrals                     */
   double std_dev[FUNCTIONS]; /* standard deviations                          */
   double chi2a[FUNCTIONS];   /* chi^2/n                                      */
 
   vegas(reg, DIMENSION, func,
         0, npoints/10, 5, NPRN_INPUT | NPRN_RESULT,
-        FUNCTIONS, 0, NTHREADS,
+        FUNCTIONS, 0, nthreads,
         estim, std_dev, chi2a);
   vegas(reg, DIMENSION, func,
         2, npoints , 2, NPRN_INPUT | NPRN_RESULT,
-        FUNCTIONS, 0, NTHREADS,
+        FUNCTIONS, 0, nthreads,
         estim, std_dev, chi2a);
 double delta= std_dev[0]/estim[0];
 printf ("result = %g\\nstd_dev = %g\\ndelta = %g\\n", estim[0], std_dev[0], delta);
