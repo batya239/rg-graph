@@ -1,10 +1,8 @@
 #!/usr/bin/python
 # -*- coding:utf8
 import sys
-from sympy import *
 import rggraph_static as rggrf
-#import pydot
-import copy
+
 
 if len(sys.argv) == 2:
     filename = sys.argv[1]
@@ -20,19 +18,16 @@ G = rggrf.Graph(phi3)
 G.LoadLinesFromFile(filename)
 G.DefineNodes({})
 G.SaveAsPNG("graph.png")
-G_list = []
-R1_list = []
 G.GenerateNickel()
 base_name = str(G.nickel)
 TARGET = 4
 NLOOPS = len(G.internal_lines) - len(G.internal_nodes) + 1
 print "NLOOPS = " , NLOOPS
-#print len(G.internal_lines) , len(G.internal_nodes)
 n_epsilon_series = TARGET - NLOOPS
 NPOINTS = 10000
 NTHREADS = 2 
 SPACE_DIM = 6.
-prog_names = []
+prepared_eqs = []
 for idxL in G.internal_lines:
     print "======= %s ======="%idxL
     cur_G = G.Clone()
@@ -40,7 +35,6 @@ for idxL in G.internal_lines:
     cur_G.DefineNodes()
     cur_G.FindSubgraphs()
     cur_r1 = rggrf.roperation.R1(cur_G)
-    cur_r1.SaveAsPNG("R1_%s_dm%s.png" %(base_name, idxL))
 
     if len(G.external_lines) == 2:
         K2res = K2(cur_r1)
@@ -48,22 +42,18 @@ for idxL in G.internal_lines:
             k2term = K2res[idxK2]  
             s_prep =   ExpandScalarProdsAndPrepare(k2term)
             print "---------dm_%s_p%s --------- " %(idxL,idxK2)
-#            pretty_print(s_prep)
-            (g_expr, g_vars) = rggrf.integration.Prepare(s_prep, SPACE_DIM)
-#            print "\ng_expr:\n%s\n"%g_expr
-            name = "MC_%s_dm%s_p%s" %(base_name, idxL, idxK2)
-            prog_names = prog_names + rggrf.integration.GenerateMCCodeForTerm(name, g_expr, g_vars, SPACE_DIM, n_epsilon_series, NPOINTS, NTHREADS)
-    
+            sys.stdout.flush()
+            prepared_eqs.append(rggrf.integration.Prepare(s_prep, SPACE_DIM))
+   
     elif len(G.external_lines) == 3:
         K0res = K0(cur_r1) 
         s_prep =   ExpandScalarProdsAndPrepare(K0res)
-#        pretty_print(s_prep)
-        (g_expr, g_vars) = rggrf.integration.Prepare(s_prep, SPACE_DIM)
-        name = "MC_%s_dm%s_p%s" %(base_name, idxL, 0)
-        prog_names = prog_names+rggrf.integration.GenerateMCCode(name, g_expr, g_vars, SPACE_DIM, n_epsilon_series, NPOINTS, NTHREADS)
+        prepared_eqs.append(rggrf.integration.Prepare(s_prep, SPACE_DIM))      
         
     sys.stdout.flush()
-#print prog_names
+      
+prog_names = rggrf.integration.GenerateMCCodeForGraph(base_name, prepared_eqs,SPACE_DIM, n_epsilon_series, NPOINTS, NTHREADS) 
+
 
 res = rggrf.integration.CalculateEpsilonSeries(prog_names)
 print res

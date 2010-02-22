@@ -208,6 +208,7 @@ def SavePThreadsMCCode(name, c_expr, c_vars, str_region, points, nthreads):
 #include <math.h>
 #include <stdio.h>
 #include <vegas.h>
+#include <stdlib.h>
 
 #define DIMENSION <-DIMENSION->
 #define FUNCTIONS 1
@@ -231,16 +232,27 @@ double gfsr_norm;
 int main(int argc, char **argv)
 {
   int i;
+  long long npoints;
+  if(argc == 2)
+    {
+      npoints = atoll(argv[1]);
+
+    }
+  else 
+    {
+      npoints = ITERATIONS;
+    }
+
   double estim[FUNCTIONS];   /* estimators for integrals                     */
   double std_dev[FUNCTIONS]; /* standard deviations                          */
   double chi2a[FUNCTIONS];   /* chi^2/n                                      */
 
   vegas(reg, DIMENSION, func,
-        0, ITERATIONS/10, 5, NPRN_INPUT | NPRN_RESULT,
+        0, npoints/10, 5, NPRN_INPUT | NPRN_RESULT,
         FUNCTIONS, 0, NTHREADS,
         estim, std_dev, chi2a);
   vegas(reg, DIMENSION, func,
-        2, ITERATIONS , 2, NPRN_INPUT | NPRN_RESULT,
+        2, npoints , 2, NPRN_INPUT | NPRN_RESULT,
         FUNCTIONS, 0, NTHREADS,
         estim, std_dev, chi2a);
 double delta= std_dev[0]/estim[0];
