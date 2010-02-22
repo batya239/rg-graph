@@ -338,7 +338,12 @@ def ExpandScalarProdsAndPrepareFactorized(factorized_expr):
     return rggrf.roperation.Factorized(ExpandScalarProdsAndPrepare(factorized_expr.factor), 
                       ExpandScalarProdsAndPrepare(factorized_expr.other))
 
-def ExpandScalarProdsAndPrepare(expr):
+def ExpandScalarProdsAndPrepare(expr_):
+    if isinstance(expr_,rggrf.roperation.Factorized):
+        print "WARNING!!! Factorizied object passed to ExpandScalarProdsAndPrepare"
+        expr = expr_.factor*expr_.other
+    else:
+        expr = expr_ 
     import re as regex
     atoms = expr.atoms()
     t_expr = expr

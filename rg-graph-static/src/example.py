@@ -76,7 +76,7 @@ for idxL in G.internal_lines:
         (g_expr, g_vars) = rggrf.integration.Prepare(s_prep, SPACE_DIM)
         print_time("Prepare")
         name = "MC_%s_dm%s_p%s" %(base_name, idxL, 0)
-        prog_names = prog_names+rggrf.integration.GenerateMCCode(name, g_expr, g_vars, SPACE_DIM, n_epsilon_series, NPOINTS, NTHREADS)
+        prog_names = prog_names+rggrf.integration.GenerateMCCodeForTerm(name, g_expr, g_vars, SPACE_DIM, n_epsilon_series, NPOINTS, NTHREADS)
         print_time("GenerateMC")
     sys.stdout.flush()
 #print prog_names

@@ -60,13 +60,15 @@ for idxL in G.internal_lines:
             pretty_print(s_prep.factor)
             pretty_print(s_prep.other)
 #
-#            (g_expr, g_vars) = rggrf.integration.Prepare(s_prep, SPACE_DIM)
-#            print_time("Prepare")
-#
-#            name = "MC_%s_dm%s_p%s" %(base_name, idxL, idxK2)
-#            prog_names = prog_names + rggrf.integration.GenerateMCCodeForTerm(name, g_expr, g_vars, SPACE_DIM, n_epsilon_series, NPOINTS, NTHREADS)
-#            print_time("GenerateMC")
-#    
+            (g_expr, g_vars) = rggrf.integration.PrepareFactorized(s_prep, SPACE_DIM)
+            print_time("Prepare")
+            
+            print g_expr
+            
+            name = "MC_%s_dm%s_p%s" %(base_name, idxL, idxK2)
+            prog_names = prog_names + rggrf.integration.GenerateMCCodeForTerm(name, g_expr, g_vars, SPACE_DIM, n_epsilon_series, NPOINTS, NTHREADS)
+            print_time("GenerateMC")
+    
     elif len(G.external_lines) == 3:
         K0res = K0(cur_r1) 
         print_time("K0 operation done")
@@ -75,20 +77,20 @@ for idxL in G.internal_lines:
         pretty_print(s_prep.factor)
         pretty_print(s_prep.other)
 
-#        (g_expr, g_vars) = rggrf.integration.Prepare(s_prep, SPACE_DIM)
-#        print_time("Prepare")
-#        name = "MC_%s_dm%s_p%s" %(base_name, idxL, 0)
-#        prog_names = prog_names+rggrf.integration.GenerateMCCode(name, g_expr, g_vars, SPACE_DIM, n_epsilon_series, NPOINTS, NTHREADS)
-#        print_time("GenerateMC")
-#    sys.stdout.flush()
+        (g_expr, g_vars) = rggrf.integration.PrepareFactorized(s_prep, SPACE_DIM)
+        print_time("Prepare")
+        name = "MC_%s_dm%s_p%s" %(base_name, idxL, 0)
+        prog_names = prog_names+rggrf.integration.GenerateMCCodeForTerm(name, g_expr, g_vars, SPACE_DIM, n_epsilon_series, NPOINTS, NTHREADS)
+        print_time("GenerateMC")
+    sys.stdout.flush()
 #
 #
-#res = rggrf.integration.CalculateEpsilonSeries(prog_names)
-#print res
-#print "симметрийный коэффициент: %s" %(G.sym_coeff)
-#
-#print "With Sd: %s" %ResultWithSd(res, NLOOPS, n_epsilon_series)
+res = rggrf.integration.CalculateEpsilonSeries(prog_names)
+print res
+print "симметрийный коэффициент: %s" %(G.sym_coeff)
 
-#print "Old Notation: %s" % ResultOldNotation(res)
+print "With Sd: %s" %ResultWithSd(res, NLOOPS, n_epsilon_series)
+
+print "Old Notation: %s" % ResultOldNotation(res)
 
     

@@ -103,6 +103,31 @@ def Swiginac(expr):
 def print_swiginac(expr):
     """Print output of swiginac() function"""
     print Swiginac(expr)   
+
+def sympy2swiginacFactorized(expr_f,expr_o):
+    str = Swiginac(expr_f*expr_o)
+    g_vars = dict()
+    for idx in str.split("\n"):
+        reg = regex.match("^([a-zA-Z].*) = swiginac.symbol", idx)
+        if reg:
+            exec(idx)
+            g_vars[reg.groups()[0]] = eval(reg.groups()[0])
+
+    str_f = Swiginac(expr_f)
+    for idx in str_f.split("\n"):
+        reg = regex.match("^([a-zA-Z].*) = swiginac.symbol", idx)
+        if not reg:
+            exec(idx)
+    out_f = swiginac_expr
+
+    str_o = Swiginac(expr_o)
+    for idx in str_o.split("\n"):
+        reg = regex.match("^([a-zA-Z].*) = swiginac.symbol", idx)
+        if not reg:
+            exec(idx)
+    out_o = swiginac_expr
+    
+    return (out_f, out_o, g_vars)
     
 def sympy2swiginac(expr):
     str = Swiginac(expr)
