@@ -9,6 +9,8 @@ Created on Feb 20, 2010
 #Common generators
 
 from sympy import *
+import time
+import sys
 
 def xSelections(items, n):
     if n==0: yield []
@@ -78,3 +80,6 @@ def SimpleSeries(func,var,point,num):
 
     return res
 
+def print_time(str_):
+    print "\t\t\t time (%s) = %s"%(str_,time.time())
+    sys.stdout.flush()

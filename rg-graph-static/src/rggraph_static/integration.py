@@ -13,6 +13,7 @@ import re as regex
 from sympy import *
 import subprocess
 
+
 def SplitAtoms(str_atom_set):
     ext_moment_atoms = []
     ext_cos_atoms = []
@@ -99,7 +100,7 @@ def Prepare(k_op, space_dim):
         return vars_dict["ct_%s_%s" %(idx1,idx2)]
     def g_sin(idx1, idx2, vars_dict):
         return (1-g_cos(idx1,idx2,vars_dict)**2)**0.5 
-
+    utils.print_time("Prepare: start")
     expr = k_op
     str_atom_set = ginac.GetVarsAsStr(k_op)
     (ext_moment_atoms, ext_cos_atoms, int_moment_atoms, 
@@ -115,10 +116,11 @@ def Prepare(k_op, space_dim):
     for idx in ["d", "e"]+list(int_moment_atoms)+list(int_cos_atoms):
         if  idx not in g_vars:
             g_vars[idx] = swiginac.symbol(idx)
-            
+    utils.print_time("Prepare:before normal")        
 # общий знаменатель
     g_expr = swiginac.normal(g_expr)
-
+    utils.print_time("Prepare:after normal ")
+    
     d = g_vars["d"]
 # детерминанты по импульсам
     for int_moment in list(int_moment_atoms):
@@ -135,7 +137,7 @@ def Prepare(k_op, space_dim):
             g_expr = g_expr.subs(g_vars[idx] == (1 - g_vars[t_inv]) / g_vars[t_inv]) / g_vars[t_inv] / g_vars[t_inv] 
         else:
             raise ValueError, "Unknown internal momenta %s" %idx
-        
+    utils.print_time("Prepare: inversion")
 # TODO: это приведение к общ. знаменателю может занимать много времени 
 # общий знаменатель
 #    g_expr = swiginac.normal(g_expr)
@@ -197,7 +199,7 @@ def Prepare(k_op, space_dim):
             g_expr = g_expr.subs(g_vars[atom] == subst) * det
         else:
             raise ValueError,  "Unknown scalar product of internal moments  %s " %atom
-                
+    utils.print_time("Prepare: end")  
 
     
     return (g_expr,g_vars)
@@ -312,8 +314,9 @@ def GenerateMCCodeForTerm(name, g_expr, g_vars, space_dim, n_epsilon_series, poi
     d = g_vars["d"]
     prog_names = list()
     t_expr = g_expr.subs(d == float(space_dim) - e)
-    
+    utils.print_time("GMCCFT: start")
     for idxE in range(n_epsilon_series+1):
+        utils.print_time("GMCCFT: eps^%s"%idxE)
         cur_name = "%s_e%s" %(name,idxE)
         cur_expr = t_expr.subs(e == 0)
 #        print swiginac.normal(cur_expr.subs(g_vars["y1"] == 0.99900000000001).subs(g_vars["y2"] == 0.99900000000001).subs(g_vars["ct_0_1"] == 0.999999))
@@ -322,7 +325,8 @@ def GenerateMCCodeForTerm(name, g_expr, g_vars, space_dim, n_epsilon_series, poi
         SavePThreadsMCCode(cur_name, cur_expr.str(), c_vars, str_region, points, nthreads)
         prog_names.append(cur_name)
         t_expr = t_expr.diff(e)/(idxE+1)
-        
+    utils.print_time("GMCCFT: end")
+    
     return prog_names 
 
 def GenerateMCCodeForGraph(name, prepared_eqs, space_dim, n_epsilon_series, points, nthreads):
@@ -362,13 +366,13 @@ def ExecMCCode(prog_name):
 #>>> process.wait()
 #>>> process.communicate()
 #gcc e12-e3-33--_m0_e0.c -lm -lpthread -lpvegas -o test
-
+    utils.print_time("EMCCCode: start")
     code_name="%s.c"%prog_name
     process = subprocess.Popen(["rm", "-f", prog_name], shell=False, 
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     exit_code = process.wait()
     (std_out, std_err) = process.communicate()
-        
+    utils.print_time("EMCCCode: ")    
     print "Compiling %s ... " %prog_name,
     sys.stdout.flush()
     process = subprocess.Popen(["gcc", code_name, "-lm", "-lpthread", 
@@ -387,14 +391,14 @@ def ExecMCCode(prog_name):
         else:
             print "CHECK"
             print std_err
-    
+    utils.print_time("EMCCCode:")
     print "Executing %s ... " %prog_name ,
     sys.stdout.flush()
     process = subprocess.Popen(["./%s"%prog_name,], shell=False, 
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     exit_code = process.wait()
     (std_out,std_err) = process.communicate()
-    
+    utils.print_time("EMCCCode: exec end")
     if exit_code <> 0 :
         print "FAILED"
         print std_err
