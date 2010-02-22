@@ -372,6 +372,7 @@ class Graph:
             edges.append([In, Out])
         self.nickel=nickel.Canonicalize(edges)
         # calculate sym coefficient:
+# TODO: vacuum loops ! 
         import copy
         edges = copy.copy(nickel.Nickel(nickel=self.nickel.nickel).edges)
         unique_edges = dict()

@@ -52,7 +52,7 @@ for idxL in G.internal_lines:
             (g_expr, g_vars) = rggrf.integration.Prepare(s_prep, SPACE_DIM)
 #            print "\ng_expr:\n%s\n"%g_expr
             name = "MC_%s_dm%s_p%s" %(base_name, idxL, idxK2)
-            prog_names = prog_names + rggrf.integration.GenerateMCCode(name, g_expr, g_vars, SPACE_DIM, n_epsilon_series, NPOINTS, NTHREADS)
+            prog_names = prog_names + rggrf.integration.GenerateMCCodeForTerm(name, g_expr, g_vars, SPACE_DIM, n_epsilon_series, NPOINTS, NTHREADS)
     
     elif len(G.external_lines) == 3:
         K0res = K0(cur_r1) 

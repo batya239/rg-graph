@@ -202,7 +202,7 @@ def Prepare(k_op, space_dim):
     
     return (g_expr,g_vars)
 
-def SavePThreadsMCCode(name, g_expr, c_vars, str_region, points, nthreads):
+def SavePThreadsMCCode(name, c_expr, c_vars, str_region, points, nthreads):
     template = '''
     
 #include <math.h>
@@ -256,8 +256,8 @@ printf ("result = %g\\nstd_dev = %g\\ndelta = %g\\n", estim[0], std_dev[0], delt
     res = res.replace("<-NTHREADS->",str(int(nthreads)))
     res = res.replace("<-REGION->",str_region)
     res = res.replace("<-VARS->",c_vars)
-    g_expr.set_print_context('c')
-    res = res.replace("<-INTEGRAND->",g_expr.str())
+    
+    res = res.replace("<-INTEGRAND->",c_expr)
     file = open(name+".c", 'w')
     file.write(res)
     file.close()
@@ -266,7 +266,12 @@ def GenerateCVars(g_vars):
     c_vars = ""
     region = list()
     var_cnt = 0
-    for atom in g_vars:
+    # sorting for GenerateMCCodeForGraph to be sure
+    # that all c_vars and regions are the same even if
+    # g_vars disordered
+    t_list = g_vars.keys()
+    t_list.sort()
+    for atom in t_list:
         reg = regex.match("^y\d+$", atom)
         if reg :
             c_vars = c_vars + "double %s = k[%s];\n" %(atom,var_cnt)
@@ -289,7 +294,7 @@ def GenerateCVars(g_vars):
     return (c_vars, str_region)
         
 
-def GenerateMCCode(name, g_expr, g_vars, space_dim, n_epsilon_series, points, nthreads):
+def GenerateMCCodeForTerm(name, g_expr, g_vars, space_dim, n_epsilon_series, points, nthreads):
 
     e = g_vars["e"]
     d = g_vars["d"]
@@ -301,13 +306,46 @@ def GenerateMCCode(name, g_expr, g_vars, space_dim, n_epsilon_series, points, nt
         cur_expr = t_expr.subs(e == 0)
 #        print swiginac.normal(cur_expr.subs(g_vars["y1"] == 0.99900000000001).subs(g_vars["y2"] == 0.99900000000001).subs(g_vars["ct_0_1"] == 0.999999))
         (c_vars, str_region) = GenerateCVars(g_vars)
-        SavePThreadsMCCode(cur_name, cur_expr, c_vars, str_region, points, nthreads)
+        cur_expr.set_print_context('c')
+        SavePThreadsMCCode(cur_name, cur_expr.str(), c_vars, str_region, points, nthreads)
         prog_names.append(cur_name)
         t_expr = t_expr.diff(e)/(idxE+1)
         
     return prog_names 
 
+def GenerateMCCodeForGraph(name, prepared_eqs, space_dim, n_epsilon_series, points, nthreads):
+#TODO: проверка что у всех членов одинаковые переменные.
+    prog_names = list()
+    expr_by_eps = dict()
+    for i in range(n_epsilon_series+1):
+        expr_by_eps[i] = list()
+    c_vars = ""
+    str_region = ""
+    for idx in range(len(prepared_eqs)):
+        (g_expr,g_vars) = prepared_eqs[idx]
+        e = g_vars["e"]
+        d = g_vars["d"]     
+        t_expr = g_expr.subs(d == float(space_dim) - e)
+        
+        for idxE in range(n_epsilon_series+1):
+            cur_expr = t_expr.subs(e == 0)
+            (c_vars, str_region) = GenerateCVars(g_vars)
+            cur_expr.set_print_context('c')
+            c_expr = cur_expr.str()
+            expr_by_eps[idxE].append(c_expr)
+            t_expr = t_expr.diff(e)/(idxE+1)
+            
+    for idxE in expr_by_eps:
+        cur_name = "MCO_%s_e%s"%(name,idxE)
+        c_expr = expr_by_eps[idxE][0]
+        for idxT in expr_by_eps[idxE][1:]:
+            c_expr = "%s;\nf[0] = f[0] + %s" %(c_expr,idxT) 
+        SavePThreadsMCCode(cur_name, c_expr, c_vars, str_region, points, nthreads)
+        prog_names.append(cur_name)
+    return prog_names 
+
 def ExecMCCode(prog_name):
+    import sys
 #>>> process = subprocess.Popen(['./test', ], shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 #>>> process.wait()
 #>>> process.communicate()
@@ -320,6 +358,7 @@ def ExecMCCode(prog_name):
     (std_out, std_err) = process.communicate()
         
     print "Compiling %s ... " %prog_name,
+    sys.stdout.flush()
     process = subprocess.Popen(["gcc", code_name, "-lm", "-lpthread", 
                                 "-lpvegas", "-o", prog_name], shell=False, 
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -338,6 +377,7 @@ def ExecMCCode(prog_name):
             print std_err
     
     print "Executing %s ... " %prog_name ,
+    sys.stdout.flush()
     process = subprocess.Popen(["./%s"%prog_name,], shell=False, 
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     exit_code = process.wait()
@@ -346,6 +386,7 @@ def ExecMCCode(prog_name):
     if exit_code <> 0 :
         print "FAILED"
         print std_err
+        sys.stdout.flush()
         return None
     else: 
         if len(std_err) == 0:
@@ -366,14 +407,17 @@ def ExecMCCode(prog_name):
                     delta = float(reg.groups()[0])
             if res <> None and err <> None and delta <> None:
                 print "res = %s, err = %s, delta = %s" %(res, err, delta)
+                sys.stdout.flush()
                 return (res, err, delta)
             else:
                 print "CHECK"
                 print std_out
+                sys.stdout.flush()
                 return None
         else:
             print "CHECK"
             print std_err
+            sys.stdout.flush()
             return None
 
 def CalculateEpsilonSeries(prog_names):
