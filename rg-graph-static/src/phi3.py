@@ -18,14 +18,14 @@ def propagator(**kwargs):
     return 1 / (momenta.Squared() + tau)
 
 def external_node_factor(**kwargs):
-    return 1
+    return rggrf.roperation.Factorized(1, 1)
 
 def triple_node_factor(r1term,**kwargs):
-    return 1
+    return rggrf.roperation.Factorized(1, 1)
 
 def double_node_factor(r1term,**kwargs):
     squared_momenta = kwargs["moment0"].Squared()
-    return squared_momenta
+    return rggrf.roperation.Factorized(1, squared_momenta)
 
 def dot_action(**kwargs):
     tau = var('tau')
@@ -122,7 +122,7 @@ def K0(arg, **kwargs):
         r1term = arg
         ctgraph = r1term.ct_graph
 #        print "K0_t ",  ctgraph.internal_nodes
-        ctgraph.GenerateNickel()
+#        ctgraph.GenerateNickel()
 #        print "K0 ", ctgraph.nickel, ctgraph.dim , ctgraph.internal_nodes
         
         if "zero_moments" in kwargs:
@@ -132,7 +132,9 @@ def K0(arg, **kwargs):
         for idxL in ctgraph.external_lines:
 #            print "K0 ext moments: %s, %s" %(idxL,ctgraph.lines[idxL].momenta)
             zm.append(ctgraph.lines[idxL].momenta)
-        res=1
+        
+        res = rggrf.roperation.Factorized(1,1)
+        
         for idxL in ctgraph.internal_lines:
             curline = ctgraph.lines[idxL]
 #            print "line before/after zm : %s     %s / %s " %(idxL, curline.momenta, curline.momenta.SetZeros(zm))
@@ -141,7 +143,10 @@ def K0(arg, **kwargs):
                 for idx in range(curline.dots[idxD]):
                     prop = ctgraph.model.dot_types[idxD]["action"](propagator=prop)
 #            print "prop = %s" %prop
-            res = res*prop
+            if idxL in r1term.factorization:
+                res.factor = res.factor * prop
+            else:
+                res.other = res.other * prop
             
         for idxN in ctgraph.internal_nodes:
             curnode = ctgraph.nodes[idxN]
@@ -158,7 +163,9 @@ def K0(arg, **kwargs):
             else:
                 f_arg = None
             factor = ctgraph.model.node_types[curnode.type]["Factor"](f_arg,**moment)
-# дифференцирования вершин?            
+# дифференцирования вершин?
+# TODO: какие-то нетривиальные вершины тоже могут попадать в res_f
+            
             res = res * factor
              
 #        print "res K0 %s" %res
@@ -190,7 +197,8 @@ def K_n(r1_term, diff_list=[], **kwargs):
         res=[]
         for cur_diff in diff_list:
 #            print "----- cur_diff %s" %cur_diff
-            t_res=1
+
+            t_res = rggrf.roperation.Factorized(1,1)            
             strech = var('L_temp_strech')
             for idxL in ctgraph.internal_lines:
                 curline = ctgraph.lines[idxL]
@@ -202,8 +210,13 @@ def K_n(r1_term, diff_list=[], **kwargs):
                 for idx in range(cur_diff.count((idxL,"L"))):
                     prop = prop.diff(strech)
                 
-                
-                t_res = t_res*prop
+
+                if idxL in r1term.factorization:
+                    t_res.factor = t_res.factor * prop
+                else:
+                    t_res.other = t_res.other * prop
+
+
                 
             for idxN in ctgraph.internal_nodes:
                 curnode = ctgraph.nodes[idxN]
@@ -230,11 +243,11 @@ def K_n(r1_term, diff_list=[], **kwargs):
 #                    print "--zm: %s %s" %(tmpidx,tmpidx.string)
 # дифференцирования вершин?
 #                print "strech args -> %s %s %s"  %(factor, rggrf.Momenta(string=ext_momenta_atom).sympy, strech)
-                factor = rggrf.Streching(factor, rggrf.Momenta(string=ext_momenta_atom).sympy, strech)
+                factor.other = rggrf.Streching(factor.other, rggrf.Momenta(string=ext_momenta_atom).sympy, strech)
 #                print "strech -> %s" %factor    
 #                print "diff count -> %s, %s" %(cur_diff.count((idxN,"N")), factor_diff)                  
                 for idx in range(cur_diff.count((idxN,"N")) + factor_diff):
-                    factor = factor.diff(strech)
+                    factor.other = factor.other.diff(strech)
 #                print "res -> %s" %factor
                 
             
@@ -242,7 +255,9 @@ def K_n(r1_term, diff_list=[], **kwargs):
 # TODO: ПРОВЕРИТЬ!!! квадрат импульса должен быть в терминах Q охватывающих подграфов.
 #            t_res = rggrf.Momenta(string=ext_momenta_atom).sympy*rggrf.Momenta(string=ext_momenta_atom).sympy*t_res.subs(rggrf.Momenta(string=ext_momenta_atom).sympy,0)
 #            print "K2 substituing %s = %s" %(ext_momenta_atom,ext_momenta) 
-            t_res = Rational(1, Factorial(_N))*rggrf.ExpandScalarProdAsVectors(t_res.subs(strech,0), 
+
+#            t_res_f =  t_res_f
+            t_res.other = Rational(1, Factorial(_N)) * rggrf.ExpandScalarProdAsVectors(t_res.other.subs(strech,0), 
                         rggrf.Momenta(string=ext_momenta_atom), 
                         rggrf.Momenta(string=ext_momenta))
 #            print "<------>"
@@ -319,6 +334,9 @@ def K2(arg, diff_list=[], **kwargs):
     else:
         raise TypeError , "unknown type for K2 operation %s " %type(arg)
 
+def ExpandScalarProdsAndPrepareFactorized(factorized_expr):
+    return rggrf.roperation.Factorized(ExpandScalarProdsAndPrepare(factorized_expr.factor), 
+                      ExpandScalarProdsAndPrepare(factorized_expr.other))
 
 def ExpandScalarProdsAndPrepare(expr):
     import re as regex

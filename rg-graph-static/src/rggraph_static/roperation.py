@@ -60,6 +60,19 @@ class R1Term:
     def __init__( self, G, subgraph_list ):
         ( self.ct_graph, self.subgraph_map ) = ExtractSubgraphs( G, subgraph_list )
         self.subgraphs = tuple( [ G.subgraphs[idxS] for idxS in subgraph_list ] )
+        
+        t_lines = []
+        for cur_graph in [self.ct_graph,]+ list(self.subgraphs):
+            ext_moment_atoms = set([])
+            for idxL in cur_graph.external_lines:
+                ext_moment_atoms = (ext_moment_atoms | 
+                                   set(cur_graph.lines[idxL].momenta.dict.keys()))
+            for idxL in cur_graph.internal_lines:
+                if len(set(cur_graph.lines[idxL].momenta.dict.keys()) &
+                       ext_moment_atoms) == 0:
+                    t_lines.append(idxL)
+        self.unaffected_lines = tuple(t_lines)
+
 
 
 class R1:
@@ -98,11 +111,66 @@ class R1:
                 if not IsIntersect( G, subgraph_list ):
                     self.terms.append( R1Term( G, subgraph_list ) )
                     
+        t_set = set(self.terms[0].unaffected_lines)
+        for idxRT in self.terms[1:]:
+            t_set = t_set &  set(idxRT.unaffected_lines)
+        self.factorization = t_set
+        
+        for idxRT in self.terms:
+            idxRT.factorization = t_set
+            
+                    
     def SaveAsPNG(self, filename):
         from visualization import R12dot
 #        import pydot
         gdot=R12dot(self)
         gdot.write_png(filename,prog="dot")            
+
+
+class Factorized:
+    
+    def __init__(self, factor_, other_):
+        self.factor = factor_
+        self.other = other_
+        
+    def __add__(self, other):
+        from sympy import pretty_print
+        if isinstance(other,Factorized):
+            if self.factor/other.factor <> 1:
+                pretty_print(self.factor)
+                pretty_print(other.factor)
+                raise ValueError, "can't add 2 factorized equations with different factor"
+            else:
+                return Factorized(self.factor, self.other + other.other)
+        elif other == 0 :
+            return Factorized(self.factor, self.other)
+        else:
+            pretty_print(self.factor)
+            pretty_print(other.factor)
+            raise ValueError , "can add Factorized instance only with Factorized or zero "
+        
+    def __radd__(self,other):
+        if other == 0: 
+            return Factorized(self.factor, self.other)
+        else: 
+            raise ValueError , "can radd Factorized instance only with Facorized or zero "
+        
+    def __sub__(self, other):
+        if self.factor/other.factor <> 1:
+            raise ValueError, "can't substract 2 factorized equations with different factor"
+        else:
+            return Factorized(self.factor, self.other - other.other)
+    def __neg__(self):
+        return Factorized(self.factor, -self.other)
+    
+    def __mul__(self, other):
+        if isinstance(other,Factorized):
+            return Factorized(self.factor*other.factor, self.other*other.other)
+
+    def pprint(self):
+        from sympy import pretty_print
+        pretty_print(self.factor)
+        pretty_print(self.other)
 
 
 class Delta:
