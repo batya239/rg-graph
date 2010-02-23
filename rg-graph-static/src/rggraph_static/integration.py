@@ -499,19 +499,19 @@ def GenerateMCCodeForGraph(name, prepared_eqs, space_dim, n_epsilon_series, poin
         prog_names.append(cur_name)
     return prog_names 
 
-def ExecMCCode(prog_name):
+def CompileMCCode(prog_name):
     import sys
 #>>> process = subprocess.Popen(['./test', ], shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 #>>> process.wait()
 #>>> process.communicate()
 #gcc e12-e3-33--_m0_e0.c -lm -lpthread -lpvegas -o test
-    utils.print_time("EMCCCode: start")
+    utils.print_time("CMCCCode: start")
     code_name="%s.c"%prog_name
     process = subprocess.Popen(["rm", "-f", prog_name], shell=False, 
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     exit_code = process.wait()
     (std_out, std_err) = process.communicate()
-    utils.print_time("EMCCCode: ")    
+    utils.print_time("CMCCCode: ")    
     print "Compiling %s ... " %prog_name,
     sys.stdout.flush()
     process = subprocess.Popen(["gcc", code_name, "-lm", "-lpthread", 
@@ -523,26 +523,36 @@ def ExecMCCode(prog_name):
     if exit_code <> 0 :
         print "FAILED"
         print std_err
-        return None
+        res = None
     else: 
         if len(std_err) == 0:
             print "OK"
+            res = True
         else:
             print "CHECK"
             print std_err
-    utils.print_time("EMCCCode:")
+            res = True
+    utils.print_time("CMCCCode: end")
+    return True
+
+
+def ExecMCCode(prog_name):
+    import sys
+#>>> process = subprocess.Popen(['./test', ], shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+#>>> process.wait()
+#>>> process.communicate()
+#gcc e12-e3-33--_m0_e0.c -lm -lpthread -lpvegas -o test
+    utils.print_time("EMCCCode: start")
     print "Executing %s ... " %prog_name ,
     sys.stdout.flush()
     process = subprocess.Popen(["./%s"%prog_name,], shell=False, 
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     exit_code = process.wait()
     (std_out,std_err) = process.communicate()
-    utils.print_time("EMCCCode: exec end")
     if exit_code <> 0 :
         print "FAILED"
         print std_err
-        sys.stdout.flush()
-        return None
+        result = None
     else: 
         if len(std_err) == 0:
             print "OK ",
@@ -562,22 +572,26 @@ def ExecMCCode(prog_name):
                     delta = float(reg.groups()[0])
             if res <> None and err <> None and delta <> None:
                 print "res = %s, err = %s, delta = %s" %(res, err, delta)
-                sys.stdout.flush()
-                return (res, err, delta)
+                result = (res, err, delta)
             else:
                 print "CHECK"
                 print std_out
-                sys.stdout.flush()
-                return None
+                result = None
         else:
             print "CHECK"
             print std_err
-            sys.stdout.flush()
-            return None
+            result = None
+            
+    utils.print_time("EMCCCode: exec end")
+    return result
 
-def CalculateEpsilonSeries(prog_names):
+def CalculateEpsilonSeries(prog_names, build=False):
     res_by_eps = dict()
     for prog in prog_names:
+        if build == True:
+            build_res = CompileMCCode(prog)
+            if build_res == None:
+                raise Exception, "CompileMCCode failed to build %s" %prog
         exec_res = ExecMCCode(prog)
         if exec_res == None:
             raise ValueError , "ExecMCCode function returns None"

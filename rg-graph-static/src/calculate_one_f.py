@@ -19,7 +19,7 @@ G.LoadLinesFromFile(filename)
 G.DefineNodes({})
 G.SaveAsPNG("graph.png")
 G.GenerateNickel()
-base_name = str(G.nickel)
+base_name = "f_%s"%str(G.nickel)
 TARGET = 4
 NLOOPS = len(G.internal_lines) - len(G.internal_nodes) + 1
 print "NLOOPS = " , NLOOPS
@@ -56,7 +56,7 @@ for idxL in G.internal_lines:
 prog_names = rggrf.integration.GenerateMCCodeForGraph(base_name, prepared_eqs,SPACE_DIM, n_epsilon_series, NPOINTS, NTHREADS) 
 
 
-res = rggrf.integration.CalculateEpsilonSeries(prog_names)
+res = rggrf.integration.CalculateEpsilonSeries(prog_names, build=True)
 print res
 print "симметрийный коэффициент: %s" %(G.sym_coeff)
 

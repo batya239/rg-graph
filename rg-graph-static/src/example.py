@@ -81,7 +81,7 @@ for idxL in G.internal_lines:
     sys.stdout.flush()
 #print prog_names
 
-res = rggrf.integration.CalculateEpsilonSeries(prog_names)
+res = rggrf.integration.CalculateEpsilonSeries(prog_names, build=True)
 print res
 print "симметрийный коэффициент: %s" %(G.sym_coeff)
 
