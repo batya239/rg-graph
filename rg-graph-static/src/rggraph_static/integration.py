@@ -536,16 +536,16 @@ def CompileMCCode(prog_name):
     return True
 
 
-def ExecMCCode(prog_name):
+def ExecMCCode(prog_name, points=10000, threads=2):
     import sys
 #>>> process = subprocess.Popen(['./test', ], shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 #>>> process.wait()
 #>>> process.communicate()
 #gcc e12-e3-33--_m0_e0.c -lm -lpthread -lpvegas -o test
     utils.print_time("EMCCCode: start")
-    print "Executing %s ... " %prog_name ,
+    print "Executing %s points=%s threads=%s ... " %(prog_name, points, threads) ,
     sys.stdout.flush()
-    process = subprocess.Popen(["./%s"%prog_name,], shell=False, 
+    process = subprocess.Popen(["./%s"%prog_name, "%s"%points, "%s"%threads], shell=False, 
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     exit_code = process.wait()
     (std_out,std_err) = process.communicate()
@@ -585,14 +585,14 @@ def ExecMCCode(prog_name):
     utils.print_time("EMCCCode: exec end")
     return result
 
-def CalculateEpsilonSeries(prog_names, build=False):
+def CalculateEpsilonSeries(prog_names, build=False, points=10000, threads=2):
     res_by_eps = dict()
     for prog in prog_names:
         if build == True:
             build_res = CompileMCCode(prog)
             if build_res == None:
                 raise Exception, "CompileMCCode failed to build %s" %prog
-        exec_res = ExecMCCode(prog)
+        exec_res = ExecMCCode(prog, points=points, threads=threads)
         if exec_res == None:
             raise ValueError , "ExecMCCode function returns None"
         (res, dev, delta) = exec_res
