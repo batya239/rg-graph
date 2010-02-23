@@ -76,7 +76,7 @@ class R1Term:
 
 
 class R1:
-    def __init__( self, G ):
+    def __init__( self, G , factorization = None):
 
         def IsIntersect( G, subgraph_list ):
             res = False
@@ -110,14 +110,16 @@ class R1:
             for subgraph_list in xuniqueCombinations( range( len( G.subgraphs ) ), idx ):
                 if not IsIntersect( G, subgraph_list ):
                     self.terms.append( R1Term( G, subgraph_list ) )
-                    
-        t_set = set(self.terms[0].unaffected_lines)
-        for idxRT in self.terms[1:]:
-            t_set = t_set &  set(idxRT.unaffected_lines)
-        self.factorization = t_set
-        
+        if factorization == None : 
+            t_set = set(self.terms[0].unaffected_lines)
+            for idxRT in self.terms[1:]:
+                t_set = t_set &  set(idxRT.unaffected_lines)
+            self.factorization = t_set
+        else:
+            self.factorization = factorization
+            
         for idxRT in self.terms:
-            idxRT.factorization = t_set
+            idxRT.factorization = self.factorization
             
                     
     def SaveAsPNG(self, filename):
@@ -137,8 +139,10 @@ class Factorized:
         from sympy import pretty_print
         if isinstance(other,Factorized):
             if self.factor/other.factor <> 1:
-                pretty_print(self.factor)
-                pretty_print(other.factor)
+                #pretty_print(self.factor)
+                #pretty_print(other.factor)
+                self.pprint()
+                other.pprint()
                 raise ValueError, "can't add 2 factorized equations with different factor"
             else:
                 return Factorized(self.factor, self.other + other.other)

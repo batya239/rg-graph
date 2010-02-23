@@ -110,8 +110,13 @@ def PrepareFactorized(fact_expr, space_dim):
     expr_o = AvarageByExtDirection(fact_expr.other, ext_cos_atoms, 2)
 #    print "\nExtDir:\n"
 #    pretty_print(expr)
-    (g_expr_f,g_expr_o, g_vars) = ginac.sympy2swiginacFactorized(fact_expr.factor,expr_o)
 
+# TODO: search for int_cos_atoms again it changed after avaraging 
+    (ext_moment_atoms, ext_cos_atoms, int_moment_atoms, 
+                       int_cos_atoms, other_atoms) = SplitAtoms(ginac.GetVarsAsStr(fact_expr.factor * expr_o))
+    (g_expr_f,g_expr_o, g_vars) = ginac.sympy2swiginacFactorized(fact_expr.factor,expr_o)
+#    print g_vars
+#    print int_cos_atoms
 
 # доопределяем недостающие переменные самое важное d и e, остальное на самом деле вроде не нужно.
     for idx in ["d", "e"]+list(int_moment_atoms)+list(int_cos_atoms):
@@ -226,10 +231,15 @@ def Prepare(k_op, space_dim):
     if len(ext_moment_atoms | other_atoms)>0:
         raise  NotImplementedError, "Don't know what to do with following atoms: %s" %(ext_moment_atoms|other_atoms)
     expr = AvarageByExtDirection(expr, ext_cos_atoms, 2)
+    
+# TODO: search for int_cos_atoms again it changed after avaraging 
+    (ext_moment_atoms, ext_cos_atoms, int_moment_atoms, 
+                       int_cos_atoms, other_atoms) = SplitAtoms(ginac.GetVarsAsStr(expr))
 #    print "\nExtDir:\n"
 #    pretty_print(expr)
     (g_expr, g_vars) = ginac.sympy2swiginac(expr)
-
+#    print g_vars
+#    print int_cos_atoms
 # доопределяем недостающие переменные самое важное d и e, остальное на самом деле вроде не нужно.
     for idx in ["d", "e"]+list(int_moment_atoms)+list(int_cos_atoms):
         if  idx not in g_vars:

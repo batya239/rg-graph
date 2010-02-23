@@ -35,6 +35,7 @@ for idxL in G.internal_lines:
     cur_G.DefineNodes()
     cur_G.FindSubgraphs()
     cur_r1 = rggrf.roperation.R1(cur_G)
+    cur_r1.SaveAsPNG("test.png")
 
     if len(G.external_lines) == 2:
         K2res = K2(cur_r1)

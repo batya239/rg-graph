@@ -115,8 +115,19 @@ def K0(arg, **kwargs):
     if isinstance(arg,rggrf.roperation.R1):
         res = 0
         r1 = arg 
+#        print " -== K0 ==- %s" %r1.terms[0].ct_graph.internal_nodes 
+#        for r1term in r1.terms:
+#            print r1term.factorization
         for r1term in r1.terms:
-            res = res + K0(r1term, **kwargs)
+#            print r1term.ct_graph.internal_nodes
+#            try:
+#                res.pprint()
+#            except:
+#                print res
+            t_K0 = K0(r1term, **kwargs)
+#            print r1term.ct_graph.internal_nodes
+#            t_K0.pprint()
+            res = res + t_K0
         return res  
     elif isinstance(arg, rggrf.roperation.R1Term) :
         r1term = arg
@@ -159,7 +170,7 @@ def K0(arg, **kwargs):
 
 #            print ctgraph.nodes.keys(), r1term.subgraphs, idxN, r1term.subgraph_map
             if idxN in r1term.subgraph_map:
-                f_arg = rggrf.roperation.R1(r1term.subgraphs[r1term.subgraph_map[idxN]].Clone(zero_moments=zm))
+                f_arg = rggrf.roperation.R1(r1term.subgraphs[r1term.subgraph_map[idxN]].Clone(zero_moments=zm),r1term.factorization)
             else:
                 f_arg = None
             factor = ctgraph.model.node_types[curnode.type]["Factor"](f_arg,**moment)
@@ -230,7 +241,7 @@ def K_n(r1_term, diff_list=[], **kwargs):
     #            print ctgraph.nodes.keys(), r1term.subgraphs, idxN, r1term.subgraph_map
                 factor_diff=0
                 if idxN in r1term.subgraph_map:
-                    f_arg = rggrf.roperation.R1(r1term.subgraphs[r1term.subgraph_map[idxN]].Clone(zero_moments=zm))
+                    f_arg = rggrf.roperation.R1(r1term.subgraphs[r1term.subgraph_map[idxN]].Clone(zero_moments=zm),r1term.factorization)
                     for idx in cur_diff: 
                         if idx[0] in r1term.subgraphs[r1term.subgraph_map[idxN]].internal_lines :
                             factor_diff=factor_diff +1
@@ -249,8 +260,6 @@ def K_n(r1_term, diff_list=[], **kwargs):
                 for idx in range(cur_diff.count((idxN,"N")) + factor_diff):
                     factor.other = factor.other.diff(strech)
 #                print "res -> %s" %factor
-                
-            
                 t_res = t_res * factor
 # TODO: ПРОВЕРИТЬ!!! квадрат импульса должен быть в терминах Q охватывающих подграфов.
 #            t_res = rggrf.Momenta(string=ext_momenta_atom).sympy*rggrf.Momenta(string=ext_momenta_atom).sympy*t_res.subs(rggrf.Momenta(string=ext_momenta_atom).sympy,0)
@@ -320,7 +329,10 @@ def K2(arg, diff_list=[], **kwargs):
         (moments, ext_momenta, ext_momenta_atom, zm) = SubsExtMomenta(t_graph, zm)
         t_diff_list = FindDiffList(t_graph, moments, ext_momenta_atom, 2)
 #        print "K2 R1 ", t_diff_list, ext_momenta_atom
- 
+#        print " -== K2 ==- %s" %r1.terms[0].ct_graph.internal_nodes 
+#        for r1term in r1.terms:
+#            print r1term.factorization
+            
         res = K2(r1.terms[0], t_diff_list, **kwargs) 
         for r1term in r1.terms[1:]:
             t_res = K2(r1term, t_diff_list, **kwargs)
@@ -345,7 +357,11 @@ def ExpandScalarProdsAndPrepare(expr_):
     else:
         expr = expr_ 
     import re as regex
-    atoms = expr.atoms()
+    try:
+        atoms = expr.atoms()
+    except:
+        print "WARNING!!!! %s passed to ExpandScalarProdsAndPrepare" %type(expr)
+        return expr
     t_expr = expr
     for atom in atoms:
         reg = regex.match("^(.+)x(.+)$",str(atom))

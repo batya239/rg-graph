@@ -46,7 +46,7 @@ for idxL in G.internal_lines:
     cur_r1 = rggrf.roperation.R1(cur_G)
     print_time("r operation done")
     cur_r1.SaveAsPNG("R1_%s_dm%s.png" %(base_name, idxL))
-    print cur_r1.factorization
+#    print cur_r1.factorization
 
     if len(G.external_lines) == 2:
         K2res = K2(cur_r1)
@@ -57,13 +57,13 @@ for idxL in G.internal_lines:
             s_prep =   ExpandScalarProdsAndPrepareFactorized(k2term)
             print_time("Expand scalar prod")
             print "---------dm_%s_p%s --------- " %(idxL,idxK2)
-            pretty_print(s_prep.factor)
-            pretty_print(s_prep.other)
+#            pretty_print(s_prep.factor)
+#            pretty_print(s_prep.other)
 #
             (g_expr, g_vars) = rggrf.integration.PrepareFactorized(s_prep, SPACE_DIM)
             print_time("Prepare")
             
-            print g_expr
+            #print g_expr
             
             name = "MC_%s_dm%s_p%s" %(base_name, idxL, idxK2)
             prog_names = prog_names + rggrf.integration.GenerateMCCodeForTerm(name, g_expr, g_vars, SPACE_DIM, n_epsilon_series, NPOINTS, NTHREADS)
@@ -74,8 +74,8 @@ for idxL in G.internal_lines:
         print_time("K0 operation done")
         s_prep =   ExpandScalarProdsAndPrepareFactorized(K0res)
         print_time("Expand scalar prod")
-        pretty_print(s_prep.factor)
-        pretty_print(s_prep.other)
+#        pretty_print(s_prep.factor)
+#        pretty_print(s_prep.other)
 
         (g_expr, g_vars) = rggrf.integration.PrepareFactorized(s_prep, SPACE_DIM)
         print_time("Prepare")
