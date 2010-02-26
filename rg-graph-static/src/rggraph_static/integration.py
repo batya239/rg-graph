@@ -87,7 +87,7 @@ def AvarageByExtDirection(s_expr,str_ext_cos_atoms,degree):
         return res
     
 
-def PrepareFactorizedNoSimplify(fact_expr, space_dim):
+def PrepareFactorizedNoSimplify(fact_expr, space_dim, ignore_unknown=False):
 # TODO: p=1 m=1 Надо делать в каком-то другом месте, до того как выражение попадает сюда
 # TODO: усреднение по направлениям p (eps)
 # TODO: детерминанант по модулям (eps)
@@ -105,8 +105,11 @@ def PrepareFactorizedNoSimplify(fact_expr, space_dim):
     str_atom_set = ginac.GetVarsAsStr(fact_expr.factor * fact_expr.other)
     (ext_moment_atoms, ext_cos_atoms, int_moment_atoms, 
                        int_cos_atoms, other_atoms) = SplitAtoms(str_atom_set)
-    if len(ext_moment_atoms | other_atoms)>0:
-        raise  NotImplementedError, "Don't know what to do with following atoms: %s" %(ext_moment_atoms|other_atoms)
+    if ignore_unknown:
+        pass
+    else:
+        if len(ext_moment_atoms | other_atoms)>0:
+            raise  NotImplementedError, "Don't know what to do with following atoms: %s" %(ext_moment_atoms|other_atoms)
     expr_o = AvarageByExtDirection(fact_expr.other, ext_cos_atoms, 2)
 #    print "\nExtDir:\n"
 #    pretty_print(expr)
