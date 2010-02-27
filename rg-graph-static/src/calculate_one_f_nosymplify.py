@@ -44,16 +44,16 @@ for idxL in G.internal_lines:
             s_prep =   ExpandScalarProdsAndPrepareFactorized(k2term)
             print "---------dm_%s_p%s --------- " %(idxL,idxK2)
             sys.stdout.flush()
-            prepared_eqs.append(rggrf.integration.PrepareFactorizedNoSimplify(s_prep, SPACE_DIM))
+            prepared_eqs.append(rggrf.integration.PrepareFactorizedStrVars(s_prep, SPACE_DIM, simplify=False))
    
     elif len(G.external_lines) == 3:
         K0res = K0(cur_r1) 
         s_prep =   ExpandScalarProdsAndPrepareFactorized(K0res)
-        prepared_eqs.append(rggrf.integration.PrepareFactorizedNoSimplify(s_prep, SPACE_DIM))      
+        prepared_eqs.append(rggrf.integration.PrepareFactorizedStrVars(s_prep, SPACE_DIM, simplify=False))      
         
     sys.stdout.flush()
       
-prog_names = rggrf.integration.GenerateMCCodeForGraph(base_name, prepared_eqs,SPACE_DIM, n_epsilon_series, NPOINTS, NTHREADS) 
+prog_names = rggrf.integration.GenerateMCCodeForGraphStrVars(base_name, prepared_eqs,SPACE_DIM, n_epsilon_series, NPOINTS, NTHREADS) 
 
 
 res = rggrf.integration.CalculateEpsilonSeries(prog_names, build=True)
