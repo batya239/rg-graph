@@ -22,8 +22,9 @@ print G.nickel
 moments = rggrf.moments.Generate(G)
 G._UpdateMoments(moments)
 
-G.SaveAsPNG("graph.png")
+
 G.Save(overwrite=True)
+G.SaveAsPNG("graph.png")
 
 #print rggrf.nickel.Nickel(nickel=G.nickel.nickel).nickel
 #print rggrf.nickel.Nickel(nickel=G.nickel.nickel).edges
