@@ -63,7 +63,7 @@ print "симметрийный коэффициент: %s" %(G.sym_coeff)
 
 print "With Sd: %s" %ResultWithSd(G.r1_dot_gamma, NLOOPS, n_epsilon_series)
 
-print "Old Notation: %s" % ResultOldNotation(res)
+print "Old Notation: %s" % ResultOldNotation(G.r1_dot_gamma)
 #for idx in prog_names:
 #    res = rggrf.integration.ExecMCCode(idx)
     
