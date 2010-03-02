@@ -2,6 +2,7 @@
 # -*- coding: utf8
 
 import nickel
+import re as regex
 from sympy import *
 
 class Momenta:
@@ -449,3 +450,70 @@ class Graph:
 #        factor = self.model.node_types[cur_node.type]["Factor"](graph=self, **moment)
 #        return 
              
+
+def LoadFromGRC(filename,model):
+
+#search for External nodes
+    def SearchGRCExternalNodes(lines):
+        res = []
+        for idx in range(len(lines)):
+            reg = regex.match("External\s*=\s*(\d+);",lines[idx])
+            if reg:
+                n_external_lines = int(reg.groups()[0])
+                break
+            
+        
+        external_start = idx
+        for idx in range(external_start+1,len(lines)):
+            reg = regex.match("Eend;", lines[idx])
+
+            if reg:
+                break
+            reg = regex.match("\s*(\d+)\s*=.*;$", lines[idx])
+            if reg:
+                res.append(int(reg.groups()[0]))
+        return res
+    
+    def SplitGRCGraphs(lines):
+        res = []
+        graph = False
+        for line in lines:
+            reg = regex.match("Graph\s*=",line)
+            if reg and (not graph):
+                graph = True
+                graph_lines = dict()
+            reg = regex.match("Gend;",line)
+            if reg and graph:
+                graph = False
+                res.append(graph_lines)
+            if graph:
+                reg1 = regex.match("\s*(\d+)=\{(.+)\};",line)
+                if reg1:
+#TODO: обрабатываются линии только одного типа!!!
+                    cur_node=int(reg1.groups()[0])
+                    str_lines = reg1.groups()[1].split(",")
+                    for str_line in str_lines:
+                        reg2 = regex.match("^\s*(\d+)\[.*\]$",str_line)
+                        if reg2:
+                            cur_line = int(reg2.groups()[0])
+                        else:
+                            raise ValueError, "error while parsing grc nodes: %s" %str_line
+                        if cur_line in graph_lines.keys(): 
+                            graph_lines[cur_line].append(cur_node)
+                        else:
+                            graph_lines[cur_line] = [cur_node,]
+        return res
+    
+    res = list()
+    lines = open(filename,"r").read().splitlines()
+    node_types=dict()
+    for ext_node in SearchGRCExternalNodes(lines):
+        node_types[ext_node] = 0       
+    
+    for graph_lines in SplitGRCGraphs(lines):
+        graph = Graph(model)
+        for idxL in graph_lines.keys():
+            graph.AddLine(idxL, Line(1,graph_lines[idxL][0],graph_lines[idxL][1],None,dict()) )
+        graph.DefineNodes(node_types)
+        res.append(graph)
+    return res
