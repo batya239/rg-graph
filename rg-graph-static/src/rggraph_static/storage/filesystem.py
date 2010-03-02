@@ -8,6 +8,7 @@ Created on Mar 2, 2010
 '''
 
 import os
+import time
 
 def NormalizeBaseName(name):
     if name[-1:] !="/":
@@ -47,3 +48,17 @@ def LoadGraphAsDict(G, str_nickel=""):
             dirname = dirname + "/"
     dict = eval(open(dirname+"Graph","r").read())
     return dict
+
+def SaveResults(G):
+    G.GenerateNickel()
+    name = "%s/"%(G.nickel)
+    pwd = NormalizeBaseName(G.model.basepath)
+    dirname = pwd + name
+    for idx in ['r1_dot_gamma','delta_gamma','dot_r1_gamma']:
+        if idx in G.__dict__:
+            F=open(dirname+idx,"w")
+            F.write(str(G.__dict__[idx]))
+            F.close()
+            F=open(dirname + idx + time.strftime("-%Y-%m-%d-%H:%M:%S"),"w")
+            F.write(str(G.__dict__[idx]))
+            F.close()

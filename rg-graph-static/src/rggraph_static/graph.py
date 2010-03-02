@@ -467,6 +467,8 @@ class Graph:
     def _UpdateMoments(self, moments):
         for idxL in moments:
             self.lines[idxL].momenta = Momenta(string=moments[idxL])
+    def SaveResults(self):
+        self.model.SaveResults(self)
 
         
 

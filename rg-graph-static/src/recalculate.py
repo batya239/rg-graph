@@ -32,6 +32,15 @@ if "-threads" in sys.argv:
     nthreads = eval(sys.argv[sys.argv.index('-threads')+1])
 else:
     nthreads = 2
+    
+G=None
+try:
+    G = rggrf.Graph(phi3)
+    G.Load()
+    G.GenerateNickel()
+except:
+    pass
+
 
 process = subprocess.Popen(["ls %s*"%prefix,], shell=True, 
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -42,12 +51,16 @@ if exit_code <> 0 :
 
 t_exec_dict = FindExecutables(std_out, prefix)
 if len(t_exec_dict)>1:
-    raise ValueError, "found more then one set of executables: %s " %t_exe_dict.keys()
+    raise ValueError, "found more then one set of executables: %s " %t_exec_dict.keys()
 
 prog_names = t_exec_dict[t_exec_dict.keys()[0]]
 
 
 res = rggrf.integration.CalculateEpsilonSeries(prog_names, points=npoints, threads=nthreads)
+if G != None:
+    G.r1_dot_gamma = res
+    G.SaveResults()
+
 print res
 #print "симметрийный коэффициент: %s" %(G.sym_coeff)
 

@@ -417,6 +417,8 @@ except:
 phi3.SaveGraph = rggrf.storage.filesystem.SaveGraphAsDict
 phi3.LoadGraph = rggrf.storage.filesystem.LoadGraphAsDict
 
+phi3.SaveResults = rggrf.storage.filesystem.SaveResults
+
 def ResultWithSd(_dict, nloops, n_eps_series):
     eps = var('eps')
     t_mnog=[1, 
