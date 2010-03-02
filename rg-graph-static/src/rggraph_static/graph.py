@@ -171,15 +171,28 @@ class Line:
         idx, type, momenta, start, end 
     """
     def __init__(self, type_, start_, end_, momenta_, dots_):
-        self.type = type_
-        self.start = start_
-        self.end = end_
-        self.momenta = momenta_
-        self.dots = dots_
+        self.type = int(type_)
+        self.start = int(start_)
+        self.end = int(end_)
+        if isinstance(momenta_,str):
+            self.momenta = Momenta(string=momenta_)
+        elif momenta_ == "None":
+            self.momenta = None
+        else:
+            self.momenta = momenta_
+        if isinstance(dots_,str):
+            str.dots = eval(dots_)
+        else:
+            self.dots = dots_
         
          
     def Nodes(self):
         return (self.start, self.end)
+    
+    def __str__(self):
+        dict={}
+        map(lambda k,v: dict.update({k: str(v)}),self.__dict__.keys(),self.__dict__.values())
+        return str(dict)
     
      
 
@@ -423,8 +436,30 @@ class Graph:
         graph_copy.DefineNodes(G.GetNodesTypes())
         graph_copy.FindSubgraphs()
         return graph_copy
-            
+    
+    def _ToDict(self):
+        res = dict()
+        res['model'] = self.model.name
+        lines = dict()
+        map(lambda k,v: lines.update({k: str(v)}),self.lines.keys(),self.lines.values())
+        res['lines'] = lines
+        res['node_types'] = self.GetNodesTypes()
+        
+        return res
+    
+    def _FromDict(self,dict):
+        if dict['model']<> self.model.name:
+            raise ValueError, "different model names! %s and %s " %(dict['model'],self.model.name)
+        for idxL in dict['lines']:
+            line = eval(dict['lines'][idxL])
+            self.AddLine(line['type'],line['start'],line['end'],line['momenta'],line['dots'])
+        self.DefineNodes(dict['node_types'])
+    
+    def Save(self, overwrite=False):
+        self.model.SaveGraph(self,overwrite)
 
+    def Load(self, str_nickel=""):
+        self._FromDict(self.model.LoadGraph(str_nickel))
         
 #    def LinePropagator(self, idxL, zero_moments=[]):
 #        cur_line = self.lines[idxL]

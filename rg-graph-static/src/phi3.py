@@ -8,6 +8,7 @@ Created on Feb 17, 2010
 definition of phi3 model in terms of rggraph_static
 '''
 from sympy import *
+import os
 import rggraph_static as rggrf
 
 #definitions of propagators, node factors, dot actions, and K operation 
@@ -406,6 +407,15 @@ phi3.AddSubGraphType(2, Lines=[1, 1], dim=2, K_nodetypeR1=4)
 
 # definition of dots
 phi3.AddDotType(1, dim=2, action=dot_action, gv={"penwidth":"3"})
+
+phi3.basepath = "~/work/rg-graph/test/"
+
+try:
+    os.listdir(rggrf.storage.filesystem.NormalizeBaseName(phi3.basepath))
+except:
+    raise ValueError, "invalid storage path  %s" %phi3.basepath
+phi3.SaveGraph = rggrf.storage.filesystem.SaveGraphAsDict
+phi3.LoadGraph = rggrf.storage.filesystem.LoadGraphAsDict
 
 def ResultWithSd(_dict, nloops, n_eps_series):
     eps = var('eps')
