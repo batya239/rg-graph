@@ -98,7 +98,7 @@ def GetMomentaIndex(G,Momenta):
         kMoment[tM]={tM:+1}
     ## в треххвостых втекающий импульс 0
     if len(G.external_lines)==3:
-        for tM in G.external_lines():
+        for tM in G.external_lines:
             kMoment[tM]={}
     flag=0
     kRes=0
