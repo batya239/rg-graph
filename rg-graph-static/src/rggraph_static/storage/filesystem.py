@@ -37,7 +37,7 @@ def SaveGraphAsDict(G, overwrite=False):
     F.write(str(G._ToDict()))
     F.close()
     
-def LoadGraphAsDict(G, str_nickel):
+def LoadGraphAsDict(G, str_nickel=""):
     if len(str_nickel)==0:
         dirname = "./"
     else:

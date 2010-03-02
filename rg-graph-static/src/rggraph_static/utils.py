@@ -28,14 +28,14 @@ def xUniqueSelections(items, n):
             for ss in xUniqueSelections(items[i:], n-1):
                 yield [items[i]]+ss
 
-def UniqueSelections(items,n):
-    lst = [i for i in xSelections(items,n)]
-    print lst
-    for idx in lst:
-        idx.sort()
-        print idx
-    print lst
-    return list(set(lst))
+#def UniqueSelections(items,n):
+#    lst = [i for i in xSelections(items,n)]
+#    print lst
+#    for idx in lst:
+#        idx.sort()
+#        print idx
+#    print lst
+#    return list(set(lst))
 
         
 
@@ -54,6 +54,14 @@ def xPermutations(seq):
     """Generator of all the permutations of the given sequence.
     """
     return xCombinations(seq, len(seq))
+
+def xUniqueCombinations(items, n):
+    if n==0: yield []
+    else:
+        for i in xrange(len(items)):
+            for cc in xUniqueCombinations(items[i+1:],n-1):
+                yield [items[i]]+cc
+
 
 def SimpleSeries(func,var,point,num):
     level=0

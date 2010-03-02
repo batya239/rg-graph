@@ -181,7 +181,7 @@ class Line:
         else:
             self.momenta = momenta_
         if isinstance(dots_,str):
-            str.dots = eval(dots_)
+            self.dots = eval(dots_)
         else:
             self.dots = dots_
         
@@ -452,7 +452,7 @@ class Graph:
             raise ValueError, "different model names! %s and %s " %(dict['model'],self.model.name)
         for idxL in dict['lines']:
             line = eval(dict['lines'][idxL])
-            self.AddLine(line['type'],line['start'],line['end'],line['momenta'],line['dots'])
+            self.AddLine(idxL, Line(line['type'],line['start'],line['end'],line['momenta'],line['dots']))
         self.DefineNodes(dict['node_types'])
     
     def Save(self, overwrite=False):
@@ -461,30 +461,14 @@ class Graph:
     def Load(self, str_nickel=""):
         self._FromDict(self.model.LoadGraph(str_nickel))
         
-#    def LinePropagator(self, idxL, zero_moments=[]):
-#        cur_line = self.lines[idxL]
-#        cur_momenta = cur_line.momenta.SetZeros(zero_moments)
-#        propagator = self.model.line_types[cur_line.type]["propagator"](momenta=cur_momenta)
-#        for idxD in cur_line.dots:
-#            for idx in range(cur_line.dots[idxD]):
-#                propagator = cur_line[idxD]["action"](propagator=propagator)
-#        return propagator
-#    
-#    def NodeFactor(self, idxN, zero_moments=[]):
-##TODO:  в реальности работает только со скалярными вершинами и врешинами в которые входит ровно один тип линий.         
-#        cur_node = self.nodes[idxN]
-#        moments = dict()
-#        cnt_moment = 0
-#        for idxL in cur_node.lines:
-#            cur_line = cur_node.lines[idxL]
-#            if cur_line.snd == idxN :
-#                moment["momenta%s"%cnt_moment] = cur_line.momenta.SetZeros(zero_moments)
-#            else:
-#                moment["momenta%s"%cnt_moment] = - cur_line.momenta.SetZeros(zero_moments)
-#            cnt_moment = cnt_mode + 1
-#        factor = self.model.node_types[cur_node.type]["Factor"](graph=self, **moment)
-#        return 
-             
+    def NLoops(self):
+        return len(self.internal_lines)-len(self.internal_nodes)+1
+        
+    def _UpdateMoments(self, moments):
+        for idxL in moments:
+            self.lines[idxL].momenta = Momenta(string=moments[idxL])
+
+        
 
 def LoadFromGRC(filename,model):
 
@@ -552,3 +536,5 @@ def LoadFromGRC(filename,model):
         graph.DefineNodes(node_types)
         res.append(graph)
     return res
+
+
