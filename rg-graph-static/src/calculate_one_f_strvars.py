@@ -15,8 +15,8 @@ from phi3 import *
 print phi3.name
 
 G = rggrf.Graph(phi3)
-G.LoadLinesFromFile(filename)
-G.DefineNodes({})
+G.Load()
+
 G.SaveAsPNG("graph.png")
 G.GenerateNickel()
 base_name = "fstrvars_%s"%str(G.nickel)
