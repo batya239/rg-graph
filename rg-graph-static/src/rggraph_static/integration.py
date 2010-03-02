@@ -117,12 +117,15 @@ def PrepareFactorizedStrVars(fact_expr, space_dim, ignore_unknown=False, simplif
 #    pretty_print(expr)
 
 # TODO: search for int_cos_atoms again it changed after avaraging 
-    (ext_moment_atoms, ext_cos_atoms, int_moment_atoms, 
-                       int_cos_atoms, other_atoms) = SplitAtoms(ginac.GetVarsAsStr(fact_expr.factor * expr_o))
-    (g_expr_f,g_expr_o, g_vars) = ginac.sympy2swiginacFactorized(fact_expr.factor,expr_o)
-#    print g_vars
-#    print int_cos_atoms
+    int_cos_atoms = set([])
+    for idxM1 in int_moment_atoms:
+        for idxM2 in int_moment_atoms:
+            if idxM1<idxM2:
+                int_cos_atoms = int_cos_atoms | set(["%sx%s"%(idxM1,idxM2),])
 
+    (g_expr_f,g_expr_o, g_vars) = ginac.sympy2swiginacFactorized(fact_expr.factor,expr_o)
+
+                
 # доопределяем недостающие переменные самое важное d и e, остальное на самом деле вроде не нужно.
     for idx in ["d", "e"]+list(int_moment_atoms)+list(int_cos_atoms):
         if  idx not in g_vars:
@@ -218,7 +221,7 @@ def PrepareFactorizedStrVars(fact_expr, space_dim, ignore_unknown=False, simplif
             raise ValueError,  "Unknown scalar product of internal moments  %s " %atom
     utils.print_time("Prepare: end")  
 
-    
+
     return (g_expr,g_vars,str_vars)
 
 
@@ -253,8 +256,11 @@ def PrepareFactorized(fact_expr, space_dim, ignore_unknown=False, simplify = Fal
 #    pretty_print(expr)
 
 # TODO: search for int_cos_atoms again it changed after avaraging 
-    (ext_moment_atoms, ext_cos_atoms, int_moment_atoms, 
-                       int_cos_atoms, other_atoms) = SplitAtoms(ginac.GetVarsAsStr(fact_expr.factor * expr_o))
+    int_cos_atoms = set([])
+    for idxM1 in int_moment_atoms:
+        for idxM2 in int_moment_atoms:
+            if idxM1<idxM2:
+                int_cos_atoms = int_cos_atoms | set(["%sx%s"%(idxM1,idxM2),])
     (g_expr_f,g_expr_o, g_vars) = ginac.sympy2swiginacFactorized(fact_expr.factor,expr_o)
 #    print g_vars
 #    print int_cos_atoms
