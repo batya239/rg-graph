@@ -1,7 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf8
+import utils
 
-def ExtractSubgraphs( G, subgraph_list ):
+def ExtractSubgraphs( G, subgraph_list, delta=False ):
     from graph import Graph, Line
 
     ctg_lines = set( G.lines.keys() )
@@ -13,7 +14,8 @@ def ExtractSubgraphs( G, subgraph_list ):
         while ( cur_node_idx in node_types):
             cur_node_idx=cur_node_idx+1
 #        print cur_node_idx, node_types, G.model.k_nodetype_r1, G.subgraphs[idxS].type
-        node_types[ cur_node_idx ] = G.model.k_nodetype_r1[ G.subgraphs[idxS].type ]
+        if not delta:
+            node_types[ cur_node_idx ] = G.model.k_nodetype_r1[ G.subgraphs[idxS].type ]
         subgraph_map[cur_node_idx] = subgraph_list.index(idxS)
 
         # не факт что K_nodetype хорошее решение.
@@ -95,19 +97,13 @@ class R1:
                     return True
                                     
             return res
-
-        def xuniqueCombinations( items, n):
-            if n == 0: yield [ ]
-            else:
-                for i in xrange( len( items ) ):
-                    for cc in xuniqueCombinations( items[ i+1 : ], n-1 ):
-                        yield [ items[ i ] ] + cc            
+          
         
         self.terms = [ ]
         self.terms.append( R1Term( G, [ ] ) )
         for idx in range(1, len( G.subgraphs ) + 1 ):
             
-            for subgraph_list in xuniqueCombinations( range( len( G.subgraphs ) ), idx ):
+            for subgraph_list in utils.xUniqueCombinations( range( len( G.subgraphs ) ), idx ):
                 if not IsIntersect( G, subgraph_list ):
                     self.terms.append( R1Term( G, subgraph_list ) )
         if factorization == None : 
@@ -177,5 +173,38 @@ class Factorized:
         pretty_print(self.other)
 
 
+
+class DeltaTerm:
+    def __init__(self, G, subgraph_idx):
+        (self.ct_graph, self.subgraph_map) = ExtractSubgraphs(G, 
+                                                              [subgraph_idx,], 
+                                                              delta=True)
+        self.subgraph = G.subgraphs[subgraph_idx]
+
+
 class Delta:
-    pass
+    def __init__(self,G):
+        self.terms=list()
+        for idxS in range(len(G.subgraphs)):
+            self.terms.append(DeltaTerm(G,idxS))
+    
+    def Calculate(self):
+        res = 0
+        for term in self.terms:
+            term.ct_graph.LoadResults()
+            term.subgraph.LoadResults()
+#'r1_dot_gamma','delta_gamma','r1_gamma'            
+            if 'r1_gamma' in term.ct_graph.__dict__:
+                ct_res = term.ct_graph.__dict__['r1_gamma']
+            else: 
+                raise ValueError, "No r1_gamma for %s" %term.ct_graph.nickel
+
+            if 'r1_dot_gamma' in term.subgraph.__dict__:
+                sub_res = term.subgraph.__dict__['r1_dot_gamma']
+            else: 
+                raise ValueError, "No r1_dot_gamma for %s"%term.subgraph.nickel
+            res = res + ct_res*sub_res
+            
+        return res       
+            
+        

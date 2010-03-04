@@ -54,7 +54,7 @@ def SaveResults(G):
     name = "%s/"%(G.nickel)
     pwd = NormalizeBaseName(G.model.basepath)
     dirname = pwd + name
-    for idx in ['r1_dot_gamma','delta_gamma','dot_r1_gamma']:
+    for idx in ['r1_dot_gamma','delta_gamma','r1_gamma']:
         if idx in G.__dict__:
             F=open(dirname+idx,"w")
             F.write(str(G.__dict__[idx]))
@@ -62,3 +62,15 @@ def SaveResults(G):
             F=open(dirname + idx + time.strftime("-%Y-%m-%d-%H:%M:%S"),"w")
             F.write(str(G.__dict__[idx]))
             F.close()
+
+def LoadResults(G):
+    G.GenerateNickel()
+    name = "%s/"%(G.nickel)
+    pwd = NormalizeBaseName(G.model.basepath)
+    dirname = pwd + name
+    for idx in ['r1_dot_gamma','delta_gamma','r1_gamma']:
+        try:
+            G.__dict__[idx] = eval(open(dirname+idx,"r").read())
+        except:
+            G.__dict__[idx] = None
+            
