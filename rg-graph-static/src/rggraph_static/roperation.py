@@ -194,12 +194,12 @@ class Delta:
             term.ct_graph.LoadResults()
             term.subgraph.LoadResults()
 #'r1_dot_gamma','delta_gamma','r1_gamma'            
-            if 'r1_gamma' in term.ct_graph.__dict__:
+            if ('r1_gamma' in term.ct_graph.__dict__) and (term.ct_graph.__dict__['r1_gamma'] <> None):
                 ct_res = term.ct_graph.__dict__['r1_gamma']
             else: 
                 raise ValueError, "No r1_gamma for %s" %term.ct_graph.nickel
 
-            if 'r1_dot_gamma' in term.subgraph.__dict__:
+            if ('r1_dot_gamma' in term.subgraph.__dict__) and (term.ct_graph.__dict__['r1_dot_gamma'] <> None):
                 sub_res = term.subgraph.__dict__['r1_dot_gamma']
             else: 
                 raise ValueError, "No r1_dot_gamma for %s"%term.subgraph.nickel
@@ -207,4 +207,4 @@ class Delta:
             
         return res       
             
-        
+    

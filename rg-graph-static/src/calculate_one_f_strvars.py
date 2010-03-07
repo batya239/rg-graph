@@ -55,15 +55,15 @@ for idxL in G.internal_lines:
       
 prog_names = rggrf.integration.GenerateMCCodeForGraphStrVars(base_name, prepared_eqs,SPACE_DIM, n_epsilon_series, NPOINTS, NTHREADS) 
 
-
-G.r1_dot_gamma = rggrf.integration.CalculateEpsilonSeries(prog_names, build=True)
+t_res = rggrf.integration.CalculateEpsilonSeries(prog_names, build=True)
+(G.r1_dot_gamma, G.r1_dot_gamma_err) = ResultWithSd(t_res, NLOOPS, n_epsilon_series)
 print G.r1_dot_gamma
 G.SaveResults()
 print "симметрийный коэффициент: %s" %(G.sym_coeff)
 
-print "With Sd: %s" %ResultWithSd(G.r1_dot_gamma, NLOOPS, n_epsilon_series)
+print "With Sd: %s" %G.r1_dot_gamma
 
-print "Old Notation: %s" % ResultOldNotation(G.r1_dot_gamma)
+print "Old Notation: %s" % ResultOldNotation(t_res)
 #for idx in prog_names:
 #    res = rggrf.integration.ExecMCCode(idx)
     

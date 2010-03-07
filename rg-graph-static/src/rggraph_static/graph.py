@@ -471,8 +471,8 @@ class Graph:
     def SaveResults(self):
         self.model.SaveResults(self)
     
-    def LoadResults(self):
-        self.model.LoadResults(self)
+    def LoadResults(self, strvars):
+        self.model.LoadResults(self, strvars)
         
 
 def LoadFromGRC(filename,model):

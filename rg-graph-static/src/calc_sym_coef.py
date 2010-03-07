@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding:utf8
+
 import sys
 from sympy import *
 import rggraph_static as rggrf
@@ -23,5 +24,7 @@ G.GenerateNickel()
 print rggrf.nickel.Nickel(nickel=G.nickel.nickel).nickel
 print rggrf.nickel.Nickel(nickel=G.nickel.nickel).edges
 print G.sym_coeff
+
+    
 
     

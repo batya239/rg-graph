@@ -9,6 +9,7 @@ Created on Mar 2, 2010
 
 import os
 import time
+import sympy
 
 def NormalizeBaseName(name):
     if name[-1:] !="/":
@@ -54,7 +55,7 @@ def SaveResults(G):
     name = "%s/"%(G.nickel)
     pwd = NormalizeBaseName(G.model.basepath)
     dirname = pwd + name
-    for idx in ['r1_dot_gamma','delta_gamma','r1_gamma']:
+    for idx in ['r1_dot_gamma','delta_gamma','r1_gamma', 'r1_dot_gamma_err']:
         if idx in G.__dict__:
             F=open(dirname+idx,"w")
             F.write(str(G.__dict__[idx]))
@@ -63,14 +64,15 @@ def SaveResults(G):
             F.write(str(G.__dict__[idx]))
             F.close()
 
-def LoadResults(G):
+def LoadResults(G,strvars):
+    sympy.var(strvars)
     G.GenerateNickel()
     name = "%s/"%(G.nickel)
     pwd = NormalizeBaseName(G.model.basepath)
     dirname = pwd + name
-    for idx in ['r1_dot_gamma','delta_gamma','r1_gamma']:
+    for idx in ['r1_dot_gamma','delta_gamma','r1_gamma','r1_dot_gamma_err']:
         try:
             G.__dict__[idx] = eval(open(dirname+idx,"r").read())
-        except:
+        except IOError:
             G.__dict__[idx] = None
             

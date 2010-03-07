@@ -420,7 +420,22 @@ phi3.LoadGraph = rggrf.storage.filesystem.LoadGraphAsDict
 phi3.SaveResults = rggrf.storage.filesystem.SaveResults
 phi3.LoadResults = rggrf.storage.filesystem.LoadResults
 
+phi3.target = 4
+
 def ResultWithSd(_dict, nloops, n_eps_series):
+    def RelativeError(expr, err, var):
+        t_expr = expr
+        t_err = err
+        res = dict()
+        idx = 0
+        while(t_expr<>0):
+            res[idx] = t_err.subs(var,0)/t_expr.subs(var,0)
+            idx = idx + 1
+            t_expr = t_expr.diff(var)/idx
+            t_err = t_err.diff(var)/idx
+        return res
+    
+    
     eps = var('eps')
     t_mnog=[1, 
             Real('0.84882636315677518', prec=15) - Real('0.093212888565618754', prec=15)*eps
@@ -434,11 +449,14 @@ def ResultWithSd(_dict, nloops, n_eps_series):
             - Real('0.012317991965140199', prec=15)*pow(eps,3) + Real('0.0017870514760215828', prec=15)*pow(eps,4)
             ]
     expr = 0
+    err = 0
     for idx in _dict:
         expr = expr + eps**idx*_dict[idx][0]
-    expr = expr * t_mnog[nloops-1]
+        err = err + eps**idx*_dict[idx][1]
+    expr = rggrf.utils.SimpleSeries(expr * t_mnog[nloops-1], eps, 0, n_eps_series)
+    err = rggrf.utils.SimpleSeries(err * t_mnog[nloops-1], eps, 0, n_eps_series)
     #print series(expr,eps,0)
-    return rggrf.utils.SimpleSeries(expr, eps,0,n_eps_series)
+    return (expr, RelativeError(expr, err, eps))
 
 def ResultOldNotation(_dict):
     eps = var('eps')
