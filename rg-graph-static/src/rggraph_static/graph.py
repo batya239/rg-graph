@@ -459,7 +459,7 @@ class Graph:
         self.model.SaveGraph(self,overwrite)
 
     def Load(self, str_nickel=""):
-        self._FromDict(self.model.LoadGraph(str_nickel))
+        self._FromDict(self.model.LoadGraph(self, str_nickel))
         
     def NLoops(self):
         return len(self.internal_lines)-len(self.internal_nodes)+1

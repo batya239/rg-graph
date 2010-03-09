@@ -11,13 +11,13 @@ import rggraph_static as rggrf
 from phi3 import *
 
 
-print phi3.name
+#print phi3.name
 
 G = rggrf.Graph(phi3)
 G.Load()
 G.GenerateNickel()
 G.FindSubgraphs()
-print G.nickel
+#print G.nickel
 
 moments = rggrf.moments.Generate(G)
 G._UpdateMoments(moments)

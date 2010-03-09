@@ -8,6 +8,7 @@ Created on Feb 20, 2010
 '''
 #Common generators
 
+
 from sympy import *
 import time
 import sys
@@ -82,7 +83,7 @@ def SimpleSeries(func,var,point,num):
 
     N=1
     for i in range(level,num):
-        f=expand(f.diff(var)/N)
+        f=expand(diff(f,var)/N)
         N=N+1
         res=res+limit(expand(f),var,point)*pow(var-point,i+1)
 

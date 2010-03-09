@@ -188,11 +188,11 @@ class Delta:
         for idxS in range(len(G.subgraphs)):
             self.terms.append(DeltaTerm(G,idxS))
     
-    def Calculate(self):
+    def Calculate(self,str_vars):
         res = 0
         for term in self.terms:
-            term.ct_graph.LoadResults()
-            term.subgraph.LoadResults()
+            term.ct_graph.LoadResults(str_vars)
+            term.subgraph.LoadResults(str_vars)
 #'r1_dot_gamma','delta_gamma','r1_gamma'            
             if ('r1_gamma' in term.ct_graph.__dict__) and (term.ct_graph.__dict__['r1_gamma'] <> None):
                 ct_res = term.ct_graph.__dict__['r1_gamma']
@@ -203,7 +203,8 @@ class Delta:
                 sub_res = term.subgraph.__dict__['r1_dot_gamma']
             else: 
                 raise ValueError, "No r1_dot_gamma for %s"%term.subgraph.nickel
-            res = res + ct_res*sub_res
+# TODO: разобраться с определением знаков в К операции
+            res = res - ct_res*sub_res
             
         return res       
             
