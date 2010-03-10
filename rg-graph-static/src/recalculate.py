@@ -56,14 +56,14 @@ if len(t_exec_dict)>1:
 prog_names = t_exec_dict[t_exec_dict.keys()[0]]
 
 
-res = rggrf.integration.CalculateEpsilonSeries(prog_names, points=npoints, threads=nthreads)
+t_res = rggrf.integration.CalculateEpsilonSeries(prog_names, points=npoints, threads=nthreads)
 if G != None:
-    G.r1_dot_gamma = res
+    (G.r1_dot_gamma, G.r1_dot_gamma_err) = ResultWithSd(t_res, G.NLoops(), G.model.target - G.NLoops())
+    print G.r1_dot_gamma
     G.SaveResults()
 
-print res
 #print "симметрийный коэффициент: %s" %(G.sym_coeff)
 
 #print "With Sd: %s" %ResultWithSd(res, NLOOPS, n_epsilon_series)
 
-print "Old Notation: %s" % ResultOldNotation(res)
+#print "Old Notation: %s" % ResultOldNotation(res)
