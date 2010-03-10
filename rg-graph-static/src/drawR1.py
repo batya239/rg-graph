@@ -9,18 +9,13 @@ from rggraph_static.utils import print_time
 
 print_time("start")
 
-if len(sys.argv) == 2:
-    filename = sys.argv[1]
-else:
-    filename = "moment"
-
 from phi3 import *
 
 
 print phi3.name
 
 G = rggrf.Graph(phi3)
-G.LoadLinesFromFile(filename)
+G.Load()
 G.DefineNodes({})
 G.SaveAsPNG("graph.png")
 G_list = []
