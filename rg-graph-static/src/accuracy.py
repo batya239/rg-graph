@@ -3,9 +3,6 @@
 import sys
 import sympy 
 import rggraph_static as rggrf
-import os
-import re as regex
-
 
 from phi3 import *
 if "-accuracy" in sys.argv:
