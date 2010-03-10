@@ -165,9 +165,9 @@ def K0(arg, **kwargs):
             moment=dict()
             for idx in range(len(curnode.lines)):
                 if ctgraph.lines[curnode.lines[idx]].end == idxN :
-                    moment["moment%s"%idx] = ctgraph.lines[curnode.lines[idx]].momenta
+                    moment["moment%s"%idx] = ctgraph.lines[curnode.lines[idx]].momenta.SetZeros(zm)
                 else :
-                    moment["moment%s"%idx] = - ctgraph.lines[curnode.lines[idx]].momenta
+                    moment["moment%s"%idx] = - ctgraph.lines[curnode.lines[idx]].momenta.SetZeros(zm)
 
 #            print ctgraph.nodes.keys(), r1term.subgraphs, idxN, r1term.subgraph_map
             if idxN in r1term.subgraph_map:
