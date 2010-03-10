@@ -9,10 +9,6 @@ from rggraph_static.utils import print_time
 
 print_time("start")
 
-if len(sys.argv) == 2:
-    filename = sys.argv[1]
-else:
-    filename = "moment"
 
 from phi3 import *
 
@@ -20,7 +16,7 @@ from phi3 import *
 print phi3.name
 
 G = rggrf.Graph(phi3)
-G.LoadLinesFromFile(filename)
+G.Load()
 G.DefineNodes({})
 G.SaveAsPNG("graph.png")
 G_list = []
@@ -81,13 +77,14 @@ for idxL in G.internal_lines:
     sys.stdout.flush()
 #print prog_names
 
-res = rggrf.integration.CalculateEpsilonSeries(prog_names, build=True)
-print res
+t_res = rggrf.integration.CalculateEpsilonSeries(prog_names, build=True)
+(G.r1_dot_gamma, G.r1_dot_gamma_err) = ResultWithSd(t_res, NLOOPS, n_epsilon_series)
+print G.r1_dot_gamma
+
 print "симметрийный коэффициент: %s" %(G.sym_coeff)
 
-print "With Sd: %s" %ResultWithSd(res, NLOOPS, n_epsilon_series)
 
-print "Old Notation: %s" % ResultOldNotation(res)
+print "Old Notation: %s" % ResultOldNotation(t_res)
 #for idx in prog_names:
 #    res = rggrf.integration.ExecMCCode(idx)
     
