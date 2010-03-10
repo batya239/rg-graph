@@ -420,6 +420,8 @@ phi3.LoadGraph = rggrf.storage.filesystem.LoadGraphAsDict
 phi3.SaveResults = rggrf.storage.filesystem.SaveResults
 phi3.LoadResults = rggrf.storage.filesystem.LoadResults
 
+phi3.GetGraphList = rggrf.storage.filesystem.GetGraphList
+
 phi3.target = 4
 
 def ResultWithSd(_dict, nloops, n_eps_series):

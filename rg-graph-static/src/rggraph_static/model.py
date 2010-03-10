@@ -76,6 +76,9 @@ class Model:
             res = res + "\ttype %s : %s\n" %(idxD, self.dot_types[idxD])
         return res
     
+    def GraphList(self):
+        return self.GetGraphList(self)
+    
     
 #def scalar_prod(moment1, moment2):
 #    if 'p' in moment1:
