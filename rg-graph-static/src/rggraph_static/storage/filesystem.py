@@ -10,6 +10,8 @@ Created on Mar 2, 2010
 import os
 import time
 import sympy
+import re as regex
+
 
 def NormalizeBaseName(name):
     if name[-1:] !="/":
@@ -19,7 +21,16 @@ def NormalizeBaseName(name):
     if res[0] == "~":
         res = os.environ['HOME']+res[1:]
     return res
-    
+
+def GetGraphList(model):
+    pwd =  NormalizeBaseName(model.basepath)
+    filelist=os.listdir(pwd)
+    res=[]
+    for file in filelist:
+        if regex.match('^e.*',file):
+            res.append(file)
+    return res
+               
 
 def SaveGraphAsDict(G, overwrite=False):
     G.GenerateNickel()
