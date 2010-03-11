@@ -431,7 +431,7 @@ def ResultWithSd(_dict, nloops, n_eps_series):
         res = dict()
         idx = 0
         while(t_expr<>0):
-            res[idx] = t_err.subs(var,0)/t_expr.subs(var,0)
+            res[idx] = (t_err.subs(var,0),t_err.subs(var,0)/t_expr.subs(var,0))
             idx = idx + 1
             t_expr = t_expr.diff(var)/idx
             t_err = t_err.diff(var)/idx

@@ -5,10 +5,15 @@ import sympy
 import rggraph_static as rggrf
 
 from phi3 import *
-if "-accuracy" in sys.argv:
-    accuracy = float(sys.argv[sys.argv.index('-accuracy')+1])
+if "-absolute" in sys.argv:
+    absolute = float(sys.argv[sys.argv.index('-absolute')+1])
 else:
-    accuracy = 0.001
+    absolute = 0.00001
+
+if "-relative" in sys.argv:
+    relative = float(sys.argv[sys.argv.index('-relative')+1])
+else:
+    relative = 0.01
     
 eps = sympy.var('eps')
 
@@ -22,8 +27,12 @@ for file in phi3.GraphList():
         if "r1_dot_gamma_err" in G.__dict__:
             OK=True
             for i in G.r1_dot_gamma_err:
-                if abs(G.r1_dot_gamma_err[i])>accuracy:
+                if abs(G.r1_dot_gamma_err[i][0])>absolute:
+                    OK=False
+                elif abs(G.r1_dot_gamma_err[i][1])>relative:
                     OK=False
  
             if not OK:
                 print G.nickel
+        else:
+            raise Exception, 'Please calculate graph %s ' %G.nickel
