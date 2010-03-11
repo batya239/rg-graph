@@ -8,61 +8,20 @@ Created on Mar 2, 2010
 '''
 import utils
 
-def ShortPath(G,subG,tMomenta):
-#для двуххвостого подграфа находит коротчайший путь для внешнего импульса, незатрагивающий линии с простыми импульсами.
-# пердположительно работает только для phi^3
-    Lines=G.lines
-#    print Lines
-    reducedsubG=set(subG.internal_lines)-set(tMomenta)
+def ExtPathLen(subG,kMoment):
+#длинна протечки внешнего импульса для сигмового подграфа.
     subEL=list(subG.external_lines)
-#    print subEL
-    subN=subG.internal_nodes
+    ext_moment_atoms=kMoment[subEL[0]].keys()
+    path=0
+    for idxL in subG.internal_lines:
+        is_ext_moment = True
+        for atom in ext_moment_atoms:
+            if atom not in kMoment[idxL]:
+                is_ext_moment = False
+        if is_ext_moment:
+            path = path + 1
+    return path 
 
-    if Lines[subEL[0]].start in subN: 
-        startNode=Lines[subEL[0]].start
-    else: 
-        startNode=Lines[subEL[0]].end
-    
-    if Lines[subEL[1]].end in subN: 
-        endNode=Lines[subEL[1]].start
-    else: 
-        endNode=Lines[subEL[1]].end
-#    print "======================"
-#    print startNode,endNode
-    flag=0
-    path=[[startNode,],]
-#    (set(G._Lines_nOfNode(startNode))& set(subEL)) - set(tMomenta)
-#как бы рекурсивно составляем список путей
-#выражение выше - список линий исходящих из данной вершины и содержащихся в подграфе и не являющихся простыми,т.е. по которым может протекать внешний импульс.
-#вообще говоря написанное ниже кривовато и может работать только для фи3, когда будет более разумная структура данных можно будет переписать.
-    while(flag==0):
-        flag=1
-        for curpath in path:
-#            print "-------------"
-#            print "curpath",curpath
-            curNode=curpath[len(curpath)-1]
-            if curNode<>endNode:
-                outLines=set(subG.nodes[curNode].lines) - set(tMomenta)
-                outNodes=[]
-                for coutLines in outLines:
-                    outNodes=outNodes+list(set(Lines[coutLines].Nodes())-set([curNode,]))
-
-#                flag2=0
-                for coutNodes in outNodes:
-                    if coutNodes not in curpath:
-                        path.append(curpath+[coutNodes,])
-#                        flag2=1
-                        flag=0
-#               if flag2==1: path.remove(curpath)
-                path.remove(curpath)
-
-    minpathlen=1000000000000
-    minpath=[]
-    for idx in path:
-        if len(idx)<minpathlen: 
-            minpath=idx
-            minpathlen=len(idx)
-    return minpath
 
 
 def GetMomentaIndex(G,Momenta):
@@ -70,11 +29,14 @@ def GetMomentaIndex(G,Momenta):
 #1. если какой-то из подграф не содержит нужного количества простых импульсов: +1000000
     badSub=1000000
 #2. если в сигмовый подграф втекает составной импульс: +1000
-    badIn=1000
+    badIn=10000
 #3. если протечка внешнего импульса не оптимальна. +1 за каждую лишнюю линию. (для графа и подграфа разный штраф?)
-    longInPath=1
+    longInPath=100
 #4. нет пути по которому можно пропустить внешний импульс +100? непонятно на сколько это важно
-    badInPath=100
+#    badInPath=100
+#4a. составной импульс длинной больше 3х 
+    longMoment=1 
+
 ## сейчас за внеший импульс к диаграмме и внешний импульс в подграфе один и тот же штраф, т.к. делается это в одном цикле.
 #5. нарушение законов киргхоффа +1000000
     badKirghoff=1000000
@@ -165,9 +127,10 @@ def GetMomentaIndex(G,Momenta):
                 if len(kMoment[i])==1: sIn=1
                 
             if sIn==0: result=result+badIn
-            sPath=ShortPath(G,subG,tMomenta)
-            if len(sPath)-2<0 :result=result+badInPath
-            else: result=result+(len(sPath)-2)*longInPath
+#            sPath=ShortPath(G,subG,tMomenta)
+#            if len(sPath)-2<0 :result=result+badInPath
+#            else: result=result+(len(sPath)-2)*longInPath
+            result = result + (ExtPathLen(subG,kMoment)-1)*longInPath
        
     return (result,kMoment)
     
@@ -177,14 +140,15 @@ def Generate(G):
     minMomentIndex=10000000000000
     for i in utils.xUniqueCombinations(list(G.internal_lines),G.NLoops()):
         (curIndex,curkMoment)=GetMomentaIndex(G,i)
+        #print "Moments: ", curIndex, i,"\n", curkMoment
         if curIndex<minMomentIndex:
             minMomentIndex=curIndex
             minMoment=i
             kMoment=curkMoment
             if minMomentIndex==0: 
                 break
-            
-    #print minMoment, minMomentIndex
+    
+    #print "MINIMUM:\n", minMoment, minMomentIndex
     mapmoment={}
     if len(G.external_lines)==2:
         mapmoment[list(G.external_lines)[0]]="p"
