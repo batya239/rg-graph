@@ -22,6 +22,14 @@ def ExtPathLen(subG,kMoment):
             path = path + 1
     return path 
 
+def LongMomentPenalty(G,kMoment):
+    penalty=0
+    for idxL in G.internal_lines:
+        n_atoms=len(kMoment[idxL].keys())
+        if n_atoms >2: 
+            penalty = penalty + (n_atoms - 2)
+    return penalty 
+
 
 
 def GetMomentaIndex(G,Momenta):
@@ -131,6 +139,8 @@ def GetMomentaIndex(G,Momenta):
 #            if len(sPath)-2<0 :result=result+badInPath
 #            else: result=result+(len(sPath)-2)*longInPath
             result = result + (ExtPathLen(subG,kMoment)-1)*longInPath
+            
+    result = result + LongMomentPenalty(G,kMoment)*longMoment
        
     return (result,kMoment)
     
