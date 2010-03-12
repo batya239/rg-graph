@@ -57,8 +57,11 @@ prog_names = rggrf.integration.GenerateMCCodeForGraphStrVars(base_name, prepared
 
 t_res = rggrf.integration.CalculateEpsilonSeries(prog_names, build=True)
 (G.r1_dot_gamma, G.r1_dot_gamma_err) = ResultWithSd(t_res, NLOOPS, n_epsilon_series)
+
 print G.r1_dot_gamma
+G.npoints = NPOINTS 
 G.SaveResults()
+
 print "симметрийный коэффициент: %s" %(G.sym_coeff)
 
 print "With Sd: %s" %G.r1_dot_gamma

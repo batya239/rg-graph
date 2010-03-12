@@ -84,9 +84,14 @@ def LoadResults(G,strvars):
     name = "%s/"%(G.nickel)
     pwd = NormalizeBaseName(G.model.basepath)
     dirname = pwd + name
-    for idx in ['r1_dot_gamma','delta_gamma','r1_gamma','r1_dot_gamma_err']:
+    for idx in ['r1_dot_gamma','delta_gamma','r1_gamma','r1_dot_gamma_err','npoints']:
+        file_name = idx
+        if idx == 'npoints': 
+            var_name = "%s_r"%idx
+        else:
+            var_name = idx
         try:
-            G.__dict__[idx] = eval(open(dirname+idx,"r").read())
+            G.__dict__[var_name] = eval(open(dirname+file_name,"r").read())
         except IOError:
             G.__dict__[idx] = None
             

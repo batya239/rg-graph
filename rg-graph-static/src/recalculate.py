@@ -18,6 +18,14 @@ def FindExecutables(ls_out,prefix):
                 res[reg.groups()[0]] = [line,]
     return res
 
+G=None
+try:
+    G = rggrf.Graph(phi3)
+    G.Load()
+    G.GenerateNickel()
+except:
+    pass
+
 if "-prefix" in sys.argv:
     prefix = sys.argv[sys.argv.index('-prefix')+1]
 else:
@@ -26,20 +34,17 @@ else:
 if "-points" in sys.argv:
     npoints = eval(sys.argv[sys.argv.index('-points')+1])
 else:
-    npoints = 10000
+    if "npoints_r" in G.__dict__:
+        npoints = int(G.npoints_r)*10
+    else:
+        npoints = 10000
 
 if "-threads" in sys.argv:
     nthreads = eval(sys.argv[sys.argv.index('-threads')+1])
 else:
     nthreads = 2
     
-G=None
-try:
-    G = rggrf.Graph(phi3)
-    G.Load()
-    G.GenerateNickel()
-except:
-    pass
+
 
 
 process = subprocess.Popen(["ls %s*"%prefix,], shell=True, 
