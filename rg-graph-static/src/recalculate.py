@@ -60,6 +60,7 @@ t_res = rggrf.integration.CalculateEpsilonSeries(prog_names, points=npoints, thr
 if G != None:
     (G.r1_dot_gamma, G.r1_dot_gamma_err) = ResultWithSd(t_res, G.NLoops(), G.model.target - G.NLoops())
     print G.r1_dot_gamma
+    G.npoints = npoints
     G.SaveResults()
 
 #print "симметрийный коэффициент: %s" %(G.sym_coeff)
