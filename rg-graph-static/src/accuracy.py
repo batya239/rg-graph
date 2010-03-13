@@ -32,12 +32,15 @@ for file in phi3.GraphList():
         G.LoadResults('eps')
         if "r1_dot_gamma_err" in G.__dict__:
             OK=True
-            for i in G.r1_dot_gamma_err:
-                if int(i) <= target - G.NLoops():
-                    if abs(G.r1_dot_gamma_err[i][0]*G.sym_coeff)>=absolute:
-                        OK=False
-                    elif abs(G.r1_dot_gamma_err[i][1])>=relative:
-                        OK=False
+            try:
+                for i in G.r1_dot_gamma_err:
+                    if int(i) <= target - G.NLoops():
+                        if abs(G.r1_dot_gamma_err[i][0]*G.sym_coeff)>=absolute:
+                            OK=False
+                        elif abs(G.r1_dot_gamma_err[i][1])>=relative:
+                            OK=False
+            except:
+                OK=False
  
             if not OK:
                 print G.nickel
