@@ -24,6 +24,7 @@ eps = sympy.var('eps')
 
 #print phi3.name
 for file in phi3.GraphList():
+        print "--- %s"%file
         G = rggrf.Graph(phi3)
         G.Load(str_nickel=file)
         G.DefineNodes({})
