@@ -203,6 +203,7 @@ def K_n(r1_term, diff_list=[], **kwargs):
             zm = kwargs["zero_moments"]
         else:
             zm=[]
+        print "diff_list: ", diff_list
             
         (moments, ext_momenta, ext_momenta_atom,  zm) = SubsExtMomenta(ctgraph, zm)
 #        print "K2 ", ctgraph.nickel, ctgraph.dim , ctgraph.internal_nodes , diff_list 
@@ -242,9 +243,11 @@ def K_n(r1_term, diff_list=[], **kwargs):
     #            print ctgraph.nodes.keys(), r1term.subgraphs, idxN, r1term.subgraph_map
                 factor_diff=0
                 if idxN in r1term.subgraph_map:
-                    f_arg = rggrf.roperation.R1(r1term.subgraphs[r1term.subgraph_map[idxN]].Clone(zero_moments=zm),r1term.factorization)
+                    cur_sub = r1term.subgraphs[r1term.subgraph_map[idxN]]
+                    f_arg = rggrf.roperation.R1(cur_sub.Clone(zero_moments=zm),r1term.factorization)
                     for idx in cur_diff: 
-                        if idx[0] in r1term.subgraphs[r1term.subgraph_map[idxN]].internal_lines :
+                        if ((idx[0] in cur_sub.internal_lines and idx[1] == "L") 
+                              or (idx[0] in cur_sub.internal_nodes and idx[1] == "N")) :
                             factor_diff=factor_diff +1
                         
                 else:
