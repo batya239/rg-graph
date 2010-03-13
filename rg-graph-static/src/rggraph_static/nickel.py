@@ -14,7 +14,8 @@ class Nickel(object):
     'e1-e-'
     """
     def __init__(self, edges=None, nickel=None, string=None):
-        self.node_to_char = {-2: '-', -1: 'e'}
+        self.node_to_char = {-2: '-', -1: 'e', 10: 'A', 11: 'B', 12: 'C',
+            13: 'D', 14: 'E', 15: 'F'}
         self.edges = edges
         self.nickel = nickel
         self.string = string
