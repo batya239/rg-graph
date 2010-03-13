@@ -203,7 +203,7 @@ def K_n(r1_term, diff_list=[], **kwargs):
             zm = kwargs["zero_moments"]
         else:
             zm=[]
-        print "diff_list: ", diff_list
+#        print "diff_list: ", diff_list
             
         (moments, ext_momenta, ext_momenta_atom,  zm) = SubsExtMomenta(ctgraph, zm)
 #        print "K2 ", ctgraph.nickel, ctgraph.dim , ctgraph.internal_nodes , diff_list 
