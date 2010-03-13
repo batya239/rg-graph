@@ -33,7 +33,7 @@ for file in phi3.GraphList():
             OK=True
             for i in G.r1_dot_gamma_err:
                 if int(i) <= target - G.NLoops():
-                    if abs(G.r1_dot_gamma_err[i][0])>=absolute:
+                    if abs(G.r1_dot_gamma_err[i][0]*G.sym_coeff)>=absolute:
                         OK=False
                     elif abs(G.r1_dot_gamma_err[i][1])>=relative:
                         OK=False
