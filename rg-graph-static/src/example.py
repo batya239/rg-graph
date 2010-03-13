@@ -34,7 +34,8 @@ NPOINTS = 10000
 NTHREADS = 2 
 SPACE_DIM = 6.
 prog_names = []
-for idxL in G.internal_lines:
+#for idxL in G.internal_lines:
+for idxL in [13]:
     print_time("line %s" %idxL)
     cur_G = G.Clone()
     cur_G.lines[idxL].dots[1] = 1
@@ -55,7 +56,7 @@ for idxL in G.internal_lines:
             s_prep =   ExpandScalarProdsAndPrepare(k2term)
             print_time("Expand scalar prod")
             print "---------dm_%s_p%s --------- " %(idxL,idxK2)
-#            pretty_print(s_prep)
+            pretty_print(s_prep)
             (g_expr, g_vars) = rggrf.integration.Prepare(s_prep, SPACE_DIM)
             print_time("Prepare")
 #            print "\ng_expr:\n%s\n"%g_expr
