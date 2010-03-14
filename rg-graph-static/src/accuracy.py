@@ -29,12 +29,13 @@ eps = sympy.var('eps')
 
 #print phi3.name
 for file in g_list:
-        print "--- %s"%file,
+        #print "--- %s"%file,
         G = rggrf.Graph(phi3)
         G.Load(str_nickel=file)
         G.DefineNodes({})
         G.GenerateNickel()
         G.LoadResults('eps')
-        print G.CheckAccuracy(absolute, relative)
+        if not G.CheckAccuracy(absolute, relative):
+            print file
 
         
