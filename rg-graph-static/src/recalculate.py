@@ -108,7 +108,7 @@ for nickel in g_list:
         rggrf.utils.print_debug( G.r1_dot_gamma, debug)
         
         G.SaveResults(['r1_dot_gamma','r1_dot_gamma_err','npoints','method'])
-        print "OK ", G.r1_dot_gammam, G.r1_dot_gamma_err
+        print "OK ", G.r1_dot_gamma, G.r1_dot_gamma_err
         
 
 #print "симметрийный коэффициент: %s" %(G.sym_coeff)
