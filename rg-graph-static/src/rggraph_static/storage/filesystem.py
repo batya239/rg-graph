@@ -68,7 +68,7 @@ def SaveResults(G,res_list=[]):
     dirname = pwd + name
     time_str=time.strftime("-%Y-%m-%d-%H:%M:%S")
     if len(res_list)==0:
-        lst = ['r1_dot_gamma','delta_gamma','r1_gamma', 'r1_dot_gamma_err', 'npoints']
+        lst = ['r1_dot_gamma','delta_gamma','r1_gamma', 'r1_dot_gamma_err', 'npoints', 'method']
     else:
         lst = res_list
 
@@ -88,14 +88,17 @@ def LoadResults(G,strvars):
     name = "%s/"%(G.nickel)
     pwd = NormalizeBaseName(G.model.basepath)
     dirname = pwd + name
-    for idx in ['r1_dot_gamma','delta_gamma','r1_gamma','r1_dot_gamma_err','npoints']:
+    for idx in ['r1_dot_gamma','delta_gamma','r1_gamma','r1_dot_gamma_err','npoints', 'method']:
         file_name = idx
         if idx == 'npoints': 
             var_name = "%s_r"%idx
         else:
             var_name = idx
         try:
-            G.__dict__[var_name] = eval(open(dirname+file_name,"r").read())
+            if var_name == "method":
+                G.__dict__[var_name] = open(dirname+file_name,"r").read()
+            else:
+                G.__dict__[var_name] = eval(open(dirname+file_name,"r").read())
         except IOError:
             G.__dict__[idx] = None
             

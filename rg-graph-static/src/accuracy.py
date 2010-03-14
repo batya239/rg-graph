@@ -19,30 +19,22 @@ if "-target" in sys.argv:
     target = int(sys.argv[sys.argv.index('-target')+1])
 else:
     target = phi3.target
+
+if "-graph" in sys.argv:
+    g_list = [sys.argv[sys.argv.index('-graph')+1],]
+else:
+    g_list = phi3.GraphList()
     
 eps = sympy.var('eps')
 
 #print phi3.name
-for file in phi3.GraphList():
-        print "--- %s"%file
+for file in g_list:
+        print "--- %s"%file,
         G = rggrf.Graph(phi3)
         G.Load(str_nickel=file)
         G.DefineNodes({})
         G.GenerateNickel()
         G.LoadResults('eps')
-        if "r1_dot_gamma_err" in G.__dict__:
-            OK=True
-            try:
-                for i in G.r1_dot_gamma_err:
-                    if int(i) <= target - G.NLoops():
-                        if abs(G.r1_dot_gamma_err[i][0]*G.sym_coeff)>=absolute:
-                            OK=False
-                        elif abs(G.r1_dot_gamma_err[i][1])>=relative:
-                            OK=False
-            except:
-                OK=False
- 
-            if not OK:
-                print G.nickel
-        else:
-            raise Exception, 'Please calculate graph %s ' %G.nickel
+        print G.CheckAccuracy(absolute, relative)
+
+        

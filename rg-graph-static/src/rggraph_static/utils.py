@@ -9,7 +9,8 @@ Created on Feb 20, 2010
 #Common generators
 
 
-from sympy import *
+#from sympy import *
+import sympy
 import time
 import sys
 
@@ -70,25 +71,31 @@ def SimpleSeries(func,var,point,num):
     f=func
     res=0
     while(flag>0):
-        tmp=limit(abs(f),var,point) 
-        if type(tmp)==core.numbers.Infinity :
+        tmp=sympy.limit(abs(f),var,point) 
+        if type(tmp)==sympy.core.numbers.Infinity :
             level=level-1
             f=f*(var-point)
         else:
             if level<=num :
-                res=limit(f,var,point)*pow(var-point,level)
+                res=sympy.limit(f,var,point)*pow(var-point,level)
             else:
                 res=0
             flag=0
 
     N=1
     for i in range(level,num):
-        f=expand(diff(f,var)/N)
+        f=sympy.expand(sympy.diff(f,var)/N)
         N=N+1
-        res=res+limit(expand(f),var,point)*pow(var-point,i+1)
+        res=res+sympy.limit(sympy.expand(f),var,point)*pow(var-point,i+1)
 
     return res
 
-def print_time(str_):
-    print "\t\t\t time (%s) = %s"%(str_,time.time())
-    sys.stdout.flush()
+def print_time(str_, debug=True):
+    if debug:
+        print "\t\t\t time (%s) = %s"%(str_,time.time())
+        sys.stdout.flush()
+        
+def print_debug(str_, debug=True):
+    if debug:
+        print str_
+        sys.stdout.flush()

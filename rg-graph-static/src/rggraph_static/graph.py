@@ -447,7 +447,6 @@ class Graph:
         res['lines'] = lines
         res['node_types'] = self.GetNodesTypes()
         res['green'] = self.green
-        res['method'] = self.method
         
         return res
     
@@ -460,8 +459,6 @@ class Graph:
         self.DefineNodes(dict['node_types'])
         if 'green' in dict:
             self.green = dict['green']
-        if 'method' in dict:
-            self.method = dict['method']
         
     
     def Save(self, overwrite=False):
@@ -483,6 +480,22 @@ class Graph:
     def LoadResults(self, strvars):
         self.model.LoadResults(self, strvars)
         
+    def CheckAccuracy(self,absolute,relative):
+        self.GenerateNickel()    
+        if "r1_dot_gamma_err" in self.__dict__:
+            res=True
+            try:
+                for i in self.r1_dot_gamma_err:
+                    if int(i) <= self.model.target - self.NLoops():
+                        if abs(self.r1_dot_gamma_err[i][0]*self.sym_coeff)>=absolute:
+                            res=False
+                        elif abs(self.r1_dot_gamma_err[i][1])>=relative:
+                            res=False
+            except:
+                res=False
+        else:
+            raise ValueError, 'Please calculate graph %s ' %self.nickel
+        return res
 
 def LoadFromGRC(filename,model):
 

@@ -35,7 +35,7 @@ def SplitAtoms(str_atom_set):
     return (set(ext_moment_atoms), set(ext_cos_atoms), set(int_moment_atoms),
                                    set(int_cos_atoms), set(other_atoms))
 
-def AvarageByExtDirection(s_expr,str_ext_cos_atoms,degree):
+def AvarageByExtDirection(s_expr, str_ext_cos_atoms, degree, debug=False):
 #TODO: need lots of verifications to work in general case; now only 0 and 2 degree
 #    print "==== AvarageByExtDirection "
 #    print str_ext_cos_atoms,degree
@@ -87,7 +87,7 @@ def AvarageByExtDirection(s_expr,str_ext_cos_atoms,degree):
         return res
     
 
-def PrepareFactorizedStrVars(fact_expr, space_dim, ignore_unknown=False, simplify = False):
+def PrepareFactorizedStrVars(fact_expr, space_dim, ignore_unknown=False, simplify = False, debug = False):
 # TODO: p=1 m=1 Надо делать в каком-то другом месте, до того как выражение попадает сюда
 # TODO: усреднение по направлениям p (eps)
 # TODO: детерминанант по модулям (eps)
@@ -101,7 +101,7 @@ def PrepareFactorizedStrVars(fact_expr, space_dim, ignore_unknown=False, simplif
     def g_sin(idx1, idx2, vars_dict):
         return (1-g_cos(idx1,idx2,vars_dict)**2)**0.5
     str_vars = "" 
-    utils.print_time("Prepare: start")
+    utils.print_time("Prepare: start", debug)
 #    expr = k_op
     str_atom_set = ginac.GetVarsAsStr(fact_expr.factor * fact_expr.other)
     (ext_moment_atoms, ext_cos_atoms, int_moment_atoms, 
@@ -112,7 +112,7 @@ def PrepareFactorizedStrVars(fact_expr, space_dim, ignore_unknown=False, simplif
         if len(ext_moment_atoms | other_atoms)>0:
             raise  NotImplementedError, "Don't know what to do with following atoms: %s" %(ext_moment_atoms|other_atoms)
 
-    expr_o = AvarageByExtDirection(fact_expr.other, ext_cos_atoms, 2)
+    expr_o = AvarageByExtDirection(fact_expr.other, ext_cos_atoms, 2, debug=debug)
 #    print "\nExtDir:\n"
 #    pretty_print(expr)
 
@@ -130,13 +130,13 @@ def PrepareFactorizedStrVars(fact_expr, space_dim, ignore_unknown=False, simplif
     for idx in ["d", "e"]+list(int_moment_atoms)+list(int_cos_atoms):
         if  idx not in g_vars:
             g_vars[idx] = swiginac.symbol(idx)
-    utils.print_time("Prepare:before normal")        
+    utils.print_time("Prepare:before normal",debug)        
 # общий знаменатель
     if simplify:
         g_expr = g_expr_f * swiginac.normal(g_expr_o)
     else:
         g_expr = g_expr_f * g_expr_o    
-    utils.print_time("Prepare:after normal ")
+    utils.print_time("Prepare:after normal ",debug)
     
     d = g_vars["d"]
 # детерминанты по импульсам
@@ -157,7 +157,7 @@ def PrepareFactorizedStrVars(fact_expr, space_dim, ignore_unknown=False, simplif
 #            g_expr = g_expr.subs(g_vars[idx] == (1 - g_vars[t_inv]) / g_vars[t_inv]) / g_vars[t_inv] / g_vars[t_inv] 
         else:
             raise ValueError, "Unknown internal momenta %s" %idx
-    utils.print_time("Prepare: inversion")
+    utils.print_time("Prepare: inversion",debug)
         
 #замена на полярные углы
 
@@ -216,10 +216,9 @@ def PrepareFactorizedStrVars(fact_expr, space_dim, ignore_unknown=False, simplif
             str_vars =  "%s\n double %s = %s;"%(str_vars, atom, subst.printc())
             g_expr = g_expr * det
             
-#            g_expr = g_expr.subs(g_vars[atom] == subst) * det
         else:
             raise ValueError,  "Unknown scalar product of internal moments  %s " %atom
-    utils.print_time("Prepare: end")  
+    utils.print_time("Prepare: end",debug)  
 
 
     return (g_expr,g_vars,str_vars)
@@ -548,7 +547,7 @@ int main(int argc, char **argv)
         FUNCTIONS, 0, nthreads,
         estim, std_dev, chi2a);
 double delta= std_dev[0]/estim[0];
-printf ("result = %g\\nstd_dev = %g\\ndelta = %g\\n", estim[0], std_dev[0], delta);
+printf ("result = %20.18g\\nstd_dev = %20.18g\\ndelta = %20.18g\\n", estim[0], std_dev[0], delta);
 //  printf ("Result %d: %g +/- %g delta=%g\\n",NEPS, estim[0], std_dev[0], delta);
 //  for (i=1; i<FUNCTIONS; ++i)
 //    printf("Result %i:\\t%g +/- %g  \\tdelta=%g\\n", i, estim[i], std_dev[i],std_dev[i]/estim[i]);
@@ -598,15 +597,15 @@ def GenerateCVars(g_vars):
     return (c_vars, str_region)
         
 
-def GenerateMCCodeForTerm(name, g_expr, g_vars, space_dim, n_epsilon_series, points, nthreads):
+def GenerateMCCodeForTerm(name, g_expr, g_vars, space_dim, n_epsilon_series, points, nthreads, debug=False):
 
     e = g_vars["e"]
     d = g_vars["d"]
     prog_names = list()
     t_expr = g_expr.subs(d == float(space_dim) - e)
-    utils.print_time("GMCCFT: start")
+    utils.print_time("GMCCFT: start", debug)
     for idxE in range(n_epsilon_series+1):
-        utils.print_time("GMCCFT: eps^%s"%idxE)
+        utils.print_time("GMCCFT: eps^%s"%idxE, debug)
         cur_name = "%s_e%s" %(name,idxE)
         cur_expr = t_expr.subs(e == 0)
 #        print swiginac.normal(cur_expr.subs(g_vars["y1"] == 0.99900000000001).subs(g_vars["y2"] == 0.99900000000001).subs(g_vars["ct_0_1"] == 0.999999))
@@ -615,11 +614,11 @@ def GenerateMCCodeForTerm(name, g_expr, g_vars, space_dim, n_epsilon_series, poi
         SavePThreadsMCCode(cur_name, cur_expr.str(), c_vars, str_region, points, nthreads)
         prog_names.append(cur_name)
         t_expr = t_expr.diff(e)/(idxE+1)
-    utils.print_time("GMCCFT: end")
+    utils.print_time("GMCCFT: end", debug)
     
     return prog_names 
 
-def GenerateMCCodeForGraph(name, prepared_eqs, space_dim, n_epsilon_series, points, nthreads):
+def GenerateMCCodeForGraph(name, prepared_eqs, space_dim, n_epsilon_series, points, nthreads, debug=False):
 #TODO: проверка что у всех членов одинаковые переменные.
     prog_names = list()
     expr_by_eps = dict()
@@ -650,7 +649,7 @@ def GenerateMCCodeForGraph(name, prepared_eqs, space_dim, n_epsilon_series, poin
         prog_names.append(cur_name)
     return prog_names
 
-def GenerateMCCodeForGraphStrVars(name, prepared_eqs, space_dim, n_epsilon_series, points, nthreads):
+def GenerateMCCodeForGraphStrVars(name, prepared_eqs, space_dim, n_epsilon_series, points, nthreads,debug=False):
 #TODO: проверка что у всех членов одинаковые переменные.
     prog_names = list()
     expr_by_eps = dict()
@@ -682,63 +681,63 @@ def GenerateMCCodeForGraphStrVars(name, prepared_eqs, space_dim, n_epsilon_serie
         prog_names.append(cur_name)
     return prog_names  
 
-def CompileMCCode(prog_name):
+def CompileMCCode(prog_name, debug=False):
     import sys
 #>>> process = subprocess.Popen(['./test', ], shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 #>>> process.wait()
 #>>> process.communicate()
 #gcc e12-e3-33--_m0_e0.c -lm -lpthread -lpvegas -o test
-    utils.print_time("CMCCCode: start")
+    utils.print_time("CMCCCode: start", debug)
     code_name="%s.c"%prog_name
     process = subprocess.Popen(["rm", "-f", prog_name], shell=False, 
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     exit_code = process.wait()
     (std_out, std_err) = process.communicate()
-    utils.print_time("CMCCCode: ")    
-    print "Compiling %s ... " %prog_name,
+    utils.print_time("CMCCCode: ",debug)    
+    utils.print_debug( "Compiling %s ... " %prog_name, debug)
     sys.stdout.flush()
     process = subprocess.Popen(["gcc", code_name, "-lm", "-lpthread", 
-                                "-lpvegas", "-O0", "-o", prog_name], shell=False, 
+                                "-lpvegas", "-o", prog_name], shell=False, 
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     exit_code = process.wait()
     (std_out, std_err) = process.communicate()
     
     if exit_code <> 0 :
-        print "FAILED"
-        print std_err
+        utils.print_debug( "\t\t\t\t\t\t\tFAILED",debug)
+        utils.print_debug( std_err,debug)
         res = None
     else: 
         if len(std_err) == 0:
-            print "OK"
+            utils.print_debug( "\t\t\t\t\t\t\tOK",debug)
             res = True
         else:
-            print "CHECK"
+            utils.print_debug( "\t\t\t\t\t\t\tCHECK", debug)
             print std_err
             res = True
-    utils.print_time("CMCCCode: end")
+    utils.print_time("CMCCCode: end",debug)
     return True
 
 
-def ExecMCCode(prog_name, points=10000, threads=2):
+def ExecMCCode(prog_name, points=10000, threads=2,debug=False):
     import sys
 #>>> process = subprocess.Popen(['./test', ], shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 #>>> process.wait()
 #>>> process.communicate()
 #gcc e12-e3-33--_m0_e0.c -lm -lpthread -lpvegas -o test
-    utils.print_time("EMCCCode: start")
-    print "Executing %s points=%s threads=%s ... " %(prog_name, points, threads) ,
+    utils.print_time("EMCCCode: start", debug)
+    utils.print_debug("Executing %s points=%s threads=%s ... " %(prog_name, points, threads) , debug)
     sys.stdout.flush()
     process = subprocess.Popen(["./%s"%prog_name, "%s"%points, "%s"%threads], shell=False, 
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     exit_code = process.wait()
     (std_out,std_err) = process.communicate()
     if exit_code <> 0 :
-        print "FAILED"
-        print std_err
+        utils.print_debug("FAILED",debug)
+        utils.print_debug(std_err,debug)
         result = None
     else: 
         if len(std_err) == 0:
-            print "OK ",
+            utils.print_debug( "OK ", debug)
 #Result 0:\t0.00599252 +/- 0.000130637  \tdelta=0.0217999\n
             res = None
             err = None
@@ -754,28 +753,28 @@ def ExecMCCode(prog_name, points=10000, threads=2):
                 if reg:
                     delta = float(reg.groups()[0])
             if res <> None and err <> None and delta <> None:
-                print "res = %s, err = %s, delta = %s" %(res, err, delta)
+                utils.print_debug("res = %s, err = %s, delta = %s" %(res, err, delta),debug)
                 result = (res, err, delta)
             else:
-                print "CHECK"
-                print std_out
+                utils.print_debug("CHECK",debug)
+                utils.print_debug(std_out,debug)
                 result = None
         else:
-            print "CHECK"
-            print std_err
+            utils.print_debug( "CHECK", debug)
+            utils.print_debug( std_err, debug)
             result = None
             
-    utils.print_time("EMCCCode: exec end")
+    utils.print_time("EMCCCode: exec end",debug)
     return result
 
-def CalculateEpsilonSeries(prog_names, build=False, points=10000, threads=2):
+def CalculateEpsilonSeries(prog_names, build=False, points=10000, threads=2, debug=False):
     res_by_eps = dict()
     for prog in prog_names:
         if build == True:
-            build_res = CompileMCCode(prog)
+            build_res = CompileMCCode(prog,debug)
             if build_res == None:
                 raise Exception, "CompileMCCode failed to build %s" %prog
-        exec_res = ExecMCCode(prog, points=points, threads=threads)
+        exec_res = ExecMCCode(prog, points=points, threads=threads,debug=debug)
         if exec_res == None:
             raise ValueError , "ExecMCCode function returns None"
         (res, dev, delta) = exec_res
@@ -790,4 +789,3 @@ def CalculateEpsilonSeries(prog_names, build=False, points=10000, threads=2):
         else:
             res_by_eps[eps] = (res, dev)
     return res_by_eps
-    

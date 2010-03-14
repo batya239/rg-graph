@@ -350,13 +350,13 @@ def K2(arg, diff_list=[], **kwargs):
     else:
         raise TypeError , "unknown type for K2 operation %s " %type(arg)
 
-def ExpandScalarProdsAndPrepareFactorized(factorized_expr):
-    return rggrf.roperation.Factorized(ExpandScalarProdsAndPrepare(factorized_expr.factor), 
-                      ExpandScalarProdsAndPrepare(factorized_expr.other))
+def ExpandScalarProdsAndPrepareFactorized(factorized_expr,debug=False):
+    return rggrf.roperation.Factorized(ExpandScalarProdsAndPrepare(factorized_expr.factor,debug), 
+                      ExpandScalarProdsAndPrepare(factorized_expr.other,debug))
 
-def ExpandScalarProdsAndPrepare(expr_):
+def ExpandScalarProdsAndPrepare(expr_,debug=False):
     if isinstance(expr_,rggrf.roperation.Factorized):
-        print "WARNING!!! Factorizied object passed to ExpandScalarProdsAndPrepare"
+        rggrf.utils.print_debug( "WARNING!!! Factorizied object passed to ExpandScalarProdsAndPrepare",debug)
         expr = expr_.factor*expr_.other
     else:
         expr = expr_ 
@@ -364,7 +364,7 @@ def ExpandScalarProdsAndPrepare(expr_):
     try:
         atoms = expr.atoms()
     except:
-        print "WARNING!!!! %s passed to ExpandScalarProdsAndPrepare" %type(expr)
+        rggrf.utils.print_debug( "WARNING!!!! %s passed to ExpandScalarProdsAndPrepare" %type(expr),debug)
         return expr
     t_expr = expr
     for atom in atoms:
@@ -411,7 +411,7 @@ phi3.AddSubGraphType(2, Lines=[1, 1], dim=2, K_nodetypeR1=4)
 # definition of dots
 phi3.AddDotType(1, dim=2, action=dot_action, gv={"penwidth":"3"})
 
-phi3.basepath = "~/work/rg-graph/test/"
+phi3.basepath = rggrf.storage.filesystem.NormalizeBaseName("~/work/rg-graph/test/")
 
 try:
     os.listdir(rggrf.storage.filesystem.NormalizeBaseName(phi3.basepath))
@@ -427,6 +427,61 @@ phi3.GetGraphList = rggrf.storage.filesystem.GetGraphList
 
 phi3.target = 4
 
+phi3.methods = dict()
+
+
+def MCO_fstrvars(G, debug=False):
+    G.GenerateNickel()
+    base_name = "fstrvars_%s"%str(G.nickel)
+    n_epsilon_series =G.model.target -G.NLoops()
+    NPOINTS = 10000
+    NTHREADS = 2
+    SPACE_DIM = 6.
+    prepared_eqs = []
+    for idxL in G.internal_lines:
+        
+        rggrf.utils.print_debug("======= %s ======="%idxL, debug)
+        cur_G = G.Clone()
+        cur_G.lines[idxL].dots[1] = 1
+        cur_G.DefineNodes()
+        cur_G.FindSubgraphs()
+        cur_r1 = rggrf.roperation.R1(cur_G)
+#        cur_r1.SaveAsPNG("test.png")
+    
+        if len(G.external_lines) == 2:
+            K2res = K2(cur_r1)
+            for idxK2 in range(len(K2res)):
+                k2term = K2res[idxK2]  
+                s_prep =   ExpandScalarProdsAndPrepareFactorized(k2term,debug)
+                rggrf.utils.print_debug( "---------dm_%s_p%s --------- " %(idxL,idxK2), debug)
+                prepared_eqs.append(rggrf.integration.PrepareFactorizedStrVars(s_prep, SPACE_DIM, simplify=True, debug=debug))
+       
+        elif len(G.external_lines) == 3:
+            K0res = K0(cur_r1) 
+            s_prep =   ExpandScalarProdsAndPrepareFactorized(K0res)
+            prepared_eqs.append(rggrf.integration.PrepareFactorizedStrVars(s_prep, SPACE_DIM, simplify=True, debug=debug))      
+            
+        sys.stdout.flush()
+          
+    prog_names = rggrf.integration.GenerateMCCodeForGraphStrVars(base_name, prepared_eqs,SPACE_DIM, n_epsilon_series, NPOINTS, NTHREADS,debug=debug) 
+    
+    t_res = rggrf.integration.CalculateEpsilonSeries(prog_names, build=True,debug=debug)
+    (G.r1_dot_gamma, G.r1_dot_gamma_err) = ResultWithSd(t_res, G.NLoops(), n_epsilon_series)
+    
+    rggrf.utils.print_debug(str(G.r1_dot_gamma), debug)
+    G.npoints = NPOINTS 
+    G.method = "MCO_fstrvars"
+    G.SaveResults()
+
+
+phi3.methods['MCO_fstrvars'] = MCO_fstrvars
+
+
+
+    
+    
+    
+    
 def ResultWithSd(_dict, nloops, n_eps_series):
     def RelativeError(expr, err, var):
         t_expr = expr

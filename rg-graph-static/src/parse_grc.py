@@ -16,17 +16,21 @@ if "-green" in sys.argv:
     green = sys.argv[sys.argv.index('-green')+1]
 else:
     print "Usage : %s " %usage(sys.argv[0])
-
+    
+if "-debug" in sys.argv:
+    debug = True
+else:
+    debug = False
 
 from phi3 import *
 
-
+print green
 print phi3.name
 G_list = rggrf.graph.LoadFromGRC(grc,phi3)
 for G in G_list:
     G.GenerateNickel()
     G.green = green
-    print G.nickel, G.sym_coeff
+    rggrf.utils.print_debug("%s, %s" %(G.nickel, G.sym_coeff),debug)
     G.Save(overwrite=True)
     
     
