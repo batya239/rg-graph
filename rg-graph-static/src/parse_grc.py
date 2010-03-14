@@ -4,21 +4,28 @@ import sys
 from sympy import *
 import rggraph_static as rggrf
 
+def usage(progname):
+    return "%s -grc out.grf -green G2"
 
-
-if len(sys.argv) == 2:
-    filename = sys.argv[1]
+if "-grc" in sys.argv:
+    grc = sys.argv[sys.argv.index('-grc')+1]
 else:
-    print "Usage: %s out.grc" %sys.argv[0]
-    sys.exit(1)
+    print "Usage : %s " %usage(sys.argv[0])
+
+if "-green" in sys.argv:
+    green = sys.argv[sys.argv.index('-green')+1]
+else:
+    print "Usage : %s " %usage(sys.argv[0])
+
 
 from phi3 import *
 
 
 print phi3.name
-G_list = rggrf.graph.LoadFromGRC(filename,phi3)
+G_list = rggrf.graph.LoadFromGRC(grc,phi3)
 for G in G_list:
     G.GenerateNickel()
+    G.green = green
     print G.nickel, G.sym_coeff
     G.Save(overwrite=True)
     

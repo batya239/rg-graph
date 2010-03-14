@@ -23,6 +23,7 @@ try:
     G = rggrf.Graph(phi3)
     G.Load()
     G.GenerateNickel()
+    G.LoadResults('eps')
 except:
     pass
 
@@ -66,7 +67,7 @@ if G != None:
     (G.r1_dot_gamma, G.r1_dot_gamma_err) = ResultWithSd(t_res, G.NLoops(), G.model.target - G.NLoops())
     print G.r1_dot_gamma
     G.npoints = npoints
-    G.SaveResults()
+    G.SaveResults(['r1_dot_gamma','r1_dot_gamma_err','npoints'])
 
 #print "симметрийный коэффициент: %s" %(G.sym_coeff)
 

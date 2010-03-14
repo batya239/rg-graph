@@ -236,6 +236,8 @@ class Graph:
         self.internal_nodes = set([]) # nodes with types >0
         self.type=-1
         self.nickel=None
+        self.green=''
+        self.method=''
         
     def __str__(self):
         """ Converts Graph to string representation for printing
@@ -444,6 +446,8 @@ class Graph:
         map(lambda k,v: lines.update({k: str(v)}),self.lines.keys(),self.lines.values())
         res['lines'] = lines
         res['node_types'] = self.GetNodesTypes()
+        res['green'] = self.green
+        res['method'] = self.method
         
         return res
     
@@ -454,6 +458,11 @@ class Graph:
             line = eval(dict['lines'][idxL])
             self.AddLine(idxL, Line(line['type'],line['start'],line['end'],line['momenta'],line['dots']))
         self.DefineNodes(dict['node_types'])
+        if 'green' in dict:
+            self.green = dict['green']
+        if 'method' in dict:
+            self.method = dict['method']
+        
     
     def Save(self, overwrite=False):
         self.model.SaveGraph(self,overwrite)
@@ -468,8 +477,8 @@ class Graph:
         for idxL in moments:
             self.lines[idxL].momenta = Momenta(string=moments[idxL])
             
-    def SaveResults(self):
-        self.model.SaveResults(self)
+    def SaveResults(self,*args):
+        self.model.SaveResults(self,*args)
     
     def LoadResults(self, strvars):
         self.model.LoadResults(self, strvars)

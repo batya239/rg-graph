@@ -61,14 +61,18 @@ def LoadGraphAsDict(G,str_nickel=""):
     dict = eval(open(dirname+"Graph","r").read())
     return dict
 
-def SaveResults(G):
+def SaveResults(G,res_list=[]):
     G.GenerateNickel()
     name = "%s/"%(G.nickel)
     pwd = NormalizeBaseName(G.model.basepath)
     dirname = pwd + name
     time_str=time.strftime("-%Y-%m-%d-%H:%M:%S")
+    if len(res_list)==0:
+        lst = ['r1_dot_gamma','delta_gamma','r1_gamma', 'r1_dot_gamma_err', 'npoints']
+    else:
+        lst = res_list
 
-    for idx in ['r1_dot_gamma','delta_gamma','r1_gamma', 'r1_dot_gamma_err', 'npoints']:
+    for idx in lst:
         
         if idx in G.__dict__:
             F=open(dirname+idx,"w")
