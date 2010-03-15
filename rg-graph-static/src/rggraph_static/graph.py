@@ -496,6 +496,9 @@ class Graph:
         else:
             raise ValueError, 'Please calculate graph %s ' %self.nickel
         return res
+    
+    def WorkDir(self):
+        self.model.WorkDir(self)
 
 def LoadFromGRC(filename,model):
 

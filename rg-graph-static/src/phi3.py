@@ -424,6 +424,7 @@ phi3.SaveResults = rggrf.storage.filesystem.SaveResults
 phi3.LoadResults = rggrf.storage.filesystem.LoadResults
 
 phi3.GetGraphList = rggrf.storage.filesystem.GetGraphList
+phi3.WorkDir = rggrf.storage.filesystem.ChangeToWorkDir
 
 phi3.target = 4
 

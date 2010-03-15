@@ -20,6 +20,10 @@ if "-debug" in sys.argv:
 else:
     debug = False
 
+if "-overwrite" in sys.argv:
+    overwrite = True
+else:
+    overwrite = False
 #print phi3.name
 
 for file in g_list:
@@ -28,13 +32,14 @@ for file in g_list:
     G.Load(file)
     G.GenerateNickel()
     G.FindSubgraphs()
+    G.WorkDir()
 #print G.nickel
 
     moments = rggrf.moments.Generate(G)
     G._UpdateMoments(moments)
 
 
-    G.Save(overwrite=True)
+    G.Save(overwrite=overwrite)
     G.SaveAsPNG("graph.png")
 
 #print rggrf.nickel.Nickel(nickel=G.nickel.nickel).nickel

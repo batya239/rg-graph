@@ -44,8 +44,8 @@ def SaveGraphAsDict(G, overwrite=False):
             file_list = os.listdir(dirname)
             for file in file_list:
                 os.remove(dirname+file)
-        else:
-            raise Exception, "folder %s already exists" %dirname
+#        else:
+#            raise Exception, "folder %s already exists" %dirname
     F = open(dirname+"Graph","w")
     F.write(str(G._ToDict()))
     F.close()
@@ -102,3 +102,6 @@ def LoadResults(G,strvars):
         except IOError:
             G.__dict__[idx] = None
             
+def ChangeToWorkDir(G):
+    G.GenerateNickel()
+    os.chdir("%s/%s/"%(NormalizeBaseName(G.model.basepath), G.nickel))     
