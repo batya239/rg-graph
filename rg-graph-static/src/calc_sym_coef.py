@@ -2,28 +2,27 @@
 # -*- coding:utf8
 
 import sys
-from sympy import *
+import sympy 
 import rggraph_static as rggrf
-
-
-
-if len(sys.argv) == 2:
-    filename = sys.argv[1]
-else:
-    filename = "moment"
 
 from phi3 import *
 
+if "-graph" in sys.argv:
+    g_list = [sys.argv[sys.argv.index('-graph')+1],]
+else:
+    g_list = phi3.GraphList()
+    
+eps = sympy.var('eps')
 
-print phi3.name
 
-G = rggrf.Graph(phi3)
-G.LoadLinesFromFile(filename)
-G.DefineNodes({})
-G.GenerateNickel()
-print rggrf.nickel.Nickel(nickel=G.nickel.nickel).nickel
-print rggrf.nickel.Nickel(nickel=G.nickel.nickel).edges
-print G.sym_coeff
+
+for file in g_list:
+        #print "--- %s"%file,
+        G = rggrf.Graph(phi3)
+        G.Load(str_nickel=file)
+        G.DefineNodes({})
+        G.GenerateNickel()
+        print G.sym_coeff
 
     
 
