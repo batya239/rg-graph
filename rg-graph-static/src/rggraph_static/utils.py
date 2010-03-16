@@ -66,9 +66,11 @@ def xUniqueCombinations(items, n):
 
 
 def SimpleSeries(func,var,point,num):
+# TODO: doesnt work sometimes.
+    
     level=0
     flag=1
-    f=func
+    f=func.series(var,point=point,n=num+1000)
     res=0
     while(flag>0):
         tmp=sympy.limit(abs(f),var,point) 
