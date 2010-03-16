@@ -70,7 +70,10 @@ def SimpleSeries(func,var,point,num):
     
     level=0
     flag=1
-    f=func.series(var,point=point,n=num+1000)
+    if 'series' in dir(func):
+        f=func.series(var,point=point,n=num+1000)
+    else:
+        f=func
     res=0
     while(flag>0):
         tmp=sympy.limit(abs(f),var,point) 
