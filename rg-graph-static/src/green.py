@@ -45,4 +45,3 @@ for green in greens:
     cur_series=rggrf.utils.SimpleSeries(greens[green], g, 0, max_nloop)
     print "%s : %s"%(green,cur_series) 
 
-
