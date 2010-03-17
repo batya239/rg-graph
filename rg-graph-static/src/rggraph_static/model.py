@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding:utf8
 
+import utils
+import graph
 from sympy import *
 
 class Model:
@@ -16,6 +18,7 @@ class Model:
         self.subgraph_types = dict()
         self.k_nodetype_r1 = dict()
         self.dot_types = dict()
+        self.greens=None
         
     def AddLineType(self, line_idx, **kwargs):
         """ propagator,directed,Graphviz
@@ -78,6 +81,28 @@ class Model:
     
     def GraphList(self):
         return self.GetGraphList(self)
+    
+    def GetGreens(self,reload=False, debug=False):
+        if self.greens == None or reload:
+            self.greens=dict()
+            g_list = self.GraphList()
+            g = var('g')
+            for file in g_list:
+                utils.print_debug("---: %s"%file, debug)
+                G = graph.Graph(self)
+                G.Load(str_nickel=file)
+                G.DefineNodes({})
+                G.GenerateNickel()
+                G.LoadResults('eps')
+                if len(G.green)>0 and G.green in self.greens and G.NLoops() <= self.target:
+                    utils.print_debug("-----------------------: %s %s %s %s"%(G.green,G.sym_coeff, G.r1_gamma, g**G.NLoops()), debug)
+                    self.greens[G.green] = self.greens[G.green] + G.sym_coeff * G.r1_gamma * g**G.NLoops()
+                else:
+                    self.greens[G.green] = G.sym_coeff * G.r1_gamma * g**G.NLoops() 
+            for green in self.greens:
+                self.greens[green]=utils.SimpleSeries(self.greens[green], g, 0, self.target)           
+        else:
+            return self.greens
     
     
 #def scalar_prod(moment1, moment2):
