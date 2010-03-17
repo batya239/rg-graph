@@ -100,7 +100,8 @@ class Model:
                 else:
                     self.greens[G.green] = G.sym_coeff * G.r1_gamma * g**G.NLoops() 
             for green in self.greens:
-                self.greens[green]=utils.SimpleSeries(self.greens[green], g, 0, self.target)           
+                self.greens[green]=utils.SimpleSeries(self.greens[green], g, 0, self.target)
+            return self.greens           
         else:
             return self.greens
     
