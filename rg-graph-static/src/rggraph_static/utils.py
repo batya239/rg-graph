@@ -71,9 +71,11 @@ def SimpleSeries(func,var,point,num):
     level=0
     flag=1
     if 'series' in dir(func):
-        f=func.series(var,point=point,n=num+1000)
+        f=func.series(var,point=point,n=num+2)
     else:
         f=func
+    for OO in f.atoms(sympy.Order):
+        f=f.subs(OO,0)
     res=0
     while(flag>0):
         tmp=sympy.limit(abs(f),var,point) 

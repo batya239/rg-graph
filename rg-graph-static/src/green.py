@@ -33,6 +33,7 @@ for file in g_list:
         G.GenerateNickel()
         G.LoadResults('eps')
         if len(G.green)>0 and G.green in greens:
+            rggrf.utils.print_debug("-----------------------: %s %s %s %s"%(G.green,G.sym_coeff, G.r1_gamma, g**G.NLoops()), debug)
             greens[G.green] = greens[G.green] + G.sym_coeff * G.r1_gamma * g**G.NLoops()
         else:
             greens[G.green] = G.sym_coeff * G.r1_gamma * g**G.NLoops()
@@ -43,4 +44,5 @@ for file in g_list:
 for green in greens:
     cur_series=rggrf.utils.SimpleSeries(greens[green], g, 0, max_nloop)
     print "%s : %s"%(green,cur_series) 
+
 
