@@ -212,7 +212,7 @@ def K_nR1(G, N):
             for cur_cur_diff in cur_diff:
                 if cur_cur_diff[0]==idxN and cur_cur_diff[1] == "N":
                     diff_var = sympy.var(cur_cur_diff[2])
-                    factor = factor.diff(diff_var)
+                    factor = rggrf.roperation.Factorized(1,(factor.factor*factor.other).diff(diff_var))
             t_res = t_res * factor
         if ext_strech_var_str <>None:
             strech_var = sympy.var(ext_strech_var_str)
