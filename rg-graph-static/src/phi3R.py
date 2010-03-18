@@ -95,10 +95,9 @@ def K_nR1(G, N):
     
     ext_strech_var_str=None
     if N==0:
-        diffs=list()
+        diffs=[None,]
         extra_diff_multiplier = 1
     elif N==2:
-        diffs=list()
         extra_diff_multiplier = 0.5
         ext_moment_atoms_str = FindExtMomentAtoms(G)
         if len(ext_moment_atoms_str)==1:
@@ -154,7 +153,11 @@ def K_nR1(G, N):
         if degree>0: 
             extra_strech_multiplier = extra_strech_multiplier * (1.-strech_var)**(degree-1.)/2. 
         new_diffs=list()
-        for cur_diff in diffs:
+        for diff in diffs:
+            if diff == None:
+                cur_diff = list()
+            else:
+                cur_diff = diff
             #print cur_diff
             for cur_sub_diff in sub_diffs:
                 new_diff=copy.deepcopy(cur_diff)
@@ -162,10 +165,15 @@ def K_nR1(G, N):
                     new_diff.append(idx)
                 new_diffs.append(new_diff)
         diffs = new_diffs
-    #print diffs
+    print diffs
     
     res=list()
     for diff in diffs:
+        if diff == None:
+            cur_diff = list()
+        else:
+            cur_diff = diff
+            
         t_res = rggrf.roperation.Factorized(1,extra_diff_multiplier)
         for idxL in G.internal_lines:
             curline=G.lines[idxL]
@@ -179,9 +187,9 @@ def K_nR1(G, N):
                     strech_var = sympy.var(cur_strech_str)
                     for atom in strech_atoms:
                         prop = rggrf.Streching(prop, atom, strech_var, ignore_present_strech=True)
-            for cur_diff in diff:
-                if cur_diff[0]==idxL and cur_diff[1] == "L":
-                    diff_var = sympy.var(cur_diff[2])                        
+            for cur_cur_diff in cur_diff:
+                if cur_cur_diff[0]==idxL and cur_cur_diff[1] == "L":
+                    diff_var = sympy.var(cur_cur_diff[2])                        
                     prop = prop.diff(diff_var)
             t_res.other = t_res.other * prop
         
@@ -201,9 +209,9 @@ def K_nR1(G, N):
                     strech_var = sympy.var(cur_strech_str)
                     for atom in strech_atoms:
                         factor = rggrf.Streching(factor, atom, strech_var, ignore_present_strech=True)
-            for cur_diff in diff:
-                if cur_diff[0]==idxN and cur_diff[1] == "N":
-                    diff_var = sympy.var(cur_diff[2])
+            for cur_cur_diff in cur_diff:
+                if cur_cur_diff[0]==idxN and cur_cur_diff[1] == "N":
+                    diff_var = sympy.var(cur_cur_diff[2])
                     factor = factor.diff(diff_var)
             t_res = t_res * factor
         if ext_strech_var_str <>None:
@@ -221,7 +229,7 @@ def K_nR1(G, N):
             else:
                 t_res.other = t_res.other.subs(strech_var,0)
         #sympy.pretty_print(t_res.factor)
-        #sympy.pretty_print(t_res.other)
+        sympy.pretty_print(t_res.other)
         res.append(t_res)
             
     return res
@@ -333,8 +341,8 @@ def MCT_fstrvars(G, debug=False):
     prog_names = rggrf.integration.GenerateMCCodeForTermStrVars(base_name, prepared_eqs,SPACE_DIM, n_epsilon_series, NPOINTS, NTHREADS,debug=debug) 
     
     t_res = rggrf.integration.CalculateEpsilonSeries(prog_names, build=True,debug=debug)
-    (G.r1_dot_gamma, G.r1_dot_gamma_err) = ResultWithSd(t_res, G.NLoops(), n_epsilon_series)
-    
+    (G.r1_dot_gamma, err) = ResultWithSd(t_res, G.NLoops(), n_epsilon_series)
+    G.r1_dot_gamma_err = rggrf.utils.RelativeError(G.r1_dot_gamma, err, sympy.var('eps'))
     rggrf.utils.print_debug(str(G.r1_dot_gamma), debug)
     G.npoints = NPOINTS 
     

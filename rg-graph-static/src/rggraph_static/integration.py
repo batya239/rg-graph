@@ -666,7 +666,7 @@ def GenerateMCCodeForTermStrVars(name, prepared_eqs, space_dim, n_epsilon_series
             
     for idxE in expr_by_eps:
         
-        c_expr = expr_by_eps[idxE][0]
+        #c_expr = expr_by_eps[idxE][0]
         for idxT in range(len(expr_by_eps[idxE])):
             cur_name = "%s_%s_e%s"%(name,idxT,idxE)
             c_expr = expr_by_eps[idxE][idxT][0]
