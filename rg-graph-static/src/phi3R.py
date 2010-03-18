@@ -229,7 +229,7 @@ def K_nR1(G, N):
             else:
                 t_res.other = t_res.other.subs(strech_var,0)
         #sympy.pretty_print(t_res.factor)
-        sympy.pretty_print(t_res.other)
+        #sympy.pretty_print(t_res.other)
         res.append(t_res)
             
     return res
