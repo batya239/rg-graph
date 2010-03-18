@@ -165,7 +165,7 @@ def K_nR1(G, N):
                     new_diff.append(idx)
                 new_diffs.append(new_diff)
         diffs = new_diffs
-    print diffs
+    #print diffs
     
     res=list()
     for diff in diffs:
