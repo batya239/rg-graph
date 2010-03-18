@@ -433,7 +433,8 @@ model.methods = dict()
 
 def MCO_fstrvars(G, debug=False):
     G.GenerateNickel()
-    base_name = "fstrvars_%s"%str(G.nickel)
+    G.method = "MCO_fstrvars"
+    base_name = "%s_%s"%(G.method,str(G.nickel))
     n_epsilon_series =G.model.target -G.NLoops()
     NPOINTS = 10000
     NTHREADS = 2
@@ -471,7 +472,7 @@ def MCO_fstrvars(G, debug=False):
     
     rggrf.utils.print_debug(str(G.r1_dot_gamma), debug)
     G.npoints = NPOINTS 
-    G.method = "MCO_fstrvars"
+    
     G.SaveResults()
 
 
@@ -482,19 +483,8 @@ model.methods['MCO_fstrvars'] = MCO_fstrvars
     
     
     
-    
 def ResultWithSd(_dict, nloops, n_eps_series):
-    def RelativeError(expr, err, var):
-        t_expr = expr
-        t_err = err
-        res = dict()
-        idx = 0
-        while(t_expr<>0):
-            res[idx] = (t_err.subs(var,0),t_err.subs(var,0)/t_expr.subs(var,0))
-            idx = idx + 1
-            t_expr = t_expr.diff(var)/idx
-            t_err = t_err.diff(var)/idx
-        return res
+
     
     
     eps = var('eps')
@@ -517,7 +507,7 @@ def ResultWithSd(_dict, nloops, n_eps_series):
     expr = rggrf.utils.SimpleSeries(expr * t_mnog[nloops-1], eps, 0, n_eps_series)
     err = rggrf.utils.SimpleSeries(err * t_mnog[nloops-1], eps, 0, n_eps_series)
     #print series(expr,eps,0)
-    return (expr, RelativeError(expr, err, eps))
+    return (expr, err)
 
 def ResultOldNotation(_dict):
     eps = var('eps')

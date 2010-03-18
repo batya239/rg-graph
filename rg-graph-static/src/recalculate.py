@@ -6,6 +6,7 @@ import subprocess
 import rggraph_static as rggrf
 import re as regex
 import os
+import sympy
 
 def FindExecutables(ls_out,prefix):
     res = dict()
@@ -107,18 +108,29 @@ for nickel in g_list:
         exit_code = process.wait()
         (std_out,std_err) = process.communicate()
         if exit_code <> 0 :
+            print std_err
             raise Exception, "\"ls %s*\" returned error code %s"%(G.method,exit_code)
     
         t_exec_dict = FindExecutables(std_out, G.method)
-        if len(t_exec_dict)>1:
-            raise ValueError, "found more then one set of executables: %s " %t_exec_dict.keys()
+#        if len(t_exec_dict)>1:
+#            raise ValueError, "found more then one set of executables: %s " %t_exec_dict.keys()
+        G.r1_dot_gamma = 0
+        err = 0
+        for idx in t_exec_dict:    
+            prog_names = t_exec_dict[idx]
     
-        prog_names = t_exec_dict[t_exec_dict.keys()[0]]
     
+            t_res = rggrf.integration.CalculateEpsilonSeries(prog_names, points=G.npoints, threads=nthreads, debug=debug)
     
-        t_res = rggrf.integration.CalculateEpsilonSeries(prog_names, points=G.npoints, threads=nthreads, debug=debug)
-    
-        (G.r1_dot_gamma, G.r1_dot_gamma_err) = ResultWithSd(t_res, G.NLoops(), G.model.target - G.NLoops())
+            (t_r1_dot_gamma, t_r1_dot_gamma_err) = ResultWithSd(t_res, G.NLoops(), G.model.target - G.NLoops())
+            #print t_r1_dot_gamma, t_r1_dot_gamma_err
+            G.r1_dot_gamma = G.r1_dot_gamma + t_r1_dot_gamma
+        
+            err = err + t_r1_dot_gamma_err
+        
+        
+        G.r1_dot_gamma_err = rggrf.utils.RelativeError(G.r1_dot_gamma, err, sympy.var('eps'))
+        
         rggrf.utils.print_debug( G.r1_dot_gamma, debug)
         
         G.SaveResults(['r1_dot_gamma','r1_dot_gamma_err','npoints','method'])

@@ -36,6 +36,15 @@ def SplitAtoms(str_atom_set):
                                    set(int_cos_atoms), set(other_atoms))
 
 def AvarageByExtDirection(s_expr, str_ext_cos_atoms, degree, debug=False):
+    
+    def SetAtomsToZero(expr,str_atoms):
+        res = expr
+        for str_atom in str_atoms:
+            atom = var(str_atom)
+            res = res.subs(atom,0)
+#        print "Set Zero: %s "%str_atoms
+#        pretty_print(res)
+        return res
 #TODO: need lots of verifications to work in general case; now only 0 and 2 degree
 #    print "==== AvarageByExtDirection "
 #    print str_ext_cos_atoms,degree
@@ -47,9 +56,7 @@ def AvarageByExtDirection(s_expr, str_ext_cos_atoms, degree, debug=False):
         if degree >=0:
             t_expr = s_expr
 #            print str_ext_cos_atoms
-            for atom in str_ext_cos_atoms:
-                s_atom = var(atom)
-                t_expr = t_expr.subs(s_atom, 0)
+            t_expr = SetAtomsToZero(t_expr,str_ext_cos_atoms)
 #            print "degree 0 ", t_expr
             res = res + t_expr
 #            print s_atom, t_expr
@@ -76,9 +83,9 @@ def AvarageByExtDirection(s_expr, str_ext_cos_atoms, degree, debug=False):
                 
 #                print atom1,atom2,atom12
 #                print t_expr.diff(atom2)
-                t_expr = t_expr.diff(atom1).diff(atom2).subs(atom1, 0).subs(atom2, 0)
+                t_expr = SetAtomsToZero(t_expr.diff(atom1).diff(atom2),str_ext_cos_atoms)
                 if selection[0] == selection[1]:
-                    t_expr = t_expr/2/d
+                    t_expr = t_expr/2./d
                 else:
                     t_expr = t_expr*atom12/d
                 
@@ -106,13 +113,21 @@ def PrepareFactorizedStrVars(fact_expr, space_dim, ignore_unknown=False, simplif
     str_atom_set = ginac.GetVarsAsStr(fact_expr.factor * fact_expr.other)
     (ext_moment_atoms, ext_cos_atoms, int_moment_atoms, 
                        int_cos_atoms, other_atoms) = SplitAtoms(str_atom_set)
+    strech_atoms = set([])
     if ignore_unknown:
         pass
     else:
         if len(ext_moment_atoms | other_atoms)>0:
-            raise  NotImplementedError, "Don't know what to do with following atoms: %s" %(ext_moment_atoms|other_atoms)
-
+            unknown_atoms = ext_moment_atoms | other_atoms
+            strech_atoms = set([])
+            for atom in unknown_atoms:
+                if regex.match("^a_", atom):
+                    strech_atoms = strech_atoms | set([atom,])
+            if len(unknown_atoms - strech_atoms)>0:
+                raise  NotImplementedError, "Don't know what to do with following atoms: %s" %(unknown_atoms - strech_atoms)
+    #print ext_cos_atoms
     expr_o = AvarageByExtDirection(fact_expr.other, ext_cos_atoms, 2, debug=debug)
+    #pretty_print(expr_o) 
 #    print "\nExtDir:\n"
 #    pretty_print(expr)
 
@@ -127,7 +142,7 @@ def PrepareFactorizedStrVars(fact_expr, space_dim, ignore_unknown=False, simplif
 
                 
 # доопределяем недостающие переменные самое важное d и e, остальное на самом деле вроде не нужно.
-    for idx in ["d", "e"]+list(int_moment_atoms)+list(int_cos_atoms):
+    for idx in ["d", "e"]+list(int_moment_atoms)+list(int_cos_atoms) + list(strech_atoms):
         if  idx not in g_vars:
             g_vars[idx] = swiginac.symbol(idx)
     utils.print_time("Prepare:before normal",debug)        
@@ -582,6 +597,13 @@ def GenerateCVars(g_vars):
             region.append((0,1))
             continue
         
+        reg = regex.match("^a_\d", atom)
+        if reg :
+            c_vars = c_vars + "double %s = k[%s];\n" %(atom,var_cnt)
+            var_cnt = var_cnt + 1
+            region.append((0,1))
+            continue
+        
         reg = regex.match("^ct_\d+_\d+$", atom)
         if reg :
             c_vars = c_vars + "double %s = k[%s];\n" %(atom,var_cnt)
@@ -617,6 +639,42 @@ def GenerateMCCodeForTerm(name, g_expr, g_vars, space_dim, n_epsilon_series, poi
     utils.print_time("GMCCFT: end", debug)
     
     return prog_names 
+
+def GenerateMCCodeForTermStrVars(name, prepared_eqs, space_dim, n_epsilon_series, points, nthreads,debug=False):
+#TODO: проверка что у всех членов одинаковые переменные.
+    prog_names = list()
+    expr_by_eps = dict()
+    for i in range(n_epsilon_series+1):
+        expr_by_eps[i] = list()
+    c_vars = ""
+    str_region = ""
+    for idx in range(len(prepared_eqs)):
+        (g_expr,g_vars, str_vars) = prepared_eqs[idx]
+        e = g_vars["e"]
+        d = g_vars["d"]
+#        print g_expr
+        t_expr = swiginac.subs(g_expr,d == float(space_dim) - e)
+        
+        for idxE in range(n_epsilon_series+1):
+            cur_expr = t_expr.subs(e == 0)
+            (c_vars, str_region) = GenerateCVars(g_vars)
+            c_vars = "%s\n%s"%(c_vars,str_vars)
+            cur_expr.set_print_context('c')
+            c_expr = cur_expr.str()
+            expr_by_eps[idxE].append((c_expr,c_vars,str_region))
+            t_expr = t_expr.diff(e)/(idxE+1)
+            
+    for idxE in expr_by_eps:
+        
+        c_expr = expr_by_eps[idxE][0]
+        for idxT in range(len(expr_by_eps[idxE])):
+            cur_name = "%s_%s_e%s"%(name,idxT,idxE)
+            c_expr = expr_by_eps[idxE][idxT][0]
+            c_vars = expr_by_eps[idxE][idxT][1]
+            str_region = expr_by_eps[idxE][idxT][2] 
+            SavePThreadsMCCode(cur_name, c_expr, c_vars, str_region, points, nthreads)
+            prog_names.append(cur_name)
+    return prog_names  
 
 def GenerateMCCodeForGraph(name, prepared_eqs, space_dim, n_epsilon_series, points, nthreads, debug=False):
 #TODO: проверка что у всех членов одинаковые переменные.
@@ -673,7 +731,7 @@ def GenerateMCCodeForGraphStrVars(name, prepared_eqs, space_dim, n_epsilon_serie
             t_expr = t_expr.diff(e)/(idxE+1)
             
     for idxE in expr_by_eps:
-        cur_name = "MCO_%s_e%s"%(name,idxE)
+        cur_name = "%s_e%s"%(name,idxE)
         c_expr = expr_by_eps[idxE][0]
         for idxT in expr_by_eps[idxE][1:]:
             c_expr = "%s;\nf[0] = f[0] + %s" %(c_expr,idxT) 

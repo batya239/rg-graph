@@ -129,14 +129,14 @@ class Momenta:
 
         return Momenta(sympy=t_sympy)
 
-def Streching(expr, moment_atom, strech):
+def Streching(expr, moment_atom, strech, ignore_present_strech = False):
     try:
         atoms = expr.atoms()
     except AttributeError:
         return expr
     t_expr = expr
-    if strech in atoms:
-        raise Exception, " %s  internal variable of Diff function, it shouldn't present in expression %s" %(strech, expr)
+    if (not ignore_present_strech) and strech in atoms:
+        raise Exception, " %s  internal variable of Diff function, it shouldn't present in expression %s, atoms:%s" %(strech, expr, atoms)
     
     for atom in atoms:
         if ("%sx" %moment_atom in str(atom)) or ("x%s" %moment_atom in str(atom)) or ("%s" %moment_atom == str(atom) ):
