@@ -1,15 +1,28 @@
 #!/usr/bin/python
 # -*- coding:utf8
 import sys
-import sympy 
+import sympy
 import rggraph_static as rggrf
+model = None
 
+def usage(progname):
+    return "%s -model phi3R [-graph str_nickel] [-debug]"
 
-from phi3 import *
+if "-model" in sys.argv:
+    model_module = sys.argv[sys.argv.index('-model')+1]
+    try:
+        exec('from %s import *'%model_module)
+    except:
+        print "Error while importing model!"
+        sys.exit(1)
+else:
+    print "Usage : %s " %usage(sys.argv[0])
+    sys.exit(1)
+    
 if "-graph" in sys.argv:
     g_list = [sys.argv[sys.argv.index('-graph')+1],]
 else:
-    g_list = phi3.GraphList()
+    g_list = model.GraphList()
     
 if "-debug" in sys.argv:
     debug = True
@@ -23,7 +36,7 @@ while len(g_list)>0:
     t_list=[]
     for file in g_list:
         rggrf.utils.print_debug(file, debug)
-        G = rggrf.Graph(phi3)
+        G = rggrf.Graph(model)
         G.Load(file)
         G.DefineNodes({})
         G.GenerateNickel()
@@ -31,8 +44,8 @@ while len(g_list)>0:
         D = rggrf.roperation.Delta(G)
     
         for term  in D.terms:
-            G1 = rggrf.Graph(phi3)
-            G2 = rggrf.Graph(phi3)
+            G1 = rggrf.Graph(model)
+            G2 = rggrf.Graph(model)
             try:
                 term.ct_graph.GenerateNickel()
     

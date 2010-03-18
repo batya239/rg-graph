@@ -381,54 +381,54 @@ def ExpandScalarProdsAndPrepare(expr_,debug=False):
 
            
 # model initialization
-phi3=rggrf.Model("phi3")
+model=rggrf.Model("phi3")
 
 # definition of line types (1 line type)
-phi3.AddLineType(1, propagator=propagator, directed=0)
+model.AddLineType(1, propagator=propagator, directed=0)
 
 # definition of node types
 
 #External Node always have number 0 and no Lines requirement
-phi3.AddNodeType(0, Lines=[], Factor=external_node_factor,
+model.AddNodeType(0, Lines=[], Factor=external_node_factor,
                  gv={"color": "red"}) 
 # phi3 node
-phi3.AddNodeType(1, Lines=[1, 1, 1], Factor=triple_node_factor)
+model.AddNodeType(1, Lines=[1, 1, 1], Factor=triple_node_factor)
 
 # nodes from Sigma subgraphs inf counterterms graphs
-phi3.AddNodeType(2, Lines=[1, 1], Factor=double_node_factor)
+model.AddNodeType(2, Lines=[1, 1], Factor=double_node_factor)
 
 # Nodes with K operation (Lines definition should much to one of 
 # subgraphs definitions)
 
 #TODO: generate such nodes automatically when adding subgraph types 
-phi3.AddNodeType(3, Lines=[1, 1, 1], Factor=K, gv={"color": "blue"})
-phi3.AddNodeType(4, Lines=[1, 1], Factor=K, gv={"color": "blue"})
+model.AddNodeType(3, Lines=[1, 1, 1], Factor=K, gv={"color": "blue"})
+model.AddNodeType(4, Lines=[1, 1], Factor=K, gv={"color": "blue"})
 
 # relevant subgraph types
-phi3.AddSubGraphType(1, Lines=[1, 1, 1], dim=0, K_nodetypeR1=3)
-phi3.AddSubGraphType(2, Lines=[1, 1], dim=2, K_nodetypeR1=4)
+model.AddSubGraphType(1, Lines=[1, 1, 1], dim=0, K_nodetypeR1=3)
+model.AddSubGraphType(2, Lines=[1, 1], dim=2, K_nodetypeR1=4)
 
 # definition of dots
-phi3.AddDotType(1, dim=2, action=dot_action, gv={"penwidth":"3"})
+model.AddDotType(1, dim=2, action=dot_action, gv={"penwidth":"3"})
 
-phi3.basepath = rggrf.storage.filesystem.NormalizeBaseName("~/work/rg-graph/test/")
+model.basepath = rggrf.storage.filesystem.NormalizeBaseName("~/work/rg-graph/test/")
 
 try:
-    os.listdir(rggrf.storage.filesystem.NormalizeBaseName(phi3.basepath))
+    os.listdir(rggrf.storage.filesystem.NormalizeBaseName(model.basepath))
 except:
-    raise ValueError, "invalid storage path  %s" %phi3.basepath
-phi3.SaveGraph = rggrf.storage.filesystem.SaveGraphAsDict
-phi3.LoadGraph = rggrf.storage.filesystem.LoadGraphAsDict
+    raise ValueError, "invalid storage path  %s" %model.basepath
+model.SaveGraph = rggrf.storage.filesystem.SaveGraphAsDict
+model.LoadGraph = rggrf.storage.filesystem.LoadGraphAsDict
 
-phi3.SaveResults = rggrf.storage.filesystem.SaveResults
-phi3.LoadResults = rggrf.storage.filesystem.LoadResults
+model.SaveResults = rggrf.storage.filesystem.SaveResults
+model.LoadResults = rggrf.storage.filesystem.LoadResults
 
-phi3.GetGraphList = rggrf.storage.filesystem.GetGraphList
-phi3.WorkDir = rggrf.storage.filesystem.ChangeToWorkDir
+model.GetGraphList = rggrf.storage.filesystem.GetGraphList
+model.WorkDir = rggrf.storage.filesystem.ChangeToWorkDir
 
-phi3.target = 4
+model.target = 4
 
-phi3.methods = dict()
+model.methods = dict()
 
 
 def MCO_fstrvars(G, debug=False):
@@ -475,7 +475,7 @@ def MCO_fstrvars(G, debug=False):
     G.SaveResults()
 
 
-phi3.methods['MCO_fstrvars'] = MCO_fstrvars
+model.methods['MCO_fstrvars'] = MCO_fstrvars
 
 
 

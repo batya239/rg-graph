@@ -3,13 +3,32 @@
 
 import sympy
 import rggraph_static as rggrf
-from phi3 import *
+import sys
 import swiginac
 
+model = None
+
+def usage(progname):
+    return "%s -model phi3R [-target N] [-debug]"
+
+if "-model" in sys.argv:
+    model_module = sys.argv[sys.argv.index('-model')+1]
+    try:
+        exec('from %s import *'%model_module)
+    except:
+        print "Error while importing model!"
+        sys.exit(1)
+    if model.name <> 'phi3':
+        print "This program works for phi3 model ONLY!"
+        sys.exit(1)
+else:
+    print "Usage : %s " %usage(sys.argv[0])
+    sys.exit(1)
+    
 if "-target" in sys.argv:
     target = int(sys.argv[sys.argv.index('-target')+1])
 else:
-    target = phi3.target
+    target = model.target
 
 g=swiginac.symbol('g')
 eps=swiginac.symbol('eps')
@@ -32,7 +51,7 @@ def geseries(f,g,eps,n):
 #       - g**2*(3.06128503353258 - 0.959657003971711*eps - 2.35416311194034/eps
 #                + 1.25000021001422/eps**2) - g**3*(7.81740005363973 - 10.6221807399268/eps 
 #                - 1.66666630630782/eps**3 + 5.28690425966290/eps**2))
-greens=phi3.GetGreens()
+greens=model.GetGreens()
 G2=eval(str(greens["G2"])) #converting from sympy to swiginac
 G3=eval(str(greens["G3"])) #converting from sympy to swiginac
 

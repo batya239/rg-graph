@@ -1,19 +1,29 @@
 #!/usr/bin/python
 # -*- coding:utf8
 
-from sympy import *
+model=None
+import sys
 import rggraph_static as rggrf
 
+def usage(progname):
+    return "%s -model phi3R [-overwrite] [-graph str_nickel] [-debug]"
 
+if "-model" in sys.argv:
+    model_module = sys.argv[sys.argv.index('-model')+1]
+    try:
+        exec('from %s import *'%model_module)
+    except:
+        print "Error while importing model!"
+        sys.exit(1)
+else:
+    print "Usage : %s " %usage(sys.argv[0])
+    sys.exit(1)
 
-
-
-from phi3 import *
 
 if "-graph" in sys.argv:
     g_list = [sys.argv[sys.argv.index('-graph')+1],]
 else:
-    g_list = phi3.GraphList()
+    g_list = model.GraphList()
     
 if "-debug" in sys.argv:
     debug = True
@@ -28,7 +38,7 @@ else:
 
 for file in g_list:
     rggrf.utils.print_debug(file, debug)
-    G = rggrf.Graph(phi3)
+    G = rggrf.Graph(model)
     G.Load(file)
     G.GenerateNickel()
     G.FindSubgraphs()

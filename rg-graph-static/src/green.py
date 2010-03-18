@@ -4,12 +4,25 @@ import sys
 import sympy 
 import rggraph_static as rggrf
 
-from phi3 import *
+model =None
+def usage(progname):
+    return "%s -model phi3R [-target N] [-debug]"
+
+if "-model" in sys.argv:
+    model_module = sys.argv[sys.argv.index('-model')+1]
+    try:
+        exec('from %s import *'%model_module)
+    except:
+        print "Error while importing model!"
+        sys.exit(1)
+else:
+    print "Usage : %s " %usage(sys.argv[0])
+    sys.exit(1)
     
 if "-target" in sys.argv:
     target = int(sys.argv[sys.argv.index('-target')+1])
 else:
-    target = phi3.target
+    target = model.target
     
     
 if "-debug" in sys.argv:
@@ -17,7 +30,7 @@ if "-debug" in sys.argv:
 else:
     debug = False
 
-g_list = phi3.GraphList()
+g_list = model.GraphList()
     
 eps = sympy.var('eps')
 g = sympy.var('g')
@@ -27,7 +40,7 @@ greens = dict()
 max_nloop = 0
 for file in g_list:
         rggrf.utils.print_debug("---: %s"%file, debug)
-        G = rggrf.Graph(phi3)
+        G = rggrf.Graph(model)
         G.Load(str_nickel=file)
         G.DefineNodes({})
         G.GenerateNickel()

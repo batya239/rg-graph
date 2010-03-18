@@ -4,7 +4,6 @@
 import sys
 import subprocess
 import rggraph_static as rggrf
-from phi3 import *
 import re as regex
 import os
 
@@ -19,6 +18,21 @@ def FindExecutables(ls_out,prefix):
                 res[reg.groups()[0]] = [line,]
     return res
 
+model = None
+
+def usage(progname):
+    return "%s -model phi3R [-graph str_nickel] [-absolute N] [-relative N] [-target] [-debug]"
+
+if "-model" in sys.argv:
+    model_module = sys.argv[sys.argv.index('-model')+1]
+    try:
+        exec('from %s import *'%model_module)
+    except:
+        print "Error while importing model!"
+        sys.exit(1)
+else:
+    print "Usage : %s " %usage(sys.argv[0])
+    sys.exit(1)
 
 if "-absolute" in sys.argv:
     absolute = float(sys.argv[sys.argv.index('-absolute')+1])
@@ -33,7 +47,7 @@ else:
 if "-graph" in sys.argv:
     g_list = [sys.argv[sys.argv.index('-graph')+1],]
 else:
-    g_list = phi3.GraphList()
+    g_list = model.GraphList()
     
 if "-debug" in sys.argv:
     debug = True
@@ -41,7 +55,7 @@ else:
     debug = False
     
 if "-target" in sys.argv:
-    phi3.target = int(sys.argv[sys.argv.index('-target')+1])
+    model.target = int(sys.argv[sys.argv.index('-target')+1])
     
 #if "-method" in sys.argv:
 #    method = sys.argv[sys.argv.index('-method')+1]
@@ -67,7 +81,7 @@ else:
     nthreads = 2
 
 for nickel in g_list:
-    G = rggrf.Graph(phi3)
+    G = rggrf.Graph(model)
     G.Load(nickel)
     G.GenerateNickel()
     G.LoadResults('eps')
@@ -85,8 +99,8 @@ for nickel in g_list:
                 G.npoints = 10000
         else:
             G.npoints = npoints
-         
-        os.chdir(phi3.basepath+"/"+nickel)
+        
+        G.WorkDir()
     
         process = subprocess.Popen(["ls %s*"%G.method,], shell=True, 
                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)

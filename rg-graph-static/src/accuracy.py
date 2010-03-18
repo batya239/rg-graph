@@ -3,8 +3,22 @@
 import sys
 import sympy 
 import rggraph_static as rggrf
+model = None
 
-from phi3 import *
+def usage(progname):
+    return "%s -model phi3R [-absolute N] [-relative N] [-graph str_nickel]"
+
+if "-model" in sys.argv:
+    model_module = sys.argv[sys.argv.index('-model')+1]
+    try:
+        exec('from %s import *'%model_module)
+    except:
+        print "Error while importing model!"
+        sys.exit(1)
+else:
+    print "Usage : %s " %usage(sys.argv[0])
+    sys.exit(1)
+    
 if "-absolute" in sys.argv:
     absolute = float(sys.argv[sys.argv.index('-absolute')+1])
 else:
@@ -18,19 +32,19 @@ else:
 if "-target" in sys.argv:
     target = int(sys.argv[sys.argv.index('-target')+1])
 else:
-    target = phi3.target
+    target = model.target
 
 if "-graph" in sys.argv:
     g_list = [sys.argv[sys.argv.index('-graph')+1],]
 else:
-    g_list = phi3.GraphList()
+    g_list = model.GraphList()
     
 eps = sympy.var('eps')
 
 #print phi3.name
 for file in g_list:
         #print "--- %s"%file,
-        G = rggrf.Graph(phi3)
+        G = rggrf.Graph(model)
         G.Load(str_nickel=file)
         G.DefineNodes({})
         G.GenerateNickel()

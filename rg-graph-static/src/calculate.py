@@ -3,7 +3,7 @@
 
 from phi3 import *
 from multiprocessing import Process
-import time
+
 
 def execute_method(method, G, debug=False):
     if method in G.model.methods:
@@ -12,11 +12,25 @@ def execute_method(method, G, debug=False):
         raise NotImplementedError, "method %s not implemented for model %s" %(method, G.model.name)
 
 if __name__ == '__main__':
+
+    def usage(progname):
+        return "%s -model phi3R -method Method [-graph str_nickel] [-target N] [-timeout] [-debug]"
+    
+    if "-model" in sys.argv:
+        model_module = sys.argv[sys.argv.index('-model')+1]
+        try:
+            exec('from %s import *'%model_module)
+        except:
+            print "Error while importing model!"
+            sys.exit(1)
+    else:
+        print "Usage : %s " %usage(sys.argv[0])
+        sys.exit(1)
     
     if "-graph" in sys.argv:
         g_list = [sys.argv[sys.argv.index('-graph')+1],]
     else:
-        g_list = phi3.GraphList()
+        g_list = model.GraphList()
         
     if "-debug" in sys.argv:
         debug = True
@@ -24,7 +38,7 @@ if __name__ == '__main__':
         debug = False
         
     if "-target" in sys.argv:
-        phi3.target = int(sys.argv[sys.argv.index('-target')+1])
+        model.target = int(sys.argv[sys.argv.index('-target')+1])
         
     if "-method" in sys.argv:
         method = sys.argv[sys.argv.index('-method')+1]
@@ -42,13 +56,12 @@ if __name__ == '__main__':
     for nickel in g_list:
         print "%s "%nickel,
         #rggrf.utils.print_debug(nickel, debug)
-        G = rggrf.Graph(phi3)
+        G = rggrf.Graph(model)
         G.Load(nickel)
         G.GenerateNickel()
         G.FindSubgraphs()
-        os.chdir(phi3.basepath+"/"+nickel)
+        os.chdir(model.basepath+"/"+nickel)
         process = Process(target=execute_method, args=(method, G, debug))
-        starttime=time.time()
         process.start()
         process.join(timeout)
         if process.is_alive():
