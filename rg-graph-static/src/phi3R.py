@@ -91,7 +91,7 @@ def FindExtMomentPath(G,atoms):
     return ext_moment_path
 
 
-def K_nR1(G, N):
+def K_nR1(G, N, debug=False):
     
     ext_strech_var_str=None
     if N==0:
@@ -165,7 +165,8 @@ def K_nR1(G, N):
                     new_diff.append(idx)
                 new_diffs.append(new_diff)
         diffs = new_diffs
-    #print diffs
+    if debug:    
+        print diffs
     
     res=list()
     for diff in diffs:
@@ -228,8 +229,10 @@ def K_nR1(G, N):
                 pass
             else:
                 t_res.other = t_res.other.subs(strech_var,0)
-        #sympy.pretty_print(t_res.factor)
-        #sympy.pretty_print(t_res.other)
+        
+        if debug:
+            sympy.pretty_print(t_res.factor)
+            sympy.pretty_print(t_res.other)
         res.append(t_res)
             
     return res
@@ -238,17 +241,17 @@ def K_nR1(G, N):
         
             
         
-def K2R1(G):
+def K2R1(G, debug=False):
     
     if isinstance(G,rggrf.Graph):
-        return K_nR1(G,2)
+        return K_nR1(G,2,debug)
     else:
         raise TypeError, "Invalid type" 
 
-def K0R1(G):
+def K0R1(G,debug=False):
     
     if isinstance(G,rggrf.Graph):
-        return K_nR1(G,0)
+        return K_nR1(G,0,debug)
     else:
         raise TypeError, "Invalid type" 
 
@@ -306,6 +309,7 @@ model.methods = dict()
 
 
 def MCT_fstrvars(G, debug=False):
+    import progressbar
     G.GenerateNickel()
     G.method = "MCT_fstrvars"
     base_name = "%s_%s"%(G.method,str( G.nickel))
@@ -314,6 +318,9 @@ def MCT_fstrvars(G, debug=False):
     NTHREADS = 2
     SPACE_DIM = 6.
     prepared_eqs = []
+    bar = progressbar.ProgressBar(maxval=100,term_width=70, widgets=["%s  "%G.nickel,progressbar.Percentage()," ", progressbar.Bar(), progressbar.ETA()]).start()
+    progress = 0
+    step=50./len(G.internal_lines)
     for idxL in G.internal_lines:
         
         rggrf.utils.print_debug("======= %s ======="%idxL, debug)
@@ -324,29 +331,32 @@ def MCT_fstrvars(G, debug=False):
 #        cur_r1.SaveAsPNG("test.png")
     
         if len(G.external_lines) == 2:
-            Kres = K2R1(cur_G)
+            Kres = K2R1(cur_G, debug)
         elif len(G.external_lines) == 3:
-            Kres = K0R1(cur_G)
+            Kres = K0R1(cur_G, debug)
         else:
             raise ValueError, "unknown graph type"
-            
+        substep = step/len(Kres)
         for idxK2 in range(len(Kres)):
                 kterm = Kres[idxK2]  
                 s_prep =   ExpandScalarProdsAndPrepareFactorized(kterm,debug)
                 rggrf.utils.print_debug( "---------dm_%s_p%s --------- " %(idxL,idxK2), debug)
                 prepared_eqs.append(rggrf.integration.PrepareFactorizedStrVars(s_prep, SPACE_DIM, simplify=False, debug=debug))
+                progress = progress + substep
+                bar.update(progress)
                    
         sys.stdout.flush()
           
-    prog_names = rggrf.integration.GenerateMCCodeForTermStrVars(base_name, prepared_eqs,SPACE_DIM, n_epsilon_series, NPOINTS, NTHREADS,debug=debug) 
+    prog_names = rggrf.integration.GenerateMCCodeForTermStrVars(base_name, prepared_eqs,SPACE_DIM, n_epsilon_series, NPOINTS, NTHREADS,debug=debug, progress=(bar,25.)) 
     
-    t_res = rggrf.integration.CalculateEpsilonSeries(prog_names, build=True,debug=debug)
+    t_res = rggrf.integration.CalculateEpsilonSeries(prog_names, build=True,debug=debug, progress=(bar,24.9))
     (G.r1_dot_gamma, err) = ResultWithSd(t_res, G.NLoops(), n_epsilon_series)
     G.r1_dot_gamma_err = rggrf.utils.RelativeError(G.r1_dot_gamma, err, sympy.var('eps'))
     rggrf.utils.print_debug(str(G.r1_dot_gamma), debug)
     G.npoints = NPOINTS 
     
     G.SaveResults()
+    bar.finish()
 
 
 model.methods['MCT_fstrvars'] = MCT_fstrvars

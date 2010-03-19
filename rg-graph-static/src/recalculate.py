@@ -8,6 +8,8 @@ import re as regex
 import os
 import sympy
 
+import progressbar
+
 def FindExecutables(ls_out,prefix):
     res = dict()
     for line in ls_out.splitlines():
@@ -87,7 +89,7 @@ for nickel in g_list:
     G.GenerateNickel()
     G.LoadResults('eps')
     if not G.CheckAccuracy(absolute, relative):
-        print G.nickel , " " , 
+        print G.nickel  
         if npoints == 0:
             if "npoints_r" in G.__dict__:
                 G.npoints = int(G.npoints_r)
@@ -116,6 +118,13 @@ for nickel in g_list:
 #            raise ValueError, "found more then one set of executables: %s " %t_exec_dict.keys()
         G.r1_dot_gamma = 0
         err = 0
+        cnt=0
+        bar = progressbar.ProgressBar(maxval=len(t_exec_dict.keys()), 
+                                      term_width=70, 
+                                      widgets=["%s  "%G.nickel, 
+                                               progressbar.Percentage(), " ", 
+                                               progressbar.Bar(), 
+                                               progressbar.ETA()]).start()
         for idx in t_exec_dict:    
             prog_names = t_exec_dict[idx]
     
@@ -127,6 +136,8 @@ for nickel in g_list:
             G.r1_dot_gamma = G.r1_dot_gamma + t_r1_dot_gamma
         
             err = err + t_r1_dot_gamma_err
+            cnt=cnt+1
+            bar.update(cnt)
         
         
         G.r1_dot_gamma_err = rggrf.utils.RelativeError(G.r1_dot_gamma, err, sympy.var('eps'))
@@ -134,7 +145,7 @@ for nickel in g_list:
         rggrf.utils.print_debug( G.r1_dot_gamma, debug)
         
         G.SaveResults(['r1_dot_gamma','r1_dot_gamma_err','npoints','method'])
-        print "OK ", G.r1_dot_gamma, G.r1_dot_gamma_err
+        print G.r1_dot_gamma, G.r1_dot_gamma_err
         
 
 #print "симметрийный коэффициент: %s" %(G.sym_coeff)

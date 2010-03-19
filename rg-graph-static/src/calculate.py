@@ -54,7 +54,7 @@ if __name__ == '__main__':
         
         
     for nickel in g_list:
-        print "%s "%nickel,
+        #print "%s "%nickel
         #rggrf.utils.print_debug(nickel, debug)
         G = rggrf.Graph(model)
         G.Load(nickel)
@@ -67,7 +67,7 @@ if __name__ == '__main__':
         if process.is_alive():
             #rggrf.utils.print_debug("terminating %s"%nickel, debug)
             process.terminate()
-            print " terminated"
+            rggrf.utils.print_debug(" terminated", debug) 
         else:
-            print " OK"
+            rggrf.utils.print_debug(" OK", debug)
 

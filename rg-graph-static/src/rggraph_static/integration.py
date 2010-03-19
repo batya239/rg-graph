@@ -640,14 +640,19 @@ def GenerateMCCodeForTerm(name, g_expr, g_vars, space_dim, n_epsilon_series, poi
     
     return prog_names 
 
-def GenerateMCCodeForTermStrVars(name, prepared_eqs, space_dim, n_epsilon_series, points, nthreads,debug=False):
+def GenerateMCCodeForTermStrVars(name, prepared_eqs, space_dim, n_epsilon_series, points, nthreads,debug=False, progress=None):
 #TODO: проверка что у всех членов одинаковые переменные.
+    if progress <>  None:
+        (progressbar,maxprogress) = progress
+        cur_progress = progressbar.currval
     prog_names = list()
     expr_by_eps = dict()
     for i in range(n_epsilon_series+1):
         expr_by_eps[i] = list()
     c_vars = ""
     str_region = ""
+    if progress <> None:
+        step1 = float(maxprogress)/2./len(prepared_eqs)
     for idx in range(len(prepared_eqs)):
         (g_expr,g_vars, str_vars) = prepared_eqs[idx]
         e = g_vars["e"]
@@ -663,7 +668,12 @@ def GenerateMCCodeForTermStrVars(name, prepared_eqs, space_dim, n_epsilon_series
             c_expr = cur_expr.str()
             expr_by_eps[idxE].append((c_expr,c_vars,str_region))
             t_expr = t_expr.diff(e)/(idxE+1)
-            
+        if progress <> None:
+            cur_progress = cur_progress + step1
+            progressbar.update(cur_progress)
+
+    if progress <> None:
+        step2 = float(maxprogress)/2/len(expr_by_eps)        
     for idxE in expr_by_eps:
         
         #c_expr = expr_by_eps[idxE][0]
@@ -674,6 +684,9 @@ def GenerateMCCodeForTermStrVars(name, prepared_eqs, space_dim, n_epsilon_series
             str_region = expr_by_eps[idxE][idxT][2] 
             SavePThreadsMCCode(cur_name, c_expr, c_vars, str_region, points, nthreads)
             prog_names.append(cur_name)
+        if progress <> None:
+            cur_progress = cur_progress + step2
+            progressbar.update(cur_progress)
     return prog_names  
 
 def GenerateMCCodeForGraph(name, prepared_eqs, space_dim, n_epsilon_series, points, nthreads, debug=False):
@@ -825,8 +838,13 @@ def ExecMCCode(prog_name, points=10000, threads=2,debug=False):
     utils.print_time("EMCCCode: exec end",debug)
     return result
 
-def CalculateEpsilonSeries(prog_names, build=False, points=10000, threads=2, debug=False):
+def CalculateEpsilonSeries(prog_names, build=False, points=10000, threads=2, debug=False, progress = None):
     res_by_eps = dict()
+    if progress <>  None:
+        (progressbar,maxprogress) = progress
+        step = float(maxprogress)/len(prog_names)
+        cur_progress = progressbar.currval
+
     for prog in prog_names:
         if build == True:
             build_res = CompileMCCode(prog,debug)
@@ -846,4 +864,7 @@ def CalculateEpsilonSeries(prog_names, build=False, points=10000, threads=2, deb
             res_by_eps[eps] = (cur[0]+res, cur[1]+dev)
         else:
             res_by_eps[eps] = (res, dev)
+        if progress <>  None:
+            cur_progress = cur_progress + step
+            progressbar.update(cur_progress)
     return res_by_eps
