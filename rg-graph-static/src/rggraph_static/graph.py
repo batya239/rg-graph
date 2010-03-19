@@ -4,6 +4,7 @@
 import nickel
 import re as regex
 from sympy import *
+import roperation
 
 class Momenta:
     def __init__(self,**kwargs):
@@ -130,19 +131,26 @@ class Momenta:
         return Momenta(sympy=t_sympy)
 
 def Streching(expr, moment_atom, strech, ignore_present_strech = False):
-    try:
-        atoms = expr.atoms()
-    except AttributeError:
-        return expr
-    t_expr = expr
-    if (not ignore_present_strech) and strech in atoms:
-        raise Exception, " %s  internal variable of Diff function, it shouldn't present in expression %s, atoms:%s" %(strech, expr, atoms)
-    
-    for atom in atoms:
-        if ("%sx" %moment_atom in str(atom)) or ("x%s" %moment_atom in str(atom)) or ("%s" %moment_atom == str(atom) ):
-            t_expr = t_expr.subs(atom, strech * atom)
-            
-    return t_expr
+    if isinstance(expr, roperation.Factorized):
+        return roperation.Factorized(Streching(expr.factor, moment_atom, 
+                                               strech, ignore_present_strech),
+                                     Streching(expr.other, moment_atom, 
+                                               strech, ignore_present_strech)) 
+        
+    else:
+        try:
+            atoms = expr.atoms()
+        except AttributeError:
+            return expr
+        t_expr = expr
+        if (not ignore_present_strech) and strech in atoms:
+            raise Exception, " %s  internal variable of Diff function, it shouldn't present in expression %s, atoms:%s" %(strech, expr, atoms)
+        
+        for atom in atoms:
+            if ("%sx" %moment_atom in str(atom)) or ("x%s" %moment_atom in str(atom)) or ("%s" %moment_atom == str(atom) ):
+                t_expr = t_expr.subs(atom, strech * atom)
+                
+        return t_expr
 
 def ExpandScalarProdAsVectors(expr, moment_atom, moment):
     try:

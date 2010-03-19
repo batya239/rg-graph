@@ -86,13 +86,13 @@ def FindExtMomentPath(G,atoms):
     for line in path_lines:
         ext_moment_path.append((line,"L"))
         for node in G.lines[line].Nodes():
-            if G.nodes[node].type == 2:
+            if G.nodes[node].type == 2 and (node,"N") not in ext_moment_path:
                 ext_moment_path.append((node,"N"))
     return ext_moment_path
 
 
 def K_nR1(G, N, debug=False):
-    
+    debug_level = 1
     ext_strech_var_str=None
     if N==0:
         diffs=[None,]
@@ -103,6 +103,13 @@ def K_nR1(G, N, debug=False):
         if len(ext_moment_atoms_str)==1:
             ext_strech_var_str = "%s_strech_var"%ext_moment_atoms_str[0]
             ext_moment_path = [(i[0],i[1],ext_strech_var_str) for i in FindExtMomentPath(G,ext_moment_atoms_str)]
+            if debug and debug_level>0:
+                print
+                print
+                print
+                print ext_moment_path
+                print
+                print
             for idx in ext_moment_path:
                 if idx[1]=="L":
                     line = G.lines[idx[0]]
@@ -132,6 +139,7 @@ def K_nR1(G, N, debug=False):
             strech_var_str = strech_var_str + "_%s"%idxL
         
         sub_ext_path = [(i[0],i[1],strech_var_str) for i in FindExtMomentPath(subgraph, sub_ext_atoms_str)] 
+        
         for idx in sub_ext_path:
             if idx[1]=="L":
                 line = G.lines[idx[0]]
@@ -174,7 +182,9 @@ def K_nR1(G, N, debug=False):
             cur_diff = list()
         else:
             cur_diff = diff
-            
+        if debug:
+            print "current diff: ",diff
+                
         t_res = rggrf.roperation.Factorized(1,extra_diff_multiplier)
         for idxL in G.internal_lines:
             curline=G.lines[idxL]
@@ -192,10 +202,15 @@ def K_nR1(G, N, debug=False):
                 if cur_cur_diff[0]==idxL and cur_cur_diff[1] == "L":
                     diff_var = sympy.var(cur_cur_diff[2])                        
                     prop = prop.diff(diff_var)
+            if debug and debug_level > 0:
+                print "Line %s: "%idxL
+                sympy.pretty_print(prop)
+                
             t_res.other = t_res.other * prop
         
         for idxN in G.internal_nodes:
             curnode = G.nodes[idxN]
+            
             node_moments = dict()
             for idx in range(len(curnode.lines)):
                 if G.lines[curnode.lines[idx]].end == idxN:
@@ -205,6 +220,8 @@ def K_nR1(G, N, debug=False):
                     
             factor = G.model.node_types[curnode.type]["Factor"](None, **node_moments)
             if "strech" in curnode.__dict__:
+                if debug_level >0:
+                    rggrf.utils.print_debug("node %s, strech: %s, factor: %s"%(idxN,curnode.strech,factor.factor), debug)
                 for cur_strech_str in curnode.strech:
                     strech_atoms =[sympy.var(i) for i in curnode.strech[cur_strech_str]]
                     strech_var = sympy.var(cur_strech_str)
@@ -214,6 +231,9 @@ def K_nR1(G, N, debug=False):
                 if cur_cur_diff[0]==idxN and cur_cur_diff[1] == "N":
                     diff_var = sympy.var(cur_cur_diff[2])
                     factor = rggrf.roperation.Factorized(1,(factor.factor*factor.other).diff(diff_var))
+            if debug and debug_level > 0:
+                print "Node %s: "%idxN
+                sympy.pretty_print(factor.other*factor.factor)
             t_res = t_res * factor
         if ext_strech_var_str <>None:
             strech_var = sympy.var(ext_strech_var_str)
@@ -231,8 +251,7 @@ def K_nR1(G, N, debug=False):
                 t_res.other = t_res.other.subs(strech_var,0)
         
         if debug:
-            sympy.pretty_print(t_res.factor)
-            sympy.pretty_print(t_res.other)
+            sympy.pretty_print(t_res.factor*t_res.other)
         res.append(t_res)
             
     return res
