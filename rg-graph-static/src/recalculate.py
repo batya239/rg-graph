@@ -89,7 +89,7 @@ for nickel in g_list:
     G.GenerateNickel()
     G.LoadResults('eps')
     if not G.CheckAccuracy(absolute, relative):
-        print G.nickel  
+          
         if npoints == 0:
             if "npoints_r" in G.__dict__:
                 G.npoints = int(G.npoints_r)
@@ -130,12 +130,16 @@ for nickel in g_list:
     
     
             t_res = rggrf.integration.CalculateEpsilonSeries(prog_names, points=G.npoints, threads=nthreads, debug=debug)
-    
-            (t_r1_dot_gamma, t_r1_dot_gamma_err) = ResultWithSd(t_res, G.NLoops(), G.model.target - G.NLoops())
+            try:
+                (t_r1_dot_gamma, t_r1_dot_gamma_err) = ResultWithSd(t_res, G.NLoops(), G.model.target - G.NLoops())
+            except:
+                print "\nError:\n%s\n"%t_res
+                err = 1000
+            else:
             #print t_r1_dot_gamma, t_r1_dot_gamma_err
-            G.r1_dot_gamma = G.r1_dot_gamma + t_r1_dot_gamma
+                G.r1_dot_gamma = G.r1_dot_gamma + t_r1_dot_gamma
         
-            err = err + t_r1_dot_gamma_err
+                err = err + t_r1_dot_gamma_err
             cnt=cnt+1
             bar.update(cnt)
         
