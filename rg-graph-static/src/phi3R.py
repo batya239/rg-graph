@@ -105,10 +105,7 @@ def K_nR1(G, N, debug=False):
             ext_moment_path = [(i[0],i[1],ext_strech_var_str) for i in FindExtMomentPath(G,ext_moment_atoms_str)]
             if debug and debug_level>0:
                 print
-                print
-                print
                 print ext_moment_path
-                print
                 print
             for idx in ext_moment_path:
                 if idx[1]=="L":
@@ -159,7 +156,7 @@ def K_nR1(G, N, debug=False):
         sub_diffs = [i for i in rggrf.utils.xSelections(sub_ext_path,degree)]
         strech_var = sympy.var(strech_var_str)
         if degree>0: 
-            extra_strech_multiplier = extra_strech_multiplier * (1.-strech_var)**(degree-1.)/2. 
+            extra_strech_multiplier = extra_strech_multiplier * (1.-strech_var)**(degree-1.)/sympy.factorial(degree-1) 
         new_diffs=list()
         for diff in diffs:
             if diff == None:
@@ -185,7 +182,7 @@ def K_nR1(G, N, debug=False):
         if debug:
             print "current diff: ",diff
                 
-        t_res = rggrf.roperation.Factorized(1,extra_diff_multiplier)
+        t_res = rggrf.roperation.Factorized(1,extra_diff_multiplier*extra_strech_multiplier)
         for idxL in G.internal_lines:
             curline=G.lines[idxL]
             prop = G.model.line_types[curline.type]["propagator"](momenta=curline.momenta)
