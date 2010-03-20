@@ -12,7 +12,7 @@ print_time("start")
 
 from phi3 import *
 
-
+phi3=model
 print phi3.name
 
 G = rggrf.Graph(phi3)
@@ -34,8 +34,8 @@ NPOINTS = 10000
 NTHREADS = 2 
 SPACE_DIM = 6.
 prog_names = []
-#for idxL in G.internal_lines:
-for idxL in [13]:
+for idxL in G.internal_lines:
+#for idxL in [13]:
     print_time("line %s" %idxL)
     cur_G = G.Clone()
     cur_G.lines[idxL].dots[1] = 1
