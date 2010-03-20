@@ -133,7 +133,7 @@ for nickel in g_list:
             try:
                 (t_r1_dot_gamma, t_r1_dot_gamma_err) = ResultWithSd(t_res, G.NLoops(), G.model.target - G.NLoops())
             except:
-                print "\nError:\n%s\n"%t_res
+                print "\nError: %s\n%s\n"%(prog_names[0],t_res)
                 err = 1000000
             else:
             #print t_r1_dot_gamma, t_r1_dot_gamma_err
