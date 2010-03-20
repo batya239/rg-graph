@@ -135,7 +135,7 @@ for nickel in g_list:
             except:
                 print "\nError: %s\n%s\n"%(prog_names[0],t_res)
                 err = 1000000
-                sys.exit(1)
+                break
             else:
             #print t_r1_dot_gamma, t_r1_dot_gamma_err
                 G.r1_dot_gamma = G.r1_dot_gamma + t_r1_dot_gamma
