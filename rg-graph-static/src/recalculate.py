@@ -84,9 +84,9 @@ else:
     nthreads = 2
 
 if "-delta" in sys.argv:
-    delta = eval(sys.argv[sys.argv.index('-delta')+1])
+    calc_delta = eval(sys.argv[sys.argv.index('-delta')+1])
 else:
-    delta = None
+    calc_delta = None
 
 for nickel in g_list:
     G = rggrf.Graph(model)
@@ -94,10 +94,11 @@ for nickel in g_list:
     G.GenerateNickel()
     G.LoadResults('eps')
     if G.method in ["MCT_SVd", "MCO_SVd"]:
-        if delta <> None:
-            G.delta = delta
+        if calc_delta <> None:
+            G.delta = calc_delta
         elif 'delta' in G.__dict__:
-            delta = G.delta
+            calc_delta = G.delta
+        rggrf.utils.print_debug("delta = %s"%calc_delta,debug)
  
     if not G.CheckAccuracy(absolute, relative):
           
@@ -142,7 +143,7 @@ for nickel in g_list:
             
             t_res = rggrf.integration.CalculateEpsilonSeries(prog_names, points=G.npoints,
                                                               threads=nthreads, debug=debug, 
-                                                              delta=delta)
+                                                              calc_delta=calc_delta)
             try:
                 (t_r1_dot_gamma, t_r1_dot_gamma_err) = ResultWithSd(t_res, G.NLoops(), 
                                                                     G.model.target - G.NLoops())

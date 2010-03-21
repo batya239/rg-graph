@@ -953,7 +953,7 @@ def CompileMCCode(prog_name, debug=False):
     return True
 
 
-def ExecMCCode(prog_name, points=10000, threads=2,debug=False, delta=None):
+def ExecMCCode(prog_name, points=10000, threads=2,debug=False, calc_delta=None):
     import sys
 #>>> process = subprocess.Popen(['./test', ], shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 #>>> process.wait()
@@ -963,8 +963,9 @@ def ExecMCCode(prog_name, points=10000, threads=2,debug=False, delta=None):
     utils.print_debug("Executing %s points=%s threads=%s ... " %(prog_name, points, threads) , debug)
     sys.stdout.flush()
     arg_lst=["./%s"%prog_name, "%s"%points, "%s"%threads]
-    if delta<>None:
-        arg_lst.append("%s"%delta)
+    if calc_delta<>None:
+        arg_lst.append("%s"%calc_delta)
+    utils.print_debug("args = %s"%arg_lst,debug)
     process = subprocess.Popen(arg_lst, shell=False, 
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     exit_code = process.wait()
@@ -979,29 +980,32 @@ def ExecMCCode(prog_name, points=10000, threads=2,debug=False, delta=None):
 #Result 0:\t0.00599252 +/- 0.000130637  \tdelta=0.0217999\n
             res = None
             err = None
-            delta = None
+            deltA = None
             for line in std_out.splitlines():
                 reg = regex.match("^result = (.+)$", line)
                 if reg:
                     if 'nan' not in reg.groups()[0]:
                         res = float(reg.groups()[0])
-                    else: 
+                    else:
+                        utils.print_debug("res = %s"%reg.groups()[0],debug) 
                         res = 0.
                 reg = regex.match("^std_dev = (.+)$", line)
                 if reg:
                     if 'nan' not in reg.groups()[0]:
                         err = float(reg.groups()[0])
                     else:
+                        utils.print_debug("err = %s"%reg.groups()[0],debug)
                         err = 10000000.
                 reg = regex.match("^delta = (.+)$", line)
                 if reg:
                     if 'nan' not in reg.groups()[0]:
-                        delta = float(reg.groups()[0])
+                        deltA = float(reg.groups()[0])
                     else:
-                        delta = 10000000.
-            if res <> None and err <> None and delta <> None:
-                utils.print_debug("res = %s, err = %s, delta = %s" %(res, err, delta),debug)
-                result = (res, err, delta)
+                        utils.print_debug("delta = %s"%reg.groups()[0],debug)
+                        deltA = 10000000.
+            if res <> None and err <> None and deltA <> None:
+                utils.print_debug("res = %s, err = %s, delta = %s" %(res, err, deltA),debug)
+                result = (res, err, deltA)
             else:
                 utils.print_debug("CHECK",debug)
                 utils.print_debug(std_out,debug)
@@ -1014,7 +1018,7 @@ def ExecMCCode(prog_name, points=10000, threads=2,debug=False, delta=None):
     utils.print_time("EMCCCode: exec end",debug)
     return result
 
-def CalculateEpsilonSeries(prog_names, build=False, points=10000, threads=2, debug=False, progress = None, delta=None):
+def CalculateEpsilonSeries(prog_names, build=False, points=10000, threads=2, debug=False, progress = None, calc_delta=None):
     res_by_eps = dict()
     if progress <>  None:
         (progressbar,maxprogress) = progress
@@ -1026,10 +1030,10 @@ def CalculateEpsilonSeries(prog_names, build=False, points=10000, threads=2, deb
             build_res = CompileMCCode(prog,debug)
             if build_res == None:
                 raise Exception, "CompileMCCode failed to build %s" %prog
-        exec_res = ExecMCCode(prog, points=points, threads=threads, debug=debug, delta=delta)
+        exec_res = ExecMCCode(prog, points=points, threads=threads, debug=debug, calc_delta=calc_delta)
         if exec_res == None:
             raise ValueError , "ExecMCCode function returns None"
-        (res, dev, delta) = exec_res
+        (res, dev, deltA) = exec_res
         reg = regex.search("_e(\d+)$",prog)
         if reg:
             eps = int(reg.groups()[0])
