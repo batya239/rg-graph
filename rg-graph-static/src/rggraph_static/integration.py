@@ -868,9 +868,11 @@ def GenerateMCCodeForGraphStrVars(name, prepared_eqs, space_dim, n_epsilon_serie
         step1 = float(maxprogress)/2./len(prepared_eqs)
     for idx in range(len(prepared_eqs)):
         (g_expr,g_vars, str_vars) = prepared_eqs[idx]
+        #print "g_expr =",g_expr
+#        print
         e = g_vars["e"]
         d = g_vars["d"]     
-        t_expr = g_expr.subs(d == float(space_dim) - e)
+        t_expr = swiginac.subs(g_expr, d == float(space_dim) - e)
         
         for idxE in range(n_epsilon_series+1):
             cur_expr = t_expr.subs(e == 0)

@@ -512,7 +512,8 @@ def MCT_SVd(G, debug=False):
     
     t_res = rggrf.integration.CalculateEpsilonSeries(prog_names, 
                                                      build=True, debug=debug, 
-                                                     progress=(bar,24.9))
+                                                     progress=(bar,24.9),
+                                                     delta=0.)
     
     (G.r1_dot_gamma, err) = ResultWithSd(t_res, G.NLoops(), n_epsilon_series)
     G.r1_dot_gamma_err = rggrf.utils.RelativeError(G.r1_dot_gamma, err, 
@@ -580,7 +581,8 @@ def MCO_SVd(G, debug=False):
     
     t_res = rggrf.integration.CalculateEpsilonSeries(prog_names, 
                                                      build=True, debug=debug, 
-                                                     progress=(bar,24.9))
+                                                     progress=(bar,24.9),
+                                                     delta=0.)
     
     (G.r1_dot_gamma, err) = ResultWithSd(t_res, G.NLoops(), n_epsilon_series)
     G.r1_dot_gamma_err = rggrf.utils.RelativeError(G.r1_dot_gamma, err, 
