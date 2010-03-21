@@ -93,6 +93,12 @@ for nickel in g_list:
     G.Load(nickel)
     G.GenerateNickel()
     G.LoadResults('eps')
+    if G.method =="MCT_fstrvars_delta":
+        if delta <> None:
+            G.delta = delta
+        elif 'delta' in G.__dict__:
+            delta = G.delta
+ 
     if not G.CheckAccuracy(absolute, relative):
           
         if npoints == 0:
@@ -126,7 +132,7 @@ for nickel in g_list:
         cnt=0
         bar = progressbar.ProgressBar(maxval=len(t_exec_dict.keys()), 
                                       term_width=70, 
-                                      widgets=["%s  "%G.nickel, 
+                                      widgets=["(%s/%s) %s  "%(g_list.index(nickel)+1, len(g_list),G.nickel), 
                                                progressbar.Percentage(), " ", 
                                                progressbar.Bar(), 
                                                progressbar.ETA()]).start()
@@ -134,9 +140,12 @@ for nickel in g_list:
             prog_names = t_exec_dict[idx]
     
             
-            t_res = rggrf.integration.CalculateEpsilonSeries(prog_names, points=G.npoints, threads=nthreads, debug=debug, delta=delta)
+            t_res = rggrf.integration.CalculateEpsilonSeries(prog_names, points=G.npoints,
+                                                              threads=nthreads, debug=debug, 
+                                                              delta=delta)
             try:
-                (t_r1_dot_gamma, t_r1_dot_gamma_err) = ResultWithSd(t_res, G.NLoops(), G.model.target - G.NLoops())
+                (t_r1_dot_gamma, t_r1_dot_gamma_err) = ResultWithSd(t_res, G.NLoops(), 
+                                                                    G.model.target - G.NLoops())
             except:
                 print "\nError: %s\n%s\n"%(prog_names[0],t_res)
                 err = sympy.core.numbers.Number(1000000.)
@@ -154,7 +163,7 @@ for nickel in g_list:
         
         rggrf.utils.print_debug( G.r1_dot_gamma, debug)
         
-        G.SaveResults(['r1_dot_gamma','r1_dot_gamma_err','npoints','method'])
+        G.SaveResults(['r1_dot_gamma','r1_dot_gamma_err','npoints','method','delta'])
         print G.r1_dot_gamma, G.r1_dot_gamma_err
         
 
