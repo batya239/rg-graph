@@ -391,6 +391,73 @@ def MCT_fstrvars(G, debug=False):
 
 model.methods['MCT_fstrvars'] = MCT_fstrvars
 
+def MCO_fstrvars(G, debug=False):
+    import progressbar
+    G.GenerateNickel()
+    G.method = "MCO_fstrvars"
+    base_name = "%s_%s"%(G.method,str( G.nickel))
+    n_epsilon_series =G.model.target -G.NLoops()
+    NPOINTS = 10000
+    NTHREADS = 2
+    SPACE_DIM = 6.
+    prepared_eqs = []
+    bar = progressbar.ProgressBar(maxval=100, term_width=70, 
+                                  widgets=["%s  "%G.nickel, progressbar.Percentage(), 
+                                           " ", progressbar.Bar(), 
+                                           progressbar.ETA()]).start()
+    progress = 0
+    step=50./len(G.internal_lines)
+    for idxL in G.internal_lines:
+        
+        rggrf.utils.print_debug("======= %s ======="%idxL, debug)
+        cur_G = G.Clone()
+        cur_G.lines[idxL].dots[1] = 1
+        cur_G.DefineNodes()
+        cur_G.FindSubgraphs()
+#        cur_r1.SaveAsPNG("test.png")
+    
+        if len(G.external_lines) == 2:
+            Kres = K2R1(cur_G, debug)
+        elif len(G.external_lines) == 3:
+            Kres = K0R1(cur_G, debug)
+        else:
+            raise ValueError, "unknown graph type"
+        substep = step/len(Kres)
+        for idxK2 in range(len(Kres)):
+                kterm = Kres[idxK2]  
+                s_prep =   ExpandScalarProdsAndPrepareFactorized(kterm,debug)
+                rggrf.utils.print_debug( "---------dm_%s_p%s --------- " %(idxL,idxK2), debug)
+                prepared_eqs.append(rggrf.integration.PrepareFactorizedStrVars(s_prep, SPACE_DIM, 
+                                                                               simplify=False, 
+                                                                               debug=debug))
+                progress = progress + substep
+                bar.update(progress)
+                   
+        sys.stdout.flush()
+          
+    prog_names = rggrf.integration.GenerateMCCodeForGraphStrVars(base_name, prepared_eqs, 
+                                                                SPACE_DIM, n_epsilon_series, 
+                                                                NPOINTS, NTHREADS,
+                                                                debug=debug, 
+                                                                progress=(bar,25.)) 
+    
+    t_res = rggrf.integration.CalculateEpsilonSeries(prog_names, 
+                                                     build=True, debug=debug, 
+                                                     progress=(bar,24.9))
+    
+    (G.r1_dot_gamma, err) = ResultWithSd(t_res, G.NLoops(), n_epsilon_series)
+    G.r1_dot_gamma_err = rggrf.utils.RelativeError(G.r1_dot_gamma, err, 
+                                                   sympy.var('eps'))
+    
+    rggrf.utils.print_debug(str(G.r1_dot_gamma), debug)
+    G.npoints = NPOINTS 
+    
+    G.SaveResults()
+    bar.finish()
+
+
+model.methods['MCO_fstrvars'] = MCO_fstrvars
+
 
 def MCT_fstrvars_delta(G, debug=False):
     import progressbar

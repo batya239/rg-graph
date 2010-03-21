@@ -166,7 +166,7 @@ def PrepareFactorizedStrVars(fact_expr, space_dim, ignore_unknown=False, simplif
             t_inv = "y%s" %reg.groups()[0]
             inv_moments = inv_moments | set([t_inv,])
             g_vars[t_inv] = swiginac.symbol(t_inv)
-            g_subs = (1 - g_vars[t_inv]) / g_vars[t_inv]
+            g_subs = (1. - g_vars[t_inv]) / g_vars[t_inv]
             g_expr = g_expr/ g_vars[t_inv] / g_vars[t_inv]
             str_vars = "%s\n double q%s = %s;"%(str_vars, reg.groups()[0],g_subs.printc())
 #            g_expr = g_expr.subs(g_vars[idx] == (1 - g_vars[t_inv]) / g_vars[t_inv]) / g_vars[t_inv] / g_vars[t_inv] 
@@ -727,7 +727,8 @@ def GenerateCVars(g_vars):
     return (c_vars, str_region)
         
 
-def GenerateMCCodeForTerm(name, g_expr, g_vars, space_dim, n_epsilon_series, points, nthreads, debug=False):
+def GenerateMCCodeForTerm(name, g_expr, g_vars, space_dim, n_epsilon_series,
+                          points, nthreads, debug=False):
 
     e = g_vars["e"]
     d = g_vars["d"]
@@ -748,7 +749,9 @@ def GenerateMCCodeForTerm(name, g_expr, g_vars, space_dim, n_epsilon_series, poi
     
     return prog_names 
 
-def GenerateMCCodeForTermStrVars(name, prepared_eqs, space_dim, n_epsilon_series, points, nthreads,debug=False, progress=None, MCCodeGenerator=SavePThreadsMCCode):
+def GenerateMCCodeForTermStrVars(name, prepared_eqs, space_dim, n_epsilon_series, 
+                                 points, nthreads, debug=False, progress=None, 
+                                 MCCodeGenerator=SavePThreadsMCCode):
 #TODO: проверка что у всех членов одинаковые переменные.
     if progress <>  None:
         (progressbar,maxprogress) = progress
@@ -797,7 +800,8 @@ def GenerateMCCodeForTermStrVars(name, prepared_eqs, space_dim, n_epsilon_series
             progressbar.update(cur_progress)
     return prog_names  
 
-def GenerateMCCodeForGraph(name, prepared_eqs, space_dim, n_epsilon_series, points, nthreads, debug=False):
+def GenerateMCCodeForGraph(name, prepared_eqs, space_dim, n_epsilon_series, 
+                           points, nthreads, debug=False):
 #TODO: проверка что у всех членов одинаковые переменные.
     prog_names = list()
     expr_by_eps = dict()
@@ -826,16 +830,42 @@ def GenerateMCCodeForGraph(name, prepared_eqs, space_dim, n_epsilon_series, poin
             c_expr = "%s;\nf[0] = f[0] + %s" %(c_expr,idxT) 
         SavePThreadsMCCode(cur_name, c_expr, c_vars, str_region, points, nthreads)
         prog_names.append(cur_name)
+        
     return prog_names
 
-def GenerateMCCodeForGraphStrVars(name, prepared_eqs, space_dim, n_epsilon_series, points, nthreads,debug=False):
+def GenerateMCCodeForGraphStrVars(name, prepared_eqs, space_dim, n_epsilon_series, 
+                                  points, nthreads,debug=False, progress=None, 
+                                  MCCodeGenerator=SavePThreadsMCCode):
+    
+    def JoinVars(prepared_eqs):
+        g_vars_all=dict()
+        str_vars_all=""
+# TODO: Assumes that all definitions of one variable are the same        
+        for eq in prepared_eqs:
+            (g_expr,g_vars, str_vars)=eq
+            for var in g_vars:
+                if var not in g_vars_all:
+                    g_vars_all[var] = g_vars[var]
+            for str in str_vars.splitlines():
+                reg = regex.search("(double .+) =", str)
+                if reg: 
+                    if reg.groups()[0] not in str_vars_all:
+                        str_vars_all = "%s\n%s"%(str_vars_all,str)
+        return(g_vars_all,str_vars_all)
+        
+    
 #TODO: проверка что у всех членов одинаковые переменные.
+    if progress <>  None:
+        (progressbar,maxprogress) = progress
+        cur_progress = progressbar.currval
     prog_names = list()
     expr_by_eps = dict()
     for i in range(n_epsilon_series+1):
         expr_by_eps[i] = list()
     c_vars = ""
     str_region = ""
+    if progress <> None:
+        step1 = float(maxprogress)/2./len(prepared_eqs)
     for idx in range(len(prepared_eqs)):
         (g_expr,g_vars, str_vars) = prepared_eqs[idx]
         e = g_vars["e"]
@@ -844,20 +874,44 @@ def GenerateMCCodeForGraphStrVars(name, prepared_eqs, space_dim, n_epsilon_serie
         
         for idxE in range(n_epsilon_series+1):
             cur_expr = t_expr.subs(e == 0)
-            (c_vars, str_region) = GenerateCVars(g_vars)
-            c_vars = "%s\n%s"%(c_vars,str_vars)
+
             cur_expr.set_print_context('c')
             c_expr = cur_expr.str()
             expr_by_eps[idxE].append(c_expr)
             t_expr = t_expr.diff(e)/(idxE+1)
             
+        if progress <> None:
+            cur_progress = cur_progress + step1
+            progressbar.update(cur_progress)
+
+
+    (g_vars_joined,str_vars_joined) = JoinVars(prepared_eqs)
+    (c_vars, str_region) = GenerateCVars(g_vars_joined)
+    c_vars = "%s\n%s"%(c_vars,str_vars_joined)
+#    print
+#    print len(prepared_eqs)
+#    print [expr_by_eps[i] for i in expr_by_eps]
+#    print
+        
+    if progress <> None:
+        step2 = float(maxprogress)/2/len(expr_by_eps)           
     for idxE in expr_by_eps:
         cur_name = "%s_e%s"%(name,idxE)
+#        print "%s %s"%(idxE,expr_by_eps[idxE])
         c_expr = expr_by_eps[idxE][0]
+#        print
+#        print c_expr
         for idxT in expr_by_eps[idxE][1:]:
-            c_expr = "%s;\nf[0] = f[0] + %s" %(c_expr,idxT) 
-        SavePThreadsMCCode(cur_name, c_expr, c_vars, str_region, points, nthreads)
+            c_expr = "%s;\nf[0] = f[0] + %s" %(c_expr,idxT)
+#            print
+#            print c_expr             
+        MCCodeGenerator(cur_name, c_expr, c_vars, str_region, points, nthreads)
         prog_names.append(cur_name)
+        
+        if progress <> None:
+            cur_progress = cur_progress + step2
+            progressbar.update(cur_progress)
+            
     return prog_names  
 
 def CompileMCCode(prog_name, debug=False):
