@@ -909,7 +909,7 @@ def ExecMCCode(prog_name, points=10000, threads=2,debug=False, delta=None):
     arg_lst=["./%s"%prog_name, "%s"%points, "%s"%threads]
     if delta<>None:
         arg_lst.append("%s"%delta)
-    process = subprocess.Popen(["./%s"%prog_name, "%s"%points, "%s"%threads], shell=False, 
+    process = subprocess.Popen(arg_lst, shell=False, 
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     exit_code = process.wait()
     (std_out,std_err) = process.communicate()
