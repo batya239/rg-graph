@@ -1015,7 +1015,7 @@ def CalculateEpsilonSeries(prog_names, build=False, points=10000, threads=2, deb
             build_res = CompileMCCode(prog,debug)
             if build_res == None:
                 raise Exception, "CompileMCCode failed to build %s" %prog
-        exec_res = ExecMCCode(prog, points=points, threads=threads,debug=debug, delta=delta)
+        exec_res = ExecMCCode(prog, points=points, threads=threads, debug=debug, delta=delta)
         if exec_res == None:
             raise ValueError , "ExecMCCode function returns None"
         (res, dev, delta) = exec_res

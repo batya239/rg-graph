@@ -93,7 +93,7 @@ for nickel in g_list:
     G.Load(nickel)
     G.GenerateNickel()
     G.LoadResults('eps')
-    if G.method =="MCT_fstrvars_delta":
+    if G.method in ["MCT_SVd", "MCO_SVd"]:
         if delta <> None:
             G.delta = delta
         elif 'delta' in G.__dict__:
