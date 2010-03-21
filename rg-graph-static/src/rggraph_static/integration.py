@@ -983,13 +983,22 @@ def ExecMCCode(prog_name, points=10000, threads=2,debug=False, delta=None):
             for line in std_out.splitlines():
                 reg = regex.match("^result = (.+)$", line)
                 if reg:
-                    res = float(reg.groups()[0])
+                    if 'nan' not in reg.groups()[0]:
+                        res = float(reg.groups()[0])
+                    else: 
+                        res = 0.
                 reg = regex.match("^std_dev = (.+)$", line)
                 if reg:
-                    err = float(reg.groups()[0])
+                    if 'nan' not in reg.groups()[0]:
+                        err = float(reg.groups()[0])
+                    else:
+                        err = 10000000.
                 reg = regex.match("^delta = (.+)$", line)
                 if reg:
-                    delta = float(reg.groups()[0])
+                    if 'nan' not in reg.groups()[0]:
+                        delta = float(reg.groups()[0])
+                    else:
+                        delta = 10000000.
             if res <> None and err <> None and delta <> None:
                 utils.print_debug("res = %s, err = %s, delta = %s" %(res, err, delta),debug)
                 result = (res, err, delta)
