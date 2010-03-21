@@ -134,7 +134,7 @@ for nickel in g_list:
                 (t_r1_dot_gamma, t_r1_dot_gamma_err) = ResultWithSd(t_res, G.NLoops(), G.model.target - G.NLoops())
             except:
                 print "\nError: %s\n%s\n"%(prog_names[0],t_res)
-                err = 1000000
+                err = sympy.core.numbers.Number(1000000.)
                 break
             else:
             #print t_r1_dot_gamma, t_r1_dot_gamma_err
