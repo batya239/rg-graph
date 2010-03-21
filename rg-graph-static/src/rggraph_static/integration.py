@@ -497,7 +497,6 @@ def Prepare(k_op, space_dim):
     
     return (g_expr,g_vars)
 
-
 def SavePThreadsMCCode(name, c_expr, c_vars, str_region, points, nthreads):
     template = '''
     
@@ -549,6 +548,115 @@ int main(int argc, char **argv)
     {
       nthreads = NTHREADS;
     }
+  double estim[FUNCTIONS];   /* estimators for integrals                     */
+  double std_dev[FUNCTIONS]; /* standard deviations                          */
+  double chi2a[FUNCTIONS];   /* chi^2/n                                      */
+
+  vegas(reg, DIMENSION, func,
+        0, npoints/10, 5, NPRN_INPUT | NPRN_RESULT,
+        FUNCTIONS, 0, nthreads,
+        estim, std_dev, chi2a);
+  vegas(reg, DIMENSION, func,
+        2, npoints , 2, NPRN_INPUT | NPRN_RESULT,
+        FUNCTIONS, 0, nthreads,
+        estim, std_dev, chi2a);
+double delta= std_dev[0]/estim[0];
+printf ("result = %20.18g\\nstd_dev = %20.18g\\ndelta = %20.18g\\n", estim[0], std_dev[0], delta);
+//  printf ("Result %d: %g +/- %g delta=%g\\n",NEPS, estim[0], std_dev[0], delta);
+//  for (i=1; i<FUNCTIONS; ++i)
+//    printf("Result %i:\\t%g +/- %g  \\tdelta=%g\\n", i, estim[i], std_dev[i],std_dev[i]/estim[i]);
+  return(0);
+}
+    '''
+    res = template.replace("<-DIMENSION->", str(len(str_region.split(","))/2))
+    res = res.replace("<-ITERATIONS->", str(int(points)))
+    res = res.replace("<-NTHREADS->",str(int(nthreads)))
+    res = res.replace("<-REGION->",str_region)
+    res = res.replace("<-VARS->",c_vars)
+    
+    res = res.replace("<-INTEGRAND->",c_expr)
+    file = open(name+".c", 'w')
+    file.write(res)
+    file.close()
+
+def SavePThreadsMCCodeDelta(name, c_expr, c_vars, str_region, points, nthreads):
+    template = '''
+    
+#include <math.h>
+#include <stdio.h>
+#include <vegas.h>
+#include <stdlib.h>
+
+#define DIMENSION <-DIMENSION->
+#define FUNCTIONS 1
+#define ITERATIONS <-ITERATIONS->
+#define NTHREADS <-NTHREADS->
+#define NEPS 0
+double reg_initial[2*DIMENSION]= <-REGION->;
+void func (double k[DIMENSION], double f[FUNCTIONS]) {
+<-VARS->
+f[0]=<-INTEGRAND->;  }
+
+#ifndef PI
+#define PI     3.14159265358979323846
+#endif
+
+int t_gfsr_k;
+unsigned int t_gfsr_m[SR_P];
+double gfsr_norm;
+
+
+int main(int argc, char **argv)
+{
+  int i;
+  long long npoints;
+  int nthreads;
+  double region_delta;
+  double reg[2*DIMENSION];
+  int idx;
+  if(argc >= 2)
+    {
+      npoints = atoll(argv[1]);
+
+    }
+  else 
+    {
+      npoints = ITERATIONS;
+    }
+
+  if(argc == 3)
+    {
+      nthreads = atoi(argv[2]);
+
+    }
+  else 
+    {
+      nthreads = NTHREADS;
+    }
+   
+   if(argc == 4)
+    {
+      region_delta = atof(argv[3]);
+
+    }
+  else 
+    {
+      region_delta = 0.;
+    } 
+    
+    
+    for(idx=0; idx<2*DIMENSION; idx++)
+      {
+         if(idx<DIMENSION)
+           {
+             reg[idx] = reg_initial[idx]+region_delta;
+           }
+         else
+           {
+             reg[idx] = reg_initial[idx]-region_delta;
+           }
+      }
+      
   double estim[FUNCTIONS];   /* estimators for integrals                     */
   double std_dev[FUNCTIONS]; /* standard deviations                          */
   double chi2a[FUNCTIONS];   /* chi^2/n                                      */
@@ -640,7 +748,7 @@ def GenerateMCCodeForTerm(name, g_expr, g_vars, space_dim, n_epsilon_series, poi
     
     return prog_names 
 
-def GenerateMCCodeForTermStrVars(name, prepared_eqs, space_dim, n_epsilon_series, points, nthreads,debug=False, progress=None):
+def GenerateMCCodeForTermStrVars(name, prepared_eqs, space_dim, n_epsilon_series, points, nthreads,debug=False, progress=None, MCCodeGenerator=SavePThreadsMCCode):
 #TODO: проверка что у всех членов одинаковые переменные.
     if progress <>  None:
         (progressbar,maxprogress) = progress
@@ -682,7 +790,7 @@ def GenerateMCCodeForTermStrVars(name, prepared_eqs, space_dim, n_epsilon_series
             c_expr = expr_by_eps[idxE][idxT][0]
             c_vars = expr_by_eps[idxE][idxT][1]
             str_region = expr_by_eps[idxE][idxT][2] 
-            SavePThreadsMCCode(cur_name, c_expr, c_vars, str_region, points, nthreads)
+            MCCodeGenerator(cur_name, c_expr, c_vars, str_region, points, nthreads)
             prog_names.append(cur_name)
         if progress <> None:
             cur_progress = cur_progress + step2
@@ -789,7 +897,7 @@ def CompileMCCode(prog_name, debug=False):
     return True
 
 
-def ExecMCCode(prog_name, points=10000, threads=2,debug=False):
+def ExecMCCode(prog_name, points=10000, threads=2,debug=False, delta=None):
     import sys
 #>>> process = subprocess.Popen(['./test', ], shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 #>>> process.wait()
@@ -798,6 +906,9 @@ def ExecMCCode(prog_name, points=10000, threads=2,debug=False):
     utils.print_time("EMCCCode: start", debug)
     utils.print_debug("Executing %s points=%s threads=%s ... " %(prog_name, points, threads) , debug)
     sys.stdout.flush()
+    arg_lst=["./%s"%prog_name, "%s"%points, "%s"%threads]
+    if delta<>None:
+        arg_lst.append("%s"%delta)
     process = subprocess.Popen(["./%s"%prog_name, "%s"%points, "%s"%threads], shell=False, 
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     exit_code = process.wait()
@@ -838,7 +949,7 @@ def ExecMCCode(prog_name, points=10000, threads=2,debug=False):
     utils.print_time("EMCCCode: exec end",debug)
     return result
 
-def CalculateEpsilonSeries(prog_names, build=False, points=10000, threads=2, debug=False, progress = None):
+def CalculateEpsilonSeries(prog_names, build=False, points=10000, threads=2, debug=False, progress = None, delta=None):
     res_by_eps = dict()
     if progress <>  None:
         (progressbar,maxprogress) = progress
@@ -850,7 +961,7 @@ def CalculateEpsilonSeries(prog_names, build=False, points=10000, threads=2, deb
             build_res = CompileMCCode(prog,debug)
             if build_res == None:
                 raise Exception, "CompileMCCode failed to build %s" %prog
-        exec_res = ExecMCCode(prog, points=points, threads=threads,debug=debug)
+        exec_res = ExecMCCode(prog, points=points, threads=threads,debug=debug, delta=delta)
         if exec_res == None:
             raise ValueError , "ExecMCCode function returns None"
         (res, dev, delta) = exec_res

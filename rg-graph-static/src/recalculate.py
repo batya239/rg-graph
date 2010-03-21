@@ -83,6 +83,11 @@ if "-threads" in sys.argv:
 else:
     nthreads = 2
 
+if "-delta" in sys.argv:
+    delta = eval(sys.argv[sys.argv.index('-delta')+1])
+else:
+    delta = None
+
 for nickel in g_list:
     G = rggrf.Graph(model)
     G.Load(nickel)
@@ -128,8 +133,8 @@ for nickel in g_list:
         for idx in t_exec_dict:    
             prog_names = t_exec_dict[idx]
     
-    
-            t_res = rggrf.integration.CalculateEpsilonSeries(prog_names, points=G.npoints, threads=nthreads, debug=debug)
+            
+            t_res = rggrf.integration.CalculateEpsilonSeries(prog_names, points=G.npoints, threads=nthreads, debug=debug, delta=delta)
             try:
                 (t_r1_dot_gamma, t_r1_dot_gamma_err) = ResultWithSd(t_res, G.NLoops(), G.model.target - G.NLoops())
             except:
