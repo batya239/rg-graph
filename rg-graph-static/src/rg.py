@@ -18,7 +18,7 @@ if "-model" in sys.argv:
     except:
         print "Error while importing model!"
         sys.exit(1)
-    if model.name <> 'phi3':
+    if model.name in ['phi3', 'phi3R']:
         print "This program works for phi3 model ONLY!"
         sys.exit(1)
 else:
