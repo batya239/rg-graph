@@ -624,7 +624,7 @@ int main(int argc, char **argv)
       npoints = ITERATIONS;
     }
 
-  if(argc == 3)
+  if(argc >= 3)
     {
       nthreads = atoi(argv[2]);
 
@@ -634,7 +634,7 @@ int main(int argc, char **argv)
       nthreads = NTHREADS;
     }
    
-   if(argc == 4)
+   if(argc >= 4)
     {
       region_delta = atof(argv[3]);
 
