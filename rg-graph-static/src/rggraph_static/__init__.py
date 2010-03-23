@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 from model import Model
-from graph import Graph, Node, Line, Momenta, Streching, ExpandScalarProdAsVectors, LoadFromGRC
+from graph import Graph, Node, Line, Momenta, Streching,StrechAtoms, ExpandScalarProdAsVectors, LoadFromGRC
 import nickel
 import roperation
 import subgraph

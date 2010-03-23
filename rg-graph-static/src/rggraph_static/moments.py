@@ -75,7 +75,7 @@ def GetMomentaIndex(G,Momenta):
     while(flag==0 and kRes==0):
         flag=1
         for Node in G.internal_nodes:
-            Lines=G.nodes[Node].lines
+            Lines=G.nodes[Node].Lines()
             NodeKirghoff={}
             cntLines=0
             Line=-1

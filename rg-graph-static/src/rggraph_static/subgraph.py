@@ -26,6 +26,7 @@ def FindSubgraphType(G, subgraph, subgraph_types=False):
                 res_divergence = subgraph_types[idxST]["dim"] 
                 break
     subgraph_dot_count=SubgraphDotCount(G, subgraph)
+    #print subgraph_dot_count
     for idxD in subgraph_dot_count:
         res_divergence=res_divergence-subgraph_dot_count[idxD]*G.model.dot_types[idxD]["dim"]
     
@@ -40,7 +41,7 @@ def FindSubgraphNodes(G, subgraph):
 def FindExternalLines(G, subgraph):
     all_lines = set([])
     for idxN in FindSubgraphNodes(G, subgraph):
-        all_lines = all_lines | set(G.nodes[idxN].lines)
+        all_lines = all_lines | set(G.nodes[idxN].Lines())
     return all_lines-set(subgraph)
 
 def IsSubgraph1PI(G, subgraph):
@@ -54,7 +55,7 @@ def IsSubgraph1PI(G, subgraph):
         while(flag == 0):
             flag = 1
             for idxN in nodes:
-                for idxNL in G.nodes[idxN].lines:
+                for idxNL in G.nodes[idxN].Lines():
                     if idxNL in rsubgraph:
                         if len(nodes & set(G.lines[idxNL].Nodes())) < 2:
                             nodes = nodes | set(G.lines[idxNL].Nodes())
@@ -86,13 +87,17 @@ def CreateSubgraph(G, subgraph):
             fake_node=100000
             idxL1=idxL*1000+1
             idxL2=idxL*1000+2
-            sub.AddLine(idxL1, Line(G.lines[idxL].type, G.lines[idxL].start, 
-                                    fake_node, G.lines[idxL].momenta,
-                                    G.lines[idxL].dots))
+            sub.AddLine(idxL1, Line(G.model, G.lines[idxL].type, 
+                                    start=G.lines[idxL].start, 
+                                    end=fake_node, 
+                                    momenta=G.lines[idxL].momenta,
+                                    dots=G.lines[idxL].dots))
             
-            sub.AddLine(idxL2, Line(G.lines[idxL].type, fake_node, 
-                                    G.lines[idxL].end,G.lines[idxL].momenta, 
-                                    G.lines[idxL].dots))
+            sub.AddLine(idxL2, Line(G.model, G.lines[idxL].type, 
+                                    start=fake_node, 
+                                    end=G.lines[idxL].end,
+                                    momenta=G.lines[idxL].momenta, 
+                                    dots=G.lines[idxL].dots))
             
             if fake_node not in graph_node_types: graph_node_types[fake_node]=0
         else:
@@ -103,6 +108,7 @@ def CreateSubgraph(G, subgraph):
 def SubgraphDotCount(G, subgraph):
     res = dict()
     for idxL in subgraph:
+        #print G.lines[idxL].dots
         for idxD in G.lines[idxL].dots:
             if idxD in res:
                 res[idxD] = res[idxD] + 1

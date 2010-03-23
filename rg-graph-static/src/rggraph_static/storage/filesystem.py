@@ -11,7 +11,7 @@ import os
 import time
 import sympy
 import re as regex
-
+import pickle 
 
 def NormalizeBaseName(name):
     if name[-1:] !="/":
@@ -32,7 +32,41 @@ def GetGraphList(model):
     return res
                
 
+def SaveGraphAsPickle(G, overwrite=False):
+    G.GenerateNickel()
+    name = "%s/"%(G.nickel)
+    pwd = NormalizeBaseName(G.model.basepath)
+    dirname = pwd + name
+    try:
+        os.mkdir(dirname)
+    except:
+        if overwrite:
+            file_list = os.listdir(dirname)
+            for file in file_list:
+                os.remove(dirname+file)
+
+    F = open(dirname+"Graph.obj","w")
+    pickle.dump(G,F)
+    F.close()
+
+def LoadGraphFromPickle(model,str_nickel=""):
+    if len(str_nickel)==0:
+        dirname = "./"
+    else:
+        pwd = NormalizeBaseName(model.basepath)
+        dirname = pwd + str_nickel
+        if dirname[-1:] != "/":
+            dirname = dirname + "/"
+    F=open(dirname+"Graph.obj","r")
+    res = pickle.load(F)
+    F.close()
+#TODO: check that model of graph equal to model provided in args
+#?    res.model = model    
+    return res
+
+
 def SaveGraphAsDict(G, overwrite=False):
+#TODO: remove
     G.GenerateNickel()
     name = "%s/"%(G.nickel)
     pwd = NormalizeBaseName(G.model.basepath)
@@ -51,6 +85,7 @@ def SaveGraphAsDict(G, overwrite=False):
     F.close()
     
 def LoadGraphAsDict(G,str_nickel=""):
+#TODO: remove
     if len(str_nickel)==0:
         dirname = "./"
     else:
@@ -62,6 +97,7 @@ def LoadGraphAsDict(G,str_nickel=""):
     return dict
 
 def SaveResults(G,res_list=[]):
+    
     G.GenerateNickel()
     name = "%s/"%(G.nickel)
     pwd = NormalizeBaseName(G.model.basepath)

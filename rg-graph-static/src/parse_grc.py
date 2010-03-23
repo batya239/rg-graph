@@ -38,8 +38,8 @@ else:
 
 
 
-print green
-print model.name
+#print green
+#print model.name
 G_list = rggrf.graph.LoadFromGRC(grc,model)
 for G in G_list:
     G.GenerateNickel()
@@ -48,22 +48,5 @@ for G in G_list:
     G.Save(overwrite=True)
     
     
-#G=G_list[0]
-#for idx in G.__dict__:
-#    print idx, G.__dict__[idx].__class__.__name__ , G.__dict__[idx]
-    
-#print G.__dict__['lines'][1]
-#lines = {}
-#map(lambda k,v: lines.update({k: str(v)}),G.lines.keys(),G.lines.values())
-#print lines
-#print G._ToDict() 
-#
-#G = rggrf.Graph(phi3)
-#G.LoadLinesFromFile(filename)
-#G.DefineNodes({})
-#G.GenerateNickel()
-#print rggrf.nickel.Nickel(nickel=G.nickel.nickel).nickel
-#print rggrf.nickel.Nickel(nickel=G.nickel.nickel).edges
-#print G.sym_coeff
 
     

@@ -3,8 +3,9 @@
 
 import nickel
 import re as regex
-from sympy import *
+import sympy
 import roperation
+import pickle
 
 class Momenta:
     def __init__(self,**kwargs):
@@ -29,7 +30,7 @@ class Momenta:
             self.string = kwargs["string"].replace(" ","")
             self.dict = str2dict(self.string)
             for idxM in self.dict:
-                var(idxM)
+                sympy.var(idxM)
             if len(self.string) == 0:
                 self.sympy = 0
             else:
@@ -39,7 +40,7 @@ class Momenta:
             self.dict = kwargs["dict"]
             self.string = ""
             for idxM in self.dict:
-                var(idxM)
+                sympy.var(idxM)
                 if self.dict[idxM] == 1 :
                     self.string = "%s+%s" %(self.string, idxM)
                 elif self.dict[idxM] == -1 :
@@ -75,7 +76,7 @@ class Momenta:
         return self.string
     
     def __abs__(self):
-        return sqrt(self.Squared())
+        return sympy.sqrt(self.Squared())
     
     def __mul__(self, other):
         if not isinstance(other,Momenta): 
@@ -83,16 +84,16 @@ class Momenta:
         else:
             res = 0
             for atom1 in self.dict.keys():
-                s_atom1=var(atom1)
+                s_atom1=sympy.var(atom1)
                 for atom2 in other.dict.keys():
-                    s_atom2 = var(atom2)
+                    s_atom2 = sympy.var(atom2)
                     if atom1 == atom2 :
                         res = res + self.dict[atom1]*other.dict[atom2]*s_atom1*s_atom2
                     elif atom1 > atom2 :
-                        s_atom12 = var(atom2+"x"+atom1)
+                        s_atom12 = sympy.var(atom2+"x"+atom1)
                         res = res + self.dict[atom1]*other.dict[atom2]*s_atom12
                     else:
-                        s_atom12 = var(atom1+"x"+atom2)
+                        s_atom12 = sympy.var(atom1+"x"+atom2)
                         res = res + self.dict[atom1]*other.dict[atom2]*s_atom12
         return res
     
@@ -129,8 +130,42 @@ class Momenta:
                 t_sympy=t_sympy.subs(idxZeq[0],idxZeq[1])
 
         return Momenta(sympy=t_sympy)
+    
+    def Clone(self):
+        return Momenta(sympy=self.sympy)
+    
+    def Save(self):
+        return self.string
+        
+
+
+
+def StrechAtoms(expr, moment_atoms, strech, ignore_present_strech = False):
+    if isinstance(expr, roperation.Factorized):
+        return roperation.Factorized(Streching(expr.factor, moment_atoms, 
+                                               strech, ignore_present_strech),
+                                     Streching(expr.other, moment_atoms, 
+                                               strech, ignore_present_strech)) 
+        
+    else:
+        # if there is no atoms - this is not sympy expr (so - nothing  to do)
+        try:
+            atoms = expr.atoms()
+        except AttributeError:
+            return expr
+        
+        t_expr = expr
+        if (not ignore_present_strech) and strech in atoms:
+            raise Exception, " %s  internal variable of Diff function, it shouldn't present in expression %s, atoms:%s" %(strech, expr, atoms)
+        for moment_atom in moment_atoms:
+            for atom in atoms:
+                if ("%sx" %moment_atom in str(atom)) or ("x%s" %moment_atom in str(atom)) or ("%s" %moment_atom == str(atom) ):
+                    t_expr = t_expr.subs(atom, strech * atom)
+                
+        return t_expr
 
 def Streching(expr, moment_atom, strech, ignore_present_strech = False):
+    #TODO: replace with StrechAtoms
     if isinstance(expr, roperation.Factorized):
         return roperation.Factorized(Streching(expr.factor, moment_atom, 
                                                strech, ignore_present_strech),
@@ -169,38 +204,43 @@ def ExpandScalarProdAsVectors(expr, moment_atom, moment):
             t_expr = t_expr.subs(atom, moment*Momenta(string=vectors[0]))
             
         elif "%s" %moment_atom == str(atom):
-            t_expr = t_expr.subs(atom,sqrt(moment*moment))
+            t_expr = t_expr.subs(atom, sympy.sqrt(moment*moment))
             
     return t_expr
             
 
 class Line:
     """ Class represents information about Line of a graph
-        idx, type, momenta, start, end 
+        model, type, momenta=, start=, end=, dots= 
     """
-    def __init__(self, type_, start_, end_, momenta_, dots_):
-        self.type = int(type_)
-        self.start = int(start_)
-        self.end = int(end_)
-        if isinstance(momenta_,str):
-            self.momenta = Momenta(string=momenta_)
-        elif momenta_ == "None":
-            self.momenta = None
-        else:
-            self.momenta = momenta_
-        if isinstance(dots_,str):
-            self.dots = eval(dots_)
-        else:
-            self.dots = dots_
+    def __init__(self, model, type, **kwargs):
         
+        fields = model.line_types[int(type)]["fields"]
+        for field in fields:
+            if field not in kwargs:
+                raise ValueError, "required field %s not provided. Provided fields: %s" %(field,kwargs.keys())
+        self.type = int(type)
+        self.model = model
+        for field in kwargs:
+            self.__dict__[field] = kwargs[field]        
          
     def Nodes(self):
         return (self.start, self.end)
     
     def __str__(self):
-        dict={}
-        map(lambda k,v: dict.update({k: str(v)}),self.__dict__.keys(),self.__dict__.values())
-        return str(dict)
+        return str(self.AsDict())
+    
+    def AsDict(self):
+        dict_={}
+        for idx in self.model.line_types[self.type]["fields"]+["type"]:
+            dict_[idx] = self.__dict__[idx]
+        
+        map(lambda k,v: dict_.update({k: str(v)}),dict_.keys(),dict_.values())
+        return dict_
+    
+    def Propagator(self):
+        return self.model.line_types[self.type]["propagator"](self)
+        
     
      
 
@@ -213,9 +253,15 @@ class Node:
     def __init__(self, **kwargs):
         """  в кваргз можно было бы указать например что вершина продифференцированна или тип вершины.
         """
-        self.lines=tuple(kwargs["Lines"])
-        self.type=kwargs["Type"]
-
+        for idx in kwargs:
+            self.__dict__[idx]=kwargs[idx]
+            
+    def Factor(self):
+        return self.model.node_types[self.type]["factor"](self)
+    
+    def Lines(self):
+        return self.lines_dict.keys()
+    
 
 
 class Graph:
@@ -357,9 +403,11 @@ class Graph:
             if tmp_type == 0: 
                 tmp_external_lines = tmp_external_lines | set(tmp_lines)
             else:
-                tmp_int_nodes = tmp_int_nodes | set([idxN,])    
-                 
-            self.nodes[idxN] = Node(Type=tmp_type, Lines=tmp_lines)
+                tmp_int_nodes = tmp_int_nodes | set([idxN,])
+            tmp_lines_dict=dict()    
+            for idxL in tmp_lines:
+                tmp_lines_dict[idxL]=self.lines[idxL]
+            self.nodes[idxN] = Node(type=tmp_type, lines_dict=tmp_lines_dict)
             
         self.external_lines = tmp_external_lines
         self.internal_lines = set(self.lines.keys()) - self.external_lines
@@ -406,9 +454,9 @@ class Graph:
                 unique_edges[str(idx)] = unique_edges[str(idx)] +1
             else:
                 unique_edges[str(idx)] = 1
-        C=Factorial(len(self.external_lines))/self.nickel.num_symmetries
+        C=sympy.Factorial(len(self.external_lines))/self.nickel.num_symmetries
         for idxE in unique_edges:
-            C = C / Factorial(unique_edges[idxE])
+            C = C / sympy.Factorial(unique_edges[idxE])
         self.sym_coeff = C
         
     def FindSubgraphs(self, subgraph_types = False):
@@ -429,51 +477,74 @@ class Graph:
         gdot=GraphSubgraph2dot(self)
         gdot.write_png(filename, prog="dot")
 
-    def Clone(self, **kwargs):
-        G=self
-        if "zero_moments" in kwargs:
-            zm = kwargs["zero_moments"]
-        else:
-            zm = []
-        from copy import deepcopy
-    # TODO: python 2.5 has buggy copy.deepcopy function    
-        graph_copy = Graph(G.model)
-    #    graph_copy.lines = deepcopy(G.lines)
-        for idxL in G.lines :
-            graph_copy.AddLine(idxL, Line(G.lines[idxL].type, G.lines[idxL].start, G.lines[idxL].end, G.lines[idxL].momenta.SetZeros(zm), deepcopy(G.lines[idxL].dots)))
-        graph_copy.nodes = dict()
-        graph_copy.subgraphs = list()
-        graph_copy.DefineNodes(G.GetNodesTypes())
-        graph_copy.FindSubgraphs()
-        return graph_copy
+    def LoadCopy(self):
+        return self.model.LoadGraph(str(self.nickel))
     
-    def _ToDict(self):
-        res = dict()
-        res['model'] = self.model.name
-        lines = dict()
-        map(lambda k,v: lines.update({k: str(v)}),self.lines.keys(),self.lines.values())
-        res['lines'] = lines
-        res['node_types'] = self.GetNodesTypes()
-        res['green'] = self.green
-        
-        return res
+    def Clone(self):
+        return pickle.loads(pickle.dumps(self))
+
+#    def Clone(self, **kwargs):
+#        G=self
+#        if "zero_moments" in kwargs:
+#            zm = kwargs["zero_moments"]
+#        else:
+#            zm = []
+#        from copy import deepcopy
+#    # TODO: python 2.5 has buggy copy.deepcopy function    
+#        graph_copy = Graph(G.model)
+#    #    graph_copy.lines = deepcopy(G.lines)
+#        for idxL in G.lines :
+#            args = dict()
+#            for idx in G.model.line_types[G.lines[idxL].type]["fields"]:
+#                try:
+#                    args[idx] = G.lines[idxL].__dict__[idx].Clone()
+#                except:
+#                    args[idx] = deepcopy(G.lines[idxL].__dict__[idx])
+#                   
+#            graph_copy.AddLine(idxL, 
+#                               Line(G.model, G.lines[idxL].type,  
+#                                    **args))
+#        graph_copy.nodes = dict()
+#        graph_copy.subgraphs = list()
+#        graph_copy.DefineNodes(G.GetNodesTypes())
+#        graph_copy.FindSubgraphs()
+#        return graph_copy
     
-    def _FromDict(self,dict):
-        if dict['model']<> self.model.name:
-            raise ValueError, "different model names! %s and %s " %(dict['model'],self.model.name)
-        for idxL in dict['lines']:
-            line = eval(dict['lines'][idxL])
-            self.AddLine(idxL, Line(line['type'],line['start'],line['end'],line['momenta'],line['dots']))
-        self.DefineNodes(dict['node_types'])
-        if 'green' in dict:
-            self.green = dict['green']
+#    def _ToDict(self):
+#        res = dict()
+#        res['model'] = self.model.name
+#        lines = dict()
+#        map(lambda k,v: lines.update({k: v.AsDict()}),self.lines.keys(),self.lines.values())
+#        res['lines'] = lines
+#        res['node_types'] = self.GetNodesTypes()
+#        res['green'] = self.green
+#        
+#        return res
+#    
+#    def _FromDict(self,dict_):
+#        if dict_['model']<> self.model.name:
+#            raise ValueError, "different model names! %s and %s " %(dict_['model'],self.model.name)
+#        for idxL in dict_['lines']:
+#            #print eval(dict_['lines'][idxL])
+#            line_args = dict()
+#            for key in eval(dict_['lines'][idxL]).keys():
+#                #print key, eval(dict_['lines'][idxL])[key]
+#                line_args[key] = eval(dict_['lines'][idxL])[key]
+#            #map(lambda k,v: line_args.update({k:eval(v)}),eval(dict_['lines'][idxL]).keys(),eval(dict_['lines'][idxL]).values())
+#            type=line_args['type']
+#            del line_args['type']
+#            #print line_args
+#            self.AddLine(idxL, Line(self.model,type,**line_args))
+#        self.DefineNodes(dict_['node_types'])
+#        if 'green' in dict_:
+#            self.green = dict_['green']
         
     
     def Save(self, overwrite=False):
-        self.model.SaveGraph(self,overwrite)
+        self.model.SaveGraphMethod(self,overwrite)
 
-    def Load(self, str_nickel=""):
-        self._FromDict(self.model.LoadGraph(self, str_nickel))
+#    def Load(self, str_nickel=""):
+#        self._FromDict(self.model.LoadGraph(self, str_nickel))
         
     def NLoops(self):
         return len(self.internal_lines)-len(self.internal_nodes)+1
@@ -570,7 +641,12 @@ def LoadFromGRC(filename,model):
     for graph_lines in SplitGRCGraphs(lines):
         graph = Graph(model)
         for idxL in graph_lines.keys():
-            graph.AddLine(idxL, Line(1,graph_lines[idxL][0],graph_lines[idxL][1],None,dict()) )
+            graph.AddLine(idxL, 
+                          Line(model, 1, start=graph_lines[idxL][0], 
+                               end=graph_lines[idxL][1], 
+                               momenta=None, dots=dict()) 
+                          )
+            
         graph.DefineNodes(node_types)
         res.append(graph)
     return res

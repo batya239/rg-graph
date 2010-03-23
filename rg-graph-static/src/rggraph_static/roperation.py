@@ -34,9 +34,10 @@ def ExtractSubgraphs( G, subgraph_list, delta=False ):
             Out = map_reduced_nodes[ G.lines[idxL].end ]
         else:
             Out = G.lines[idxL].end
-        ct_graph.AddLine( idxL, Line( G.lines[idxL].type, 
-                                     In, Out, G.lines[idxL].momenta, 
-                                     G.lines[idxL].dots ) )
+        ct_graph.AddLine( idxL, Line( G.model, G.lines[idxL].type, 
+                                     start=In, end=Out, 
+                                     momenta=G.lines[idxL].momenta, 
+                                     dots=G.lines[idxL].dots ) )
 
 # TODO: we must determine dims by power counting        
     ct_graph.DefineNodes(node_types, dim=G.dim )

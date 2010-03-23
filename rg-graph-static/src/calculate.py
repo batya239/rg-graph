@@ -56,8 +56,7 @@ if __name__ == '__main__':
     for nickel in g_list:
         #print "%s "%nickel
         #rggrf.utils.print_debug(nickel, debug)
-        G = rggrf.Graph(model)
-        G.Load(nickel)
+        G = model.LoadGraph(nickel)
         G.GenerateNickel()
         G.FindSubgraphs()
         os.chdir(model.basepath+"/"+nickel)

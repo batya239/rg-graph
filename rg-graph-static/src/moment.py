@@ -34,20 +34,17 @@ if "-overwrite" in sys.argv:
     overwrite = True
 else:
     overwrite = False
-#print phi3.name
+
 
 for file in g_list:
     rggrf.utils.print_debug(file, debug)
-    G = rggrf.Graph(model)
-    G.Load(file)
+    G = model.LoadGraph(file)
     G.GenerateNickel()
     G.FindSubgraphs()
     G.WorkDir()
-#print G.nickel
 
     moments = rggrf.moments.Generate(G)
     G._UpdateMoments(moments)
-
 
     G.Save(overwrite=overwrite)
     G.SaveAsPNG("graph.png")

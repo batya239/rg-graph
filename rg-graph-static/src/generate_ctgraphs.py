@@ -36,23 +36,19 @@ while len(g_list)>0:
     t_list=[]
     for file in g_list:
         rggrf.utils.print_debug(file, debug)
-        G = rggrf.Graph(model)
-        G.Load(file)
-        G.DefineNodes({})
+        G = model.LoadGraph(file)
         G.GenerateNickel()
         G.FindSubgraphs()
         D = rggrf.roperation.Delta(G)
     
         for term  in D.terms:
-            G1 = rggrf.Graph(model)
-            G2 = rggrf.Graph(model)
             try:
                 term.ct_graph.GenerateNickel()
     
-                G1.Load(str(term.ct_graph.nickel))
+                G1=model.LoadGraph(str(term.ct_graph.nickel))
     
             except:
-                G1=term.ct_graph.Clone()
+                G1=term.ct_graph
                 moments = rggrf.moments.Generate(G1)
                 G1._UpdateMoments(moments)
                 G1.Save()
@@ -62,10 +58,10 @@ while len(g_list)>0:
             try:    
                 term.subgraph.GenerateNickel()
     #        print term.subgraph.nickel
-                G2.Load(str(term.subgraph.nickel))
+                G2 = model.LoadGraph(str(term.subgraph.nickel))
             except:
-                G2=term.ct_graph.Clone()
-                moments = rggrf.moments.Generate(G1)
+                G2=term.ct_graph
+                moments = rggrf.moments.Generate(G2)
                 G2._UpdateMoments(moments)
                 G2.Save()
                 rggrf.utils.print_debug("found: %s"%G2.nickel, debug)

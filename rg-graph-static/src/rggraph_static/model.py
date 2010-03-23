@@ -25,6 +25,7 @@ class Model:
             propagator="1/(p*p+tau)", directed=0 (simple massive line)
             only for static!!! для динамики нужно оперировать полями
             Graphviz - additional options for vizualization, Ex. color="red"
+            fields - fields reqiuired for line initialization
         """
         if line_idx not in self.line_types:
             self.line_types[line_idx] = kwargs
@@ -105,74 +106,9 @@ class Model:
         else:
             return self.greens
     
+    def LoadGraph(self, file):
+        if 'LoadGraphMethod' in self.__dict__:
+            return self.LoadGraphMethod(self, file)
+        else:
+            raise NotImplementedError, "No LoadGraphMethod defined for model %s"%self.name
     
-#def scalar_prod(moment1, moment2):
-#    if 'p' in moment1:
-#        t_moment1 = moment1
-#        t_moment2 = moment2
-#    elif 'p' in moment2:
-#        t_moment1 = moment2
-#        t_moment2 = moment1
-#    else:
-#        n1 = int(moment1.replace("+q", "").replace("-q", ""))
-#        n2 = int(moment2.replace("+q", "").replace("-q", ""))
-#        if n1 < n2 :
-#            t_moment1 = moment1
-#            t_moment2 = moment2
-#        else:
-#            t_moment1 = moment2
-#            t_moment2 = moment1
-#    tt_moment1 = t_moment1.replace("+", "").replace("-", "")
-#    tt_moment2 = t_moment2.replace("+", "").replace("-", "")
-#    var(tt_moment1)
-#    var(tt_moment2)
-#    res  = 2*eval(t_moment1)*eval(t_moment2)
-#    prod = tt_moment1 + tt_moment2
-#    var(prod)
-#    res = res * eval(prod)
-#    return res
-#
-#def SquaredMomenta(momenta):
-#    tmomenta = momenta.replace("+", ",+").replace("-", ",-")
-#    moment_list = tmomenta[1:].split(',')
-#    res=0
-#    for idxM in moment_list:
-#        var(idxM.replace('+','').replace('-',''))
-#        res = res + pow(eval(idxM),2)
-#        for idxM2 in moment_list[moment_list.index(idxM)+1:]:
-#            res = res + scalar_prod(idxM,idxM2)
-#    
-#    return res
-#
-#def ZeroMomenta(momenta, zero_momenta):
-#    tmomenta = momenta.replace("+", ",+").replace("-", ",-")
-#    z_moment=list()
-#    for idxZM in zero_momenta:
-#        t_idxZM=idxZM.replace("+", ",+").replace("-", ",-")
-#        idxZM_list=t_idxZM[1:].split()
-#        if len(idxZM_list) == 1:
-#            z_moment.append((idxZM_list[0].replace('+','').replace('-',''),'0'))
-#        else:
-#            if idxZM_list[0][0] == "-":
-#                other = ""
-#                for idxM in idxZM_list[1:]:
-#                    other = other + idxM 
-#                z_moment.append((idxZM_list[0].replace("-",""), other ))
-#            else:
-#                other = ""
-#                for idxM in idxZM_list[1:]:
-#                    other = other + idxM.replace('+','_+_').replace("-","_-_").replace("_+_","-").replace("_-_","+") 
-#                z_moment.append((idxZM_list[0], other ))
-#        tmomenta = tmomenta + idxZM.replace("+", ",+").replace("-", ",-")
-#        
-#    moment_list = tmomenta[1:].split(',')
-#    res=0
-#    for idxM in moment_list:
-#        var(idxM.replace('+','').replace('-',''))
-#    s_momenta=eval(momenta)    
-#    for idxZM in z_moment:        
-#        s_momenta=s_momenta.sub(eval(idxZM[0]),eval(idxZM[1]))
-#    res=str(s_momenta)
-#    if res[0] <> '-' :
-#        res="+"+res
-#    return res
