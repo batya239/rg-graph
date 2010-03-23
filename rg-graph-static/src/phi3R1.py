@@ -65,11 +65,11 @@ def node_factor(Node):
             res = rggrf.StrechAtoms(res, Node.strechs[strech], strech, ignore_present_strech = False)
     if 'diffs' in Node.__dict__:
         for diff in Node.diffs:
-            res = res.diff(sympy.var(diff))
+            res = rggrf.roperation.Factorized(1, (res.factor*res.other).diff(sympy.var(diff)))
     if 'dots' in Node.__dict__:
         for idxD in Node.dots:
             for idx in range(Node.dots[idxD]):
-                res = Node.model.dot_types[idxD]["action"](propagator=res)
+                res = rggrf.roperation.Factorized(1, Node.model.dot_types[idxD]["action"](propagator=res.factor*res.other))
     return res
 
 def dot_action(**kwargs):
