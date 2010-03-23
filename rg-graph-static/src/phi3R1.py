@@ -16,6 +16,25 @@ import copy
 
 #definitions of propagators, node factors, dot actions, and K operation 
 
+def AddStrech(Obj,strech, atoms_str):
+    if isinstance(Obj,(rggrf.Line,rggrf.Node)):
+        if 'strechs' not in Obj.__dict__:
+            Obj.strechs=dict()   
+        if strech not in Obj.strechs: 
+            Obj.strechs[strech]=atoms_str
+        else:
+            raise ValueError, "Strech variable %s allready present in object"%strech
+    else:
+        raise NotImplementedError, "Do not know how to strech object: %s"%type(Obj)    
+
+def AddDiff(Obj,var):
+    if isinstance(Obj,(rggrf.Line,rggrf.Node)):
+        if 'diffs' not in Obj.__dict__:
+            Obj.diffs=list()   
+        Obj.diffs.append(var)
+    else:
+        raise NotImplementedError, "Do not know how to diff object: %s"%type(Obj) 
+
 def propagator(Line):
     tau=sympy.var('tau')
     res = 1 / (Line.momenta.Squared() + tau)
@@ -116,35 +135,37 @@ def FindExtMomentPath(G,atoms):
 def K_nR1(G, N, debug=False):
     debug_level = 1
     ext_strech_var_str=None
+#generate diffs for external moment, and appropriate strechs
     if N==0:
         diffs=[None,]
-        extra_diff_multiplier = 1
+        extra_diff_multiplier = 1.
     elif N==2:
         extra_diff_multiplier = 0.5
         ext_moment_atoms_str = FindExtMomentAtoms(G)
         if len(ext_moment_atoms_str)==1:
             ext_strech_var_str = "%s_strech_var"%ext_moment_atoms_str[0]
             ext_moment_path = [(i[0],i[1],ext_strech_var_str) for i in FindExtMomentPath(G,ext_moment_atoms_str)]
+            
             if debug and debug_level>0:
                 print
                 print ext_moment_path
                 print
+                
             for idx in ext_moment_path:
                 if idx[1]=="L":
-                    line = G.lines[idx[0]]
-                    if 'strech' not in line.__dict__:
-                        line.strech=dict()    
-                    line.strech[ext_strech_var_str]=ext_moment_atoms_str
+                    obj = G.lines[idx[0]]
                 elif idx[1]=="N":
-                    node = G.nodes[idx[0]]
-                    if 'strech' not in node.__dict__:
-                        node.strech=dict()    
-                    node.strech[ext_strech_var_str]=ext_moment_atoms_str
-            diffs = [i for i in rggrf.utils.xSelections(ext_moment_path,N)]                        
+                    obj = G.nodes[idx[0]]
+                model.AddStrech(obj, ext_strech_var_str, ext_moment_atoms_str)
+                
+            diffs = [i for i in rggrf.utils.xSelections(ext_moment_path,N)]
+                                    
         else:
             raise ValueError, "no or complex external momenta, atoms: %s"%ext_moment_atoms_str
     else:
         raise ValueError, " Unknown operation :  K%s"%N 
+
+#generate diffs and strechs for subgraphs 
 
     extra_strech_multiplier=1.
 #sub_diffs=dict()    
@@ -161,25 +182,22 @@ def K_nR1(G, N, debug=False):
         
         for idx in sub_ext_path:
             if idx[1]=="L":
-                line = G.lines[idx[0]]
-                if 'strech' not in line.__dict__:
-                    line.strech=dict()    
-                line.strech[strech_var_str]=sub_ext_atoms_str
+                obj = G.lines[idx[0]]
             elif idx[1]=="N":
-                node = G.nodes[idx[0]]
-                if 'strech' not in node.__dict__:
-                    node.strech=dict()    
-                node.strech[strech_var_str]=sub_ext_atoms_str
+                obj = G.nodes[idx[0]]
+            model.AddStrech(obj, strech_var_str, sub_ext_atoms_str)
 
         if subgraph.dim >=0:
             degree = subgraph.dim+1
         else:
             raise ValueError, "irrelevant graph!!"
+        
         sub_diffs = [i for i in rggrf.utils.xSelections(sub_ext_path,degree)]
         strech_var = sympy.var(strech_var_str)
         if degree>0: 
             extra_strech_multiplier = extra_strech_multiplier * (1.-strech_var)**(degree-1.)/sympy.factorial(degree-1) 
         new_diffs=list()
+        #Extend diffs list with diffs for current subgraph
         for diff in diffs:
             if diff == None:
                 cur_diff = list()
@@ -194,7 +212,7 @@ def K_nR1(G, N, debug=False):
         diffs = new_diffs
     if debug:    
         print diffs
-    
+    #generate terms for each diff in diffs
     res=list()
     for diff in diffs:
         if diff == None:
@@ -203,57 +221,35 @@ def K_nR1(G, N, debug=False):
             cur_diff = diff
         if debug:
             print "current diff: ",diff
+        cur_G=G.Clone()
+        for idx in cur_diff:
+            if idx[1]=="L":
+                obj = cur_G.lines[idx[0]]
+            elif idx[1]=="N":
+                obj = cur_G.nodes[idx[0]]
+            model.AddDiff(obj, idx[2])
                 
         t_res = rggrf.roperation.Factorized(1,extra_diff_multiplier*extra_strech_multiplier)
-        for idxL in G.internal_lines:
-            curline=G.lines[idxL]
-            prop = G.model.line_types[curline.type]["propagator"](momenta=curline.momenta)
-            for idxD in curline.dots:
-                for idx in range(curline.dots[idxD]):
-                    prop = G.model.dot_types[idxD]["action"](propagator=prop)
-            if "strech" in curline.__dict__:
-                for cur_strech_str in curline.strech:
-                    strech_atoms =[sympy.var(i) for i in curline.strech[cur_strech_str]]
-                    strech_var = sympy.var(cur_strech_str)
-                    for atom in strech_atoms:
-                        prop = rggrf.Streching(prop, atom, strech_var, ignore_present_strech=True)
-            for cur_cur_diff in cur_diff:
-                if cur_cur_diff[0]==idxL and cur_cur_diff[1] == "L":
-                    diff_var = sympy.var(cur_cur_diff[2])                        
-                    prop = prop.diff(diff_var)
+        for idxL in cur_G.internal_lines:
+            curline=cur_G.lines[idxL]
+            prop = curline.Propagator()
             if debug and debug_level > 0:
                 print "Line %s: "%idxL
                 sympy.pretty_print(prop)
                 
             t_res.other = t_res.other * prop
         
-        for idxN in G.internal_nodes:
-            curnode = G.nodes[idxN]
+        for idxN in cur_G.internal_nodes:
+            curnode = cur_G.nodes[idxN]
             
-            node_moments = dict()
-            for idx in range(len(curnode.lines)):
-                if G.lines[curnode.lines[idx]].end == idxN:
-                    node_moments["moment%s"%idx] = G.lines[curnode.lines[idx]].momenta
-                else:
-                    node_moments["moment%s"%idx] = - G.lines[curnode.lines[idx]].momenta
-                    
-            factor = G.model.node_types[curnode.type]["Factor"](None, **node_moments)
-            if "strech" in curnode.__dict__:
-                if debug_level >0:
-                    rggrf.utils.print_debug("node %s, strech: %s, factor: %s"%(idxN,curnode.strech,factor.factor), debug)
-                for cur_strech_str in curnode.strech:
-                    strech_atoms =[sympy.var(i) for i in curnode.strech[cur_strech_str]]
-                    strech_var = sympy.var(cur_strech_str)
-                    for atom in strech_atoms:
-                        factor = rggrf.Streching(factor, atom, strech_var, ignore_present_strech=True)
-            for cur_cur_diff in cur_diff:
-                if cur_cur_diff[0]==idxN and cur_cur_diff[1] == "N":
-                    diff_var = sympy.var(cur_cur_diff[2])
-                    factor = rggrf.roperation.Factorized(1,(factor.factor*factor.other).diff(diff_var))
+            factor = curnode.Factor()
+            
             if debug and debug_level > 0:
                 print "Node %s: "%idxN
                 sympy.pretty_print(factor.other*factor.factor)
+                
             t_res = t_res * factor
+            
         if ext_strech_var_str <>None:
             strech_var = sympy.var(ext_strech_var_str)
             try:
@@ -304,20 +300,15 @@ model.AddLineType(1, propagator=propagator, directed=0, fields=["start","end","d
 # definition of node types
 
 #External Node always have number 0 and no Lines requirement
-model.AddNodeType(0, Lines=[], Factor=node_factor,
-                 gv={"color": "red"}) 
+model.AddNodeType(0, Lines=[], Factor=node_factor, gv={"color": "red"}) 
 # phi3 node
 model.AddNodeType(1, Lines=[1, 1, 1], Factor=node_factor)
 
 # nodes from Sigma subgraphs inf counterterms graphs
 model.AddNodeType(2, Lines=[1, 1], Factor=node_factor)
 
-# Nodes with K operation (Lines definition should much to one of 
-# subgraphs definitions)
-
-#TODO: generate such nodes automatically when adding subgraph types 
-#phi3.AddNodeType(3, Lines=[1, 1, 1], Factor=K, gv={"color": "blue"})
-#phi3.AddNodeType(4, Lines=[1, 1], Factor=K, gv={"color": "blue"})
+model.AddStrech=AddStrech
+model.AddDiff=AddDiff
 
 # relevant subgraph types
 model.AddSubGraphType(1, Lines=[1, 1, 1], dim=0, K_nodetypeR1=3)

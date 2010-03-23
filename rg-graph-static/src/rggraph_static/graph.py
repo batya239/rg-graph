@@ -153,6 +153,10 @@ def StrechAtoms(expr, moment_atoms, strech, ignore_present_strech = False):
             atoms = expr.atoms()
         except AttributeError:
             return expr
+        if isinstance(strech,str):
+            strech_var=sympy.var(strech)
+        else:
+            strech_var=strech
         
         t_expr = expr
         if (not ignore_present_strech) and strech in atoms:
@@ -160,7 +164,7 @@ def StrechAtoms(expr, moment_atoms, strech, ignore_present_strech = False):
         for moment_atom in moment_atoms:
             for atom in atoms:
                 if ("%sx" %moment_atom in str(atom)) or ("x%s" %moment_atom in str(atom)) or ("%s" %moment_atom == str(atom) ):
-                    t_expr = t_expr.subs(atom, strech * atom)
+                    t_expr = t_expr.subs(atom, strech_var * atom)
                 
         return t_expr
 
@@ -257,7 +261,7 @@ class Node:
             self.__dict__[idx]=kwargs[idx]
             
     def Factor(self):
-        return self.model.node_types[self.type]["factor"](self)
+        return self.model.node_types[self.type]["Factor"](self)
     
     def Lines(self):
         return self.lines_dict.keys()
@@ -407,7 +411,7 @@ class Graph:
             tmp_lines_dict=dict()    
             for idxL in tmp_lines:
                 tmp_lines_dict[idxL]=self.lines[idxL]
-            self.nodes[idxN] = Node(type=tmp_type, lines_dict=tmp_lines_dict)
+            self.nodes[idxN] = Node(model=self.model, type=tmp_type, lines_dict=tmp_lines_dict)
             
         self.external_lines = tmp_external_lines
         self.internal_lines = set(self.lines.keys()) - self.external_lines
