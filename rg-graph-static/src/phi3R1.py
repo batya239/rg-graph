@@ -59,7 +59,6 @@ def node_factor(Node):
         res = rggrf.roperation.Factorized(1, moment.Squared())
     else:
         raise ValueError, "Invalid node type: %s " %Node.type
-    
     if 'strechs' in Node.__dict__:
         for strech in Node.strechs:
             res = rggrf.StrechAtoms(res, Node.strechs[strech], strech, ignore_present_strech = False)
@@ -152,12 +151,14 @@ def K_nR1(G, N, debug=False):
                 print
                 
             for idx in ext_moment_path:
+#                print idx,
                 if idx[1]=="L":
                     obj = G.lines[idx[0]]
                 elif idx[1]=="N":
                     obj = G.nodes[idx[0]]
                 model.AddStrech(obj, ext_strech_var_str, ext_moment_atoms_str)
-                
+#                print obj.strechs
+#                print
             diffs = [i for i in rggrf.utils.xSelections(ext_moment_path,N)]
                                     
         else:

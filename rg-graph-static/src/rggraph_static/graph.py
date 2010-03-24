@@ -142,9 +142,9 @@ class Momenta:
 
 def StrechAtoms(expr, moment_atoms, strech, ignore_present_strech = False):
     if isinstance(expr, roperation.Factorized):
-        return roperation.Factorized(Streching(expr.factor, moment_atoms, 
+        return roperation.Factorized(StrechAtoms(expr.factor, moment_atoms, 
                                                strech, ignore_present_strech),
-                                     Streching(expr.other, moment_atoms, 
+                                     StrechAtoms(expr.other, moment_atoms, 
                                                strech, ignore_present_strech)) 
         
     else:
