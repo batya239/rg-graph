@@ -60,6 +60,7 @@ if __name__ == '__main__':
         G.GenerateNickel()
         G.FindSubgraphs()
         os.chdir(model.basepath+"/"+nickel)
+        print "(%s/%s)"%((g_list.index(nickel)+1),len(g_list))
         process = Process(target=execute_method, args=(method, G, debug))
         process.start()
         process.join(timeout)
