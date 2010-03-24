@@ -932,7 +932,7 @@ def CompileMCCode(prog_name, debug=False):
     utils.print_debug( "Compiling %s ... " %prog_name, debug)
     sys.stdout.flush()
     process = subprocess.Popen(["gcc", code_name, "-lm", "-lpthread", 
-                                "-lpvegas", "-o", prog_name], shell=False, 
+                                "-lpvegas","-O2", "-o", prog_name], shell=False, 
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     exit_code = process.wait()
     (std_out, std_err) = process.communicate()
@@ -1032,7 +1032,7 @@ def CalculateEpsilonSeries(prog_names, build=False, points=10000, threads=2, deb
                 raise Exception, "CompileMCCode failed to build %s" %prog
         exec_res = ExecMCCode(prog, points=points, threads=threads, debug=debug, calc_delta=calc_delta)
         if exec_res == None:
-            raise ValueError , "ExecMCCode function returns None"
+            raise ValueError , "ExecMCCode function returns None: prog = %s" %prog
         (res, dev, deltA) = exec_res
         reg = regex.search("_e(\d+)$",prog)
         if reg:
