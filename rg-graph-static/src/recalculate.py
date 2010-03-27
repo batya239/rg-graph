@@ -164,17 +164,17 @@ for nickel in g_list:
             #print t_r1_dot_gamma, t_r1_dot_gamma_err
                 G.r1_dot_gamma = G.r1_dot_gamma + t_r1_dot_gamma
         
-                err = err + t_r1_dot_gamma_err
+                err = err + t_r1_dot_gamma_err**2
             cnt=cnt+1
             bar.update(cnt)
         
-        
+        err=err**0.5
         G.r1_dot_gamma_err = rggrf.utils.RelativeError(G.r1_dot_gamma, err, sympy.var('eps'))
         
         rggrf.utils.print_debug( G.r1_dot_gamma, debug)
         
         G.SaveResults(['r1_dot_gamma','r1_dot_gamma_err','npoints','method','delta'])
-        print G.r1_dot_gamma, G.r1_dot_gamma_err
+        print G.r1_dot_gamma, G.r1_dot_gamma_err, "\n"
         
 
 #print "симметрийный коэффициент: %s" %(G.sym_coeff)
