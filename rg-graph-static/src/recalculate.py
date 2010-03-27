@@ -88,9 +88,8 @@ if "-delta" in sys.argv:
 else:
     calc_delta = None
 
-for nickel in g_list:
-    G = rggrf.Graph(model)
-    G.Load(nickel)
+for nickel in g_list: 
+    G = model.LoadGraph(nickel)
     G.GenerateNickel()
     G.LoadResults('eps')
     if G.method in ["MCT_SVd", "MCO_SVd"]:
