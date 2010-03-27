@@ -116,7 +116,7 @@ for nickel in g_list:
         
         G.WorkDir()
     
-        process = subprocess.Popen(["ls %s*"%G.method,], shell=True, 
+        process = subprocess.Popen(["ls |grep %s"%G.method,], shell=True, 
                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         exit_code = process.wait()
         (std_out,std_err) = process.communicate()
