@@ -10,9 +10,11 @@ import sympy
 
 import progressbar
 
-def FindExecutables(ls_out,prefix):
+#def FindExecutables(ls_out,prefix):
+def FindExecutables(dirlist,prefix):
     res = dict()
-    for line in ls_out.splitlines():
+#    print "FE!"
+    for line in dirlist:
         reg = regex.match("^%s_(.+)_e(\d+)$"%prefix, line)
         if reg:
             if reg.groups()[0] in res:
@@ -116,15 +118,23 @@ for nickel in g_list:
         
         G.WorkDir()
     
-        process = subprocess.Popen(["ls |grep %s"%G.method,], shell=True, 
-                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        exit_code = process.wait()
-        (std_out,std_err) = process.communicate()
-        if exit_code <> 0 :
-            print std_err
-            raise Exception, "\"ls %s*\" returned error code %s"%(G.method,exit_code)
+#        process = subprocess.Popen(["ls",], shell=False, 
+#                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+#        rggrf.utils.print_debug("start process")
+#        exit_code = process.wait()
+#        rggrf.utils.print_debug("exit code: %s"%exit_code)
+
+#        (std_out,std_err) = process.communicate()
+           
+#        rggrf.utils.print_debug("comunicate()")
+
+        dirlist=os.listdir("./")
+ 
+#        if exit_code <> 0 :
+#            print std_err
+#            raise Exception, "\"ls %s*\" returned error code %s"%(G.method,exit_code)
     
-        t_exec_dict = FindExecutables(std_out, G.method)
+        t_exec_dict = FindExecutables(dirlist, G.method)
 #        if len(t_exec_dict)>1:
 #            raise ValueError, "found more then one set of executables: %s " %t_exec_dict.keys()
         G.r1_dot_gamma = 0
