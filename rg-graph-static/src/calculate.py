@@ -1,7 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf8 -*-
 
-from phi3 import *
+#from phi3 import *
+import sys
 from multiprocessing import Process
 
 
