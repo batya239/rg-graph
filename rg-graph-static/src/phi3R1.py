@@ -399,19 +399,6 @@ def K_nR1(G, N, Kres=dict(), debug=False):
         
             
         
-def K2R1(G, Kres=dict(), debug=False):
-    
-    if isinstance(G, rggrf.Graph):
-        return K_nR1(G, 2, Kres, debug=debug)
-    else:
-        raise TypeError, "Invalid type" 
-
-def K0R1(G, Kres=dict(), debug=False):
-    
-    if isinstance(G, rggrf.Graph):
-        return K_nR1(G, 0, Kres, debug=debug)
-    else:
-        raise TypeError, "Invalid type" 
     
 def L_dot(G, progress=None,debug=False):
     if progress <>  None:
@@ -427,9 +414,9 @@ def L_dot(G, progress=None,debug=False):
 #        cur_r1.SaveAsPNG("test.png")
     
         if len(G.external_lines) == 2:
-            Kres = K2R1(cur_G, Kres, debug)
+            Kres = K_nR1(cur_G, 2, Kres, debug)
         elif len(G.external_lines) == 3:
-            Kres = K0R1(cur_G, Kres, debug)
+            Kres = K_nR1(cur_G, 0, Kres, debug)
         else:
             raise ValueError, "unknown graph type"
         progressbar.update(cur_progress+step)
