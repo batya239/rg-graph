@@ -233,7 +233,7 @@ def FindExtMomentPath(G,atoms):
     return ext_moment_path
 
 
-def K_nR1(G, N, debug=False):
+def K_nR1(G, N, Kres=dict(), debug=False):
     debug_level = 1
     ext_strech_var_str=None
 #generate diffs for external moment, and appropriate strechs
@@ -320,7 +320,7 @@ def K_nR1(G, N, debug=False):
     print len(diffs)
     print 
     
-    res_dict=dict()
+    res_dict=Kres
     for diff in diffs:
         if diff == None:
             cur_diff = list()
@@ -386,38 +386,61 @@ def K_nR1(G, N, debug=False):
                 sympy.pretty_print(t_res.factor*t_res.other)
 
             res_dict[s_graph]=(t_res, 1)
+#    res=list()
+#    for key in res_dict:
+#        (t_res,t_cnt) = res_dict[key]
+#        res.append(t_res*rggrf.roperation.Factorized(1,t_cnt))    
+#    print
+#    print len(res)
+#    print
+    return res_dict
+            
+        
+        
+            
+        
+def K2R1(G, Kres=dict(), debug=False):
+    
+    if isinstance(G, rggrf.Graph):
+        return K_nR1(G, 2, Kres, debug=debug)
+    else:
+        raise TypeError, "Invalid type" 
+
+def K0R1(G, Kres=dict(), debug=False):
+    
+    if isinstance(G, rggrf.Graph):
+        return K_nR1(G, 0, Kres, debug=debug)
+    else:
+        raise TypeError, "Invalid type" 
+    
+def L_dot(G, progress=None,debug=False):
+    if progress <>  None:
+        (progressbar,maxprogress) = progress
+        step = float(maxprogress)/len(G.internal_lines)
+        cur_progress = progressbar.currval
+    Kres=dict()
+    for idxL in G.internal_lines:
+        cur_G=G.Clone()
+        cur_G.lines[idxL].dots[1] = 1
+        cur_G.DefineNodes()
+        cur_G.FindSubgraphs()
+#        cur_r1.SaveAsPNG("test.png")
+    
+        if len(G.external_lines) == 2:
+            Kres = K2R1(cur_G, Kres, debug)
+        elif len(G.external_lines) == 3:
+            Kres = K0R1(cur_G, Kres, debug)
+        else:
+            raise ValueError, "unknown graph type"
+        progressbar.update(cur_progress+step)
+        cur_progress = progressbar.currval
     res=list()
-#    print 
-#    print 
-#    print res_dict
-#    print 
-    for key in res_dict:
-        (t_res,t_cnt) = res_dict[key]
-        res.append(t_res*rggrf.roperation.Factorized(1,t_cnt))    
-    print
-    print len(res)
-    print
+    for key in Kres.keys():
+        (t_res,t_cnt) = Kres[key]
+        res.append(t_res*rggrf.roperation.Factorized(1,t_cnt))        
     return res
+    
             
-        
-        
-            
-        
-def K2R1(G, debug=False):
-    
-    if isinstance(G,rggrf.Graph):
-        return K_nR1(G,2,debug)
-    else:
-        raise TypeError, "Invalid type" 
-
-def K0R1(G,debug=False):
-    
-    if isinstance(G,rggrf.Graph):
-        return K_nR1(G,0,debug)
-    else:
-        raise TypeError, "Invalid type" 
-
-    
            
 # model initialization
 model=rggrf.Model("phi3R1")
@@ -614,35 +637,21 @@ def MCT_SVd(G, debug=False):
                                   widgets=["%s  "%G.nickel, progressbar.Percentage(), 
                                            " ", progressbar.Bar(), 
                                            progressbar.ETA()]).start()
-    progress = 0
-    step=50./len(G.internal_lines)
-    for idxL in G.internal_lines:
-        
-        rggrf.utils.print_debug("======= %s ======="%idxL, debug)
-        cur_G = G.Clone()
-        cur_G.lines[idxL].dots[1] = 1
-        cur_G.DefineNodes()
-        cur_G.FindSubgraphs()
-#        cur_r1.SaveAsPNG("test.png")
     
-        if len(G.external_lines) == 2:
-            Kres = K2R1(cur_G, debug)
-        elif len(G.external_lines) == 3:
-            Kres = K0R1(cur_G, debug)
-        else:
-            raise ValueError, "unknown graph type"
-        substep = step/len(Kres)
-        for idxK2 in range(len(Kres)):
-                kterm = Kres[idxK2]  
-                s_prep =   ExpandScalarProdsAndPrepareFactorized(kterm,debug)
-                rggrf.utils.print_debug( "---------dm_%s_p%s --------- " %(idxL,idxK2), debug)
-                prepared_eqs.append(rggrf.integration.PrepareFactorizedStrVars(s_prep, SPACE_DIM, 
-                                                                               simplify=False, 
-                                                                               debug=debug))
-                progress = progress + substep
-                bar.update(progress)
-                   
-        sys.stdout.flush()
+    Kres = L_dot(G,progress=(bar,25),debug=debug)
+    progress=bar.currval
+    step = 25./len(Kres)
+    for idxK2 in range(len(Kres)):
+            kterm = Kres[idxK2]  
+            s_prep =   ExpandScalarProdsAndPrepareFactorized(kterm,debug)
+            rggrf.utils.print_debug( "--------- %s --------- " %(idxK2), debug)
+            prepared_eqs.append(rggrf.integration.PrepareFactorizedStrVars(s_prep, SPACE_DIM, 
+                                                                           simplify=False, 
+                                                                           debug=debug))
+            progress = progress + step
+            bar.update(progress)
+               
+    sys.stdout.flush()
           
     prog_names = rggrf.integration.GenerateMCCodeForTermStrVars(base_name, prepared_eqs, 
                                                                 SPACE_DIM, n_epsilon_series, 
@@ -683,35 +692,20 @@ def MCO_SVd(G, debug=False):
                                   widgets=["%s  "%G.nickel, progressbar.Percentage(), 
                                            " ", progressbar.Bar(), 
                                            progressbar.ETA()]).start()
-    progress = 0
-    step=50./len(G.internal_lines)
-    for idxL in G.internal_lines:
-        
-        rggrf.utils.print_debug("======= %s ======="%idxL, debug)
-        cur_G = G.Clone()
-        cur_G.lines[idxL].dots[1] = 1
-        cur_G.DefineNodes()
-        cur_G.FindSubgraphs()
-#        cur_r1.SaveAsPNG("test.png")
-    
-        if len(G.external_lines) == 2:
-            Kres = K2R1(cur_G, debug)
-        elif len(G.external_lines) == 3:
-            Kres = K0R1(cur_G, debug)
-        else:
-            raise ValueError, "unknown graph type"
-        substep = step/len(Kres)
-        for idxK2 in range(len(Kres)):
-                kterm = Kres[idxK2]  
-                s_prep =   ExpandScalarProdsAndPrepareFactorized(kterm,debug)
-                rggrf.utils.print_debug( "---------dm_%s_p%s --------- " %(idxL,idxK2), debug)
-                prepared_eqs.append(rggrf.integration.PrepareFactorizedStrVars(s_prep, SPACE_DIM, 
-                                                                               simplify=False, 
-                                                                               debug=debug))
-                progress = progress + substep
-                bar.update(progress)
+    Kres = L_dot(G,progress=(bar,25),debug=debug)
+    progress=bar.currval
+    step = 25./len(Kres)
+    for idxK2 in range(len(Kres)):
+            kterm = Kres[idxK2]  
+            s_prep =   ExpandScalarProdsAndPrepareFactorized(kterm,debug)
+            rggrf.utils.print_debug( "--------- %s --------- " %(idxK2), debug)
+            prepared_eqs.append(rggrf.integration.PrepareFactorizedStrVars(s_prep, SPACE_DIM, 
+                                                                           simplify=False, 
+                                                                           debug=debug))
+            progress = progress + step
+            bar.update(progress)
                    
-        sys.stdout.flush()
+    sys.stdout.flush()
           
     prog_names = rggrf.integration.GenerateMCCodeForGraphStrVars(base_name, prepared_eqs, 
                                                                 SPACE_DIM, n_epsilon_series, 
