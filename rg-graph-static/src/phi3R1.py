@@ -502,35 +502,20 @@ def MCT_SV(G, debug=False):
                                   widgets=["%s  "%G.nickel, progressbar.Percentage(), 
                                            " ", progressbar.Bar(), 
                                            progressbar.ETA()]).start()
-    progress = 0
-    step=50./len(G.internal_lines)
-    for idxL in G.internal_lines:
-        
-        rggrf.utils.print_debug("======= %s ======="%idxL, debug)
-        cur_G = G.Clone()
-        cur_G.lines[idxL].dots[1] = 1
-        cur_G.DefineNodes()
-        cur_G.FindSubgraphs()
-#        cur_r1.SaveAsPNG("test.png")
-    
-        if len(G.external_lines) == 2:
-            Kres = K2R1(cur_G, debug)
-        elif len(G.external_lines) == 3:
-            Kres = K0R1(cur_G, debug)
-        else:
-            raise ValueError, "unknown graph type"
-        substep = step/len(Kres)
-        for idxK2 in range(len(Kres)):
-                kterm = Kres[idxK2]  
-                s_prep =   ExpandScalarProdsAndPrepareFactorized(kterm,debug)
-                rggrf.utils.print_debug( "---------dm_%s_p%s --------- " %(idxL,idxK2), debug)
-                prepared_eqs.append(rggrf.integration.PrepareFactorizedStrVars(s_prep, SPACE_DIM, 
-                                                                               simplify=False, 
-                                                                               debug=debug))
-                progress = progress + substep
-                bar.update(progress)
-                   
-        sys.stdout.flush()
+    Kres = L_dot(G,progress=(bar,25),debug=debug)
+    progress=bar.currval
+    step = 25./len(Kres)
+    for idxK2 in range(len(Kres)):
+            kterm = Kres[idxK2]  
+            s_prep =   ExpandScalarProdsAndPrepareFactorized(kterm,debug)
+            rggrf.utils.print_debug( "--------- %s --------- " %(idxK2), debug)
+            prepared_eqs.append(rggrf.integration.PrepareFactorizedStrVars(s_prep, SPACE_DIM, 
+                                                                           simplify=False, 
+                                                                           debug=debug))
+            progress = progress + step
+            bar.update(progress)
+               
+    sys.stdout.flush()
           
     prog_names = rggrf.integration.GenerateMCCodeForTermStrVars(base_name, prepared_eqs, 
                                                                 SPACE_DIM, n_epsilon_series, 
@@ -569,35 +554,20 @@ def MCO_SV(G, debug=False):
                                   widgets=["%s  "%G.nickel, progressbar.Percentage(), 
                                            " ", progressbar.Bar(), 
                                            progressbar.ETA()]).start()
-    progress = 0
-    step=50./len(G.internal_lines)
-    for idxL in G.internal_lines:
-        
-        rggrf.utils.print_debug("======= %s ======="%idxL, debug)
-        cur_G = G.Clone()
-        cur_G.lines[idxL].dots[1] = 1
-        cur_G.DefineNodes()
-        cur_G.FindSubgraphs()
-#        cur_r1.SaveAsPNG("test.png")
-    
-        if len(G.external_lines) == 2:
-            Kres = K2R1(cur_G, debug)
-        elif len(G.external_lines) == 3:
-            Kres = K0R1(cur_G, debug)
-        else:
-            raise ValueError, "unknown graph type"
-        substep = step/len(Kres)
-        for idxK2 in range(len(Kres)):
-                kterm = Kres[idxK2]  
-                s_prep =   ExpandScalarProdsAndPrepareFactorized(kterm,debug)
-                rggrf.utils.print_debug( "---------dm_%s_p%s --------- " %(idxL,idxK2), debug)
-                prepared_eqs.append(rggrf.integration.PrepareFactorizedStrVars(s_prep, SPACE_DIM, 
-                                                                               simplify=False, 
-                                                                               debug=debug))
-                progress = progress + substep
-                bar.update(progress)
-                   
-        sys.stdout.flush()
+    Kres = L_dot(G,progress=(bar,25),debug=debug)
+    progress=bar.currval
+    step = 25./len(Kres)
+    for idxK2 in range(len(Kres)):
+            kterm = Kres[idxK2]  
+            s_prep =   ExpandScalarProdsAndPrepareFactorized(kterm,debug)
+            rggrf.utils.print_debug( "--------- %s --------- " %(idxK2), debug)
+            prepared_eqs.append(rggrf.integration.PrepareFactorizedStrVars(s_prep, SPACE_DIM, 
+                                                                           simplify=False, 
+                                                                           debug=debug))
+            progress = progress + step
+            bar.update(progress)
+               
+    sys.stdout.flush()
           
     prog_names = rggrf.integration.GenerateMCCodeForGraphStrVars(base_name, prepared_eqs, 
                                                                 SPACE_DIM, n_epsilon_series, 
