@@ -71,6 +71,108 @@ def node_factor(Node):
                 res = rggrf.roperation.Factorized(1, Node.model.dot_types[idxD]["action"](propagator=res.factor*res.other))
     return res
 
+def moment_serialize(Moment, preserve_sign=False):
+    t_moment=Moment
+    atoms = t_moment.dict.keys()
+    atoms.sort()
+    
+    if not preserve_sign and Moment.dict[atoms[0]] <0:
+        t_moment= -t_moment
+        atoms = t_moment.dict.keys()
+        atoms.sort()
+    res = ""
+    for atom in atoms:
+        res = res + str((atom, Moment.dict[atom]))
+    return res
+
+def strech_serialize(strechs):
+    res = ""
+    keys = strechs.keys()
+    keys.sort()
+    for key in keys:
+        vars = strechs[key]
+        vars.sort()
+        res = res + str((key,vars))
+    return res
+
+def diff_serialize(diffs):
+    
+    import copy
+    keys = copy.copy(diffs)
+    keys.sort()
+    return str(keys)
+
+def dot_serialize(dots):
+    res = ""
+    for dot in dots:
+        res = res + str(("dot%s"%dot, dots[dot]))
+    return res
+
+def line_serialize(Line): 
+    s_moment = "moment:(%s)"%moment_serialize(Line.momenta, preserve_sign=False)
+    
+    if "strechs" in Line.__dict__:
+        s_strechs = "strechs:(%s)"%strech_serialize(Line.strechs)
+    else:
+        s_strechs = "strechs:()"
+        
+    if "diffs" in Line.__dict__:
+        s_diffs = "diffs:(%s)"%diff_serialize(Line.diffs)
+    else:
+        s_diffs = "diffs:()"
+    
+    s_dots = "dots:(%s)"%dot_serialize(Line.dots)
+    
+    return "line%s(%s,%s,%s,%s)"%(Line.type,s_moment,s_strechs,s_diffs,s_dots)
+
+def node_serialize(Node):
+    if Node.type == 0:
+        s_moment = "" 
+    elif Node.type == 1:
+        s_moment = ""
+    elif Node.type == 2:
+        s_moment = moment_serialize(Node.lines_dict.values()[0].momenta, preserve_sign=False)
+    else:
+        raise ValueError, "Invalid node type: %s " %Node.type
+    if "strechs" in Node.__dict__:
+        s_strechs = "strechs:(%s)"%strech_serialize(Node.strechs)
+    else:
+        s_strechs = "strechs:()"
+        
+    if "diffs" in Node.__dict__:
+        s_diffs = "diffs:(%s)"%diff_serialize(Node.diffs)
+    else:
+        s_diffs = "diffs:()"
+    
+    #s_dots = "dots:(%s)"%dot_serialize(Node.dots)
+    
+    return "node%s(%s,%s,%s)"%(Node.type,s_moment,s_strechs,s_diffs)
+
+def graph_serialize(G):
+    s_graph_dict=dict()
+    for idxL in G.internal_lines:
+        s_line=line_serialize(G.lines[idxL])
+        if s_line in s_graph_dict.keys():
+            s_graph_dict[s_line] =  s_graph_dict[s_line] + 1
+        else:
+            s_graph_dict[s_line] = 1
+            
+    for idxN in G.internal_nodes:
+        s_node=node_serialize(G.nodes[idxN])
+        if s_node in s_graph_dict.keys():
+            s_graph_dict[s_node] =  s_graph_dict[s_node] + 1
+        else:
+            s_graph_dict[s_node] = 1
+    
+    keys = s_graph_dict.keys()
+    keys.sort()
+    
+    res= ""
+    for key in keys:
+        res = res + str ((key, s_graph_dict[key]))
+    
+    return res
+        
 def dot_action(**kwargs):
     tau = sympy.var('tau')
     propagator=kwargs["propagator"]
@@ -214,7 +316,11 @@ def K_nR1(G, N, debug=False):
     if debug:    
         print diffs
     #generate terms for each diff in diffs
-    res=list()
+    print
+    print len(diffs)
+    print 
+    
+    res_dict=dict()
     for diff in diffs:
         if diff == None:
             cur_diff = list()
@@ -229,47 +335,68 @@ def K_nR1(G, N, debug=False):
             elif idx[1]=="N":
                 obj = cur_G.nodes[idx[0]]
             model.AddDiff(obj, idx[2])
-                
-        t_res = rggrf.roperation.Factorized(1,extra_diff_multiplier*extra_strech_multiplier)
-        for idxL in cur_G.internal_lines:
-            curline=cur_G.lines[idxL]
-            prop = curline.Propagator()
-            if debug and debug_level > 0:
-                print "Line %s: "%idxL
-                sympy.pretty_print(prop)
-                
-            t_res.other = t_res.other * prop
         
-        for idxN in cur_G.internal_nodes:
-            curnode = cur_G.nodes[idxN]
-            
-            factor = curnode.Factor()
-            
-            if debug and debug_level > 0:
-                print "Node %s: "%idxN
-                sympy.pretty_print(factor.other*factor.factor)
-                
-            t_res = t_res * factor
-            
-        if ext_strech_var_str <>None:
-            strech_var = sympy.var(ext_strech_var_str)
-            try:
-                atoms = t_res.factor.atoms()
-            except:
-                pass
-            else:
-                t_res.factor = t_res.factor.subs(strech_var,0)
-            try:
-                atoms = t_res.other.atoms()
-            except:
-                pass
-            else:
-                t_res.other = t_res.other.subs(strech_var,0)
+     
+        s_graph=graph_serialize(cur_G)
+        if debug: 
+            print
+            print s_graph
+            print
         
-        if debug:
-            sympy.pretty_print(t_res.factor*t_res.other)
-        res.append(t_res)
+        if s_graph in res_dict.keys():
+            res_dict[s_graph] = (res_dict[s_graph][0], res_dict[s_graph][1] + 1)
+        else:
+            t_res = rggrf.roperation.Factorized(1,extra_diff_multiplier*extra_strech_multiplier)
+            for idxL in cur_G.internal_lines:
+                curline=cur_G.lines[idxL]
+                prop = curline.Propagator()
+                if debug and debug_level > 0:
+                    print "Line %s: "%idxL
+                    sympy.pretty_print(prop)
+                    
+                t_res.other = t_res.other * prop
             
+            for idxN in cur_G.internal_nodes:
+                curnode = cur_G.nodes[idxN]
+                
+                factor = curnode.Factor()
+                
+                if debug and debug_level > 0:
+                    print "Node %s: "%idxN
+                    sympy.pretty_print(factor.other*factor.factor)
+                    
+                t_res = t_res * factor
+                
+            if ext_strech_var_str <>None:
+                strech_var = sympy.var(ext_strech_var_str)
+                try:
+                    atoms = t_res.factor.atoms()
+                except:
+                    pass
+                else:
+                    t_res.factor = t_res.factor.subs(strech_var,0)
+                try:
+                    atoms = t_res.other.atoms()
+                except:
+                    pass
+                else:
+                    t_res.other = t_res.other.subs(strech_var,0)
+            
+            if debug:
+                sympy.pretty_print(t_res.factor*t_res.other)
+
+            res_dict[s_graph]=(t_res, 1)
+    res=list()
+#    print 
+#    print 
+#    print res_dict
+#    print 
+    for key in res_dict:
+        (t_res,t_cnt) = res_dict[key]
+        res.append(t_res*rggrf.roperation.Factorized(1,t_cnt))    
+    print
+    print len(res)
+    print
     return res
             
         
