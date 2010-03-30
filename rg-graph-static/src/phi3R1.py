@@ -82,7 +82,7 @@ def moment_serialize(Moment, preserve_sign=False):
         atoms.sort()
     res = ""
     for atom in atoms:
-        res = res + str((atom, Moment.dict[atom]))
+        res = res + str((atom, t_moment.dict[atom]))
     return res
 
 def strech_serialize(strechs):
@@ -240,22 +240,22 @@ def compare_graphs(graph1,graph2):
     else: 
         return -1
 
-def subgraph_dim_with_diff(subgraph):
+def subgraph_dim_with_diff(G,subgraph):
     dim = subgraph.dim
     for idxL in subgraph.internal_lines:
-        if "diffs" in  subgraph.lines[idxL].__dict__:
-            dim = dim  - len(subgraph.lines[idxL].diffs)
-    for idxN in subgraph.nodes:
-        if "diffs" in  subgraph.nodes[idxN].__dict__:
-            dim = dim  - len(subgraph.nodes[idxL].diffs)
+        if "diffs" in  G.lines[idxL].__dict__:
+            dim = dim  - len(G.lines[idxL].diffs)
+    for idxN in subgraph.internal_nodes:
+        if "diffs" in  G.nodes[idxN].__dict__:
+            dim = dim  - len(G.nodes[idxN].diffs)
     return dim
 
-def checkdim_and_sort_subgraphs(subgraphs):
+def checkdim_and_sort_subgraphs(G):
     res = list()
-    for subgraph in subgraphs:
+    for subgraph in G.subgraphs:
 #        print "sub:%s,dim1:%s,dim2:%s\n"%(subgraph.internal_lines,subgraph.dim, subgraph_dim_with_diff(subgraph))
         
-        dim = subgraph_dim_with_diff(subgraph)
+        dim = subgraph_dim_with_diff(G,subgraph)
         if dim >= 0:
             res.append(subgraph)
     res.sort(compare_graphs)
@@ -329,13 +329,13 @@ def K_nR1(G, N, Kres=dict(), debug=False):
         new_G_list=list()
         for cur_G in G_list:
             cur_G.FindSubgraphs()
-            subgraphs = checkdim_and_sort_subgraphs(cur_G.subgraphs)
+            subgraphs = checkdim_and_sort_subgraphs(cur_G)
             if debug:
                 print 
                 print "serial:", graph_serialize(cur_G)
                 print "number of subgraphs:%s" %len(subgraphs)
                 for sub in subgraphs:
-                    print "sub %s, dim:%s"%(sub.internal_lines,subgraph_dim_with_diff(sub))
+                    print "sub %s, dim1:%s, dim2:%s"%(sub.internal_lines, sub.dim, subgraph_dim_with_diff(G, sub))
                     
             if len(subgraphs)>0:
                 stop = False
@@ -353,7 +353,7 @@ def K_nR1(G, N, Kres=dict(), debug=False):
                     elif idx[1]=="N":
                         obj = cur_G.nodes[idx[0]]
                     model.AddStrech(obj, strech_var_str, sub_ext_atoms_str)
-                degree = subgraph_dim_with_diff(subgraph) +1    
+                degree = subgraph_dim_with_diff(G, subgraph) +1    
                 if degree<=0:
                     raise ValueError, "irrelevant graph!!"
                 sub_diffs = [i for i in rggrf.utils.xSelections(sub_ext_path,degree)]
