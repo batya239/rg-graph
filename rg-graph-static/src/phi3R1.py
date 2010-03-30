@@ -232,6 +232,37 @@ def FindExtMomentPath(G,atoms):
                 ext_moment_path.append((node,"N"))
     return ext_moment_path
 
+def compare_graphs(graph1,graph2):
+    if len(graph1.internal_lines) < len(graph2.internal_lines):
+        return 1
+    elif len(graph1.internal_lines) == len(graph2.internal_lines):
+        return 0
+    else: 
+        return -1
+
+def subgraph_dim_with_diff(subgraph):
+    dim = subgraph.dim
+    for idxL in subgraph.internal_lines:
+        if "diffs" in  subgraph.lines[idxL].__dict__:
+            dim = dim  - len(subgraph.lines[idxL].diffs)
+    for idxN in subgraph.nodes:
+        if "diffs" in  subgraph.nodes[idxN].__dict__:
+            dim = dim  - len(subgraph.nodes[idxL].diffs)
+    return dim
+
+def checkdim_and_sort_subgraphs(subgraphs):
+    res = list()
+    for subgraph in subgraphs:
+#        print "sub:%s,dim1:%s,dim2:%s\n"%(subgraph.internal_lines,subgraph.dim, subgraph_dim_with_diff(subgraph))
+        
+        dim = subgraph_dim_with_diff(subgraph)
+        if dim >= 0:
+            res.append(subgraph)
+    res.sort(compare_graphs)
+    return res
+            
+    
+
 
 def K_nR1(G, N, Kres=dict(), debug=False):
     debug_level = 1
@@ -267,76 +298,87 @@ def K_nR1(G, N, Kres=dict(), debug=False):
             raise ValueError, "no or complex external momenta, atoms: %s"%ext_moment_atoms_str
     else:
         raise ValueError, " Unknown operation :  K%s"%N 
+    G_list = list()
+    for diff in diffs:
+        cur_G=G.Clone()
+        if diff == None:
+            cur_G.extra_strech_multiplier=1.
+            G_list.append(cur_G)
+        else:
+#            print
+#            print diff
+            for idx in diff:
+                    if idx[1]=="L":
+                        obj = cur_G.lines[idx[0]]
+                    elif idx[1]=="N":
+                        obj = cur_G.nodes[idx[0]]
+                    model.AddDiff(obj, idx[2])
+            cur_G.extra_strech_multiplier=1.
+            cur_G.FindSubgraphs()
+            print diff,len(cur_G.subgraphs)
+            G_list.append(cur_G)    
 
 #generate diffs and strechs for subgraphs 
 
-    extra_strech_multiplier=1.
-#sub_diffs=dict()    
-    for idxS in range(len(G.subgraphs)):
-        subgraph = G.subgraphs[idxS]
-        sub_ext_atoms_str = FindExtMomentAtoms(subgraph)
-        strech_var_str = "a"
-        int_lines = list(subgraph.internal_lines)
-        int_lines.sort()
-        for idxL in int_lines:
-            strech_var_str = strech_var_str + "_%s"%idxL
-        
-        sub_ext_path = [(i[0],i[1],strech_var_str) for i in FindExtMomentPath(subgraph, sub_ext_atoms_str)] 
-        
-        for idx in sub_ext_path:
-            if idx[1]=="L":
-                obj = G.lines[idx[0]]
-            elif idx[1]=="N":
-                obj = G.nodes[idx[0]]
-            model.AddStrech(obj, strech_var_str, sub_ext_atoms_str)
-
-        if subgraph.dim >=0:
-            degree = subgraph.dim+1
-        else:
-            raise ValueError, "irrelevant graph!!"
-        
-        sub_diffs = [i for i in rggrf.utils.xSelections(sub_ext_path,degree)]
-        strech_var = sympy.var(strech_var_str)
-        if degree>0: 
-            extra_strech_multiplier = extra_strech_multiplier * (1.-strech_var)**(degree-1.)/sympy.factorial(degree-1) 
-        new_diffs=list()
-        #Extend diffs list with diffs for current subgraph
-        for diff in diffs:
-            if diff == None:
-                cur_diff = list()
-            else:
-                cur_diff = diff
-            #print cur_diff
-            for cur_sub_diff in sub_diffs:
-                new_diff=copy.deepcopy(cur_diff)
-                for idx in cur_sub_diff:
-                    new_diff.append(idx)
-                new_diffs.append(new_diff)
-        diffs = new_diffs
-    if debug:    
-        print diffs
-    #generate terms for each diff in diffs
-    print
-    print len(diffs)
-    print 
     
-    res_dict=Kres
-    for diff in diffs:
-        if diff == None:
-            cur_diff = list()
-        else:
-            cur_diff = diff
-        if debug:
-            print "current diff: ",diff
-        cur_G=G.Clone()
-        for idx in cur_diff:
-            if idx[1]=="L":
-                obj = cur_G.lines[idx[0]]
-            elif idx[1]=="N":
-                obj = cur_G.nodes[idx[0]]
-            model.AddDiff(obj, idx[2])
-        
-     
+    stop = False
+    new_G_list=G_list
+    while (not stop):
+        stop = True
+        G_list=new_G_list
+        new_G_list=list()
+        for cur_G in G_list:
+            cur_G.FindSubgraphs()
+            subgraphs = checkdim_and_sort_subgraphs(cur_G.subgraphs)
+            if debug:
+                print 
+                print "serial:", graph_serialize(cur_G)
+                print "number of subgraphs:%s" %len(subgraphs)
+                for sub in subgraphs:
+                    print "sub %s, dim:%s"%(sub.internal_lines,subgraph_dim_with_diff(sub))
+                    
+            if len(subgraphs)>0:
+                stop = False
+                subgraph = subgraphs[0] 
+                sub_ext_atoms_str = FindExtMomentAtoms(subgraph)
+                strech_var_str = "a"
+                int_lines = list(subgraph.internal_lines)
+                int_lines.sort()
+                for idxL in int_lines:
+                    strech_var_str = strech_var_str + "_%s"%idxL
+                sub_ext_path = [(i[0],i[1],strech_var_str) for i in FindExtMomentPath(subgraph, sub_ext_atoms_str)]
+                for idx in sub_ext_path:
+                    if idx[1]=="L":
+                        obj = cur_G.lines[idx[0]]
+                    elif idx[1]=="N":
+                        obj = cur_G.nodes[idx[0]]
+                    model.AddStrech(obj, strech_var_str, sub_ext_atoms_str)
+                degree = subgraph_dim_with_diff(subgraph) +1    
+                if degree<=0:
+                    raise ValueError, "irrelevant graph!!"
+                sub_diffs = [i for i in rggrf.utils.xSelections(sub_ext_path,degree)]
+                strech_var = sympy.var(strech_var_str)
+                if degree>1: 
+                    cur_G.extra_strech_multiplier = cur_G.extra_strech_multiplier * (1.-strech_var)**(degree-1.)/sympy.factorial(degree-1)
+                for diff in sub_diffs:
+                    new_G=cur_G.Clone()
+                    if diff == None:
+                        raise ValueError, "diff can't be None" 
+                    else:
+                        
+                        for idx in diff:
+                            if idx[1]=="L":
+                                obj = new_G.lines[idx[0]]
+                            elif idx[1]=="N":
+                                obj = new_G.nodes[idx[0]]
+                            model.AddDiff(obj, idx[2])
+                        new_G_list.append(new_G)
+            else:
+                new_G_list.append(cur_G)                 
+                
+
+    res_dict=Kres    
+    for cur_G in G_list: 
         s_graph=graph_serialize(cur_G)
         if debug: 
             print
@@ -346,7 +388,8 @@ def K_nR1(G, N, Kres=dict(), debug=False):
         if s_graph in res_dict.keys():
             res_dict[s_graph] = (res_dict[s_graph][0], res_dict[s_graph][1] + 1)
         else:
-            t_res = rggrf.roperation.Factorized(1,extra_diff_multiplier*extra_strech_multiplier)
+            t_res = rggrf.roperation.Factorized(1,extra_diff_multiplier*cur_G.extra_strech_multiplier)
+            print t_res.other
             for idxL in cur_G.internal_lines:
                 curline=cur_G.lines[idxL]
                 prop = curline.Propagator()
@@ -393,6 +436,12 @@ def K_nR1(G, N, Kres=dict(), debug=False):
 #    print
 #    print len(res)
 #    print
+
+    if debug:
+        print
+        for key in res_dict:
+            print "key:%s\n expr:%s\nfactor:%s\n\n"%(key,res_dict[key][0].factor*res_dict[key][0].other,res_dict[key][1])
+
     return res_dict
             
         
