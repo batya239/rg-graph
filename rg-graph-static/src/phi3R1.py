@@ -315,7 +315,7 @@ def K_nR1(G, N, Kres=dict(), debug=False):
                     model.AddDiff(obj, idx[2])
             cur_G.extra_strech_multiplier=1.
             cur_G.FindSubgraphs()
-            print diff,len(cur_G.subgraphs)
+            #print diff,len(cur_G.subgraphs)
             G_list.append(cur_G)    
 
 #generate diffs and strechs for subgraphs 
@@ -389,7 +389,7 @@ def K_nR1(G, N, Kres=dict(), debug=False):
             res_dict[s_graph] = (res_dict[s_graph][0], res_dict[s_graph][1] + 1)
         else:
             t_res = rggrf.roperation.Factorized(1,extra_diff_multiplier*cur_G.extra_strech_multiplier)
-            print t_res.other
+#            print t_res.other
             for idxL in cur_G.internal_lines:
                 curline=cur_G.lines[idxL]
                 prop = curline.Propagator()
