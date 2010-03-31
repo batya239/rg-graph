@@ -44,8 +44,7 @@ eps = sympy.var('eps')
 #print phi3.name
 for file in g_list:
         #print "--- %s"%file,
-        G = rggrf.Graph(model)
-        G.Load(str_nickel=file)
+        G = model.LoadGraph(file)
         G.DefineNodes({})
         G.GenerateNickel()
         G.LoadResults('eps')
