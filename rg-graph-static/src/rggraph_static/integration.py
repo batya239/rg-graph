@@ -539,7 +539,7 @@ int main(int argc, char **argv)
       npoints = ITERATIONS;
     }
 
-  if(argc == 3)
+  if(argc >= 3)
     {
       nthreads = atoi(argv[2]);
 
@@ -548,6 +548,17 @@ int main(int argc, char **argv)
     {
       nthreads = NTHREADS;
     }
+    
+  if(argc >= 4)
+    {
+      niter = atoi(argv[3]);
+
+    }
+  else 
+    {
+      niter = NITER;
+    }
+    
   double estim[FUNCTIONS];   /* estimators for integrals                     */
   double std_dev[FUNCTIONS]; /* standard deviations                          */
   double chi2a[FUNCTIONS];   /* chi^2/n                                      */
@@ -557,7 +568,7 @@ int main(int argc, char **argv)
         FUNCTIONS, 0, nthreads,
         estim, std_dev, chi2a);
   vegas(reg, DIMENSION, func,
-        2, npoints , 2, NPRN_INPUT | NPRN_RESULT,
+        2, npoints , niter, NPRN_INPUT | NPRN_RESULT,
         FUNCTIONS, 0, nthreads,
         estim, std_dev, chi2a);
 double delta= std_dev[0]/estim[0];
@@ -591,6 +602,7 @@ def SavePThreadsMCCodeDelta(name, c_expr, c_vars, str_region, points, nthreads):
 #define FUNCTIONS 1
 #define ITERATIONS <-ITERATIONS->
 #define NTHREADS <-NTHREADS->
+#define NITER 2
 #define NEPS 0
 double reg_initial[2*DIMENSION]= <-REGION->;
 void func (double k[DIMENSION], double f[FUNCTIONS]) {
@@ -611,6 +623,7 @@ int main(int argc, char **argv)
   int i;
   long long npoints;
   int nthreads;
+  int niter;
   double region_delta;
   double reg[2*DIMENSION];
   int idx;
@@ -634,16 +647,25 @@ int main(int argc, char **argv)
       nthreads = NTHREADS;
     }
    
-   if(argc >= 4)
+   if(argc >= 5)
     {
-      region_delta = atof(argv[3]);
+      region_delta = atof(argv[4]);
 
     }
   else 
     {
       region_delta = 0.;
     } 
-    
+
+  if(argc >= 4)
+    {
+      niter = atoi(argv[3]);
+
+    }
+  else 
+    {
+      niter = NITER;
+    }    
     
     for(idx=0; idx<2*DIMENSION; idx++)
       {
@@ -666,7 +688,7 @@ int main(int argc, char **argv)
         FUNCTIONS, 0, nthreads,
         estim, std_dev, chi2a);
   vegas(reg, DIMENSION, func,
-        2, npoints , 2, NPRN_INPUT | NPRN_RESULT,
+        2, npoints , niter, NPRN_INPUT | NPRN_RESULT,
         FUNCTIONS, 0, nthreads,
         estim, std_dev, chi2a);
 double delta= std_dev[0]/estim[0];
@@ -959,12 +981,20 @@ def ExecMCCode(prog_name, points=10000, threads=2,debug=False, calc_delta=None):
 #>>> process.wait()
 #>>> process.communicate()
 #gcc e12-e3-33--_m0_e0.c -lm -lpthread -lpvegas -o test
+    MAXPOINTS=10**9
+    if points > MAXPOINTS:
+        iterations = 2*int(points/MAXPOINTS)
+        points = MAXPOINTS
+    else:
+        iterations = 2
     utils.print_time("EMCCCode: start", debug)
     utils.print_debug("Executing %s points=%s threads=%s ... " %(prog_name, points, threads) , debug)
     sys.stdout.flush()
     arg_lst=["./%s"%prog_name, "%s"%points, "%s"%threads]
+    arg_lst.append(str(iterations))
     if calc_delta<>None:
         arg_lst.append("%s"%calc_delta)
+    
     utils.print_debug("args = %s"%arg_lst,debug)
     process = subprocess.Popen(arg_lst, shell=False, 
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
