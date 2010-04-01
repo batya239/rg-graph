@@ -982,7 +982,7 @@ def ExecMCCode(prog_name, points=10000, threads=2,debug=False, calc_delta=None):
 #>>> process.communicate()
 #gcc e12-e3-33--_m0_e0.c -lm -lpthread -lpvegas -o test
     MAXPOINTS=10**9
-    if points > MAXPOINTS:
+    if points >= MAXPOINTS:
         iterations = 2*int(points/MAXPOINTS)
         points = MAXPOINTS
     else:
