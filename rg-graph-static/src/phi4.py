@@ -603,7 +603,7 @@ def MCO_SVd(G, debug=False):
         cur_G = G.Clone()
         cur_G.lines[idxL].dots[1] = 1
         cur_G.DefineNodes()
-        cur_G.FindSubgraphs(option="roperation")
+        cur_G.FindSubgraphs()
         moments = rggrf.moments.Generate(cur_G)
         cur_G._UpdateMoments(moments)
 #        cur_r1.SaveAsPNG("test.png")
