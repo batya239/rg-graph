@@ -187,7 +187,9 @@ class Delta:
     def __init__(self,G):
         self.terms=list()
         for idxS in range(len(G.subgraphs)):
-            self.terms.append(DeltaTerm(G,idxS))
+            t_delta_term=DeltaTerm(G,idxS)
+            if (not "ExtraGraphCheck" in G.model.__dict__) or G.model.ExtraGraphCheck(t_delta_term.ct_graph):
+                self.terms.append(t_delta_term)
     
     def Calculate(self,str_vars):
         res = 0

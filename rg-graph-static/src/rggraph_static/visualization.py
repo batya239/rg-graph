@@ -46,10 +46,14 @@ def Graph2Cluster(G,name):
             if "gv" in  G.model.dot_types[idxD]:
                 for idxGV in G.model.dot_types[idxD]["gv"]:
                     gv_options[idxGV]=G.model.dot_types[idxD]["gv"][idxGV]
-            
+         
+        if cur_line.momenta<>None :
+            cur_moment =   cur_line.momenta.string
+        else:
+            cur_moment = "None"
         res.add_edge(pydot.Edge( str(cur_line.start)+name, 
                                 str(cur_line.end)+name, 
-                                label = " (%s) %s" %(idxL, cur_line.momenta.string), 
+                                label = " (%s) %s" %(idxL, cur_moment), 
                                 **gv_options) )
             
     return res

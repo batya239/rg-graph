@@ -402,7 +402,7 @@ class Graph:
                     if len(tmp_lst_line_types) == 1: #если в вершину входит всего одна линия - она определенно внешняя
                         tmp_type = 0
                     else:
-                        raise "no such node in model (node=%s , %s)" %(idxN,tmp_lst_line_types) 
+                        raise ValueError, "no such node in model (node=%s , %s)" %(idxN,tmp_lst_line_types) 
 # если вершина внешняя:             
             if tmp_type == 0: 
                 tmp_external_lines = tmp_external_lines | set(tmp_lines)
@@ -463,7 +463,7 @@ class Graph:
             C = C / sympy.Factorial(unique_edges[idxE])
         self.sym_coeff = C
         
-    def FindSubgraphs(self, subgraph_types = False):
+    def FindSubgraphs(self, subgraph_types=False, option=None):
         """ Finds subgraphs and put them in to self.subgraphs list
             if subgraph_types defined searches for subgraphs of custom type 
             not defined in self.model.subgraph_types  
@@ -471,7 +471,7 @@ class Graph:
         import subgraph
         if subgraph_types == False:
             subgraph_types=self.model.subgraph_types
-        self.subgraphs=subgraph.Find(self, subgraph_types)
+        self.subgraphs=subgraph.Find(self, subgraph_types, option=option)
          
     def SaveAsPNG(self, filename):
         """ saves graph and its subgraphs as png image

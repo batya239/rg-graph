@@ -20,6 +20,9 @@ def ExtPathLen(subG,kMoment):
                 is_ext_moment = False
         if is_ext_moment:
             path = path + 1
+            for idxD in subG.lines[idxL].dots:
+                if 'moment_penalty' in subG.model.dot_types[idxD]:
+                    path = path + subG.lines[idxL].dots[idxD]*subG.model.dot_types[idxD]["moment_penalty"]
     return path 
 
 def LongMomentPenalty(G,kMoment):
@@ -47,7 +50,7 @@ def GetMomentaIndex(G,Momenta):
 
 ## сейчас за внеший импульс к диаграмме и внешний импульс в подграфе один и тот же штраф, т.к. делается это в одном цикле.
 #5. нарушение законов киргхоффа +1000000
-    badKirghoff=1000000
+    badKirghoff=10000000
 
 
     result=0
@@ -67,7 +70,7 @@ def GetMomentaIndex(G,Momenta):
     for tM in tMomenta:
         kMoment[tM]={tM:+1}
     ## в треххвостых втекающий импульс 0
-    if len(G.external_lines)==3:
+    if len(G.external_lines)>=3:
         for tM in G.external_lines:
             kMoment[tM]={}
     flag=0
@@ -146,10 +149,11 @@ def GetMomentaIndex(G,Momenta):
     
 
 def Generate(G):
-    G.FindSubgraphs()
+    G.FindSubgraphs(option="moments")
     minMomentIndex=10000000000000
     for i in utils.xUniqueCombinations(list(G.internal_lines),G.NLoops()):
         (curIndex,curkMoment)=GetMomentaIndex(G,i)
+ #       print curIndex,curkMoment
         #print "Moments: ", curIndex, i,"\n", curkMoment
         if curIndex<minMomentIndex:
             minMomentIndex=curIndex
@@ -157,7 +161,8 @@ def Generate(G):
             kMoment=curkMoment
             if minMomentIndex==0: 
                 break
-    
+#    print
+#    print minMomentIndex, kMoment
     #print "MINIMUM:\n", minMoment, minMomentIndex
     mapmoment={}
     if len(G.external_lines)==2:

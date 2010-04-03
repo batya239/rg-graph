@@ -44,6 +44,7 @@ for file in g_list:
     G.WorkDir()
 
     moments = rggrf.moments.Generate(G)
+    #print moments
     G._UpdateMoments(moments)
 
     G.Save(overwrite=overwrite)

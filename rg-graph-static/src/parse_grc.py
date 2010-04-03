@@ -42,11 +42,12 @@ else:
 #print model.name
 G_list = rggrf.graph.LoadFromGRC(grc,model)
 for G in G_list:
-    G.GenerateNickel()
-    G.green = green
-    rggrf.utils.print_debug("%s, %s" %(G.nickel, G.sym_coeff),debug)
-    G.Save(overwrite=True)
-    
-    
+    if (not "ExtraGraphCheck" in model.__dict__) or model.ExtraGraphCheck(G):
+        G.GenerateNickel()
+        G.green = green
+        rggrf.utils.print_debug("%s, %s" %(G.nickel, G.sym_coeff),debug)
+        G.Save(overwrite=True)
+        G.WorkDir()
+        G.SaveAsPNG("graph.png")
 
     
