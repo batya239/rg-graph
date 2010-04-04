@@ -131,7 +131,7 @@ def Find(G, subgraph_types, option=None):
     internal_lines = list(G.internal_lines)
     internal_lines.sort()
     subgraphs = []
-    for idx in range(len(internal_lines), 1, -1): # количество внтренних линий подграфа
+    for idx in range(len(internal_lines)-1, 1, -1): # количество внтренних линий подграфа
         #обратный порядок важен для доп проверки подграфов.
         subgraphs=subgraphs+[i for i in xuniqueCombinations(internal_lines,idx)]
         
