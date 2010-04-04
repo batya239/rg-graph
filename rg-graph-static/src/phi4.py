@@ -546,7 +546,7 @@ def MCT_SVd(G, debug=False):
     
         if len(G.external_lines) == 2:
             Kres = K2R1(cur_G, debug)
-        elif len(G.external_lines) == 3:
+        elif len(G.external_lines) == 4:
             Kres = K0R1(cur_G, debug)
         else:
             raise ValueError, "unknown graph type"
@@ -614,11 +614,11 @@ def MCO_SVd(G, debug=False):
         cur_G.FindSubgraphs()
         moments = rggrf.moments.Generate(cur_G)
         cur_G._UpdateMoments(moments)
-#        cur_r1.SaveAsPNG("test.png")
+        cur_G.SaveAsPNG("test%s.png"%idxL)
     
         if len(G.external_lines) == 2:
             Kres = K2R1(cur_G, debug)
-        elif len(G.external_lines) == 3:
+        elif len(G.external_lines) == 4:
             Kres = K0R1(cur_G, debug)
         else:
             raise ValueError, "unknown graph type"
