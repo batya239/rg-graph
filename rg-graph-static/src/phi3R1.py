@@ -57,6 +57,9 @@ def node_factor(Node):
     elif Node.type == 2:
         moment = Node.lines_dict.values()[0].momenta
         res = rggrf.roperation.Factorized(1, moment.Squared())
+    elif Node.type == 4:
+        moment = Node.lines_dict.values()[0].momenta
+        res = 1
     else:
         raise ValueError, "Invalid node type: %s " %Node.type
     if 'strechs' in Node.__dict__:
@@ -493,6 +496,12 @@ model.AddNodeType(1, Lines=[1, 1, 1], Factor=node_factor)
 
 # nodes from Sigma subgraphs inf counterterms graphs
 model.AddNodeType(2, Lines=[1, 1], Factor=node_factor)
+
+# node for factorized vertex subgraphs 
+#model.AddNodeType(3, Lines=[1, 1, 1], Factor=node_factor)
+
+# node for factorized sigma subgraphs 
+model.AddNodeType(4, Lines=[1, 1], Factor=node_factor)
 
 model.AddStrech=AddStrech
 model.AddDiff=AddDiff
