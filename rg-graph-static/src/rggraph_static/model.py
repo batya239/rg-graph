@@ -3,7 +3,8 @@
 
 import utils
 import graph
-from sympy import *
+import sympy
+#from sympy import *
 
 class Model:
     """ Class represents necessary information about model
@@ -87,7 +88,7 @@ class Model:
         if self.greens == None or reload:
             self.greens=dict()
             g_list = self.GraphList()
-            g = var('g')
+            g = sympy.var('g')
             for file in g_list:
                 utils.print_debug("---: %s"%file, debug)
                 G = graph.Graph(self)
