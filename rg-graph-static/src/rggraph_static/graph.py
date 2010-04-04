@@ -485,64 +485,7 @@ class Graph:
         return self.model.LoadGraph(str(self.nickel))
     
     def Clone(self):
-        return pickle.loads(pickle.dumps(self))
-
-#    def Clone(self, **kwargs):
-#        G=self
-#        if "zero_moments" in kwargs:
-#            zm = kwargs["zero_moments"]
-#        else:
-#            zm = []
-#        from copy import deepcopy
-#    # TODO: python 2.5 has buggy copy.deepcopy function    
-#        graph_copy = Graph(G.model)
-#    #    graph_copy.lines = deepcopy(G.lines)
-#        for idxL in G.lines :
-#            args = dict()
-#            for idx in G.model.line_types[G.lines[idxL].type]["fields"]:
-#                try:
-#                    args[idx] = G.lines[idxL].__dict__[idx].Clone()
-#                except:
-#                    args[idx] = deepcopy(G.lines[idxL].__dict__[idx])
-#                   
-#            graph_copy.AddLine(idxL, 
-#                               Line(G.model, G.lines[idxL].type,  
-#                                    **args))
-#        graph_copy.nodes = dict()
-#        graph_copy.subgraphs = list()
-#        graph_copy.DefineNodes(G.GetNodesTypes())
-#        graph_copy.FindSubgraphs()
-#        return graph_copy
-    
-#    def _ToDict(self):
-#        res = dict()
-#        res['model'] = self.model.name
-#        lines = dict()
-#        map(lambda k,v: lines.update({k: v.AsDict()}),self.lines.keys(),self.lines.values())
-#        res['lines'] = lines
-#        res['node_types'] = self.GetNodesTypes()
-#        res['green'] = self.green
-#        
-#        return res
-#    
-#    def _FromDict(self,dict_):
-#        if dict_['model']<> self.model.name:
-#            raise ValueError, "different model names! %s and %s " %(dict_['model'],self.model.name)
-#        for idxL in dict_['lines']:
-#            #print eval(dict_['lines'][idxL])
-#            line_args = dict()
-#            for key in eval(dict_['lines'][idxL]).keys():
-#                #print key, eval(dict_['lines'][idxL])[key]
-#                line_args[key] = eval(dict_['lines'][idxL])[key]
-#            #map(lambda k,v: line_args.update({k:eval(v)}),eval(dict_['lines'][idxL]).keys(),eval(dict_['lines'][idxL]).values())
-#            type=line_args['type']
-#            del line_args['type']
-#            #print line_args
-#            self.AddLine(idxL, Line(self.model,type,**line_args))
-#        self.DefineNodes(dict_['node_types'])
-#        if 'green' in dict_:
-#            self.green = dict_['green']
-        
+        return pickle.loads(pickle.dumps(self))        
     
     def Save(self, overwrite=False):
         self.model.SaveGraphMethod(self,overwrite)
