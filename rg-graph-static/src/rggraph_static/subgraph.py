@@ -131,7 +131,8 @@ def Find(G, subgraph_types, option=None):
     internal_lines = list(G.internal_lines)
     internal_lines.sort()
     subgraphs = []
-    for idx in range(2,len(internal_lines)): # количество внтренних линий подграфа
+    for idx in range(len(internal_lines), 1, -1): # количество внтренних линий подграфа
+        #обратный порядок важен для доп проверки подграфов.
         subgraphs=subgraphs+[i for i in xuniqueCombinations(internal_lines,idx)]
         
     for idxS in subgraphs:
@@ -140,7 +141,9 @@ def Find(G, subgraph_types, option=None):
         if subgraph_type > 0 and subgraph_divergence >= 0 and IsSubgraph1PI(G, idxS):
             #print idxS, FindExternalLines(G, idxS), FindSubgraphType(G,idxS), IsSubgraph1PI(G, idxS)
             sub = CreateSubgraph(G, idxS)
-            if (not "ExtraSubgraphCheck" in G.model.__dict__) or G.model.ExtraSubgraphCheck(G, sub, option=option):
+            if (not "ExtraSubgraphCheck" in G.model.__dict__) or G.model.ExtraSubgraphCheck(G, sub, res, option=option):
+#                print "F(%s) add sub: %s  %s"%(G.internal_lines,sub.internal_lines, G.model.ExtraSubgraphCheck(G, sub, res, option=option))
+#                print "F(%s) res:%s"%(G.internal_lines,[res[i].internal_lines for i in range(len(res))])
                 res.append(sub)
     return res
             

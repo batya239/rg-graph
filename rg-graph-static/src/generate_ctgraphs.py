@@ -39,6 +39,8 @@ while len(g_list)>0:
         G = model.LoadGraph(file)
         G.GenerateNickel()
         G.FindSubgraphs()
+#        for sub in G.subgraphs:
+#            print "sub: %s"%sub.internal_lines
         D = rggrf.roperation.Delta(G)
     
         for term  in D.terms:

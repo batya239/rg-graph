@@ -187,6 +187,7 @@ class Delta:
     def __init__(self,G):
         self.terms=list()
         for idxS in range(len(G.subgraphs)):
+#            print G.subgraphs[idxS].internal_lines
             t_delta_term=DeltaTerm(G,idxS)
             if (not "ExtraGraphCheck" in G.model.__dict__) or G.model.ExtraGraphCheck(t_delta_term.ct_graph):
                 self.terms.append(t_delta_term)

@@ -300,19 +300,27 @@ def ExtNodes(G):
 
 def ExtraGraphCheck(G):
     res = True
-    if G.type == 2:
-        external_nodes = ExtNodes(G)
-        if len(external_nodes)<2:
-            res = False
+    G.FindSubgraphs()
+    for sub in G.subgraphs+[G,]:
+        if sub.type == 2:
+            external_nodes = ExtNodes(sub)
+            if len(external_nodes)<2:
+                res = False
+                break
     return res
 
-def ExtraSubgraphCheck(G, subgraph, option=None):
+def ExtraSubgraphCheck(G, subgraph, sub_list, option=None):
     if (option == None) or (option == "moments"):
-        ext_nodes_G = ExtNodes(G)
-        if ext_nodes_G & set(subgraph.internal_nodes) == ext_nodes_G:
-            return False
-        else:
-            return True
+#        print "ESC subgraph: %s %s"%subgraph.internal_lines
+        res = True
+        for sub in sub_list+[G,]:
+#            print "ESC sub: %s"%sub.internal_lines
+            ext_nodes_G = ExtNodes(sub)
+#            print "ESC ext_nodes_sub: %s"%ext_nodes_G
+            if ext_nodes_G & set(subgraph.internal_nodes) == ext_nodes_G:
+                res = False
+            
+        return res
 #    elif option == "roperation":
 #        return True
     else:
