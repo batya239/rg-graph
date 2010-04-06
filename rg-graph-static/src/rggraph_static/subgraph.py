@@ -26,7 +26,7 @@ def FindSubgraphType(G, subgraph, subgraph_types=False):
                 res_divergence = subgraph_types[idxST]["dim"] 
                 break
     subgraph_dot_count=SubgraphDotCount(G, subgraph)
-    #print subgraph_dot_count
+    print "subgraph  %s dot_count %s"%(subgraph, subgraph_dot_count)
     for idxD in subgraph_dot_count:
         res_divergence=res_divergence-subgraph_dot_count[idxD]*G.model.dot_types[idxD]["dim"]
     
@@ -107,13 +107,24 @@ def CreateSubgraph(G, subgraph):
 
 def SubgraphDotCount(G, subgraph):
     res = dict()
+    internal_nodes = set()
     for idxL in subgraph:
         #print G.lines[idxL].dots
+        internal_nodes = internal_nodes | set(G.lines[idxL].Nodes())
         for idxD in G.lines[idxL].dots:
             if idxD in res:
                 res[idxD] = res[idxD] + 1
             else:
                 res[idxD] = 1
+
+    for idxN in internal_nodes:
+        if "dots" in G.nodes[idxN].__dict__:
+            for idxD in G.nodes[idxN].dots:
+                if idxD in res:
+                    res[idxD] = res[idxD] + 1
+                else:
+                    res[idxD] = 1
+#    print "SDC sub: %s\n%s"%(subgraph,res)
     return res
 
 def Find(G, subgraph_types, option=None):

@@ -123,8 +123,8 @@ def PrepareFactorizedStrVars(fact_expr, space_dim, ignore_unknown=False, simplif
             for atom in unknown_atoms:
                 if regex.match("^a_", atom):
                     strech_atoms = strech_atoms | set([atom,])
-            if len(unknown_atoms - strech_atoms)>0:
-                raise  NotImplementedError, "Don't know what to do with following atoms: %s" %(unknown_atoms - strech_atoms)
+            if len(unknown_atoms - strech_atoms-set(['e','pi']))>0:
+                raise  NotImplementedError, "Don't know what to do with following atoms: %s" %(unknown_atoms - strech_atoms-set(['eps','pi']))
     #print ext_cos_atoms
     expr_o = AvarageByExtDirection(fact_expr.other, ext_cos_atoms, 2, debug=debug)
     #pretty_print(expr_o) 
@@ -510,14 +510,17 @@ def SavePThreadsMCCode(name, c_expr, c_vars, str_region, points, nthreads):
 #define ITERATIONS <-ITERATIONS->
 #define NTHREADS <-NTHREADS->
 #define NEPS 0
-double reg[2*DIMENSION]= <-REGION->;
-void func (double k[DIMENSION], double f[FUNCTIONS]) {
-<-VARS->
-f[0]=<-INTEGRAND->;  }
-
 #ifndef PI
 #define PI     3.14159265358979323846
 #endif
+double reg[2*DIMENSION]= <-REGION->;
+void func (double k[DIMENSION], double f[FUNCTIONS]) {
+double Pi=PI;
+<-VARS->
+f[0]=<-INTEGRAND->;  }
+
+
+
 
 int t_gfsr_k;
 unsigned int t_gfsr_m[SR_P];
@@ -604,14 +607,16 @@ def SavePThreadsMCCodeDelta(name, c_expr, c_vars, str_region, points, nthreads):
 #define NTHREADS <-NTHREADS->
 #define NITER 2
 #define NEPS 0
-double reg_initial[2*DIMENSION]= <-REGION->;
-void func (double k[DIMENSION], double f[FUNCTIONS]) {
-<-VARS->
-f[0]=<-INTEGRAND->;  }
-
 #ifndef PI
 #define PI     3.14159265358979323846
 #endif
+double reg_initial[2*DIMENSION]= <-REGION->;
+void func (double k[DIMENSION], double f[FUNCTIONS]) {
+double Pi=PI;
+<-VARS->
+f[0]=<-INTEGRAND->;  }
+
+
 
 int t_gfsr_k;
 unsigned int t_gfsr_m[SR_P];

@@ -13,12 +13,15 @@ def ExtractSubgraphs( G, subgraph_list, delta=False ):
     for idxS in subgraph_list:
         while ( cur_node_idx in node_types):
             cur_node_idx=cur_node_idx+1
-#        print cur_node_idx, node_types, G.model.k_nodetype_r1, G.subgraphs[idxS].type
+
         if not delta:
-            node_types[ cur_node_idx ] = G.model.k_nodetype_r1[ G.subgraphs[idxS].type ]
+            print
+            print 
+            print G.subgraphs[idxS].type, G.model.subgraph_types[ G.subgraphs[idxS].type ]
+            node_types[ cur_node_idx ] = G.model.subgraph_types[ G.subgraphs[idxS].type ]["substitute"]
         subgraph_map[cur_node_idx] = subgraph_list.index(idxS)
 
-        # не факт что K_nodetype хорошее решение.
+     
         
         ctg_lines = ctg_lines - G.subgraphs[idxS].internal_lines
         for idxN in G.subgraphs[idxS].internal_nodes:
@@ -39,16 +42,20 @@ def ExtractSubgraphs( G, subgraph_list, delta=False ):
                                      momenta=G.lines[idxL].momenta, 
                                      dots=G.lines[idxL].dots ) )
 
-# TODO: we must determine dims by power counting        
+# TODO: we must determine dims by power counting   
+    print node_types     
     ct_graph.DefineNodes(node_types, dim=G.dim )
     
 # inherit subgraphs from original graph.
 # order of subgraphs must be the same as in subgraph_list
-    subgraphs=list()
-    for idxS in subgraph_list:
-        subgraphs.append(G.subgraphs[idxS])
-        
-    ct_graph.subgraphs = tuple(subgraphs)
+#
+# looks like its useless:
+#    subgraphs=list()
+#    for idxS in subgraph_list:
+#        subgraphs.append(G.subgraphs[idxS])
+#    
+#        
+#    ct_graph.subgraphs = tuple(subgraphs)
     return (ct_graph , subgraph_map)    
         
     
@@ -77,27 +84,26 @@ class R1Term:
         self.unaffected_lines = tuple(t_lines)
 
 
+def IsIntersect( G, subgraph_list ):
+    res = False
+    lineset=set([])
+    int_sub_nodes=set([])
+    for idx in subgraph_list:
+#                print int_sub_nodes, idx, subgraph_list, G.subgraphs[idx].internal_nodes
+        if len( int_sub_nodes & G.subgraphs[idx].internal_nodes ) == 0: # поиск общих вершин
+            int_sub_nodes = int_sub_nodes | G.subgraphs[idx].internal_nodes
+        else:
+            return True
+
+        if len( lineset & G.subgraphs[idx].internal_lines) == 0: # поиск общих линий
+            lineset = lineset | G.subgraphs[idx].internal_lines
+        else:
+            return True
+                            
+    return res
 
 class R1:
     def __init__( self, G , factorization = None):
-
-        def IsIntersect( G, subgraph_list ):
-            res = False
-            lineset=set([])
-            int_sub_nodes=set([])
-            for idx in subgraph_list:
-#                print int_sub_nodes, idx, subgraph_list, G.subgraphs[idx].internal_nodes
-                if len( int_sub_nodes & G.subgraphs[idx].internal_nodes ) == 0: # поиск общих вершин
-                    int_sub_nodes = int_sub_nodes | G.subgraphs[idx].internal_nodes
-                else:
-                    return True
-
-                if len( lineset & G.subgraphs[idx].internal_lines) == 0: # поиск общих линий
-                    lineset = lineset | G.subgraphs[idx].internal_lines
-                else:
-                    return True
-                                    
-            return res
           
         
         self.terms = [ ]

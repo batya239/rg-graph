@@ -104,7 +104,7 @@ def SaveResults(G,res_list=[]):
     dirname = pwd + name
     time_str=time.strftime("-%Y-%m-%d-%H:%M:%S")
     if len(res_list)==0:
-        lst = ['r1_dot_gamma','delta_gamma','r1_gamma', 'r1_dot_gamma_err', 'npoints', 'method', "delta"]
+        lst = ['r1_dot_gamma','delta_gamma','r1_gamma', 'r1_dot_gamma_err', 'npoints', 'method', "delta", "reduced_nloops"]
     else:
         lst = res_list
 
@@ -124,7 +124,7 @@ def LoadResults(G,strvars):
     name = "%s/"%(G.nickel)
     pwd = NormalizeBaseName(G.model.basepath)
     dirname = pwd + name
-    for idx in ['r1_dot_gamma','delta_gamma','r1_gamma','r1_dot_gamma_err','npoints', 'method', 'delta']:
+    for idx in ['r1_dot_gamma','delta_gamma','r1_gamma','r1_dot_gamma_err','npoints', 'method', 'delta', 'reduced_nloops']:
         file_name = idx
         if idx == 'npoints': 
             var_name = "%s_r"%idx

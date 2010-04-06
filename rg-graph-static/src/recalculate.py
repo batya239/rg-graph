@@ -94,7 +94,7 @@ for nickel in g_list:
     G = model.LoadGraph(nickel)
     G.GenerateNickel()
     G.LoadResults('eps')
-    if G.method in ["MCT_SVd", "MCO_SVd"]:
+    if G.method in ["MCT_SVd", "MCO_SVd", "MCOR_SVd"]:
         if calc_delta <> None:
             G.delta = calc_delta
         elif 'delta' in G.__dict__:
@@ -154,7 +154,7 @@ for nickel in g_list:
                                                               threads=nthreads, debug=debug, 
                                                               calc_delta=calc_delta)
             try:
-                (t_r1_dot_gamma, t_r1_dot_gamma_err) = ResultWithSd(t_res, G.NLoops(), 
+                (t_r1_dot_gamma, t_r1_dot_gamma_err) = ResultWithSd(t_res, G.reduced_nloops, 
                                                                     G.model.target - G.NLoops())
             except:
                 print "\nError: %s\n%s\n"%(prog_names[0],t_res)

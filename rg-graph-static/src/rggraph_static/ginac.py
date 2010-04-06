@@ -117,6 +117,7 @@ def sympy2swiginacFactorized(expr_f,expr_o):
     for idx in str_f.split("\n"):
         reg = regex.match("^([a-zA-Z].*) = swiginac.symbol", idx)
         if not reg:
+            idx = idx.replace('log','swiginac.log').replace('pi','swiginac.Pi')
             exec(idx)
     out_f = swiginac_expr
 
@@ -124,6 +125,7 @@ def sympy2swiginacFactorized(expr_f,expr_o):
     for idx in str_o.split("\n"):
         reg = regex.match("^([a-zA-Z].*) = swiginac.symbol", idx)
         if not reg:
+            idx = idx.replace('log','swiginac.log').replace('pi','swiginac.Pi')
             exec(idx)
     out_o = swiginac_expr
     

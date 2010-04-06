@@ -49,6 +49,48 @@ def propagator(Line):
             res = Line.model.dot_types[idxD]["action"](propagator=res)
     return res
 
+def IsDotted(Node):
+    if "dots" in Node.__dict__:
+        if len(Node.dots.keys())>1:
+            raise NotImplementedError, "Invalid node dots : %s"%Node.dots
+        elif len(Node.dots.keys())==1:
+            if 1 not in Node.dots.keys():
+                raise NotImplementedError, "Invalid node dots : %s"%Node.dots
+            if Node.dots[1]==1:
+                return True
+            else:
+                raise NotImplementedError, "Invalid node dots : %s"%Node.dots
+        else:
+            return False
+    return False
+    
+def feynman4(Node):
+
+    print "f4:%s "%Node.type
+    if Node.type == 4:
+        sqmoment = Node.lines_dict.values()[0].momenta.Squared()
+        parent_subgraph = Node.parent_subgraph
+        print Node.str_nickel
+        if Node.str_nickel in model.feynman:
+            if IsDotted(Node):
+                exec(model.feynman[Node.str_nickel][1])
+                print res
+            else:
+                exec(model.feynman[Node.str_nickel][0])
+                print res
+                        
+    else:
+        raise ValueError, "Invalid node type: %s " %Node.type
+    res = rggrf.roperation.Factorized(1, res)
+    if 'strechs' in Node.__dict__:
+        for strech in Node.strechs:
+            res = rggrf.StrechAtoms(res, Node.strechs[strech], strech, ignore_present_strech = False)
+    if 'diffs' in Node.__dict__:
+        for diff in Node.diffs:
+            res = rggrf.roperation.Factorized(1, (res.factor*res.other).diff(sympy.var(diff)))
+    return res
+    
+
 def node_factor(Node):
     if Node.type == 0:
         res = rggrf.roperation.Factorized(1, 1) 
@@ -57,9 +99,7 @@ def node_factor(Node):
     elif Node.type == 2:
         moment = Node.lines_dict.values()[0].momenta
         res = rggrf.roperation.Factorized(1, moment.Squared())
-    elif Node.type == 4:
-        moment = Node.lines_dict.values()[0].momenta
-        res = 1
+
     else:
         raise ValueError, "Invalid node type: %s " %Node.type
     if 'strechs' in Node.__dict__:
@@ -135,6 +175,8 @@ def node_serialize(Node):
         s_moment = ""
     elif Node.type == 2:
         s_moment = moment_serialize(Node.lines_dict.values()[0].momenta, preserve_sign=False)
+    elif Node.type == 4:
+        s_moment = moment_serialize(Node.lines_dict.values()[0].momenta, preserve_sign=False)
     else:
         raise ValueError, "Invalid node type: %s " %Node.type
     if "strechs" in Node.__dict__:
@@ -147,9 +189,12 @@ def node_serialize(Node):
     else:
         s_diffs = "diffs:()"
     
-    #s_dots = "dots:(%s)"%dot_serialize(Node.dots)
+    if "dots" in Node.__dict__:
+        s_dots = "dots:(%s)"%dot_serialize(Node.dots)
+    else:
+        s_dots = "dots:()"
     
-    return "node%s(%s,%s,%s)"%(Node.type,s_moment,s_strechs,s_diffs)
+    return "node%s(%s,%s,%s,%s)"%(Node.type,s_moment,s_strechs,s_diffs,s_dots)
 
 def graph_serialize(G):
     s_graph_dict=dict()
@@ -231,7 +276,7 @@ def FindExtMomentPath(G,atoms):
     for line in path_lines:
         ext_moment_path.append((line,"L"))
         for node in G.lines[line].Nodes():
-            if G.nodes[node].type == 2 and (node,"N") not in ext_moment_path:
+            if G.nodes[node].type in [2,4] and (node,"N") not in ext_moment_path:
                 ext_moment_path.append((node,"N"))
     return ext_moment_path
 
@@ -408,7 +453,7 @@ def K_nR1(G, N, Kres=dict(), debug=False):
                 factor = curnode.Factor()
                 
                 if debug and debug_level > 0:
-                    print "Node %s: "%idxN
+                    print "Node %s type %s: "%(idxN, cur_G.nodes[idxN].type)
                     sympy.pretty_print(factor.other*factor.factor)
                     
                 t_res = t_res * factor
@@ -455,13 +500,13 @@ def K_nR1(G, N, Kres=dict(), debug=False):
 def L_dot(G, progress=None,debug=False):
     if progress <>  None:
         (progressbar,maxprogress) = progress
-        step = float(maxprogress)/len(G.internal_lines)
+        step = float(maxprogress)/(len(G.internal_lines)+len(G.internal_nodes))
         cur_progress = progressbar.currval
     Kres=dict()
     for idxL in G.internal_lines:
         cur_G=G.Clone()
         cur_G.lines[idxL].dots[1] = 1
-        cur_G.DefineNodes()
+        #cur_G.DefineNodes(G.GetNodeTypes)
         cur_G.FindSubgraphs()
 #        cur_r1.SaveAsPNG("test.png")
     
@@ -473,6 +518,29 @@ def L_dot(G, progress=None,debug=False):
             raise ValueError, "unknown graph type"
         progressbar.update(cur_progress+step)
         cur_progress = progressbar.currval
+    
+    print "=========== NODES =============="
+    
+    for idxN in G.internal_nodes:
+        if "dots" not in G.nodes[idxN].__dict__:
+            G.nodes[idxN].dots=dict()
+        if not G.nodes[idxN].type in [3,4]:
+            progressbar.update(cur_progress+step)
+            cur_progress = progressbar.currval
+            continue
+        cur_G=G.Clone()
+        cur_G.nodes[idxN].dots[1] = 1
+        cur_G.FindSubgraphs()
+        print "subgraphs:", cur_G.subgraphs
+        if len(G.external_lines) == 2:
+            Kres = K_nR1(cur_G, 2, Kres, debug)
+        elif len(G.external_lines) == 3:
+            Kres = K_nR1(cur_G, 0, Kres, debug)
+        else:
+            raise ValueError, "unknown graph type"
+        progressbar.update(cur_progress+step)
+        cur_progress = progressbar.currval
+    
     res=list()
     for key in Kres.keys():
         (t_res,t_cnt) = Kres[key]
@@ -501,14 +569,14 @@ model.AddNodeType(2, Lines=[1, 1], Factor=node_factor)
 #model.AddNodeType(3, Lines=[1, 1, 1], Factor=node_factor)
 
 # node for factorized sigma subgraphs 
-model.AddNodeType(4, Lines=[1, 1], Factor=node_factor)
+model.AddNodeType(4, Lines=[1, 1], Factor=feynman4)
 
 model.AddStrech=AddStrech
 model.AddDiff=AddDiff
 
 # relevant subgraph types
-model.AddSubGraphType(1, Lines=[1, 1, 1], dim=0, K_nodetypeR1=3)
-model.AddSubGraphType(2, Lines=[1, 1], dim=2, K_nodetypeR1=4)
+model.AddSubGraphType(1, Lines=[1, 1, 1], dim=0, substitute=3)
+model.AddSubGraphType(2, Lines=[1, 1], dim=2, substitute=4)
 
 # definition of dots
 model.AddDotType(1, dim=2, action=dot_action, gv={"penwidth":"3"})
@@ -530,6 +598,17 @@ model.WorkDir = rggrf.storage.filesystem.ChangeToWorkDir
 
 model.target = 3
 
+model.feynman = dict()
+#eps=sympy.var('eps')
+model.feynman['e11-e-']=("eps=sympy.var('e')\nu=sympy.var('a_%s'%parent_subgraph)\nres = ((-1+eps/4-sympy.pi**2*eps**2/24+sympy.pi**2*eps**3/96-sympy.pi**4*eps**4/5760)*( (sqmoment*u*(1-u))+( (1+sqmoment*u*(1-u))*sympy.ln(1+sqmoment*u*(1-u))*(-1+eps/4*sympy.ln(1+sqmoment*u*(1-u))-eps**2/24*(sympy.ln(1+sqmoment*u*(1-u)))**2+eps**3/192*(sympy.ln(1+sqmoment*u*(1-u)))**3-eps**4/1920*(sympy.ln(1+sqmoment*u*(1-u)))**4))))",
+                         "eps=sympy.var('e')\nu=sympy.var('a_%s'%parent_subgraph)\nres = ((-1+3*eps/4-eps**2*(1./8+sympy.pi**2/24)+eps**3*sympy.pi**2/32-eps**4*(sympy.pi**2/192+sympy.pi**4/5760))*(sympy.ln(1+sqmoment*u*(1-u))*(-1+eps/4*sympy.ln(1+sqmoment*u*(1-u))-eps**2/24*(sympy.ln(1+sqmoment*u*(1-u)))**2+eps**3/192*(sympy.ln(1+sqmoment*u*(1-u)))**3-eps**4/1920*(sympy.ln(1+sqmoment*u*(1-u)))**4)    ))")
+
+
+model.feynman['e11-e-']=("eps=sympy.var('e')\nu=sympy.var('a_%s'%parent_subgraph)\nk2=sqmoment\nres=(-1)*(k2*u*(1-u)+(1+k2*u*(1-u))*sympy.ln(1+k2*u*(1-u))*(-1) )",
+                         "eps=sympy.var('e')\nu=sympy.var('a_%s'%parent_subgraph)\nk2=sqmoment\nres=sympy.ln(1+k2*u*(1-u))")
+
+
+
 model.methods = dict()
 
 
@@ -550,7 +629,7 @@ def MCT_SV(G, debug=False):
     Kres = L_dot(G,progress=(bar,25),debug=debug)
     progress=bar.currval
     step = 25./len(Kres)
-    for idxK2 in range(len(Kres)):
+    for idxK22 in range(len(Kres)):
             kterm = Kres[idxK2]  
             s_prep =   ExpandScalarProdsAndPrepareFactorized(kterm,debug)
             rggrf.utils.print_debug( "--------- %s --------- " %(idxK2), debug)
@@ -746,6 +825,205 @@ def MCO_SVd(G, debug=False):
 
 
 model.methods['MCO_SVd'] = MCO_SVd
+
+def Reduce(G):
+    def cmp_subgraphs(sub1,sub2):
+        # чем больше линий тем раньше идет
+        if len(sub1.internal_lines)< len(sub2.internal_lines):
+            return 1
+        elif len(sub1.internal_lines) == len(sub2.internal_lines):
+            return 0
+        else:
+            return -1
+        
+    subgraphs = G.subgraphs
+    subgraphs.sort(cmp_subgraphs)
+    
+    to_reduce=list()
+    
+    #скорее всего лучше найти все потенциально инетересные графы а потом подобрать непротиворечивую комбинацию
+    # сейчас возможен пропуск графов при наличии в feynman многопетлевых графов с подграфами
+    for idxS in range(len(G.subgraphs)):
+        sub=G.subgraphs[idxS]
+        sub.GenerateNickel()
+        sub_nickel=str(sub.nickel)
+        print 
+        print
+        print sub_nickel, sub_nickel in G.model.feynman.keys()
+        if sub_nickel in G.model.feynman:
+#            print rggrf.roperation.IsIntersect(G, to_reduce+[idxS,])
+            if not rggrf.roperation.IsIntersect(G, to_reduce+[idxS,]):
+                to_reduce.append(idxS)
+            else:
+                inside=True
+                for idxS2 in to_reduce:
+                    sub2=G.subgraphs[idxS2]
+                    if not ( ( ((sub2.internal_lines & sub.internal_lines) == sub.internal_lines) and
+                         ((sub2.internal_nodes & sub.internal_nodes) == sub.internal_nodes) ) or
+                         ( len(sub2.internal_lines & sub.internal_lines)==0 and 
+                           len(sub2.internal_nodes & sub.internal_nodes) )
+                          ):
+                        inside = False
+                        break
+                    
+                if not inside:
+                    to_reduce.remove(idxS2)
+        print
+    print "to_reduce:", to_reduce
+    
+    (reduced_graph,subgraph_map) =  rggrf.roperation.ExtractSubgraphs( G, to_reduce )
+    print "sub map ",subgraph_map
+    for idxN in subgraph_map:
+        sub = G.subgraphs[to_reduce[subgraph_map[idxN]]]
+        sub.GenerateNickel()
+        str_nickel = str(sub.nickel)
+        int_lines = list(sub.internal_lines)
+        int_lines.sort()
+        parent_subgraph = ""
+        for idxL in int_lines:
+            parent_subgraph = parent_subgraph + "%s_"%idxL
+        parent_subgraph = parent_subgraph[:-1]
+        reduced_graph.nodes[idxN].str_nickel = str_nickel
+        reduced_graph.nodes[idxN].parent_subgraph = parent_subgraph
+        
+    return reduced_graph           
+                    
+                
+                        
+                    
+    
+    
+
+def MCOR_SVd(G, debug=False):
+    import progressbar
+    G.GenerateNickel()
+    G.method = "MCOR_SVd"
+    base_name = "%s_%s"%(G.method,str( G.nickel))
+    n_epsilon_series =G.model.target -G.NLoops()
+    NPOINTS = 10000
+    NTHREADS = 2
+    SPACE_DIM = 6.
+    prepared_eqs = []
+    bar = progressbar.ProgressBar(maxval=100, term_width=70, 
+                                  widgets=["%s  "%G.nickel, progressbar.Percentage(), 
+                                           " ", progressbar.Bar(), 
+                                           progressbar.ETA()]).start()
+                                           
+    reduced_graph = Reduce(G)
+    
+    print 
+    print reduced_graph.internal_lines
+    print reduced_graph.GetNodesTypes()
+    print reduced_graph.NLoops()
+    G.reduced_nloops = reduced_graph.NLoops()
+    
+    reduced_graph.FindSubgraphs()
+    
+    Kres = L_dot(reduced_graph,progress=(bar,25),debug=debug)
+    progress=bar.currval
+    step = 25./len(Kres)
+    for idxK2 in range(len(Kres)):
+            kterm = Kres[idxK2]  
+            s_prep =   ExpandScalarProdsAndPrepareFactorized(kterm,debug)
+            rggrf.utils.print_debug( "--------- %s --------- " %(idxK2), debug)
+            prepared_eqs.append(rggrf.integration.PrepareFactorizedStrVars(s_prep, SPACE_DIM, 
+                                                                           simplify=False, 
+                                                                           debug=debug))
+            progress = progress + step
+            bar.update(progress)
+                   
+    sys.stdout.flush()
+          
+    prog_names = rggrf.integration.GenerateMCCodeForGraphStrVars(base_name, prepared_eqs, 
+                                                                SPACE_DIM, n_epsilon_series, 
+                                                                NPOINTS, NTHREADS,
+                                                                debug=debug, 
+                                                                progress=(bar,25.),
+                                                                MCCodeGenerator=rggrf.integration.SavePThreadsMCCodeDelta) 
+    
+    t_res = rggrf.integration.CalculateEpsilonSeries(prog_names, 
+                                                     build=True, debug=debug, 
+                                                     progress=(bar,24.9),
+                                                     calc_delta=0.)
+    
+    (G.r1_dot_gamma, err) = ResultWithSd(t_res, G.reduced_nloops, n_epsilon_series)
+    G.r1_dot_gamma_err = rggrf.utils.RelativeError(G.r1_dot_gamma, err, 
+                                                   sympy.var('eps'))
+    
+    rggrf.utils.print_debug(str(G.r1_dot_gamma), debug)
+    G.npoints = NPOINTS 
+    
+    G.SaveResults()
+    bar.finish()
+
+
+model.methods['MCOR_SVd'] = MCOR_SVd
+
+def MCTR_SVd(G, debug=False):
+    import progressbar
+    G.GenerateNickel()
+    G.method = "MCTR_SVd"
+    base_name = "%s_%s"%(G.method,str( G.nickel))
+    n_epsilon_series =G.model.target -G.NLoops()
+    NPOINTS = 10000
+    NTHREADS = 2
+    SPACE_DIM = 6.
+    prepared_eqs = []
+    bar = progressbar.ProgressBar(maxval=100, term_width=70, 
+                                  widgets=["%s  "%G.nickel, progressbar.Percentage(), 
+                                           " ", progressbar.Bar(), 
+                                           progressbar.ETA()]).start()
+                                           
+    reduced_graph = Reduce(G)
+    
+    print 
+    print reduced_graph.internal_lines
+    print reduced_graph.GetNodesTypes()
+    print reduced_graph.NLoops()
+    G.reduced_nloops = reduced_graph.NLoops()
+    
+    reduced_graph.FindSubgraphs()
+    
+    Kres = L_dot(reduced_graph,progress=(bar,25),debug=debug)
+    progress=bar.currval
+    step = 25./len(Kres)
+    for idxK2 in range(len(Kres)):
+            kterm = Kres[idxK2]  
+            s_prep =   ExpandScalarProdsAndPrepareFactorized(kterm,debug)
+            rggrf.utils.print_debug( "--------- %s --------- " %(idxK2), debug)
+            prepared_eqs.append(rggrf.integration.PrepareFactorizedStrVars(s_prep, SPACE_DIM, 
+                                                                           simplify=False, 
+                                                                           debug=debug))
+            progress = progress + step
+            bar.update(progress)
+                   
+    sys.stdout.flush()
+          
+    prog_names = rggrf.integration.GenerateMCCodeForTermStrVars(base_name, prepared_eqs, 
+                                                                SPACE_DIM, n_epsilon_series, 
+                                                                NPOINTS, NTHREADS,
+                                                                debug=debug, 
+                                                                progress=(bar,25.),
+                                                                MCCodeGenerator=rggrf.integration.SavePThreadsMCCodeDelta) 
+    
+    t_res = rggrf.integration.CalculateEpsilonSeries(prog_names, 
+                                                     build=True, debug=debug, 
+                                                     progress=(bar,24.9),
+                                                     calc_delta=0.)
+    
+    (G.r1_dot_gamma, err) = ResultWithSd(t_res, G.reduced_nloops, n_epsilon_series)
+    G.r1_dot_gamma_err = rggrf.utils.RelativeError(G.r1_dot_gamma, err, 
+                                                   sympy.var('eps'))
+    
+    rggrf.utils.print_debug(str(G.r1_dot_gamma), debug)
+    G.npoints = NPOINTS 
+    
+    G.SaveResults()
+    bar.finish()
+
+
+model.methods['MCTR_SVd'] = MCTR_SVd
+
 
     
 def ResultWithSd(_dict, nloops, n_eps_series):
