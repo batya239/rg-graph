@@ -15,9 +15,9 @@ def ExtractSubgraphs( G, subgraph_list, delta=False ):
             cur_node_idx=cur_node_idx+1
 
         if not delta:
-            print
-            print 
-            print G.subgraphs[idxS].type, G.model.subgraph_types[ G.subgraphs[idxS].type ]
+#            print
+#            print 
+#            print G.subgraphs[idxS].type, G.model.subgraph_types[ G.subgraphs[idxS].type ]
             node_types[ cur_node_idx ] = G.model.subgraph_types[ G.subgraphs[idxS].type ]["substitute"]
         subgraph_map[cur_node_idx] = subgraph_list.index(idxS)
 
@@ -43,7 +43,7 @@ def ExtractSubgraphs( G, subgraph_list, delta=False ):
                                      dots=G.lines[idxL].dots ) )
 
 # TODO: we must determine dims by power counting   
-    print node_types     
+#    print node_types     
     ct_graph.DefineNodes(node_types, dim=G.dim )
     
 # inherit subgraphs from original graph.

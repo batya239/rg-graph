@@ -26,7 +26,7 @@ def FindSubgraphType(G, subgraph, subgraph_types=False):
                 res_divergence = subgraph_types[idxST]["dim"] 
                 break
     subgraph_dot_count=SubgraphDotCount(G, subgraph)
-    print "subgraph  %s dot_count %s"%(subgraph, subgraph_dot_count)
+#    print "subgraph  %s dot_count %s"%(subgraph, subgraph_dot_count)
     for idxD in subgraph_dot_count:
         res_divergence=res_divergence-subgraph_dot_count[idxD]*G.model.dot_types[idxD]["dim"]
     
@@ -67,9 +67,12 @@ def IsSubgraph1PI(G, subgraph):
 def CreateSubgraph(G, subgraph):
     graph_node_types=G.GetNodesTypes()
     subgraph_nodes=FindSubgraphNodes(G, subgraph)
+    dict_node_dots=dict()
     for idxN in graph_node_types:
         if idxN not in subgraph_nodes:
             graph_node_types[idxN]=0  # External node
+        if "dots" in G.nodes[idxN].__dict__:
+            dict_node_dots[idxN] = G.nodes[idxN].dots
             
     sub=Graph(G.model)
     for idxL in subgraph:
@@ -102,7 +105,7 @@ def CreateSubgraph(G, subgraph):
             if fake_node not in graph_node_types: graph_node_types[fake_node]=0
         else:
             sub.AddLine(idxL, G.lines[idxL])
-    sub.DefineNodes(graph_node_types)
+    sub.DefineNodes(graph_node_types, dict_node_dots=dict_node_dots)
     return sub
 
 def SubgraphDotCount(G, subgraph):
@@ -116,14 +119,19 @@ def SubgraphDotCount(G, subgraph):
                 res[idxD] = res[idxD] + 1
             else:
                 res[idxD] = 1
-
-    for idxN in internal_nodes:
+#    print "SDC int_nodes: %s"%internal_nodes
+    for idxN in internal_nodes:        
+#        print "    N = %s"%idxN,
         if "dots" in G.nodes[idxN].__dict__:
+#            print " dots %s" %G.nodes[idxN].dots
             for idxD in G.nodes[idxN].dots:
                 if idxD in res:
                     res[idxD] = res[idxD] + 1
                 else:
                     res[idxD] = 1
+#        else:
+#            print " dots %s" %dict()
+
 #    print "SDC sub: %s\n%s"%(subgraph,res)
     return res
 
@@ -151,6 +159,7 @@ def Find(G, subgraph_types, option=None):
         (subgraph_type, subgraph_divergence) = FindSubgraphType(G, idxS, subgraph_types) 
         if subgraph_type > 0 and subgraph_divergence >= 0 and IsSubgraph1PI(G, idxS):
             #print idxS, FindExternalLines(G, idxS), FindSubgraphType(G,idxS), IsSubgraph1PI(G, idxS)
+#            print "found subgraph: %s, dim: %s"%(idxS, subgraph_divergence)
             sub = CreateSubgraph(G, idxS)
             if (not "ExtraSubgraphCheck" in G.model.__dict__) or G.model.ExtraSubgraphCheck(G, sub, res, option=option):
 #                print "F(%s) add sub: %s  %s"%(G.internal_lines,sub.internal_lines, G.model.ExtraSubgraphCheck(G, sub, res, option=option))

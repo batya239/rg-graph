@@ -335,7 +335,7 @@ class Graph:
                                     Momenta(string=moment[idxL]), dict()))
         
     
-    def DefineNodes(self, dict_node_type=dict(), **kwargs):
+    def DefineNodes(self, dict_node_type=dict(), dict_node_dots=dict(), **kwargs):
         """ after definition of lines of the graph we construct self.nodes dict.
             self.nodes includes information about lines in nodes and node types
             
@@ -355,6 +355,7 @@ class Graph:
             to be correct
                        
         """
+        
         tmp_int_nodes=set([])   
         tmp_external_lines = set([])                    
         tmp_node_lines = dict()
@@ -411,7 +412,11 @@ class Graph:
             tmp_lines_dict=dict()    
             for idxL in tmp_lines:
                 tmp_lines_dict[idxL]=self.lines[idxL]
-            self.nodes[idxN] = Node(model=self.model, type=tmp_type, lines_dict=tmp_lines_dict)
+            if idxN in dict_node_dots:
+                tmp_dots = dict_node_dots[idxN]
+            else:
+                tmp_dots = dict()
+            self.nodes[idxN] = Node(model=self.model, type=tmp_type, lines_dict=tmp_lines_dict, dots=tmp_dots)
             
         self.external_lines = tmp_external_lines
         self.internal_lines = set(self.lines.keys()) - self.external_lines
@@ -419,6 +424,8 @@ class Graph:
         (self.type, self.dim) = subgraph.FindSubgraphType(self, 
                                 list(self.internal_lines), 
                                 self.model.subgraph_types)
+        
+        
         
 #TODO : we must determine dim by power counting  
         if "dim" in kwargs :

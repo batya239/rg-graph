@@ -66,18 +66,18 @@ def IsDotted(Node):
     
 def feynman4(Node):
 
-    print "f4:%s "%Node.type
+    #print "f4:%s "%Node.type
     if Node.type == 4:
         sqmoment = Node.lines_dict.values()[0].momenta.Squared()
         parent_subgraph = Node.parent_subgraph
-        print Node.str_nickel
+#        print Node.str_nickel
         if Node.str_nickel in model.feynman:
             if IsDotted(Node):
                 exec(model.feynman[Node.str_nickel][1])
-                print res
+#                print res
             else:
                 exec(model.feynman[Node.str_nickel][0])
-                print res
+#                print res
                         
     else:
         raise ValueError, "Invalid node type: %s " %Node.type
@@ -376,14 +376,20 @@ def K_nR1(G, N, Kres=dict(), debug=False):
         G_list=new_G_list
         new_G_list=list()
         for cur_G in G_list:
-            cur_G.FindSubgraphs()
+            if debug:
+                print 
+                print "serial:", graph_serialize(cur_G)                        
+            cur_G.FindSubgraphs()   
+#            print "   -----"     
+#            for sub in cur_G.subgraphs:
+#                print "      sub %s, dim1:%s, dim2:%s"%(sub.internal_lines, sub.dim, subgraph_dim_with_diff(cur_G, sub))
+                
             subgraphs = checkdim_and_sort_subgraphs(cur_G)
             if debug:
                 print 
-                print "serial:", graph_serialize(cur_G)
-                print "number of subgraphs:%s" %len(subgraphs)
+                print "   number of subgraphs:%s" %len(subgraphs)
                 for sub in subgraphs:
-                    print "sub %s, dim1:%s, dim2:%s"%(sub.internal_lines, sub.dim, subgraph_dim_with_diff(G, sub))
+                    print "      sub %s, dim1:%s, dim2:%s"%(sub.internal_lines, sub.dim, subgraph_dim_with_diff(cur_G, sub))
                     
             if len(subgraphs)>0:
                 stop = False
@@ -519,7 +525,7 @@ def L_dot(G, progress=None,debug=False):
         progressbar.update(cur_progress+step)
         cur_progress = progressbar.currval
     
-    print "=========== NODES =============="
+    #print "=========== NODES =============="
     
     for idxN in G.internal_nodes:
         if "dots" not in G.nodes[idxN].__dict__:
@@ -531,7 +537,7 @@ def L_dot(G, progress=None,debug=False):
         cur_G=G.Clone()
         cur_G.nodes[idxN].dots[1] = 1
         cur_G.FindSubgraphs()
-        print "subgraphs:", cur_G.subgraphs
+#        print "subgraphs:", cur_G.subgraphs
         if len(G.external_lines) == 2:
             Kres = K_nR1(cur_G, 2, Kres, debug)
         elif len(G.external_lines) == 3:
@@ -604,8 +610,8 @@ model.feynman['e11-e-']=("eps=sympy.var('e')\nu=sympy.var('a_%s'%parent_subgraph
                          "eps=sympy.var('e')\nu=sympy.var('a_%s'%parent_subgraph)\nres = ((-1+3*eps/4-eps**2*(1./8+sympy.pi**2/24)+eps**3*sympy.pi**2/32-eps**4*(sympy.pi**2/192+sympy.pi**4/5760))*(sympy.ln(1+sqmoment*u*(1-u))*(-1+eps/4*sympy.ln(1+sqmoment*u*(1-u))-eps**2/24*(sympy.ln(1+sqmoment*u*(1-u)))**2+eps**3/192*(sympy.ln(1+sqmoment*u*(1-u)))**3-eps**4/1920*(sympy.ln(1+sqmoment*u*(1-u)))**4)    ))")
 
 
-model.feynman['e11-e-']=("eps=sympy.var('e')\nu=sympy.var('a_%s'%parent_subgraph)\nk2=sqmoment\nres=(-1)*(k2*u*(1-u)+(1+k2*u*(1-u))*sympy.ln(1+k2*u*(1-u))*(-1) )",
-                         "eps=sympy.var('e')\nu=sympy.var('a_%s'%parent_subgraph)\nk2=sqmoment\nres=sympy.ln(1+k2*u*(1-u))")
+#model.feynman['e11-e-']=("eps=sympy.var('e')\nu=sympy.var('a_%s'%parent_subgraph)\nk2=sqmoment\nres=(-1)*(k2*u*(1-u)+(1+k2*u*(1-u))*sympy.ln(1+k2*u*(1-u))*(-1) )",
+#                         "eps=sympy.var('e')\nu=sympy.var('a_%s'%parent_subgraph)\nk2=sqmoment\nres=sympy.ln(1+k2*u*(1-u))")
 
 
 
@@ -847,9 +853,9 @@ def Reduce(G):
         sub=G.subgraphs[idxS]
         sub.GenerateNickel()
         sub_nickel=str(sub.nickel)
-        print 
-        print
-        print sub_nickel, sub_nickel in G.model.feynman.keys()
+#        print 
+#        print
+#        print sub_nickel, sub_nickel in G.model.feynman.keys()
         if sub_nickel in G.model.feynman:
 #            print rggrf.roperation.IsIntersect(G, to_reduce+[idxS,])
             if not rggrf.roperation.IsIntersect(G, to_reduce+[idxS,]):
@@ -868,11 +874,11 @@ def Reduce(G):
                     
                 if not inside:
                     to_reduce.remove(idxS2)
-        print
-    print "to_reduce:", to_reduce
+#        print
+#    print "to_reduce:", to_reduce
     
     (reduced_graph,subgraph_map) =  rggrf.roperation.ExtractSubgraphs( G, to_reduce )
-    print "sub map ",subgraph_map
+#    print "sub map ",subgraph_map
     for idxN in subgraph_map:
         sub = G.subgraphs[to_reduce[subgraph_map[idxN]]]
         sub.GenerateNickel()
@@ -911,10 +917,10 @@ def MCOR_SVd(G, debug=False):
                                            
     reduced_graph = Reduce(G)
     
-    print 
-    print reduced_graph.internal_lines
-    print reduced_graph.GetNodesTypes()
-    print reduced_graph.NLoops()
+#    print 
+#    print reduced_graph.internal_lines
+#    print reduced_graph.GetNodesTypes()
+#    print reduced_graph.NLoops()
     G.reduced_nloops = reduced_graph.NLoops()
     
     reduced_graph.FindSubgraphs()
@@ -976,10 +982,10 @@ def MCTR_SVd(G, debug=False):
                                            
     reduced_graph = Reduce(G)
     
-    print 
-    print reduced_graph.internal_lines
-    print reduced_graph.GetNodesTypes()
-    print reduced_graph.NLoops()
+#    print 
+#    print reduced_graph.internal_lines
+#    print reduced_graph.GetNodesTypes()
+#    print reduced_graph.NLoops()
     G.reduced_nloops = reduced_graph.NLoops()
     
     reduced_graph.FindSubgraphs()
