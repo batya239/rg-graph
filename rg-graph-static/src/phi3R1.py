@@ -78,7 +78,38 @@ def feynman4(Node):
             else:
                 exec(model.feynman[Node.str_nickel][0])
 #                print res
-                        
+    elif Node.type == 3:
+        if Node.str_nickel in model.feynman:
+            node_intersect = (set(Node.lines_dict.values()[0].Nodes()) & set(Node.lines_dict.values()[1].Nodes()) &set(Node.lines_dict.values()[2].Nodes()) )
+            if len(node_intersect)<>1:
+                raise ValueError, "Cant determine Node idx: %s"%node_intersect
+            else:
+                node_idx = list(node_intersect)[0]
+            if Node.lines_dict.values()[0].end == node_idx:
+                k1 = Node.lines_dict.values()[0].momenta
+            else:    
+                k1 = - Node.lines_dict.values()[0].momenta
+            if Node.lines_dict.values()[1].end == node_idx:
+                k2 = Node.lines_dict.values()[1].momenta
+            else:    
+                k2 = - Node.lines_dict.values()[1].momenta
+            if Node.lines_dict.values()[0].end == node_idx:
+                k3 = Node.lines_dict.values()[2].momenta
+            else:    
+                k3 = - Node.lines_dict.values()[2].momenta
+            if len(k1.dict)==0:
+                k2=k1
+            k2xk3=k2*k3
+            k2sq = k2.Squared()
+            k3sq = k3.Squared()
+            parent_subgraph = Node.parent_subgraph
+            if IsDotted(Node):
+                exec(model.feynman[Node.str_nickel][1])
+#                print res
+            else:
+                exec(model.feynman[Node.str_nickel][0])
+#                print res
+
     else:
         raise ValueError, "Invalid node type: %s " %Node.type
     res = rggrf.roperation.Factorized(1, res)
@@ -174,6 +205,8 @@ def node_serialize(Node):
     elif Node.type == 1:
         s_moment = ""
     elif Node.type == 2:
+        s_moment = moment_serialize(Node.lines_dict.values()[0].momenta, preserve_sign=False)
+    elif Node.type == 3:
         s_moment = moment_serialize(Node.lines_dict.values()[0].momenta, preserve_sign=False)
     elif Node.type == 4:
         s_moment = moment_serialize(Node.lines_dict.values()[0].momenta, preserve_sign=False)
@@ -276,7 +309,7 @@ def FindExtMomentPath(G,atoms):
     for line in path_lines:
         ext_moment_path.append((line,"L"))
         for node in G.lines[line].Nodes():
-            if G.nodes[node].type in [2,4] and (node,"N") not in ext_moment_path:
+            if G.nodes[node].type in [2,3,4] and (node,"N") not in ext_moment_path:
                 ext_moment_path.append((node,"N"))
     return ext_moment_path
 
@@ -572,7 +605,7 @@ model.AddNodeType(1, Lines=[1, 1, 1], Factor=node_factor)
 model.AddNodeType(2, Lines=[1, 1], Factor=node_factor)
 
 # node for factorized vertex subgraphs 
-#model.AddNodeType(3, Lines=[1, 1, 1], Factor=node_factor)
+model.AddNodeType(3, Lines=[1, 1, 1], Factor=feynman4)
 
 # node for factorized sigma subgraphs 
 model.AddNodeType(4, Lines=[1, 1], Factor=feynman4)
@@ -608,6 +641,9 @@ model.feynman = dict()
 #eps=sympy.var('eps')
 model.feynman['e11-e-']=("eps=sympy.var('e')\nu=sympy.var('a_%s'%parent_subgraph)\nres = ((-1+eps/4-sympy.pi**2*eps**2/24+sympy.pi**2*eps**3/96-sympy.pi**4*eps**4/5760)*( (sqmoment*u*(1-u))+( (1+sqmoment*u*(1-u))*sympy.ln(1+sqmoment*u*(1-u))*(-1+eps/4*sympy.ln(1+sqmoment*u*(1-u))-eps**2/24*(sympy.ln(1+sqmoment*u*(1-u)))**2+eps**3/192*(sympy.ln(1+sqmoment*u*(1-u)))**3-eps**4/1920*(sympy.ln(1+sqmoment*u*(1-u)))**4))))",
                          "eps=sympy.var('e')\nu=sympy.var('a_%s'%parent_subgraph)\nres = ((-1+3*eps/4-eps**2*(1./8+sympy.pi**2/24)+eps**3*sympy.pi**2/32-eps**4*(sympy.pi**2/192+sympy.pi**4/5760))*(sympy.ln(1+sqmoment*u*(1-u))*(-1+eps/4*sympy.ln(1+sqmoment*u*(1-u))-eps**2/24*(sympy.ln(1+sqmoment*u*(1-u)))**2+eps**3/192*(sympy.ln(1+sqmoment*u*(1-u)))**3-eps**4/1920*(sympy.ln(1+sqmoment*u*(1-u)))**4)    ))")
+
+model.feynman['e12-e2-e-']=("eps=sympy.var('e')\nu2=sympy.var('a_%s_v1'%parent_subgraph)\nx=sympy.var('a_%s_v2'%parent_subgraph)\nu3=(1-u2)*x\nres = -(1-u2)*sympy.ln(1+k2sq*u2*(1-u2)+k3sq*u3*(1-u3) - 2*u2*u3*k2xk3) ",
+                            "eps=sympy.var('e')\nu2=sympy.var('a_%s_v1'%parent_subgraph)\nx=sympy.var('a_%s_v2'%parent_subgraph)\nu3=(1-u2)*x\nres = -(1-u2)*1/(1+k2sq*u2*(1-u2)+k3sq*u3*(1-u3) - 2*u2*u3*k2xk3) ")
 
 
 #model.feynman['e11-e-']=("eps=sympy.var('e')\nu=sympy.var('a_%s'%parent_subgraph)\nk2=sqmoment\nres=(-1)*(k2*u*(1-u)+(1+k2*u*(1-u))*sympy.ln(1+k2*u*(1-u))*(-1) )",
@@ -853,9 +889,9 @@ def Reduce(G):
         sub=G.subgraphs[idxS]
         sub.GenerateNickel()
         sub_nickel=str(sub.nickel)
-#        print 
-#        print
-#        print sub_nickel, sub_nickel in G.model.feynman.keys()
+        print 
+        print
+        print sub_nickel, sub_nickel in G.model.feynman.keys()
         if sub_nickel in G.model.feynman:
 #            print rggrf.roperation.IsIntersect(G, to_reduce+[idxS,])
             if not rggrf.roperation.IsIntersect(G, to_reduce+[idxS,]):
@@ -874,8 +910,8 @@ def Reduce(G):
                     
                 if not inside:
                     to_reduce.remove(idxS2)
-#        print
-#    print "to_reduce:", to_reduce
+        print
+    print "to_reduce:", to_reduce
     
     (reduced_graph,subgraph_map) =  rggrf.roperation.ExtractSubgraphs( G, to_reduce )
 #    print "sub map ",subgraph_map
