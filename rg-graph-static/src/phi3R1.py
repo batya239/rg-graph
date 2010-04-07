@@ -149,11 +149,11 @@ def moment_serialize(Moment, preserve_sign=False):
     t_moment=Moment
     atoms = t_moment.dict.keys()
     atoms.sort()
-    
-    if not preserve_sign and Moment.dict[atoms[0]] <0:
-        t_moment= -t_moment
-        atoms = t_moment.dict.keys()
-        atoms.sort()
+    if len(atoms)>0:
+        if not preserve_sign and Moment.dict[atoms[0]] <0:
+            t_moment= -t_moment
+            atoms = t_moment.dict.keys()
+            atoms.sort()
     res = ""
     for atom in atoms:
         res = res + str((atom, t_moment.dict[atom]))
@@ -207,7 +207,8 @@ def node_serialize(Node):
     elif Node.type == 2:
         s_moment = moment_serialize(Node.lines_dict.values()[0].momenta, preserve_sign=False)
     elif Node.type == 3:
-        s_moment = moment_serialize(Node.lines_dict.values()[0].momenta, preserve_sign=False)
+        s_moment = [moment_serialize(Node.lines_dict.values()[0].momenta, preserve_sign=False),moment_serialize(Node.lines_dict.values()[0].momenta, preserve_sign=False),moment_serialize(Node.lines_dict.values()[0].momenta, preserve_sign=False)]
+        s_moment.sort()
     elif Node.type == 4:
         s_moment = moment_serialize(Node.lines_dict.values()[0].momenta, preserve_sign=False)
     else:
