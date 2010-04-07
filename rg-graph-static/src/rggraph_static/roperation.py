@@ -84,6 +84,14 @@ class R1Term:
         self.unaffected_lines = tuple(t_lines)
 
 
+def IsInside(G,idxS1,idxS2):
+    sub1=G.subgraphs[idxS1]
+    sub2=G.subgraphs[idxS2]
+    return ( ( ((sub2.internal_lines & sub1.internal_lines) == sub1.internal_lines) and
+            ((sub2.internal_nodes & sub1.internal_nodes) == sub1.internal_nodes) ) or
+            ( ((sub2.internal_lines & sub1.internal_lines) == sub2.internal_lines) and
+            ((sub2.internal_nodes & sub1.internal_nodes) == sub2.internal_nodes) ) )
+                               
 def IsIntersect( G, subgraph_list ):
     res = False
     lineset=set([])

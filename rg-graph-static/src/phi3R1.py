@@ -93,7 +93,7 @@ def feynman4(Node):
                 k2 = Node.lines_dict.values()[1].momenta
             else:    
                 k2 = - Node.lines_dict.values()[1].momenta
-            if Node.lines_dict.values()[0].end == node_idx:
+            if Node.lines_dict.values()[2].end == node_idx:
                 k3 = Node.lines_dict.values()[2].momenta
             else:    
                 k3 = - Node.lines_dict.values()[2].momenta
@@ -102,6 +102,7 @@ def feynman4(Node):
             k2xk3=k2*k3
             k2sq = k2.Squared()
             k3sq = k3.Squared()
+
             parent_subgraph = Node.parent_subgraph
             if IsDotted(Node):
                 exec(model.feynman[Node.str_nickel][1])
@@ -643,8 +644,8 @@ model.feynman = dict()
 model.feynman['e11-e-']=("eps=sympy.var('e')\nu=sympy.var('a_%s'%parent_subgraph)\nres = ((-1+eps/4-sympy.pi**2*eps**2/24+sympy.pi**2*eps**3/96-sympy.pi**4*eps**4/5760)*( (sqmoment*u*(1-u))+( (1+sqmoment*u*(1-u))*sympy.ln(1+sqmoment*u*(1-u))*(-1+eps/4*sympy.ln(1+sqmoment*u*(1-u))-eps**2/24*(sympy.ln(1+sqmoment*u*(1-u)))**2+eps**3/192*(sympy.ln(1+sqmoment*u*(1-u)))**3-eps**4/1920*(sympy.ln(1+sqmoment*u*(1-u)))**4))))",
                          "eps=sympy.var('e')\nu=sympy.var('a_%s'%parent_subgraph)\nres = ((-1+3*eps/4-eps**2*(1./8+sympy.pi**2/24)+eps**3*sympy.pi**2/32-eps**4*(sympy.pi**2/192+sympy.pi**4/5760))*(sympy.ln(1+sqmoment*u*(1-u))*(-1+eps/4*sympy.ln(1+sqmoment*u*(1-u))-eps**2/24*(sympy.ln(1+sqmoment*u*(1-u)))**2+eps**3/192*(sympy.ln(1+sqmoment*u*(1-u)))**3-eps**4/1920*(sympy.ln(1+sqmoment*u*(1-u)))**4)    ))")
 
-model.feynman['e12-e2-e-']=("eps=sympy.var('e')\nu2=sympy.var('a_%s_v1'%parent_subgraph)\nx=sympy.var('a_%s_v2'%parent_subgraph)\nu3=(1-u2)*x\nres = -(1-u2)*sympy.ln(1+k2sq*u2*(1-u2)+k3sq*u3*(1-u3) - 2*u2*u3*k2xk3) ",
-                            "eps=sympy.var('e')\nu2=sympy.var('a_%s_v1'%parent_subgraph)\nx=sympy.var('a_%s_v2'%parent_subgraph)\nu3=(1-u2)*x\nres = -(1-u2)*1/(1+k2sq*u2*(1-u2)+k3sq*u3*(1-u3) - 2*u2*u3*k2xk3) ")
+model.feynman['e12-e2-e-']=("eps=sympy.var('e')\nu2=sympy.var('a_%s_v1'%parent_subgraph)\nx=sympy.var('a_%s_v2'%parent_subgraph)\nu3=(1-u2)*x\nres = -(1 - 3*e/4 + e**2*(1./8 + sympy.pi**2/24) + e**4*(sympy.pi**2/192 + 7*sympy.pi**4/5760) - sympy.pi**2*e**3/32)*(1-u2)*(sympy.ln(1+k2sq*u2*(1-u2)+k3sq*u3*(1-u3) + 2*u2*u3*k2xk3) - e*sympy.ln(1+k2sq*u2*(1-u2)+k3sq*u3*(1-u3) + 2*u2*u3*k2xk3)**2/4 + e**2*sympy.ln(1+k2sq*u2*(1-u2)+k3sq*u3*(1-u3) + 2*u2*u3*k2xk3)**3/24 - e**3*sympy.ln(1+k2sq*u2*(1-u2)+k3sq*u3*(1-u3) + 2*u2*u3*k2xk3)**4/192 + e**4*sympy.ln(1+k2sq*u2*(1-u2)+k3sq*u3*(1-u3) + 2*u2*u3*k2xk3)**5/1920  )",
+                            "eps=sympy.var('e')\nu2=sympy.var('a_%s_v1'%parent_subgraph)\nx=sympy.var('a_%s_v2'%parent_subgraph)\nu3=(1-u2)*x\nres = -(1-u2)*(1 - 3*e/4 + e**2*(1./8 + sympy.pi**2/24) + e**4*(sympy.pi**2/192 + 7*sympy.pi**4/5760) - sympy.pi**2*e**3/32)/(1+k2sq*u2*(1-u2)+k3sq*u3*(1-u3) + 2*u2*u3*k2xk3)*(1 - e*sympy.ln(1+k2sq*u2*(1-u2)+k3sq*u3*(1-u3) + 2*u2*u3*k2xk3)/2 + e**2*sympy.ln(1+k2sq*u2*(1-u2)+k3sq*u3*(1-u3) + 2*u2*u3*k2xk3)**2/8 - e**3*sympy.ln(1+k2sq*u2*(1-u2)+k3sq*u3*(1-u3) + 2*u2*u3*k2xk3)**3/48 + e**4*sympy.ln(1+k2sq*u2*(1-u2)+k3sq*u3*(1-u3) + 2*u2*u3*k2xk3)**4/384 ) ")
 
 
 #model.feynman['e11-e-']=("eps=sympy.var('e')\nu=sympy.var('a_%s'%parent_subgraph)\nk2=sqmoment\nres=(-1)*(k2*u*(1-u)+(1+k2*u*(1-u))*sympy.ln(1+k2*u*(1-u))*(-1) )",
@@ -879,40 +880,48 @@ def Reduce(G):
         else:
             return -1
         
-    subgraphs = G.subgraphs
-    subgraphs.sort(cmp_subgraphs)
+#    subgraphs = G.subgraphs
+#    subgraphs.sort(cmp_subgraphs)
     
     to_reduce=list()
-    
+    reducible=list()
     #скорее всего лучше найти все потенциально инетересные графы а потом подобрать непротиворечивую комбинацию
     # сейчас возможен пропуск графов при наличии в feynman многопетлевых графов с подграфами
     for idxS in range(len(G.subgraphs)):
-        sub=G.subgraphs[idxS]
+        sub = G.subgraphs[idxS]
         sub.GenerateNickel()
-        sub_nickel=str(sub.nickel)
+        sub_nickel = str(sub.nickel)
 #        print 
 #        print
 #        print sub_nickel, sub_nickel in G.model.feynman.keys()
+        reduce_sub=True
         if sub_nickel in G.model.feynman:
-#            print rggrf.roperation.IsIntersect(G, to_reduce+[idxS,])
-            if not rggrf.roperation.IsIntersect(G, to_reduce+[idxS,]):
-                to_reduce.append(idxS)
-            else:
-                inside=True
-                for idxS2 in to_reduce:
-                    sub2=G.subgraphs[idxS2]
-                    if not ( ( ((sub2.internal_lines & sub.internal_lines) == sub.internal_lines) and
-                         ((sub2.internal_nodes & sub.internal_nodes) == sub.internal_nodes) ) or
-                         ( len(sub2.internal_lines & sub.internal_lines)==0 and 
-                           len(sub2.internal_nodes & sub.internal_nodes) )
-                          ):
-                        inside = False
+            for idxS2 in range(len(G.subgraphs)):
+                if idxS<>idxS2:
+                    sub2 = G.subgraphs[idxS2]
+#                    print " %s %s intersect: %s inside: %s"%( idxS, idxS2, rggrf.roperation.IsIntersect(G, [idxS, idxS2]),rggrf.roperation.IsInside(G, idxS, idxS2) ) 
+                    if (rggrf.roperation.IsIntersect(G, [idxS, idxS2]) and 
+                        not rggrf.roperation.IsInside(G, idxS, idxS2)):
+                        reduce_sub=False
                         break
-                    
-                if not inside:
-                    to_reduce.remove(idxS2)
-#        print
-#    print "to_reduce:", to_reduce
+            if reduce_sub:
+                reducible.append(idxS)
+#    print        
+#    print
+#    print reducible
+    
+    for idxS in reducible:
+        sub = G.subgraphs[idxS]
+        is_max=True
+        for idxS2 in reducible:
+            if idxS<>idxS2:
+                sub2 = G.subgraphs[idxS2]
+                if (rggrf.roperation.IsInside(G, idxS, idxS2) and 
+                    len(sub.internal_lines)<len(sub2.internal_lines)):
+                    is_max=False
+        if is_max:
+            to_reduce.append(idxS)
+
     
     (reduced_graph,subgraph_map) =  rggrf.roperation.ExtractSubgraphs( G, to_reduce )
 #    print "sub map ",subgraph_map
@@ -961,6 +970,7 @@ def MCOR_SVd(G, debug=False):
     G.reduced_nloops = reduced_graph.NLoops()
     
     reduced_graph.FindSubgraphs()
+    reduced_graph.SaveAsPNG("reduced.png")
     
     Kres = L_dot(reduced_graph,progress=(bar,25),debug=debug)
     progress=bar.currval
