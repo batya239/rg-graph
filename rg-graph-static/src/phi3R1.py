@@ -889,9 +889,9 @@ def Reduce(G):
         sub=G.subgraphs[idxS]
         sub.GenerateNickel()
         sub_nickel=str(sub.nickel)
-        print 
-        print
-        print sub_nickel, sub_nickel in G.model.feynman.keys()
+#        print 
+#        print
+#        print sub_nickel, sub_nickel in G.model.feynman.keys()
         if sub_nickel in G.model.feynman:
 #            print rggrf.roperation.IsIntersect(G, to_reduce+[idxS,])
             if not rggrf.roperation.IsIntersect(G, to_reduce+[idxS,]):
@@ -910,8 +910,8 @@ def Reduce(G):
                     
                 if not inside:
                     to_reduce.remove(idxS2)
-        print
-    print "to_reduce:", to_reduce
+#        print
+#    print "to_reduce:", to_reduce
     
     (reduced_graph,subgraph_map) =  rggrf.roperation.ExtractSubgraphs( G, to_reduce )
 #    print "sub map ",subgraph_map
