@@ -91,10 +91,10 @@ class Model:
             g = sympy.var('g')
             for file in g_list:
                 utils.print_debug("---: %s"%file, debug)
-                G = graph.Graph(self)
-                G.Load(str_nickel=file)
+                G = self.LoadGraph(file)
                 G.DefineNodes({})
                 G.GenerateNickel()
+                G.WorkDir()
                 G.LoadResults('eps')
                 if len(G.green)>0 and G.green in self.greens and G.NLoops() <= self.target:
                     utils.print_debug("-----------------------: %s %s %s %s"%(G.green,G.sym_coeff, G.r1_gamma, g**G.NLoops()), debug)
