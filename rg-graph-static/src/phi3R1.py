@@ -637,7 +637,7 @@ model.LoadResults = rggrf.storage.filesystem.LoadResults
 model.GetGraphList = rggrf.storage.filesystem.GetGraphList
 model.WorkDir = rggrf.storage.filesystem.ChangeToWorkDir
 
-model.target = 3
+model.target = 4
 
 model.feynman = dict()
 #eps=sympy.var('eps')
