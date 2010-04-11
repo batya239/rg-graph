@@ -647,7 +647,48 @@ model.feynman['e11-e-']=("eps=sympy.var('e')\nu=sympy.var('a_%s'%parent_subgraph
 model.feynman['e12-e2-e-']=("eps=sympy.var('e')\nu2=sympy.var('a_%s_v1'%parent_subgraph)\nx=sympy.var('a_%s_v2'%parent_subgraph)\nu3=(1-u2)*x\nres = -(1 - 3*e/4 + e**2*(1./8 + sympy.pi**2/24) + e**4*(sympy.pi**2/192 + 7*sympy.pi**4/5760) - sympy.pi**2*e**3/32)*(1-u2)*(sympy.ln(1+k2sq*u2*(1-u2)+k3sq*u3*(1-u3) + 2*u2*u3*k2xk3) - e*sympy.ln(1+k2sq*u2*(1-u2)+k3sq*u3*(1-u3) + 2*u2*u3*k2xk3)**2/4 + e**2*sympy.ln(1+k2sq*u2*(1-u2)+k3sq*u3*(1-u3) + 2*u2*u3*k2xk3)**3/24 - e**3*sympy.ln(1+k2sq*u2*(1-u2)+k3sq*u3*(1-u3) + 2*u2*u3*k2xk3)**4/192 + e**4*sympy.ln(1+k2sq*u2*(1-u2)+k3sq*u3*(1-u3) + 2*u2*u3*k2xk3)**5/1920  )",
                             "eps=sympy.var('e')\nu2=sympy.var('a_%s_v1'%parent_subgraph)\nx=sympy.var('a_%s_v2'%parent_subgraph)\nu3=(1-u2)*x\nres = -(1-u2)*(1 - 3*e/4 + e**2*(1./8 + sympy.pi**2/24) + e**4*(sympy.pi**2/192 + 7*sympy.pi**4/5760) - sympy.pi**2*e**3/32)/(1+k2sq*u2*(1-u2)+k3sq*u3*(1-u3) + 2*u2*u3*k2xk3)*(1 - e*sympy.ln(1+k2sq*u2*(1-u2)+k3sq*u3*(1-u3) + 2*u2*u3*k2xk3)/2 + e**2*sympy.ln(1+k2sq*u2*(1-u2)+k3sq*u3*(1-u3) + 2*u2*u3*k2xk3)**2/8 - e**3*sympy.ln(1+k2sq*u2*(1-u2)+k3sq*u3*(1-u3) + 2*u2*u3*k2xk3)**3/48 + e**4*sympy.ln(1+k2sq*u2*(1-u2)+k3sq*u3*(1-u3) + 2*u2*u3*k2xk3)**4/384 ) ")
 
-
+# TODO: e12-23-3-e- only for 1-4 loops
+model.feynman['e12-23-3-e-']=("eps=sympy.var('e')\n\
+v1=sympy.var('a_%s_v1'%parent_subgraph)\n\
+v2=sympy.var('a_%s_v2'%parent_subgraph)\n\
+v3=sympy.var('a_%s_v3'%parent_subgraph)\n\
+v4=sympy.var('a_%s_v4'%parent_subgraph)\n\
+a=sympy.var('a_%s_v5'%parent_subgraph)\n\
+b=sympy.var('a_%s_v6'%parent_subgraph)\n\
+D=sympy.var('D')\n\
+B=sympy.var('B')\n\
+k2=sqmoment\n\
+u1=v1\nu2=(1-u1)*v2\n\
+u3=(1-u1-u2)*v3\n\
+u4=(1-u1-u2-u3)*v4\n\
+u5=1-u1-u2-u3-u4\n\
+Det=(u1+b*b*u3+u4)*(u2+a**2*u3+u5)-a*a*b*b*u3**2\n\
+B_=( (a*a*u4+b*b*u5)*D - a*a*u4*u4*(u2+a*a*u3+u5) - b*b*u5*u5*(u1+b*b*u3+u4) - 2*a*a*b*b*u3*u4*u5 )\n\
+res = e*(0.5*sympy.log(D)/D**3 - 0.5*sympy.log(D + B*k2)/D**3 + 3*sympy.log(D)*sympy.log(D + B*k2)/(2*D**3) - \
+0.5*B*k2*sympy.log(D + B*k2)/D**4 + 3*B*k2*sympy.log(D)*sympy.log(D + B*k2)/(2*D**4) + 0.5*B*k2/D**4 - \
+0.5*sympy.log(D + B*k2)**2/D**3 - 1.*sympy.log(D)**2/D**3 - 0.5*B*k2*sympy.log(D + B*k2)**2/D**4 - \
+1.*B*k2*sympy.log(D)**2/D**4) + 1/D**3*sympy.log(D + B*k2) - 1.*sympy.log(D)/D**3 + B*k2*sympy.log(D + B*k2)/D**4 - \
+1.*B*k2*sympy.log(D)/D**4 - 1.*B*k2/D**4\n\
+res=(1-u1-u2-u3)*(1-u1-u2)*(1-u1)*res.subs(B,B_).subs(D,Det).subs(e,0).diff(a).diff(b)",
+                              "eps=sympy.var('e')\n\
+v1=sympy.var('a_%s_v1'%parent_subgraph)\n\
+v2=sympy.var('a_%s_v2'%parent_subgraph)\n\
+v3=sympy.var('a_%s_v3'%parent_subgraph)\n\
+v4=sympy.var('a_%s_v4'%parent_subgraph)\n\
+a=sympy.var('a_%s_v5'%parent_subgraph)\n\
+b=sympy.var('a_%s_v6'%parent_subgraph)\n\
+D=sympy.var('D')\n\
+B=sympy.var('B')\n\
+k2=sqmoment\n\
+u1=v1\nu2=(1-u1)*v2\n\
+u3=(1-u1-u2)*v3\n\
+u4=(1-u1-u2-u3)*v4\n\
+u5=1-u1-u2-u3-u4\n\
+Det=(u1+b*b*u3+u4)*(u2+a**2*u3+u5)-a*a*b*b*u3**2\n\
+B_=( (a*a*u4+b*b*u5)*D - a*a*u4*u4*(u2+a*a*u3+u5) - b*b*u5*u5*(u1+b*b*u3+u4) - 2*a*a*b*b*u3*u4*u5 )\n\
+res_t = e*(1.50000000000000*sympy.log(D)/D**3 - 1.50000000000000*sympy.log(D + B*k2)/D**3 + 3*sympy.log(D)*sympy.log(D + B*k2)/(2*D**3) - 1/D**3*sympy.log(D)**2 - sympy.log(D + B*k2)**2/(2*D**3)) + 1/D**3*sympy.log(D + B*k2) - 1/D**3*sympy.log(D)\n\
+res=(1-u1-u2-u3)*(1-u1-u2)*(1-u1)*u3*res_t.subs(B,B_).subs(D,Det).subs(a,1).subs(b,1)\n\
+res=res+4*(1-u1-u2-u3)*(1-u1-u2)*(1-u1)*u1*res_t.subs(B,B_).subs(D,Det).subs(a,1).diff(b)")
 #model.feynman['e11-e-']=("eps=sympy.var('e')\nu=sympy.var('a_%s'%parent_subgraph)\nk2=sqmoment\nres=(-1)*(k2*u*(1-u)+(1+k2*u*(1-u))*sympy.ln(1+k2*u*(1-u))*(-1) )",
 #                         "eps=sympy.var('e')\nu=sympy.var('a_%s'%parent_subgraph)\nk2=sqmoment\nres=sympy.ln(1+k2*u*(1-u))")
 
