@@ -285,6 +285,26 @@ def ExpandScalarProdsAndPrepare(expr_,debug=False):
     except:
         rggrf.utils.print_debug( "WARNING!!!! %s passed to ExpandScalarProdsAndPrepare" %type(expr),debug)
         return expr
+    t_expr = ExpandScalarProds(expr,debug=False)
+    
+    #Prepare p=1, tau=1
+    p=sympy.var('p')
+    tau=sympy.var('tau')
+    t_expr = t_expr.subs(p,1).subs(tau,1)
+    return t_expr            
+
+def ExpandScalarProds(expr_,debug=False):
+    if isinstance(expr_,rggrf.roperation.Factorized):
+        rggrf.utils.print_debug( "WARNING!!! Factorizied object passed to ExpandScalarProds",debug)
+        expr = expr_.factor*expr_.other
+    else:
+        expr = expr_ 
+    import re as regex
+    try:
+        atoms = expr.atoms()
+    except:
+        rggrf.utils.print_debug( "WARNING!!!! %s passed to ExpandScalarProds" %type(expr),debug)
+        return expr
     t_expr = expr
     for atom in atoms:
         reg = regex.match("^(.+)x(.+)$",str(atom))
@@ -293,10 +313,11 @@ def ExpandScalarProdsAndPrepare(expr_,debug=False):
             atom2 = sympy.var(reg.groups()[1])
             t_expr = t_expr.subs(atom,atom*atom1*atom2)
     #Prepare p=1, tau=1
-    p=sympy.var('p')
-    tau=sympy.var('tau')
-    t_expr = t_expr.subs(p,1).subs(tau,1)
+#    p=sympy.var('p')
+#    tau=sympy.var('tau')
+#    t_expr = t_expr.subs(p,1).subs(tau,1)
     return t_expr            
+
 
 def FindLinesWithAtoms(G,atoms):
     lines_list=list()
@@ -592,7 +613,7 @@ def L_dot(G, progress=None,debug=False):
            
 # model initialization
 model=rggrf.Model("phi3R1")
-
+model.space_dim = 6.
 # definition of line types (1 line type)
 model.AddLineType(1, propagator=propagator, directed=0, fields=["start","end","dots","momenta"])
 
