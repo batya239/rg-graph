@@ -4,6 +4,7 @@
 ~$
 \.py(c|o)$
 \.png$
+\.swp$
 
 # User files that may appear at the root
 ^\.do_not_commit
