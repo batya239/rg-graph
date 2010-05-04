@@ -53,6 +53,7 @@ class feynman_term:
         self.lambd = 1
         
     def AddIfEq(self,key):
+        print "term,key:=",self.key, " --- ", key
         if self.key == key:
             self.lambd = self.lambd + 1
             return True
@@ -61,14 +62,22 @@ class feynman_term:
 
 class feynman:
     def __init__(self,G):
-        self.graph = G
+        self.graph = G.Clone()
+        self.graph.DefineNodes()
+        self.graph.FindSubgraphs()
+        self.extra_multiplier = sympy.Number(1)
+        
         self.terms=list()
         atoms = set()
         
-        self.n = G.NLoops()
-        for idxL in G.internal_lines:
-            key = line_serialize(G.lines[idxL])
-            atoms = atoms | set(G.lines[idxL].momenta.dict.keys())
+        self.n = self.graph.NLoops()
+        for idxL in self.graph.internal_lines:
+            dots = self.graph.lines[idxL].dots
+            self.graph.lines[idxL].dots = dict()
+            key = line_serialize(self.graph.lines[idxL])
+            print key, dots
+            atoms = atoms | set(self.graph.lines[idxL].momenta.dict.keys())
+            
             new = True
             for term in self.terms:
                 if term.AddIfEq(key):
@@ -76,6 +85,23 @@ class feynman:
                     break
             if new:
                 self.terms.append(feynman_term(G.lines[idxL]))
+
+## TODO: add some property in dottype: how dot should be interpreted in feynman 
+            if (1 in dots) and (dots[1] >=1):
+                for term in self.terms:
+                    if term.AddIfEq(key):
+                        for i in range(dots[1]-1):
+                            term.AddIfEq(key)
+                            break
+                del dots[1]
+                
+            self.graph.lines[idxL].dots = dots
+                   
+        print
+        for term in self.terms:
+            print term.key ,term.lambd
+        print
+            
         self.alpha = 0
         for term in self.terms:
             self.alpha = self.alpha + term.lambd
@@ -113,11 +139,11 @@ class feynman:
             res = res / swiginac.tgamma(term.lambd)
         res = res * ( swiginac.tgamma(self.alpha - self.n*(swiginac.numeric(int(self.graph.model.space_dim))-s_e)/2)*
                       (swiginac.tgamma((swiginac.numeric(int(self.graph.model.space_dim))-s_e)/2))**self.n *
-                      swiginac.numeric(2)**(-self.n) )*s_e
+                      swiginac.numeric(2)**(-self.n) )
+                   
         res_str= str( swiginac.series_to_poly(res.series(s_e==0,self.graph.model.target - self.graph.NLoops()+1)).evalf())
         e = sympy.var('e')
         res_sympy = eval(res_str)
-#        sympy.pretty_print(res_sympy)
         return res_sympy
         
             
@@ -152,18 +178,15 @@ class feynman:
                         M[j,i] = M[i,j]
 
         
-                
-#        print C
-#        print A
-#        print M
-#        print M.det()
+
         e = sympy.var('e')
         print self.alpha,(self.graph.model.space_dim - e)/2
         if M.shape == (1,1):
             M_cofactormatrix = sympy.matrices.Matrix([sympy.Number(1)])
         else:
             M_cofactormatrix = M.cofactorMatrix()
-        F = (C*M.det()-(A.T*(M_cofactormatrix*A))[0])**(self.n*(sympy.Number(int(self.graph.model.space_dim)) - e)/2 - self.alpha)
+        F = (C*M.det()-(A.T*(M_cofactormatrix*A))[0])
+
         
         F_s = F
         ext_moment_strech = sympy.var("p_strech")
@@ -171,46 +194,77 @@ class feynman:
             atom = sympy.var(str_atom)
             F_s = F_s.subs(atom, atom*ext_moment_strech)
         
-#        sympy.var('AA BB p')
-#        F_s = (AA+p*p*ext_moment_strech*ext_moment_strech*BB)**(1-e)
         
-        print " F_s = ",F_s    
-        F_p = F_s.subs(ext_moment_strech,1)
-        t_F_s = F_s
-        for i in range(self.graph.dim + 1):
-            print " ===> ",t_F_s.subs(ext_moment_strech,0)
-            F_p = F_p - t_F_s.subs(ext_moment_strech,0)
-            t_F_s = t_F_s.diff(ext_moment_strech)/(i+1)
-        F_p = F_p.expand()
-            
-#        print "============="    
-#        print F_p
-#        print "============="    
-#        print F_p.subs(e,0)
-#        print "============="    
-        
-        F_pe = 0
-        t_F_p = F_p
-        for i in range(self.graph.model.target - self.graph.NLoops()+1):
-            F_pe = F_pe+e**i*t_F_p.subs(e,0)
-            t_F_p = t_F_p.diff(e)/(i+1)
-        
-        F_pe = (F_pe/e).expand()
-        
-#        print "------------"    
-#        print F_pe
-#        print "------------"    
-#        print F_pe.subs(e,0)
+        print " F_s = ",F_s
+        self.B = F_s.subs(ext_moment_strech,0)
+        self.D = F_s.diff(ext_moment_strech).diff(ext_moment_strech).subs(ext_moment_strech,0)/sympy.Number(2)    
+
 
 
         F_m = 1
         for idxU in range(len(u)):
             F_m = F_m * u[idxU]**(self.terms[idxU].lambd-1) 
         F_m = F_m * M.det()**(-(sympy.Number(int(self.graph.model.space_dim))-e)/2-(self.n*(sympy.Number(int(self.graph.model.space_dim)) - e)/2 - self.alpha))
-        print "F_m = ", F_m
-        #print F_m
-        return F_pe
+        self.E = F_m
+
+    def R(self):
         
+        ext_moment = sympy.var('p e')
+        sympy.var('E B D')
+        t_res = (E * (B + ext_moment**2 * D) ** 
+                 (self.n * (sympy.Number(int(self.graph.model.space_dim)) 
+                            - e)/2 - self.alpha))
+        
+        if len(self.graph.external_lines)==3:
+            raise NotImplementedError, " subgraphs with 3 ext_lines are not supported"
+        
+        d_res = t_res            
+        for i in range(self.graph.dim+1):
+            t_res = t_res - d_res.subs(ext_moment,0)
+            d_res = d_res.diff(ext_moment)/(i+1)
+        
+        
+        res = 0
+        d_res = t_res
+        for i in range(self.graph.model.target - self.graph.NLoops()+1):
+            res = res+e**i*s_res.subs(e,0)
+            d_res = d_res.diff(e)/(i+1)
+
+        return d_res
+    
+    def L_n(self):
+        
+        ext_moment = sympy.var('p')
+        e=sympy.var('e')
+        sympy.var('E B D')
+        t_res = (self.Gammas() * (B + ext_moment**2 * D) ** 
+                 (self.n * (sympy.Number(int(self.graph.model.space_dim)) 
+                            - e)/2 - self.alpha))
+        print t_res
+#        t_res = t_res.subs(E,self.Gammas())
+        
+        d_res = t_res
+        t_res = t_res.subs(ext_moment,0)            
+        for i in range(self.graph.dim+1):
+            t_res = d_res.subs(ext_moment,0)
+            d_res = d_res.diff(ext_moment)/(i+1)
+        
+            
+        print t_res, "dim = ", self.graph.dim
+        
+        res = 0
+        d_res = t_res
+        
+        if reduce(lambda x,y: x or y, 
+                  map(lambda x: (str(x)=='inf') or (str(x)=='-inf'), 
+                      d_res.expand().subs(e,0).atoms())):
+            raise NotImplementedError, "Series on eps includes 1/eps term"
+        for i in range(self.graph.model.target - self.graph.NLoops()+1):
+            print e**i*d_res.expand().subs(e,0)
+            res = res+e**i*d_res.expand().subs(e,0)
+            d_res = d_res.diff(e)/(i+1)
+        return res
+                 
 def StrechAllSubgraphs(G):
     cur_G=G.Clone()
     cur_G.s_degree=dict()
@@ -234,20 +288,32 @@ def StrechAllSubgraphs(G):
 for nickel in g_list: 
     G = model.LoadGraph(nickel)
     if G.NLoops() in nloops:
-        G.WorkDir()
-        G.FindSubgraphs()
-        if not CheckNodes(G):
+        cur_G=G.Clone()
+        cur_G.lines[3].dots[1] = 1
+        cur_G.WorkDir()
+        cur_G.FindSubgraphs()
+        if not CheckNodes(cur_G):
             print "%s has nodes with type <> 1 "%nickel
             continue
-        G_s = StrechAllSubgraphs(G)
+        G_s = StrechAllSubgraphs(cur_G)
         F=feynman(G_s)
 
         
         print nickel
-        print "    %s"%F
-#        print "\n%s"%F.QForm()
+        print 
+        print "  F =  %s"%F
+        F.QForm()
+        print
+        print "F.B = ", F.B
+        print
+        print "F.D = ", F.D
+        print
+        print "F.E = ",F.E
         print
         print "GAMMAS = %s"%F.Gammas()
+        print 
+        print F.L_n()
+
         print 
         print G_s.s_degree
         

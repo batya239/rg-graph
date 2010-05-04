@@ -13,6 +13,7 @@ import os
 import sys
 import rggraph_static as rggrf
 import copy
+import re
 
 #definitions of propagators, node factors, dot actions, and K operation 
 
@@ -183,7 +184,7 @@ def dot_serialize(dots):
         res = res + str(("dot%s"%dot, dots[dot]))
     return res
 
-def line_serialize(Line): 
+def line_serialize(Line, include_dots=True): 
     s_moment = "moment:(%s)"%moment_serialize(Line.momenta, preserve_sign=False)
     
     if "strechs" in Line.__dict__:
@@ -197,8 +198,10 @@ def line_serialize(Line):
         s_diffs = "diffs:()"
     
     s_dots = "dots:(%s)"%dot_serialize(Line.dots)
-    
-    return "line%s(%s,%s,%s,%s)"%(Line.type,s_moment,s_strechs,s_diffs,s_dots)
+    if include_dots:
+        return "line%s(%s,%s,%s,%s)"%(Line.type,s_moment,s_strechs,s_diffs,s_dots)
+    else:
+        return "line%s(%s,%s,%s)"%(Line.type,s_moment,s_strechs,s_diffs)
 
 def node_serialize(Node):
     if Node.type == 0:
@@ -608,6 +611,218 @@ def L_dot(G, progress=None,debug=False):
         (t_res,t_cnt) = Kres[key]
         res.append(t_res*rggrf.roperation.Factorized(1,t_cnt))        
     return res
+
+
+def feynman_reduce(G):
+    cur_G = G.Clone()
+    nodetypes = cur_G.GetNodesTypes()
+    nodes_to_remove=set()
+    linesets_to_remove=list()
+    for idxN in cur_G.internal_nodes:
+        node = cur_G.nodes[idxN]
+        if node.type == 2:
+            if idxN in nodes_to_remove:
+                continue
+            else:
+                t_lines_set = set(node.Lines())
+                found = False
+                for lineset in linesets_to_remove:
+                    if len(t_lines_set & lineset) >0:
+                        lineset = lineset or t_lines_set
+                        found = True
+                if not found:
+                    linesets_to_remove.append(t_lines_set)
+                nodes_to_remove = nodes_to_remove | set([idxN,])
+                
+#    print linesets_to_remove
+    phi2_terms=list()
+    for lineset in linesets_to_remove:
+        nodes = list()
+        for idxL in lineset:
+            nodes = nodes + list(set(cur_G.lines[idxL].Nodes())-nodes_to_remove)
+        if len(nodes)>2:
+#            print nodes_to_remove
+            raise ValueError, "found more then 2 nodes for one line! lineset: %s, nodes: %s"%(lineset,nodes)
+        line = cur_G.lines[list(lineset)[0]]
+        new_dots=dict()
+        for idxL in list(lineset):
+            if len(cur_G.lines[idxL].dots)<>0:
+                for dot in cur_G.lines[idxL].dots:
+                    if dot in new_dots:
+                        new_dots[dot] = new_dots[dot] + cur_G.lines[idxL].dots[dot]
+                    else:
+                        new_dots[dot] =  cur_G.lines[idxL].dots[dot]
+        for idxL in list(lineset)[1:]:
+            del cur_G.lines[idxL]
+        line.start = nodes[0]
+        line.end = nodes[1]
+        line.dots = new_dots
+        phi2_terms.append((list(lineset)[0],len(lineset)-1))
+    cur_G.DefineNodes(nodetypes)
+#    cur_G.GenerateNickel()
+    cur_G.phi2_terms = phi2_terms
+    #print cur_G.nickel, phi2_terms
+    return cur_G
+    
+def L_dot_feynman(F):
+    def monom_coeff(F,monom, symbols):
+        res = sympy.Number(1)
+        eps = sympy.var('e')
+        for idx in range(reduce(lambda x,y:x+y, monom)):
+            res  = res * (idx+1 + F.n *eps/sympy.Number(2))
+        for idx1 in range(len(monom)):
+            for idx2 in range(monom[idx1]):
+                res = res / (F.terms[F.reverse_u_map[symbols[idx1]]].lambd+idx2)
+        return res
+    
+    def QForm(F_):
+        u = dict()
+        Q = 0
+        cnt = 0
+        for key in F_.terms:
+            u[cnt] = sympy.var('u%s'%cnt)
+            term = F_.terms[key]
+#            Q = Q + u[idxT]*(term.line.momenta.Squared() + 1)
+            Q = Q + u[cnt]/term.line.Propagator()
+            cnt = cnt + 1     
+        Q=ExpandScalarProds(Q).subs(sympy.var('tau'),1)
+        
+        #remove scalar prods q1xq2 pxq1 ...
+        for atom in Q.atoms():
+            if re.search('x',str(atom)):
+                Q = Q.subs(atom,1)
+        
+        M=sympy.matrices.Matrix(F_.n,F_.n, lambda i,j:0)
+        A=sympy.matrices.Matrix([0 for i in range(F_.n)])
+        C=Q
+        for i in range(F_.n):
+            qi=sympy.var(F_.internal_atoms[i])
+            C=C.subs(qi,0)
+            A[i] = Q.diff(qi)/sympy.Number(2)
+            for j in range(F_.n):
+                qj=sympy.var(F_.internal_atoms[j])
+                A[i]=A[i].subs(qj,0)
+                if i>=j:
+                    M[i,j] = Q.diff(qi).diff(qj)/sympy.Number(2)
+                    if i<>j:
+                        M[j,i] = M[i,j]
+
+        
+
+        e = sympy.var('e')
+        print F_.alpha,(F_.graph.model.space_dim - e)/2
+        if M.shape == (1,1):
+            M_cofactormatrix = sympy.matrices.Matrix([sympy.Number(1)])
+        else:
+            M_cofactormatrix = M.cofactorMatrix()
+        F = (C*M.det()-(A.T*(M_cofactormatrix*A))[0])
+
+        
+        F_s = F
+        ext_moment_strech = sympy.var("p_strech")
+        for str_atom in F_.external_atoms:
+            atom = sympy.var(str_atom)
+            F_s = F_s.subs(atom, atom*ext_moment_strech)
+        
+        
+        print " F_s = ",F_s
+        F_.B = F_s.subs(ext_moment_strech,0)
+        F_.D = F_s.diff(ext_moment_strech).diff(ext_moment_strech).subs(ext_moment_strech,0)/sympy.Number(2)    
+
+
+
+        F_m = 1
+        for key in F_.terms:
+            term = F_.terms[key]
+            F_m = F_m * F_.u_map[key]**(term.lambd-1) 
+        F_m = F_m * M.det()**(-(sympy.Number(int(F_.graph.model.space_dim))-e)/2-(F_.n*(sympy.Number(int(F_.graph.model.space_dim)) - e)/2 - F_.alpha))
+        F_.E = F_m
+        
+    def L_n(F):
+        
+        ext_moment = sympy.var('p')
+        e=sympy.var('e')
+        sympy.var('E B D')
+        t_res = (F.Gammas() * (B + ext_moment**2 * D) ** 
+                 (F.n * (sympy.Number(int(F.graph.model.space_dim)) 
+                            - e)/2 - F.alpha))
+        print t_res
+#        t_res = t_res.subs(E,F.Gammas())
+        
+        d_res = t_res
+        t_res = t_res.subs(ext_moment,0)            
+        for i in range(F.graph.dim+1):
+            t_res = d_res.subs(ext_moment,0)
+            d_res = d_res.diff(ext_moment)/(i+1)
+        
+            
+        print t_res, "dim = ", F.graph.dim
+        
+        res = 0
+        d_res = t_res
+        
+        if reduce(lambda x,y: x or y, 
+                  map(lambda x: (str(x)=='inf') or (str(x)=='-inf') or (str(x)=='+inf'), 
+                      d_res.expand().subs(e,0).atoms())):
+            raise NotImplementedError, "Series on eps includes 1/eps term"
+        print d_res.expand().subs(e,0), d_res.expand().subs(e,0).atoms()
+        print "-----------------"
+        for i in range(F.graph.model.target - F.graph.NLoops()+1):
+            print e**i*d_res.expand().subs(e,0)
+            res = res+e**i*d_res.expand().subs(e,0)
+            d_res = d_res.diff(e)/(i+1)
+        return res
+            
+        
+    phi2_terms = dict()
+    for (idxL,cnt) in F.graph.phi2_terms:
+        phi2_terms[F.line_map[idxL]] = cnt
+    
+    F.u_map = dict()
+    F.reverse_u_map = dict()
+    lambda_map = dict()
+    cnt=0
+    for idxT in F.terms:
+        F.u_map[idxT] = sympy.var('u%s'%cnt)
+        F.reverse_u_map[F.u_map[idxT]] = idxT
+        lambda_map[idxT] = sympy.var('lambda%s'%cnt)
+        cnt = cnt + 1
+        
+    t_phi2_part = 1
+    
+    for key in phi2_terms:
+        t_phi2_part = t_phi2_part * (1-F.u_map[key])**phi2_terms[key]
+        
+    t_phi2_part = t_phi2_part.expand().as_poly()
+    symbols = t_phi2_part.symbols
+    monoms = t_phi2_part.monoms
+    coeffs = t_phi2_part.coeffs
+    
+    phi2_part = list()
+    for idxM in range(len(monoms)):
+        monom = monoms[idxM]
+        coeff = coeffs[idxM]
+        term = coeff
+        for idxS in range(len(symbols)):
+            symbol = symbols[idxS]
+            term = term * symbol ** monom[idxS]
+        term = term * monom_coeff(F, monom, symbols)
+        phi2_part.append(term)
+        
+    print phi2_part, F.Gammas()
+    
+    QForm(F)
+    print
+    print "F.B = ", F.B
+    print
+    print "F.D = ", F.D
+    print
+    print "F.E = ",F.E
+    print    
+    print L_n(F)
+        
+    
+            
     
             
            
@@ -622,7 +837,7 @@ model.AddLineType(1, propagator=propagator, directed=0, fields=["start","end","d
 #External Node always have number 0 and no Lines requirement
 model.AddNodeType(0, Lines=[], Factor=node_factor, gv={"color": "red"}) 
 # phi3 node
-model.AddNodeType(1, Lines=[1, 1, 1], Factor=node_factor)
+model.AddNodeType(1, Lines=[1, 1, 1], Factor=node_factor, feynman=0, feynman_sign=1)
 
 # nodes from Sigma subgraphs inf counterterms graphs
 model.AddNodeType(2, Lines=[1, 1], Factor=node_factor)
@@ -641,7 +856,7 @@ model.AddSubGraphType(1, Lines=[1, 1, 1], dim=0, substitute=3)
 model.AddSubGraphType(2, Lines=[1, 1], dim=2, substitute=4)
 
 # definition of dots
-model.AddDotType(1, dim=2, action=dot_action, gv={"penwidth":"3"})
+model.AddDotType(1, dim=2, action=dot_action, gv={"penwidth":"3"}, feynman=1, feynman_sign=-1)
 
 model.basepath = rggrf.storage.filesystem.NormalizeBaseName("~/work/rg-graph/testR1/")
 
