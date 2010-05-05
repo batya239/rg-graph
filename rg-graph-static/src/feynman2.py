@@ -50,6 +50,7 @@ def CheckNodes(G):
 def StrechAllSubgraphs(G):
     cur_G=G.Clone()
     cur_G.s_degree=dict()
+    cur_G.s_type=dict()
     for sub in cur_G.subgraphs:
         sub_ext_atoms_str = FindExtMomentAtoms(sub)
         strech_var_str = "s%s"%cur_G.subgraphs.index(sub)
@@ -60,7 +61,15 @@ def StrechAllSubgraphs(G):
             elif idx[1]=="N":
                 obj = cur_G.nodes[idx[0]]
             model.AddStrech(obj, strech_var_str, sub_ext_atoms_str)
-        cur_G.s_degree[strech_var_str] = subgraph_dim_with_diff(cur_G, sub) +1
+        if sub.type == 2:
+            cur_G.s_type[strech_var_str]= 2
+            cur_G.s_degree[strech_var_str] = subgraph_dim_with_diff(cur_G, sub)/sympy.Number(2) + 1
+        elif sub.type == 1:
+            cur_G.s_type[strech_var_str]= 1
+            cur_G.s_degree[strech_var_str] = subgraph_dim_with_diff(cur_G, sub) + 1
+        else: 
+            raise ValueError, "invalid subgraph type (%s)"%sub.type
+        
         
         
     return cur_G
@@ -97,11 +106,11 @@ for nickel in g_list:
 #        print 
 #        print F.L_n()
 
-        print L_dot_feynman(F)
+        print K_nR1_feynman(F)
 
         print 
-        print G_s.s_degree
-        
+        print "degree:", G_s.s_degree
+        print "type:",G_s.s_type
         
         lines=dict()
         

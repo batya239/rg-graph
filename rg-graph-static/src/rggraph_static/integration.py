@@ -943,6 +943,89 @@ def GenerateMCCodeForGraphStrVars(name, prepared_eqs, space_dim, n_epsilon_serie
             
     return prog_names  
 
+def GenerateCVarsF(vars_set):
+    c_vars = ""
+    vars = list(vars_set)
+    for var in vars:
+        c_vars = c_vars + "double %s = k[%s];\n"%(str(var),vars.index(var))
+    print c_vars    
+    
+    str_region = " 0,"*len(vars)+" 1,"*len(vars)
+    str_region = " { %s}" %str_region[:-1]
+    return (c_vars,str_region)
+
+def GenerateMCCodeForFeynman(name, expr_lst, space_dim, n_epsilon_series, 
+                                  points, nthreads,debug=False, progress=None, 
+                                  MCCodeGenerator=SavePThreadsMCCode):
+    def JoinVarsF(expr_lst):
+        vars = set()
+        for expr in expr_lst:
+            atoms = expr.atoms()
+            for atom in atoms:
+                print atom
+                if regex.match('^(s|w)\d+', str(atom)):
+                    print atom
+                    vars = vars | set([atom,])
+        return vars
+    import sympy
+#TODO: проверка что у всех членов одинаковые переменные.
+    if progress <>  None:
+        (progressbar,maxprogress) = progress
+        cur_progress = progressbar.currval
+    prog_names = list()
+    expr_by_eps = dict()
+    for i in range(n_epsilon_series+1):
+        expr_by_eps[i] = list()
+    if progress <> None:
+        step1 = float(maxprogress)/2./len(expr_lst)
+    e = sympy.var('e')
+    for expr in expr_lst :
+        atoms = expr.atoms()
+        t_expr = expr
+        for idxE in range(n_epsilon_series+1):
+            cur_expr = t_expr.subs(e, 0)
+
+            #cur_expr.set_print_context('c')
+            c_expr = sympy.ccode(cur_expr)
+            expr_by_eps[idxE].append(c_expr)
+            t_expr = t_expr.diff(e)/(idxE+1)
+            
+        if progress <> None:
+            cur_progress = cur_progress + step1
+            progressbar.update(cur_progress)
+
+
+    vars_joined = JoinVarsF(expr_lst)
+    print vars_joined
+    (c_vars, str_region) = GenerateCVarsF(vars_joined)
+#    print
+#    print len(prepared_eqs)
+#    print [expr_by_eps[i] for i in expr_by_eps]
+#    print
+        
+    if progress <> None:
+        step2 = float(maxprogress)/2/len(expr_by_eps)           
+    for idxE in expr_by_eps:
+        cur_name = "%s_e%s"%(name,idxE)
+#        print "%s %s"%(idxE,expr_by_eps[idxE])
+        c_expr = expr_by_eps[idxE][0]
+#        print
+#        print c_expr
+        for idxT in expr_by_eps[idxE][1:]:
+            c_expr = "%s;\nf[0] = f[0] + %s" %(c_expr,idxT)
+#            print
+#            print c_expr             
+        MCCodeGenerator(cur_name, c_expr, c_vars, str_region, points, nthreads)
+        prog_names.append(cur_name)
+        
+        if progress <> None:
+            cur_progress = cur_progress + step2
+            progressbar.update(cur_progress)
+            
+    return prog_names  
+
+
+
 def CompileMCCode(prog_name, debug=False):
     import sys
 #>>> process = subprocess.Popen(['./test', ], shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)

@@ -113,21 +113,21 @@ class feynman:
         res['external'] = self.external_atoms  
         return str(res)
     
-    def Gammas(self):
-        import swiginac
-        s_e=swiginac.symbol('e')
-        res = 1
-        for key in self.terms:
-            term = self.terms[key]
-            res = res / swiginac.tgamma(term.lambd)
-        res = res * ( swiginac.tgamma(self.alpha - self.n*(swiginac.numeric(int(self.graph.model.space_dim))-s_e)/2)*
-                      (swiginac.tgamma((swiginac.numeric(int(self.graph.model.space_dim))-s_e)/2))**self.n *
-                      swiginac.numeric(2)**(-self.n) )
-                   
-        res_str= str( swiginac.series_to_poly(res.series(s_e==0,self.graph.model.target - self.graph.NLoops()+1)).evalf())
-        e = sympy.var('e')
-        res_sympy = eval(res_str)
-        return res_sympy
+#    def Gammas(self):
+#        import swiginac
+#        s_e=swiginac.symbol('e')
+#        res = 1
+#        for key in self.terms:
+#            term = self.terms[key]
+#            res = res / swiginac.tgamma(term.lambd)
+#        res = res * ( swiginac.tgamma(self.alpha - self.n*(swiginac.numeric(int(self.graph.model.space_dim))-s_e)/2)*
+#                      (swiginac.tgamma((swiginac.numeric(int(self.graph.model.space_dim))-s_e)/2))**self.n *
+#                      swiginac.numeric(2)**(-self.n) )
+#                   
+#        res_str= str( swiginac.series_to_poly(res.series(s_e==0,self.graph.model.target - self.graph.NLoops()+1)).evalf())
+#        e = sympy.var('e')
+#        res_sympy = eval(res_str)
+#        return res_sympy
 
 
                 

@@ -612,6 +612,63 @@ def L_dot(G, progress=None,debug=False):
         res.append(t_res*rggrf.roperation.Factorized(1,t_cnt))        
     return res
 
+                 
+def StrechAllSubgraphsF(G):
+    cur_G=G.Clone()
+    cur_G.s_degree=dict()
+    cur_G.s_type=dict()
+    for sub in cur_G.subgraphs:
+        sub_ext_atoms_str = FindExtMomentAtoms(sub)
+        strech_var_str = "s%s"%cur_G.subgraphs.index(sub)
+        sub_ext_path = [(i[0],i[1],strech_var_str) for i in FindExtMomentPath(sub, sub_ext_atoms_str)]
+        for idx in sub_ext_path:
+            if idx[1]=="L":
+                obj = cur_G.lines[idx[0]]
+            elif idx[1]=="N":
+                obj = cur_G.nodes[idx[0]]
+            model.AddStrech(obj, strech_var_str, sub_ext_atoms_str)
+        if sub.type == 2:
+            cur_G.s_type[strech_var_str]= 2
+            cur_G.s_degree[strech_var_str] = subgraph_dim_with_diff(cur_G, sub)/sympy.Number(2) + 1
+        elif sub.type == 1:
+            cur_G.s_type[strech_var_str]= 1
+            cur_G.s_degree[strech_var_str] = subgraph_dim_with_diff(cur_G, sub) + 1
+        else: 
+            raise ValueError, "invalid subgraph type (%s)"%sub.type
+        
+    return cur_G
+
+def L_dot_feynman(G, progress=None,debug=False):
+    if progress <>  None:
+        (progressbar,maxprogress) = progress
+        step = float(maxprogress)/(len(G.internal_lines)+len(G.internal_nodes))
+        cur_progress = progressbar.currval
+    Kres=list()
+    for idxL in G.internal_lines:
+        cur_G=G.Clone()
+        cur_G.lines[idxL].dots[1] = 1
+        #cur_G.DefineNodes(G.GetNodeTypes)
+        cur_G.FindSubgraphs()
+#        cur_r1.SaveAsPNG("test.png")
+        G_s = StrechAllSubgraphsF(cur_G)
+        print cur_G
+        print 
+        print G_s
+        G_r = feynman_reduce(G_s)
+        F=rggrf.feynman.feynman(G_r)
+        Kres = Kres + K_nR1_feynman(F)
+        
+#        if len(G.external_lines) == 2:
+#            Kres = K_nR1(cur_G, 2, Kres, debug)
+#        elif len(G.external_lines) == 3:
+#            Kres = K_nR1(cur_G, 0, Kres, debug)
+#        else:
+#            raise ValueError, "unknown graph type"
+        progressbar.update(cur_progress+step)
+        cur_progress = progressbar.currval
+        
+    return Kres
+
 
 def feynman_reduce(G):
     cur_G = G.Clone()
@@ -659,12 +716,12 @@ def feynman_reduce(G):
         line.dots = new_dots
         phi2_terms.append((list(lineset)[0],len(lineset)-1))
     cur_G.DefineNodes(nodetypes)
-#    cur_G.GenerateNickel()
+    cur_G.GenerateNickel()
     cur_G.phi2_terms = phi2_terms
-    #print cur_G.nickel, phi2_terms
+    print cur_G.nickel, phi2_terms
     return cur_G
     
-def L_dot_feynman(F):
+def K_nR1_feynman(F):
     def monom_coeff(F,monom, symbols):
         res = sympy.Number(1)
         eps = sympy.var('e')
@@ -675,16 +732,34 @@ def L_dot_feynman(F):
                 res = res / (F.terms[F.reverse_u_map[symbols[idx1]]].lambd+idx2)
         return res
     
+    def Gammas(F):
+        import swiginac
+        s_e=swiginac.symbol('e')
+        res = 1
+        for key in F.terms:
+            term = F.terms[key]
+            res = res / swiginac.tgamma(term.lambd)
+        res = res * ( swiginac.tgamma(swiginac.numeric(1) + (F.n*s_e)/2)*
+                      (swiginac.tgamma(swiginac.numeric(3)-s_e/2)**F.n *
+                      swiginac.numeric(2)**(-F.n) ))
+                   
+        res_str= str( swiginac.series_to_poly(res.series(s_e==0,F.graph.model.target - F.graph.NLoops()+1)).evalf())
+        e = sympy.var('e')
+        res_sympy = eval(res_str)
+        return res_sympy    
+    
     def QForm(F_):
         u = dict()
         Q = 0
         cnt = 0
         for key in F_.terms:
-            u[cnt] = sympy.var('u%s'%cnt)
+            u=F_.u_map[key]
             term = F_.terms[key]
 #            Q = Q + u[idxT]*(term.line.momenta.Squared() + 1)
-            Q = Q + u[cnt]/term.line.Propagator()
-            cnt = cnt + 1     
+            Q = Q + u/term.line.Propagator()
+            
+        Q = Q.subs(F_.subs_u[0],F_.subs_u[1])
+                 
         Q=ExpandScalarProds(Q).subs(sympy.var('tau'),1)
         
         #remove scalar prods q1xq2 pxq1 ...
@@ -707,7 +782,8 @@ def L_dot_feynman(F):
                     if i<>j:
                         M[j,i] = M[i,j]
 
-        
+        print "C=", C
+
 
         e = sympy.var('e')
         print F_.alpha,(F_.graph.model.space_dim - e)/2
@@ -715,7 +791,8 @@ def L_dot_feynman(F):
             M_cofactormatrix = sympy.matrices.Matrix([sympy.Number(1)])
         else:
             M_cofactormatrix = M.cofactorMatrix()
-        F = (C*M.det()-(A.T*(M_cofactormatrix*A))[0])
+        detM=sympy.var('detM') 
+        F = (C*detM-(A.T*(M_cofactormatrix*A))[0])
 
         
         F_s = F
@@ -726,52 +803,85 @@ def L_dot_feynman(F):
         
         
         print " F_s = ",F_s
-        F_.B = F_s.subs(ext_moment_strech,0)
-        F_.D = F_s.diff(ext_moment_strech).diff(ext_moment_strech).subs(ext_moment_strech,0)/sympy.Number(2)    
-
+#        F_.B = F_s.subs(ext_moment_strech,0)
+        F_.B = F_s.diff(ext_moment_strech).diff(ext_moment_strech).subs(ext_moment_strech,0)/sympy.Number(2)/detM    
 
 
         F_m = 1
         for key in F_.terms:
             term = F_.terms[key]
-            F_m = F_m * F_.u_map[key]**(term.lambd-1) 
-        F_m = F_m * M.det()**(-(sympy.Number(int(F_.graph.model.space_dim))-e)/2-(F_.n*(sympy.Number(int(F_.graph.model.space_dim)) - e)/2 - F_.alpha))
-        F_.E = F_m
+            F_m = F_m * F_.u_map[key]**(term.lambd-1)
+
+        F_m = F_m * detM**(e/sympy.Number(2)-sympy.Number(3))
+        F_.E = F_m.subs(F_.subs_u[0],F_.subs_u[1])
+        
+        F_.detM = M.det()
+        
         
     def L_n(F):
         
         ext_moment = sympy.var('p')
         e=sympy.var('e')
-        sympy.var('E B D')
-        t_res = (F.Gammas() * (B + ext_moment**2 * D) ** 
-                 (F.n * (sympy.Number(int(F.graph.model.space_dim)) 
-                            - e)/2 - F.alpha))
-        print t_res
-#        t_res = t_res.subs(E,F.Gammas())
-        
-        d_res = t_res
-        t_res = t_res.subs(ext_moment,0)            
-        for i in range(F.graph.dim+1):
-            t_res = d_res.subs(ext_moment,0)
-            d_res = d_res.diff(ext_moment)/(i+1)
-        
+        sympy.var('E B detM')
+        if len(F.graph.external_lines)==3:
+            t_res = -Gammas(F)*F.E
+        elif  len(F.graph.external_lines)==2:
+            t_res = -Gammas(F)*F.E*F.B
+            t_res = t_res.subs(ext_moment,1)    
+        t_res = t_res.subs(detM, F.detM)
             
         print t_res, "dim = ", F.graph.dim
         
+        #diffs
+        for str_strech in F.graph.s_type:
+            if F.graph.s_type[str_strech]==2:
+                strech = sympy.var(str_strech)
+                t_res = t_res.subs(strech, strech**(sympy.Number(1)/sympy.Number(2)))
+            if F.graph.s_degree[str_strech]>=1:
+                for idx in range(F.graph.s_degree[str_strech]):
+                    t_res = t_res.diff(strech)
+            else:
+                raise ValueError, "strech degree <1 (strech=%s,degree=%s)"%(str_strech,F.graph.s_degree[str_strech])
+        
+        
         res = 0
-        d_res = t_res
+        d_res = t_res        
         
         if reduce(lambda x,y: x or y, 
                   map(lambda x: (str(x)=='inf') or (str(x)=='-inf') or (str(x)=='+inf'), 
                       d_res.expand().subs(e,0).atoms())):
             raise NotImplementedError, "Series on eps includes 1/eps term"
+
         print d_res.expand().subs(e,0), d_res.expand().subs(e,0).atoms()
         print "-----------------"
         for i in range(F.graph.model.target - F.graph.NLoops()+1):
-            print e**i*d_res.expand().subs(e,0)
+#            print e**i*d_res.expand().subs(e,0)
             res = res+e**i*d_res.expand().subs(e,0)
             d_res = d_res.diff(e)/(i+1)
-        return res
+            
+        #замена переменных интегрирования.
+        u_sub_w=dict()
+        w_map = dict()
+        umk=F.u_map.keys()
+        w_det = 1
+        for key in umk[:-1]:
+            u_=F.u_map[key]
+            w=sympy.var(str(u_).replace('u', 'w'))
+            w_map[key]=w
+        
+        for key in umk[:-1]:
+            u_sub_w[key] = 1-w_map[key]
+            for key2 in umk[:umk.index(key)]:
+                u_sub_w[key] = u_sub_w[key] * w_map[key2]
+                w_det = w_det * w_map[key2]
+        #print u_sub_w
+        #print w_det
+        
+        for key in u_sub_w:
+            res = res.subs(F.u_map[key],u_sub_w[key])
+        
+        
+        return res*w_det
             
         
     phi2_terms = dict()
@@ -788,38 +898,46 @@ def L_dot_feynman(F):
         lambda_map[idxT] = sympy.var('lambda%s'%cnt)
         cnt = cnt + 1
         
+    subs_u=sympy.Number(1)
+    for key in (F.u_map.keys())[:-1]:
+        subs_u = subs_u - F.u_map[key]
+    
+    F.subs_u = (F.u_map[F.u_map.keys()[-1]],subs_u)
+        
     t_phi2_part = 1
-    
-    for key in phi2_terms:
-        t_phi2_part = t_phi2_part * (1-F.u_map[key])**phi2_terms[key]
-        
-    t_phi2_part = t_phi2_part.expand().as_poly()
-    symbols = t_phi2_part.symbols
-    monoms = t_phi2_part.monoms
-    coeffs = t_phi2_part.coeffs
-    
     phi2_part = list()
-    for idxM in range(len(monoms)):
-        monom = monoms[idxM]
-        coeff = coeffs[idxM]
-        term = coeff
-        for idxS in range(len(symbols)):
-            symbol = symbols[idxS]
-            term = term * symbol ** monom[idxS]
-        term = term * monom_coeff(F, monom, symbols)
-        phi2_part.append(term)
+    if len(phi2_terms)>0:
+        for key in phi2_terms:
+            t_phi2_part = t_phi2_part * (1-F.u_map[key])**phi2_terms[key]
+            
+        t_phi2_part = t_phi2_part.expand().as_poly()
+        symbols = t_phi2_part.symbols
+        monoms = t_phi2_part.monoms
+        coeffs = t_phi2_part.coeffs
         
-    print phi2_part, F.Gammas()
+        phi2_part = list()
+        for idxM in range(len(monoms)):
+            monom = monoms[idxM]
+            coeff = coeffs[idxM]
+            term = coeff
+            for idxS in range(len(symbols)):
+                symbol = symbols[idxS]
+                term = term * symbol ** monom[idxS]
+            term = term * monom_coeff(F, monom, symbols)
+            phi2_part.append(term)
+        
+        
+    print phi2_part, Gammas(F)
     
     QForm(F)
     print
     print "F.B = ", F.B
     print
-    print "F.D = ", F.D
-    print
     print "F.E = ",F.E
     print    
-    print L_n(F)
+    print "F.detM = ",F.detM
+    print    
+    return  [L_n(F),]
         
     
             
@@ -1353,6 +1471,52 @@ def MCTR_SVd(G, debug=False):
 
 
 model.methods['MCTR_SVd'] = MCTR_SVd
+
+def MCOF_1(G, debug=False):
+    import progressbar
+    G.GenerateNickel()
+    G.method = "MCOF_1"
+    base_name = "%s_%s"%(G.method,str( G.nickel))
+    n_epsilon_series =G.model.target -G.NLoops()
+    NPOINTS = 10000
+    NTHREADS = 2
+    SPACE_DIM = 6.
+    prepared_eqs = []
+    bar = progressbar.ProgressBar(maxval=100, term_width=70, 
+                                  widgets=["%s  "%G.nickel, progressbar.Percentage(), 
+                                           " ", progressbar.Bar(), 
+                                           progressbar.ETA()]).start()
+                                               
+    Kres = L_dot_feynman(G,progress=(bar,33),debug=debug)
+    
+    progress=bar.currval
+                   
+    sys.stdout.flush()
+          
+    prog_names = rggrf.integration.GenerateMCCodeForFeynman(base_name, Kres, 
+                                                                SPACE_DIM, n_epsilon_series, 
+                                                                NPOINTS, NTHREADS,
+                                                                debug=debug, 
+                                                                progress=(bar,33.),
+                                                                MCCodeGenerator=rggrf.integration.SavePThreadsMCCodeDelta) 
+    
+    t_res = rggrf.integration.CalculateEpsilonSeries(prog_names, 
+                                                     build=True, debug=debug, 
+                                                     progress=(bar,33),
+                                                     calc_delta=0.)
+    G.reduced_nloops = G.NLoops()
+    (G.r1_dot_gamma, err) = ResultWithSd(t_res, G.NLoops(), n_epsilon_series)
+    G.r1_dot_gamma_err = rggrf.utils.RelativeError(G.r1_dot_gamma, err, 
+                                                   sympy.var('eps'))
+    
+    rggrf.utils.print_debug(str(G.r1_dot_gamma), debug)
+    G.npoints = NPOINTS 
+    
+    G.SaveResults()
+    bar.finish()
+
+
+model.methods['MCOF_1'] = MCOF_1
 
 
     
