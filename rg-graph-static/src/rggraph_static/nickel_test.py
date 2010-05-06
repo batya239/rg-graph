@@ -1,4 +1,4 @@
-﻿#!/usr/bin/python
+#!/usr/bin/python
 
 import nickel
 import utils
@@ -169,7 +169,6 @@ class TestUtil(unittest.TestCase):
         self.assertFalse(conn([[-1, 0], [2, 1]]))
 
 
-unittest.main()  # Calling from the command line invokes all tests.
+if __name__ == "__main__":
+    unittest.main()
 
-#if __name__ == "__main__":
-#    unittest.main()
