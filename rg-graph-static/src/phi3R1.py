@@ -834,31 +834,36 @@ def K_nR1_feynman(F):
         
         #diffs
         for str_strech in F.graph.s_type:
+            
+            strech = sympy.var(str_strech)
             if F.graph.s_type[str_strech]==2:
-                strech = sympy.var(str_strech)
+            
                 t_res = t_res.subs(strech, strech**(sympy.Number(1)/sympy.Number(2)))
             if F.graph.s_degree[str_strech]>=1:
                 for idx in range(F.graph.s_degree[str_strech]):
                     t_res = t_res.diff(strech)
             else:
                 raise ValueError, "strech degree <1 (strech=%s,degree=%s)"%(str_strech,F.graph.s_degree[str_strech])
-        
-        
-        res = 0
-        d_res = t_res        
-        
-        if reduce(lambda x,y: x or y, 
-                  map(lambda x: (str(x)=='inf') or (str(x)=='-inf') or (str(x)=='+inf'), 
-                      d_res.expand().subs(e,0).atoms())):
-            raise NotImplementedError, "Series on eps includes 1/eps term"
-
-        print d_res.expand().subs(e,0), d_res.expand().subs(e,0).atoms()
-        print "-----------------"
-        for i in range(F.graph.model.target - F.graph.NLoops()+1):
-#            print e**i*d_res.expand().subs(e,0)
-            res = res+e**i*d_res.expand().subs(e,0)
-            d_res = d_res.diff(e)/(i+1)
             
+            if F.graph.s_degree[str_strech]==2:
+                t_res= t_res*(1-strech)
+        
+        res = t_res
+#        res = 0
+#        d_res = t_res        
+#        
+#        if reduce(lambda x,y: x or y, 
+#                  map(lambda x: (str(x)=='inf') or (str(x)=='-inf') or (str(x)=='+inf'), 
+#                      d_res.expand().subs(e,0).atoms())):
+#            raise NotImplementedError, "Series on eps includes 1/eps term"
+#
+#        print d_res.expand().subs(e,0), d_res.expand().subs(e,0).atoms()
+#        print "-----------------"
+#        for i in range(F.graph.model.target - F.graph.NLoops()+1):
+##            print e**i*d_res.expand().subs(e,0)
+#            res = res+e**i*d_res.expand().subs(e,0)
+#            d_res = d_res.diff(e)/(i+1)
+#            
         #замена переменных интегрирования.
         u_sub_w=dict()
         w_map = dict()
@@ -1505,7 +1510,7 @@ def MCOF_1(G, debug=False):
                                                      progress=(bar,33),
                                                      calc_delta=0.)
     G.reduced_nloops = G.NLoops()
-    (G.r1_dot_gamma, err) = ResultWithSd(t_res, G.NLoops(), n_epsilon_series)
+    (G.r1_dot_gamma, err) = ResultWithOutSd(t_res, G.NLoops(), n_epsilon_series)
     G.r1_dot_gamma_err = rggrf.utils.RelativeError(G.r1_dot_gamma, err, 
                                                    sympy.var('eps'))
     
@@ -1517,6 +1522,53 @@ def MCOF_1(G, debug=False):
 
 
 model.methods['MCOF_1'] = MCOF_1
+
+def MCTF_1(G, debug=False):
+    import progressbar
+    G.GenerateNickel()
+    G.method = "MCTF_1"
+    base_name = "%s_%s"%(G.method,str( G.nickel))
+    n_epsilon_series =G.model.target -G.NLoops()
+    NPOINTS = 10000
+    NTHREADS = 2
+    SPACE_DIM = 6.
+    prepared_eqs = []
+    bar = progressbar.ProgressBar(maxval=100, term_width=70, 
+                                  widgets=["%s  "%G.nickel, progressbar.Percentage(), 
+                                           " ", progressbar.Bar(), 
+                                           progressbar.ETA()]).start()
+                                               
+    Kres = L_dot_feynman(G,progress=(bar,33),debug=debug)
+    
+    progress=bar.currval
+                   
+    sys.stdout.flush()
+          
+    prog_names = rggrf.integration.GenerateMCCodeForFeynmanTerm(base_name, Kres, 
+                                                                SPACE_DIM, n_epsilon_series, 
+                                                                NPOINTS, NTHREADS,
+                                                                debug=debug, 
+                                                                progress=(bar,33.),
+                                                                MCCodeGenerator=rggrf.integration.SavePThreadsMCCodeDelta) 
+    
+    t_res = rggrf.integration.CalculateEpsilonSeries(prog_names, 
+                                                     build=True, debug=debug, 
+                                                     progress=(bar,33),
+                                                     calc_delta=0.)
+    G.reduced_nloops = G.NLoops()
+    (G.r1_dot_gamma, err) = ResultWithOutSd(t_res, G.NLoops(), n_epsilon_series)
+    G.r1_dot_gamma_err = rggrf.utils.RelativeError(G.r1_dot_gamma, err, 
+                                                   sympy.var('eps'))
+    
+    rggrf.utils.print_debug(str(G.r1_dot_gamma), debug)
+    G.npoints = NPOINTS 
+    
+    G.SaveResults()
+    bar.finish()
+
+
+model.methods['MCTF_1'] = MCTF_1
+
 
 
     
@@ -1540,6 +1592,25 @@ def ResultWithSd(_dict, nloops, n_eps_series):
             sympy.Real('0.041670033558627036', prec=15)*pow(eps,2) 
             - sympy.Real('0.012317991965140199', prec=15)*pow(eps,3) + 
             sympy.Real('0.0017870514760215828', prec=15)*pow(eps,4)
+            ]
+    expr = 0
+    err = 0
+    for idx in _dict:
+        expr = expr + eps**idx*_dict[idx][0]
+        err = err + eps**idx*_dict[idx][1]
+    expr = rggrf.utils.SimpleSeries(expr * t_mnog[nloops-1], eps, 0, n_eps_series)
+    err = rggrf.utils.SimpleSeries(err * t_mnog[nloops-1], eps, 0, n_eps_series)
+    #print series(expr,eps,0)
+    return (expr, err)
+
+def ResultWithOutSd(_dict, nloops, n_eps_series):
+    
+    eps = sympy.var('eps')
+    t_mnog=[1., 
+            1.,
+            1.,
+            1.,
+            1.
             ]
     expr = 0
     err = 0

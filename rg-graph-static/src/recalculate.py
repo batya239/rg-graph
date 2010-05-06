@@ -162,7 +162,11 @@ for nickel in g_list:
                                                                   threads=nthreads, debug=debug, 
                                                                   calc_delta=calc_delta)
                 try:
-                    (t_r1_dot_gamma, t_r1_dot_gamma_err) = ResultWithSd(t_res, G.reduced_nloops, 
+                    if G.method in ["MCTF_1", "MCOF_1"]:
+                        (t_r1_dot_gamma, t_r1_dot_gamma_err) = ResultWithOutSd(t_res, G.reduced_nloops, 
+                                                                        G.model.target - G.NLoops())
+                    else:
+                        (t_r1_dot_gamma, t_r1_dot_gamma_err) = ResultWithSd(t_res, G.reduced_nloops, 
                                                                         G.model.target - G.NLoops())
                 except:
                     print "\nError: %s\n%s\n"%(prog_names[0],t_res)
