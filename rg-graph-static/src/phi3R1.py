@@ -675,30 +675,57 @@ def feynman_reduce(G):
     nodetypes = cur_G.GetNodesTypes()
     nodes_to_remove=set()
     linesets_to_remove=list()
+    
     for idxN in cur_G.internal_nodes:
         node = cur_G.nodes[idxN]
         if node.type == 2:
             if idxN in nodes_to_remove:
                 continue
             else:
-                t_lines_set = set(node.Lines())
-                found = False
-                for lineset in linesets_to_remove:
-                    if len(t_lines_set & lineset) >0:
-                        lineset = lineset or t_lines_set
-                        found = True
-                if not found:
-                    linesets_to_remove.append(t_lines_set)
                 nodes_to_remove = nodes_to_remove | set([idxN,])
+                t_line_set = set(node.Lines())
+                found = True
+                while found:
+                    found = False
+                    for idxN2 in cur_G.internal_nodes:
+                        node2 = cur_G.nodes[idxN2]
+                        if idxN2 in nodes_to_remove:
+                            continue
+                        else:
+                            if len(t_line_set & set(node2.Lines()))>0:
+                                if node2.type == 2:
+                                    nodes_to_remove = nodes_to_remove | set([idxN2,])
+                                    found = True
+                                    t_line_set = set(node2.Lines()) | t_line_set
+                linesets_to_remove.append(t_line_set)
+                                
+
+##    for idxN in cur_G.internal_nodes:
+##        node = cur_G.nodes[idxN]
+##        if node.type == 2:
+##            if idxN in nodes_to_remove:
+##                continue
+##            else:
+##                
+##                t_lines_set = set(node.Lines())
+##                found = False
+##                for lineset in linesets_to_remove:
+##                    if len(t_lines_set & lineset) >0:
+##                        lineset = lineset or t_lines_set
+##                        found = True
+##                if not found:
+##                    linesets_to_remove.append(t_lines_set)
+##                nodes_to_remove = nodes_to_remove | set([idxN,])
                 
-#    print linesets_to_remove
+    print linesets_to_remove
     phi2_terms=list()
     for lineset in linesets_to_remove:
         nodes = list()
         for idxL in lineset:
             nodes = nodes + list(set(cur_G.lines[idxL].Nodes())-nodes_to_remove)
+        print nodes_to_remove, nodes
         if len(nodes)>2:
-#            print nodes_to_remove
+
             raise ValueError, "found more then 2 nodes for one line! lineset: %s, nodes: %s"%(lineset,nodes)
         line = cur_G.lines[list(lineset)[0]]
         new_dots=dict()
@@ -827,8 +854,9 @@ def K_nR1_feynman(F):
             t_res = -Gammas(F)*F.E
         elif  len(F.graph.external_lines)==2:
             t_res = -Gammas(F)*F.E*F.B
-            t_res = t_res.subs(ext_moment,1)    
-        t_res = t_res.subs(detM, F.detM)
+            t_res = t_res.subs(ext_moment,1)
+        extra_multiplier = (F.phi2_part * F.extra_multiplier).subs(F.subs_u[0],F.subs_u[1])
+        t_res = t_res.subs(detM, F.detM)*extra_multiplier
             
         print t_res, "dim = ", F.graph.dim
         
@@ -879,7 +907,7 @@ def K_nR1_feynman(F):
             for key2 in umk[:umk.index(key)]:
                 u_sub_w[key] = u_sub_w[key] * w_map[key2]
                 w_det = w_det * w_map[key2]
-        #print u_sub_w
+        print u_sub_w
         #print w_det
         
         for key in u_sub_w:
@@ -887,7 +915,7 @@ def K_nR1_feynman(F):
         
         
         return res*w_det
-            
+#---------------------            
         
     phi2_terms = dict()
     for (idxL,cnt) in F.graph.phi2_terms:
@@ -895,12 +923,12 @@ def K_nR1_feynman(F):
     
     F.u_map = dict()
     F.reverse_u_map = dict()
-    lambda_map = dict()
+#    lambda_map = dict()
     cnt=0
     for idxT in F.terms:
         F.u_map[idxT] = sympy.var('u%s'%cnt)
         F.reverse_u_map[F.u_map[idxT]] = idxT
-        lambda_map[idxT] = sympy.var('lambda%s'%cnt)
+#        lambda_map[idxT] = sympy.var('lambda%s'%cnt)
         cnt = cnt + 1
         
     subs_u=sympy.Number(1)
@@ -910,8 +938,10 @@ def K_nR1_feynman(F):
     F.subs_u = (F.u_map[F.u_map.keys()[-1]],subs_u)
         
     t_phi2_part = 1
-    phi2_part = list()
+    phi2_part_lst = list()
+    
     if len(phi2_terms)>0:
+        phi2_part = 0
         for key in phi2_terms:
             t_phi2_part = t_phi2_part * (1-F.u_map[key])**phi2_terms[key]
             
@@ -920,7 +950,6 @@ def K_nR1_feynman(F):
         monoms = t_phi2_part.monoms
         coeffs = t_phi2_part.coeffs
         
-        phi2_part = list()
         for idxM in range(len(monoms)):
             monom = monoms[idxM]
             coeff = coeffs[idxM]
@@ -929,7 +958,13 @@ def K_nR1_feynman(F):
                 symbol = symbols[idxS]
                 term = term * symbol ** monom[idxS]
             term = term * monom_coeff(F, monom, symbols)
-            phi2_part.append(term)
+            phi2_part = phi2_part + term
+            phi2_part_lst.append(term)
+    else:
+        phi2_part = sympy.Number(1)
+    
+    F.phi2_part = phi2_part
+    F.phi2_part_lst = phi2_part_lst
         
         
     print phi2_part, Gammas(F)

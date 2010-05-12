@@ -10,6 +10,10 @@ import utils
 import sympy
 import re
 
+
+
+
+
 class feynman_term:
     def __init__(self, model=None, Line=None):
         if model<>None and Line <> None:
@@ -86,6 +90,7 @@ class feynman:
         self.alpha = 0
         for key in self.terms:
             term  = self.terms[key]
+            self.extra_multiplier = self.extra_multiplier * term.sign
             self.alpha = self.alpha + term.lambd
             
         self.internal_atoms=set()
