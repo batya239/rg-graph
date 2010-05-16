@@ -86,9 +86,11 @@ for nickel in g_list:
 #        if not CheckNodes(cur_G):
 #            print "%s has nodes with type <> 1 "%nickel
 #            continue
-        G_s = StrechAllSubgraphs(cur_G)
-        G_r = feynman_reduce(G_s)
-        F=rggrf.feynman.feynman(G_r)
+        #G_s = StrechAllSubgraphs(cur_G)
+#        G_r = feynman_reduce(G_s)
+        F=rggrf.feynman.feynman2(cur_G)
+        print F.internal_atoms_list
+        print F.external_atoms_list
 
         
         print nickel
@@ -106,11 +108,11 @@ for nickel in g_list:
 #        print 
 #        print F.L_n()
 
-        print K_nR1_feynman(F)
+#        print K_nR1_feynman(F)
 
-        print 
-        print "degree:", G_s.s_degree
-        print "type:",G_s.s_type
+#        print 
+#        print "degree:", G_s.s_degree
+#        print "type:",G_s.s_type
         
-        lines=dict()
+#        lines=dict()
         

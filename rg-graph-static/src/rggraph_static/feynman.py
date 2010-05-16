@@ -7,10 +7,90 @@ Created on Apr 19, 2010
 @author: mkompan
 '''
 import utils
-import sympy
 import re
 
+def atom_coeffs(momenta,internal_atoms_list, external_atoms_list):
+    C=list()
+    for atom in internal_atoms_list:
+        if atom in momenta.dict.keys():
+            C.append(momenta.dict[atom])
+        else:
+            C.append(0)
+    B=list()
+    for atom in external_atoms_list:
+        if atom in momenta.dict.keys():
+            B.append(momenta.dict[atom])
+        else:
+            B.append(0)
+    return (B,C)
+    
+class feynman2_term:
+    def __init__(self,C,B,idxL):
+        self.lambd = 1
+        self.c=C
+        self.b=[B,]
+        self.line_idx = [idxL,]
+        
+    def append(self,C,B,idxL):
+        if self.c == C:
+            self.lambd += 1
+            self.b.append(B)
+            self.line_idx.append(idxL)
+            return True
+        else:
+            return False
+        
+    
 
+class feynman2:
+    def __init__(self,G):
+        external_atoms = set()
+        for idxL in G.external_lines:
+            line = G.lines[idxL]
+            external_atoms = external_atoms | set(line.momenta.dict.keys())
+        self.external_atoms_list = list(external_atoms)
+        self.external_atoms_list.sort()
+
+        internal_atoms = set()
+        for idxL in G.internal_lines:
+            line = G.lines[idxL]
+            internal_atoms = internal_atoms | (set(line.momenta.dict.keys())
+                                               -external_atoms)
+        self.internal_atoms_list = list(internal_atoms)
+        self.internal_atoms_list.sort()
+        
+        if len(self.external_atoms_list)>1:
+            raise NotImplementedError, "Dont know what to do with \
+more than one external atoms: %s"%self.external_atoms_list
+        
+        self.terms=list()
+        
+        for idxL in G.internal_lines:
+            line = G.lines[idxL]
+            
+            for atom in self.internal_atoms_list:
+                if atom in line.momenta.dict.keys():
+                    if line.momenta.dict[atom] == -1:
+                        momenta = -line.momenta
+                        break 
+                    elif line.momenta.dict[atom] == 1:
+                        momenta = line.momenta
+                        break
+                    else:
+                        raise NotImplementedError, "Coefficient of leading \
+atom is not equal to +-1. momenta:%s , leading atom: %s"%(line.momenta.string,atom) 
+
+            (B,C)=atom_coeffs(momenta,self.internal_atoms_list,self.external_atoms_list)
+            found = False
+            for term in self.terms:
+                if term.append(C,B,idxL):
+                    found = True
+                    break
+            if not found :
+                self.terms.append(feynman2_term(C,B,idxL))
+        for term in self.terms:
+            print term.lambd, term.c, term.b, term.line_idx
+                
 
 
 
@@ -24,7 +104,8 @@ class feynman_term:
             for dot in dots:
                 if 'feynman' in model.dot_types[dot]:
                     if dots[dot]<>1:
-                        raise NotImplementedError, "number of dots %s is %s"%(dot,dots[dot])
+                        raise NotImplementedError, "number of dots %s is\
+ %s"%(dot,dots[dot])
                     
                     cnt = cnt + model.dot_types[dot]['feynman'] 
                     self.sign = self.sign * model.dot_types[dot]['feynman_sign']
@@ -45,7 +126,8 @@ class feynman_term:
         
     def __add__(self, other):
         if self.key <> other.key:
-            raise ValueError, "keys of added feynman terms must be equal! (%s,%s)"%(self.key,other.key)
+            raise ValueError, "keys of added feynman terms must be equal!\
+ (%s,%s)"%(self.key,other.key)
         new_ft = feynman_term()
         new_ft.sign = self.sign*other.sign
         new_ft.key = self.key
@@ -79,13 +161,16 @@ class feynman:
         for idxN in cur_G.internal_nodes:
             node = cur_G.nodes[idxN]
             if 'feynman' not in cur_G.model.node_types[node.type]:
-                raise NotImplementedError, "don't know what to do with node %s type=%s"%(idxN,node.type)
+                raise NotImplementedError, "don't know what to do with node %s\
+ type=%s"%(idxN,node.type)
             if (cur_G.model.node_types[node.type]['feynman'] == 0 and 
                 cur_G.model.node_types[node.type]['feynman_sign'] == 1) :
-                self.extra_multiplier = self.extra_multiplier * node.Factor().other * node.Factor().factor
+                self.extra_multiplier = (self.extra_multiplier * node.Factor().other 
+                                         * node.Factor().factor)
                 continue
             else:
-                raise ValueError, "invalid combination of feynman (%s) and feynman_sign (%s) in node %s"%(cur_G.model.node_types[node.type]['feynman'],
+                raise ValueError, "invalid combination of feynman (%s) and feynman_sign\
+ (%s) in node %s"%(cur_G.model.node_types[node.type]['feynman'],
                                                                                                           cur_G.model.node_types[node.type]['feynman_sign'], idxN)
         self.alpha = 0
         for key in self.terms:
@@ -103,7 +188,8 @@ class feynman:
         self.internal_atoms = tuple(self.internal_atoms)
         self.external_atoms = tuple(self.external_atoms)
         if len(self.internal_atoms) <> self.n:
-            raise "Number of internal variables (%s) differs from nloops (%s):"%(self.internal_atoms,self.n)
+            raise "Number of internal variables (%s) differs from nloops\
+ (%s):"%(self.internal_atoms,self.n)
 
                 
     def __str__(self):
@@ -118,21 +204,4 @@ class feynman:
         res['external'] = self.external_atoms  
         return str(res)
     
-#    def Gammas(self):
-#        import swiginac
-#        s_e=swiginac.symbol('e')
-#        res = 1
-#        for key in self.terms:
-#            term = self.terms[key]
-#            res = res / swiginac.tgamma(term.lambd)
-#        res = res * ( swiginac.tgamma(self.alpha - self.n*(swiginac.numeric(int(self.graph.model.space_dim))-s_e)/2)*
-#                      (swiginac.tgamma((swiginac.numeric(int(self.graph.model.space_dim))-s_e)/2))**self.n *
-#                      swiginac.numeric(2)**(-self.n) )
-#                   
-#        res_str= str( swiginac.series_to_poly(res.series(s_e==0,self.graph.model.target - self.graph.NLoops()+1)).evalf())
-#        e = sympy.var('e')
-#        res_sympy = eval(res_str)
-#        return res_sympy
-
-
                 
