@@ -24,6 +24,7 @@ def atom_coeffs(momenta,internal_atoms_list, external_atoms_list):
             B.append(0)
     return (B,C)
     
+    
 class feynman2_term:
     def __init__(self,C,B,idxL):
         self.lambd = 1
@@ -44,6 +45,8 @@ class feynman2_term:
 
 class feynman2:
     def __init__(self,G):
+        self.graph = G.Clone()
+        self.extra_multiplier = 1.
         external_atoms = set()
         for idxL in G.external_lines:
             line = G.lines[idxL]
@@ -61,7 +64,7 @@ class feynman2:
         
         if len(self.external_atoms_list)>1:
             raise NotImplementedError, "Dont know what to do with \
-more than one external atoms: %s"%self.external_atoms_list
+more than one external atom: %s"%self.external_atoms_list
         
         self.terms=list()
         
@@ -79,6 +82,7 @@ more than one external atoms: %s"%self.external_atoms_list
                     else:
                         raise NotImplementedError, "Coefficient of leading \
 atom is not equal to +-1. momenta:%s , leading atom: %s"%(line.momenta.string,atom) 
+
 
             (B,C)=atom_coeffs(momenta,self.internal_atoms_list,self.external_atoms_list)
             found = False

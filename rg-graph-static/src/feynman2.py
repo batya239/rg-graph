@@ -80,7 +80,7 @@ for nickel in g_list:
     G = model.LoadGraph(nickel)
     if G.NLoops() in nloops:
         cur_G=G.Clone()
-        cur_G.lines[3].dots[1] = 1
+        #cur_G.lines[3].dots[1] = 1
         cur_G.WorkDir()
         cur_G.FindSubgraphs()
 #        if not CheckNodes(cur_G):
@@ -91,6 +91,9 @@ for nickel in g_list:
         F=rggrf.feynman.feynman2(cur_G)
         print F.internal_atoms_list
         print F.external_atoms_list
+        print 
+        
+        A=L_dot_feynman2(cur_G)
 
         
         print nickel

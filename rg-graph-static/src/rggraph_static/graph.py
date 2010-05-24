@@ -303,8 +303,16 @@ class Graph:
         """
         res="Model = %s , Type = %s \n Lines: {" %(self.model.name, self.type)
         for idxL in self.lines:
-            res=res+" %s: [%s, %s]," %(idxL, self.lines[idxL].start, 
-                                       self.lines[idxL].end)
+            extra = ""
+            if "strechs" in self.lines[idxL].__dict__:
+                extra = extra + "(strechs: %s)"%self.lines[idxL].strechs
+            if "dots" in self.lines[idxL].__dict__:
+                extra = extra + "(dots: %s)"%self.lines[idxL].dots
+            if "diffs" in self.lines[idxL].__dict__:
+                extra = extra + "(diffs: %s)"%self.lines[idxL].diffs
+             
+            res=res+" %s: [%s, %s] %s," %(idxL, self.lines[idxL].start, 
+                                       self.lines[idxL].end, extra)
         res=res[:-1]+ "}\n"
         return res
         

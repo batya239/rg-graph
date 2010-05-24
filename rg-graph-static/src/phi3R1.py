@@ -12,7 +12,6 @@ import sympy
 import os
 import sys
 import rggraph_static as rggrf
-import copy
 import re
 
 #definitions of propagators, node factors, dot actions, and K operation 
@@ -28,11 +27,13 @@ def AddStrech(Obj,strech, atoms_str):
     else:
         raise NotImplementedError, "Do not know how to strech object: %s"%type(Obj)    
 
-def AddDiff(Obj,var):
+def AddDiff(Obj, var, dir="C"):
     if isinstance(Obj,(rggrf.Line,rggrf.Node)):
         if 'diffs' not in Obj.__dict__:
-            Obj.diffs=list()   
+            Obj.diffs=list()
+            Obj.diffs_dir=list()   
         Obj.diffs.append(var)
+        Obj.diffs_dir.append(dir)
     else:
         raise NotImplementedError, "Do not know how to diff object: %s"%type(Obj) 
 
@@ -339,6 +340,23 @@ def FindExtMomentPath(G,atoms):
                 ext_moment_path.append((node,"N"))
     return ext_moment_path
 
+def FindExtMomentPathF2(G,atoms):
+    ext_moment_path=list()
+    path_lines=FindLinesWithAtoms(G,atoms)
+    for line in path_lines:
+        if "dots" in line.__dict__:
+            if line.dots[1]==1:
+                ext_moment_path.append((line,"L-L"))
+                ext_moment_path.append((line,"L-R"))
+            else:
+                raise NotImplementedError, "Wrong dot type|value: dots=%s"%line.dots
+        else:
+            ext_moment_path.append((line,"L"))
+        for node in G.lines[line].Nodes():
+            if G.nodes[node].type in [2,3,4] and (node,"N") not in ext_moment_path:
+                ext_moment_path.append((node,"N"))
+    return ext_moment_path
+
 def compare_graphs(graph1,graph2):
     if len(graph1.internal_lines) < len(graph2.internal_lines):
         return 1
@@ -635,6 +653,32 @@ def StrechAllSubgraphsF(G):
             cur_G.s_degree[strech_var_str] = subgraph_dim_with_diff(cur_G, sub) + 1
         else: 
             raise ValueError, "invalid subgraph type (%s)"%sub.type
+        
+    return cur_G
+
+def StrechAllSubgraphsF2(G):
+    cur_G=G.Clone()
+    cur_G.s_degree=dict()
+    cur_G.s_type=dict()
+    for sub in cur_G.subgraphs:
+        if  subgraph_dim_with_diff(cur_G, sub)>=0:
+            sub_ext_atoms_str = FindExtMomentAtoms(sub)
+            strech_var_str = "s%s"%cur_G.subgraphs.index(sub)
+            sub_ext_path = [(i[0],i[1],strech_var_str) for i in FindExtMomentPath(sub, sub_ext_atoms_str)]
+            for idx in sub_ext_path:
+                if idx[1]=="L":
+                    obj = cur_G.lines[idx[0]]
+                elif idx[1]=="N":
+                    obj = cur_G.nodes[idx[0]]
+                model.AddStrech(obj, strech_var_str, sub_ext_atoms_str)
+            if sub.type == 2:
+                cur_G.s_type[strech_var_str]= 2
+                cur_G.s_degree[strech_var_str] = subgraph_dim_with_diff(cur_G, sub)/sympy.Number(2) + 1
+            elif sub.type == 1:
+                cur_G.s_type[strech_var_str]= 1
+                cur_G.s_degree[strech_var_str] = subgraph_dim_with_diff(cur_G, sub) + 1
+            else: 
+                raise ValueError, "invalid subgraph type (%s)"%sub.type
         
     return cur_G
 
@@ -979,10 +1023,270 @@ def K_nR1_feynman(F):
     print    
     return  [L_n(F),]
         
+
+def L_dot_feynman2(G, progress=None,debug=False):
+    if progress <>  None:
+        (progressbar,maxprogress) = progress
+        step = float(maxprogress)/(len(G.internal_lines))
+        cur_progress = progressbar.currval
+    Kres=dict()
+    for idxL in G.internal_lines:
+        cur_G=G.Clone()
+        cur_G.lines[idxL].dots[1] = 1
+        #cur_G.DefineNodes(G.GetNodeTypes)
+        cur_G.FindSubgraphs()
+#        cur_r1.SaveAsPNG("test.png")
     
-            
+        if len(G.external_lines) == 2:
+            Kres = K_nR1_feynman2(cur_G, 2, Kres, debug)
+        elif len(G.external_lines) == 3:
+            Kres = K_nR1_feynman2(cur_G, 0, Kres, debug)
+        else:
+            raise ValueError, "unknown graph type"
+        if progress <> None:
+            progressbar.update(cur_progress+step)
+            cur_progress = progressbar.currval
     
+##    #print "=========== NODES =============="
+##    
+##    for idxN in G.internal_nodes:
+##        if "dots" not in G.nodes[idxN].__dict__:
+##            G.nodes[idxN].dots=dict()
+##        if not G.nodes[idxN].type in [3,4]:
+##            progressbar.update(cur_progress+step)
+##            cur_progress = progressbar.currval
+##            continue
+##        cur_G=G.Clone()
+##        cur_G.nodes[idxN].dots[1] = 1
+##        cur_G.FindSubgraphs()
+###        print "subgraphs:", cur_G.subgraphs
+##        if len(G.external_lines) == 2:
+##            Kres = K_nR1(cur_G, 2, Kres, debug)
+##        elif len(G.external_lines) == 3:
+##            Kres = K_nR1(cur_G, 0, Kres, debug)
+##        else:
+##            raise ValueError, "unknown graph type"
+##        progressbar.update(cur_progress+step)
+##        cur_progress = progressbar.currval
+    
+    res=list()
+    for key in Kres.keys():
+        (t_res,t_cnt) = Kres[key]
+        res.append(t_res*rggrf.roperation.Factorized(1,t_cnt))        
+    return res
+
+def strech_B_C(F):
+    for term in F.terms:
+        C=term.c
+        B=term.b
+        lines_idx=term.line_idx
+        for idx in range(len(lines_idx)):
+            idxL = lines_idx[idx]
+            if "strechs" in F.graph.lines[idxL].__dict__:
+                for strech in F.graph.lines[idxL].strechs:
+                    moments = F.graph.lines[idxL].strechs[strech]
+                    for moment in moments:
+                        if moment in F.internal_atoms_list and idx == 0:
+                            idxM = F.internal_atoms_list.index(moment)
+                            if F.graph.s_type[strech] == 1:
+                                C[idxM] = C[idxM]*sympy.var(strech)
+                            if F.graph.s_type[strech] == 2:
+                                C[idxM] = (C[idxM]*(sympy.var(strech))**
+                                            (sympy.Number(1)/sympy.Number(2)))
+
+                                
+                        if moment in F.external_atoms_list:
+                            idxM = F.external_atoms_list.index(moment)
+                            if F.graph.s_type[strech] == 1:
+                                B[idx][idxM] = B[idx][idxM]*sympy.var(strech)
+                            if F.graph.s_type[strech] == 2:
+                                B[idx][idxM] = (B[idx][idxM]*(sympy.var(strech))**
+                                            (sympy.Number(1)/sympy.Number(2)))
+
+                
+
+def K_nR1_feynman2(G, N, Kres=dict(), debug=False):    
+    def QForm(F_):
+        u = dict()
+        Q = 0
+        subs_u=1
+        for idx in range(len(F_.terms)-1):
+            u=sympy.var('u%s'%idx)
+            subs_u = subs_u - u
+            term = F_.terms[idx]
+#            Q = Q + u[idxT]*(term.line.momenta.Squared() + 1)
+            prop = 0
+            for idx2 in range(len(F_.internal_atoms_list)):
+                prop = prop + term.c[idx]*sympy.var(F_.internal_atoms_list[idx2])
+            Q = Q + u*prop
+        idx = len(F_.terms)-1
+        term = F_.terms[idx]
+#            Q = Q + u[idxT]*(term.line.momenta.Squared() + 1)
+        prop = 0
+        for idx2 in range(len(F_.internal_atoms_list)):
+            prop = prop + term.c[idx]*sympy.var(F_.internal_atoms_list[idx2])
+            Q = Q + subs_u*prop
+        
+        
+                 
+        Q=ExpandScalarProds(Q).subs(sympy.var('tau'),1)
+        
+        #remove scalar prods q1xq2 pxq1 ...
+        for atom in Q.atoms():
+            if re.search('x',str(atom)):
+                Q = Q.subs(atom,1)
+        
+        M=sympy.matrices.Matrix(F_.n,F_.n, lambda i,j:0)
+        A=sympy.matrices.Matrix([0 for i in range(F_.n)])
+        C=Q
+        for i in range(F_.n):
+            qi=sympy.var(F_.internal_atoms[i])
+            C=C.subs(qi,0)
+            A[i] = Q.diff(qi)/sympy.Number(2)
+            for j in range(F_.n):
+                qj=sympy.var(F_.internal_atoms[j])
+                A[i]=A[i].subs(qj,0)
+                if i>=j:
+                    M[i,j] = Q.diff(qi).diff(qj)/sympy.Number(2)
+                    if i<>j:
+                        M[j,i] = M[i,j]
+
+        print "C=", C
+
+
+        e = sympy.var('e')
+        print F_.alpha,(F_.graph.model.space_dim - e)/2
+        if M.shape == (1,1):
+            M_cofactormatrix = sympy.matrices.Matrix([sympy.Number(1)])
+        else:
+            M_cofactormatrix = M.cofactorMatrix()
+        detM=sympy.var('detM') 
+        F = (C*detM-(A.T*(M_cofactormatrix*A))[0])
+
+        
+        F_s = F
+        ext_moment_strech = sympy.var("p_strech")
+        for str_atom in F_.external_atoms:
+            atom = sympy.var(str_atom)
+            F_s = F_s.subs(atom, atom*ext_moment_strech)
+        
+        
+        print " F_s = ",F_s
+#        F_.B = F_s.subs(ext_moment_strech,0)
+        F_.B = F_s.diff(ext_moment_strech).diff(ext_moment_strech).subs(ext_moment_strech,0)/sympy.Number(2)/detM    
+
+
+        F_m = 1
+        for key in F_.terms:
+            term = F_.terms[key]
+            F_m = F_m * F_.u_map[key]**(term.lambd-1)
+
+        F_m = F_m * detM**(e/sympy.Number(2)-sympy.Number(3))
+        F_.E = F_m.subs(F_.subs_u[0],F_.subs_u[1])
+        
+        F_.detM = M.det()
+        
+#---------------------------------------------------------------------#
+    
+    debug_level = 1
+    ext_strech_var_str=None
+#generate diffs for external moment, and appropriate strechs
+    if N==0:
+        diffs=[None,]
+        extra_diff_multiplier = 1.
+    elif N==2:
+        extra_diff_multiplier = 0.5
+        ext_moment_atoms_str = FindExtMomentAtoms(G)
+        if len(ext_moment_atoms_str)==1:
+
+            ext_moment_path = [(i[0],i[1],ext_moment_atoms_str[0]) for i in 
+                               FindExtMomentPath(G,ext_moment_atoms_str)]
             
+            if debug and debug_level>0:
+                print
+                print ext_moment_path
+                print
+                
+###            for idx in ext_moment_path:
+####                print idx,
+###                if idx[1]=="L":
+###                    obj = G.lines[idx[0]]
+###                elif idx[1]=="N":
+###                    obj = G.nodes[idx[0]]
+###                model.AddStrech(obj, ext_strech_var_str, ext_moment_atoms_str)
+####                print obj.strechs
+####                print
+            diffs = [i for i in rggrf.utils.xSelections(ext_moment_path,N)]
+                                    
+        else:
+            raise ValueError, "no or complex external momenta, atoms: %s"%ext_moment_atoms_str
+    else:
+        raise ValueError, " Unknown operation :  K%s"%N 
+    G_list = list()
+    for diff in diffs:
+        cur_G=G.Clone()
+        if diff == None:
+            cur_G.extra_strech_multiplier=1.
+            G_list.append(StrechAllSubgraphsF2(cur_G))
+        else:
+            print
+            print diff
+            for idx in diff:
+                    if idx[1]=="L":
+                        obj = cur_G.lines[idx[0]]
+                    elif idx[1]=="N":
+                        obj = cur_G.nodes[idx[0]]
+                    model.AddDiff(obj, idx[2])
+            cur_G.extra_strech_multiplier=1.
+            cur_G.FindSubgraphs()
+            #print diff,len(cur_G.subgraphs)
+            G_list.append(StrechAllSubgraphsF2(cur_G))
+    print "---------------"   
+    for t_G in G_list:
+        print t_G
+        F=rggrf.feynman.feynman2(t_G)
+        strech_B_C(F)
+        print search_diff_type(F)
+        for term in F.terms:
+            print F.terms.index(term), term.lambd, term.c, term.b, term.line_idx
+
+def search_diff_type(F):
+    tau_position = None
+    p1_position = None
+    p2_position = None
+    
+    for term in F.terms:
+        term_idx = F.terms.index(term)
+        for idxL in term.line_idx:
+            line_idx = term.line_idx.index(idxL)
+            line = F.graph.lines[idxL]
+            if tau_position == None and "dots" in line.__dict__:
+                if 1 in line.dots.keys():
+                    if line.dots[1] == 1:
+                        tau_position = (term_idx, line_idx)
+                    else:
+                        raise NotImplementedError, "unknown dots on line %s : %s"%(idxL, line.dots)
+#                else:
+#                    raise NotImplementedError,"No dot of 1st type on line: %s, dots:%s"%(idxL, line.dots)
+            if p1_position == None and p2_position == None and "diffs" in line.__dict__:
+                if line.diffs.count('p') == 2:
+                    p1_position = (term_idx, line_idx)
+                    p2_position = (term_idx, line_idx)
+                elif line.diffs.count('p') == 1:
+                    p1_position = (term_idx, line_idx)
+            if p1_position <> None and p2_position == None and "diffs" in line.__dict__:
+                if line.diffs.count('p') == 2:
+                    raise ValueError, "too much diffs on p line: %s, p1_position:%s"%(idxL,p1_position)
+                elif line.diffs.count('p') == 1:
+                    p1_position = (term_idx, line_idx)
+#            if tau_positon <> None and p1_position <> None and p2_position <> None:
+#                break
+    return (tau_position, p1_position, p2_position)
+                    
+                    
+                    
+            
+                
            
 # model initialization
 model=rggrf.Model("phi3R1")
