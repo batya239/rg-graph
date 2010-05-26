@@ -61,6 +61,7 @@ class feynman2:
                                                -external_atoms)
         self.internal_atoms_list = list(internal_atoms)
         self.internal_atoms_list.sort()
+        self.n = len(self.internal_atoms_list)
         
         if len(self.external_atoms_list)>1:
             raise NotImplementedError, "Dont know what to do with \
@@ -94,6 +95,11 @@ atom is not equal to +-1. momenta:%s , leading atom: %s"%(line.momenta.string,at
                 self.terms.append(feynman2_term(C,B,idxL))
         for term in self.terms:
             print term.lambd, term.c, term.b, term.line_idx
+    def alpha(self):
+        res = 0
+        for term in self.terms:
+            res = res + term.lambd
+        return res
                 
 
 

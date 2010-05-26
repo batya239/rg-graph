@@ -1036,7 +1036,7 @@ def L_dot_feynman2(G, progress=None,debug=False):
         #cur_G.DefineNodes(G.GetNodeTypes)
         cur_G.FindSubgraphs()
 #        cur_r1.SaveAsPNG("test.png")
-    
+#        print "Kres=",Kres
         if len(G.external_lines) == 2:
             Kres = K_nR1_feynman2(cur_G, 2, Kres, debug)
         elif len(G.external_lines) == 3:
@@ -1072,7 +1072,7 @@ def L_dot_feynman2(G, progress=None,debug=False):
     res=list()
     for key in Kres.keys():
         (t_res,t_cnt) = Kres[key]
-        res.append(t_res*rggrf.roperation.Factorized(1,t_cnt))        
+        res.append(t_res*t_cnt)        
     return res
 
 def strech_B_C(F):
@@ -1105,27 +1105,61 @@ def strech_B_C(F):
 
                 
 
-def K_nR1_feynman2(G, N, Kres=dict(), debug=False):    
+def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
+    def Gammas(F):
+        import swiginac
+        s_e=swiginac.symbol('e')
+        res = 1
+        res = res * ( swiginac.tgamma(swiginac.numeric(1) + (F.n*s_e)/swiginac.numeric(2))*
+                      (swiginac.tgamma(swiginac.numeric(3)-s_e/swiginac.numeric(2))**F.n *
+                      swiginac.numeric(2)**(-F.n) ))
+                   
+        res_str= str( swiginac.series_to_poly(res.series(s_e==0,F.graph.model.target - F.graph.NLoops()+1)).evalf())
+        e = sympy.var('e')
+        res_sympy = eval(res_str)
+        return res_sympy
+      
     def QForm(F_):
+        def scalar_prod_c(c1,c2,atom_list):
+            res = 0
+            for idx1 in range(len(atom_list)):
+                atom1=sympy.var(atom_list[idx1])
+                for idx2 in range(len(atom_list)):
+                    atom2 = sympy.var(atom_list[idx2])
+                    if idx1 == idx2 :
+                        res = res + c1[idx1]*c2[idx2]*atom1**2
+                    else:
+                        s_atom_lst=[str(atom1),str(atom2)]
+                        s_atom_lst.sort()
+                        s_atom_lst.insert(1,'x')
+                        t_var=""
+                        atom=sympy.var(t_var.join(s_atom_lst))
+                        res = res + c1[idx1]*c2[idx2]*atom
+            return res
+                        
+            
+            
         u = dict()
         Q = 0
+        F.subs_u=list()
         subs_u=1
         for idx in range(len(F_.terms)-1):
             u=sympy.var('u%s'%idx)
             subs_u = subs_u - u
             term = F_.terms[idx]
 #            Q = Q + u[idxT]*(term.line.momenta.Squared() + 1)
-            prop = 0
-            for idx2 in range(len(F_.internal_atoms_list)):
-                prop = prop + term.c[idx]*sympy.var(F_.internal_atoms_list[idx2])
+            prop =  scalar_prod_c(term.c,term.c,F_.internal_atoms_list)
             Q = Q + u*prop
+            term.u=u
+            F.subs_u.append( u)
+            
+        F_.subs_u.append(subs_u)
         idx = len(F_.terms)-1
         term = F_.terms[idx]
+        term.u=subs_u
 #            Q = Q + u[idxT]*(term.line.momenta.Squared() + 1)
-        prop = 0
-        for idx2 in range(len(F_.internal_atoms_list)):
-            prop = prop + term.c[idx]*sympy.var(F_.internal_atoms_list[idx2])
-            Q = Q + subs_u*prop
+        prop = scalar_prod_c(term.c,term.c,F_.internal_atoms_list)
+        Q = Q + subs_u*prop
         
         
                  
@@ -1135,56 +1169,40 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
         for atom in Q.atoms():
             if re.search('x',str(atom)):
                 Q = Q.subs(atom,1)
+        print "Q=",Q
         
         M=sympy.matrices.Matrix(F_.n,F_.n, lambda i,j:0)
         A=sympy.matrices.Matrix([0 for i in range(F_.n)])
         C=Q
         for i in range(F_.n):
-            qi=sympy.var(F_.internal_atoms[i])
+            qi=sympy.var(F_.internal_atoms_list[i])
             C=C.subs(qi,0)
             A[i] = Q.diff(qi)/sympy.Number(2)
             for j in range(F_.n):
-                qj=sympy.var(F_.internal_atoms[j])
+                qj=sympy.var(F_.internal_atoms_list[j])
                 A[i]=A[i].subs(qj,0)
                 if i>=j:
                     M[i,j] = Q.diff(qi).diff(qj)/sympy.Number(2)
+#TODO: нужно ли делить на 2 если qi<>qj: ответ нужно, т.к. диагональные 
+#раскидываются по верхней и нижней части
                     if i<>j:
                         M[j,i] = M[i,j]
 
-        print "C=", C
+#        print "M="
+#        print M
 
 
         e = sympy.var('e')
-        print F_.alpha,(F_.graph.model.space_dim - e)/2
+        print F_.alpha(),(F_.graph.model.space_dim - e)/2
         if M.shape == (1,1):
             M_cofactormatrix = sympy.matrices.Matrix([sympy.Number(1)])
         else:
             M_cofactormatrix = M.cofactorMatrix()
-        detM=sympy.var('detM') 
-        F = (C*detM-(A.T*(M_cofactormatrix*A))[0])
-
-        
-        F_s = F
-        ext_moment_strech = sympy.var("p_strech")
-        for str_atom in F_.external_atoms:
-            atom = sympy.var(str_atom)
-            F_s = F_s.subs(atom, atom*ext_moment_strech)
-        
-        
-        print " F_s = ",F_s
-#        F_.B = F_s.subs(ext_moment_strech,0)
-        F_.B = F_s.diff(ext_moment_strech).diff(ext_moment_strech).subs(ext_moment_strech,0)/sympy.Number(2)/detM    
-
-
-        F_m = 1
-        for key in F_.terms:
-            term = F_.terms[key]
-            F_m = F_m * F_.u_map[key]**(term.lambd-1)
-
-        F_m = F_m * detM**(e/sympy.Number(2)-sympy.Number(3))
-        F_.E = F_m.subs(F_.subs_u[0],F_.subs_u[1])
         
         F_.detM = M.det()
+        F_.cofactorM = M_cofactormatrix
+#        print F_.detM
+#        print F_.cofactorM
         
 #---------------------------------------------------------------------#
     
@@ -1249,6 +1267,196 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
         print search_diff_type(F)
         for term in F.terms:
             print F.terms.index(term), term.lambd, term.c, term.b, term.line_idx
+        print
+        QForm(F)
+        
+        
+        (tau_pos,p1_pos,p2_pos)=search_diff_type(F)
+#треххвостки
+        if p1_pos == None and p2_pos == None:
+            cur_lambd=list()
+            cur_u=list()
+            for term in F.terms:
+                idxT = F.terms.index(term)
+                cur_u.append(term.u)
+                c_lambd=term.lambd
+                if idxT == tau_pos[0]:
+                    c_lambd=c_lambd+2
+                
+                cur_lambd.append(c_lambd)
+
+            res = - Gammas(F)
+            print "Gammas=",Gammas(F)
+            for idxT in range(len(F.terms)):
+                res = (res * cur_u[idxT]**(cur_lambd[idxT]-1)/
+                       sympy.factorial(cur_lambd[idxT]-1))
+            e=sympy.var('e')
+            res = res * F.detM**(-(F.graph.model.space_dim-e)/sympy.Number(2))
+# N4        
+        elif p1_pos == p2_pos and tau_pos == p1_pos :
+            cur_lambd=list()
+            cur_u=list()
+            for term in F.terms:
+                idxT = F.terms.index(term)
+                cur_u.append(term.u)
+                c_lambd=term.lambd
+                if idxT == tau_pos[0]:
+                    c_lambd=c_lambd+2
+                
+                cur_lambd.append(c_lambd)
+                    
+            if len(F.terms[p1_pos[0]].b[p1_pos[1]])<>1:
+                raise NotImplementedError, "composite external moment not implemented"
+#TODO: волевым решением сменен знак.            
+            res =  Gammas(F)* F.terms[p1_pos[0]].b[p1_pos[1]][0]**2
+            for idxT in range(len(F.terms)):
+                res = (res * cur_u[idxT]**(cur_lambd[idxT]-1)/
+                       sympy.factorial(cur_lambd[idxT]-1))
+            e=sympy.var('e')
+            d=F.graph.model.space_dim-e
+            res = (res * F.detM**(-(F.graph.model.space_dim-e)/sympy.Number(2))* 
+                   (sympy.Number(2)-sympy.Number(12)/d+sympy.Number(12)/d*
+                   (1+F.n*e/sympy.Number(2))*cur_u[tau_pos[0]]/cur_lambd[tau_pos[0]]))
+#N3
+        elif p1_pos == p2_pos and tau_pos <> p1_pos :
+            cur_lambd=list()
+            cur_u=list()
+            for term in F.terms:
+                idxT = F.terms.index(term)
+                cur_u.append(term.u)
+                c_lambd=term.lambd
+                if idxT == tau_pos[0]:
+                    c_lambd=c_lambd+1
+                if idxT == p1_pos[0]:
+                    c_lambd=c_lambd+1
+                
+                cur_lambd.append(c_lambd)
+
+            if len(F.terms[p1_pos[0]].b[p1_pos[1]])<>1:
+                raise NotImplementedError, "composite external moment not implemented"
+            
+            res = - Gammas(F)* F.terms[p1_pos[0]].b[p1_pos[1]][0]**2
+            
+            for idxT in range(len(F.terms)):
+                res = (res * cur_u[idxT]**(cur_lambd[idxT]-1)/
+                       sympy.factorial(cur_lambd[idxT]-1))
+            e=sympy.var('e')
+            d=F.graph.model.space_dim-e
+            res = (res * F.detM**(-(F.graph.model.space_dim-e)/sympy.Number(2))* 
+                   (-sympy.Number(1)+sympy.Number(4)/d-sympy.Number(4)/d*
+                   (1+F.n*e/sympy.Number(2))*cur_u[p1_pos[0]]/cur_lambd[p1_pos[0]]))
+            
+#N1 and N2
+        elif p1_pos <> p2_pos:
+            cur_lambd=list()
+            cur_u=list()
+            for term in F.terms:
+                idxT = F.terms.index(term)
+                cur_u.append(term.u)
+                c_lambd=term.lambd
+                if idxT == tau_pos[0]:
+                    c_lambd=c_lambd+1
+                if idxT == p1_pos[0]:
+                    c_lambd=c_lambd+1
+                if idxT == p2_pos[0]:
+                    c_lambd=c_lambd+1
+                
+                cur_lambd.append(c_lambd)
+
+            if len(F.terms[p1_pos[0]].b[p1_pos[1]])<>1:
+                raise NotImplementedError, "composite external moment not implemented"
+            if len(F.terms[p2_pos[0]].b[p2_pos[1]])<>1:
+                raise NotImplementedError, "composite external moment not implemented"
+            b1=F.terms[p1_pos[0]].b[p1_pos[1]][0]
+            b2=F.terms[p2_pos[0]].b[p2_pos[1]][0]
+            
+#            res = - Gammas(F)*sympy.Number(2)
+#двойка была для случая коджа производные 4 7 и 7 4 не различимы.
+            res = - Gammas(F)            
+            for idxT in range(len(F.terms)):
+                res = (res * cur_u[idxT]**(cur_lambd[idxT]-1)/
+                       sympy.factorial(cur_lambd[idxT]-1))
+            e=sympy.var('e')
+            d=F.graph.model.space_dim-e
+            res = res * F.detM**(-(d+2)/sympy.Number(2))
+            
+            extra=0
+            j1=p1_pos[0]
+            j2=p2_pos[0]
+            c1=F.terms[j1].c
+            c2=F.terms[j2].c
+            
+            for idx1 in range(F.n):
+                for idx2 in range(F.n):
+                    extra = extra + c1[idx1]*c2[idx2]*F.cofactorM[idx1,idx2]*b1*b2
+            res = res * extra
+#N2:
+            if tau_pos == p1_pos or tau_pos == p2_pos:
+                res = res * sympy.Number(2)
+            
+
+                                    
+        else:
+            raise NotImplementedError, "combination of tau and p positions not implemented (%s)"%(tau_pos,p1_pos,p2_pos)
+        print F.detM
+        print cur_lambd
+        print cur_u        
+#        print Kres 
+
+#------------------
+        t_res = res
+        #diffs
+        for str_strech in F.graph.s_type:
+            
+            strech = sympy.var(str_strech)
+            if F.graph.s_degree[str_strech]>=1:
+                for idx in range(F.graph.s_degree[str_strech]):
+                    t_res = t_res.diff(strech)
+            else:
+                raise ValueError, "strech degree <1 (strech=%s,degree=%s)"%(str_strech,F.graph.s_degree[str_strech])
+
+            if F.graph.s_degree[str_strech]==2:
+                t_res= t_res*(1-strech)
+        
+        res = t_res
+        print "В терминах u:"
+        print res
+        #замена переменных интегрирования.
+        u_sub_w=dict()
+        w_map = dict()
+        umk=range(len(F.subs_u))
+        w_det = 1
+        for key in umk[:-1]:
+            u_=F.subs_u[key]
+            w=sympy.var(str(u_).replace('u', 'w'))
+            w_map[key]=w
+        
+        for key in umk[:-1]:
+            u_sub_w[key] = 1-w_map[key]
+            for key2 in umk[:umk.index(key)]:
+                u_sub_w[key] = u_sub_w[key] * w_map[key2]
+                w_det = w_det * w_map[key2]
+        print u_sub_w
+        #print w_det
+        
+        for key in u_sub_w:
+            res = res.subs(F.subs_u[key],u_sub_w[key])
+        
+        
+        res =  res*w_det        
+        
+#------------------        
+        key = len(Kres.keys())
+        Kres[key] = (res,1)
+#        print Kres 
+        print "======================"
+        
+        
+        
+        
+        
+        
+    return Kres
 
 def search_diff_type(F):
     tau_position = None
@@ -1269,16 +1477,19 @@ def search_diff_type(F):
 #                else:
 #                    raise NotImplementedError,"No dot of 1st type on line: %s, dots:%s"%(idxL, line.dots)
             if p1_position == None and p2_position == None and "diffs" in line.__dict__:
+                print "1 ", line.diffs.count('p')
                 if line.diffs.count('p') == 2:
                     p1_position = (term_idx, line_idx)
                     p2_position = (term_idx, line_idx)
                 elif line.diffs.count('p') == 1:
                     p1_position = (term_idx, line_idx)
-            if p1_position <> None and p2_position == None and "diffs" in line.__dict__:
+            elif p1_position <> None and p2_position == None and "diffs" in line.__dict__:
+                print "2 ", line.diffs.count('p')
                 if line.diffs.count('p') == 2:
                     raise ValueError, "too much diffs on p line: %s, p1_position:%s"%(idxL,p1_position)
                 elif line.diffs.count('p') == 1:
-                    p1_position = (term_idx, line_idx)
+                    p2_position = (term_idx, line_idx)
+            print idxL, (tau_position, p1_position, p2_position)
 #            if tau_positon <> None and p1_position <> None and p2_position <> None:
 #                break
     return (tau_position, p1_position, p2_position)
@@ -1908,6 +2119,98 @@ def MCTF_1(G, debug=False):
 
 model.methods['MCTF_1'] = MCTF_1
 
+def MCOF_2(G, debug=False):
+    import progressbar
+    G.GenerateNickel()
+    G.method = "MCOF_2"
+    base_name = "%s_%s"%(G.method,str( G.nickel))
+    n_epsilon_series =G.model.target -G.NLoops()
+    NPOINTS = 10000
+    NTHREADS = 2
+    SPACE_DIM = 6.
+    prepared_eqs = []
+    bar = progressbar.ProgressBar(maxval=100, term_width=70, 
+                                  widgets=["%s  "%G.nickel, progressbar.Percentage(), 
+                                           " ", progressbar.Bar(), 
+                                           progressbar.ETA()]).start()
+                                               
+    Kres = L_dot_feynman2(G,progress=(bar,33),debug=debug)
+    
+    progress=bar.currval
+                   
+    sys.stdout.flush()
+          
+    prog_names = rggrf.integration.GenerateMCCodeForFeynman(base_name, Kres, 
+                                                                SPACE_DIM, n_epsilon_series, 
+                                                                NPOINTS, NTHREADS,
+                                                                debug=debug, 
+                                                                progress=(bar,33.),
+                                                                MCCodeGenerator=rggrf.integration.SavePThreadsMCCodeDelta) 
+    
+    t_res = rggrf.integration.CalculateEpsilonSeries(prog_names, 
+                                                     build=True, debug=debug, 
+                                                     progress=(bar,33),
+                                                     calc_delta=0.)
+    G.reduced_nloops = G.NLoops()
+    (G.r1_dot_gamma, err) = ResultWithOutSd(t_res, G.NLoops(), n_epsilon_series)
+    G.r1_dot_gamma_err = rggrf.utils.RelativeError(G.r1_dot_gamma, err, 
+                                                   sympy.var('eps'))
+    
+    rggrf.utils.print_debug(str(G.r1_dot_gamma), debug)
+    G.npoints = NPOINTS 
+    
+    G.SaveResults()
+    bar.finish()
+
+
+model.methods['MCOF_2'] = MCOF_2
+
+def MCTF_2(G, debug=False):
+    import progressbar
+    G.GenerateNickel()
+    G.method = "MCTF_2"
+    base_name = "%s_%s"%(G.method,str( G.nickel))
+    n_epsilon_series =G.model.target -G.NLoops()
+    NPOINTS = 10000
+    NTHREADS = 2
+    SPACE_DIM = 6.
+    prepared_eqs = []
+    bar = progressbar.ProgressBar(maxval=100, term_width=70, 
+                                  widgets=["%s  "%G.nickel, progressbar.Percentage(), 
+                                           " ", progressbar.Bar(), 
+                                           progressbar.ETA()]).start()
+                                               
+    Kres = L_dot_feynman2(G,progress=(bar,33),debug=debug)
+    
+    progress=bar.currval
+                   
+    sys.stdout.flush()
+          
+    prog_names = rggrf.integration.GenerateMCCodeForFeynmanTerm(base_name, Kres, 
+                                                                SPACE_DIM, n_epsilon_series, 
+                                                                NPOINTS, NTHREADS,
+                                                                debug=debug, 
+                                                                progress=(bar,33.),
+                                                                MCCodeGenerator=rggrf.integration.SavePThreadsMCCodeDelta) 
+    
+    t_res = rggrf.integration.CalculateEpsilonSeries(prog_names, 
+                                                     build=True, debug=debug, 
+                                                     progress=(bar,33),
+                                                     calc_delta=0.)
+    G.reduced_nloops = G.NLoops()
+    print "t_res = ",t_res
+    (G.r1_dot_gamma, err) = ResultWithOutSd(t_res, G.NLoops(), n_epsilon_series)
+    G.r1_dot_gamma_err = rggrf.utils.RelativeError(G.r1_dot_gamma, err, 
+                                                   sympy.var('eps'))
+    
+    rggrf.utils.print_debug(str(G.r1_dot_gamma), debug)
+    G.npoints = NPOINTS 
+    
+    G.SaveResults()
+    bar.finish()
+
+
+model.methods['MCTF_2'] = MCTF_2
 
 
     
