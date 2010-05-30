@@ -1281,11 +1281,12 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
                 cur_u.append(term.u)
                 c_lambd=term.lambd
                 if idxT == tau_pos[0]:
-                    c_lambd=c_lambd+2
+                    c_lambd=c_lambd+1
                 
                 cur_lambd.append(c_lambd)
 
             res = - Gammas(F)
+            print "cur_lambd = ",cur_lambd
             print "Gammas=",Gammas(F)
             for idxT in range(len(F.terms)):
                 res = (res * cur_u[idxT]**(cur_lambd[idxT]-1)/
