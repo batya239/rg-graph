@@ -93,8 +93,8 @@ atom is not equal to +-1. momenta:%s , leading atom: %s"%(line.momenta.string,at
                     break
             if not found :
                 self.terms.append(feynman2_term(C,B,idxL))
-        for term in self.terms:
-            print term.lambd, term.c, term.b, term.line_idx
+        #for term in self.terms:
+        #    print term.lambd, term.c, term.b, term.line_idx
     def alpha(self):
         res = 0
         for term in self.terms:

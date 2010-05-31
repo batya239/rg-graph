@@ -948,7 +948,7 @@ def GenerateCVarsF(vars_set):
     vars = list(vars_set)
     for var in vars:
         c_vars = c_vars + "double %s = k[%s];\n"%(str(var),vars.index(var))
-    print c_vars    
+    #print c_vars    
     
     str_region = " 0,"*len(vars)+" 1,"*len(vars)
     str_region = " { %s}" %str_region[:-1]
@@ -962,9 +962,9 @@ def GenerateMCCodeForFeynman(name, expr_lst, space_dim, n_epsilon_series,
         for expr in expr_lst:
             atoms = expr.atoms()
             for atom in atoms:
-                print atom
+                #print atom
                 if regex.match('^(s|w)\d+', str(atom)):
-                    print atom
+                    #print atom
                     vars = vars | set([atom,])
         return vars
     import sympy
@@ -995,7 +995,7 @@ def GenerateMCCodeForFeynman(name, expr_lst, space_dim, n_epsilon_series,
 
 
     vars_joined = JoinVarsF(expr_lst)
-    print vars_joined
+    #print vars_joined
     (c_vars, str_region) = GenerateCVarsF(vars_joined)
 #    print
 #    print len(prepared_eqs)
@@ -1031,9 +1031,9 @@ def GenerateMCCodeForFeynmanTerm(name, expr_lst, space_dim, n_epsilon_series,
         for expr in expr_lst:
             atoms = expr.atoms()
             for atom in atoms:
-                print atom
+                #print atom
                 if regex.match('^(s|w)\d+', str(atom)):
-                    print atom
+                    #print atom
                     vars = vars | set([atom,])
         return vars
     import sympy

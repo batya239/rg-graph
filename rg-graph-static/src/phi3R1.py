@@ -1169,7 +1169,7 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
         for atom in Q.atoms():
             if re.search('x',str(atom)):
                 Q = Q.subs(atom,1)
-        print "Q=",Q
+        #print "Q=",Q
         
         M=sympy.matrices.Matrix(F_.n,F_.n, lambda i,j:0)
         A=sympy.matrices.Matrix([0 for i in range(F_.n)])
@@ -1193,7 +1193,7 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
 
 
         e = sympy.var('e')
-        print F_.alpha(),(F_.graph.model.space_dim - e)/2
+#        print F_.alpha(),(F_.graph.model.space_dim - e)/2
         if M.shape == (1,1):
             M_cofactormatrix = sympy.matrices.Matrix([sympy.Number(1)])
         else:
@@ -1246,9 +1246,7 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
         if diff == None:
             cur_G.extra_strech_multiplier=1.
             G_list.append(StrechAllSubgraphsF2(cur_G))
-        else:
-            print
-            print diff
+        else:                
             for idx in diff:
                     if idx[1]=="L":
                         obj = cur_G.lines[idx[0]]
@@ -1259,15 +1257,18 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
             cur_G.FindSubgraphs()
             #print diff,len(cur_G.subgraphs)
             G_list.append(StrechAllSubgraphsF2(cur_G))
-    print "---------------"   
+    if debug: 
+        print "---------------"   
     for t_G in G_list:
-        print t_G
+        if debug:
+            print t_G
         F=rggrf.feynman.feynman2(t_G)
         strech_B_C(F)
-        print search_diff_type(F)
-        for term in F.terms:
-            print F.terms.index(term), term.lambd, term.c, term.b, term.line_idx
-        print
+        if debug:
+            print search_diff_type(F)
+            for term in F.terms:
+                print F.terms.index(term), term.lambd, term.c, term.b, term.line_idx
+            print
         QForm(F)
         
         
@@ -1286,8 +1287,9 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
                 cur_lambd.append(c_lambd)
 
             res = - Gammas(F)
-            print "cur_lambd = ",cur_lambd
-            print "Gammas=",Gammas(F)
+            if debug:
+                print "cur_lambd = ",cur_lambd
+            #print "Gammas=",Gammas(F)
             for idxT in range(len(F.terms)):
                 res = (res * cur_u[idxT]**(cur_lambd[idxT]-1)/
                        sympy.factorial(cur_lambd[idxT]-1))
@@ -1305,6 +1307,8 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
                     c_lambd=c_lambd+2
                 
                 cur_lambd.append(c_lambd)
+            if debug:
+                print "cur_lambd = ",cur_lambd
                     
             if len(F.terms[p1_pos[0]].b[p1_pos[1]])<>1:
                 raise NotImplementedError, "composite external moment not implemented"
@@ -1332,6 +1336,8 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
                     c_lambd=c_lambd+1
                 
                 cur_lambd.append(c_lambd)
+            if debug:
+                print "cur_lambd = ",cur_lambd
 
             if len(F.terms[p1_pos[0]].b[p1_pos[1]])<>1:
                 raise NotImplementedError, "composite external moment not implemented"
@@ -1363,6 +1369,8 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
                     c_lambd=c_lambd+1
                 
                 cur_lambd.append(c_lambd)
+            if debug:
+                print "cur_lambd = ",cur_lambd
 
             if len(F.terms[p1_pos[0]].b[p1_pos[1]])<>1:
                 raise NotImplementedError, "composite external moment not implemented"
@@ -1399,9 +1407,9 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
                                     
         else:
             raise NotImplementedError, "combination of tau and p positions not implemented (%s)"%(tau_pos,p1_pos,p2_pos)
-        print F.detM
-        print cur_lambd
-        print cur_u        
+        if debug:
+            print F.detM
+            print cur_u        
 #        print Kres 
 
 #------------------
@@ -1420,8 +1428,9 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
                 t_res= t_res*(1-strech)
         
         res = t_res
-        print "В терминах u:"
-        print res
+        if debug:
+            print "В терминах u:"
+            print res
         #замена переменных интегрирования.
         u_sub_w=dict()
         w_map = dict()
@@ -1437,7 +1446,7 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
             for key2 in umk[:umk.index(key)]:
                 u_sub_w[key] = u_sub_w[key] * w_map[key2]
                 w_det = w_det * w_map[key2]
-        print u_sub_w
+        #print u_sub_w
         #print w_det
         
         for key in u_sub_w:
@@ -1449,8 +1458,9 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
 #------------------        
         key = len(Kres.keys())
         Kres[key] = (res,1)
-#        print Kres 
-        print "======================"
+#        print Kres
+        if debug: 
+            print "======================"
         
         
         
@@ -1478,19 +1488,19 @@ def search_diff_type(F):
 #                else:
 #                    raise NotImplementedError,"No dot of 1st type on line: %s, dots:%s"%(idxL, line.dots)
             if p1_position == None and p2_position == None and "diffs" in line.__dict__:
-                print "1 ", line.diffs.count('p')
+#                print "1 ", line.diffs.count('p')
                 if line.diffs.count('p') == 2:
                     p1_position = (term_idx, line_idx)
                     p2_position = (term_idx, line_idx)
                 elif line.diffs.count('p') == 1:
                     p1_position = (term_idx, line_idx)
             elif p1_position <> None and p2_position == None and "diffs" in line.__dict__:
-                print "2 ", line.diffs.count('p')
+ #               print "2 ", line.diffs.count('p')
                 if line.diffs.count('p') == 2:
                     raise ValueError, "too much diffs on p line: %s, p1_position:%s"%(idxL,p1_position)
                 elif line.diffs.count('p') == 1:
                     p2_position = (term_idx, line_idx)
-            print idxL, (tau_position, p1_position, p2_position)
+#            print idxL, (tau_position, p1_position, p2_position)
 #            if tau_positon <> None and p1_position <> None and p2_position <> None:
 #                break
     return (tau_position, p1_position, p2_position)
