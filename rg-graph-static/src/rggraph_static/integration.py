@@ -715,6 +715,26 @@ printf ("result = %20.18g\\nstd_dev = %20.18g\\ndelta = %20.18g\\n", estim[0], s
     file.write(res)
     file.close()
     
+
+def SaveGTXMCCodeDelta(name, c_expr, c_vars, str_region, points, nthreads):
+    template = '''
+    
+<-VARS->
+res=res+<-INTEGRAND->;  
+
+    '''
+    res = template.replace("<-DIMENSION->", str(len(str_region.split(","))/2))
+    res = res.replace("<-ITERATIONS->", str(int(points)))
+    res = res.replace("<-NTHREADS->",str(int(nthreads)))
+    res = res.replace("<-REGION->",str_region)
+    res = res.replace("<-VARS->",c_vars)
+    
+    res = res.replace("<-INTEGRAND->",c_expr)
+    file = open(name+".c", 'w')
+    file.write(res)
+    file.close()
+
+    
 def GenerateCVars(g_vars):
     c_vars = ""
     region = list()
@@ -1083,6 +1103,138 @@ def GenerateMCCodeForFeynmanTerm(name, expr_lst, space_dim, n_epsilon_series,
             progressbar.update(cur_progress)
 
     return prog_names  
+
+
+def GenerateGTXMCCodeForFeynman(name, expr_lst, space_dim, n_epsilon_series, 
+                                  points, nthreads,debug=False, progress=None, 
+                                  MCCodeGenerator=SavePThreadsMCCode):
+    def JoinVarsF(expr_lst):
+        vars = set()
+        for expr in expr_lst:
+            atoms = expr.atoms()
+            for atom in atoms:
+                #print atom
+                if regex.match('^(s|w)\d+', str(atom)):
+                    #print atom
+                    vars = vars | set([atom,])
+        return vars
+    import sympy
+#TODO: проверка что у всех членов одинаковые переменные.
+    if progress <>  None:
+        (progressbar,maxprogress) = progress
+        cur_progress = progressbar.currval
+    prog_names = list()
+    expr_by_eps = dict()
+    for i in range(n_epsilon_series+1):
+        expr_by_eps[i] = list()
+    if progress <> None:
+        step1 = float(maxprogress)/2./len(expr_lst)
+    e = sympy.var('e')
+    for expr in expr_lst :
+        t_expr = expr
+        for idxE in range(n_epsilon_series+1):
+            cur_expr = t_expr.subs(e, 0)
+
+            #cur_expr.set_print_context('c')
+            c_expr = sympy.printing.ccode2(cur_expr)
+            expr_by_eps[idxE].append(c_expr)
+            t_expr = t_expr.diff(e)/(idxE+1)
+            
+        if progress <> None:
+            cur_progress = cur_progress + step1
+            progressbar.update(cur_progress)
+
+
+    vars_joined = JoinVarsF(expr_lst)
+    #print vars_joined
+    (c_vars, str_region) = GenerateCVarsF(vars_joined)
+#    print
+#    print len(prepared_eqs)
+#    print [expr_by_eps[i] for i in expr_by_eps]
+#    print
+        
+    if progress <> None:
+        step2 = float(maxprogress)/2/len(expr_by_eps)           
+    for idxE in expr_by_eps:
+        cur_name = "%s_e%s"%(name,idxE)
+#        print "%s %s"%(idxE,expr_by_eps[idxE])
+        c_expr = expr_by_eps[idxE][0]
+#        print
+#        print c_expr
+        for idxT in expr_by_eps[idxE][1:]:
+            c_expr = "%s;\nres = res + %s" %(c_expr,idxT)
+#            print
+#            print c_expr             
+        MCCodeGenerator(cur_name, c_expr, c_vars, str_region, points, nthreads)
+        prog_names.append(cur_name)
+        
+        if progress <> None:
+            cur_progress = cur_progress + step2
+            progressbar.update(cur_progress)
+            
+    return prog_names  
+
+def GenerateGTXMCCodeForFeynmanTerm(name, expr_lst, space_dim, n_epsilon_series, 
+                                  points, nthreads,debug=False, progress=None, 
+                                  MCCodeGenerator=SavePThreadsMCCode):
+    def JoinVarsF(expr_lst):
+        vars = set()
+        for expr in expr_lst:
+            atoms = expr.atoms()
+            for atom in atoms:
+                #print atom
+                if regex.match('^(s|w)\d+', str(atom)):
+                    #print atom
+                    vars = vars | set([atom,])
+        return vars
+    import sympy
+#TODO: проверка что у всех членов одинаковые переменные.
+    if progress <>  None:
+        (progressbar,maxprogress) = progress
+        cur_progress = progressbar.currval
+    prog_names = list()
+    expr_by_eps = dict()
+    for i in range(n_epsilon_series+1):
+        expr_by_eps[i] = list()
+    if progress <> None:
+        step1 = float(maxprogress)/2./len(expr_lst)
+    e = sympy.var('e')
+    for expr in expr_lst :
+        vars = JoinVarsF([expr,])
+        (c_vars, str_region) = GenerateCVarsF(vars)
+
+        t_expr = expr
+        for idxE in range(n_epsilon_series+1):
+            cur_expr = t_expr.subs(e, 0)
+
+            #cur_expr.set_print_context('c')
+            c_expr = sympy.printing.ccode2(cur_expr)
+            expr_by_eps[idxE].append((c_expr,c_vars,str_region))
+            t_expr = t_expr.diff(e)/(idxE+1)
+            
+        if progress <> None:
+            cur_progress = cur_progress + step1
+            progressbar.update(cur_progress)
+
+
+    if progress <> None:
+        step2 = float(maxprogress)/2/len(expr_by_eps)        
+    for idxE in expr_by_eps:
+        
+        #c_expr = expr_by_eps[idxE][0]
+        for idxT in range(len(expr_by_eps[idxE])):
+            cur_name = "%s_%s_e%s"%(name,idxT,idxE)
+            c_expr = expr_by_eps[idxE][idxT][0]
+            c_vars = expr_by_eps[idxE][idxT][1]
+            str_region = expr_by_eps[idxE][idxT][2] 
+            MCCodeGenerator(cur_name, c_expr, c_vars, str_region, points, nthreads)
+            prog_names.append(cur_name)
+        if progress <> None:
+            cur_progress = cur_progress + step2
+            progressbar.update(cur_progress)
+
+    return prog_names  
+
 
 
 def CompileMCCode(prog_name, debug=False):

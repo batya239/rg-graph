@@ -10,7 +10,7 @@ def execute_method(method, G, debug=False):
     if method in G.model.methods:
         G.model.methods[method](G, debug)
     else:
-        raise NotImplementedError, "method %s not implemented for model %s" %(method, G.model.name)
+        raise NotImplementedError, "method %s not implemented for model %s; methods:%s" %(method, G.model.name, G.model.methods.keys())
 
 if __name__ == '__main__':
 

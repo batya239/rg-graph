@@ -1273,6 +1273,8 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
         
         
         (tau_pos,p1_pos,p2_pos)=search_diff_type(F)
+        e=sympy.var('e')
+        d=sympy.Number(float(F.graph.model.space_dim))-e
 #треххвостки
         if p1_pos == None and p2_pos == None:
             cur_lambd=list()
@@ -1293,8 +1295,8 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
             for idxT in range(len(F.terms)):
                 res = (res * cur_u[idxT]**(cur_lambd[idxT]-1)/
                        sympy.factorial(cur_lambd[idxT]-1))
-            e=sympy.var('e')
-            res = res * F.detM**(-(F.graph.model.space_dim-e)/sympy.Number(2))
+            
+            res = res * F.detM**(-d/sympy.Number(2))
 # N4        
         elif p1_pos == p2_pos and tau_pos == p1_pos :
             cur_lambd=list()
@@ -1317,9 +1319,9 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
             for idxT in range(len(F.terms)):
                 res = (res * cur_u[idxT]**(cur_lambd[idxT]-1)/
                        sympy.factorial(cur_lambd[idxT]-1))
-            e=sympy.var('e')
-            d=F.graph.model.space_dim-e
-            res = (res * F.detM**(-(F.graph.model.space_dim-e)/sympy.Number(2))* 
+            
+            
+            res = (res * F.detM**(-d/sympy.Number(2))* 
                    (sympy.Number(2)-sympy.Number(12)/d+sympy.Number(12)/d*
                    (1+F.n*e/sympy.Number(2))*cur_u[tau_pos[0]]/cur_lambd[tau_pos[0]]))
 #N3
@@ -1347,9 +1349,8 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
             for idxT in range(len(F.terms)):
                 res = (res * cur_u[idxT]**(cur_lambd[idxT]-1)/
                        sympy.factorial(cur_lambd[idxT]-1))
-            e=sympy.var('e')
-            d=F.graph.model.space_dim-e
-            res = (res * F.detM**(-(F.graph.model.space_dim-e)/sympy.Number(2))* 
+            
+            res = (res * F.detM**(-d/sympy.Number(2))* 
                    (-sympy.Number(1)+sympy.Number(4)/d-sympy.Number(4)/d*
                    (1+F.n*e/sympy.Number(2))*cur_u[p1_pos[0]]/cur_lambd[p1_pos[0]]))
             
@@ -1385,9 +1386,9 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
             for idxT in range(len(F.terms)):
                 res = (res * cur_u[idxT]**(cur_lambd[idxT]-1)/
                        sympy.factorial(cur_lambd[idxT]-1))
-            e=sympy.var('e')
-            d=F.graph.model.space_dim-e
-            res = res * F.detM**(-(d+2)/sympy.Number(2))
+
+            
+            res = res * F.detM**(-(d+sympy.Number(2))/sympy.Number(2))
             
             extra=0
             j1=p1_pos[0]
@@ -2222,6 +2223,100 @@ def MCTF_2(G, debug=False):
 
 
 model.methods['MCTF_2'] = MCTF_2
+
+
+def MCOF_GTX1(G, debug=False):
+    import progressbar
+    G.GenerateNickel()
+    G.method = "MCOF_GTX1"
+    base_name = "%s_%s"%(G.method,str( G.nickel))
+    n_epsilon_series =G.model.target -G.NLoops()
+    NPOINTS = 10000
+    NTHREADS = 2
+    SPACE_DIM = sympy.Number(6)
+    prepared_eqs = []
+    bar = progressbar.ProgressBar(maxval=100, term_width=70, 
+                                  widgets=["%s  "%G.nickel, progressbar.Percentage(), 
+                                           " ", progressbar.Bar(), 
+                                           progressbar.ETA()]).start()
+                                               
+    Kres = L_dot_feynman2(G,progress=(bar,33),debug=debug)
+    
+    progress=bar.currval
+                   
+    sys.stdout.flush()
+          
+    prog_names = rggrf.integration.GenerateGTXMCCodeForFeynman(base_name, Kres, 
+                                                                SPACE_DIM, n_epsilon_series, 
+                                                                NPOINTS, NTHREADS,
+                                                                debug=debug, 
+                                                                progress=(bar,33.),
+                                                                MCCodeGenerator=rggrf.integration.SaveGTXMCCodeDelta) 
+    
+#    t_res = rggrf.integration.CalculateEpsilonSeries(prog_names, 
+#                                                     build=True, debug=debug, 
+#                                                     progress=(bar,33),
+#                                                     calc_delta=0.)
+#    G.reduced_nloops = G.NLoops()
+#    (G.r1_dot_gamma, err) = ResultWithOutSd(t_res, G.NLoops(), n_epsilon_series)
+#    G.r1_dot_gamma_err = rggrf.utils.RelativeError(G.r1_dot_gamma, err, 
+#                                                   sympy.var('eps'))
+#    
+#    rggrf.utils.print_debug(str(G.r1_dot_gamma), debug)
+#    G.npoints = NPOINTS 
+#    
+#    G.SaveResults()
+    bar.finish()
+
+
+model.methods['MCOF_GTX1'] = MCOF_GTX1
+
+def MCTF_GTX1(G, debug=False):
+    import progressbar
+    G.GenerateNickel()
+    G.method = "MCTF_GTX1"
+    base_name = "%s_%s"%(G.method,str( G.nickel))
+    n_epsilon_series =G.model.target -G.NLoops()
+    NPOINTS = 10000
+    NTHREADS = 2
+    SPACE_DIM = sympy.Number(6)
+    prepared_eqs = []
+    bar = progressbar.ProgressBar(maxval=100, term_width=70, 
+                                  widgets=["%s  "%G.nickel, progressbar.Percentage(), 
+                                           " ", progressbar.Bar(), 
+                                           progressbar.ETA()]).start()
+                                               
+    Kres = L_dot_feynman2(G,progress=(bar,33),debug=debug)
+    
+    progress=bar.currval
+                   
+    sys.stdout.flush()
+          
+    prog_names = rggrf.integration.GenerateGTXMCCodeForFeynmanTerm(base_name, Kres, 
+                                                                SPACE_DIM, n_epsilon_series, 
+                                                                NPOINTS, NTHREADS,
+                                                                debug=debug, 
+                                                                progress=(bar,33.),
+                                                                MCCodeGenerator=rggrf.integration.SaveGTXMCCodeDelta) 
+    
+#    t_res = rggrf.integration.CalculateEpsilonSeries(prog_names, 
+#                                                     build=True, debug=debug, 
+#                                                     progress=(bar,33),                                                     
+#                                                     calc_delta=0.)
+#    G.reduced_nloops = G.NLoops()
+#    print "t_res = ",t_res
+#    (G.r1_dot_gamma, err) = ResultWithOutSd(t_res, G.NLoops(), n_epsilon_series)
+#    G.r1_dot_gamma_err = rggrf.utils.RelativeError(G.r1_dot_gamma, err, 
+#                                                   sympy.var('eps'))
+    
+#    rggrf.utils.print_debug(str(G.r1_dot_gamma), debug)
+#    G.npoints = NPOINTS 
+    
+#    G.SaveResults()
+    bar.finish()
+
+
+model.methods['MCTF_GTX1'] = MCTF_GTX1
 
 
     
