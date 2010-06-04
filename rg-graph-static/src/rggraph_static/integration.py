@@ -716,21 +716,187 @@ printf ("result = %20.18g\\nstd_dev = %20.18g\\ndelta = %20.18g\\n", estim[0], s
     file.close()
     
 
-def SaveGTXMCCodeDelta(name, c_expr, c_vars, str_region, points, nthreads):
+def SaveGTXMCCodeDelta(name, c_expr, c_vars, args, args_f, points, threads):
     template = '''
+#include <thrust/random.h>
+#include <thrust/iterator/counting_iterator.h>
+#include <thrust/functional.h>
+#include <thrust/transform_reduce.h>
+
+#include <iostream>
+
+
+// we could vary M & N to find the perf sweet spot
+
+/*
+__host__ __device__
+unsigned int hash(unsigned int a)
+{
+    a = (a+0x7ed55d16) + (a<<12);
+    a = (a^0xc761c23c) ^ (a>>19);
+    a = (a+0x165667b1) + (a<<5);
+    a = (a+0xd3a2646c) ^ (a<<9);
+    a = (a+0xfd7046c5) + (a<<3);
+    a = (a^0xb55a4f09) ^ (a>>16);
+    return a;
+}
+*/
+
+__host__ __device__
+double func(<-ARGS_F->)
+{
+  double res;
+res=<-INTEGRAND->;
+return res;
+}
+struct estimate_func : public thrust::unary_function<unsigned int,double>
+{
+  __host__ __device__
+  double operator()(unsigned int thread_id)
+  {
+    double sum = 0;
+    const double eps=0.0000001;
+    unsigned int N = 100; // samples per thread
+
+    //unsigned int seed = hash(thread_id);
+
+    // seed a random number generator
+//    thrust::default_random_engine rng(seed);
     
-<-VARS->
-res=res+<-INTEGRAND->;  
+    thrust::default_random_engine rng;
+    rng.discard(N * thread_id);
+    
+    // create a mapping from random numbers to [0,1)
+    thrust::uniform_real_distribution<double> u01(0,1);
+
+    // take N samples in a quarter circle
+    for(unsigned int i = 0; i < N; ++i)
+    {
+      // draw a sample from the unit square
+      <-VARS->
+
+
+
+        sum += func(<-ARGS->);
+//        sum += func(u0,u1,u2,u3,s0,s1);
+    }
+
+
+    // divide by N
+    return sum / N;
+  }
+};
+
+int main(int argc, char **argv)
+{
+  // use 30K independent seeds
+  //int M = 30000;
+  long long npoints;
+  long nthreads;
+
+  if(argc >= 2)
+    {
+      npoints = atoll(argv[1]);
+
+    }
+  else 
+    {
+      npoints = 100000;
+    }
+  nthreads = npoints/100;
+  int M;
+  int n_iter;
+  if(nthreads<=0){M=1;n_iter=1;}
+  if(nthreads>30000){M=30000;n_iter=nthreads/M;}
+  else{M=nthreads;n_iter=1;}
+  
+  std::cout << "M = " << M << " nnthreads = " << nthreads << " n_iter = " << n_iter <<std::endl;
+  int i;
+  double estimate;
+  double res;
+  res = 0.0;
+  std::cout.precision(15);
+  for(i=0;i<n_iter;i++)
+  {
+
+   estimate = thrust::transform_reduce(thrust::counting_iterator<long>(i*M),
+                                            thrust::counting_iterator<long>(M*(i+1)),
+                                            estimate_func(),
+                                            0.0,
+                                            thrust::plus<double>());
+  estimate /= M;
+   std::cout << " " << i+1 << "/" << n_iter << " t_res = " << estimate <<std::endl<<std::flush;
+   std::cout << std::flush;
+   res = res + estimate;
+  }
+  res /= n_iter;
+  std::cout << "res =  " << res << std::endl;
+
+  return 0;
+}  
+//-----------------------------------
+
+
+
+/*
+int main(int argc, char **argv)
+{
+  int i;
+  long long npoints;
+  long nthreads;
+
+  if(argc >= 2)
+    {
+      npoints = atoll(argv[1]);
+
+    }
+  else 
+    {
+      npoints = ITERATIONS;
+    }
+
+  if(argc >= 3)
+    {
+      nthreads = atoi(argv[2]);
+
+    }
+  else 
+    {
+      nthreads = NTHREADS;
+    }
+   
+   if(argc >= 5)
+    {
+      region_delta = atof(argv[4]);
+
+    }
+  else 
+    {
+      region_delta = 0.;
+    } 
+
+  if(argc >= 4)
+    {
+      niter = atoi(argv[3]);
+
+    }
+  else 
+    {
+      niter = NITER;
+    }
+*/
 
     '''
-    res = template.replace("<-DIMENSION->", str(len(str_region.split(","))/2))
-    res = res.replace("<-ITERATIONS->", str(int(points)))
-    res = res.replace("<-NTHREADS->",str(int(nthreads)))
-    res = res.replace("<-REGION->",str_region)
+    res = template.replace("<-THREADS->", str(int(threads)))
+    res = res.replace("<-ITERATIONS->", str(int(points/threads)))
+    #res = res.replace("<-NTHREADS->",str(int(nthreads)))
+    #res = res.replace("<-REGION->",str_region)
     res = res.replace("<-VARS->",c_vars)
+    res = res.replace("<-ARGS->",args)
+    res = res.replace("<-ARGS_F->",args_f)
     
     res = res.replace("<-INTEGRAND->",c_expr)
-    file = open(name+".c", 'w')
+    file = open(name+".cu", 'w')
     file.write(res)
     file.close()
 
@@ -1104,7 +1270,18 @@ def GenerateMCCodeForFeynmanTerm(name, expr_lst, space_dim, n_epsilon_series,
 
     return prog_names  
 
-
+def GenerateCVarsFGTX(vars_set):
+    c_vars = ""
+    args=""
+    args_f=""
+    vars = list(vars_set)
+    for var in vars:
+        c_vars = c_vars + "double %s = u01(rng)*(1-2*eps)+eps;\n"%(str(var))
+        args = args + " %s,"%str(var)
+        args_f = args_f + " double %s,"%str(var)
+    args = args[:-1]
+    args_f = args_f[:-1]
+    return (c_vars,args,args_f)
 def GenerateGTXMCCodeForFeynman(name, expr_lst, space_dim, n_epsilon_series, 
                                   points, nthreads,debug=False, progress=None, 
                                   MCCodeGenerator=SavePThreadsMCCode):
@@ -1147,7 +1324,7 @@ def GenerateGTXMCCodeForFeynman(name, expr_lst, space_dim, n_epsilon_series,
 
     vars_joined = JoinVarsF(expr_lst)
     #print vars_joined
-    (c_vars, str_region) = GenerateCVarsF(vars_joined)
+    (c_vars, args, args_f) = GenerateCVarsFGTX(vars_joined)
 #    print
 #    print len(prepared_eqs)
 #    print [expr_by_eps[i] for i in expr_by_eps]
@@ -1165,7 +1342,7 @@ def GenerateGTXMCCodeForFeynman(name, expr_lst, space_dim, n_epsilon_series,
             c_expr = "%s;\nres = res + %s" %(c_expr,idxT)
 #            print
 #            print c_expr             
-        MCCodeGenerator(cur_name, c_expr, c_vars, str_region, points, nthreads)
+        MCCodeGenerator(cur_name, c_expr, c_vars, args, args_f, points, nthreads)
         prog_names.append(cur_name)
         
         if progress <> None:
@@ -1201,7 +1378,7 @@ def GenerateGTXMCCodeForFeynmanTerm(name, expr_lst, space_dim, n_epsilon_series,
     e = sympy.var('e')
     for expr in expr_lst :
         vars = JoinVarsF([expr,])
-        (c_vars, str_region) = GenerateCVarsF(vars)
+        (c_vars, args, args_f) = GenerateCVarsFGTX(vars)
 
         t_expr = expr
         for idxE in range(n_epsilon_series+1):
@@ -1209,7 +1386,7 @@ def GenerateGTXMCCodeForFeynmanTerm(name, expr_lst, space_dim, n_epsilon_series,
 
             #cur_expr.set_print_context('c')
             c_expr = sympy.printing.ccode2(cur_expr)
-            expr_by_eps[idxE].append((c_expr,c_vars,str_region))
+            expr_by_eps[idxE].append((c_expr,c_vars, args, args_f))
             t_expr = t_expr.diff(e)/(idxE+1)
             
         if progress <> None:
@@ -1226,8 +1403,9 @@ def GenerateGTXMCCodeForFeynmanTerm(name, expr_lst, space_dim, n_epsilon_series,
             cur_name = "%s_%s_e%s"%(name,idxT,idxE)
             c_expr = expr_by_eps[idxE][idxT][0]
             c_vars = expr_by_eps[idxE][idxT][1]
-            str_region = expr_by_eps[idxE][idxT][2] 
-            MCCodeGenerator(cur_name, c_expr, c_vars, str_region, points, nthreads)
+            args = expr_by_eps[idxE][idxT][2] 
+            args_f = expr_by_eps[idxE][idxT][3]
+            MCCodeGenerator(cur_name, c_expr, c_vars, args, args_f, points, nthreads)
             prog_names.append(cur_name)
         if progress <> None:
             cur_progress = cur_progress + step2
