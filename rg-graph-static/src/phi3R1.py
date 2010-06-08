@@ -1470,41 +1470,116 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
         
     return Kres
 
+def find_line_in_F(F,idxL):
+    for term in F.terms:
+        if idxL in term.line_idx:
+            return (F.terms.index(term),term.line_idx.index(idxL))
+    raise ValueError, "There is no line %s in Feynman representation"%idxL
+
 def search_diff_type(F):
     tau_position = None
     p1_position = None
     p2_position = None
     
-    for term in F.terms:
-        term_idx = F.terms.index(term)
-        for idxL in term.line_idx:
-            line_idx = term.line_idx.index(idxL)
-            line = F.graph.lines[idxL]
-            if tau_position == None and "dots" in line.__dict__:
-                if 1 in line.dots.keys():
-                    if line.dots[1] == 1:
-                        tau_position = (term_idx, line_idx)
+    for idxL in F.graph.internal_lines:
+        line = F.graph.lines[idxL]
+        
+        if tau_position == None and "dots" in line.__dict__:
+            if 1 in line.dots.keys():
+                if line.dots[1] == 1:
+                    (term_idx, line_idx) = find_line_in_F(F,idxL)
+                    tau_position = (term_idx, line_idx, "L")
+                else:
+                    raise NotImplementedError, "unknown dots on line %s : %s"%(idxL, line.dots)
+        
+        if "diffs" in line.__dict__:
+            if line.diffs.count('p') == 2:
+                if p1_position == None and p2_position == None:
+                    (term_idx, line_idx) = find_line_in_F(F,idxL)
+                    p1_position =  (term_idx, line_idx, "L")
+                    p2_position =  (term_idx, line_idx, "L")
+                else:
+                    raise ValueError, "Too much diffs. line:%s, also found: %s and %s"%(idxL, p1_position, p2_position)
+            elif line.diffs.count('p') == 1:
+                if p1_position == None:
+                    (term_idx, line_idx) = find_line_in_F(F,idxL)
+                    p1_position =  (term_idx, line_idx, "L")
+                elif  p2_position == None:
+                    (term_idx, line_idx) = find_line_in_F(F,idxL)
+                    p2_position =  (term_idx, line_idx, "L")
+                else:
+                    raise ValueError, "Too much diffs. line:%s, also found: %s and %s"%(idxL, p1_position, p2_position)
+            elif  line.diffs.count('p') > 2:
+                raise ValueError, "Too much diffs. line:%s, diffs count: %s"%(idxL, line.diffs.count('p'))
+    
+    for idxN in F.graph.internal_nodes:
+        node = F.graph.nodes[idxN]
+        if node.type == 2:
+            if "diffs" in node.__dict__:
+                if node.diffs.count("p") ==2:
+                    if p1_position == None and p2_position == None:
+                        lines = node.Lines()
+                        idxL = lines[0]
+                        (term_idx, line_idx) = find_line_in_F(F,idxL)
+                        p1_position =  (term_idx, line_idx, "N")
+                        p2_position =  (term_idx, line_idx, "N")
                     else:
-                        raise NotImplementedError, "unknown dots on line %s : %s"%(idxL, line.dots)
-#                else:
-#                    raise NotImplementedError,"No dot of 1st type on line: %s, dots:%s"%(idxL, line.dots)
-            if p1_position == None and p2_position == None and "diffs" in line.__dict__:
-#                print "1 ", line.diffs.count('p')
-                if line.diffs.count('p') == 2:
-                    p1_position = (term_idx, line_idx)
-                    p2_position = (term_idx, line_idx)
-                elif line.diffs.count('p') == 1:
-                    p1_position = (term_idx, line_idx)
-            elif p1_position <> None and p2_position == None and "diffs" in line.__dict__:
- #               print "2 ", line.diffs.count('p')
-                if line.diffs.count('p') == 2:
-                    raise ValueError, "too much diffs on p line: %s, p1_position:%s"%(idxL,p1_position)
-                elif line.diffs.count('p') == 1:
-                    p2_position = (term_idx, line_idx)
-#            print idxL, (tau_position, p1_position, p2_position)
-#            if tau_positon <> None and p1_position <> None and p2_position <> None:
-#                break
-    return (tau_position, p1_position, p2_position)
+                        raise ValueError, "Too much diffs. node:%s, also found: %s and %s"%(idxN, p1_position, p2_position)
+                elif node.diffs.count('p') == 1:
+                    if p1_position == None:
+                        lines = node.Lines()
+                        idxL = lines[0]
+                        (term_idx, line_idx) = find_line_in_F(F,idxL)
+                        p1_position =  (term_idx, line_idx, "N")
+                    elif  p2_position == None:
+                        lines = node.Lines()
+                        idxL = lines[0]                        
+                        (term_idx, line_idx) = find_line_in_F(F,idxL)
+                        p2_position =  (term_idx, line_idx, "N")
+                    else:
+                        raise ValueError, "Too much diffs. node:%s, also found: %s and %s"%(idxN, p1_position, p2_position)
+                elif  node.diffs.count('p') > 2:
+                    raise ValueError, "Too much diffs. node:%s, diffs count: %s"%(idxN, node.diffs.count('p'))
+                
+    return (tau_position,p1_position,p2_position)
+                    
+                    
+
+##def search_diff_type(F):
+##    tau_position = None
+##    p1_position = None
+##    p2_position = None
+##    
+##    for term in F.terms:
+##        term_idx = F.terms.index(term)
+##        for idxL in term.line_idx:
+##            line_idx = term.line_idx.index(idxL)
+##            line = F.graph.lines[idxL]
+##            if tau_position == None and "dots" in line.__dict__:
+##                if 1 in line.dots.keys():
+##                    if line.dots[1] == 1:
+##                        tau_position = (term_idx, line_idx)
+##                    else:
+##                        raise NotImplementedError, "unknown dots on line %s : %s"%(idxL, line.dots)
+###                else:
+###                    raise NotImplementedError,"No dot of 1st type on line: %s, dots:%s"%(idxL, line.dots)
+##            if p1_position == None and p2_position == None and "diffs" in line.__dict__:
+###                print "1 ", line.diffs.count('p')
+##                if line.diffs.count('p') == 2:
+##                    p1_position = (term_idx, line_idx)
+##                    p2_position = (term_idx, line_idx)
+##                elif line.diffs.count('p') == 1:
+##                    p1_position = (term_idx, line_idx)
+##            elif p1_position <> None and p2_position == None and "diffs" in line.__dict__:
+## #               print "2 ", line.diffs.count('p')
+##                if line.diffs.count('p') == 2:
+##                    raise ValueError, "too much diffs on p line: %s, p1_position:%s"%(idxL,p1_position)
+##                elif line.diffs.count('p') == 1:
+##                    p2_position = (term_idx, line_idx)
+###            print idxL, (tau_position, p1_position, p2_position)
+###            if tau_positon <> None and p1_position <> None and p2_position <> None:
+###                break
+##    return (tau_position, p1_position, p2_position)
                     
                     
                     
