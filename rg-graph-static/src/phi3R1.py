@@ -2319,6 +2319,99 @@ def MCTF_GTX1(G, debug=False):
 model.methods['MCTF_GTX1'] = MCTF_GTX1
 
 
+def MCOF_GTX1pow(G, debug=False):
+    import progressbar
+    G.GenerateNickel()
+    G.method = "MCOF_GTX1pow"
+    base_name = "%s_%s"%(G.method,str( G.nickel))
+    n_epsilon_series =G.model.target -G.NLoops()
+    NPOINTS = 10000
+    NTHREADS = 2
+    SPACE_DIM = sympy.Number(6)
+    prepared_eqs = []
+    bar = progressbar.ProgressBar(maxval=100, term_width=70, 
+                                  widgets=["%s  "%G.nickel, progressbar.Percentage(), 
+                                           " ", progressbar.Bar(), 
+                                           progressbar.ETA()]).start()
+                                               
+    Kres = L_dot_feynman2(G,progress=(bar,33),debug=debug)
+    
+    progress=bar.currval
+                   
+    sys.stdout.flush()
+          
+    prog_names = rggrf.integration.GenerateGTXpowMCCodeForFeynman(base_name, Kres, 
+                                                                SPACE_DIM, n_epsilon_series, 
+                                                                NPOINTS, NTHREADS,
+                                                                debug=debug, 
+                                                                progress=(bar,33.),
+                                                                MCCodeGenerator=rggrf.integration.SaveGTXMCCodeDelta) 
+    
+#    t_res = rggrf.integration.CalculateEpsilonSeries(prog_names, 
+#                                                     build=True, debug=debug, 
+#                                                     progress=(bar,33),
+#                                                     calc_delta=0.)
+#    G.reduced_nloops = G.NLoops()
+#    (G.r1_dot_gamma, err) = ResultWithOutSd(t_res, G.NLoops(), n_epsilon_series)
+#    G.r1_dot_gamma_err = rggrf.utils.RelativeError(G.r1_dot_gamma, err, 
+#                                                   sympy.var('eps'))
+#    
+#    rggrf.utils.print_debug(str(G.r1_dot_gamma), debug)
+#    G.npoints = NPOINTS 
+#    
+#    G.SaveResults()
+    bar.finish()
+
+
+model.methods['MCOF_GTX1pow'] = MCOF_GTX1pow
+
+def MCTF_GTX1pow(G, debug=False):
+    import progressbar
+    G.GenerateNickel()
+    G.method = "MCTF_GTX1pow"
+    base_name = "%s_%s"%(G.method,str( G.nickel))
+    n_epsilon_series =G.model.target -G.NLoops()
+    NPOINTS = 10000
+    NTHREADS = 2
+    SPACE_DIM = sympy.Number(6)
+    prepared_eqs = []
+    bar = progressbar.ProgressBar(maxval=100, term_width=70, 
+                                  widgets=["%s  "%G.nickel, progressbar.Percentage(), 
+                                           " ", progressbar.Bar(), 
+                                           progressbar.ETA()]).start()
+                                               
+    Kres = L_dot_feynman2(G,progress=(bar,33),debug=debug)
+    
+    progress=bar.currval
+                   
+    sys.stdout.flush()
+          
+    prog_names = rggrf.integration.GenerateGTXpowMCCodeForFeynmanTerm(base_name, Kres, 
+                                                                SPACE_DIM, n_epsilon_series, 
+                                                                NPOINTS, NTHREADS,
+                                                                debug=debug, 
+                                                                progress=(bar,33.),
+                                                                MCCodeGenerator=rggrf.integration.SaveGTXMCCodeDelta) 
+    
+#    t_res = rggrf.integration.CalculateEpsilonSeries(prog_names, 
+#                                                     build=True, debug=debug, 
+#                                                     progress=(bar,33),                                                     
+#                                                     calc_delta=0.)
+#    G.reduced_nloops = G.NLoops()
+#    print "t_res = ",t_res
+#    (G.r1_dot_gamma, err) = ResultWithOutSd(t_res, G.NLoops(), n_epsilon_series)
+#    G.r1_dot_gamma_err = rggrf.utils.RelativeError(G.r1_dot_gamma, err, 
+#                                                   sympy.var('eps'))
+    
+#    rggrf.utils.print_debug(str(G.r1_dot_gamma), debug)
+#    G.npoints = NPOINTS 
+    
+#    G.SaveResults()
+    bar.finish()
+
+
+model.methods['MCTF_GTX1pow'] = MCTF_GTX1pow
+
     
 def ResultWithSd(_dict, nloops, n_eps_series):
     
