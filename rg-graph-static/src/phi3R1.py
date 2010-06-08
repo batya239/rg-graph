@@ -446,31 +446,40 @@ def K_nR1(G, N, Kres=dict(), debug=False):
 #generate diffs and strechs for subgraphs 
 
     
-    stop = False
-    new_G_list=G_list
-    while (not stop):
-        stop = True
-        G_list=new_G_list
-        new_G_list=list()
-        for cur_G in G_list:
+#    stop = False
+#    new_G_list=G_list
+#    while (not stop):
+#        stop = True
+#        G_list=new_G_list
+    new_G_list=list()
+    for cur_G in G_list:
             if debug:
                 print 
                 print "serial:", graph_serialize(cur_G)                        
-            cur_G.FindSubgraphs()   
+#            cur_G.FindSubgraphs()   
 #            print "   -----"     
 #            for sub in cur_G.subgraphs:
 #                print "      sub %s, dim1:%s, dim2:%s"%(sub.internal_lines, sub.dim, subgraph_dim_with_diff(cur_G, sub))
                 
-            subgraphs = checkdim_and_sort_subgraphs(cur_G)
+#            subgraphs = checkdim_and_sort_subgraphs(cur_G)
+            subgraphs = cur_G.subgraphs
             if debug:
                 print 
                 print "   number of subgraphs:%s" %len(subgraphs)
                 for sub in subgraphs:
                     print "      sub %s, dim1:%s, dim2:%s"%(sub.internal_lines, sub.dim, subgraph_dim_with_diff(cur_G, sub))
-                    
-            if len(subgraphs)>0:
-                stop = False
-                subgraph = subgraphs[0] 
+
+
+            for subgraph in subgraphs:
+                degree = subgraph_dim_with_diff(G, subgraph) +1
+                subgraph.degree = degree
+            
+            diffs=[]
+                
+            for subgrpah in subgraphs:
+#            if len(subgraphs)>0:
+#                stop = False
+ #               subgraph = subgraphs[0] 
                 sub_ext_atoms_str = FindExtMomentAtoms(subgraph)
                 strech_var_str = "a"
                 int_lines = list(subgraph.internal_lines)
@@ -484,14 +493,25 @@ def K_nR1(G, N, Kres=dict(), debug=False):
                     elif idx[1]=="N":
                         obj = cur_G.nodes[idx[0]]
                     model.AddStrech(obj, strech_var_str, sub_ext_atoms_str)
-                degree = subgraph_dim_with_diff(G, subgraph) +1    
+                degree = subgraph.degree    
                 if degree<=0:
                     raise ValueError, "irrelevant graph!!"
                 sub_diffs = [i for i in rggrf.utils.xSelections(sub_ext_path,degree)]
                 strech_var = sympy.var(strech_var_str)
                 if degree>1: 
-                    cur_G.extra_strech_multiplier = cur_G.extra_strech_multiplier * (1.-strech_var)**(degree-1.)/sympy.factorial(degree-1)
-                for diff in sub_diffs:
+                    cur_G.extra_strech_multiplier = cur_G.extra_strech_multiplier * (1.-strech_var)**(degree-1.)/sympy.factorial(degree-1.)
+                    
+                if len(diffs)==0:
+                    diffs = sub_diffs
+                else:
+                    new_diffs=[]
+                    for diff in diffs:
+                        for diff2 in sub_diffs:
+                            new_diffs.append(diff+diff2)
+                    diffs = new_diffs
+                
+            if len(diffs)>0:    
+                for diff in diffs:
                     new_G=cur_G.Clone()
                     if diff == None:
                         raise ValueError, "diff can't be None" 
@@ -506,7 +526,7 @@ def K_nR1(G, N, Kres=dict(), debug=False):
                         new_G_list.append(new_G)
             else:
                 new_G_list.append(cur_G)                 
-                
+    G_list = new_G_list
 
     res_dict=Kres    
     for cur_G in G_list: 
@@ -1297,6 +1317,28 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
                        sympy.factorial(cur_lambd[idxT]-1))
             
             res = res * F.detM**(-d/sympy.Number(2))
+            
+            phi2count=0
+            for idxN in t_G.internal_nodes:
+                node = G.nodes[idxN]
+                if node.type == 2:
+                    lines=node.Lines()
+                    (cur_C,cur_B) = F.SearchLine(lines[0])
+                    if cur_C == None or cur_B == None:
+                        (cur_C,cur_B) = F.SearchLine(lines[1])
+                        if cur_C == None or cur_B == None:
+                            raise ValueError, "Cant find lines for node %s"%idxN
+                    phi2count = phi2count + 1
+                    
+                    extra = 0.
+                    for idx1 in range(F.n):
+                        for idx2 in range(F.n):
+                            extra = extra + cur_C[idx1]*cur_C[idx2]*F.cofactorM[idx1,idx2]
+                    res = res * extra
+            res = res * F.detM**(-sympy.Number(phi2count))
+            for idx in range(phi2count):
+                res = res * (d/sympy.Number(2)+sympy.Number(idx))
+                    
 # N4        
         elif p1_pos == p2_pos and tau_pos == p1_pos :
             cur_lambd=list()
@@ -1562,11 +1604,23 @@ model.target = 4
 
 model.feynman = dict()
 #eps=sympy.var('eps')
-model.feynman['e11-e-']=("eps=sympy.var('e')\nu=sympy.var('a_%s'%parent_subgraph)\nres = ((-1+eps/4-sympy.pi**2*eps**2/24+sympy.pi**2*eps**3/96-sympy.pi**4*eps**4/5760)*( (sqmoment*u*(1-u))+( (1+sqmoment*u*(1-u))*sympy.ln(1+sqmoment*u*(1-u))*(-1+eps/4*sympy.ln(1+sqmoment*u*(1-u))-eps**2/24*(sympy.ln(1+sqmoment*u*(1-u)))**2+eps**3/192*(sympy.ln(1+sqmoment*u*(1-u)))**3-eps**4/1920*(sympy.ln(1+sqmoment*u*(1-u)))**4))))",
-                         "eps=sympy.var('e')\nu=sympy.var('a_%s'%parent_subgraph)\nres = ((-1+3*eps/4-eps**2*(1./8+sympy.pi**2/24)+eps**3*sympy.pi**2/32-eps**4*(sympy.pi**2/192+sympy.pi**4/5760))*(sympy.ln(1+sqmoment*u*(1-u))*(-1+eps/4*sympy.ln(1+sqmoment*u*(1-u))-eps**2/24*(sympy.ln(1+sqmoment*u*(1-u)))**2+eps**3/192*(sympy.ln(1+sqmoment*u*(1-u)))**3-eps**4/1920*(sympy.ln(1+sqmoment*u*(1-u)))**4)    ))")
+model.feynman['e11-e-']=("eps=sympy.var('e')\n\
+u=sympy.var('a_%s'%parent_subgraph)\n\
+res = ((-1.+eps/4.-sympy.pi**2*eps**2/24.+sympy.pi**2*eps**3/96.-sympy.pi**4*eps**4/5760.)*( (sqmoment*u*(1.-u))+( (1.+sqmoment*u*(1.-u))*sympy.ln(1.+sqmoment*u*(1.-u))*(-1.+eps/4.*sympy.ln(1.+sqmoment*u*(1.-u))-eps**2/24.*(sympy.ln(1.+sqmoment*u*(1.-u)))**2+eps**3/192.*(sympy.ln(1.+sqmoment*u*(1.-u)))**3-eps**4/1920.*(sympy.ln(1.+sqmoment*u*(1.-u)))**4))))",
+                         "eps=sympy.var('e')\n\
+u=sympy.var('a_%s'%parent_subgraph)\n\
+res = ((-1.+3.*eps/4.-eps**2*(1./8.+sympy.pi**2/24.)+eps**3*sympy.pi**2/32.-eps**4*(sympy.pi**2/192.+sympy.pi**4/5760.))*(sympy.ln(1.+sqmoment*u*(1.-u))*(-1.+eps/4.*sympy.ln(1.+sqmoment*u*(1.-u))-eps**2/24.*(sympy.ln(1.+sqmoment*u*(1.-u)))**2+eps**3/192.*(sympy.ln(1.+sqmoment*u*(1.-u)))**3-eps**4/1920.*(sympy.ln(1.+sqmoment*u*(1.-u)))**4)    ))")
 
-model.feynman['e12-e2-e-']=("eps=sympy.var('e')\nu2=sympy.var('a_%s_v1'%parent_subgraph)\nx=sympy.var('a_%s_v2'%parent_subgraph)\nu3=(1-u2)*x\nres = -(1 - 3*e/4 + e**2*(1./8 + sympy.pi**2/24) + e**4*(sympy.pi**2/192 + 7*sympy.pi**4/5760) - sympy.pi**2*e**3/32)*(1-u2)*(sympy.ln(1+k2sq*u2*(1-u2)+k3sq*u3*(1-u3) + 2*u2*u3*k2xk3) - e*sympy.ln(1+k2sq*u2*(1-u2)+k3sq*u3*(1-u3) + 2*u2*u3*k2xk3)**2/4 + e**2*sympy.ln(1+k2sq*u2*(1-u2)+k3sq*u3*(1-u3) + 2*u2*u3*k2xk3)**3/24 - e**3*sympy.ln(1+k2sq*u2*(1-u2)+k3sq*u3*(1-u3) + 2*u2*u3*k2xk3)**4/192 + e**4*sympy.ln(1+k2sq*u2*(1-u2)+k3sq*u3*(1-u3) + 2*u2*u3*k2xk3)**5/1920  )",
-                            "eps=sympy.var('e')\nu2=sympy.var('a_%s_v1'%parent_subgraph)\nx=sympy.var('a_%s_v2'%parent_subgraph)\nu3=(1-u2)*x\nres = -(1-u2)*(1 - 3*e/4 + e**2*(1./8 + sympy.pi**2/24) + e**4*(sympy.pi**2/192 + 7*sympy.pi**4/5760) - sympy.pi**2*e**3/32)/(1+k2sq*u2*(1-u2)+k3sq*u3*(1-u3) + 2*u2*u3*k2xk3)*(1 - e*sympy.ln(1+k2sq*u2*(1-u2)+k3sq*u3*(1-u3) + 2*u2*u3*k2xk3)/2 + e**2*sympy.ln(1+k2sq*u2*(1-u2)+k3sq*u3*(1-u3) + 2*u2*u3*k2xk3)**2/8 - e**3*sympy.ln(1+k2sq*u2*(1-u2)+k3sq*u3*(1-u3) + 2*u2*u3*k2xk3)**3/48 + e**4*sympy.ln(1+k2sq*u2*(1-u2)+k3sq*u3*(1-u3) + 2*u2*u3*k2xk3)**4/384 ) ")
+model.feynman['e12-e2-e-']=("eps=sympy.var('e')\n\
+u2=sympy.var('a_%s_v1'%parent_subgraph)\n\
+x=sympy.var('a_%s_v2'%parent_subgraph)\n\
+u3=(1.-u2)*x\n\
+res = -(1. - 3.*e/4. + e**2*(1./8. + sympy.pi**2/24.) + e**4*(sympy.pi**2/192. + 7.*sympy.pi**4/5760.) - sympy.pi**2*e**3/32.)*(1.-u2)*(sympy.ln(1.+k2sq*u2*(1.-u2)+k3sq*u3*(1.-u3) + 2*u2*u3*k2xk3) - e*sympy.ln(1.+k2sq*u2*(1.-u2)+k3sq*u3*(1.-u3) + 2.*u2*u3*k2xk3)**2/4. + e**2*sympy.ln(1.+k2sq*u2*(1.-u2)+k3sq*u3*(1.-u3) + 2.*u2*u3*k2xk3)**3/24. - e**3*sympy.ln(1.+k2sq*u2*(1.-u2)+k3sq*u3*(1.-u3) + 2.*u2*u3*k2xk3)**4/192. + e**4*sympy.ln(1.+k2sq*u2*(1.-u2)+k3sq*u3*(1.-u3) + 2.*u2*u3*k2xk3)**5/1920.  )",
+                            "eps=sympy.var('e')\n\
+u2=sympy.var('a_%s_v1'%parent_subgraph)\n\
+x=sympy.var('a_%s_v2'%parent_subgraph)\n\
+u3=(1.-u2)*x\n\
+res = -(1.-u2)*(1. - 3.*e/4. + e**2*(1./8. + sympy.pi**2/24.) + e**4*(sympy.pi**2/192. + 7.*sympy.pi**4/5760.) - sympy.pi**2*e**3/32.)/(1.+k2sq*u2*(1.-u2)+k3sq*u3*(1.-u3) + 2.*u2*u3*k2xk3)*(1. - e*sympy.ln(1.+k2sq*u2*(1.-u2)+k3sq*u3*(1.-u3) + 2.*u2*u3*k2xk3)/2. + e**2*sympy.ln(1.+k2sq*u2*(1.-u2)+k3sq*u3*(1.-u3) + 2.*u2*u3*k2xk3)**2/8. - e**3*sympy.ln(1.+k2sq*u2*(1.-u2)+k3sq*u3*(1.-u3) + 2.*u2*u3*k2xk3)**3/48. + e**4*sympy.ln(1.+k2sq*u2*(1.-u2)+k3sq*u3*(1.-u3) + 2.*u2*u3*k2xk3)**4/384. ) ")
 
 # TODO: e12-23-3-e- only for 1-4 loops
 model.feynman['e12-23-3-e-']=("eps=sympy.var('e')\n\
@@ -1579,18 +1633,19 @@ b=sympy.var('a_%s_v6'%parent_subgraph)\n\
 D=sympy.var('D')\n\
 B=sympy.var('B')\n\
 k2=sqmoment\n\
-u1=v1\nu2=(1-u1)*v2\n\
-u3=(1-u1-u2)*v3\n\
-u4=(1-u1-u2-u3)*v4\n\
-u5=1-u1-u2-u3-u4\n\
+u1=v1\n\
+u2=(1.-u1)*v2\n\
+u3=(1.-u1-u2)*v3\n\
+u4=(1.-u1-u2-u3)*v4\n\
+u5=1.-u1-u2-u3-u4\n\
 Det=(u1+b*b*u3+u4)*(u2+a**2*u3+u5)-a*a*b*b*u3**2\n\
-B_=( (a*a*u4+b*b*u5)*D - a*a*u4*u4*(u2+a*a*u3+u5) - b*b*u5*u5*(u1+b*b*u3+u4) - 2*a*a*b*b*u3*u4*u5 )\n\
-res = e*(0.5*sympy.log(D)/D**3 - 0.5*sympy.log(D + B*k2)/D**3 + 3*sympy.log(D)*sympy.log(D + B*k2)/(2*D**3) - \
-0.5*B*k2*sympy.log(D + B*k2)/D**4 + 3*B*k2*sympy.log(D)*sympy.log(D + B*k2)/(2*D**4) + 0.5*B*k2/D**4 - \
+B_=( (a*a*u4+b*b*u5)*D - a*a*u4*u4*(u2+a*a*u3+u5) - b*b*u5*u5*(u1+b*b*u3+u4) - 2.*a*a*b*b*u3*u4*u5 )\n\
+res = e*(0.5*sympy.log(D)/D**3 - 0.5*sympy.log(D + B*k2)/D**3 + 3.*sympy.log(D)*sympy.log(D + B*k2)/(2.*D**3) - \
+0.5*B*k2*sympy.log(D + B*k2)/D**4 + 3.*B*k2*sympy.log(D)*sympy.log(D + B*k2)/(2.*D**4) + 0.5*B*k2/D**4 - \
 0.5*sympy.log(D + B*k2)**2/D**3 - 1.*sympy.log(D)**2/D**3 - 0.5*B*k2*sympy.log(D + B*k2)**2/D**4 - \
-1.*B*k2*sympy.log(D)**2/D**4) + 1/D**3*sympy.log(D + B*k2) - 1.*sympy.log(D)/D**3 + B*k2*sympy.log(D + B*k2)/D**4 - \
+1.*B*k2*sympy.log(D)**2/D**4) + 1./D**3*sympy.log(D + B*k2) - 1.*sympy.log(D)/D**3 + B*k2*sympy.log(D + B*k2)/D**4 - \
 1.*B*k2*sympy.log(D)/D**4 - 1.*B*k2/D**4\n\
-res=(1-u1-u2-u3)*(1-u1-u2)*(1-u1)*res.subs(B,B_).subs(D,Det).subs(e,0).diff(a).diff(b)",
+res=(1.-u1-u2-u3)*(1.-u1-u2)*(1.-u1)*res.subs(B,B_).subs(D,Det).subs(e,0).diff(a).diff(b)",
                               "eps=sympy.var('e')\n\
 v1=sympy.var('a_%s_v1'%parent_subgraph)\n\
 v2=sympy.var('a_%s_v2'%parent_subgraph)\n\
@@ -1601,14 +1656,15 @@ b=sympy.var('a_%s_v6'%parent_subgraph)\n\
 D=sympy.var('D')\n\
 B=sympy.var('B')\n\
 k2=sqmoment\n\
-u1=v1\nu2=(1-u1)*v2\n\
-u3=(1-u1-u2)*v3\n\
-u4=(1-u1-u2-u3)*v4\n\
-u5=1-u1-u2-u3-u4\n\
+u1=v1\n\
+u2=(1.-u1)*v2\n\
+u3=(1.-u1-u2)*v3\n\
+u4=(1.-u1-u2-u3)*v4\n\
+u5=1.-u1-u2-u3-u4\n\
 Det=(u1+b*b*u3+u4)*(u2+a**2*u3+u5)-a*a*b*b*u3**2\n\
-B_=( (a*a*u4+b*b*u5)*D - a*a*u4*u4*(u2+a*a*u3+u5) - b*b*u5*u5*(u1+b*b*u3+u4) - 2*a*a*b*b*u3*u4*u5 )\n\
-res_t = e*(1.50000000000000*sympy.log(D)/D**3 - 1.50000000000000*sympy.log(D + B*k2)/D**3 + 3*sympy.log(D)*sympy.log(D + B*k2)/(2*D**3) - 1/D**3*sympy.log(D)**2 - sympy.log(D + B*k2)**2/(2*D**3)) + 1/D**3*sympy.log(D + B*k2) - 1/D**3*sympy.log(D)\n\
-res=(1-u1-u2-u3)*(1-u1-u2)*(1-u1)*u3*res_t.subs(B,B_).subs(D,Det).subs(a,1).subs(b,1)\n\
+B_=( (a*a*u4+b*b*u5)*D - a*a*u4*u4*(u2+a*a*u3+u5) - b*b*u5*u5*(u1+b*b*u3+u4) - 2.*a*a*b*b*u3*u4*u5 )\n\
+res_t = e*(1.50000000000000*sympy.log(D)/D**3 - 1.50000000000000*sympy.log(D + B*k2)/D**3 + 3.*sympy.log(D)*sympy.log(D + B*k2)/(2.*D**3) - 1/D**3*sympy.log(D)**2 - sympy.log(D + B*k2)**2/(2.*D**3)) + 1./D**3*sympy.log(D + B*k2) - 1./D**3*sympy.log(D)\n\
+res=(1.-u1-u2-u3)*(1.-u1-u2)*(1.-u1)*u3*res_t.subs(B,B_).subs(D,Det).subs(a,1.).subs(b,1.)\n\
 res=res+4*(1-u1-u2-u3)*(1-u1-u2)*(1-u1)*u1*res_t.subs(B,B_).subs(D,Det).subs(a,1).diff(b)")
 #model.feynman['e11-e-']=("eps=sympy.var('e')\nu=sympy.var('a_%s'%parent_subgraph)\nk2=sqmoment\nres=(-1)*(k2*u*(1-u)+(1+k2*u*(1-u))*sympy.ln(1+k2*u*(1-u))*(-1) )",
 #                         "eps=sympy.var('e')\nu=sympy.var('a_%s'%parent_subgraph)\nk2=sqmoment\nres=sympy.ln(1+k2*u*(1-u))")
