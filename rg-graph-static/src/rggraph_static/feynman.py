@@ -32,6 +32,7 @@ class feynman2_term:
         self.b=[B,]
         self.line_idx = [idxL,]
         
+        
     def append(self,C,B,idxL):
         if self.c == C:
             self.lambd += 1
@@ -68,6 +69,10 @@ class feynman2:
 more than one external atom: %s"%self.external_atoms_list
         
         self.terms=list()
+
+        phi2nodes = dict()
+        
+        
         
         for idxL in G.internal_lines:
             line = G.lines[idxL]
@@ -93,6 +98,8 @@ atom is not equal to +-1. momenta:%s , leading atom: %s"%(line.momenta.string,at
                     break
             if not found :
                 self.terms.append(feynman2_term(C,B,idxL))
+            
+            
         #for term in self.terms:
         #    print term.lambd, term.c, term.b, term.line_idx
     def alpha(self):
@@ -100,6 +107,12 @@ atom is not equal to +-1. momenta:%s , leading atom: %s"%(line.momenta.string,at
         for term in self.terms:
             res = res + term.lambd
         return res
+    
+    def SearchLine(self,idxL):
+        for term in self.terms:
+            if idxL in term.line_idx:
+                return (term.c,term.b[term.line_idx.index(idxL)])
+        return (None,None)
                 
 
 
