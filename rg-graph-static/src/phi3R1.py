@@ -1213,6 +1213,7 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
         diffs=[None,]
         extra_diff_multiplier = 1.
     elif N==2:
+# TODO: remove extra_diff_multiplier : not used        
         extra_diff_multiplier = 0.5
         ext_moment_atoms_str = FindExtMomentAtoms(G)
         if len(ext_moment_atoms_str)==1:
@@ -1225,15 +1226,6 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
                 print ext_moment_path
                 print
                 
-###            for idx in ext_moment_path:
-####                print idx,
-###                if idx[1]=="L":
-###                    obj = G.lines[idx[0]]
-###                elif idx[1]=="N":
-###                    obj = G.nodes[idx[0]]
-###                model.AddStrech(obj, ext_strech_var_str, ext_moment_atoms_str)
-####                print obj.strechs
-####                print
             diffs = [i for i in rggrf.utils.xSelections(ext_moment_path,N)]
                                     
         else:
@@ -1275,6 +1267,7 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
         (tau_pos,p1_pos,p2_pos)=search_diff_type(F)
         e=sympy.var('e')
         d=sympy.Number(float(F.graph.model.space_dim))-e
+        excluded_phi2_nodes=list()
 #треххвостки
         if p1_pos == None and p2_pos == None:
             cur_lambd=list()
@@ -1298,7 +1291,9 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
             
             res = res * F.detM**(-d/sympy.Number(2))
 # N4        
-        elif p1_pos == p2_pos and tau_pos == p1_pos :
+        elif (p1_pos == p2_pos and tau_pos == p1_pos and 
+              check_positions_type(p1_pos,p2_pos,["L","L"])):
+            #все дифференцирования на одну линию
             cur_lambd=list()
             cur_u=list()
             for term in F.terms:
@@ -1325,7 +1320,9 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
                    (sympy.Number(2)-sympy.Number(12)/d+sympy.Number(12)/d*
                    (1+F.n*e/sympy.Number(2))*cur_u[tau_pos[0]]/cur_lambd[tau_pos[0]]))
 #N3
-        elif p1_pos == p2_pos and tau_pos <> p1_pos :
+        elif (p1_pos == p2_pos and tau_pos <> p1_pos and 
+              check_positions_type(p1_pos,p2_pos,["L","L"])):
+            #тау на одну линию, оба p на другую линию
             cur_lambd=list()
             cur_u=list()
             for term in F.terms:
@@ -1355,7 +1352,8 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
                    (1+F.n*e/sympy.Number(2))*cur_u[p1_pos[0]]/cur_lambd[p1_pos[0]]))
             
 #N1 and N2
-        elif p1_pos <> p2_pos:
+        elif (p1_pos <> p2_pos and  
+              check_positions_type(p1_pos,p2_pos,["L","L"])):
             cur_lambd=list()
             cur_u=list()
             for term in F.terms:
@@ -1469,6 +1467,13 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
         
         
     return Kres
+
+def check_positions_type(pos1,pos2,pos_type):
+    # pos_type = ["L","L"]
+    if pos1[3]==pos_type[0] and pos2[3]==pos_type[1]:
+        return True
+    else:
+        return False
 
 def find_line_in_F(F,idxL):
     for term in F.terms:
