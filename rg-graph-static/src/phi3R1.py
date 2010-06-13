@@ -1322,7 +1322,7 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
                     lines=node.Lines()
                     phi2count = phi2count + 1                    
                     res = F.Wop(lines[0],lines[0],res)
-            res = res * (sympy.Number(-1))**(sympy.Number(phi2count))
+    
             for i in range(F.n):
                 for j in range(F.n):
                     res = res.subs(F.M_fake[i,j],F.M[i,j])
@@ -1361,7 +1361,6 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
                     res = F.Wop(lines[0],lines[0],res)
             
             res = (res )* (sympy.Number(2)-sympy.Number(12)/d+sympy.Number(12)/d*(sympy.Number(1)+F.n*e/sympy.Number(2))*cur_u[tau_pos[0]]/cur_lambd[tau_pos[0]])
-            res = res * (sympy.Number(-1))**(sympy.Number(phi2count))
             for i in range(F.n):
                 for j in range(F.n):
                     res = res.subs(F.M_fake[i,j],F.M[i,j])
@@ -1405,7 +1404,6 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
                     phi2count = phi2count + 1
                     res = F.Wop(lines[0],lines[0],res)
 
-            res = res * (sympy.Number(-1))**(sympy.Number(phi2count))
             for i in range(F.n):
                 for j in range(F.n):
                     res = res.subs(F.M_fake[i,j],F.M[i,j])
@@ -1463,7 +1461,7 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
                 print " t_Res=%s"%(res)
                 print "b1=%s,b2=%s"%(b1,b2)
 
-            res = res * (sympy.Number(-1))**(sympy.Number(phi2count+1))
+
 
             phi2count=0
             for idxN in t_G.internal_nodes:
@@ -1473,7 +1471,6 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
                     phi2count = phi2count + 1
                     res = F.Wop(lines[0],lines[0],res)
 
-            res = res * (sympy.Number(-1))**(sympy.Number(phi2count))
             for i in range(F.n):
                 for j in range(F.n):
                     res = res.subs(F.M_fake[i,j],F.M[i,j])
@@ -1502,7 +1499,7 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
                 print "cur_lambd = ",cur_lambd
 
             
-            res =  Gammas(F)* F.B(p1_pos)**2
+            res = - Gammas(F)* F.B(p1_pos)**2
             
             for idxT in range(len(F.terms)):
                 res = (res * cur_u[idxT]**(cur_lambd[idxT]-1)/
@@ -1518,7 +1515,7 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
                     phi2count = phi2count + 1
                     res = F.Wop(lines[0],lines[0],res)
 
-            res = res * (sympy.Number(-1))**(sympy.Number(phi2count))
+
             for i in range(F.n):
                 for j in range(F.n):
                     res = res.subs(F.M_fake[i,j],F.M[i,j])
@@ -1584,7 +1581,6 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
                     phi2count = phi2count + 1
                     res = F.Wop(lines[0],lines[0],res)
 
-            res = res * (sympy.Number(-1))**(sympy.Number(phi2count))
             for i in range(F.n):
                 for j in range(F.n):
                     res = res.subs(F.M_fake[i,j],F.M[i,j])

@@ -171,7 +171,7 @@ atom is not equal to +-1. momenta:%s , leading atom: %s"%(line.momenta.string,at
             for idx2 in range(self.n):
                 t_var = sympy.var('v_%s_%s'%(idx1,idx2))
                 res = res + cur_C1[idx1]*cur_C2[idx2]*expr.diff(t_var)
-        return res
+        return -res
     
     def B(self,pos):
         if len(self.terms[pos[0]].b[pos[1]])<>1:
