@@ -1192,6 +1192,7 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
         #print "Q=",Q
         
         M=sympy.matrices.Matrix(F_.n,F_.n, lambda i,j:0)
+        M_fake=sympy.matrices.Matrix(F_.n,F_.n, lambda i,j:0)
         A=sympy.matrices.Matrix([0 for i in range(F_.n)])
         C=Q
         for i in range(F_.n):
@@ -1199,6 +1200,8 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
             C=C.subs(qi,0)
             A[i] = Q.diff(qi)/sympy.Number(2)
             for j in range(F_.n):
+                t_var = sympy.var('v_%s_%s'%(i,j))
+                M_fake[i,j]=t_var
                 qj=sympy.var(F_.internal_atoms_list[j])
                 A[i]=A[i].subs(qj,0)
                 if i>=j:
@@ -1218,7 +1221,9 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
             M_cofactormatrix = sympy.matrices.Matrix([sympy.Number(1)])
         else:
             M_cofactormatrix = M.cofactorMatrix()
-        
+        F_.M=M
+        F_.M_fake=M_fake
+        F_.detM_fake = M_fake.det()
         F_.detM = M.det()
         F_.cofactorM = M_cofactormatrix
 #        print F_.detM
@@ -1308,7 +1313,7 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
                 res = (res * cur_u[idxT]**(cur_lambd[idxT]-1)/
                        sympy.factorial(cur_lambd[idxT]-1))
             
-            res = res * F.detM**(-d/sympy.Number(2))
+            res = res * F.detM_fake**(-d/sympy.Number(2))
             
             phi2count=0
             for idxN in t_G.internal_nodes:
@@ -1316,11 +1321,11 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
                 if node.type == 2 and idxN not in excluded_phi2_nodes:
                     lines=node.Lines()
                     phi2count = phi2count + 1                    
-                    extra = F.W(lines[0],lines[0])
-                    res = res * extra
-            res = res * F.detM**(-sympy.Number(phi2count))
-            for idx in range(phi2count):
-                res = res * (d/sympy.Number(2)+sympy.Number(idx))
+                    res = F.Wop(lines[0],lines[0],res)
+            res = res * (sympy.Number(-1))**(sympy.Number(phi2count))
+            for i in range(F.n):
+                for j in range(F.n):
+                    res = res.subs(F.M_fake[i,j],F.M[i,j])
                     
 # N4        
         elif (p1_pos == p2_pos and tau_pos == p1_pos and 
@@ -1340,31 +1345,26 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
                 print "cur_lambd = ",cur_lambd
                     
            
+            
+            res =  Gammas(F)* F.B(p1_pos)**2
+            for idxT in range(len(F.terms)):
+                res = (res * cur_u[idxT]**(cur_lambd[idxT]-1)/
+                       sympy.factorial(cur_lambd[idxT]-1))
+            
+            res = res * F.detM_fake**(-d/sympy.Number(2))
             phi2count=0
-            res=sympy.Number(1)
             for idxN in t_G.internal_nodes:
                 node = G.nodes[idxN]
                 if node.type == 2 and idxN not in excluded_phi2_nodes:
                     lines=node.Lines()
                     phi2count = phi2count + 1                    
-                    extra = F.W(lines[0],lines[0])
-                    res = res * extra
-            res = res * F.detM**(-sympy.Number(phi2count))
-            for idx in range(phi2count):
-                res = res * (d/sympy.Number(2)+sympy.Number(idx))
-
+                    res = F.Wop(lines[0],lines[0],res)
             
-            res =  res * Gammas(F)* F.B(p1_pos)**2
-            for idxT in range(len(F.terms)):
-                res = (res * cur_u[idxT]**(cur_lambd[idxT]-1)/
-                       sympy.factorial(cur_lambd[idxT]-1))
-            
-            
-            
-            
-            res = (res * F.detM**(-d/sympy.Number(2))* 
-                   (sympy.Number(2)-sympy.Number(12)/d+sympy.Number(12)/d*
-                   (sympy.Number(1)+F.n*e/sympy.Number(2))*cur_u[tau_pos[0]]/cur_lambd[tau_pos[0]]))
+            res = (res )* (sympy.Number(2)-sympy.Number(12)/d+sympy.Number(12)/d*(sympy.Number(1)+F.n*e/sympy.Number(2))*cur_u[tau_pos[0]]/cur_lambd[tau_pos[0]])
+            res = res * (sympy.Number(-1))**(sympy.Number(phi2count))
+            for i in range(F.n):
+                for j in range(F.n):
+                    res = res.subs(F.M_fake[i,j],F.M[i,j])
             
 #N3
         elif (p1_pos == p2_pos and tau_pos <> p1_pos and 
@@ -1385,30 +1385,31 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
             if debug:
                 print "cur_lambd = ",cur_lambd
 
-            phi2count=0
-            res=sympy.Number(1)
-            for idxN in t_G.internal_nodes:
-                node = G.nodes[idxN]
-                if node.type == 2 and idxN not in excluded_phi2_nodes:
-                    lines=node.Lines()
-                    phi2count = phi2count + 1                    
-                    extra = F.W(lines[0],lines[0])
-                    res = res * extra
-            res = res * F.detM**(-sympy.Number(phi2count))
-            for idx in range(phi2count):
-                res = res * (d/sympy.Number(2)+sympy.Number(idx))
-
-   
+               
             
-            res = - res * Gammas(F)* F.B(p1_pos)**2
+            res = - Gammas(F)* F.B(p1_pos)**2
             
             for idxT in range(len(F.terms)):
                 res = (res * cur_u[idxT]**(cur_lambd[idxT]-1)/
                        sympy.factorial(cur_lambd[idxT]-1))
             
-            res = (res * F.detM**(-d/sympy.Number(2))* 
+            res = (res * F.detM_fake**(-d/sympy.Number(2))* 
                    (-sympy.Number(1)+sympy.Number(4)/d-sympy.Number(4)/d*
                    (sympy.Number(1)+ F.n*e/sympy.Number(2))*cur_u[p1_pos[0]]/cur_lambd[p1_pos[0]]))
+
+            phi2count=0
+            for idxN in t_G.internal_nodes:
+                node = G.nodes[idxN]
+                if node.type == 2 and idxN not in excluded_phi2_nodes:
+                    lines=node.Lines()
+                    phi2count = phi2count + 1
+                    res = F.Wop(lines[0],lines[0],res)
+
+            res = res * (sympy.Number(-1))**(sympy.Number(phi2count))
+            for i in range(F.n):
+                for j in range(F.n):
+                    res = res.subs(F.M_fake[i,j],F.M[i,j])
+            
             
 #N1 and N2
         elif (p1_pos <> p2_pos and  
@@ -1434,23 +1435,11 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
             b1=F.B(p1_pos)
             b2=F.B(p2_pos)
             
-            phi2count=0
-            res=sympy.Number(1)
-            for idxN in t_G.internal_nodes:
-                node = G.nodes[idxN]
-                if node.type == 2 and idxN not in excluded_phi2_nodes:
-                    lines=node.Lines()
-                    phi2count = phi2count + 1                    
-                    extra = F.W(lines[0],lines[0])
-                    res = res * extra
-            res = res * F.detM**(-sympy.Number(phi2count))
-            for idx in range(phi2count+1):
-                res = res * (d/sympy.Number(2)+sympy.Number(idx))
             if debug:
                 print "phi2count=%s. t_Res=%s"%(phi2count,res)
 
 
-            res = - res * Gammas(F)*sympy.Number(2)/d
+            res = - Gammas(F)*sympy.Number(2)/d
             if debug:
                 print " t_Res=%s"%(res)
 #мы различаем производные 4 7 и 7 4
@@ -1464,16 +1453,32 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
                 print " t_Res=%s"%(res)
 
             
-            res = res * F.detM**(-(d+sympy.Number(2))/sympy.Number(2))
+            res = res * F.detM_fake**(-d/sympy.Number(2))
             
-            extra=0
             if debug:
                 print " t_Res=%s"%(res)
-            extra = extra + F.W(p1_pos,p2_pos)
-            res = res * extra*b1*b2
+            res = b1*b2*F.Wop(p1_pos,p2_pos,res)
+            
             if debug:
                 print " t_Res=%s"%(res)
-                print "extra=%s,b1=%s,b2=%s"%(extra,b1,b2)
+                print "b1=%s,b2=%s"%(b1,b2)
+
+            res = res * (sympy.Number(-1))**(sympy.Number(phi2count+1))
+
+            phi2count=0
+            for idxN in t_G.internal_nodes:
+                node = G.nodes[idxN]
+                if node.type == 2 and idxN not in excluded_phi2_nodes:
+                    lines=node.Lines()
+                    phi2count = phi2count + 1
+                    res = F.Wop(lines[0],lines[0],res)
+
+            res = res * (sympy.Number(-1))**(sympy.Number(phi2count))
+            for i in range(F.n):
+                for j in range(F.n):
+                    res = res.subs(F.M_fake[i,j],F.M[i,j])
+
+
 #N2:
             if tau_pos == p1_pos or tau_pos == p2_pos:
                 res = res * sympy.Number(2)
@@ -1496,29 +1501,28 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
             if debug:
                 print "cur_lambd = ",cur_lambd
 
-            phi2count=0
-            res=sympy.Number(1)
-            for idxN in t_G.internal_nodes:
-                node = G.nodes[idxN]
-                if node.type == 2 and idxN not in excluded_phi2_nodes:
-                    lines=node.Lines()
-                    phi2count = phi2count + 1                    
-                    extra = F.W(lines[0],lines[0])
-                    res = res * extra
-                    
-            res = res * F.detM**(-sympy.Number(phi2count))
-            for idx in range(phi2count):
-                res = res * (d/sympy.Number(2)+sympy.Number(idx))
-
-   
             
-            res = - res * Gammas(F)* F.B(p1_pos)**2
+            res =  Gammas(F)* F.B(p1_pos)**2
             
             for idxT in range(len(F.terms)):
                 res = (res * cur_u[idxT]**(cur_lambd[idxT]-1)/
                        sympy.factorial(cur_lambd[idxT]-1))
             
-            res = (res * F.detM**(-d/sympy.Number(2)))            
+            res = (res * F.detM_fake**(-d/sympy.Number(2)))
+            
+            phi2count=0
+            for idxN in t_G.internal_nodes:
+                node = G.nodes[idxN]
+                if node.type == 2 and idxN not in excluded_phi2_nodes:
+                    lines=node.Lines()
+                    phi2count = phi2count + 1
+                    res = F.Wop(lines[0],lines[0],res)
+
+            res = res * (sympy.Number(-1))**(sympy.Number(phi2count))
+            for i in range(F.n):
+                for j in range(F.n):
+                    res = res.subs(F.M_fake[i,j],F.M[i,j])
+            
 #N6 N7:
         elif (check_positions_type(p1_pos,p2_pos,["L","N"])   
               or check_positions_type(p1_pos,p2_pos,["N","L"])):
@@ -1543,23 +1547,11 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
             b1=F.B(p1_pos)
             b2=F.B(p2_pos)
             
-            phi2count=0
-            res=sympy.Number(1)
-            for idxN in t_G.internal_nodes:
-                node = G.nodes[idxN]
-                if node.type == 2 and idxN not in excluded_phi2_nodes:
-                    lines=node.Lines()
-                    phi2count = phi2count + 1                    
-                    extra = F.W(lines[0],lines[0])
-                    res = res * extra
-            res = res * F.detM**(-sympy.Number(phi2count))
-            for idx in range(phi2count+1):
-                res = res * (d/sympy.Number(2)+sympy.Number(idx))
             if debug:
                 print "phi2count=%s. t_Res=%s"%(phi2count,res)
 
 
-            res = res * Gammas(F)*sympy.Number(2)/d
+            res =  Gammas(F)*sympy.Number(2)/d
             if debug:
                 print " t_Res=%s"%(res)
 #мы различаем производные 4 7 и 7 4
@@ -1573,15 +1565,30 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
                 print " t_Res=%s"%(res)
 
             
-            res = res * F.detM**(-(d+sympy.Number(2))/sympy.Number(2))
+            res = res * F.detM_fake**(-d/sympy.Number(2))
             
             if debug:
                 print " t_Res=%s"%(res)
-            extra = F.W(p1_pos,p2_pos)
-            res = res * extra*b1*b2
+            res = F.Wop(p1_pos,p2_pos,res)*b1*b2
+            
             if debug:
                 print " t_Res=%s"%(res)
-                print "extra=%s,b1=%s,b2=%s"%(extra,b1,b2)
+                print "b1=%s,b2=%s"%(b1,b2)
+
+
+            phi2count=0
+            for idxN in t_G.internal_nodes:
+                node = G.nodes[idxN]
+                if node.type == 2 and idxN not in excluded_phi2_nodes:
+                    lines=node.Lines()
+                    phi2count = phi2count + 1
+                    res = F.Wop(lines[0],lines[0],res)
+
+            res = res * (sympy.Number(-1))**(sympy.Number(phi2count))
+            for i in range(F.n):
+                for j in range(F.n):
+                    res = res.subs(F.M_fake[i,j],F.M[i,j])
+
             
             if tau_pos == p1_pos:
                 res = res * sympy.Number(2)

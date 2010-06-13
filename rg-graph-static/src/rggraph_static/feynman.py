@@ -8,6 +8,7 @@ Created on Apr 19, 2010
 '''
 import utils
 import re
+import sympy
 
 def atom_coeffs(momenta,internal_atoms_list, external_atoms_list):
     C=list()
@@ -140,6 +141,36 @@ atom is not equal to +-1. momenta:%s , leading atom: %s"%(line.momenta.string,at
         for idx1 in range(self.n):
             for idx2 in range(self.n):
                 res = res + cur_C1[idx1]*cur_C2[idx2]*self.cofactorM[idx1,idx2]
+        return res
+
+    def Wop(self,idxL1,idxL2,expr):
+        """ idxL1,idxL2 may be  line indexes in graph or positions in feynman representation 
+        """
+        if isinstance(idxL1,int): 
+            (cur_C1,cur_B1) = self.SearchLine(idxL1)
+        elif isinstance(idxL1,tuple) and len(idxL1)==3:
+            cur_C1 = self.terms[idxL1[0]].c
+            cur_B1 = self.terms[idxL1[0]].b[idxL1[1]]
+        else:
+            raise NotImplementedError, "unknown 1st argument :%s"%idxL1
+
+        if isinstance(idxL2,int): 
+            (cur_C2,cur_B2) = self.SearchLine(idxL2)
+        elif isinstance(idxL2,tuple) and len(idxL2)==3:
+            cur_C2 = self.terms[idxL2[0]].c
+            cur_B2 = self.terms[idxL2[0]].b[idxL2[1]]
+        else:
+            raise NotImplementedError, "unknown 2nd argument :%s"%idxL2
+                
+        res = 0.
+        
+        #print cur_C1,cur_C2
+        #print self.cofactorM
+        
+        for idx1 in range(self.n):
+            for idx2 in range(self.n):
+                t_var = sympy.var('v_%s_%s'%(idx1,idx2))
+                res = res + cur_C1[idx1]*cur_C2[idx2]*expr.diff(t_var)
         return res
     
     def B(self,pos):
