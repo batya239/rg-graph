@@ -476,14 +476,20 @@ def K_nR1(G, N, Kres=dict(), debug=False):
             
             diffs=[]
                 
-            for subgrpah in subgraphs:
+            for subgraph in subgraphs:
 #            if len(subgraphs)>0:
 #                stop = False
- #               subgraph = subgraphs[0] 
+ #               subgraph = subgraphs[0]
+#                if debug:
+#                    print 
+#                    print "serial:", graph_serialize(cur_G)                        
+ 
                 sub_ext_atoms_str = FindExtMomentAtoms(subgraph)
                 strech_var_str = "a"
                 int_lines = list(subgraph.internal_lines)
                 int_lines.sort()
+#                if debug:
+#                    print int_lines
                 for idxL in int_lines:
                     strech_var_str = strech_var_str + "_%s"%idxL
                 sub_ext_path = [(i[0],i[1],strech_var_str) for i in FindExtMomentPath(subgraph, sub_ext_atoms_str)]

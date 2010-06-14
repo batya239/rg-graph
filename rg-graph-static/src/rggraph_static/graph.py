@@ -302,18 +302,25 @@ class Graph:
             model, type and lines information printed
         """
         res="Model = %s , Type = %s \n Lines: {" %(self.model.name, self.type)
+        dots=dict()
+        diffs=dict()
         for idxL in self.lines:
             extra = ""
             if "strechs" in self.lines[idxL].__dict__:
                 extra = extra + "(strechs: %s)"%self.lines[idxL].strechs
             if "dots" in self.lines[idxL].__dict__:
                 extra = extra + "(dots: %s)"%self.lines[idxL].dots
+                if len(self.lines[idxL].dots)>0:
+                    dots[idxL]=self.lines[idxL].dots
             if "diffs" in self.lines[idxL].__dict__:
                 extra = extra + "(diffs: %s)"%self.lines[idxL].diffs
+                if len(self.lines[idxL].diffs)>0:
+                    diffs[idxL]=self.lines[idxL].diffs
+
              
             res=res+" %s: [%s, %s] %s," %(idxL, self.lines[idxL].start, 
                                        self.lines[idxL].end, extra)
-        res=res[:-1]+ "}\n"
+        res=res[:-1]+ "}\ndots=%s diffs=%s\n"%(dots,diffs)
         return res
         
     def AddLine(self, idx, line):
