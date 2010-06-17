@@ -697,14 +697,16 @@ def StrechAllSubgraphsF2(G):
                 elif idx[1]=="N":
                     obj = cur_G.nodes[idx[0]]
                 model.AddStrech(obj, strech_var_str, sub_ext_atoms_str)
-            if sub.type == 2:
+                
+            degree = subgraph_dim_with_diff(cur_G, sub)
+            if sub.type == 2 and degree == 2:
                 cur_G.s_type[strech_var_str]= 2
-                cur_G.s_degree[strech_var_str] = subgraph_dim_with_diff(cur_G, sub)/sympy.Number(2) + 1
-            elif sub.type == 1:
+                cur_G.s_degree[strech_var_str] = 2
+            elif degree <= 1 and degree >= 0:
                 cur_G.s_type[strech_var_str]= 1
-                cur_G.s_degree[strech_var_str] = subgraph_dim_with_diff(cur_G, sub) + 1
+                cur_G.s_degree[strech_var_str] =  degree + 1
             else: 
-                raise ValueError, "invalid subgraph type (%s)"%sub.type
+                raise ValueError, "invalid subgraph type (%s) and degree (%s)"%(sub.type,degree)
         
     return cur_G
 
