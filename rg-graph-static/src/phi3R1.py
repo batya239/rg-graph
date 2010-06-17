@@ -1120,14 +1120,14 @@ def strech_B_C(F):
                                 C[idxM] = (C[idxM]*(sympy.var(strech))**
                                             (sympy.Number(1)/sympy.Number(2)))
 
-                                
-                        if moment in F.external_atoms_list:
-                            idxM = F.external_atoms_list.index(moment)
-                            if F.graph.s_type[strech] == 1:
-                                B[idx][idxM] = B[idx][idxM]*sympy.var(strech)
-                            if F.graph.s_type[strech] == 2:
-                                B[idx][idxM] = (B[idx][idxM]*(sympy.var(strech))**
-                                            (sympy.Number(1)/sympy.Number(2)))
+#there is no need to strech B in this scheme                                
+#                        if moment in F.external_atoms_list:
+#                            idxM = F.external_atoms_list.index(moment)
+#                            if F.graph.s_type[strech] == 1:
+#                                B[idx][idxM] = B[idx][idxM]*sympy.var(strech)
+#                            if F.graph.s_type[strech] == 2:
+#                                B[idx][idxM] = (B[idx][idxM]*(sympy.var(strech))**
+#                                            (sympy.Number(1)/sympy.Number(2)))
 
                 
 
@@ -1440,7 +1440,7 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
             b2=F.B(p2_pos)
             
             if debug:
-                print "phi2count=%s. t_Res=%s"%(phi2count,res)
+                print "phi2count=%s"%phi2count
 
 
             res = - Gammas(F)*sympy.Number(2)/d
@@ -1833,7 +1833,7 @@ model.LoadResults = rggrf.storage.filesystem.LoadResults
 model.GetGraphList = rggrf.storage.filesystem.GetGraphList
 model.WorkDir = rggrf.storage.filesystem.ChangeToWorkDir
 
-model.target = 4
+model.target = 3
 
 model.feynman = dict()
 #eps=sympy.var('eps')
