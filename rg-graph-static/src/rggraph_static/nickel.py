@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding:utf8
 
-from utils import xCombinations, xPermutations 
+from comb import xCombinations, xPermutations
 
 class Nickel(object):
     """Class to generate Nickel-like graph notations.

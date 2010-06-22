@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
 import nickel
-import utils
 import unittest
 
 #TODO: Exclude generator tests from nickel tests
@@ -141,25 +140,6 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(nickel.AdjacentNodes(1, [[1, 0], [0, 2], [2,1]]),
                          [0, 2])
         self.assertEqual(nickel.AdjacentNodes(0, [[-1, 0]]), [-1])
-
-    def testCombinations(self):
-        xcomb = utils.xCombinations
-        self.assertEqual(list(xcomb([1, 2, 3], 4)), [])
-        self.assertEqual(list(xcomb(('1', 2), 1)), [('1',), (2,)])
-        self.assertEqual(list(xcomb([1, 2, 3], 2)),
-                         [[1, 2], [1, 3], [2, 1], [2, 3], [3, 1], [3, 2]])
-
-    def testPermutations(self):
-        xperm = utils.xPermutations
-        self.assertEqual(list(xperm([])), [[]])
-        self.assertEqual(list(xperm(('1',))), [('1',)])
-        self.assertEqual(list(xperm('ab')), ['ab', 'ba'])
-        perm3 = [[1, 2, 3], [1, 3, 2],
-                 [2, 1, 3], [2, 3, 1],
-                 [3, 1, 2], [3, 2, 1]]
-        self.assertEqual(list(xperm([1, 2, 3])), perm3)
-        for p in xperm([1, 2, 3]):
-            self.assertEqual(p, perm3.pop(0))
 
     def testIsConnected(self):
         conn = nickel.IsConnected
