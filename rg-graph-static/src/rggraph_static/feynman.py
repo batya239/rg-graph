@@ -174,10 +174,17 @@ atom is not equal to +-1. momenta:%s , leading atom: %s"%(line.momenta.string,at
         return -res
     
     def B(self,pos):
+        if pos == None: 
+            return None
         if len(self.terms[pos[0]].b[pos[1]])<>1:
             raise NotImplementedError, "composite external moment not implemented"            
         return self.terms[pos[0]].b[pos[1]][0]
-
+    
+    def C(self,pos):
+        if pos == None:
+            return None
+        return self.terms[pos[0]].c
+    
                 
 
 

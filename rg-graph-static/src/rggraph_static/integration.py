@@ -1187,7 +1187,7 @@ def GenerateMCCodeForFeynman(name, expr_lst, space_dim, n_epsilon_series,
 #    print len(prepared_eqs)
 #    print [expr_by_eps[i] for i in expr_by_eps]
 #    print
-        
+    print len(expr_by_eps), n_epsilon_series        
     if progress <> None:
         step2 = float(maxprogress)/2/len(expr_by_eps)           
     for idxE in expr_by_eps:

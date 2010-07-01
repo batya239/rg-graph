@@ -1294,10 +1294,21 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
             for term in F.terms:
                 print F.terms.index(term), term.lambd, term.c, term.b, term.line_idx
             print
+        (tau_pos,p1_pos,p2_pos,excluded_phi2_nodes)=search_diff_type(F)
+        term_key = str(tuple([term.lambd for term in F.terms])) + " " + str(diff_type_n(F,tau_pos,p1_pos,p2_pos))
+        if debug:
+            print "key = ", term_key
+#        print
+#        print tuple([term.lambd for term in F.terms]), 
+#        print F.C(tau_pos), [(F.B(pos),F.C(pos)) for pos in [p1_pos,p2_pos]], 
+#        print (tau_pos,p1_pos,p2_pos)
+#        print diff_type_n(F,tau_pos,p1_pos,p2_pos)
+#        print 
+        
         QForm(F)
         
         
-        (tau_pos,p1_pos,p2_pos,excluded_phi2_nodes)=search_diff_type(F)
+        
         e=sympy.var('e')
         d=sympy.Number(float(F.graph.model.space_dim))-e
 #треххвостки
@@ -1418,7 +1429,7 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
             
             
 #N1 and N2
-        elif (p1_pos <> p2_pos and  
+        elif (p1_pos <> p2_pos and 
               check_positions_type(p1_pos,p2_pos,["L","L"])):
             cur_lambd=list()
             cur_u=list()
@@ -1648,8 +1659,11 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
         res =  res*w_det        
         
 #------------------        
-        key = len(Kres.keys())
-        Kres[key] = (res,1)
+#        key = len(Kres.keys())
+        if term_key in Kres.keys():
+            Kres[term_key] = (Kres[term_key][0], Kres[term_key][1] + 1)
+        else:
+            Kres[term_key] = (res,1)
 #        print Kres
         if debug: 
             print "======================"
@@ -1660,6 +1674,47 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
         
         
     return Kres
+
+def diff_type_n(F, tau_pos,p1_pos,p2_pos):
+    p_pos=[(F.C(p1_pos),F.B(p1_pos)),(F.C(p2_pos),F.B(p2_pos))]
+    if p1_pos == None and p2_pos ==None:
+        return (0, F.C(tau_pos), [None, None])
+    elif (p1_pos == p2_pos and tau_pos == p1_pos and 
+              check_positions_type(p1_pos,p2_pos,["L","L"])):
+        p_pos.sort()
+        return (4,  F.C(tau_pos), p_pos)
+    elif (p1_pos == p2_pos and tau_pos <> p1_pos and 
+              check_positions_type(p1_pos,p2_pos,["L","L"])):
+        p_pos.sort()
+        return (3,  F.C(tau_pos), p_pos)
+    elif (p1_pos <> p2_pos and 
+              check_positions_type(p1_pos,p2_pos,["L","L"])):
+        if tau_pos == p1_pos: 
+            return (2,  F.C(tau_pos), p_pos)
+        elif tau_pos == p2_pos:
+            p_pos.reverse()
+            return (2,  F.C(tau_pos), p_pos)
+            
+        else:
+            p_pos.sort()
+            return (1,  F.C(tau_pos), p_pos)
+#N5:    
+    elif (p1_pos == p2_pos and p1_pos <> tau_pos
+            and   check_positions_type(p1_pos,p2_pos,["N","N"])):
+        return (5,  F.C(tau_pos), p_pos)
+    elif (check_positions_type(p1_pos,p2_pos,["L","N"])   
+            or check_positions_type(p1_pos,p2_pos,["N","L"])):
+        if check_positions_type(p1_pos,p2_pos,["N","L"]):
+            (p1_pos,p2_pos) = (p2_pos,p1_pos)
+            p_pos.reverse()
+        if tau_pos == p1_pos:
+            return (7,  F.C(tau_pos), p_pos)
+        else:
+            return (6,  F.C(tau_pos), p_pos)
+    else:
+        return NotImplementedError, "unknown position type %s,%s,%s"%(tau_pos,p1_pos,p2_pos) 
+        
+     
 
 def check_positions_type(pos1,pos2,pos_type):
     # pos_type = ["L","L"]
@@ -1926,7 +1981,7 @@ def MCT_SV(G, debug=False):
     Kres = L_dot(G,progress=(bar,25),debug=debug)
     progress=bar.currval
     step = 25./len(Kres)
-    for idxK22 in range(len(Kres)):
+    for idxK2 in range(len(Kres)):
             kterm = Kres[idxK2]  
             s_prep =   ExpandScalarProdsAndPrepareFactorized(kterm,debug)
             rggrf.utils.print_debug( "--------- %s --------- " %(idxK2), debug)
@@ -2438,6 +2493,9 @@ def MCOF_2(G, debug=False):
                                            progressbar.ETA()]).start()
                                                
     Kres = L_dot_feynman2(G,progress=(bar,33),debug=debug)
+    print
+    print len(Kres)
+    print
     
     progress=bar.currval
                    
