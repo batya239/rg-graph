@@ -13,9 +13,9 @@ class Nickel(object):
     >>> n.string
     'e1-e-'
     """
+    node_to_char = {-2: '-', -1: 'e', 10: 'A', 11: 'B', 12: 'C', 13: 'D',
+                    14: 'E', 15: 'F'}
     def __init__(self, edges=None, nickel=None, string=None):
-        self.node_to_char = {-2: '-', -1: 'e', 10: 'A', 11: 'B', 12: 'C',
-            13: 'D', 14: 'E', 15: 'F'}
         self.edges = edges
         self.nickel = nickel
         self.string = string
@@ -63,12 +63,12 @@ class Nickel(object):
     def StringFromNickel(self, nickel):
         temp = [nn + [-2] for nn in nickel]
         temp = sum(temp, [])
-        temp = [str(self.node_to_char.get(n, n)) for n in temp]
+        temp = [str(Nickel.node_to_char.get(n, n)) for n in temp]
         return ''.join(temp)
 
     def NickelFromString(self, string):
-        char_to_node = dict(zip(self.node_to_char.values(),
-                                self.node_to_char.keys()))
+        char_to_node = dict(zip(Nickel.node_to_char.values(),
+                                Nickel.node_to_char.keys()))
         flat_nickel = [int(char_to_node.get(c, c)) for c in string]
         nickel = []
         accum = []
@@ -129,13 +129,14 @@ class Canonicalize(object):
         is_valid = self.nickel == max(nickels)
         self.is_valid = is_valid and (len(sum(self.nickel, [])) ==
                                       len(self.edges))
-        # Shift back original nodes.
+
+        # Shift back to original nodes.
         self.node_maps = []
         for state in self.curr_states:
-            curr_node_map = {}
+            node_map = {}
             for key, value in state.node_map.items():
-                curr_node_map[key - self.offset] = value
-            self.node_maps.append(curr_node_map)
+                node_map[key - self.offset] = value
+            self.node_maps.append(node_map)
 
     def __str__(self):
         return Nickel(nickel=self.nickel).string
@@ -154,6 +155,40 @@ class Canonicalize(object):
         states = sum(states, [])
         minimum = min(states)
         return [s for s in states if s == minimum]
+
+    def GetGroupedEdges(self):
+        permuts = PermutatedFromCanonical(self.node_maps)
+        equal_graphs = [MapNodes2(permut, self.orig) for permut in permuts]
+        equal_edges = zip(*equal_graphs)
+        equal_edges = map(list, equal_edges)
+        equal_edges = map(lambda x: sorted(x), equal_edges)
+        Dedup(equal_edges)
+        groups = [[] for _ in range(len(equal_edges))]
+        for e in self.orig:
+            for i in range(len(equal_edges)):
+                if sorted(e) in equal_edges[i]:
+                    groups[i].append(e)
+        return groups
+
+
+def PermutatedFromCanonical(list_of_dicts):
+    dic = list_of_dicts[0]
+    back_dic = dict(zip(dic.values(), dic.keys()))
+    permutations = []
+    for d in list_of_dicts:
+      permutation = dict(zip(d.keys(), [back_dic[v] for v in d.values()]))
+      permutations.append(permutation)
+    return permutations
+
+
+def Dedup(mylist):
+    mylist.sort()
+    last = mylist[-1]
+    for i in range(len(mylist) - 2, -1, -1):
+        if last == mylist[i]:
+            del mylist[i]
+        else:
+            last = mylist[i]
 
 
 class Expander(object):
@@ -182,7 +217,6 @@ class Expander(object):
         for perm in xPermutations(free_nodes):
             node_map = dict(zip(new_nodes, perm))
             expanded_nodes = MapNodes1(node_map, nodes)
-            expanded_nodes.sort()
             edges = MapNodes2(node_map, edge_rest)
             node_map.update(self.node_map)
             yield Expander(edges, self.nickel_list + [expanded_nodes],
@@ -214,13 +248,12 @@ def IsConnected(edges):
         return visited == set(sum(edges, []))
 
 
+def MapNodes1(dic, list_of_nodes):
+    return sorted([dic.get(n, n) for n in list_of_nodes])
 
-def MapNodes1(dict, list_of_nodes):
-    return [dict.get(n, n) for n in list_of_nodes]
 
-
-def MapNodes2(dict, list_of_lists):
-    return [MapNodes1(dict, x) for x in list_of_lists]
+def MapNodes2(dic, list_of_lists):
+    return [MapNodes1(dic, x) for x in list_of_lists]
 
 
 if __name__ == "__main__":

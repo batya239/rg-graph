@@ -99,6 +99,30 @@ class TestCanonicalize(unittest.TestCase):
         self.assertTrue(c.is_valid)
 
 
+class TestGetGroupedEdges(unittest.TestCase):
+    def testPermutatedFromCanonical(self):
+        perm = nickel.PermutatedFromCanonical([{1: 'a', 2: 'b'},
+                                               {1: 'b', 2: 'a'}])
+        self.assertEqual(perm, [{1: 1, 2: 2}, {1: 2, 2: 1}])
+
+    def test1(self):
+        c = nickel.Canonicalize([[-1, 1], [1, 2], [2, -1]])
+        self.assertEqual(c.GetGroupedEdges(),
+                         [[[-1, 1], [2, -1]], [[1, 2]]])
+
+    def test2(self):
+      c = nickel.Canonicalize([[-1, 1], [1, 2], [1, 2], [2, -1]])
+      self.assertEqual(c.GetGroupedEdges(),
+                       [[[-1, 1], [2, -1]], [[1, 2], [1, 2]]])
+
+    def test3(self):
+      c = nickel.Canonicalize([[-1, 1], [1, 2], [1, 3], [2, 3],
+                               [2, 4], [3, 4], [4, -1]])
+      self.assertEqual(sorted(c.GetGroupedEdges()),
+                       sorted([[[-1, 1], [4, -1]], [[2, 3]],
+                               [[1, 2], [1, 3], [2, 4], [3, 4]]]))
+
+
 class TestExpander(unittest.TestCase):
     def compareExpanders(self, l, r):
         self.assertEqual(l.curr_node, r.curr_node)
