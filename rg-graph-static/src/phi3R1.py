@@ -1100,7 +1100,9 @@ def L_dot_feynman2(G, progress=None,debug=False):
     res=list()
     for key in Kres.keys():
         (t_res,t_cnt) = Kres[key]
-        res.append(t_res*t_cnt)        
+        res.append(t_res*t_cnt)
+        if debug:
+            print len(res)-1, " ", key        
     return res
 
 def strech_B_C(F):
@@ -1304,366 +1306,366 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
 #        print (tau_pos,p1_pos,p2_pos)
 #        print diff_type_n(F,tau_pos,p1_pos,p2_pos)
 #        print 
-        
-        QForm(F)
-        
-        
-        
-        e=sympy.var('e')
-        d=sympy.Number(float(F.graph.model.space_dim))-e
-#треххвостки
-        if p1_pos == None and p2_pos == None:
-            cur_lambd=list()
-            cur_u=list()
-            for term in F.terms:
-                idxT = F.terms.index(term)
-                cur_u.append(term.u)
-                c_lambd=term.lambd
-                if idxT == tau_pos[0]:
-                    c_lambd=c_lambd+1
-                
-                cur_lambd.append(c_lambd)
-
-            res = - Gammas(F)
-            if debug:
-                print "cur_lambd = ",cur_lambd
-            #print "Gammas=",Gammas(F)
-            for idxT in range(len(F.terms)):
-                res = (res * cur_u[idxT]**(cur_lambd[idxT]-1)/
-                       sympy.factorial(cur_lambd[idxT]-1))
+        if term_key not in Kres.keys():
+            QForm(F)
             
-            res = res * F.detM_fake**(-d/sympy.Number(2))
             
-            phi2count=0
-            for idxN in t_G.internal_nodes:
-                node = G.nodes[idxN]
-                if node.type == 2 and idxN not in excluded_phi2_nodes:
-                    lines=node.Lines()
-                    phi2count = phi2count + 1                    
-                    res = F.Wop(lines[0],lines[0],res)
+            
+            e=sympy.var('e')
+            d=sympy.Number(float(F.graph.model.space_dim))-e
+    #треххвостки
+            if p1_pos == None and p2_pos == None:
+                cur_lambd=list()
+                cur_u=list()
+                for term in F.terms:
+                    idxT = F.terms.index(term)
+                    cur_u.append(term.u)
+                    c_lambd=term.lambd
+                    if idxT == tau_pos[0]:
+                        c_lambd=c_lambd+1
+                    
+                    cur_lambd.append(c_lambd)
     
-            for i in range(F.n):
-                for j in range(F.n):
-                    res = res.subs(F.M_fake[i,j],F.M[i,j])
-                    
-# N4        
-        elif (p1_pos == p2_pos and tau_pos == p1_pos and 
-              check_positions_type(p1_pos,p2_pos,["L","L"])):
-            #все дифференцирования на одну линию
-            cur_lambd=list()
-            cur_u=list()
-            for term in F.terms:
-                idxT = F.terms.index(term)
-                cur_u.append(term.u)
-                c_lambd=term.lambd
-                if idxT == tau_pos[0]:
-                    c_lambd=c_lambd+2
+                res = - Gammas(F)
+                if debug:
+                    print "cur_lambd = ",cur_lambd
+                #print "Gammas=",Gammas(F)
+                for idxT in range(len(F.terms)):
+                    res = (res * cur_u[idxT]**(cur_lambd[idxT]-1)/
+                           sympy.factorial(cur_lambd[idxT]-1))
                 
-                cur_lambd.append(c_lambd)
-            if debug:
-                print "cur_lambd = ",cur_lambd
-                    
-           
-            
-            res =  Gammas(F)* F.B(p1_pos)**2
-            for idxT in range(len(F.terms)):
-                res = (res * cur_u[idxT]**(cur_lambd[idxT]-1)/
-                       sympy.factorial(cur_lambd[idxT]-1))
-            
-            res = res * F.detM_fake**(-d/sympy.Number(2))
-            phi2count=0
-            for idxN in t_G.internal_nodes:
-                node = G.nodes[idxN]
-                if node.type == 2 and idxN not in excluded_phi2_nodes:
-                    lines=node.Lines()
-                    phi2count = phi2count + 1                    
-                    res = F.Wop(lines[0],lines[0],res)
-            
-            res = (res )* (sympy.Number(2)-sympy.Number(12)/d+sympy.Number(12)/d*(sympy.Number(1)+F.n*e/sympy.Number(2))*cur_u[tau_pos[0]]/cur_lambd[tau_pos[0]])
-            for i in range(F.n):
-                for j in range(F.n):
-                    res = res.subs(F.M_fake[i,j],F.M[i,j])
-            
-#N3
-        elif (p1_pos == p2_pos and tau_pos <> p1_pos and 
-              check_positions_type(p1_pos,p2_pos,["L","L"])):
-            #тау на одну линию, оба p на другую линию
-            cur_lambd=list()
-            cur_u=list()
-            for term in F.terms:
-                idxT = F.terms.index(term)
-                cur_u.append(term.u)
-                c_lambd=term.lambd
-                if idxT == tau_pos[0]:
-                    c_lambd=c_lambd+1
-                if idxT == p1_pos[0]:
-                    c_lambd=c_lambd+1
+                res = res * F.detM_fake**(-d/sympy.Number(2))
                 
-                cur_lambd.append(c_lambd)
-            if debug:
-                print "cur_lambd = ",cur_lambd
-
+                phi2count=0
+                for idxN in t_G.internal_nodes:
+                    node = G.nodes[idxN]
+                    if node.type == 2 and idxN not in excluded_phi2_nodes:
+                        lines=node.Lines()
+                        phi2count = phi2count + 1                    
+                        res = F.Wop(lines[0],lines[0],res)
+        
+                for i in range(F.n):
+                    for j in range(F.n):
+                        res = res.subs(F.M_fake[i,j],F.M[i,j])
+                        
+    # N4        
+            elif (p1_pos == p2_pos and tau_pos == p1_pos and 
+                  check_positions_type(p1_pos,p2_pos,["L","L"])):
+                #все дифференцирования на одну линию
+                cur_lambd=list()
+                cur_u=list()
+                for term in F.terms:
+                    idxT = F.terms.index(term)
+                    cur_u.append(term.u)
+                    c_lambd=term.lambd
+                    if idxT == tau_pos[0]:
+                        c_lambd=c_lambd+2
+                    
+                    cur_lambd.append(c_lambd)
+                if debug:
+                    print "cur_lambd = ",cur_lambd
+                        
                
-            
-            res = - Gammas(F)* F.B(p1_pos)**2
-            
-            for idxT in range(len(F.terms)):
-                res = (res * cur_u[idxT]**(cur_lambd[idxT]-1)/
-                       sympy.factorial(cur_lambd[idxT]-1))
-            
-            res = (res * F.detM_fake**(-d/sympy.Number(2))* 
-                   (-sympy.Number(1)+sympy.Number(4)/d-sympy.Number(4)/d*
-                   (sympy.Number(1)+ F.n*e/sympy.Number(2))*cur_u[p1_pos[0]]/cur_lambd[p1_pos[0]]))
-
-            phi2count=0
-            for idxN in t_G.internal_nodes:
-                node = G.nodes[idxN]
-                if node.type == 2 and idxN not in excluded_phi2_nodes:
-                    lines=node.Lines()
-                    phi2count = phi2count + 1
-                    res = F.Wop(lines[0],lines[0],res)
-
-            for i in range(F.n):
-                for j in range(F.n):
-                    res = res.subs(F.M_fake[i,j],F.M[i,j])
-            
-            
-#N1 and N2
-        elif (p1_pos <> p2_pos and 
-              check_positions_type(p1_pos,p2_pos,["L","L"])):
-            cur_lambd=list()
-            cur_u=list()
-            for term in F.terms:
-                idxT = F.terms.index(term)
-                cur_u.append(term.u)
-                c_lambd=term.lambd
-                if idxT == tau_pos[0]:
-                    c_lambd=c_lambd+1
-                if idxT == p1_pos[0]:
-                    c_lambd=c_lambd+1
-                if idxT == p2_pos[0]:
-                    c_lambd=c_lambd+1
                 
-                cur_lambd.append(c_lambd)
-            if debug:
-                print "cur_lambd = ",cur_lambd
-
-
-            b1=F.B(p1_pos)
-            b2=F.B(p2_pos)
-            
-            if debug:
-                print "phi2count=%s"%phi2count
-
-
-            res = - Gammas(F)*sympy.Number(2)/d
-            if debug:
-                print " t_Res=%s"%(res)
-#мы различаем производные 4 7 и 7 4
-            for idxT in range(len(F.terms)):
-                res = (res * cur_u[idxT]**(cur_lambd[idxT]-1)/
-                       sympy.factorial(cur_lambd[idxT]-1))
+                res =  Gammas(F)* F.B(p1_pos)**2
+                for idxT in range(len(F.terms)):
+                    res = (res * cur_u[idxT]**(cur_lambd[idxT]-1)/
+                           sympy.factorial(cur_lambd[idxT]-1))
+                
+                res = res * F.detM_fake**(-d/sympy.Number(2))
+                phi2count=0
+                for idxN in t_G.internal_nodes:
+                    node = G.nodes[idxN]
+                    if node.type == 2 and idxN not in excluded_phi2_nodes:
+                        lines=node.Lines()
+                        phi2count = phi2count + 1                    
+                        res = F.Wop(lines[0],lines[0],res)
+                
+                res = (res )* (sympy.Number(2)-sympy.Number(12)/d+sympy.Number(12)/d*(sympy.Number(1)+F.n*e/sympy.Number(2))*cur_u[tau_pos[0]]/cur_lambd[tau_pos[0]])
+                for i in range(F.n):
+                    for j in range(F.n):
+                        res = res.subs(F.M_fake[i,j],F.M[i,j])
+                
+    #N3
+            elif (p1_pos == p2_pos and tau_pos <> p1_pos and 
+                  check_positions_type(p1_pos,p2_pos,["L","L"])):
+                #тау на одну линию, оба p на другую линию
+                cur_lambd=list()
+                cur_u=list()
+                for term in F.terms:
+                    idxT = F.terms.index(term)
+                    cur_u.append(term.u)
+                    c_lambd=term.lambd
+                    if idxT == tau_pos[0]:
+                        c_lambd=c_lambd+1
+                    if idxT == p1_pos[0]:
+                        c_lambd=c_lambd+1
+                    
+                    cur_lambd.append(c_lambd)
                 if debug:
-                    print " fact%s=%s"%(idxT,sympy.factorial(cur_lambd[idxT]-1))
-                    print " t_Res=%s"%(res)
-            if debug:
-                print " t_Res=%s"%(res)
-
-            
-            res = res * F.detM_fake**(-d/sympy.Number(2))
-            
-            if debug:
-                print " t_Res=%s"%(res)
-            res = b1*b2*F.Wop(p1_pos,p2_pos,res)
-            
-            if debug:
-                print " t_Res=%s"%(res)
-                print "b1=%s,b2=%s"%(b1,b2)
-
-
-
-            phi2count=0
-            for idxN in t_G.internal_nodes:
-                node = G.nodes[idxN]
-                if node.type == 2 and idxN not in excluded_phi2_nodes:
-                    lines=node.Lines()
-                    phi2count = phi2count + 1
-                    res = F.Wop(lines[0],lines[0],res)
-
-            for i in range(F.n):
-                for j in range(F.n):
-                    res = res.subs(F.M_fake[i,j],F.M[i,j])
-
-
-#N2:
-            if tau_pos == p1_pos or tau_pos == p2_pos:
-                res = res * sympy.Number(2)
+                    print "cur_lambd = ",cur_lambd
+    
+                   
                 
-#N5:    
-        elif (p1_pos == p2_pos and p1_pos <> tau_pos
-              and   check_positions_type(p1_pos,p2_pos,["N","N"])):
-            #тау на одну линию, оба p на одну и ту же вершину
-            cur_lambd=list()
-            cur_u=list()
-            for term in F.terms:
-                idxT = F.terms.index(term)
-                cur_u.append(term.u)
-                c_lambd=term.lambd
-                if idxT == tau_pos[0]:
-                    c_lambd=c_lambd+1
-
-                cur_lambd.append(c_lambd)
+                res = - Gammas(F)* F.B(p1_pos)**2
                 
-            if debug:
-                print "cur_lambd = ",cur_lambd
-
-            
-            res = - Gammas(F)* F.B(p1_pos)**2
-            
-            for idxT in range(len(F.terms)):
-                res = (res * cur_u[idxT]**(cur_lambd[idxT]-1)/
-                       sympy.factorial(cur_lambd[idxT]-1))
-            
-            res = (res * F.detM_fake**(-d/sympy.Number(2)))
-            
-            phi2count=0
-            for idxN in t_G.internal_nodes:
-                node = G.nodes[idxN]
-                if node.type == 2 and idxN not in excluded_phi2_nodes:
-                    lines=node.Lines()
-                    phi2count = phi2count + 1
-                    res = F.Wop(lines[0],lines[0],res)
-
-
-            for i in range(F.n):
-                for j in range(F.n):
-                    res = res.subs(F.M_fake[i,j],F.M[i,j])
-            
-#N6 N7:
-        elif (check_positions_type(p1_pos,p2_pos,["L","N"])   
-              or check_positions_type(p1_pos,p2_pos,["N","L"])):
-            cur_lambd=list()
-            cur_u=list()
-            if check_positions_type(p1_pos,p2_pos,["N","L"]):
-                (p1_pos,p2_pos) = (p2_pos,p1_pos)
-            for term in F.terms:
-                idxT = F.terms.index(term)
-                cur_u.append(term.u)
-                c_lambd=term.lambd
-                if idxT == tau_pos[0]:
-                    c_lambd=c_lambd+1
-                if idxT == p1_pos[0]:
-                    c_lambd=c_lambd+1                
-                cur_lambd.append(c_lambd)
-
-            if debug:
-                print "cur_lambd = ",cur_lambd
-
-
-            b1=F.B(p1_pos)
-            b2=F.B(p2_pos)
-            
-            if debug:
-                print "phi2count=%s. t_Res=%s"%(phi2count,res)
-
-
-            res =  Gammas(F)*sympy.Number(2)/d
-            if debug:
-                print " t_Res=%s"%(res)
-#мы различаем производные 4 7 и 7 4
-            for idxT in range(len(F.terms)):
-                res = (res * cur_u[idxT]**(cur_lambd[idxT]-1)/
-                       sympy.factorial(cur_lambd[idxT]-1))
+                for idxT in range(len(F.terms)):
+                    res = (res * cur_u[idxT]**(cur_lambd[idxT]-1)/
+                           sympy.factorial(cur_lambd[idxT]-1))
+                
+                res = (res * F.detM_fake**(-d/sympy.Number(2))* 
+                       (-sympy.Number(1)+sympy.Number(4)/d-sympy.Number(4)/d*
+                       (sympy.Number(1)+ F.n*e/sympy.Number(2))*cur_u[p1_pos[0]]/cur_lambd[p1_pos[0]]))
+    
+                phi2count=0
+                for idxN in t_G.internal_nodes:
+                    node = G.nodes[idxN]
+                    if node.type == 2 and idxN not in excluded_phi2_nodes:
+                        lines=node.Lines()
+                        phi2count = phi2count + 1
+                        res = F.Wop(lines[0],lines[0],res)
+    
+                for i in range(F.n):
+                    for j in range(F.n):
+                        res = res.subs(F.M_fake[i,j],F.M[i,j])
+                
+                
+    #N1 and N2
+            elif (p1_pos <> p2_pos and 
+                  check_positions_type(p1_pos,p2_pos,["L","L"])):
+                cur_lambd=list()
+                cur_u=list()
+                for term in F.terms:
+                    idxT = F.terms.index(term)
+                    cur_u.append(term.u)
+                    c_lambd=term.lambd
+                    if idxT == tau_pos[0]:
+                        c_lambd=c_lambd+1
+                    if idxT == p1_pos[0]:
+                        c_lambd=c_lambd+1
+                    if idxT == p2_pos[0]:
+                        c_lambd=c_lambd+1
+                    
+                    cur_lambd.append(c_lambd)
                 if debug:
-                    print " fact%s=%s"%(idxT,sympy.factorial(cur_lambd[idxT]-1))
+                    print "cur_lambd = ",cur_lambd
+    
+    
+                b1=F.B(p1_pos)
+                b2=F.B(p2_pos)
+                
+                if debug:
+                    print "phi2count=%s"%phi2count
+    
+    
+                res = - Gammas(F)*sympy.Number(2)/d
+                if debug:
                     print " t_Res=%s"%(res)
-            if debug:
-                print " t_Res=%s"%(res)
-
-            
-            res = res * F.detM_fake**(-d/sympy.Number(2))
-            
-            if debug:
-                print " t_Res=%s"%(res)
-            res = F.Wop(p1_pos,p2_pos,res)*b1*b2
-            
-            if debug:
-                print " t_Res=%s"%(res)
-                print "b1=%s,b2=%s"%(b1,b2)
-
-
-            phi2count=0
-            for idxN in t_G.internal_nodes:
-                node = G.nodes[idxN]
-                if node.type == 2 and idxN not in excluded_phi2_nodes:
-                    lines=node.Lines()
-                    phi2count = phi2count + 1
-                    res = F.Wop(lines[0],lines[0],res)
-
-            for i in range(F.n):
-                for j in range(F.n):
-                    res = res.subs(F.M_fake[i,j],F.M[i,j])
-
-            
-            if tau_pos == p1_pos:
-                res = res * sympy.Number(2)
-                                    
-        else:
-            raise NotImplementedError, "combination of tau and p positions not implemented (%s,%s,%s)"%(tau_pos,p1_pos,p2_pos)
-        if debug:
-            print F.detM
-            print cur_u        
-#        print Kres 
-
-#------------------
-        t_res = res
-        #diffs
-        for str_strech in F.graph.s_type:
-            
-            strech = sympy.var(str_strech)
-            if F.graph.s_degree[str_strech]>=1:
-                for idx in range(F.graph.s_degree[str_strech]):
-                    t_res = t_res.diff(strech)
+    #мы различаем производные 4 7 и 7 4
+                for idxT in range(len(F.terms)):
+                    res = (res * cur_u[idxT]**(cur_lambd[idxT]-1)/
+                           sympy.factorial(cur_lambd[idxT]-1))
+                    if debug:
+                        print " fact%s=%s"%(idxT,sympy.factorial(cur_lambd[idxT]-1))
+                        print " t_Res=%s"%(res)
+                if debug:
+                    print " t_Res=%s"%(res)
+    
+                
+                res = res * F.detM_fake**(-d/sympy.Number(2))
+                
+                if debug:
+                    print " t_Res=%s"%(res)
+                res = b1*b2*F.Wop(p1_pos,p2_pos,res)
+                
+                if debug:
+                    print " t_Res=%s"%(res)
+                    print "b1=%s,b2=%s"%(b1,b2)
+    
+    
+    
+                phi2count=0
+                for idxN in t_G.internal_nodes:
+                    node = G.nodes[idxN]
+                    if node.type == 2 and idxN not in excluded_phi2_nodes:
+                        lines=node.Lines()
+                        phi2count = phi2count + 1
+                        res = F.Wop(lines[0],lines[0],res)
+    
+                for i in range(F.n):
+                    for j in range(F.n):
+                        res = res.subs(F.M_fake[i,j],F.M[i,j])
+    
+    
+    #N2:
+                if tau_pos == p1_pos or tau_pos == p2_pos:
+                    res = res * sympy.Number(2)
+                    
+    #N5:    
+            elif (p1_pos == p2_pos and p1_pos <> tau_pos
+                  and   check_positions_type(p1_pos,p2_pos,["N","N"])):
+                #тау на одну линию, оба p на одну и ту же вершину
+                cur_lambd=list()
+                cur_u=list()
+                for term in F.terms:
+                    idxT = F.terms.index(term)
+                    cur_u.append(term.u)
+                    c_lambd=term.lambd
+                    if idxT == tau_pos[0]:
+                        c_lambd=c_lambd+1
+    
+                    cur_lambd.append(c_lambd)
+                    
+                if debug:
+                    print "cur_lambd = ",cur_lambd
+    
+                
+                res = - Gammas(F)* F.B(p1_pos)**2
+                
+                for idxT in range(len(F.terms)):
+                    res = (res * cur_u[idxT]**(cur_lambd[idxT]-1)/
+                           sympy.factorial(cur_lambd[idxT]-1))
+                
+                res = (res * F.detM_fake**(-d/sympy.Number(2)))
+                
+                phi2count=0
+                for idxN in t_G.internal_nodes:
+                    node = G.nodes[idxN]
+                    if node.type == 2 and idxN not in excluded_phi2_nodes:
+                        lines=node.Lines()
+                        phi2count = phi2count + 1
+                        res = F.Wop(lines[0],lines[0],res)
+    
+    
+                for i in range(F.n):
+                    for j in range(F.n):
+                        res = res.subs(F.M_fake[i,j],F.M[i,j])
+                
+    #N6 N7:
+            elif (check_positions_type(p1_pos,p2_pos,["L","N"])   
+                  or check_positions_type(p1_pos,p2_pos,["N","L"])):
+                cur_lambd=list()
+                cur_u=list()
+                if check_positions_type(p1_pos,p2_pos,["N","L"]):
+                    (p1_pos,p2_pos) = (p2_pos,p1_pos)
+                for term in F.terms:
+                    idxT = F.terms.index(term)
+                    cur_u.append(term.u)
+                    c_lambd=term.lambd
+                    if idxT == tau_pos[0]:
+                        c_lambd=c_lambd+1
+                    if idxT == p1_pos[0]:
+                        c_lambd=c_lambd+1                
+                    cur_lambd.append(c_lambd)
+    
+                if debug:
+                    print "cur_lambd = ",cur_lambd
+    
+    
+                b1=F.B(p1_pos)
+                b2=F.B(p2_pos)
+                
+                if debug:
+                    print "phi2count=%s. t_Res=%s"%(phi2count,res)
+    
+    
+                res =  Gammas(F)*sympy.Number(2)/d
+                if debug:
+                    print " t_Res=%s"%(res)
+    #мы различаем производные 4 7 и 7 4
+                for idxT in range(len(F.terms)):
+                    res = (res * cur_u[idxT]**(cur_lambd[idxT]-1)/
+                           sympy.factorial(cur_lambd[idxT]-1))
+                    if debug:
+                        print " fact%s=%s"%(idxT,sympy.factorial(cur_lambd[idxT]-1))
+                        print " t_Res=%s"%(res)
+                if debug:
+                    print " t_Res=%s"%(res)
+    
+                
+                res = res * F.detM_fake**(-d/sympy.Number(2))
+                
+                if debug:
+                    print " t_Res=%s"%(res)
+                res = F.Wop(p1_pos,p2_pos,res)*b1*b2
+                
+                if debug:
+                    print " t_Res=%s"%(res)
+                    print "b1=%s,b2=%s"%(b1,b2)
+    
+    
+                phi2count=0
+                for idxN in t_G.internal_nodes:
+                    node = G.nodes[idxN]
+                    if node.type == 2 and idxN not in excluded_phi2_nodes:
+                        lines=node.Lines()
+                        phi2count = phi2count + 1
+                        res = F.Wop(lines[0],lines[0],res)
+    
+                for i in range(F.n):
+                    for j in range(F.n):
+                        res = res.subs(F.M_fake[i,j],F.M[i,j])
+    
+                
+                if tau_pos == p1_pos:
+                    res = res * sympy.Number(2)
+                                        
             else:
-                raise ValueError, "strech degree <1 (strech=%s,degree=%s)"%(str_strech,F.graph.s_degree[str_strech])
-
-            if F.graph.s_degree[str_strech]==2:
-                t_res= t_res*(1-strech)
-        
-        res = t_res
-        if debug:
-            print "В терминах u:"
-            print res
-        #замена переменных интегрирования.
-        u_sub_w=dict()
-        w_map = dict()
-        umk=range(len(F.subs_u))
-        w_det = 1
-        for key in umk[:-1]:
-            u_=F.subs_u[key]
-            w=sympy.var(str(u_).replace('u', 'w'))
-            w_map[key]=w
-        
-        for key in umk[:-1]:
-            u_sub_w[key] = 1-w_map[key]
-            for key2 in umk[:umk.index(key)]:
-                u_sub_w[key] = u_sub_w[key] * w_map[key2]
-                w_det = w_det * w_map[key2]
-        #print u_sub_w
-        #print w_det
-        
-        for key in u_sub_w:
-            res = res.subs(F.subs_u[key],u_sub_w[key])
-        
-        
-        res =  res*w_det        
-        
+                raise NotImplementedError, "combination of tau and p positions not implemented (%s,%s,%s)"%(tau_pos,p1_pos,p2_pos)
+            if debug:
+                print F.detM
+                print cur_u        
+    #        print Kres 
+    
+    #------------------
+            t_res = res
+            #diffs
+            for str_strech in F.graph.s_type:
+                
+                strech = sympy.var(str_strech)
+                if F.graph.s_degree[str_strech]>=1:
+                    for idx in range(F.graph.s_degree[str_strech]):
+                        t_res = t_res.diff(strech)
+                else:
+                    raise ValueError, "strech degree <1 (strech=%s,degree=%s)"%(str_strech,F.graph.s_degree[str_strech])
+    
+                if F.graph.s_degree[str_strech]==2:
+                    t_res= t_res*(1-strech)
+            
+            res = t_res
+            if debug:
+                print "В терминах u:"
+                print res
+            #замена переменных интегрирования.
+            u_sub_w=dict()
+            w_map = dict()
+            umk=range(len(F.subs_u))
+            w_det = 1
+            for key in umk[:-1]:
+                u_=F.subs_u[key]
+                w=sympy.var(str(u_).replace('u', 'w'))
+                w_map[key]=w
+            
+            for key in umk[:-1]:
+                u_sub_w[key] = 1-w_map[key]
+                for key2 in umk[:umk.index(key)]:
+                    u_sub_w[key] = u_sub_w[key] * w_map[key2]
+                    w_det = w_det * w_map[key2]
+            #print u_sub_w
+            #print w_det
+            
+            for key in u_sub_w:
+                res = res.subs(F.subs_u[key],u_sub_w[key])
+            
+            
+            res =  res*w_det        
+            Kres[term_key] = (res,1)            
 #------------------        
 #        key = len(Kres.keys())
-        if term_key in Kres.keys():
-            Kres[term_key] = (Kres[term_key][0], Kres[term_key][1] + 1)
         else:
-            Kres[term_key] = (res,1)
+            Kres[term_key] = (Kres[term_key][0], Kres[term_key][1] + 1)
+            
+
 #        print Kres
         if debug: 
             print "======================"
