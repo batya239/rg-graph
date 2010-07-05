@@ -1347,6 +1347,9 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
                 for i in range(F.n):
                     for j in range(F.n):
                         res = res.subs(F.M_fake[i,j],F.M[i,j])
+                if debug:
+                    print "before subgraph diffs :\n", res
+
                         
     # N4        
             elif (p1_pos == p2_pos and tau_pos == p1_pos and 
@@ -1612,6 +1615,18 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
                                         
             else:
                 raise NotImplementedError, "combination of tau and p positions not implemented (%s,%s,%s)"%(tau_pos,p1_pos,p2_pos)
+
+            expand = False
+            for strech in F.graph.s_type.keys(): 
+                if F.graph.s_type[strech] == 2:
+                    expand = True
+
+            if expand :
+                res = res.expand()
+
+            if debug:
+                print "expand %s:\n%s\n"%(expand, res)
+
             if debug:
                 print F.detM
                 print cur_u        
