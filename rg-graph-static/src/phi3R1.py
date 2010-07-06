@@ -1344,9 +1344,10 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
                         phi2count = phi2count + 1                    
                         res = F.Wop(lines[0],lines[0],res)
         
-                for i in range(F.n):
-                    for j in range(F.n):
-                        res = res.subs(F.M_fake[i,j],F.M[i,j])
+#                for i in range(F.n):
+#                    for j in range(F.n):
+#                        res = res.subs(F.M_fake[i,j],F.M[i,j])
+
                 if debug:
                     print "before subgraph diffs :\n", res
 
@@ -1385,9 +1386,9 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
                         res = F.Wop(lines[0],lines[0],res)
                 
                 res = (res )* (sympy.Number(2)-sympy.Number(12)/d+sympy.Number(12)/d*(sympy.Number(1)+F.n*e/sympy.Number(2))*cur_u[tau_pos[0]]/cur_lambd[tau_pos[0]])
-                for i in range(F.n):
-                    for j in range(F.n):
-                        res = res.subs(F.M_fake[i,j],F.M[i,j])
+#                for i in range(F.n):
+#                    for j in range(F.n):
+#                        res = res.subs(F.M_fake[i,j],F.M[i,j])
                 
     #N3
             elif (p1_pos == p2_pos and tau_pos <> p1_pos and 
@@ -1428,9 +1429,9 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
                         phi2count = phi2count + 1
                         res = F.Wop(lines[0],lines[0],res)
     
-                for i in range(F.n):
-                    for j in range(F.n):
-                        res = res.subs(F.M_fake[i,j],F.M[i,j])
+#                for i in range(F.n):
+#                    for j in range(F.n):
+#                        res = res.subs(F.M_fake[i,j],F.M[i,j])
                 
                 
     #N1 and N2
@@ -1495,9 +1496,9 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
                         phi2count = phi2count + 1
                         res = F.Wop(lines[0],lines[0],res)
     
-                for i in range(F.n):
-                    for j in range(F.n):
-                        res = res.subs(F.M_fake[i,j],F.M[i,j])
+#                for i in range(F.n):
+#                    for j in range(F.n):
+#                        res = res.subs(F.M_fake[i,j],F.M[i,j])
     
     
     #N2:
@@ -1540,9 +1541,9 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
                         res = F.Wop(lines[0],lines[0],res)
     
     
-                for i in range(F.n):
-                    for j in range(F.n):
-                        res = res.subs(F.M_fake[i,j],F.M[i,j])
+#                for i in range(F.n):
+#                    for j in range(F.n):
+#                        res = res.subs(F.M_fake[i,j],F.M[i,j])
                 
     #N6 N7:
             elif (check_positions_type(p1_pos,p2_pos,["L","N"])   
@@ -1605,9 +1606,11 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
                         phi2count = phi2count + 1
                         res = F.Wop(lines[0],lines[0],res)
     
-                for i in range(F.n):
-                    for j in range(F.n):
-                        res = res.subs(F.M_fake[i,j],F.M[i,j])
+#                for i in range(F.n):
+#                    for j in range(F.n):
+#                        res = res.subs(F.M_fake[i,j],sympy.radsimp(F.M[i,j]))
+#                        if debug:
+#                            print "(%s,%s):\n%s\n\n%s\n\n---==---\n"%(i, j, F.M[i,j], sympy.radsimp(F.M[i,j]))
     
                 
                 if tau_pos == p1_pos:
@@ -1616,16 +1619,29 @@ def K_nR1_feynman2(G, N, Kres=dict(), debug=False):
             else:
                 raise NotImplementedError, "combination of tau and p positions not implemented (%s,%s,%s)"%(tau_pos,p1_pos,p2_pos)
 
-            expand = False
-            for strech in F.graph.s_type.keys(): 
-                if F.graph.s_type[strech] == 2:
-                    expand = True
+#            expand = False
+#            for strech in F.graph.s_type.keys(): 
+#                if F.graph.s_type[strech] == 2:
+#                    expand = True
 
-            if expand :
-                res = res.expand()
 
-            if debug:
-                print "expand %s:\n%s\n"%(expand, res)
+#            if expand :
+#                res = res.expand()
+
+#            if debug:
+#                print "expand %s:\n%s\n"%(expand, res)
+
+            for i in range(F.n):
+                for j in range(F.n):
+                    t_M=F.M[i,j]
+                    if "s_type" in F.graph.__dict__:
+                        for strech in F.graph.s_type.keys():
+                            if  F.graph.s_type[strech] == 2:
+                                t_M = sympy.collect(t_M,sympy.var(strech))
+                    res = res.subs(F.M_fake[i,j],t_M)
+                    if debug:
+                        print "(%s,%s):\n%s\n\n%s\n\n---==---\n"%(i, j, F.M[i,j], t_M)
+
 
             if debug:
                 print F.detM
