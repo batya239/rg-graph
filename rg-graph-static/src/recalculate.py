@@ -7,6 +7,7 @@ import rggraph_static as rggrf
 import re as regex
 import os
 import sympy
+import time
 
 import progressbar
 
@@ -100,6 +101,7 @@ else:
 for nickel in g_list: 
     G = model.LoadGraph(nickel)
     if G.NLoops() in nloops:
+        starttime=time.time()
         G.GenerateNickel()
         G.LoadResults('eps')
         if G.method in ["MCT_SVd", "MCO_SVd", "MCOR_SVd"]:
@@ -184,8 +186,10 @@ for nickel in g_list:
             G.r1_dot_gamma_err = rggrf.utils.RelativeError(G.r1_dot_gamma, err, sympy.var('eps'))
             
             rggrf.utils.print_debug( G.r1_dot_gamma, debug)
+            G.time = time.time()-starttime 
             
-            G.SaveResults(['r1_dot_gamma','r1_dot_gamma_err','npoints','method','delta'])
+            
+            G.SaveResults(['r1_dot_gamma','r1_dot_gamma_err','npoints','method','delta','time'])
             print G.r1_dot_gamma, G.r1_dot_gamma_err, "\n"
         
 
