@@ -109,7 +109,7 @@ for nickel in g_list:
                 calc_delta = G.delta
             rggrf.utils.print_debug("delta = %s"%calc_delta,debug)
      
-        if not G.CheckAccuracy(absolute, relative):
+        if not G.CheckAccuracy(absolute, relative)[0]:
               
             if npoints == 0:
                 if "npoints_r" in G.__dict__:
