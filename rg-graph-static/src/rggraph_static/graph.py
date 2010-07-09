@@ -532,18 +532,24 @@ class Graph:
         self.GenerateNickel()    
         if "r1_dot_gamma_err" in self.__dict__:
             res=True
+            absolute_ratio = 0
+            relative_ratio = 0
             try:
                 for i in self.r1_dot_gamma_err:
                     if int(i) <= self.model.target - self.NLoops():
-                        if abs(self.r1_dot_gamma_err[i][0]*self.sym_coeff)>=absolute:
-                            res=False
-                        elif abs(self.r1_dot_gamma_err[i][1])>=relative:
-                            res=False
+                        absolute_ratio = max(absolute_ratio,abs(self.r1_dot_gamma_err[i][0]*self.sym_coeff)/absolute)
+                        relative_ratio = max(relative_ratio,abs(self.r1_dot_gamma_err[i][1])/relative)
+                        
+                if absolute_ratio>=1:
+                    res=False
+                elif relative_ratio>=1:
+                    res=False
+                        
             except:
                 res=False
         else:
             raise ValueError, 'Please calculate graph %s ' %self.nickel
-        return res
+        return (res,absolute_ratio,relative_ratio)
     
     def WorkDir(self):
         self.model.WorkDir(self)

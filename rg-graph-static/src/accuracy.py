@@ -38,6 +38,12 @@ if "-graph" in sys.argv:
     g_list = [sys.argv[sys.argv.index('-graph')+1],]
 else:
     g_list = model.GraphList()
+
+if "-debug" in sys.argv:
+    debug = True
+else:
+    debug = False
+
     
 eps = sympy.var('eps')
 
@@ -48,7 +54,12 @@ for file in g_list:
         G.DefineNodes({})
         G.GenerateNickel()
         G.LoadResults('eps')
-        if not G.CheckAccuracy(absolute, relative):
-            print file
+        (res,a_ratio,r_ratio)=G.CheckAccuracy(absolute, relative)
+        if not res:
+            print file , 
+            if debug:
+                print "absolute_ratio = %s , relative_ratio = %s"%(a_ratio,r_ratio)
+            else:
+                print
 
         
