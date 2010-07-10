@@ -32,7 +32,12 @@ if __name__ == '__main__':
         g_list = [sys.argv[sys.argv.index('-graph')+1],]
     else:
         g_list = model.GraphList()
-        
+
+    if "-from" in sys.argv:
+        from_ = int(sys.argv[sys.argv.index('-from')+1])
+    else:
+        from_ = 0
+
     if "-debug" in sys.argv:
         debug = True
     else:
@@ -55,6 +60,8 @@ if __name__ == '__main__':
         
         
     for nickel in g_list:
+        if from_>=g_list.index(nickel)+1:
+            continue
         #print "%s "%nickel
         #rggrf.utils.print_debug(nickel, debug)
         G = model.LoadGraph(nickel)
