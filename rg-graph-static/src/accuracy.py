@@ -56,6 +56,8 @@ for file in g_list:
         G.LoadResults('eps')
         (res,a_ratio,r_ratio)=G.CheckAccuracy(absolute, relative)
         if not res:
+            if debug:
+                print "(%s/%s) "%((g_list.index(file)+1),len(g_list)),
             print file , 
             if debug:
                 print "absolute_ratio = %s , relative_ratio = %s"%(a_ratio,r_ratio)
