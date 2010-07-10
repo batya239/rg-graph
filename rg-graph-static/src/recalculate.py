@@ -96,9 +96,17 @@ if "-nloops" in sys.argv:
     if isinstance(nloops,int):
         nloops = [nloops,]
 else:
-    nloops = range(1,model.target+1)    
+    nloops = range(1,model.target+1)   
+
+if "-from" in sys.argv:
+    from_ = int(sys.argv[sys.argv.index('-from')+1])
+else:
+    from_ = 0
+
 
 for nickel in g_list: 
+    if from_>=g_list.index(nickel)+1:
+        continue
     G = model.LoadGraph(nickel)
     if G.NLoops() in nloops:
         starttime=time.time()
