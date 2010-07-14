@@ -124,7 +124,7 @@ def LoadResults(G,strvars):
     name = "%s/"%(G.nickel)
     pwd = NormalizeBaseName(G.model.basepath)
     dirname = pwd + name
-    for idx in ['r1_dot_gamma','delta_gamma','r1_gamma','r1_dot_gamma_err','npoints', 'method', 'delta', 'reduced_nloops']:
+    for idx in ['r1_dot_gamma','delta_gamma','r1_gamma','r1_dot_gamma_err','npoints', 'method', 'delta', 'reduced_nloops','time']:
         file_name = idx
         if idx == 'npoints': 
             var_name = "%s_r"%idx
