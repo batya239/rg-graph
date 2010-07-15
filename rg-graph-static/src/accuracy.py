@@ -60,7 +60,7 @@ for file in g_list:
                 print "(%s/%s) "%((g_list.index(file)+1),len(g_list)),
             print file , 
             if debug:
-                print "abs_ratio = %s , rel_ratio = %s , time = %s "%(a_ratio,r_ratio, G.time)
+                print "abs_r = %s , rel_r = %s , time = %s , method = %s , points = %s"%(a_ratio, r_ratio, G.time, G.method, G.npoints_r)
             else:
                 print
 
