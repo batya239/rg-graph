@@ -52,8 +52,8 @@ def geseries(f,g,eps,n):
 #                + 1.25000021001422/eps**2) - g**3*(7.81740005363973 - 10.6221807399268/eps 
 #                - 1.66666630630782/eps**3 + 5.28690425966290/eps**2))
 greens=model.GetGreens()
-G2=eval(str(greens["G2"])) #converting from sympy to swiginac
-G3=eval(str(greens["G3"])) #converting from sympy to swiginac
+G2=eval(str(greens["2"])) #converting from sympy to swiginac
+G3=eval(str(greens["3"])) #converting from sympy to swiginac
 
 
 Z1=geseries(1+G2,g,eps,target)
