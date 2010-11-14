@@ -51,37 +51,51 @@ def geseries(f,g,eps,n):
 #       - g**2*(3.06128503353258 - 0.959657003971711*eps - 2.35416311194034/eps
 #                + 1.25000021001422/eps**2) - g**3*(7.81740005363973 - 10.6221807399268/eps 
 #                - 1.66666630630782/eps**3 + 5.28690425966290/eps**2))
+
+
 greens=model.GetGreens()
 G2=eval(str(greens["2"])) #converting from sympy to swiginac
 G3=eval(str(greens["3"])) #converting from sympy to swiginac
 
 
-Z1=geseries(1+G2,g,eps,target)
+Z2=geseries(1+G2,g,eps,target)
 Z3=geseries(1-G3,g,eps,target)
 
-print "Z1 = %s\n"%Z1
+print "Z2 = %s\n"%Z2
 print "Z3 = %s\n\n-----------------\n"%Z3
 
 
 
-Zf=geseries(Z1**0.5,g,eps,target)
-Zg=geseries(Z3*(Z1)**(-1.5),g,eps,target)
+Zf=geseries(Z2**0.5,g,eps,target)
+Zg=geseries(Z3*(Z2)**(-1.5),g,eps,target)
 
-print "Zf = %s"%Zf
-print "Zg = %s"%Zg
+#print "Zf = %s"%Zf
+#print "Zg = %s"%Zg
+gamma2 = (-(eps*g*(swiginac.log(Z2)).diff(g))/(1+2*g*(swiginac.log(Zg)).diff(g))).series(g==0,target+1)
+gamma3 = (-(eps*g*(swiginac.log(Z3)).diff(g))/(1+2*g*(swiginac.log(Zg)).diff(g))).series(g==0,target+1)
+gamma2_1 = geseries(1+gamma2,g,eps,target+2)-1
+gamma2_2 = geseries(1+gamma2,g,eps,target+1)-1
 
+gamma3_1 = geseries(1+gamma3,g,eps,target+2)-1
+gamma3_2 = geseries(1+gamma3,g,eps,target+1)-1
+print "---------------"
+print 
+print gamma2_1
+print
+print gamma3_1
+sys.exit(0)
 print
 #print (eps*g*(swiginac.log(Zg)).diff(g)).series(g==0,target+1)
 #print
 
-beta = (-(eps*g)/(1+2*g*(swiginac.log(Zg).diff(g)))).series(g==0,target+2) ## формула не верна,но для поиска u* ее можно использовать.
+beta = (-(eps*g)/(1+2*g*(swiginac.log(Zg).diff(g)))).series(g==0,target+2)
 #print "beta = ", beta
 
 beta1 = geseries(beta,g,eps,target+2)
 print
 print "beta = ", beta1
 
-gammag = (-(eps*g*(swiginac.log(Zg)).diff(g))/(1+2*g*(swiginac.log(Zg)).diff(g))).series(g==0,target+1)
+gammag = (-(*eps*g*(swiginac.log(Zg)).diff(g))/(1+2*g*(swiginac.log(Zg)).diff(g))).series(g==0,target+1)
 
 #print
 #print "gammag = ", gammag
@@ -125,7 +139,7 @@ for i in range(len(u_res)):
     u_z=u_z+u_res[i]*eps**(i+1)
 
 
-gammaf = (-(eps*g*(swiginac.log(Zf)).diff(g))/(1+2*g*(swiginac.log(Zg)).diff(g))).series(g==0,target+1)
+gammaf = (-(2*eps*g*(swiginac.log(Zf)).diff(g))/(1+2*g*(swiginac.log(Zg)).diff(g))).series(g==0,target+1)
 
 #print
 #print "gammaf = ", gammaf
@@ -137,4 +151,4 @@ gammaf2 = geseries(1+gammaf1,g,eps,target+1)-1
 print
 print "gammaf = ", gammaf2
 
-print 2*gammaf2.subs(g==u_z).series(eps==0,target+1)
+print gammaf2.subs(g==u_z).series(eps==0,target+1)
