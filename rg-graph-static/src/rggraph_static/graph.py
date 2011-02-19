@@ -70,7 +70,7 @@ class Momenta:
         return Momenta(sympy=self.sympy+other.sympy)
     
     def __sub__(self, other):
-        return Momenta(sympy=self.sympy+other.sympy)
+        return Momenta(sympy=self.sympy-other.sympy)
     
     def __str__(self):
         return self.string
