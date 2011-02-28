@@ -152,7 +152,7 @@ class Test_dict2sympy:
         dict2sympy({'q1q':1})
 
 
-class Test_Momenta:
+class Test_Momenta_init:
     @raises(TypeError)
     def test_wrong_args_1(self):
        m=Momenta()
@@ -232,5 +232,92 @@ class Test_Momenta:
     @raises(ValueError)
     def test_init_dict_e2(self):
        m=Momenta(dict={"q2":1,"q3":2})
-    
 
+    @raises(TypeError)
+    def test_init_dict_e3(self):
+       m=Momenta(dict="")
+
+    def test_init_sympy_zero(self):
+       m=Momenta(sympy=0)
+       assert m.string==""
+       assert m.dict == {}
+       assert m.sympy == 0
+
+
+    def test_init_sympy_1(self):
+       sympy.var('q1 q2')
+       m=Momenta(sympy=q1+q2)
+# где-то + есть, а где-то нет
+       assert m.string == "q1+q2"
+       assert m.dict == {'q1':1,'q2':1}
+       assert m.sympy == q1+q2
+
+    def test_init_sympy_2(self):
+       sympy.var('q1 q2')
+       m=Momenta(sympy=-q1+q2)
+       assert m.string=="-q1+q2" or m.string=="q2-q1" 
+       assert m.dict == {'q1':-1,'q2':1}
+       assert m.sympy == -q1+q2
+
+    @raises(ValueError)
+    def test_init_sympy_e1(self):
+       sympy.var('q2q')
+       m=Momenta(sympy=q2q)
+
+    @raises(ValueError)
+    def test_init_sympy_e2(self):
+       sympy.var('q1 q2')
+       m=Momenta(sympy=q1+2*q2)
+
+    @raises(TypeError)
+    def test_init_sympy_e3(self):
+       m=Momenta(sympy="")
+    
+    
+class Test_Momenta:
+    def setUp(self):
+        self.q1=Momenta(string='q1')
+        self.q2=Momenta(string='q2')
+        self.q1xq2=sympy.var('q1xq2')
+        self.q3=Momenta(string='q3')
+    def test_eq(self):
+        assert self.q1 == Momenta(string='q1')
+        assert self.q1 + self.q2 == Momenta(string='q1+q2')
+
+    def test_neg(self):
+        assert (-self.q1) == Momenta(string='-q1')
+        assert (-(self.q1-self.q2)) == Momenta(string='q2-q1')
+
+    def test_add(self):
+        assert self.q1+self.q2 == Momenta(string="q1+q2")
+        assert Momenta(string="q1-q2")+self.q3 ==  Momenta(string="q1-q2+q3")
+        assert Momenta(string="q1-q2")+self.q2 ==  self.q1
+
+    def test_sub(self):
+        assert self.q1-self.q2 == self.q1+(-self.q2)
+        assert self.q1-self.q2 == Momenta(string="q1-q2")
+        assert Momenta(string="q1+q2")-self.q2 ==  self.q1
+
+    def test_str(self):
+        assert str(self.q1+self.q2) == 'q1+q2'
+        assert str(self.q1-self.q2) == 'q1-q2'
+        assert str(-self.q2) == '-q2'
+
+    def test_abs(self):
+        assert abs(self.q1)==sympy.sqrt(self.q1.sympy*self.q1.sympy)
+        assert abs(self.q1-self.q2)==sympy.sqrt(self.q1.sympy*self.q1.sympy+self.q2.sympy*self.q2.sympy-2*self.q1xq2)
+
+    def test_mul(self):
+        assert self.q1*self.q1 == self.q1.sympy**2
+        assert self.q1*self.q2 == self.q1xq2
+        assert (self.q1+self.q2)*self.q1 == self.q1.sympy**2+self.q1xq2
+
+    def test_SetZeros(self):
+        assert self.q1.SetZeros([self.q1]) == Momenta(string="0")
+        assert Momenta(string="q1-q2").SetZeros([self.q1]) == Momenta(string="-q2")
+        assert Momenta(string="q1-q2").SetZeros([self.q1-self.q2]) == Momenta(string="0")
+        assert Momenta(string="q1-q2+q3").SetZeros([self.q1,self.q3]) == Momenta(string="-q2")
+        assert Momenta(string="q1-q2+q3").SetZeros([self.q1+self.q3]) == Momenta(string="-q2")
+    @raises(ValueError)
+    def test_SetZeros_e1(self):
+        Momenta(string="q1").SetZeros([self.q1-self.q3])

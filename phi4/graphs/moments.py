@@ -62,16 +62,25 @@ class Momenta:
             raise TypeError, 'wrong input data %s'%kwargs
         if "string" in kwargs:
              self.string = kwargs["string"].replace(" ","")
+             if type(self.string) <> str:
+                 raise TypeError, "Wrong type %s"%kwargs
              if self.string == "0":
                  self.string = ""
              self.dict = str2dict(self.string)
              self.sympy = dict2sympy(self.dict)
         elif "dict" in kwargs:
              self.dict = kwargs["dict"]
+             if type(self.dict) <> dict:
+                 raise TypeError, "Wrong type %s"%kwargs
 	     self.sympy = dict2sympy(self.dict)
              self.string = dict2str(self.dict)
         elif "sympy" in kwargs:
              self.sympy = kwargs["sympy"]
+             try:
+                 if self.sympy <> 0 and self.sympy.__class__.__metaclass__ <> sympy.core.basic.BasicMeta:
+                     raise TypeError, "Wrong type %s %s"%(kwargs,self.sympy.__class__.__metaclass__)
+             except AttributeError:
+                 raise TypeError, "Wrong type %s"%(kwargs)
              if self.sympy == 0:
                  self.string = ""
              else:
@@ -79,6 +88,9 @@ class Momenta:
              self.dict = str2dict(self.string)
         else:
              raise TypeError, "unknown moment datatype kwargs = %s"%kwargs
+    def __eq__(self,other):
+#check other fields?
+        return self.dict == other.dict
 
     def __neg__(self):
         return Momenta(sympy=-self.sympy) 
@@ -95,7 +107,7 @@ class Momenta:
     def __abs__(self):
         return sympy.sqrt(self*self)
 
-    def __mul__(self):
+    def __mul__(self,other):
         if not isinstance(other,Momenta): 
             raise TypeError, "Cant multiply Momenta on non-Momenta %s" %other
         else:
