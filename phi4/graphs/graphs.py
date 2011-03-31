@@ -1,19 +1,24 @@
 #!/usr/bin/python
 # -*- coding:utf8
 
+import copy
+
+import nickel
+
 def _find_empty_idx(keys_):
    idx=0
    while idx in keys_:
        idx+=1
    return idx
 
+
 class Graph:
     def __init__(self,arg):
         self._lines = dict()
         self._nodes = dict()
         if isinstance(arg,str):
-            self._from_nickel(arg)
 # construct graph from nickel index
+            self._from_lines_list(nickel.Nickel(string=arg).edges)
         elif isinstance(arg,list):
 # construct graph from edges 
             self._from_lines_list(arg)
@@ -21,17 +26,10 @@ class Graph:
             raise TypeError, "Unsupproted type of argument: %s"%arg
 
     def _from_lines_list(self,list_):
-        for line in list_:
+        list__=copy.copy(list_)
+        list__.sort()
+        for line in list__:
             self._add_line(line)
-
-    def _from_nickel(self,nickel_str):
-        nlist=nickel_str.split("-")[:-1]
-        for i in range(len(nlist)):
-            for j in nlist[i]:
-               if j == "e":
-                   self._add_line([-1,i])
-               else:
-                   self._add_line([i,int(j)])
 
     def _add_line(self,line):
         if isinstance(line,list):
@@ -49,7 +47,12 @@ class Graph:
         else:
             raise TypeError, "Invalid type of argument: %s"%line
                 
-
+    def edges(self):
+        res=[]
+        for idx in self._lines:
+            res.append(self._lines[idx])
+        res.sort()
+        return res
                         
 
     def _remove_line(self,line):
