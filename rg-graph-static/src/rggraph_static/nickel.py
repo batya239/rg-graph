@@ -237,15 +237,15 @@ def AdjacentNodes(node, edges):
 def IsConnected(edges):
     if not edges:
         return False
-    else:
-        old_len = 0
-        visited = set(edges[0])
-        while old_len < len(visited):
-            old_len = len(visited)
-            for [s, d] in edges:
-                if s in visited or d in visited:
-                    visited.update([s, d])
-        return visited == set(sum(edges, []))
+
+    old_len = 0
+    visited_nodes = set(edges[0])
+    while old_len < len(visited_nodes):
+        old_len = len(visited_nodes)
+        for edge in edges:
+            if edge[0] in visited_nodes or edge[1] in visited_nodes:
+                visited_nodes.update(edge)
+    return visited_nodes == set(sum(edges, edges[0][0:0]))
 
 
 def MapNodes1(dic, list_of_nodes):

@@ -168,9 +168,12 @@ class TestUtil(unittest.TestCase):
     def testIsConnected(self):
         conn = nickel.IsConnected
         self.assertFalse(conn([]))
-        self.assertTrue(conn([[-1, 2]]))
+        self.assertTrue(conn([[0, 1]]))
+        self.assertTrue(conn([(0, 1)]))
+        self.assertTrue(conn(((0, 1),)))
         self.assertTrue(conn([[-1, 0], [0, 1]]))
         self.assertFalse(conn([[-1, 0], [2, 1]]))
+        self.assertTrue(conn([[1, 0], [3, 4], [1, 2], [2, 3]]))
 
 
 if __name__ == "__main__":
