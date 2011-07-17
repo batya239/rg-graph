@@ -15,4 +15,12 @@ class Node:
     def Lines(self):
         return self.lines_dict.keys()
 
+    def Vertex(self, model, graph):
+        """ node vertex factor
+        """
+#TODO: implement vertex
+        pass
+    def Dim(self, model):
+        return model.dim(self)
+
 

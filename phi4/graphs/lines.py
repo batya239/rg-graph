@@ -16,5 +16,13 @@ class Line:
         return (self.start, self.end)
 
     def Propagator(self, model):
+        """ line propagator
+        """
         return model.propagator(self)
+
+    def Dim(self, model):
+        """ line dimension
+        """
+        return model.dim(self)
+
 
