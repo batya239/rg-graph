@@ -8,6 +8,7 @@ def sorted_list(list_):
     res.sort()
     return res   
 
+
 class Test_fns:
     def test_find_empty_idx(self):
         assert 0==_find_empty_idx([])
@@ -24,18 +25,24 @@ class Test_Graph:
         self.e11_e_lines={0:[-1,0], 1:[-1,1], 2:[0,1], 3:[0,1]}
         self.e11_e_nodes={-1:[0,1], 0:[0,2,3], 1:[1,2,3]}
     def test_init_str(self):
+        """ creating graph from nickel string
+        """
         g=Graph("e11-e-")
         print g._lines, g._nodes
         assert ((g._lines==self.e11_e_lines) and 
                 (g._nodes==self.e11_e_nodes))
 
     def test_init_list(self):
+        """ creating graph from adjacency list
+        """
         g=Graph([[-1,0],[0,1],[0,1],[-1,1]])
         print g._lines, g._nodes
         assert ((g._lines==self.e11_e_lines) and 
                 (g._nodes==self.e11_e_nodes))
 
     def test_edges(self):
+        """ check that created graph has correct adjacency list
+        """
         a=[[-1,0],[0,1],[0,1],[-1,1]]
         print  Graph(a).edges(), sorted_list(a)
         assert Graph(a).edges()==sorted_list(a)
