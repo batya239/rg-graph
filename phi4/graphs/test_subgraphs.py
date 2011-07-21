@@ -89,15 +89,21 @@ class test_subgraphs:
         self.model=_model('phi3')
         self.model.SetTypes(self.g)
 
+    
+
     def test_FindSubgraphs(self):
+        def findsubgraphs(nickel,model):
+            g=Graph(nickel)
+            res=[]
+            for sub in subgraphs.FindSubgraphs(g,model):
+                g1=Graph(subgraphs.ToEdges(sub))
+                g1.GenerateNickel()
+                res.append(str(g1.nickel))
+            res.sort()
+            return res
+
         print self.g.Dim(self.model)
-        res=subgraphs.FindSubgraphs(self.g,self.model)
-        print self.g._lines
-        print res
-        assert len(res)==1
-        g1=Graph(subgraphs.ToEdges(res[0]))
-        g1.GenerateNickel()
-        assert str(g1.nickel)=='e11-e-'
+        assert findsubgraphs('e12-e3-33-',self.model) == ['e12-e-']
 
     def findsub(self,g):
             """ find first simple subgraph e11-e-
