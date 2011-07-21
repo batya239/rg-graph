@@ -90,14 +90,12 @@ def isSubgraph1PI(subgraph):
         
 
 def FindSubgraphs(graph,model):
+#TODO: FindSubgraphs is SLOW!
     _subgraphs=[]
     intLines=[x.idx() for x in graph.xInternalLines()]
     for idx in range(2, len(intLines)):
         candidates=[i for i in xUniqueCombinations(intLines,idx)]
         for sub in candidates:
-            print graph._lines
-            print sub
-            print Dim(sub,model), isSubgraph1PI(sub)
             if Dim(sub,model)>=0 and isSubgraph1PI(sub):
                 _subgraphs.append(sub)
     return _subgraphs

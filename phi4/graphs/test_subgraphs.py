@@ -94,6 +94,7 @@ class test_subgraphs:
     def test_FindSubgraphs(self):
         def findsubgraphs(nickel,model):
             g=Graph(nickel)
+            model.SetTypes(g)
             res=[]
             for sub in subgraphs.FindSubgraphs(g,model):
                 g1=Graph(subgraphs.ToEdges(sub))
@@ -102,8 +103,10 @@ class test_subgraphs:
             res.sort()
             return res
 
-        print self.g.Dim(self.model)
-        assert findsubgraphs('e12-e3-33-',self.model) == ['e12-e-']
+        assert findsubgraphs('e12-e3-33-',self.model) == ['e11-e-']
+
+        assert findsubgraphs('e12-e3-34-5-e6-67-8-88--',self.model) == ['e11-e-', 'e12-e3-33--', 'e12-e3-e4-45-6-66--']
+
 
     def findsub(self,g):
             """ find first simple subgraph e11-e-
