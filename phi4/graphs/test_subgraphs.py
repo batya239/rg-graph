@@ -28,6 +28,35 @@ class _model():
             for mod in obj.modifiers:
                     dim+=self.modifiers_dim[mod]
         return dim
+    def SetTypes(self, graph):
+        """ set types for graph nodes and lines ( this implementation may be used only for models with 1 type of lines and 1 type of nodes)
+        """
+        for line in graph.xInternalLines():
+            line.type=1
+        for node in graph.xInternalNodes():
+            node.type=1
+        
+
+class _phi4():
+    def __init__( self , name):
+        self.name=name
+        self.space_dim=4
+        self.lines_dim={1:-2}
+        self.modifiers_dim={'tau':-2,'p':-1}
+        self.nodes_dim={1:0}
+    def Dim( self, obj ):
+        if obj.type==None:
+            raise ValueError , "cant determine Dim: type is None"
+        if isinstance( obj, Line ):
+            dim=self.lines_dim[obj.type]
+        elif isinstance( obj, Node):
+            dim=self.nodes_dim[obj.type]
+        else:
+            raise ValueError, 'unknown object'
+        if obj.modifiers<>None:
+            for mod in obj.modifiers:
+                    dim+=self.modifiers_dim[mod]
+        return dim
 
     def SetTypes(self, graph):
         """ set types for graph nodes and lines ( this implementation may be used only for models with 1 type of lines and 1 type of nodes)
@@ -88,6 +117,7 @@ class test_subgraphs:
         self.g=Graph('e12-e3-33-')
         self.model=_model('phi3')
         self.model.SetTypes(self.g)
+        self.phi4=_phi4('phi4')
 
     
 
@@ -106,6 +136,10 @@ class test_subgraphs:
         assert findsubgraphs('e12-e3-33-',self.model) == ['e11-e-']
 
         assert findsubgraphs('e12-e3-34-5-e6-67-8-88--',self.model) == ['e11-e-', 'e12-e3-33--', 'e12-e3-e4-45-6-66--']
+
+        assert findsubgraphs('e111-e-',self.phi4) == ['ee11-ee-','ee11-ee-','ee11-ee-']
+
+        assert findsubgraphs('ee12-223-3-ee-',self.phi4)==['ee11-ee-','ee12-e22-e-','ee12-e22-e-',]
 
 
     def findsub(self,g):
