@@ -1,162 +1,197 @@
 #!/usr/bin/python
-# -*- coding:utf8
-
+# -*- coding:utf8 -*-
 import sympy
-import re
 
-def str2dict(string):
-    if type(string) <> str:
-         raise TypeError, 'Invalid type'
-    if len(string) == 0:
+def _str2dict(string):
+    """ converts string representation of momenta to dict by moment atoms.
+        Assumed that atmos has coefficients +/- 1
+    """
+    if len(string) == 0 or string=='0':
         return dict()
-    t_string=string.replace(" ","").replace("+",",+").replace("-",",-")
-    if t_string[0] == ",":
-        t_string = t_string[1:]
-    t_list=t_string.split(",")
-    t_dict={}
-    for idxM in t_list:
-        if re.match('^[+-]?[a-zA-Z]+\d*$',idxM): # +qwe23, -wewe334 , asd,
-            if "+" in idxM:
-                t_dict[idxM.replace("+","")]=1
-            elif "-" in idxM:
-                t_dict[idxM.replace("-","")]=-1
-            else:
-                t_dict[idxM]=1
-        else:
-            raise ValueError, 'invalid string: %s'%string
-    return t_dict
-
-def dict2str(dict_):
-    str_=""
-    for idxM in dict_:
-        if re.match('^[a-zA-Z]+\d*$',idxM): 
-            if dict_[idxM] == 1 :
-                str_ = "%s+%s" %(str_, idxM)
-            elif dict_[idxM] == -1 :
-                str_ = "%s-%s" %(str_, idxM)
-            else:
-                raise ValueError, "invalid momenta %s" %dict_
-            str_=str_.replace(" ","")
-        else:
-            raise ValueError, 'invalid dict key %s'%idxM
-    return str_
-
-
-def dict2sympy(dict_):
-    str_=dict2str(dict_)
-    if len(str_) == 0:
-        return 0
     else:
-        for idxM in dict_:
-            sympy.var(idxM)
-        t_sympy = eval(dict2str(dict_))
-        return t_sympy
+        t_string=string.replace("+",",+").replace("-",",-")
+        if t_string[0] == ",":
+            t_string = t_string[1:]
+        t_dict={}
+        for atom in t_string.split(","):
+            if "-" in atom:
+                t_dict[atom.replace("-","")]=-1
+            else:
+                t_dict[atom.replace("+","")]=1
+        return t_dict
 
+def _dict2sympy(dict):
+    """ converts dict (from str2dict) to sympy expression
+    """ 
+    res=0
+    for atom in dict:
+        s_atom = sympy.var(atom)
+        res = res + s_atom*dict[atom]
+    return res
 
 class Momenta:
-    """ Class represents moments 
-        string= | dict= | sympy= 
-    """
     def __init__(self,**kwargs):
-        if len(kwargs.keys()) <> 1:
-            raise TypeError, 'wrong input data %s'%kwargs
-        if "string" in kwargs:
-             self.string = kwargs["string"].replace(" ","")
-             if type(self.string) <> str:
-                 raise TypeError, "Wrong type %s"%kwargs
-             if self.string == "0":
-                 self.string = ""
-             self.dict = str2dict(self.string)
-             self.sympy = dict2sympy(self.dict)
-        elif "dict" in kwargs:
-             self.dict = kwargs["dict"]
-             if type(self.dict) <> dict:
-                 raise TypeError, "Wrong type %s"%kwargs
-	     self.sympy = dict2sympy(self.dict)
-             self.string = dict2str(self.dict)
-        elif "sympy" in kwargs:
-             self.sympy = kwargs["sympy"]
-             try:
-                 if self.sympy <> 0 and self.sympy.__class__.__metaclass__ <> sympy.core.basic.BasicMeta:
-                     raise TypeError, "Wrong type %s %s"%(kwargs,self.sympy.__class__.__metaclass__)
-             except AttributeError:
-                 raise TypeError, "Wrong type %s"%(kwargs)
-             if self.sympy == 0:
-                 self.string = ""
-             else:
-                 self.string = str(self.sympy).replace(" ","")
-             self.dict = str2dict(self.string)
+        if 'string' in kwargs:
+            self._string = kwargs['string'].replace(" ","")
+            self._dict = _str2dict(self._string)
+            self._sympy = _dict2sympy(self._dict)
+        elif 'dict' in kwargs:
+            self._dict = kwargs['dict']
+            self._sympy = _dict2sympy(self._dict)
+            self._string = str(self._sympy).replace(" ","")
+        elif 'sympy' in kwargs:
+            self._sympy = kwargs['sympy']
+            self._string = str(self._sympy).replace(" ","")
+            self._dict = _str2dict(self._string)
         else:
-             raise TypeError, "unknown moment datatype kwargs = %s"%kwargs
-    def __eq__(self,other):
-#check other fields?
-        return self.dict == other.dict
+            raise TypeError,  'unknown datatype in kwargs: %s'%kwargs
 
     def __neg__(self):
-        return Momenta(sympy=-self.sympy) 
-    
-    def __add__(self, other):
-        return Momenta(sympy=self.sympy+other.sympy)
-    
-    def __sub__(self, other):
-        return Momenta(sympy=self.sympy-other.sympy)
-    
-    def __str__(self):
-        return self.string
-    
-    def __abs__(self):
-        return sympy.sqrt(self*self)
+        t_dict={}
+        for atom in self._dict:
+            t_dict[atom] = - self._dict[atom]
+        return Momenta(dict=t_dict)
 
-    def __mul__(self,other):
-        if not isinstance(other,Momenta): 
-            raise TypeError, "Cant multiply Momenta on non-Momenta %s" %other
+    def __add__(self, other):
+        return Momenta(sympy=(self._sympy+other._sympy))
+
+    def __sub__(self, other):
+        return Momenta(sympy=(self._sympy-other._sympy))
+
+    def __str__(self):
+        return self._string
+
+    def __abs__(self):
+        return sympy.sqrt(self.Squared())
+
+    def __mul__(self, other):
+        if not isinstance(other, Momenta):
+            raise TypeError, "cant multiply momenta on %s"%s
         else:
             res = 0
-            for atom1 in self.dict.keys():
+            for atom1 in self._dict.keys():
                 s_atom1=sympy.var(atom1)
-                for atom2 in other.dict.keys():
+                for atom2 in other._dict.keys():
                     s_atom2 = sympy.var(atom2)
                     if atom1 == atom2 :
-                        res = res + self.dict[atom1]*other.dict[atom2]*s_atom1*s_atom2
+                        res = res + self._dict[atom1]*other._dict[atom2]*s_atom1*s_atom2
                     elif atom1 > atom2 :
-                        s_atom12 = sympy.var(atom2+"x"+atom1)
-                        res = res + self.dict[atom1]*other.dict[atom2]*s_atom12
+                        s_atom12 = sympy.var(atom2+"O"+atom1)
+                        res = res + self._dict[atom1]*other._dict[atom2]*s_atom12*s_atom1*s_atom2
                     else:
-                        s_atom12 = sympy.var(atom1+"x"+atom2)
-                        res = res + self.dict[atom1]*other.dict[atom2]*s_atom12
-        return res
+                        s_atom12 = sympy.var(atom1+"O"+atom2)
+                        res = res + self._dict[atom1]*other._dict[atom2]*s_atom12*s_atom1*s_atom2
+#NOTE: q1Oq2 - нормированное скалярное произведение (q1xq2/q1/q2)
+            return res
 
-    def SetZeros(self, zero_momenta):
-        """ sets some moments to zero. zero_momenta - list of moments
-        """
-        t_sympy=self.sympy
-        z_moment=list() # list of substitutions to set moments zero.
-#        print t_sympy
-        for idxZM in zero_momenta:
-#            print "ZM : %s" %idxZM.string
-            if len(idxZM.dict) == 1:
-                if idxZM.string[0] == "-":
-                    z_moment.append( (-idxZM.sympy, 0) )
-                else:
-                    z_moment.append( (idxZM.sympy, 0) )
+    def Squared(self):
+        return self*self
+
+    def setZerosByAtoms(self,atomsset):
+        smoment=self._sympy
+        for atom in atomsset:
+            smoment=smoment.set(atom,0)
+        return Momenta(sympy,smoment)
+#     def SetZeros(self,zero_momenta):
+#         pass
+# 
+#     def Clone(self):
+#         pass
+# 
+
+
+def Generate(graph, model):
+        if 'GenerateMoments' not in model.__dict__:
+#TODO: change generic Exception 
+            raise Exception, 'model does not have GenerateMoments method'
+        else:
+            if not isinstance(graph.__dict__['_subgraphs'],list):
+                raise Exception, 'graph dots not have _subgraphs field'
             else:
-                atoms_list = list(set(self.dict.keys()) & set(idxZM.dict.keys()))
-                if len(atoms_list) > 0 :
-                    if len(atoms_list)==1:
-                         raise ValueError, "Unexpected zero_moments: moment=%s zero_moments=%s idxZM=%s"%(self,zero_momenta,idxZM)
-                    t_left = atoms_list[0]
-                    t_list=idxZM.dict.keys()
-                    t_list.remove(t_left)
-                    t_right=dict()
-                    for idxM in t_list:
-                        t_right[idxM]=idxZM.dict[idxM]/idxZM.dict[t_left]*(-1)
-                    z_moment.append( (Momenta(string=t_left).sympy, Momenta(dict=t_right).sympy) )
+                graph._moments=model.GenerateMoment(graph)
 
-# TODO: нужна ли сортировка?
-        z_moment.sort()
-#        print "SetZeros z_moment: ", z_moment
-        if not( isinstance(t_sympy,int) or isinstance(t_sympy,float)):
-            for idxZeq in z_moment:
-                t_sympy=t_sympy.subs(idxZeq[0],idxZeq[1])
+def Generic(graph,model):
+    minMomentIndex=10**13
+    int_lines=[x for x in graph.xInternalLines()]
+    for i in comb.xUniqueCombinations(int_lines, G.NLoops()):
+        curkMoment=Kirghoff(graph,i)
+        curkMoment=ZeroExtMoments(curkMoment)
+        curIndex=GetMomentaIndex(graph,curkMoment)
 
-        return Momenta(sympy=t_sympy)
+def GetMomentaIndex(graph,moments):
+    pass
+
+def ZeroExtMoments(moments):
+    """ обнуление внешних импульсо для  вершинных диаграмм
+    """
+    res=dict()
+    extMomentNumber=len(graph.Lines())-len([x for x in graph.xInternalLines()])
+    if extMomentNumber >2:
+        zeroatomset=set([sympy.var('p%s'%x) for x in range(extMomentNumber-1)])
+        for line in moments.keys():
+            res[line]=moments[line].setZerosByAtoms(zeroatomset)
+        return res
+    else:
+        return moments
+        
+
+def SolveNodeKirghoff(node,moments):
+    count=0
+    moment=Momenta(dict={})
+    for line in node.Lines():
+        if line in moments:
+            count+=1
+            if line.Nodes()[0]==node:
+                moment=moment - moments[line]
+            else:
+                moment=moment + moments[line]
+        else:
+            _line=line
+    if count == len(node.Lines())-1:
+        if _line.Nodes()[0]==node:
+            return (_line, moment)
+        else:
+            return (_line, -moment)
+    else:
+        return (None,None)
+
+def Kirghoff(graph,simple_moments):
+    flag = True
+    moments={}
+    intMomentCount=0
+    extMomentCount=0
+    for line in simple_moments:
+        moments[line.idx()]=Momenta(string='q%s'%intMomentCount)
+        intMomentCount+=1
+    extMomentNumber=len(graph.Lines())-len([x for x in graph.xInternalLines()])
+    extMoment=Moment(dict={})
+    for node in graph.xInternalNodes():
+        for line in node.Lines():
+            if not line.isInternal():
+                if extMomentCount<extMomentNumber-1:
+                        moments[line]=Momenta(string='p%s'%extMomentCount)
+                        if line.Nodes()[0] == node:
+                            extMoment=extMoment-moments[line]
+                        else:
+                            extMoment=extMoment+moments[line]
+                        extMomentCount+=1
+                else:
+                    if line.Nodes()[0]==node:
+                        moment[line]=extMoment
+                    else:
+                        moment[line]=-extMoment
+                
+    while flag:
+        flag=False
+        for node in graph.xInternalNodes():
+            (_line,_moment)=SolveNodeKirghoff(node,moments)
+            if not _line == None:
+                moments[_line]=_moment
+                flag=True
+                
+    if len(moments.keys()) == len(graph.Lines()):
+        return moments
+    else:
+        return None
+            
+            

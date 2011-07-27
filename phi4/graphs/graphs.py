@@ -90,6 +90,10 @@ class Graph:
             if line.isInternal():
                 yield line
 
+    def Lines(self):
+        return [self._Line(x) for x in self._lines]
+            
+
     def NLoops(self):
 #TODO: rewrite nloops in more efficient way
         return len([x for x in self.xInternalLines()])-len([x for x in self.xInternalNodes()])+1
