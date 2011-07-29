@@ -75,3 +75,11 @@ class Test_Momenta:
         p,q,v,pOq,pOv,qOv=sympy.var('p q v pOq pOv qOv')
         print moments.Momenta(sympy=-p+q)*moments.Momenta(sympy=q-v)
         assert moments.Momenta(sympy=-p+q)*moments.Momenta(sympy=q-v)==-p*q*pOq+q*q+p*v*pOv-q*v*qOv
+
+    def test_eq(self):
+        assert moments.Momenta(sympy=0) == moments.Momenta(dict={})
+        assert moments.Momenta(string="p+q") == moments.Momenta(string="q+p")
+
+
+#     def test_setZeroesByAtoms(self):
+ #         pass       pass

@@ -92,6 +92,9 @@ class Momenta:
         for atom in atomsset:
             smoment=smoment.set(atom,0)
         return Momenta(sympy,smoment)
+
+    def __eq__(self,other):
+        return self._sympy==other._sympy
 #     def SetZeros(self,zero_momenta):
 #         pass
 # 
