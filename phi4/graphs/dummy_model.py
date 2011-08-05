@@ -1,13 +1,11 @@
 from lines import Line
 from nodes import Node
 
-class _phi3():
-    def __init__( self , name):
+class _generic_model: 
+    def __init__( self, name):
         self.name=name
-        self.space_dim=6
-        self.lines_dim={1:-2}
-        self.modifiers_dim={'tau':-2,'p':-1}
-        self.nodes_dim={1:0}
+        """ add model specific definitons here        
+        """
     def Dim( self, obj ):
         """ using generic _Dim function
         """
@@ -17,7 +15,25 @@ class _phi3():
         """ using generic _setType
         """
         _SetTypes(graph)
+    
+
+class _phi3(_generic_model):
+    def __init__( self , name):
+        self.name=name
+        self.space_dim=6
+        self.lines_dim={1:-2}
+        self.modifiers_dim={'tau':-2,'p':-1}
+        self.nodes_dim={1:0}
         
+    
+class _phi4(_generic_model):
+    def __init__( self , name):
+        self.name=name
+        self.space_dim=4
+        self.lines_dim={1:-2}
+        self.modifiers_dim={'tau':-2,'p':-1}
+        self.nodes_dim={1:0}
+
 
 def _SetTypes(graph):
     """ set types for graph nodes and lines ( this implementation may be used only for models with 1 type of lines and 1 type of nodes)
@@ -43,19 +59,3 @@ def _Dim(model,obj):
             dim+=model.modifiers_dim[mod]
     return dim
 
-class _phi4():
-    def __init__( self , name):
-        self.name=name
-        self.space_dim=4
-        self.lines_dim={1:-2}
-        self.modifiers_dim={'tau':-2,'p':-1}
-        self.nodes_dim={1:0}
-    def Dim( self, obj ):
-        """ using generic _Dim function
-        """
-        return _Dim(self,obj)
-
-    def SetTypes(self, graph):
-        """ using generic _setType
-        """
-        _SetTypes(graph)
