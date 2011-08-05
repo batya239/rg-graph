@@ -4,72 +4,15 @@ from nose.tools import raises
 
 import subgraphs
 
-from lines import Line
-from nodes import Node
+
 from graphs import Graph
 
-class _model():
-    def __init__( self , name):
-        self.name=name
-        self.space_dim=6
-        self.lines_dim={1:-2}
-        self.modifiers_dim={'tau':-2,'p':-1}
-        self.nodes_dim={1:0}
-    def Dim( self, obj ):
-        if obj.type==None:
-            raise ValueError , "cant determine Dim: type is None"
-        if isinstance( obj, Line ):
-            dim=self.lines_dim[obj.type]
-        elif isinstance( obj, Node):
-            dim=self.nodes_dim[obj.type]
-        else:
-            raise ValueError, 'unknown object'
-        if obj.modifiers<>None:
-            for mod in obj.modifiers:
-                    dim+=self.modifiers_dim[mod]
-        return dim
-    def SetTypes(self, graph):
-        """ set types for graph nodes and lines ( this implementation may be used only for models with 1 type of lines and 1 type of nodes)
-        """
-        for line in graph.xInternalLines():
-            line.type=1
-        for node in graph.xInternalNodes():
-            node.type=1
-        
-
-class _phi4():
-    def __init__( self , name):
-        self.name=name
-        self.space_dim=4
-        self.lines_dim={1:-2}
-        self.modifiers_dim={'tau':-2,'p':-1}
-        self.nodes_dim={1:0}
-    def Dim( self, obj ):
-        if obj.type==None:
-            raise ValueError , "cant determine Dim: type is None"
-        if isinstance( obj, Line ):
-            dim=self.lines_dim[obj.type]
-        elif isinstance( obj, Node):
-            dim=self.nodes_dim[obj.type]
-        else:
-            raise ValueError, 'unknown object'
-        if obj.modifiers<>None:
-            for mod in obj.modifiers:
-                    dim+=self.modifiers_dim[mod]
-        return dim
-
-    def SetTypes(self, graph):
-        """ set types for graph nodes and lines ( this implementation may be used only for models with 1 type of lines and 1 type of nodes)
-        """
-        for line in graph.xInternalLines():
-            line.type=1
-        for node in graph.xInternalNodes():
-            node.type=1
+from dummy_model import _phi3,_phi4
         
 
 class test_Dim():
     def setUp(self):
-        self.model=_model('phi3')
+        self.model=_phi3('dummy')
         self.g=Graph('e11-e-')
         self.g1=Graph('e11-e-')
         self.model.SetTypes(self.g1)
@@ -115,9 +58,9 @@ class test_Dim():
 class test_subgraphs:
     def setUp(self):
         self.g=Graph('e12-e3-33-')
-        self.model=_model('phi3')
+        self.model=_phi3('dummy')
         self.model.SetTypes(self.g)
-        self.phi4=_phi4('phi4')
+        self.phi4=_phi4('dummy')
 
     
 
