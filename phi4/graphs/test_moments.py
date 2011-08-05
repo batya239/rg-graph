@@ -29,6 +29,8 @@ class Test_convert:
 
 class Test_Momenta:
     def test_init_string(self):
+        """ initialization of Momenta instance with string
+        """
         (p,q,v)=sympy.var('p q v')
         pq=moments.Momenta(string='p+q')
         assert pq._string=='p+q'
@@ -36,6 +38,8 @@ class Test_Momenta:
         assert pq._sympy==p+q
 
     def test_init_dict(self):
+        """ initialization of Momenta instance with dict
+        """
         (p,q,v)=sympy.var('p q v')
         pq=moments.Momenta(dict={'p':1,'q':1})
         assert pq._string=='p+q'
@@ -43,6 +47,8 @@ class Test_Momenta:
         assert pq._sympy==p+q
 
     def test_init_sympy(self):
+        """ initialization of Momenta  instance with sympy
+        """
         (p,q,v)=sympy.var('p q v')
         pq=moments.Momenta(sympy=p+q)
         assert pq._string=='p+q'
@@ -51,35 +57,52 @@ class Test_Momenta:
 
     @raises(TypeError)
     def test_init_err(self):
+        """ Momenta initialization with empty args
+        """        
         p=moments.Momenta()
 
     def test_neg(self):
+        """ Momenta __neg__ operation
+        """
         p,q=sympy.var('p q')
         m1=moments.Momenta(sympy=p-q)
         m2=-m1
         assert m1._sympy==-m2._sympy
         
     def test_add(self):
-        assert (moments.Momenta(string='p-q')+moments.Momenta(string='q-v'))._sympy==moments.Momenta(string='p-v')._sympy
+        """ Momenta addition
+        """        
+        assert moments.Momenta(string='p-q')+moments.Momenta(string='q-v')==moments.Momenta(string='p-v')
 
     def test_sub(self):
-        assert (moments.Momenta(string='p-q')-moments.Momenta(string='v-q'))._sympy==moments.Momenta(string='p-v')._sympy
+        """ Momenta substraction
+        """
+        assert moments.Momenta(string='p-q')-moments.Momenta(string='v-q')==moments.Momenta(string='p-v')
 
     def test_abs(self):
+        """ Momenta absolute value
+        """
         p,q,pOq=sympy.var('p q pOq')
         assert abs(moments.Momenta(sympy=p))==sympy.sqrt(p*p)
         print abs(moments.Momenta(sympy=p+q))
         assert abs(moments.Momenta(sympy=p+q))==sympy.sqrt(p*p+q*q+2*p*q*pOq)
 
     def test_mull(self):
+        """ Momenta scalar product
+        """       
         p,q,v,pOq,pOv,qOv=sympy.var('p q v pOq pOv qOv')
         print moments.Momenta(sympy=-p+q)*moments.Momenta(sympy=q-v)
         assert moments.Momenta(sympy=-p+q)*moments.Momenta(sympy=q-v)==-p*q*pOq+q*q+p*v*pOv-q*v*qOv
 
     def test_eq(self):
+        """ Momenta __eq__ operation
+        """        
         assert moments.Momenta(sympy=0) == moments.Momenta(dict={})
         assert moments.Momenta(string="p+q") == moments.Momenta(string="q+p")
 
 
-#     def test_setZeroesByAtoms(self):
- #         pass       pass
+    def test_setZerosByAtoms(self):
+        """ setting to zeros some atomic momenta
+        """
+        q,v=sympy.var("q v")
+        assert moments.Momenta(string='p+q-v+t').setZerosByAtoms(set([q,v]))==moments.Momenta(string='p+t')

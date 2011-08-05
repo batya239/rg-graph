@@ -90,11 +90,14 @@ class Momenta:
     def setZerosByAtoms(self,atomsset):
         smoment=self._sympy
         for atom in atomsset:
-            smoment=smoment.set(atom,0)
-        return Momenta(sympy,smoment)
+            smoment=smoment.subs(atom,0)
+        return Momenta(sympy=smoment)
 
     def __eq__(self,other):
         return self._sympy==other._sympy
+
+    def __ne__(self,other):
+        return not (self==other)
 #     def SetZeros(self,zero_momenta):
 #         pass
 # 
@@ -113,13 +116,19 @@ def Generate(graph, model):
             else:
                 graph._moments=model.GenerateMoment(graph)
 
-def Generic(graph,model):
-    minMomentIndex=10**13
-    int_lines=[x for x in graph.xInternalLines()]
+def Generic(graph, model):
+    minMomentIndex = 10**13
+    minkMoment = None
+    int_lines = [x for x in graph.xInternalLines()]
     for i in comb.xUniqueCombinations(int_lines, G.NLoops()):
-        curkMoment=Kirghoff(graph,i)
-        curkMoment=ZeroExtMoments(curkMoment)
-        curIndex=GetMomentaIndex(graph,curkMoment)
+        curkMoment = Kirghoff(graph,i)
+        curkMoment = ZeroExtMoments(curkMoment)
+        curIndex = GetMomentaIndex(graph,curkMoment)
+        if curIndex<minMomentIndex:
+            minMomentIndex = curIndex
+            minkMoment = curkMoment
+
+    return minkMoment
 
 def GetMomentaIndex(graph,moments):
     pass
