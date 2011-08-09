@@ -1,5 +1,6 @@
 from lines import Line
 from nodes import Node
+import moments
 
 class _generic_model: 
     def __init__( self, name):
@@ -16,6 +17,10 @@ class _generic_model:
         """
         _SetTypes(graph)
     
+    def GenerateMoment(self,graph):
+        """ at present time GenerateMoment uses moments.Generic function
+        """
+        return moments.Generic(self,graph)
 
 class _phi3(_generic_model):
     def __init__( self , name):

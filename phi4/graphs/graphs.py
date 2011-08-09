@@ -7,6 +7,7 @@ import nickel
 
 from store import _Lines, _Nodes
 from nodes import Node
+from subgraphs import FindSubgraphs
 #from lines import Line
 
 
@@ -109,3 +110,6 @@ class Graph:
             dim = dim + node.Dim(model)
 
         return dim
+
+    def FindSubgraphs(self,model):
+        self._subgraphs=FindSubgraphs(self,model)

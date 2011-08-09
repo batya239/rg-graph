@@ -66,4 +66,7 @@ class Node:
                     out_nodes[line.idx()]=node.idx()
         return out_nodes
 
+    def __repr__(self):
+        return "Node-%s"%self.idx()
+
 

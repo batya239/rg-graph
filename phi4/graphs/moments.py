@@ -2,6 +2,10 @@
 # -*- coding:utf8 -*-
 import sympy
 
+import comb     
+
+import subgraphs
+
 def _str2dict(string):
     """ converts string representation of momenta to dict by moment atoms.
         Assumed that atmos has coefficients +/- 1
@@ -88,6 +92,8 @@ class Momenta:
         return self*self
 
     def setZerosByAtoms(self,atomsset):
+        """ atomsset - set of sympy variables
+        """
         smoment=self._sympy
         for atom in atomsset:
             smoment=smoment.subs(atom,0)
@@ -98,6 +104,25 @@ class Momenta:
 
     def __ne__(self,other):
         return not (self==other)
+
+    def isSimple(self):
+        """ check if moment is simple. ex. "p0", "q0", not "p0+q0" 
+        """
+        if len(self._dict.keys())==1:
+            return True
+        else:
+            return False
+
+    def hasAtoms(self, atomsset):
+        """ check if moment has all atomsets atoms in it
+            atomsset - set of strings
+        """
+        res=True
+        for atom in atomsset:
+            if atom not in self._dict.keys():
+                res=False
+        return res
+        
 #     def SetZeros(self,zero_momenta):
 #         pass
 # 
@@ -106,7 +131,7 @@ class Momenta:
 # 
 
 
-def Generate(graph, model):
+def Generate(model,graph):
         if 'GenerateMoments' not in model.__dict__:
 #TODO: change generic Exception 
             raise Exception, 'model does not have GenerateMoments method'
@@ -116,26 +141,84 @@ def Generate(graph, model):
             else:
                 graph._moments=model.GenerateMoment(graph)
 
-def Generic(graph, model):
+def Generic(model, graph):
     minMomentIndex = 10**13
     minkMoment = None
     int_lines = [x for x in graph.xInternalLines()]
-    for i in comb.xUniqueCombinations(int_lines, G.NLoops()):
+    for i in comb.xUniqueCombinations(int_lines, graph.NLoops()):
         curkMoment = Kirghoff(graph,i)
-        curkMoment = ZeroExtMoments(curkMoment)
+#        print dict([(x.idx(),curkMoment[x]._string) for x in curkMoment]),[(x.idx(),x.isInternal()) for x in i]
+        curkMoment = ZeroExtMoments(graph,curkMoment)
         curIndex = GetMomentaIndex(graph,curkMoment)
-        if curIndex<minMomentIndex:
+        if (curIndex<minMomentIndex) and (curkMoment<>None):
             minMomentIndex = curIndex
             minkMoment = curkMoment
 
     return minkMoment
 
 def GetMomentaIndex(graph,moments):
-    pass
+    """ calculates penalties for moment layouts.
+        phi3-like models only!!!
+    """
+    penalties={"badKirghoff":10**9, "badSub":10*6, "badIn":10000, "longInPath":100,"longMoment":1}
+    result=0
+    if moments==None:
+        """ if Kirghoff returns None - it can't solve Kirghoff equtaions due to inconsistent initial conditions
+        """
+        return penalties["badKirghoff"]
 
-def ZeroExtMoments(moments):
+    if "_subgraphs" not in graph.__dict__:
+        raise AttributeError, "no _subgraph in graph instance (run subgraphs.FindSubgraphs)"
+    else:
+
+        for sub in graph._subgraphs:
+            """ each subgraph must have number of simple moments equal to number of its  loops
+            """
+            nsimple=0
+            for lineidx in sub:
+                if moments[graph._Line(lineidx)].isSimple():
+                    nsimple+=1
+            if nsimple <> subgraphs.NLoopSub(sub):
+                result+=penalties["badSub"]
+
+
+            extnodes,extlines=subgraphs.FindExternal(sub)
+            if len(extlines)==2:
+                """ is external moment for self-energy subgraph simple?
+                """
+                if not moments[graph._Line(list(extlines)[0])].isSimple():
+                    result+=penalties["badIn"]
+
+                """ count length of external moment path for self-energy subgraph 
+                """
+                extpath=ExtMomentPath(graph, sub, moments)
+                if len(extpath)>=2:
+                    result+=penalties['longIn']*(len(extpath)-1)
+        for moment in moments.values():        
+            result+=penalties['longMoment']*(len(moment._dict.keys())-1)
+
+    return result
+
+def ExtMomentPath(graph,subgraph,moments):
+    """ find subgraphs external moment path
+    """
+    extnodes,extlines=subgraphs.FindExternal(subgraph)
+    extatoms=set()
+    for i in extlines:
+        extatoms=extatoms| set(moments[graph._Line(i)]._dict.keys()) 
+    path=list()
+    for lineidx in subgraph:
+        if moments[graph._Line(lineidx)].hasAtoms(extatoms):
+ #TODO: нужно ли требование наличия всех атомов или хотя бы одного? 
+#если импульс разветвляется Momenta.hasAtoms его не найдет.
+            path.append(lineidx)
+    return path
+
+def ZeroExtMoments(graph,moments):
     """ обнуление внешних импульсо для  вершинных диаграмм
     """
+    if moments == None:
+        return None
     res=dict()
     extMomentNumber=len(graph.Lines())-len([x for x in graph.xInternalLines()])
     if extMomentNumber >2:
@@ -173,10 +256,11 @@ def Kirghoff(graph,simple_moments):
     intMomentCount=0
     extMomentCount=0
     for line in simple_moments:
-        moments[line.idx()]=Momenta(string='q%s'%intMomentCount)
+        moments[line]=Momenta(string='q%s'%intMomentCount)
         intMomentCount+=1
+    #print  " Kirghoff 1" , moments
     extMomentNumber=len(graph.Lines())-len([x for x in graph.xInternalLines()])
-    extMoment=Moment(dict={})
+    extMoment=Momenta(dict={})
     for node in graph.xInternalNodes():
         for line in node.Lines():
             if not line.isInternal():
@@ -189,10 +273,11 @@ def Kirghoff(graph,simple_moments):
                         extMomentCount+=1
                 else:
                     if line.Nodes()[0]==node:
-                        moment[line]=extMoment
+                        moments[line]=extMoment
                     else:
-                        moment[line]=-extMoment
+                        moments[line]=-extMoment
                 
+    #print " Kirghoff2 2" , moments
     while flag:
         flag=False
         for node in graph.xInternalNodes():
