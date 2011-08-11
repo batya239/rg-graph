@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding:utf8 -*-
 import sympy
+from copy import copy
 
 import comb     
 
@@ -139,39 +140,49 @@ def Generate(model,graph):
             if not isinstance(graph.__dict__['_subgraphs'],list):
                 raise Exception, 'graph dots not have _subgraphs field'
             else:
-                graph._moments=model.GenerateMoment(graph)
+                (graph._moments, _subgraphs)=model.GenerateMoment(graph)
+                if _subgraphs <> None:
+                    graph._subgraphs=_subgraphs
 
 def Generic(model, graph):
     minMomentIndex = 10**13
     minkMoment = None
+    minSubgraphs = None
     int_lines = [x for x in graph.xInternalLines()]
     for i in comb.xUniqueCombinations(int_lines, graph.NLoops()):
         curkMoment = Kirghoff(graph,i)
 #        print dict([(x.idx(),curkMoment[x]._string) for x in curkMoment]),[(x.idx(),x.isInternal()) for x in i]
         curkMoment = ZeroExtMoments(graph,curkMoment)
-        curIndex = GetMomentaIndex(graph,curkMoment)
+        curIndex, newSubgraphs = GetMomentaIndex(graph,curkMoment)
         if (curIndex<minMomentIndex) and (curkMoment<>None):
             minMomentIndex = curIndex
             minkMoment = curkMoment
+            if newSubgraphs <> None:
+                minSubgraphs=newSubgraphs
 
-    return minkMoment
+    return minkMoment, minSubgraphs
 
-def GetMomentaIndex(graph,moments):
+def GetMomentaIndex(graph,moments, checktadpoles=False):
     """ calculates penalties for moment layouts.
-        phi3-like models only!!!
+         checktadpoles=False for phi3-like models only!!!
+        phi4 model -> checktadpoles=True
+        checktadpoles=True - generates new (redueced) _subfgraphs field
     """
     penalties={"badKirghoff":10**9, "badSub":10*6, "badIn":10000, "longInPath":100,"longMoment":1}
     result=0
     if moments==None:
         """ if Kirghoff returns None - it can't solve Kirghoff equtaions due to inconsistent initial conditions
         """
-        return penalties["badKirghoff"]
+        return penalties["badKirghoff"], None
 
     if "_subgraphs" not in graph.__dict__:
         raise AttributeError, "no _subgraph in graph instance (run subgraphs.FindSubgraphs)"
     else:
+        _subgraphs=copy(graph._subgraphs)
+        if checktadpoles:
+            pass
 
-        for sub in graph._subgraphs:
+        for sub in _subgraphs:
             """ each subgraph must have number of simple moments equal to number of its  loops
             """
             nsimple=0
@@ -197,7 +208,10 @@ def GetMomentaIndex(graph,moments):
         for moment in moments.values():        
             result+=penalties['longMoment']*(len(moment._dict.keys())-1)
 
-    return result
+    if checktadpoles==False:
+        return result, None
+    else:
+        return result, _subgraphs
 
 def ExtMomentPath(graph,subgraph,moments):
     """ find subgraphs external moment path
