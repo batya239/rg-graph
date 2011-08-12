@@ -147,16 +147,22 @@ def Generate(model,graph):
                 if _subgraphs <> None:
                     graph._subgraphs=_subgraphs
 
+def xSimpleMoments(graph):
+    int_lines = [x for x in graph.xInternalLines()]
+    for i in comb.xUniqueCombinations(int_lines, graph.NLoops()):
+        yield  Kirghoff(graph,i)
+
 def Generic(model, graph):
     minMomentIndex = 10**13
     minkMoment = None
     minSubgraphs = None
     newSubgraphs = None
-    int_lines = [x for x in graph.xInternalLines()]
-    for i in comb.xUniqueCombinations(int_lines, graph.NLoops()):
-        curkMoment = Kirghoff(graph,i)
+#    int_lines = [x for x in graph.xInternalLines()]
+#    for i in comb.xUniqueCombinations(int_lines, graph.NLoops()):
+#        _curkMoment = Kirghoff(graph,i)
+    for _curkMoment in xSimpleMoments(graph):
 #        print dict([(x.idx(),curkMoment[x]._string) for x in curkMoment]),[(x.idx(),x.isInternal()) for x in i]
-        curkMoment = ZeroExtMoments(graph,curkMoment)
+        curkMoment = ZeroExtMoments(graph,_curkMoment)
         if model.checktadpoles:
             try:
                 newSubgraphs = CheckTadpoles(graph, curkMoment)
