@@ -40,8 +40,55 @@ def FindExternal(subgraph):
         for line in node.Lines():
             all_nodes=all_nodes|set(line.Nodes())
             all_lines=all_lines|set([line.idx()])
-#nodes as objects lines as links. rewrite?
+#TODO: nodes as objects lines as links. rewrite?
     return (all_nodes-InternalNodes(subgraph), all_lines-set(subgraph))
+
+def CountExtLegs(subgraph):
+    """ counts external legs for subgraph. Note: it isn't equal to len(extlines). ex. subgraphs in watermelone
+        for selfenergy subgraphs it is the same if we did not taking into account vacuum loops
+    """
+    extnodes,extlines=FindExternal(subgraph)
+    intnodes=InternalNodes(subgraph)
+    _lines_storage=_Lines()
+    cnt=0
+    for idxL in extlines:
+        for node in _lines_storage.Get(idxL).Nodes():
+            if node in intnodes:
+                cnt+=1
+    return cnt
+
+def BorderNodes(subgraph):
+    """ border node is internal node that connected to external node
+    """
+    extnodes,extlines=FindExternal(subgraph)
+    _lines_storage=_Lines()
+    border=set()
+    for idxL in extlines:
+         border=border|set(_lines_storage.Get(idxL).Nodes())
+    return border-extnodes
+
+def FindTadpoles(sub1,_subgraphs):
+    intnodes=InternalNodes(sub1)
+    (extnodes,extlines)=FindExternal(sub1)
+    border=list(BorderNodes(sub1))
+    tadpoles=list()
+    for sub in _subgraphs:
+        if len(sub1)>len(sub):
+            """ othewise sub cant be subgraph of sub1
+            """
+            if reduce(lambda x,y: x&y,[(line in sub1) for line in sub]):
+                """ all lines in sub are in sub1
+                """
+#                _intnodes=InternalNodes(sub)
+#                if reduce(lambda x,y: x&y,[(node in _intnodes) for node in border]:
+                _border=BorderNodes(sub)
+                if reduce(lambda x,y: x&y,[(node in _border) for node in border]):
+                    """ border of sub1 (biger) inside border sub (smaller)
+                        this gives us tadpole in sub1 after sub reduced to point
+                    """
+                    tadpoles.apped(sub)
+    return tadpoles
+    
 
 def ToEdges(subgraph):
     (extnodes,extlines)=FindExternal(subgraph)
@@ -69,6 +116,7 @@ def ToEdges(subgraph):
 def sub2objects(subgraph):
     _lines_store=_Lines()
     return [_lines_store.Get(x) for x in subgraph]
+
 def isSubgraph1PI(subgraph):
     res = True
     subobj=sub2objects(subgraph)

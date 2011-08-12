@@ -7,6 +7,9 @@ import comb
 
 import subgraphs
 
+class TadpoleError(Exception):
+    pass
+
 def _str2dict(string):
     """ converts string representation of momenta to dict by moment atoms.
         Assumed that atmos has coefficients +/- 1
@@ -148,19 +151,49 @@ def Generic(model, graph):
     minMomentIndex = 10**13
     minkMoment = None
     minSubgraphs = None
+    newSubgraphs = None
     int_lines = [x for x in graph.xInternalLines()]
     for i in comb.xUniqueCombinations(int_lines, graph.NLoops()):
         curkMoment = Kirghoff(graph,i)
 #        print dict([(x.idx(),curkMoment[x]._string) for x in curkMoment]),[(x.idx(),x.isInternal()) for x in i]
         curkMoment = ZeroExtMoments(graph,curkMoment)
-        curIndex, newSubgraphs = GetMomentaIndex(graph,curkMoment)
+        if model.checktadpoles:
+            try:
+                newSubgraphs = CheckTadpoles(graph, curkMoment)
+            except TadpoleError:
+                continue
+            graphs._subgraps_checktadpole = newSubgraphs
+        curIndex = GetMomentaIndex(graph, curkMoment, checktadpoles=model.checktadpoles)
+        print curIndex
         if (curIndex<minMomentIndex) and (curkMoment<>None):
             minMomentIndex = curIndex
             minkMoment = curkMoment
             if newSubgraphs <> None:
-                minSubgraphs=newSubgraphs
+                minSubgraphs = newSubgraphs
 
     return minkMoment, minSubgraphs
+
+def CheckTadpoles(graph,moments):
+    res =  copy(graph._subgraphs)
+    for sub in sorted(graph._subgraphs,key=len,reverse=True):
+        if sub not in res:
+            continue
+        else:
+            tadpoles=subgraphs.FindTadpoles(sub,res)
+            momentpath=ExtMomentPath(graph,sub,moments)
+            to_remove=list()
+            for tadsub in tadpoles:
+                if reduce(lambda x,y: x&y, [(idxL in sub) for idxL in momentpath]):
+                    """ внешний для подграфа sub импульс протекает полностью через  подграф tadsub
+                    """
+                    to_remove.append(tadsub)
+            if len(tadpoles)>0 and len(to_remove)<1:
+                raise TadpoleError, "moment doesn't pass through subgraph that produced tadpole"
+            for _sub in to_remove:
+                res.remove(_sub)
+            
+    return res
+
 
 def GetMomentaIndex(graph,moments, checktadpoles=False):
     """ calculates penalties for moment layouts.
@@ -178,9 +211,11 @@ def GetMomentaIndex(graph,moments, checktadpoles=False):
     if "_subgraphs" not in graph.__dict__:
         raise AttributeError, "no _subgraph in graph instance (run subgraphs.FindSubgraphs)"
     else:
-        _subgraphs=copy(graph._subgraphs)
-        if checktadpoles:
-            pass
+        #print checktadpoles
+        if not checktadpoles:
+            _subgraphs=graph._subgraphs
+        else:
+            _subgraphs=graph._subgraphs_checktadpole
 
         for sub in _subgraphs:
             """ each subgraph must have number of simple moments equal to number of its  loops
@@ -194,8 +229,10 @@ def GetMomentaIndex(graph,moments, checktadpoles=False):
 
 
             extnodes,extlines=subgraphs.FindExternal(sub)
-            if len(extlines)==2:
+#            if len(extlines)==2:
+            if subgraphs.CountExtLegs(sub)==2:
                 """ is external moment for self-energy subgraph simple?
+
                 """
                 if not moments[graph._Line(list(extlines)[0])].isSimple():
                     result+=penalties["badIn"]
@@ -209,9 +246,9 @@ def GetMomentaIndex(graph,moments, checktadpoles=False):
             result+=penalties['longMoment']*(len(moment._dict.keys())-1)
 
     if checktadpoles==False:
-        return result, None
+        return result
     else:
-        return result, _subgraphs
+        return result
 
 def ExtMomentPath(graph,subgraph,moments):
     """ find subgraphs external moment path

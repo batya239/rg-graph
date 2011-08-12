@@ -29,6 +29,7 @@ class _phi3(_generic_model):
         self.lines_dim={1:-2}
         self.modifiers_dim={'tau':-2,'p':-1}
         self.nodes_dim={1:0}
+        self.checktadpoles=False
         
     
 class _phi4(_generic_model):
@@ -38,6 +39,7 @@ class _phi4(_generic_model):
         self.lines_dim={1:-2}
         self.modifiers_dim={'tau':-2,'p':-1}
         self.nodes_dim={1:0}
+        self.checktadpoles=True
 
 
 def _SetTypes(graph):
