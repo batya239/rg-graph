@@ -181,3 +181,14 @@ class Test_Generate:
         print_moments(_moments)
         print_moments(_momenta_dict({5: 'p0', 6: '-p0', 7: 'p0-q0', 8: 'q0', 9: 'q1', 10: 'p0-q0-q1', 11: 'q2', 12: 'q0-q2', 13: 'p0-q0', 14: 'q0', 15: '-q0', 16: 'q3', 17: 'q0-q3'})) 
         assert compare_moments(_moments,_momenta_dict({5: 'p0', 6: '-p0', 7: 'p0-q0', 8: 'q0', 9: 'q1', 10: 'p0-q0-q1', 11: 'q2', 12: 'q0-q2', 13: 'p0-q0', 14: 'q0', 15: '-q0', 16: 'q3', 17: 'q0-q3'}))
+
+
+    def test_Generic_e111_e_(self):
+        g1=Graph('e111-e-')
+        self.phi4.SetTypes(g1)
+        g1.FindSubgraphs(self.phi4)
+        _moments,_subgraphs=moments.Generic(self.phi4, g1)
+        print_moments(_moments)
+        print g1._subgraphs, _subgraphs
+        print_moments(_momenta_dict({1:'p0',2:'-p0',3:'q0',4:'p0-q0'})) 
+        assert compare_moments(_moments,_momenta_dict({1:'p0',2:'-p0',3:'q0',4:'p0-q0'}))

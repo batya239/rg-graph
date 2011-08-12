@@ -86,7 +86,7 @@ def FindTadpoles(sub1,_subgraphs):
                     """ border of sub1 (biger) inside border sub (smaller)
                         this gives us tadpole in sub1 after sub reduced to point
                     """
-                    tadpoles.apped(sub)
+                    tadpoles.append(sub)
     return tadpoles
     
 

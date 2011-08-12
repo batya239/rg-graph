@@ -160,11 +160,12 @@ def Generic(model, graph):
         if model.checktadpoles:
             try:
                 newSubgraphs = CheckTadpoles(graph, curkMoment)
+                print newSubgraphs
             except TadpoleError:
                 continue
-            graphs._subgraps_checktadpole = newSubgraphs
+            graph._subgraphs_checktadpole = newSubgraphs
         curIndex = GetMomentaIndex(graph, curkMoment, checktadpoles=model.checktadpoles)
-        print curIndex
+#        print curIndex
         if (curIndex<minMomentIndex) and (curkMoment<>None):
             minMomentIndex = curIndex
             minkMoment = curkMoment
@@ -174,24 +175,30 @@ def Generic(model, graph):
     return minkMoment, minSubgraphs
 
 def CheckTadpoles(graph,moments):
+    graph_as_sub=[x.idx() for x in graph.xInternalLines()]
     res =  copy(graph._subgraphs)
-    for sub in sorted(graph._subgraphs,key=len,reverse=True):
+    res.append(graph_as_sub) #Durty trick
+    for sub in [graph_as_sub] + sorted(graph._subgraphs,key=len,reverse=True):
         if sub not in res:
             continue
         else:
             tadpoles=subgraphs.FindTadpoles(sub,res)
+            print "tadpoles:",tadpoles
             momentpath=ExtMomentPath(graph,sub,moments)
+            print dict([(x.idx(),moments[x]._string) for x in moments])
+            print "momentpath:",momentpath
             to_remove=list()
             for tadsub in tadpoles:
-                if reduce(lambda x,y: x&y, [(idxL in sub) for idxL in momentpath]):
+                if reduce(lambda x,y: x&y, [(idxL in tadsub) for idxL in momentpath]):
                     """ внешний для подграфа sub импульс протекает полностью через  подграф tadsub
                     """
                     to_remove.append(tadsub)
+            print to_remove,res
             if len(tadpoles)>0 and len(to_remove)<1:
                 raise TadpoleError, "moment doesn't pass through subgraph that produced tadpole"
             for _sub in to_remove:
                 res.remove(_sub)
-            
+    res.remove(graph_as_sub)    
     return res
 
 
@@ -201,12 +208,12 @@ def GetMomentaIndex(graph,moments, checktadpoles=False):
         phi4 model -> checktadpoles=True
         checktadpoles=True - generates new (redueced) _subfgraphs field
     """
-    penalties={"badKirghoff":10**9, "badSub":10*6, "badIn":10000, "longInPath":100,"longMoment":1}
+    penalties={"badKirghoff":10**9, "badSub":10**6, "badIn":10000, "longInPath":100,"longMoment":1}
     result=0
     if moments==None:
         """ if Kirghoff returns None - it can't solve Kirghoff equtaions due to inconsistent initial conditions
         """
-        return penalties["badKirghoff"], None
+        return penalties["badKirghoff"]
 
     if "_subgraphs" not in graph.__dict__:
         raise AttributeError, "no _subgraph in graph instance (run subgraphs.FindSubgraphs)"
@@ -245,10 +252,8 @@ def GetMomentaIndex(graph,moments, checktadpoles=False):
         for moment in moments.values():        
             result+=penalties['longMoment']*(len(moment._dict.keys())-1)
 
-    if checktadpoles==False:
-        return result
-    else:
-        return result
+    print "Index:", result
+    return result
 
 def ExtMomentPath(graph,subgraph,moments):
     """ find subgraphs external moment path
