@@ -6,6 +6,7 @@ from copy import copy
 import comb     
 
 import subgraphs
+from store import _Lines
 
 class TadpoleError(Exception):
     pass
@@ -148,9 +149,162 @@ def Generate(model,graph):
                     graph._subgraphs=_subgraphs
 
 def xSimpleMoments(graph):
+    """ simple alogritm: puting simple moments to some lines and trying to solve Krchhoff equations
+    """
     int_lines = [x for x in graph.xInternalLines()]
     for i in comb.xUniqueCombinations(int_lines, graph.NLoops()):
         yield  Kirghoff(graph,i)
+
+def ChainNodes(chain):
+    nodes = set()
+    intnodes = set()
+    for line in chain:
+        for node in line.Nodes():
+            if node in nodes:
+                intnodes.add(node)
+            nodes.add(node)
+    return list(intnodes),list(nodes-intnodes)
+
+def SortedChain(chain):
+    def _sort(chain):
+        minidx=0
+        for i in range(1,len(chain)):
+            if chain[minidx].idx()>chain[i].idx():
+                minidx=i
+        return chain[minidx:]+chain[:minidx]
+    
+    if len(chain)==1:
+        return chain
+    elif len(chain)==2:
+        if len(set(chain[0].Nodes())&set(chain[1].Nodes()))==2:
+            return _sort(chain)
+        else:
+            return chain
+    else:
+        if len(set(chain[0].Nodes())&set(chain[-1].Nodes()))==1:
+            return _sort(chain)
+        else:
+            return chain
+        
+
+def LoopsAndPaths(graph):
+    Loops=list()
+    Paths=list()
+    for line in subgraphs.sub2objects(graph._lines):
+        if line.isInternal():
+            Loops.append([line])
+        else:
+            Paths.append([line])
+    flag=True
+    intnodes=set([x for x in graph.xInternalNodes()])
+    while flag:
+        flag=False
+        _Loops=list()
+#        print "\nloops",Loops
+        for loop in Loops:
+            int,ext=ChainNodes(loop)
+            if len(ext)==0:
+                _Loops.append(loop)
+            else:
+                for node in ext:
+                    for line in node.Lines():
+                        if (line not in loop) and line.isInternal() and len(set(line.Nodes())&set(int))==0:
+                            if node in loop[-1].Nodes():
+                                _loop=SortedChain(loop+[line])
+                            else:
+                                _loop=SortedChain([line]+loop)
+                            if _loop not in _Loops:
+                                _Loops.append(_loop)
+                                flag=True
+#            print "_loops_", _Loops
+        Loops=_Loops
+        _Paths=list()
+        for path in Paths:
+            int,ext=ChainNodes(path)
+            nodelst=list(set(ext)&intnodes)
+            if len(nodelst)==0:
+                _Paths.append(path)
+            elif len(nodelst)==1:
+                for line in nodelst[0].Lines():
+                    if (line not in path) and len(set(line.Nodes())&set(int))==0:
+                        _path=copy(path)+[line]
+                        if _path not in _Paths:
+                            _Paths.append(_path)
+                            flag=True
+        Paths=_Paths
+    _Paths=list()
+    for p in Paths:
+        if p[0].idx()>p[-1].idx():
+            p.reverse()
+        if not p in _Paths:
+            _Paths.append(p)
+#    print "LOOPS, path",Loops
+    return Loops,_Paths
+                            
+
+                            
+                
+def SetChainMoments(chain,moments,moment):
+#    print chain
+    for line in chain:
+        if chain.index(line)==0:
+            sign=+1
+        else:
+#            print list(set(line.Nodes())&set(previous.Nodes())),line.Nodes(), previous.Nodes()
+            
+            nodes=list(set(line.Nodes())&set(previous.Nodes()))
+            nodeidx=nodes[0].idx()
+            if (line.start==nodeidx and previous.end==nodeidx) or (line.end==nodeidx and previous==nodeidx):
+                sign=+1*previous_sign
+            else:
+                sign=-1*previous_sign
+        if sign>0:
+            curMoment=moment
+        else:
+            curMoment=-moment
+
+        if line in moments.keys():
+            moments[line]=moments[line]+curMoment
+        else:
+            moments[line]=curMoment
+        previous=line
+        previous_sign=sign
+
+            
+
+def xLoopMoments(graph):
+    """ найти все циклы по которым могут течь импульсы + пути протечки 
+         внешних импульсов и раскидать по ним  простые импульсы
+    """
+    loops,paths = LoopsAndPaths(graph)
+#    print loops,paths
+    graph_as_sub=graph.asSubgraph()
+    extnodes,extlines=subgraphs.FindExternal(graph_as_sub)
+    _lines_storage=_Lines()
+    _extlines=[_lines_storage.Get(x) for x in extlines]
+    for p in  comb.xUniqueCombinations(paths, subgraphs.CountExtLegs(graph_as_sub)-1):
+        if not set(reduce(lambda x,y: set(x)|set(y), p))&set(_extlines)==set(_extlines):
+            """ if all lines included in selected path does not include all external lines - paths combination is invalid
+            """
+            continue
+        for l in comb.xUniqueCombinations(loops,graph.NLoops()):
+#            print l,p
+            moment=dict()
+            cnt=0
+            for path in p:
+                curMoment=Momenta(sympy=sympy.var("p%s"%cnt))
+                SetChainMoments(path, moment, curMoment)
+                cnt+=1
+            cnt=0
+            for loop in l:
+                curMoment=Momenta(sympy=sympy.var("q%s"%cnt))
+                SetChainMoments(loop, moment, curMoment)
+                cnt+=1
+            if len(moment.keys())==len(graph._lines):
+                yield moment
+            else:
+                yield None
+    
 
 def Generic(model, graph):
     minMomentIndex = 10**13
@@ -160,13 +314,17 @@ def Generic(model, graph):
 #    int_lines = [x for x in graph.xInternalLines()]
 #    for i in comb.xUniqueCombinations(int_lines, graph.NLoops()):
 #        _curkMoment = Kirghoff(graph,i)
-    for _curkMoment in xSimpleMoments(graph):
-#        print dict([(x.idx(),curkMoment[x]._string) for x in curkMoment]),[(x.idx(),x.isInternal()) for x in i]
+
+#    for _curkMoment in xSimpleMoments(graph):
+    for _curkMoment in xLoopMoments(graph):
+
+        #print dict([(x.idx(),_curkMoment[x]._string) for x in _curkMoment]),[(x.idx(),x.isInternal()) for x in i]
+
         curkMoment = ZeroExtMoments(graph,_curkMoment)
         if model.checktadpoles:
             try:
                 newSubgraphs = CheckTadpoles(graph, curkMoment)
-                print newSubgraphs
+#                print newSubgraphs
             except TadpoleError:
                 continue
             graph._subgraphs_checktadpole = newSubgraphs
@@ -189,17 +347,17 @@ def CheckTadpoles(graph,moments):
             continue
         else:
             tadpoles=subgraphs.FindTadpoles(sub,res)
-            print "tadpoles:",tadpoles
+#            print "tadpoles:",tadpoles
             momentpath=ExtMomentPath(graph,sub,moments)
-            print dict([(x.idx(),moments[x]._string) for x in moments])
-            print "momentpath:",momentpath
+#            print dict([(x.idx(),moments[x]._string) for x in moments])
+#            print "momentpath:",momentpath
             to_remove=list()
             for tadsub in tadpoles:
                 if reduce(lambda x,y: x&y, [(idxL in tadsub) for idxL in momentpath]):
                     """ внешний для подграфа sub импульс протекает полностью через  подграф tadsub
                     """
                     to_remove.append(tadsub)
-            print to_remove,res
+#            print to_remove,res
             if len(tadpoles)>0 and len(to_remove)<1:
                 raise TadpoleError, "moment doesn't pass through subgraph that produced tadpole"
             for _sub in to_remove:
@@ -258,7 +416,7 @@ def GetMomentaIndex(graph,moments, checktadpoles=False):
         for moment in moments.values():        
             result+=penalties['longMoment']*(len(moment._dict.keys())-1)
 
-    print "Index:", result
+#    print "Index:", result
     return result
 
 def ExtMomentPath(graph,subgraph,moments):

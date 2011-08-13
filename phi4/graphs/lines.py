@@ -35,5 +35,7 @@ class Line:
     def isInternal(self):
 #        print self.idx(), self.Nodes()[0].isInternal,  self.Nodes()[1].isInternal
         return self.Nodes()[0].isInternal() and self.Nodes()[1].isInternal()
-
+    
+    def __repr__(self):
+        return "%s:[%s,%s]"%(self.idx(),self.start,self.end)
 
