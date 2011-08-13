@@ -203,6 +203,19 @@ class Test_Generate:
         print_moments(_momenta_dict({1: 'p0', 2: '-p0', 3: 'p0+q0', 4: 'q1-q0', 5: '-q1'})) 
         assert compare_moments(_moments,_momenta_dict({1: 'p0', 2: '-p0', 3: 'p0+q0', 4: 'q1-q0', 5: '-q1'}))
 
+    def test_Generic_e112_e3__333__(self):
+#        return
+##TODO: remove
+        g1=Graph('e112-e3-333--')
+        self.phi4.SetTypes(g1)
+        g1.FindSubgraphs(self.phi4)
+        _moments,_subgraphs=moments.Generic(self.phi4, g1)
+        print_moments(_moments)
+        print g1._subgraphs, _subgraphs
+        print_moments(_momenta_dict({1: 'p0', 2: '-p0', 3: 'p0+q0', 4: 'q1-q0', 5: '-q1'})) 
+        assert compare_moments(_moments,_momenta_dict({1: 'p0', 2: '-p0', 3: 'p0+q0', 4: 'q1-q0', 5: '-q1'}))
+
+
     def test_LoopsAndPaths(self):
         g1=Graph('ee11-ee-')
         print moments.LoopsAndPaths(g1)

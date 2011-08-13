@@ -317,7 +317,8 @@ def Generic(model, graph):
 
 #    for _curkMoment in xSimpleMoments(graph):
     for _curkMoment in xLoopMoments(graph):
-
+        if _curkMoment==None:
+            continue
         #print dict([(x.idx(),_curkMoment[x]._string) for x in _curkMoment]),[(x.idx(),x.isInternal()) for x in i]
 
         curkMoment = ZeroExtMoments(graph,_curkMoment)
@@ -348,9 +349,13 @@ def CheckTadpoles(graph,moments):
         else:
             tadpoles=subgraphs.FindTadpoles(sub,res)
 #            print "tadpoles:",tadpoles
+#            print sub
+  #          print dict([(x.idx(),moments[x]._string) for x in moments])
             momentpath=ExtMomentPath(graph,sub,moments)
-#            print dict([(x.idx(),moments[x]._string) for x in moments])
+
 #            print "momentpath:",momentpath
+            if len(tadpoles)>0 and len(momentpath)<1:
+                raise TadpoleError, "moment doesn't pass through subgraph that produced tadpole"
             to_remove=list()
             for tadsub in tadpoles:
                 if reduce(lambda x,y: x&y, [(idxL in tadsub) for idxL in momentpath]):
