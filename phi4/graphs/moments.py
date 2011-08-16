@@ -277,17 +277,21 @@ def xLoopMoments(graph):
          внешних импульсов и раскидать по ним  простые импульсы
     """
     loops,paths = LoopsAndPaths(graph)
-#    print loops,paths
+    print "loops:",len(loops),"paths:",len(paths)
     graph_as_sub=graph.asSubgraph()
     extnodes,extlines=subgraphs.FindExternal(graph_as_sub)
     _lines_storage=_Lines()
     _extlines=[_lines_storage.Get(x) for x in extlines]
+    pcnt=0
     for p in  comb.xUniqueCombinations(paths, subgraphs.CountExtLegs(graph_as_sub)-1):
+        print "path:",pcnt
         if not set(reduce(lambda x,y: set(x)|set(y), p))&set(_extlines)==set(_extlines):
             """ if all lines included in selected path does not include all external lines - paths combination is invalid
             """
             continue
+        lcnt=0
         for l in comb.xUniqueCombinations(loops,graph.NLoops()):
+            print "loop:",lcnt, "(%s)"%pcnt
 #            print l,p
             moment=dict()
             cnt=0
@@ -300,10 +304,13 @@ def xLoopMoments(graph):
                 curMoment=Momenta(sympy=sympy.var("q%s"%cnt))
                 SetChainMoments(loop, moment, curMoment)
                 cnt+=1
+            lcnt+=1
             if len(moment.keys())==len(graph._lines):
                 yield moment
             else:
                 yield None
+        pcnt+=1
+    
     
 
 def Generic(model, graph):
@@ -316,6 +323,7 @@ def Generic(model, graph):
 #        _curkMoment = Kirghoff(graph,i)
 
 #    for _curkMoment in xSimpleMoments(graph):
+    print "start generic"
     for _curkMoment in xLoopMoments(graph):
         if _curkMoment==None:
             continue
