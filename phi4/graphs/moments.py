@@ -12,6 +12,7 @@ from utils import timeit
 class TadpoleError(Exception):
     pass
 
+@timeit
 def _str2dict(string):
     """ converts string representation of momenta to dict by moment atoms.
         Assumed that atmos has coefficients +/- 1
@@ -29,7 +30,7 @@ def _str2dict(string):
             else:
                 t_dict[atom.replace("+","")]=1
         return t_dict
-
+@timeit
 def _dict2sympy(dict):
     """ converts dict (from str2dict) to sympy expression
     """ 
@@ -40,6 +41,7 @@ def _dict2sympy(dict):
     return res
 
 class Momenta:
+    @timeit
     def __init__(self,**kwargs):
         if 'string' in kwargs:
             self._string = kwargs['string'].replace(" ","")
@@ -56,15 +58,26 @@ class Momenta:
         else:
             raise TypeError,  'unknown datatype in kwargs: %s'%kwargs
 
+    @timeit
     def __neg__(self):
         t_dict={}
         for atom in self._dict:
             t_dict[atom] = - self._dict[atom]
         return Momenta(dict=t_dict)
 
+    @timeit
     def __add__(self, other):
-        return Momenta(sympy=(self._sympy+other._sympy))
+#        return Momenta(sympy=(self._sympy+other._sympy))
+        t_dict=copy(self._dict)
+        for atom in other._dict:
+            if atom in t_dict:
+                t_dict[atom]+=other._dict[atom]
+            else:
+                t_dict[atom]=other._dict[atom]
+        return Momenta(dict=t_dict)
 
+
+    @timeit
     def __sub__(self, other):
         return Momenta(sympy=(self._sympy-other._sympy))
 

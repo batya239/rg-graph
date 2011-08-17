@@ -204,7 +204,7 @@ class Test_Generate:
         assert compare_moments(_moments,_momenta_dict({1: 'p0', 2: '-p0', 3: 'p0+q0', 4: 'q1-q0', 5: '-q1'}))
 
     def test_Generic_e112_e3__333__(self):
-#        return
+        return
 ##TODO: remove
         g1=Graph('e112-e3-333--')
         self.phi4.SetTypes(g1)
