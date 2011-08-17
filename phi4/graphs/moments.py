@@ -7,6 +7,7 @@ import comb
 
 import subgraphs
 from store import _Lines
+from utils import timeit
 
 class TadpoleError(Exception):
     pass
@@ -154,7 +155,7 @@ def xSimpleMoments(graph):
     int_lines = [x for x in graph.xInternalLines()]
     for i in comb.xUniqueCombinations(int_lines, graph.NLoops()):
         yield  Kirghoff(graph,i)
-
+@timeit
 def ChainNodes(chain):
     nodes = set()
     intnodes = set()
@@ -164,7 +165,7 @@ def ChainNodes(chain):
                 intnodes.add(node)
             nodes.add(node)
     return list(intnodes),list(nodes-intnodes)
-
+@timeit
 def SortedChain(chain):
     def _sort(chain):
         minidx=0
@@ -186,7 +187,7 @@ def SortedChain(chain):
         else:
             return chain
         
-
+@timeit
 def LoopsAndPaths(graph):
     Loops=list()
     Paths=list()
@@ -243,7 +244,7 @@ def LoopsAndPaths(graph):
                             
 
                             
-                
+@timeit                
 def SetChainMoments(chain,moments,moment):
 #    print chain
     for line in chain:
@@ -271,7 +272,7 @@ def SetChainMoments(chain,moments,moment):
         previous_sign=sign
 
             
-
+@timeit
 def xLoopMoments(graph):
     """ найти все циклы по которым могут течь импульсы + пути протечки 
          внешних импульсов и раскидать по ним  простые импульсы
@@ -347,6 +348,7 @@ def Generic(model, graph):
 
     return minkMoment, minSubgraphs
 
+@timeit
 def CheckTadpoles(graph,moments):
     graph_as_sub=[x.idx() for x in graph.xInternalLines()]
     res =  copy(graph._subgraphs)
@@ -378,7 +380,7 @@ def CheckTadpoles(graph,moments):
     res.remove(graph_as_sub)    
     return res
 
-
+@timeit
 def GetMomentaIndex(graph,moments, checktadpoles=False):
     """ calculates penalties for moment layouts.
          checktadpoles=False for phi3-like models only!!!
@@ -432,6 +434,7 @@ def GetMomentaIndex(graph,moments, checktadpoles=False):
 #    print "Index:", result
     return result
 
+@timeit
 def ExtMomentPath(graph,subgraph,moments):
     """ find subgraphs external moment path
     """
@@ -447,6 +450,7 @@ def ExtMomentPath(graph,subgraph,moments):
             path.append(lineidx)
     return path
 
+@timeit
 def ZeroExtMoments(graph,moments):
     """ обнуление внешних импульсо для  вершинных диаграмм
     """
