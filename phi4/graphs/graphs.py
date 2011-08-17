@@ -8,6 +8,7 @@ import nickel
 from store import _Lines, _Nodes
 from nodes import Node
 from subgraphs import FindSubgraphs
+from utils import timeit
 #from lines import Line
 
 
@@ -114,5 +115,6 @@ class Graph:
 
         return dim
 
+    @timeit
     def FindSubgraphs(self,model):
         self._subgraphs=FindSubgraphs(self,model)

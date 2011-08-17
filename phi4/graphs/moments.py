@@ -283,7 +283,23 @@ def SetChainMoments(chain,moments,moment):
             moments[line]=curMoment
         previous=line
         previous_sign=sign
-
+@timeit
+def CheckLoopAndPath(loop,path,graph):
+    lines=set()
+    for l in loop:
+       lines=lines|set(l)
+    _lines=set([x.idx() for x in list(lines)])
+    if not _lines == set(graph.asSubgraph()):
+        return False
+    else:
+        for p in path:
+            lines=lines|set(p)
+        _lines=set([x.idx() for x in list(lines)])
+#    print _lines, set(graph._lines)
+        if _lines == set(graph._lines):
+            return True
+        else:
+            return False
             
 @timeit
 def xLoopMoments(graph):
@@ -305,28 +321,33 @@ def xLoopMoments(graph):
             continue
         lcnt=0
         for l in comb.xUniqueCombinations(loops,graph.NLoops()):
-            print "loop:",lcnt, "(%s)"%pcnt
+#            print "loop:",lcnt, "(%s)"%pcnt
 #            print l,p
             moment=dict()
             cnt=0
-            for path in p:
-                curMoment=Momenta(sympy=sympy.var("p%s"%cnt))
-                SetChainMoments(path, moment, curMoment)
-                cnt+=1
-            cnt=0
-            for loop in l:
-                curMoment=Momenta(sympy=sympy.var("q%s"%cnt))
-                SetChainMoments(loop, moment, curMoment)
-                cnt+=1
-            lcnt+=1
-            if len(moment.keys())==len(graph._lines):
-                yield moment
-            else:
+            if not CheckLoopAndPath(l,p,graph):
+                lcnt+=1
                 yield None
+            else:
+                for path in p:
+                    curMoment=Momenta(sympy=sympy.var("p%s"%cnt))
+                    SetChainMoments(path, moment, curMoment)
+                    cnt+=1
+                cnt=0
+                for loop in l:
+                    curMoment=Momenta(sympy=sympy.var("q%s"%cnt))
+                    SetChainMoments(loop, moment, curMoment)
+                    cnt+=1
+                lcnt+=1
+		yield moment
+#                if len(moment.keys())==len(graph._lines):
+#                    yield moment
+#                else:
+#                    yield None
         pcnt+=1
     
     
-
+@timeit
 def Generic(model, graph):
     minMomentIndex = 10**13
     minkMoment = None
