@@ -14,10 +14,12 @@ class Subgraph:
         return self._lines.__repr__()
     
     def InternalNodes(self):
-        nodes=set()
-        for line in self._lines:
-            nodes=nodes|set(line.Nodes())
-        return nodes
+        if not "_InternalNodes" in self.__dict__:
+            nodes=set()
+            for line in self._lines:
+                nodes=nodes|set(line.Nodes())
+            self._InternalNodes=nodes
+        return self._InternalNodes
 
     def Dim(self,model):
         """ Calculate dimension of subgraph
@@ -38,13 +40,15 @@ class Subgraph:
 
 
     def FindExternal(self):
-        all_nodes=set()
-        all_lines=set()
-        for node in self.InternalNodes():
-            for line in node.Lines():
-                all_nodes=all_nodes|set(line.Nodes())
-                all_lines=all_lines|set([line])
-        return (all_nodes-self.InternalNodes(), all_lines-set(self._lines))
+        if not "_external" in self.__dict__:
+            all_nodes=set()
+            all_lines=set()
+            for node in self.InternalNodes():
+                for line in node.Lines():
+                    all_nodes=all_nodes|set(line.Nodes())
+                    all_lines=all_lines|set([line])
+            self._external = (all_nodes-self.InternalNodes(), all_lines-set(self._lines))
+        return self._external
 
     def CountExtLegs(self):
         """ counts external legs for subgraph. Note: it isn't equal to len(extlines). ex. subgraphs in watermelone
@@ -62,11 +66,13 @@ class Subgraph:
     def BorderNodes(self):
         """ border node is internal node that connected to external node
         """
-        extnodes,extlines=self.FindExternal()
-        border=set()
-        for line in extlines:
-            border=border|set(line.Nodes())
-        return border-extnodes
+        if not "_border" in self.__dict__:
+            extnodes,extlines=self.FindExternal()
+            border=set()
+            for line in extlines:
+                border=border|set(line.Nodes())
+            self._border=border-extnodes
+        return self._border
 
     def __len__(self):
         return len(self._lines)
@@ -78,24 +84,26 @@ class Subgraph:
             return False
 
     def FindTadpoles(self,_subgraphs):
-        intnodes=self.InternalNodes()
-        (extnodes,extlines)=self.FindExternal()
-        border=self.BorderNodes()
-        tadpoles=list()
-        for sub in _subgraphs:
-            if len(self)>len(sub):
-                """ othewise sub cant be subgraph of sub1
-                """
-                if reduce(lambda x,y: x&y,[(line in self._lines) for line in sub._lines]):
-                    """ all lines in sub are in sub1
+	if not "_tadpoles" in self.__dict__:
+            intnodes=self.InternalNodes()
+            (extnodes,extlines)=self.FindExternal()
+            border=self.BorderNodes()
+            tadpoles=list()
+            for sub in _subgraphs:
+                if len(self)>len(sub):
+                    """ othewise sub cant be subgraph of sub1
                     """
-                    _border=sub.BorderNodes()
-                    if reduce(lambda x,y: x&y,[(node in _border) for node in border]):
-                        """ border of sub1 (biger) inside border sub (smaller)
-                            this gives us tadpole in sub1 after sub reduced to point
+                    if reduce(lambda x,y: x&y,[(line in self._lines) for line in sub._lines]):
+                        """ all lines in sub are in sub1
                         """
-                        tadpoles.append(sub)
-        return tadpoles
+                        _border=sub.BorderNodes()
+                        if reduce(lambda x,y: x&y,[(node in _border) for node in border]):
+                            """ border of sub1 (biger) inside border sub (smaller)
+                                this gives us tadpole in sub1 after sub reduced to point
+                            """
+                            tadpoles.append(sub)
+            self._tadpoles=tadpoles
+        return self._tadpoles
     
 
     def ToEdges(self):
