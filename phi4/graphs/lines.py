@@ -16,8 +16,11 @@ class Line:
             self.__dict__[field] = kwargs[field]
 
     def Nodes(self):
-        _nodes_store=_Nodes()
-        return (_nodes_store.Get(self.start), _nodes_store.Get(self.end))
+        if not "_nodes" in self.__dict__:
+            _nodes_store=_Nodes()
+            self._nodes=(_nodes_store.Get(self.start), _nodes_store.Get(self.end))
+        return self._nodes
+        
 
     def Propagator(self, model):
         """ line propagator
