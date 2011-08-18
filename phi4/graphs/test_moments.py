@@ -47,7 +47,7 @@ class Test_Momenta:
         """
         (p,q,v)=sympy.var('p q v')
         pq=moments.Momenta(dict={'p':1,'q':1})
-        assert pq._string=='p+q'
+        assert pq._string=='p+q' or pq._string=='q+p'
         assert pq._dict=={'p':1,'q':1}
         assert pq._sympy==p+q
 
