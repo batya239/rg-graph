@@ -28,6 +28,23 @@ def _str2dict(string):
             else:
                 t_dict[atom.replace("+","")]=1
         return t_dict
+
+def _dict2str(dict):
+    """ 
+    """
+    if len(dict)==0:
+	return ""
+    else:
+        string=""
+        for atom in dict:
+            if dict[atom]>0:
+                string+="+%s"%atom
+            else:
+                string+="-%s"%atom
+        if string[0]=="+":
+            return string[1:]
+        else:
+            return string
 def _dict2sympy(dict):
     """ converts dict (from str2dict) to sympy expression
     """ 
@@ -46,7 +63,8 @@ class Momenta:
         elif 'dict' in kwargs:
             self._dict = kwargs['dict']
             self._sympy = _dict2sympy(self._dict)
-            self._string = str(self._sympy).replace(" ","")
+#            self._string = str(self._sympy).replace(" ","")
+            self._string = _dict2str(self._dict) 
         elif 'sympy' in kwargs:
             self._sympy = kwargs['sympy']
             self._string = str(self._sympy).replace(" ","")
@@ -317,12 +335,12 @@ def xLoopMoments(graph):
                 yield None
             else:
                 for path in p:
-                    curMoment=Momenta(sympy=sympy.var("p%s"%cnt))
+                    curMoment=Momenta(string="p%s"%cnt)
                     SetChainMoments(path, moment, curMoment)
                     cnt+=1
                 cnt=0
                 for loop in l:
-                    curMoment=Momenta(sympy=sympy.var("q%s"%cnt))
+                    curMoment=Momenta(string="q%s"%cnt)
                     SetChainMoments(loop, moment, curMoment)
                     cnt+=1
                 lcnt+=1
