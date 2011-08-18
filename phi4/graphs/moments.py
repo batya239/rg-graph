@@ -212,7 +212,7 @@ def SortedChain(chain):
 def LoopsAndPaths(graph):
     Loops=list()
     Paths=list()
-    for line in subgraphs.sub2objects(graph._lines):
+    for line in graph.Lines():
         if line.isInternal():
             Loops.append([line])
         else:
@@ -296,7 +296,8 @@ def CheckLoopAndPath(loop,path,graph):
     for l in loop:
        lines=lines|set(l)
 #    _lines=set([x.idx() for x in list(lines)])
-    if not lines == set(graph.asSubgraph()):
+    if not lines == set(graph.asSubgraph()._lines):
+#TODO: change set(graph.asSubgraph()._lines to smth more obvious
         return False
     else:
         for p in path:
@@ -317,11 +318,11 @@ def xLoopMoments(graph):
     print loops
     print paths
     graph_as_sub=graph.asSubgraph()
-    extnodes,extlines=subgraphs.FindExternal(graph_as_sub)
+    extnodes,extlines=graph_as_sub.FindExternal()
     _lines_storage=_Lines()
 #    _extlines=[_lines_storage.Get(x) for x in extlines]
     pcnt=0
-    for p in  comb.xUniqueCombinations(paths, subgraphs.CountExtLegs(graph_as_sub)-1):
+    for p in  comb.xUniqueCombinations(paths, graph_as_sub.CountExtLegs()-1):
         print "path:",pcnt
         if not set(reduce(lambda x,y: set(x)|set(y), p))&set(extlines)==set(extlines):
             """ if all lines included in selected path does not include all external lines - paths combination is invalid
@@ -398,7 +399,7 @@ def CheckTadpoles(graph,moments):
         if sub not in res:
             continue
         else:
-            tadpoles=subgraphs.FindTadpoles(sub,res)
+            tadpoles=sub.FindTadpoles(res)
 #            print "tadpoles:",tadpoles
 #            print sub
   #          print dict([(x.idx(),moments[x]._string) for x in moments])
@@ -409,7 +410,7 @@ def CheckTadpoles(graph,moments):
                 raise TadpoleError, "moment doesn't pass through subgraph that produced tadpole"
             to_remove=list()
             for tadsub in tadpoles:
-                if reduce(lambda x,y: x&y, [(idxL in tadsub) for idxL in momentpath]):
+                if reduce(lambda x,y: x&y, [(idxL in tadsub._lines) for idxL in momentpath]):
                     """ внешний для подграфа sub импульс протекает полностью через  подграф tadsub
                     """
                     to_remove.append(tadsub)
@@ -447,16 +448,16 @@ def GetMomentaIndex(graph,moments, checktadpoles=False):
             """ each subgraph must have number of simple moments equal to number of its  loops
             """
             nsimple=0
-            for line in sub:
+            for line in sub._lines:
                 if moments[line].isSimple():
                     nsimple+=1
-            if nsimple <> subgraphs.NLoopSub(sub):
+            if nsimple <> sub.NLoopSub():
                 result+=penalties["badSub"]
 
 
-            extnodes,extlines=subgraphs.FindExternal(sub)
+            extnodes,extlines=sub.FindExternal()
 #            if len(extlines)==2:
-            if subgraphs.CountExtLegs(sub)==2:
+            if sub.CountExtLegs()==2:
                 """ is external moment for self-energy subgraph simple?
 
                 """
@@ -477,12 +478,12 @@ def GetMomentaIndex(graph,moments, checktadpoles=False):
 def ExtMomentPath(graph,subgraph,moments):
     """ find subgraphs external moment path
     """
-    extnodes,extlines=subgraphs.FindExternal(subgraph)
+    extnodes,extlines=subgraph.FindExternal()
     extatoms=set()
     for line in extlines:
         extatoms=extatoms| set(moments[line]._dict.keys()) 
     path=list()
-    for line in subgraph:
+    for line in subgraph._lines:
         if moments[line].hasAtoms(extatoms):
  #TODO: нужно ли требование наличия всех атомов или хотя бы одного? 
 #если импульс разветвляется Momenta.hasAtoms его не найдет.

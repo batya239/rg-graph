@@ -53,7 +53,8 @@ class test_Dim():
 
     def test_DimSubgraph(self):
         lines=[x for x in self.g3.xInternalLines()]
-        assert subgraphs.Dim(lines[0:2],self.model)==-4
+        sub=subgraphs.Subgraph(lines[0:2])
+        assert sub.Dim(self.model)==-4
 
 class test_subgraphs:
     def setUp(self):
@@ -70,7 +71,7 @@ class test_subgraphs:
             model.SetTypes(g)
             res=[]
             for sub in subgraphs.FindSubgraphs(g,model):
-                g1=Graph(subgraphs.ToEdges(sub))
+                g1=Graph(sub.ToEdges())
                 g1.GenerateNickel()
                 res.append(str(g1.nickel))
             res.sort()
@@ -95,7 +96,7 @@ class test_subgraphs:
                     if out_nodes[line] not in reverse.keys():
                         reverse[out_nodes[line]]=line
                     else:
-                        return (line,reverse[out_nodes[line]])
+                        return subgraphs.Subgraph((line,reverse[out_nodes[line]]))
     
 #     def test_FindExternal(self):
 #         nodes,lines= subgraphs.FindExternal(self.findsub(self.g))
@@ -107,8 +108,8 @@ class test_subgraphs:
 
     def test_ToEdges(self):
         print self.findsub(self.g) , self.g._lines
-        print subgraphs.ToEdges(self.findsub(self.g))
-        g1=Graph(subgraphs.ToEdges(self.findsub(self.g)))
+        print self.findsub(self.g).ToEdges()
+        g1=Graph(self.findsub(self.g).ToEdges())
         g1.GenerateNickel()
         assert str(g1.nickel)=='e11-e-'
 

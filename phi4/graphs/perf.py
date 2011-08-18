@@ -21,4 +21,3 @@ _moments,_subgraphs=moments.Generic(phi4, g1)
 print_moments(_moments)
 print [x for x in g1.xInternalLines()]
 print _subgraphs
-Timer().Print()

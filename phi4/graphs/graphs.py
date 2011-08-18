@@ -7,7 +7,7 @@ import nickel
 
 from store import _Lines, _Nodes
 from nodes import Node
-from subgraphs import FindSubgraphs
+from subgraphs import FindSubgraphs,Subgraph
 #from lines import Line
 
 
@@ -85,7 +85,7 @@ class Graph:
                 yield node
 
     def asSubgraph(self):
-        return [x for x in self.xInternalLines()]
+        return Subgraph([x for x in self.xInternalLines()])
 
     def xInternalLines(self):
         

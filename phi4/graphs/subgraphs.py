@@ -4,145 +4,150 @@
 from store import _Nodes, _Lines
 
 from comb import xUniqueCombinations
+from copy import copy
 
-def Dim(subgraph,model):
-    """ Calculate dimension of subgraph
-         subgraph is list of its internal lines
-    """
-#    _lines_store=_Lines()
-    dim=0
-    nodes_set=set()
-    for line in subgraph:
-#        line=_lines_store.Get(idx)
-        dim+=line.Dim(model)
-        nodes_set=nodes_set|set(line.Nodes())
-    for node in nodes_set:
-        dim+=node.Dim(model)
-    dim+=model.space_dim*NLoopSub(subgraph)
-    return dim
+class Subgraph:
+    def __init__(self,lines_list):
+        self._lines=copy(lines_list)
 
-def NLoopSub(subgraph):
-    return len(subgraph)-len(InternalNodes(subgraph))+1
+    def __repr__(self):
+        return self._lines.__repr__()
+    
+    def InternalNodes(self):
+        nodes=set()
+        for line in self._lines:
+            nodes=nodes|set(line.Nodes())
+        return nodes
 
-def InternalNodes(subgraph):
-    nodes=set()
-#    _lines_storage=_Lines()
-#    _nodes_storage=_Nodes()
-    for line in subgraph:
-#        line = _lines_storage.Get(idxL)
-        nodes=nodes|set(line.Nodes())
-    return nodes
+    def Dim(self,model):
+        """ Calculate dimension of subgraph
+             subgraph is list of its internal lines
+        """
+        dim=0
+        nodes_set=set()
+        for line in self._lines:
+            dim+=line.Dim(model)
+            nodes_set=nodes_set|set(line.Nodes())
+        for node in nodes_set:
+            dim+=node.Dim(model)
+        dim+=model.space_dim*self.NLoopSub()
+        return dim
 
-def FindExternal(subgraph):
-    all_nodes=set()
-    all_lines=set()
-    for node in InternalNodes(subgraph):
-        for line in node.Lines():
-            all_nodes=all_nodes|set(line.Nodes())
-            all_lines=all_lines|set([line])
-    return (all_nodes-InternalNodes(subgraph), all_lines-set(subgraph))
+    def NLoopSub(self):
+        return len(self._lines)-len(self.InternalNodes())+1
 
-def CountExtLegs(subgraph):
-    """ counts external legs for subgraph. Note: it isn't equal to len(extlines). ex. subgraphs in watermelone
-        for selfenergy subgraphs it is the same if we did not taking into account vacuum loops
-    """
-    extnodes,extlines=FindExternal(subgraph)
-    intnodes=InternalNodes(subgraph)
-    _lines_storage=_Lines()
-    cnt=0
-    for line in extlines:
-        for node in line.Nodes():
-            if node in intnodes:
-                cnt+=1
-    return cnt
 
-def BorderNodes(subgraph):
-    """ border node is internal node that connected to external node
-    """
-    extnodes,extlines=FindExternal(subgraph)
-#    _lines_storage=_Lines()
-    border=set()
-    for line in extlines:
-         border=border|set(line.Nodes())
-    return border-extnodes
+    def FindExternal(self):
+        all_nodes=set()
+        all_lines=set()
+        for node in self.InternalNodes():
+            for line in node.Lines():
+                all_nodes=all_nodes|set(line.Nodes())
+                all_lines=all_lines|set([line])
+        return (all_nodes-self.InternalNodes(), all_lines-set(self._lines))
 
-def FindTadpoles(sub1,_subgraphs):
-    intnodes=InternalNodes(sub1)
-    (extnodes,extlines)=FindExternal(sub1)
-    border=list(BorderNodes(sub1))
-    tadpoles=list()
-    for sub in _subgraphs:
-        if len(sub1)>len(sub):
-            """ othewise sub cant be subgraph of sub1
-            """
-            if reduce(lambda x,y: x&y,[(line in sub1) for line in sub]):
-                """ all lines in sub are in sub1
+    def CountExtLegs(self):
+        """ counts external legs for subgraph. Note: it isn't equal to len(extlines). ex. subgraphs in watermelone
+            for selfenergy subgraphs it is the same if we did not taking into account vacuum loops
+        """
+        extnodes,extlines=self.FindExternal()
+        intnodes=self.InternalNodes()
+        cnt=0
+        for line in extlines:
+            for node in line.Nodes():
+                if node in intnodes:
+                    cnt+=1
+        return cnt
+
+    def BorderNodes(self):
+        """ border node is internal node that connected to external node
+        """
+        extnodes,extlines=self.FindExternal()
+        border=set()
+        for line in extlines:
+            border=border|set(line.Nodes())
+        return border-extnodes
+
+    def __len__(self):
+        return len(self._lines)
+
+    def linePresent(self,line):
+        if line in self._lines:
+            return True
+        else:
+            return False
+
+    def FindTadpoles(self,_subgraphs):
+        intnodes=self.InternalNodes()
+        (extnodes,extlines)=self.FindExternal()
+        border=self.BorderNodes()
+        tadpoles=list()
+        for sub in _subgraphs:
+            if len(self)>len(sub):
+                """ othewise sub cant be subgraph of sub1
                 """
-#                _intnodes=InternalNodes(sub)
-#                if reduce(lambda x,y: x&y,[(node in _intnodes) for node in border]:
-                _border=BorderNodes(sub)
-                if reduce(lambda x,y: x&y,[(node in _border) for node in border]):
-                    """ border of sub1 (biger) inside border sub (smaller)
-                        this gives us tadpole in sub1 after sub reduced to point
+                if reduce(lambda x,y: x&y,[(line in self._lines) for line in sub._lines]):
+                    """ all lines in sub are in sub1
                     """
-                    tadpoles.append(sub)
-    return tadpoles
+                    _border=sub.BorderNodes()
+                    if reduce(lambda x,y: x&y,[(node in _border) for node in border]):
+                        """ border of sub1 (biger) inside border sub (smaller)
+                            this gives us tadpole in sub1 after sub reduced to point
+                        """
+                        tadpoles.append(sub)
+        return tadpoles
     
 
-def ToEdges(subgraph):
-    (extnodes,extlines)=FindExternal(subgraph)
-    res=[]
-#    _lines_storage=_Lines()
-    for line in subgraph:
-#        line=_lines_storage.Get(idxL)
-        res.append([x.idx() for x in line.Nodes()])
-    for line in extlines:
-#        line=_lines_storage.Get(idxL)
-        (node1,node2)=line.Nodes()
-        if node1 in extnodes and node2 not in extnodes:
-            res.append([-1,node2.idx()])
-        elif node1 not in extnodes and node2 in extnodes:
-            res.append([node1.idx(),-1]) 
-        elif node1 not in extnodes and node2 not in extnodes:
+    def ToEdges(self):
+        (extnodes,extlines)=self.FindExternal()
+        res=[]
+        for line in self._lines:
+            res.append([x.idx() for x in line.Nodes()])
+        for line in extlines:
+            (node1,node2)=line.Nodes()
+            if node1 in extnodes and node2 not in extnodes:
+                res.append([-1,node2.idx()])
+            elif node1 not in extnodes and node2 in extnodes:
+                res.append([node1.idx(),-1]) 
+            elif node1 not in extnodes and node2 not in extnodes:
 # на самом деле после стягивания такого подграфа возникает 
 #  головастик
-            res.append([node1.idx(),-1]) 
-            res.append([-1,node2.idx()])
-        else:
-            raise ValueError,  "Invalid subgraph"
-    return res
+                res.append([node1.idx(),-1]) 
+                res.append([-1,node2.idx()])
+            else:
+                raise ValueError,  "Invalid subgraph"
+        return res
 
-def sub2objects(subgraph):
-    _lines_store=_Lines()
-    return [_lines_store.Get(x) for x in subgraph]
+#def sub2objects(subgraph):
+#    _lines_store=_Lines()
+#    return [_lines_store.Get(x) for x in subgraph]
 
-def isSubgraph1PI(subgraph):
-    res = True
-#    subobj=sub2objects(subgraph)
-    for line in subgraph:
-        reduced=list(set(subgraph)-set([line]))
-        _nodes=set(reduced[0].Nodes())
-        flag=True
-        while flag:
-            flag=False
-            for node in _nodes:
-                for line in node.Lines():
-                    if (line in reduced)and len(_nodes & set(line.Nodes()))==1:
-                        _nodes = _nodes | set(line.Nodes())
-                        flag=True
-        if _nodes <> InternalNodes(subgraph):
-            res=False
-            break
-    return res
+    def isSubgraph1PI(self):
+        res = True
+        for line in self._lines:
+            reduced=list(set(self._lines)-set([line]))
+            _nodes=set(reduced[0].Nodes())
+            flag=True
+            while flag:
+                flag=False
+                for node in _nodes:
+                    for line in node.Lines():
+                        if (line in reduced)and len(_nodes & set(line.Nodes()))==1:
+                            _nodes = _nodes | set(line.Nodes())
+                            flag=True
+            if _nodes <> self.InternalNodes():
+                res=False
+                break
+        return res
         
 
 def FindSubgraphs(graph,model):
-#TODO: FindSubgraphs is SLOW!
+#TODO: FindSubgraphs is SLOW!?
     _subgraphs=[]
     intLines=[x for x in graph.xInternalLines()]
     for idx in range(2, len(intLines)):
-        candidates=[i for i in xUniqueCombinations(intLines,idx)]
+        candidates=[Subgraph(i) for i in xUniqueCombinations(intLines,idx)]
         for sub in candidates:
-            if Dim(sub,model)>=0 and isSubgraph1PI(sub):
+            if sub.Dim(model)>=0 and sub.isSubgraph1PI():
                 _subgraphs.append(sub)
     return _subgraphs
