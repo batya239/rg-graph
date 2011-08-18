@@ -20,8 +20,10 @@ class Node:
             self.__dict__[field] = kwargs[field]
 
     def Lines(self):
-        _lines_store=_Lines()
-        return tuple([_lines_store.Get(x) for x in self.lines])
+        if not "_lines" in self.__dict__:
+            _lines_store=_Lines()
+            self._lines=tuple([_lines_store.Get(x) for x in self.lines])
+        return self._lines
 
     def AddLine(self, node_idx,type=None,modifiers=None):
         _lines_store=_Lines()
