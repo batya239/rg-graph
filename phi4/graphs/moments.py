@@ -7,12 +7,10 @@ import comb
 
 import subgraphs
 from store import _Lines
-from utils import timeit
 
 class TadpoleError(Exception):
     pass
 
-@timeit
 def _str2dict(string):
     """ converts string representation of momenta to dict by moment atoms.
         Assumed that atmos has coefficients +/- 1
@@ -30,7 +28,6 @@ def _str2dict(string):
             else:
                 t_dict[atom.replace("+","")]=1
         return t_dict
-@timeit
 def _dict2sympy(dict):
     """ converts dict (from str2dict) to sympy expression
     """ 
@@ -41,7 +38,6 @@ def _dict2sympy(dict):
     return res
 
 class Momenta:
-    @timeit
     def __init__(self,**kwargs):
         if 'string' in kwargs:
             self._string = kwargs['string'].replace(" ","")
@@ -58,14 +54,12 @@ class Momenta:
         else:
             raise TypeError,  'unknown datatype in kwargs: %s'%kwargs
 
-    @timeit
     def __neg__(self):
         t_dict={}
         for atom in self._dict:
             t_dict[atom] = - self._dict[atom]
         return Momenta(dict=t_dict)
 
-    @timeit
     def __add__(self, other):
 #        return Momenta(sympy=(self._sympy+other._sympy))
         t_dict=copy(self._dict)
@@ -77,7 +71,6 @@ class Momenta:
         return Momenta(dict=t_dict)
 
 
-    @timeit
     def __sub__(self, other):
         return Momenta(sympy=(self._sympy-other._sympy))
 
@@ -168,7 +161,6 @@ def xSimpleMoments(graph):
     int_lines = [x for x in graph.xInternalLines()]
     for i in comb.xUniqueCombinations(int_lines, graph.NLoops()):
         yield  Kirghoff(graph,i)
-@timeit
 def ChainNodes(chain):
     nodes = set()
     intnodes = set()
@@ -178,7 +170,6 @@ def ChainNodes(chain):
                 intnodes.add(node)
             nodes.add(node)
     return list(intnodes),list(nodes-intnodes)
-@timeit
 def SortedChain(chain):
     def _sort(chain):
         minidx=0
@@ -200,7 +191,6 @@ def SortedChain(chain):
         else:
             return chain
         
-@timeit
 def LoopsAndPaths(graph):
     Loops=list()
     Paths=list()
@@ -257,7 +247,6 @@ def LoopsAndPaths(graph):
                             
 
                             
-@timeit                
 def SetChainMoments(chain,moments,moment):
 #    print chain
     for line in chain:
@@ -283,7 +272,6 @@ def SetChainMoments(chain,moments,moment):
             moments[line]=curMoment
         previous=line
         previous_sign=sign
-@timeit
 def CheckLoopAndPath(loop,path,graph):
     lines=set()
     for l in loop:
@@ -301,7 +289,6 @@ def CheckLoopAndPath(loop,path,graph):
         else:
             return False
             
-@timeit
 def xLoopMoments(graph):
     """ найти все циклы по которым могут течь импульсы + пути протечки 
          внешних импульсов и раскидать по ним  простые импульсы
@@ -347,7 +334,6 @@ def xLoopMoments(graph):
         pcnt+=1
     
     
-@timeit
 def Generic(model, graph):
     minMomentIndex = 10**13
     minkMoment = None
@@ -382,7 +368,6 @@ def Generic(model, graph):
 
     return minkMoment, minSubgraphs
 
-@timeit
 def CheckTadpoles(graph,moments):
     graph_as_sub=[x.idx() for x in graph.xInternalLines()]
     res =  copy(graph._subgraphs)
@@ -414,7 +399,6 @@ def CheckTadpoles(graph,moments):
     res.remove(graph_as_sub)    
     return res
 
-@timeit
 def GetMomentaIndex(graph,moments, checktadpoles=False):
     """ calculates penalties for moment layouts.
          checktadpoles=False for phi3-like models only!!!
@@ -468,7 +452,6 @@ def GetMomentaIndex(graph,moments, checktadpoles=False):
 #    print "Index:", result
     return result
 
-@timeit
 def ExtMomentPath(graph,subgraph,moments):
     """ find subgraphs external moment path
     """
@@ -484,7 +467,6 @@ def ExtMomentPath(graph,subgraph,moments):
             path.append(lineidx)
     return path
 
-@timeit
 def ZeroExtMoments(graph,moments):
     """ обнуление внешних импульсо для  вершинных диаграмм
     """
