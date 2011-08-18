@@ -59,13 +59,13 @@ class Node:
         return (self.type == None) or (self.type>0)
 
     def OutNodes(self):
-        """ returns dict: keys - line numbers, values - node connected by this line
+        """ returns dict: keys - lines, values - node connected by this line
         """
         out_nodes=dict()
         for line in self.Lines():
             for node in line.Nodes():
                 if node<>self : 
-                    out_nodes[line.idx()]=node.idx()
+                    out_nodes[line]=node.idx()
         return out_nodes
 
     def __repr__(self):

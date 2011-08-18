@@ -290,12 +290,13 @@ def SetChainMoments(chain,moments,moment):
             moments[line]=curMoment
         previous=line
         previous_sign=sign
+
 def CheckLoopAndPath(loop,path,graph):
     lines=set()
     for l in loop:
        lines=lines|set(l)
-    _lines=set([x.idx() for x in list(lines)])
-    if not _lines == set(graph.asSubgraph()):
+#    _lines=set([x.idx() for x in list(lines)])
+    if not lines == set(graph.asSubgraph()):
         return False
     else:
         for p in path:
@@ -313,20 +314,22 @@ def xLoopMoments(graph):
     """
     loops,paths = LoopsAndPaths(graph)
     print "loops:",len(loops),"paths:",len(paths)
+    print loops
+    print paths
     graph_as_sub=graph.asSubgraph()
     extnodes,extlines=subgraphs.FindExternal(graph_as_sub)
     _lines_storage=_Lines()
-    _extlines=[_lines_storage.Get(x) for x in extlines]
+#    _extlines=[_lines_storage.Get(x) for x in extlines]
     pcnt=0
     for p in  comb.xUniqueCombinations(paths, subgraphs.CountExtLegs(graph_as_sub)-1):
         print "path:",pcnt
-        if not set(reduce(lambda x,y: set(x)|set(y), p))&set(_extlines)==set(_extlines):
+        if not set(reduce(lambda x,y: set(x)|set(y), p))&set(extlines)==set(extlines):
             """ if all lines included in selected path does not include all external lines - paths combination is invalid
             """
             continue
         lcnt=0
         for l in comb.xUniqueCombinations(loops,graph.NLoops()):
-#            print "loop:",lcnt, "(%s)"%pcnt
+            print "loop:",lcnt, "(%s)"%pcnt
 #            print l,p
             moment=dict()
             cnt=0
@@ -364,6 +367,7 @@ def Generic(model, graph):
 #    for _curkMoment in xSimpleMoments(graph):
     print "start generic"
     for _curkMoment in xLoopMoments(graph):
+#        print _curkMoment
         if _curkMoment==None:
             continue
         #print dict([(x.idx(),_curkMoment[x]._string) for x in _curkMoment]),[(x.idx(),x.isInternal()) for x in i]
@@ -387,7 +391,7 @@ def Generic(model, graph):
     return minkMoment, minSubgraphs
 
 def CheckTadpoles(graph,moments):
-    graph_as_sub=[x.idx() for x in graph.xInternalLines()]
+    graph_as_sub=graph.asSubgraph()
     res =  copy(graph._subgraphs)
     res.append(graph_as_sub) #Durty trick
     for sub in [graph_as_sub] + sorted(graph._subgraphs,key=len,reverse=True):
@@ -443,8 +447,8 @@ def GetMomentaIndex(graph,moments, checktadpoles=False):
             """ each subgraph must have number of simple moments equal to number of its  loops
             """
             nsimple=0
-            for lineidx in sub:
-                if moments[graph._Line(lineidx)].isSimple():
+            for line in sub:
+                if moments[line].isSimple():
                     nsimple+=1
             if nsimple <> subgraphs.NLoopSub(sub):
                 result+=penalties["badSub"]
@@ -456,7 +460,7 @@ def GetMomentaIndex(graph,moments, checktadpoles=False):
                 """ is external moment for self-energy subgraph simple?
 
                 """
-                if not moments[graph._Line(list(extlines)[0])].isSimple():
+                if not moments[list(extlines)[0]].isSimple():
                     result+=penalties["badIn"]
 
                 """ count length of external moment path for self-energy subgraph 
@@ -475,14 +479,14 @@ def ExtMomentPath(graph,subgraph,moments):
     """
     extnodes,extlines=subgraphs.FindExternal(subgraph)
     extatoms=set()
-    for i in extlines:
-        extatoms=extatoms| set(moments[graph._Line(i)]._dict.keys()) 
+    for line in extlines:
+        extatoms=extatoms| set(moments[line]._dict.keys()) 
     path=list()
-    for lineidx in subgraph:
-        if moments[graph._Line(lineidx)].hasAtoms(extatoms):
+    for line in subgraph:
+        if moments[line].hasAtoms(extatoms):
  #TODO: нужно ли требование наличия всех атомов или хотя бы одного? 
 #если импульс разветвляется Momenta.hasAtoms его не найдет.
-            path.append(lineidx)
+            path.append(line)
     return path
 
 def ZeroExtMoments(graph,moments):

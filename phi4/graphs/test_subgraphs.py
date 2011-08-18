@@ -52,7 +52,7 @@ class test_Dim():
         assert self.g3.Dim(self.model)==0
 
     def test_DimSubgraph(self):
-        lines=[x.idx() for x in self.g3.xInternalLines()]
+        lines=[x for x in self.g3.xInternalLines()]
         assert subgraphs.Dim(lines[0:2],self.model)==-4
 
 class test_subgraphs:

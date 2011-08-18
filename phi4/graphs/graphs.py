@@ -85,7 +85,7 @@ class Graph:
                 yield node
 
     def asSubgraph(self):
-        return [x.idx() for x in self.xInternalLines()]
+        return [x for x in self.xInternalLines()]
 
     def xInternalLines(self):
         
