@@ -59,10 +59,10 @@ class Momenta:
         if 'string' in kwargs:
             self._string = kwargs['string'].replace(" ","")
             self._dict = _str2dict(self._string)
-            self._sympy = _dict2sympy(self._dict)
+#            self._sympy = _dict2sympy(self._dict)
         elif 'dict' in kwargs:
             self._dict = kwargs['dict']
-            self._sympy = _dict2sympy(self._dict)
+#            self._sympy = _dict2sympy(self._dict)
 #            self._string = str(self._sympy).replace(" ","")
             self._string = _dict2str(self._dict) 
         elif 'sympy' in kwargs:
@@ -71,6 +71,11 @@ class Momenta:
             self._dict = _str2dict(self._string)
         else:
             raise TypeError,  'unknown datatype in kwargs: %s'%kwargs
+
+    def sympy(self):
+	if not "_sympy" in self.__dict__:
+            self._sympy=_dict2sympy(self._dict)
+        return self._sympy
 
     def __neg__(self):
         t_dict={}
@@ -86,11 +91,22 @@ class Momenta:
                 t_dict[atom]+=other._dict[atom]
             else:
                 t_dict[atom]=other._dict[atom]
+            if t_dict[atom]==0:
+                del t_dict[atom]
         return Momenta(dict=t_dict)
 
 
     def __sub__(self, other):
-        return Momenta(sympy=(self._sympy-other._sympy))
+        t_dict=copy(self._dict)
+        for atom in other._dict:
+            if atom in t_dict:
+                t_dict[atom]-=other._dict[atom]
+            else:
+                t_dict[atom]=-other._dict[atom]
+            if t_dict[atom]==0:
+                del t_dict[atom]
+        return Momenta(dict=t_dict)
+#        return Momenta(sympy=(self._sympy-other._sympy))
 
     def __str__(self):
         return self._string
@@ -130,7 +146,7 @@ class Momenta:
         return Momenta(sympy=smoment)
 
     def __eq__(self,other):
-        return self._sympy==other._sympy
+        return self._dict==other._dict
 
     def __ne__(self,other):
         return not (self==other)
