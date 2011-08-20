@@ -382,7 +382,10 @@ def Generic(model, graph):
 #        _curkMoment = Kirghoff(graph,i)
 
 #    for _curkMoment in xSimpleMoments(graph):
+
     print "start generic"
+    if model.checktadpoles:
+        graph.FindTadpoles()
     for _curkMoment in xLoopMoments(graph):
 #        print _curkMoment
         if _curkMoment==None:

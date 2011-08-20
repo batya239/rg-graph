@@ -85,7 +85,9 @@ class Graph:
                 yield node
 
     def asSubgraph(self):
-        return Subgraph([x for x in self.xInternalLines()])
+        if "_asSubgraph" not in self.__dict__:
+            self._asSubgraph=Subgraph([x for x in self.xInternalLines()])
+        return self._asSubgraph
 
     def xInternalLines(self):
         
@@ -116,3 +118,8 @@ class Graph:
 
     def FindSubgraphs(self,model):
         self._subgraphs=FindSubgraphs(self,model)
+
+    def FindTadpoles(self):
+        #subgraphs=[self.asSubgraph()] + sorted(self._subgraphs,key=len,revers=True)
+        for sub in self._subgraphs+[self.asSubgraph()]:
+            sub.FindTadpoles(self._subgraphs)
