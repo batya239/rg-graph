@@ -283,29 +283,23 @@ def LoopsAndPaths(graph):
                             
 def SetChainMoments(chain,moments,moment):
 #    print chain
+    
     for line in chain:
         if chain.index(line)==0:
-            sign=+1
+            curMoment=moment
         else:
 #            print list(set(line.Nodes())&set(previous.Nodes())),line.Nodes(), previous.Nodes()
             
             nodes=list(set(line.Nodes())&set(previous.Nodes()))
             nodeidx=nodes[0].idx()
-            if (line.start==nodeidx and previous.end==nodeidx) or (line.end==nodeidx and previous==nodeidx):
-                sign=+1*previous_sign
-            else:
-                sign=-1*previous_sign
-        if sign>0:
-            curMoment=moment
-        else:
-            curMoment=-moment
+            if not ((line.start==nodeidx and previous.end==nodeidx) or (line.end==nodeidx and previous==nodeidx)):
+                curMoment=-curMoment
 
         if line in moments.keys():
             moments[line]=moments[line]+curMoment
         else:
             moments[line]=curMoment
         previous=line
-        previous_sign=sign
 
 def CheckLoopAndPath(loop,path,graph):
     lines=set()
