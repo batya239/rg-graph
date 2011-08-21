@@ -3,7 +3,7 @@
 import sympy
 from copy import copy
 
-import comb     
+import comb
 
 import subgraphs
 from store import _Lines
@@ -30,10 +30,10 @@ def _str2dict(string):
         return t_dict
 
 def _dict2str(dict):
-    """ 
+    """
     """
     if len(dict)==0:
-	return ""
+        return ""
     else:
         string=""
         for atom in dict:
@@ -47,7 +47,7 @@ def _dict2str(dict):
             return string
 def _dict2sympy(dict):
     """ converts dict (from str2dict) to sympy expression
-    """ 
+    """
     res=0
     for atom in dict:
         s_atom = sympy.var(atom)
@@ -64,7 +64,7 @@ class Momenta:
             self._dict = kwargs['dict']
 #            self._sympy = _dict2sympy(self._dict)
 #            self._string = str(self._sympy).replace(" ","")
-            self._string = _dict2str(self._dict) 
+            self._string = _dict2str(self._dict)
         elif 'sympy' in kwargs:
             self._sympy = kwargs['sympy']
             self._string = str(self._sympy).replace(" ","")
@@ -73,7 +73,7 @@ class Momenta:
             raise TypeError,  'unknown datatype in kwargs: %s'%kwargs
 
     def sympy(self):
-	if not "_sympy" in self.__dict__:
+        if not "_sympy" in self.__dict__:
             self._sympy=_dict2sympy(self._dict)
         return self._sympy
 
@@ -152,7 +152,7 @@ class Momenta:
         return not (self==other)
 
     def isSimple(self):
-        """ check if moment is simple. ex. "p0", "q0", not "p0+q0" 
+        """ check if moment is simple. ex. "p0", "q0", not "p0+q0"
         """
         if len(self._dict.keys())==1:
             return True
@@ -168,18 +168,18 @@ class Momenta:
             if atom not in self._dict.keys():
                 res=False
         return res
-        
+
 #     def SetZeros(self,zero_momenta):
 #         pass
-# 
+#
 #     def Clone(self):
 #         pass
-# 
+#
 
 
 def Generate(model,graph):
         if 'GenerateMoments' not in model.__dict__:
-#TODO: change generic Exception 
+#TODO: change generic Exception
             raise Exception, 'model does not have GenerateMoments method'
         else:
             if not isinstance(graph.__dict__['_subgraphs'],list):
@@ -195,6 +195,8 @@ def xSimpleMoments(graph):
     int_lines = [x for x in graph.xInternalLines()]
     for i in comb.xUniqueCombinations(int_lines, graph.NLoops()):
         yield  Kirghoff(graph,i)
+
+
 def ChainNodes(chain):
     nodes = set()
     intnodes = set()
@@ -204,6 +206,7 @@ def ChainNodes(chain):
                 intnodes.add(node)
             nodes.add(node)
     return list(intnodes),list(nodes-intnodes)
+
 def SortedChain(chain):
     def _sort(chain):
         minidx=0
@@ -211,7 +214,7 @@ def SortedChain(chain):
             if chain[minidx].idx()>chain[i].idx():
                 minidx=i
         return chain[minidx:]+chain[:minidx]
-    
+
     if len(chain)==1:
         return chain
     elif len(chain)==2:
@@ -224,7 +227,7 @@ def SortedChain(chain):
             return _sort(chain)
         else:
             return chain
-        
+
 def LoopsAndPaths(graph):
     Loops=list()
     Paths=list()
@@ -251,7 +254,12 @@ def LoopsAndPaths(graph):
                                 _loop=SortedChain(loop+[line])
                             else:
                                 _loop=SortedChain([line]+loop)
-                            if _loop not in _Loops:
+
+                            reversed_loop = _loop[1:] + _loop[:1]
+                            reversed_loop.reverse()
+
+                            if (_loop not in _Loops and
+                               reversed_loop not in _Loops):
                                 _Loops.append(_loop)
                                 flag=True
 #            print "_loops_", _Loops
@@ -278,18 +286,18 @@ def LoopsAndPaths(graph):
             _Paths.append(p)
 #    print "LOOPS, path",Loops
     return Loops,_Paths
-                            
 
-                            
+
+
 def SetChainMoments(chain,moments,moment):
 #    print chain
-    
+
     for line in chain:
         if chain.index(line)==0:
             curMoment=moment
         else:
 #            print list(set(line.Nodes())&set(previous.Nodes())),line.Nodes(), previous.Nodes()
-            
+
             nodes=list(set(line.Nodes())&set(previous.Nodes()))
             nodeidx=nodes[0].idx()
             if not ((line.start==nodeidx and previous.end==nodeidx) or (line.end==nodeidx and previous==nodeidx)):
@@ -318,9 +326,9 @@ def CheckLoopAndPath(loop,path,graph):
             return True
         else:
             return False
-            
+
 def xLoopMoments(graph):
-    """ найти все циклы по которым могут течь импульсы + пути протечки 
+    """ найти все циклы по которым могут течь импульсы + пути протечки
          внешних импульсов и раскидать по ним  простые импульсы
     """
     loops,paths = LoopsAndPaths(graph)
@@ -358,14 +366,14 @@ def xLoopMoments(graph):
                     SetChainMoments(loop, moment, curMoment)
                     cnt+=1
                 lcnt+=1
-		yield moment
+                yield moment
 #                if len(moment.keys())==len(graph._lines):
 #                    yield moment
 #                else:
 #                    yield None
         pcnt+=1
-    
-    
+
+
 def Generic(model, graph):
     minMomentIndex = 10**13
     minkMoment = None
@@ -432,7 +440,7 @@ def CheckTadpoles(graph,moments):
                 raise TadpoleError, "moment doesn't pass through subgraph that produced tadpole"
             for _sub in to_remove:
                 res.remove(_sub)
-    res.remove(graph_as_sub)    
+    res.remove(graph_as_sub)
     return res
 
 def GetMomentaIndex(graph,moments, checktadpoles=False):
@@ -477,12 +485,12 @@ def GetMomentaIndex(graph,moments, checktadpoles=False):
                 if not moments[list(extlines)[0]].isSimple():
                     result+=penalties["badIn"]
 
-                """ count length of external moment path for self-energy subgraph 
+                """ count length of external moment path for self-energy subgraph
                 """
                 extpath=ExtMomentPath(graph, sub, moments)
                 if len(extpath)>=2:
                     result+=penalties['longIn']*(len(extpath)-1)
-        for moment in moments.values():        
+        for moment in moments.values():
             result+=penalties['longMoment']*(len(moment._dict.keys())-1)
 
 #    print "Index:", result
@@ -494,11 +502,11 @@ def ExtMomentPath(graph,subgraph,moments):
     extnodes,extlines=subgraph.FindExternal()
     extatoms=set()
     for line in extlines:
-        extatoms=extatoms| set(moments[line]._dict.keys()) 
+        extatoms=extatoms| set(moments[line]._dict.keys())
     path=list()
     for line in subgraph._lines:
         if moments[line].hasAtoms(extatoms):
- #TODO: нужно ли требование наличия всех атомов или хотя бы одного? 
+ #TODO: нужно ли требование наличия всех атомов или хотя бы одного?
 #если импульс разветвляется Momenta.hasAtoms его не найдет.
             path.append(line)
     return path
@@ -517,7 +525,7 @@ def ZeroExtMoments(graph,moments):
         return res
     else:
         return moments
-        
+
 
 def SolveNodeKirghoff(node,moments):
     count=0
@@ -565,7 +573,7 @@ def Kirghoff(graph,simple_moments):
                         moments[line]=extMoment
                     else:
                         moments[line]=-extMoment
-                
+
     #print " Kirghoff2 2" , moments
     while flag:
         flag=False
@@ -574,10 +582,10 @@ def Kirghoff(graph,simple_moments):
             if not _line == None:
                 moments[_line]=_moment
                 flag=True
-                
+
     if len(moments.keys()) == len(graph.Lines()):
         return moments
     else:
         return None
-            
-            
+
+
