@@ -243,7 +243,7 @@ def LoopsAndPaths(graph):
         else:
             Paths.append([line])
     flag=True
-    intnodes=set([x for x in graph.xInternalNodes()])
+    intnodes=set(list(graph.xInternalNodes()))
     while flag:
         flag=False
         _Loops=list()
@@ -255,19 +255,21 @@ def LoopsAndPaths(graph):
             else:
                 for node in ext:
                     for line in node.Lines():
-                        if (line not in loop) and line.isInternal() and len(set(line.Nodes())&set(int))==0:
-                            if node in loop[-1].Nodes():
-                                _loop=SortedChain(loop+[line])
-                            else:
-                                _loop=SortedChain([line]+loop)
+                        if line in loop: continue
+                        if not line.isInternal(): continue
+                        if set(line.Nodes()) & set(int): continue
 
-                            reversed_loop = _loop[1:] + _loop[:1]
-                            reversed_loop.reverse()
+                        if node in loop[-1].Nodes():
+                            _loop=SortedChain(loop+[line])
+                        else:
+                            _loop=SortedChain([line]+loop)
 
-                            if (_loop not in _Loops and
-                               reversed_loop not in _Loops):
-                                _Loops.append(_loop)
-                                flag=True
+                        reversed_loop = _loop[1:] + _loop[:1]
+                        reversed_loop.reverse()
+
+                        if _loop not in _Loops and reversed_loop not in _Loops:
+                            _Loops.append(_loop)
+                            flag=True
 #            print "_loops_", _Loops
         Loops=_Loops
         _Paths=list()
