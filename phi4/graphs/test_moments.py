@@ -40,7 +40,7 @@ class Test_Momenta:
         pq=moments.Momenta(string='p+q')
         assert pq._string=='p+q'
         assert pq._dict=={'p':1,'q':1}
-        assert pq._sympy==p+q
+        assert pq.sympy()==p+q
 
     def test_init_dict(self):
         """ initialization of Momenta instance with dict
@@ -49,7 +49,7 @@ class Test_Momenta:
         pq=moments.Momenta(dict={'p':1,'q':1})
         assert pq._string=='p+q' or pq._string=='q+p'
         assert pq._dict=={'p':1,'q':1}
-        assert pq._sympy==p+q
+        assert pq.sympy()==p+q
 
     def test_init_sympy(self):
         """ initialization of Momenta  instance with sympy
@@ -72,7 +72,7 @@ class Test_Momenta:
         p,q=sympy.var('p q')
         m1=moments.Momenta(sympy=p-q)
         m2=-m1
-        assert m1._sympy==-m2._sympy
+        assert m1.sympy()==-m2.sympy()
         
     def test_add(self):
         """ Momenta addition

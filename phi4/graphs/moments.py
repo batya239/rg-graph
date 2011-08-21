@@ -140,10 +140,12 @@ class Momenta:
     def setZerosByAtoms(self,atomsset):
         """ atomsset - set of sympy variables
         """
-        smoment=self._sympy
+        moment=copy(self._dict)
         for atom in atomsset:
-            smoment=smoment.subs(atom,0)
-        return Momenta(sympy=smoment)
+            str_atom=str(atom)
+            if str_atom in moment:
+                del moment[str_atom]
+        return Momenta(dict=moment)
 
     def __eq__(self,other):
         return self._dict==other._dict
@@ -229,6 +231,7 @@ def SortedChain(chain):
             return chain
 
 def LoopsAndPaths(graph):
+#TODO: check for equivalent paths due to graph symmetry
     Loops=list()
     Paths=list()
     for line in graph.Lines():
