@@ -292,8 +292,12 @@ def LoopsAndPaths(graph):
             _Paths.append(p)
 #    print "LOOPS, path",Loops
     return Loops,_Paths
-
-
+def SetChainPrimitives(chain,primitives, primitive):
+    for line in chain:
+        if line in primitives:
+            primitives[line].append(primitive)
+        else:
+            primitives[line]=[primitive]
 
 def SetChainMoments(chain,moments,moment):
 #    print "SetChainMoments: chain", chain, moment
@@ -340,13 +344,15 @@ def xLoopMoments(graph):
     """ найти все циклы по которым могут течь импульсы + пути протечки
          внешних импульсов и раскидать по ним  простые импульсы
     """
+
+#TODO: rewrite using chain primitives
     loops,paths = LoopsAndPaths(graph)
     print "loops:",len(loops),"paths:",len(paths)
     print "loops:",loops
     print "paths:",paths
     graph_as_sub=graph.asSubgraph()
     extnodes,extlines=graph_as_sub.FindExternal()
-    _lines_storage=_Lines()
+    
 #    _extlines=[_lines_storage.Get(x) for x in extlines]
     pcnt=0
     for p in  comb.xUniqueCombinations(paths, graph_as_sub.CountExtLegs()-1):
@@ -360,6 +366,7 @@ def xLoopMoments(graph):
             print "loop:",lcnt, "(%s)"%pcnt
 #            print l,p
             moment=dict()
+#            primitives=dict()
             cnt=0
 #            print CheckLoopAndPath(l,p,graph)
             if not CheckLoopAndPath(l,p,graph):
@@ -368,11 +375,13 @@ def xLoopMoments(graph):
             else:
                 for path in p:
                     curMoment=Momenta(string="p%s"%cnt)
+#                    SetChainPrimitives(path, primitives,"p%s"%paths.index(path))
                     SetChainMoments(path, moment, curMoment)
                     cnt+=1
                 cnt=0
                 for loop in l:
                     curMoment=Momenta(string="q%s"%cnt)
+#                    SetChainPrimitives(path, primitives,"p%s"%paths.index(path))
                     SetChainMoments(loop, moment, curMoment)
                     cnt+=1
                 lcnt+=1
