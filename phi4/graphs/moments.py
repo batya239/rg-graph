@@ -6,7 +6,7 @@ from copy import copy
 import comb
 
 import subgraphs
-from store import _Lines
+
 
 class TadpoleError(Exception):
     pass
@@ -171,6 +171,9 @@ class Momenta:
                 res=False
         return res
 
+    def __repr__(self):
+        return self._string
+
 #     def SetZeros(self,zero_momenta):
 #         pass
 #
@@ -293,7 +296,8 @@ def LoopsAndPaths(graph):
 
 
 def SetChainMoments(chain,moments,moment):
-#    print chain
+#    print "SetChainMoments: chain", chain, moment
+ #   print moments
 
     for line in chain:
         if chain.index(line)==0:
@@ -302,8 +306,8 @@ def SetChainMoments(chain,moments,moment):
 #            print list(set(line.Nodes())&set(previous.Nodes())),line.Nodes(), previous.Nodes()
 
             nodes=list(set(line.Nodes())&set(previous.Nodes()))
-            nodeidx=nodes[0].idx()
-            if not ((line.start==nodeidx and previous.end==nodeidx) or (line.end==nodeidx and previous==nodeidx)):
+            node=nodes[0]
+            if not ((line.start==node and previous.end==node) or (line.end==node and previous.start==node)):
                 curMoment=-curMoment
 
         if line in moments.keys():
@@ -311,6 +315,8 @@ def SetChainMoments(chain,moments,moment):
         else:
             moments[line]=curMoment
         previous=line
+#    print moments
+#    print "-------------------"
 
 def CheckLoopAndPath(loop,path,graph):
     lines=set()
@@ -323,9 +329,9 @@ def CheckLoopAndPath(loop,path,graph):
     else:
         for p in path:
             lines=lines|set(p)
-        _lines=set([x.idx() for x in list(lines)])
+#        _lines=set([x.idx() for x in list(lines)])
 #    print _lines, set(graph._lines)
-        if _lines == set(graph._lines):
+        if lines == set(graph._lines):
             return True
         else:
             return False
@@ -336,8 +342,8 @@ def xLoopMoments(graph):
     """
     loops,paths = LoopsAndPaths(graph)
     print "loops:",len(loops),"paths:",len(paths)
-    print loops
-    print paths
+    print "loops:",loops
+    print "paths:",paths
     graph_as_sub=graph.asSubgraph()
     extnodes,extlines=graph_as_sub.FindExternal()
     _lines_storage=_Lines()
@@ -355,6 +361,7 @@ def xLoopMoments(graph):
 #            print l,p
             moment=dict()
             cnt=0
+#            print CheckLoopAndPath(l,p,graph)
             if not CheckLoopAndPath(l,p,graph):
                 lcnt+=1
                 yield None

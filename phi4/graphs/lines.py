@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding:utf8
-from store import _Nodes
+
 class Line:
     """ Class represents lines
         type=, momenta=, start=, end=, modifiers=
@@ -16,10 +16,7 @@ class Line:
             self.__dict__[field] = kwargs[field]
 
     def Nodes(self):
-        if not "_nodes" in self.__dict__:
-            _nodes_store=_Nodes()
-            self._nodes=(_nodes_store.Get(self.start), _nodes_store.Get(self.end))
-        return self._nodes
+        return (self.start, self.end)
         
 
     def Propagator(self, model):
@@ -33,7 +30,7 @@ class Line:
         return model.Dim(self)
 
     def idx(self):
-        return self._store_idx
+        return self._idx
 
     def isInternal(self):
 #        print self.idx(), self.Nodes()[0].isInternal,  self.Nodes()[1].isInternal

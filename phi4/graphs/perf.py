@@ -11,8 +11,8 @@ def print_moments(_moments):
 
 phi4=_phi4('dummy')
 #g1=Graph('e123-e45-444-555---')
-#g1=Graph('e112-33-444-4e--')
-g1=Graph('e112-e3-333--')
+g1=Graph('e112-33-444-4e--')
+#g1=Graph('e112-e3-333--')
 #g1=Graph('e111-e-')
 print [x for x in g1.xInternalLines()]
 phi4.SetTypes(g1)

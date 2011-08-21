@@ -5,7 +5,6 @@ import copy
 
 import nickel
 
-from store import _Lines, _Nodes
 from nodes import Node
 from subgraphs import FindSubgraphs,Subgraph
 #from lines import Line
@@ -33,39 +32,40 @@ class Graph:
             raise TypeError, "Unsupproted type of argument: %s"%arg
 
     def _Node(self,idx):
-        _nodes_store=_Nodes()
-        return _nodes_store.Get(idx)
+        return self._nodes[idx]
 
     def _Line(self,idx):
-        _lines_store=_Lines()
-        return _lines_store.Get(idx)
+        return self._lines[idx]
 
     def _from_lines_list(self,list_):
-        _nodes_store=_Nodes()
-        _lines_store=_Lines()
         _lines_dict=dict()
         _nodes_dict=dict()
         list__=copy.copy(list_)
         list__.sort()
         for line in list__:
             if len(line) == 2:
-                for node in line[0:2]:
-                    if node not in _nodes_dict.keys():
+                for node_idx in line[0:2]:
+                    if node_idx not in _nodes_dict.keys():
                         _type=None
-                        if node<0:
+                        if node_idx<0:
                             _type=-1 #external node
-                        _nodes_dict[node]=_nodes_store.Add(Node(type=_type))
-                self._lines.append(self._Node(_nodes_dict[line[0]]).AddLine(_nodes_dict[line[1]]))
+                        _nodes_dict[node_idx]=Node(type=_type)
+                self._lines.append(_nodes_dict[line[0]].AddLine(_nodes_dict[line[1]]))
                  
             else:
                 raise ValueError, "Invalid line %s"%line
         self._nodes=_nodes_dict.values()
+        for node_idx in range(len(self._nodes)):
+            self._nodes[node_idx]._idx=node_idx
+        for line_idx in range(len(self._lines)):
+            self._lines[line_idx]._idx=line_idx
+
                 
     def _edges(self):
         res=[]
-        for idx in self._lines:
+        for line in self._lines:
             _nodes=[]
-            for node in self._Line(idx).Nodes():
+            for node in line.Nodes():
                 if (node.type<>None) and (node.type<0) :
                     _nodes.append(-1)
                 else:
@@ -79,8 +79,7 @@ class Graph:
 
     def xInternalNodes(self):
         
-        for idx in self._nodes:
-            node=self._Node(idx)
+        for node in self._nodes:
             if node.isInternal():
                 yield node
 
@@ -91,13 +90,12 @@ class Graph:
 
     def xInternalLines(self):
         
-        for idx in self._lines:
-            line=self._Line(idx)
+        for line in self._lines:
             if line.isInternal():
                 yield line
 
     def Lines(self):
-        return [self._Line(x) for x in self._lines]
+        return self._lines
             
 
     def NLoops(self):
@@ -123,3 +121,9 @@ class Graph:
         #subgraphs=[self.asSubgraph()] + sorted(self._subgraphs,key=len,revers=True)
         for sub in self._subgraphs+[self.asSubgraph()]:
             sub.FindTadpoles(self._subgraphs)
+
+    def __str__(self):
+        res=dict()
+        for line in self._lines:
+            res[line.idx()]=[x.idx() for x in line.Nodes()]
+        return str(res)

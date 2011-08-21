@@ -1,8 +1,6 @@
 #!/usr/bin/python
 # -*- coding:utf8
 
-from store import _Nodes, _Lines
-
 from comb import xUniqueCombinations
 from copy import copy
 
@@ -125,10 +123,6 @@ class Subgraph:
             else:
                 raise ValueError,  "Invalid subgraph"
         return res
-
-#def sub2objects(subgraph):
-#    _lines_store=_Lines()
-#    return [_lines_store.Get(x) for x in subgraph]
 
     def isSubgraph1PI(self):
         res = True

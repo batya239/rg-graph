@@ -201,6 +201,7 @@ class Test_Generate:
         print_moments(_moments)
         print g1._subgraphs, _subgraphs
         print_moments(_momenta_dict({1: 'p0', 2: '-p0', 3: 'p0+q0', 4: 'q1-q0', 5: '-q1'})) 
+        print g1
         assert compare_moments(_moments,_momenta_dict({1: 'p0', 2: '-p0', 3: 'p0+q0', 4: 'q1-q0', 5: '-q1'}))
 
     def test_Generic_e112_e3__333__(self):
