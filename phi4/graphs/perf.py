@@ -17,8 +17,8 @@ g1=Graph('e112-33-444-4e--')
 print [x for x in g1.xInternalLines()]
 phi4.SetTypes(g1)
 g1.FindSubgraphs(phi4)
-_moments,_subgraphs=moments.Generic(phi4, g1)
+print "index:",moments.Generic(phi4, g1)
 
-print_moments(_moments)
+print_moments(g1._moments)
 print [x for x in g1.xInternalLines()]
-print _subgraphs
+print g1._subgraphs_m

@@ -157,10 +157,10 @@ class Test_Generate:
         g1=Graph('e11-e-')
         self.phi3.SetTypes(g1)
         g1.FindSubgraphs(self.phi3)
-        _moments,_subgraphs=moments.Generic(self.phi3, g1)
-        print_moments(_moments)
+        print moments.Generic(self.phi3, g1)
+        print_moments(g1._moments)
         print_moments(_momenta_dict({8: 'p0+q0', 9: '-q0', 6: 'p0', 7: '-p0'})) 
-        assert compare_moments(_moments,_momenta_dict({8: 'p0+q0', 9: '-q0', 6: 'p0', 7: '-p0'}))
+        assert compare_moments(g1._moments,_momenta_dict({8: 'p0+q0', 9: '-q0', 6: 'p0', 7: '-p0'}))
 
 #        print_moments(_momenta_dict({1:'p0',2:'-p0',3:'q0',4:'p0-q0'})) 
 #        assert compare_moments(_moments,_momenta_dict({1:'p0',2:'-p0',3:'q0',4:'p0-q0'}))
@@ -170,11 +170,11 @@ class Test_Generate:
         self.phi3.SetTypes(g1)
         g1.FindSubgraphs(self.phi3)
         #print [x.Nodes() for x in g1.xInternalLines()]
-        _moments,subgraphs=moments.Generic(self.phi3, g1)
+        print moments.Generic(self.phi3, g1)
         
-        print_moments(_moments)
+        print_moments(g1._moments)
         print_moments(_momenta_dict({10: 'p0', 11: '-p0', 12: 'p0+q0', 13: '-q0', 14: 'q0', 15: 'q1-q0', 16: '-q1'})) 
-        assert compare_moments(_moments,_momenta_dict({10: 'p0', 11: '-p0', 12: 'p0+q0', 13: '-q0', 14: 'q0', 15: 'q1-q0', 16: '-q1'}))
+        assert compare_moments(g1._moments,_momenta_dict({10: 'p0', 11: '-p0', 12: 'p0+q0', 13: '-q0', 14: 'q0', 15: 'q1-q0', 16: '-q1'}))
 #        print_moments(_momenta_dict({1: 'p0', 2: '-p0', 3: 'p0-q0', 4: 'q0', 5: '-q0', 6: 'q1', 7: 'q0-q1'})) 
  #       assert compare_moments(_moments,_momenta_dict({1: 'p0', 2: '-p0', 3: 'p0-q0', 4: 'q0', 5: '-q0', 6: 'q1', 7: 'q0-q1'}))
 
@@ -184,11 +184,11 @@ class Test_Generate:
         g1=Graph('e12-33-44-5-6-e7-77--')
         self.phi3.SetTypes(g1)
         g1.FindSubgraphs(self.phi3)
-        _moments,_subgraphs=moments.Generic(self.phi3, g1)
+        print moments.Generic(self.phi3, g1)
         print dict([(x.idx(),x.Nodes()) for x in g1.xInternalLines()])
-        print_moments(_moments)
+        print_moments(g1._moments)
         print_moments(_momenta_dict({5: 'p0', 6: '-p0', 7: 'p0-q0', 8: 'q0', 9: 'q1', 10: 'p0-q0-q1', 11: 'q2', 12: 'q0-q2', 13: 'p0-q0', 14: 'q0', 15: '-q0', 16: 'q3', 17: 'q0-q3'})) 
-        assert compare_moments(_moments,_momenta_dict({5: 'p0', 6: '-p0', 7: 'p0-q0', 8: 'q0', 9: 'q1', 10: 'p0-q0-q1', 11: 'q2', 12: 'q0-q2', 13: 'p0-q0', 14: 'q0', 15: '-q0', 16: 'q3', 17: 'q0-q3'}))
+        assert compare_moments(g1._moments,_momenta_dict({5: 'p0', 6: '-p0', 7: 'p0-q0', 8: 'q0', 9: 'q1', 10: 'p0-q0-q1', 11: 'q2', 12: 'q0-q2', 13: 'p0-q0', 14: 'q0', 15: '-q0', 16: 'q3', 17: 'q0-q3'}))
 
 
     def test_Generic_e111_e_(self):
@@ -197,12 +197,12 @@ class Test_Generate:
         g1=Graph('e111-e-')
         self.phi4.SetTypes(g1)
         g1.FindSubgraphs(self.phi4)
-        _moments,_subgraphs=moments.Generic(self.phi4, g1)
-        print_moments(_moments)
-        print g1._subgraphs, _subgraphs
+        print moments.Generic(self.phi4, g1)
+        print_moments(g1._moments)
+        print g1._subgraphs_m
         print_moments(_momenta_dict({1: 'p0', 2: '-p0', 3: 'p0+q0', 4: 'q1-q0', 5: '-q1'})) 
         print g1
-        assert compare_moments(_moments,_momenta_dict({1: 'p0', 2: '-p0', 3: 'p0+q0', 4: 'q1-q0', 5: '-q1'}))
+        assert compare_moments(g1._moments,_momenta_dict({1: 'p0', 2: '-p0', 3: 'p0+q0', 4: 'q1-q0', 5: '-q1'}))
 
     def test_Generic_e112_e3__333__(self):
         return
@@ -210,11 +210,11 @@ class Test_Generate:
         g1=Graph('e112-e3-333--')
         self.phi4.SetTypes(g1)
         g1.FindSubgraphs(self.phi4)
-        _moments,_subgraphs=moments.Generic(self.phi4, g1)
-        print_moments(_moments)
-        print g1._subgraphs, _subgraphs
+        print moments.Generic(self.phi4, g1)
+        print_moments(g1._moments)
+        print g1._subgraphs_m
         print_moments(_momenta_dict({1: 'p0', 2: '-p0', 3: 'p0+q0', 4: 'q1-q0', 5: '-q1'})) 
-        assert compare_moments(_moments,_momenta_dict({1: 'p0', 2: '-p0', 3: 'p0+q0', 4: 'q1-q0', 5: '-q1'}))
+        assert compare_moments(g1._moments,_momenta_dict({1: 'p0', 2: '-p0', 3: 'p0+q0', 4: 'q1-q0', 5: '-q1'}))
 
 
     def test_LoopsAndPaths(self):
