@@ -127,3 +127,6 @@ class Graph:
         for line in self._lines:
             res[line.idx()]=[x.idx() for x in line.Nodes()]
         return str(res)
+
+    def Clone(self):
+        return copy.deepcopy(self)
