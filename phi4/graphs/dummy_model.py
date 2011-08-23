@@ -66,3 +66,15 @@ def _Dim(model,obj):
             dim+=model.modifiers_dim[mod]
     return dim
 
+def _dTau(graph):
+    """ places tau modifier on each  graph line sequentlially
+    """
+    res=list()
+    for line in graph.xInternalLines():
+        idx=graph.Lines().index(line)
+        g=graph.Clone()
+        newline=g._Line(idx)
+        newline.AddModifier("tau")
+        res.append(g)
+    return res
+
