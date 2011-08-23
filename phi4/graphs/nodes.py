@@ -61,7 +61,10 @@ class Node:
         return out_nodes
 
     def __repr__(self):
-        return "%s"%self.idx()
+        if len(self.modifiers)=0:
+            return "%s"%self.idx()
+        else:
+            return "%s%s"%(self.idx(),self.modifiers)
 
     def AddModifier(str_modifier):
         self.modifiers.append(str_modifier)

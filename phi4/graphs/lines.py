@@ -37,7 +37,7 @@ class Line:
         return self.Nodes()[0].isInternal() and self.Nodes()[1].isInternal()
     
     def __repr__(self):
-        return "%s:[%s,%s]"%(self.idx(),self.start,self.end)
+        return "%s:[%s,%s]:%s"%(self.idx(),self.start,self.end,self.modifiers)
 
     def AddModifier(str_modifier):
         self.modifiers.append(str_modifier)
