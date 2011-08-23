@@ -7,7 +7,7 @@ class Node:
     """ Class represens nodes
         type=, lines_dict=,
     """
-    def __init__(self, type=None, modifiers=None, **kwargs):
+    def __init__(self, type=None, modifiers=list(), **kwargs):
         #required_fields = set(['lines'])
         required_fields = set()
         if not required_fields.issubset(set(kwargs.keys())):
@@ -63,4 +63,6 @@ class Node:
     def __repr__(self):
         return "%s"%self.idx()
 
+    def AddModifier(str_modifier):
+        self.modifiers.append(str_modifier)
 

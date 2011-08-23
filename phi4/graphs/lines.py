@@ -5,7 +5,7 @@ class Line:
     """ Class represents lines
         type=, momenta=, start=, end=, modifiers=
     """
-    def __init__(self,type=None, momenta=None, modifiers=None, **kwargs):
+    def __init__(self,type=None, momenta=None, modifiers=list(), **kwargs):
         required_fields = set(['start','end'])
         if not required_fields.issubset(set(kwargs.keys())):
              raise ValueError, "Lines required fields are %s"%required_fields
@@ -38,4 +38,8 @@ class Line:
     
     def __repr__(self):
         return "%s:[%s,%s]"%(self.idx(),self.start,self.end)
+
+    def AddModifier(str_modifier):
+        self.modifiers.append(str_modifier)
+
 
