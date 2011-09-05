@@ -22,6 +22,15 @@ class _generic_model:
         """
         return moments.Generic(self,graph)
 
+    def dTau(self, graph):
+        """ applies \partial_{m^2}  on graph (m^2\equiv\tau). 
+            returns list of graphs with modifiers
+        """
+        if 'tau' not in self.modifiers:
+            raise ValueError, "there is no tau modifier in model"
+        else:
+            return _dTau(graph)
+
 class _phi3(_generic_model):
     def __init__( self , name):
         self.name=name
