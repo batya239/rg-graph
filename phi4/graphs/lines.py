@@ -42,7 +42,7 @@ class Line:
         else:
             return "%s:[%s,%s]:%s"%(self.idx(),self.start,self.end,self.modifiers)
 
-    def AddModifier(str_modifier):
+    def AddModifier(self,str_modifier):
         self.modifiers.append(str_modifier)
 
 

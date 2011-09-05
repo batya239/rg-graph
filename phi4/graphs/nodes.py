@@ -66,6 +66,6 @@ class Node:
         else:
             return "%s%s"%(self.idx(),self.modifiers)
 
-    def AddModifier(str_modifier):
+    def AddModifier(self,str_modifier):
         self.modifiers.append(str_modifier)
 
