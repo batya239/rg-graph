@@ -37,8 +37,8 @@ class Line:
         return self.Nodes()[0].isInternal() and self.Nodes()[1].isInternal()
     
     def __repr__(self):
-        if len(self.modifiers)=0:
-            return "%s:[%s,%s]"%(self.idx(),self.start,self.end,self.modifiers)
+        if len(self.modifiers)==0:
+            return "%s:[%s,%s]"%(self.idx(),self.start,self.end)
         else:
             return "%s:[%s,%s]:%s"%(self.idx(),self.start,self.end,self.modifiers)
 

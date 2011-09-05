@@ -21,7 +21,7 @@ class Node:
     def Lines(self):
        return tuple(self.lines)
 
-    def AddLine(self, node, type=None, modifiers=None):
+    def AddLine(self, node, type=None, modifiers=list()):
        # add line to current (start) node
         line=Line(type=type,modifiers=modifiers,start=self,end=node)
         self.lines.append(line)
@@ -61,7 +61,7 @@ class Node:
         return out_nodes
 
     def __repr__(self):
-        if len(self.modifiers)=0:
+        if len(self.modifiers)==0:
             return "%s"%self.idx()
         else:
             return "%s%s"%(self.idx(),self.modifiers)
