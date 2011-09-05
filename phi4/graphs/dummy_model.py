@@ -26,7 +26,7 @@ class _generic_model:
         """ applies \partial_{m^2}  on graph (m^2\equiv\tau). 
             returns list of graphs with modifiers
         """
-        if 'tau' not in self.modifiers:
+        if 'tau' not in self.modifiers_dim:
             raise ValueError, "there is no tau modifier in model"
         else:
             return _dTau(graph)

@@ -2,6 +2,7 @@
 import copy
 from nose.tools import raises
 from graphs import _find_empty_idx, Graph
+from dummy_model import _phi3,_phi4
 
 def sorted_list(list_):
     res=copy.copy(list_)
@@ -106,3 +107,14 @@ class Test_Graph:
         assert Graph('e111-e-').NLoops()==2
         assert Graph('e12-e3-33-').NLoops()==2
         assert Graph('e12-e2-e-').NLoops()==1
+
+class Test_dTau:
+    def setUp(self):
+        self.phi4=_phi4('dummy')
+        self.phi3=_phi3('dummy')
+        
+    def test_dtau(self):
+        g1=Graph('e11-e-')
+        assert len(self.phi3.dTau(g1)) == 2
+        g2=Graph('e111-e-')
+        assert len(self.phi4.dTau(g2)) == 3
