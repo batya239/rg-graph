@@ -25,7 +25,7 @@ def  strechMoments(graph,model):
             sub._strechvar = "a_%s"%(sub.asLinesIdxStr())
             sub._diffcnt=dim+1
             extatoms=FindExternalAtoms(sub, graph._moments)
-            setStrech(sub, graph._moments, extatoms, 
+            setStrech(sub, graph._moments, extatoms)
 
             
             
