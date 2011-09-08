@@ -31,6 +31,13 @@ class _generic_model:
         else:
             return _dTau(graph)
 
+    def propagator(line):
+        return 1/(line.momenta.Squared()+1)
+
+    def vertex(node):
+        return sympy.Number(1)
+
+
 class _phi3(_generic_model):
     def __init__( self , name):
         self.name=name
