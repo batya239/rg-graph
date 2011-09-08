@@ -70,10 +70,20 @@ class Momenta:
             raise TypeError,  'unknown datatype in kwargs: %s'%kwargs
         self._strech=dict()
 
+    def _applyStrechOnSympy(self,sympy_expr):
+        res=sympy_expr
+        for atom in self._strech:
+            for strech in self._strech[atom]:
+                satom=sympy.var(atom)
+                sstrech=sympy.var(strech)
+                res = res.subs(satom,sstrech*satom)
+        return res
+
+
     def sympy(self):
         if not "_sympy" in self.__dict__:
             self._sympy=_dict2sympy(self._dict)
-        return self._sympy
+        return self._applyStrechOnSympy(self._sympy)
 
     def __neg__(self):
         t_dict={}
@@ -130,7 +140,7 @@ class Momenta:
                         s_atom12 = sympy.var(atom1+"O"+atom2)
                         res = res + self._dict[atom1]*other._dict[atom2]*s_atom12*s_atom1*s_atom2
 #NOTE: q1Oq2 - нормированное скалярное произведение (q1xq2/q1/q2)
-            return res
+            return self._applyStrechOnSympy(res)
 
     def Squared(self):
         return self*self
