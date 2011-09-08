@@ -71,6 +71,7 @@ class Momenta:
             self._dict = _str2dict(self._string)
         else:
             raise TypeError,  'unknown datatype in kwargs: %s'%kwargs
+        self._strech=dict()
 
     def sympy(self):
         if not "_sympy" in self.__dict__:
@@ -174,6 +175,8 @@ class Momenta:
     def __repr__(self):
         return self._string
 
+    def strAtoms(self):
+        return self._dict.keys()
 #     def SetZeros(self,zero_momenta):
 #         pass
 #

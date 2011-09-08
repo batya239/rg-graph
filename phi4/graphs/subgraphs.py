@@ -141,6 +141,11 @@ class Subgraph:
                 res=False
                 break
         return res
+
+    def asLinesIdxStr(self):
+        res=[x.idx() for x in  self._lines]
+        res.sort()
+        return reduce(lambda x,y: "%s_%s"%(x,y))
         
 
 def FindSubgraphs(graph,model):
