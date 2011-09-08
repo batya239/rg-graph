@@ -130,3 +130,6 @@ class Graph:
 
     def Clone(self):
         return copy.deepcopy(self)
+
+    def _moments(self):
+        return dict([(x,x.momenta) for x in self._lines])

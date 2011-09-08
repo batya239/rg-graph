@@ -440,7 +440,10 @@ def Generic(model, graph):
             minkMoment = curkMoment
             if newSubgraphs <> None:
                 minSubgraphs = newSubgraphs
-    graph._moments, graph._subgraphs_m = minkMoment, minSubgraphs
+#    graph._moments, graph._subgraphs_m = minkMoment, minSubgraphs
+    graph._subgraphs_m = minSubgraphs    
+    for line in  minkMoment:
+        line.momenta=minkMoment[line]
     return minMomentIndex
 
 def CheckTadpoles(graph,moments):
