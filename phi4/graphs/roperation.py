@@ -19,7 +19,11 @@ def setStrech(sub,momets,atomsset)
                 moments[line]._strech[atom].append(sub._strechvar)
 
 def  strechMoments(graph,model):
-    for sub in graph._subgraphs:
+    if "_subgraphs_m" in self.__dict__:
+        subgraphs=self._subgraphs_m
+    else:
+        subgraphs=self._subgraphs
+    for sub in subgraphs:
         dim = sub.Dim(model)
         if dim>0:
             sub._strechvar = "a_%s"%(sub.asLinesIdxStr())
