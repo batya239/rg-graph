@@ -35,11 +35,10 @@ class Node:
 #            node.lines.remove(line_idx)
 ##TODO: change node type to None?
 
-    def Vertex(self, model, graph):
+    def Vertex(self, model):
         """ node vertex factor
         """
-#TODO: implement vertex
-        pass
+        return model.vertex(self)
 
     def Dim(self, model):
         return model.Dim(self)
