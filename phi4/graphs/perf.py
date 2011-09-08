@@ -19,6 +19,6 @@ phi4.SetTypes(g1)
 g1.FindSubgraphs(phi4)
 print "index:",moments.Generic(phi4, g1)
 
-print_moments(g1._moments)
+print_moments(g1._moments())
 print [x for x in g1.xInternalLines()]
 print g1._subgraphs_m
