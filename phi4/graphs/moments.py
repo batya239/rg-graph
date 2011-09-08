@@ -59,16 +59,13 @@ class Momenta:
         if 'string' in kwargs:
             self._string = kwargs['string'].replace(" ","")
             self._dict = _str2dict(self._string)
-#            self._sympy = _dict2sympy(self._dict)
         elif 'dict' in kwargs:
             self._dict = kwargs['dict']
-#            self._sympy = _dict2sympy(self._dict)
-#            self._string = str(self._sympy).replace(" ","")
             self._string = _dict2str(self._dict)
-        elif 'sympy' in kwargs:
-            self._sympy = kwargs['sympy']
-            self._string = str(self._sympy).replace(" ","")
-            self._dict = _str2dict(self._string)
+#        elif 'sympy' in kwargs:
+#            self._sympy = kwargs['sympy']
+#            self._string = str(self._sympy).replace(" ","")
+#            self._dict = _str2dict(self._string)
         else:
             raise TypeError,  'unknown datatype in kwargs: %s'%kwargs
         self._strech=dict()

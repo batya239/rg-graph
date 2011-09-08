@@ -51,14 +51,6 @@ class Test_Momenta:
         assert pq._dict=={'p':1,'q':1}
         assert pq.sympy()==p+q
 
-    def test_init_sympy(self):
-        """ initialization of Momenta  instance with sympy
-        """
-        (p,q,v)=sympy.var('p q v')
-        pq=moments.Momenta(sympy=p+q)
-        assert pq._string=='p+q'
-        assert pq._dict=={'p':1,'q':1}
-        assert pq._sympy==p+q
 
     @raises(TypeError)
     def test_init_err(self):
@@ -69,8 +61,7 @@ class Test_Momenta:
     def test_neg(self):
         """ Momenta __neg__ operation
         """
-        p,q=sympy.var('p q')
-        m1=moments.Momenta(sympy=p-q)
+        m1=moments.Momenta(string='p-q')
         m2=-m1
         assert m1.sympy()==-m2.sympy()
         
@@ -88,21 +79,21 @@ class Test_Momenta:
         """ Momenta absolute value
         """
         p,q,pOq=sympy.var('p q pOq')
-        assert abs(moments.Momenta(sympy=p))==sympy.sqrt(p*p)
-        print abs(moments.Momenta(sympy=p+q))
-        assert abs(moments.Momenta(sympy=p+q))==sympy.sqrt(p*p+q*q+2*p*q*pOq)
+        assert abs(moments.Momenta(string='p'))==sympy.sqrt(p*p)
+        print abs(moments.Momenta(string='p+q'))
+        assert abs(moments.Momenta(string='p+q'))==sympy.sqrt(p*p+q*q+2*p*q*pOq)
 
     def test_mull(self):
         """ Momenta scalar product
         """       
         p,q,v,pOq,pOv,qOv=sympy.var('p q v pOq pOv qOv')
-        print moments.Momenta(sympy=-p+q)*moments.Momenta(sympy=q-v)
-        assert moments.Momenta(sympy=-p+q)*moments.Momenta(sympy=q-v)==-p*q*pOq+q*q+p*v*pOv-q*v*qOv
+        print moments.Momenta(string='-p+q')*moments.Momenta(string='q-v')
+        assert moments.Momenta(string='-p+q')*moments.Momenta(string='q-v')==-p*q*pOq+q*q+p*v*pOv-q*v*qOv
 
     def test_eq(self):
         """ Momenta __eq__ operation
         """        
-        assert moments.Momenta(sympy=0) == moments.Momenta(dict={})
+        assert moments.Momenta(string="") == moments.Momenta(dict={})
         assert moments.Momenta(string="p+q") == moments.Momenta(string="q+p")
 
 
