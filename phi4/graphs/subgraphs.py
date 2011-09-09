@@ -145,7 +145,7 @@ class Subgraph:
     def asLinesIdxStr(self):
         res=[x.idx() for x in  self._lines]
         res.sort()
-        return reduce(lambda x,y: "%s_%s"%(x,y))
+        return reduce(lambda x,y: "%s_%s"%(x,y), res)
         
 
 def FindSubgraphs(graph,model):

@@ -1,3 +1,5 @@
+import sympy
+
 from lines import Line
 from nodes import Node
 import moments
@@ -31,10 +33,10 @@ class _generic_model:
         else:
             return _dTau(graph)
 
-    def propagator(line):
+    def propagator(self, line):
         return 1/(line.momenta.Squared()+1)
 
-    def vertex(node):
+    def vertex(self, node):
         return sympy.Number(1)
 
 

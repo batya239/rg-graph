@@ -1,35 +1,37 @@
 #!/usr/bin/python
 # -*- coding:utf8
 
-def FindExternalAtoms(sub,moments):
+def FindExternalAtoms(sub):
     res=list()
     for line in sub.FindExternal()[1]:
-        res=res+moments[line].strAtoms()
+        res=res+line.momenta.strAtoms()
     return set(res)
 
-def setStrech(sub,momets,atomsset)
+def setStrech(sub,atomsset):
     """ sub._strechvar must be set
     """
-    for line in sub,_lines:
-        atoms=set(moments[line].strAtoms() ) & atomsset
+    for line in sub._lines:
+        atoms=set(line.momenta.strAtoms() ) & atomsset
         for atom in atoms:
-            if atom not in moments[line]._strech.keys:
-                moments[line]._strech[atom]=[strechvar,]
+            if atom not in line.momenta._strech.keys():
+                line.momenta._strech[atom]=[sub._strechvar,]
             else:
-                moments[line]._strech[atom].append(sub._strechvar)
+                line.momenta._strech[atom].append(sub._strechvar)
 
 def  strechMoments(graph,model):
-    if "_subgraphs_m" in self.__dict__:
-        subgraphs=self._subgraphs_m
+    if "_subgraphs_m" in graph.__dict__:
+        subgraphs=graph._subgraphs_m
     else:
-        subgraphs=self._subgraphs
+        subgraphs=graph._subgraphs
     for sub in subgraphs:
         dim = sub.Dim(model)
-        if dim>0:
+        print "%s : %s"%(dim,sub)
+        if dim>=0:
             sub._strechvar = "a_%s"%(sub.asLinesIdxStr())
             sub._diffcnt=dim+1
-            extatoms=FindExternalAtoms(sub, graph._moments)
-            setStrech(sub, graph._moments, extatoms)
+            extatoms=FindExternalAtoms(sub)
+            setStrech(sub, extatoms)
+
 
             
             

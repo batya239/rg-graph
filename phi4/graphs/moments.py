@@ -359,23 +359,23 @@ def xLoopMoments(graph):
 
 #TODO: rewrite using chain primitives
     loops,paths = LoopsAndPaths(graph)
-    print "loops:",len(loops),"paths:",len(paths)
-    print "loops:",loops
-    print "paths:",paths
+#    print "loops:",len(loops),"paths:",len(paths)
+#    print "loops:",loops
+#    print "paths:",paths
     graph_as_sub=graph.asSubgraph()
     extnodes,extlines=graph_as_sub.FindExternal()
     
 #    _extlines=[_lines_storage.Get(x) for x in extlines]
     pcnt=0
     for p in  comb.xUniqueCombinations(paths, graph_as_sub.CountExtLegs()-1):
-        print "path:",pcnt
+#        print "path:",pcnt
         if not set(reduce(lambda x,y: set(x)|set(y), p))&set(extlines)==set(extlines):
             """ if all lines included in selected path does not include all external lines - paths combination is invalid
             """
             continue
         lcnt=0
         for l in comb.xUniqueCombinations(loops,graph.NLoops()):
-            print "loop:",lcnt, "(%s)"%pcnt
+#            print "loop:",lcnt, "(%s)"%pcnt
 #            print l,p
             moment=dict()
 #            primitives=dict()
@@ -416,7 +416,7 @@ def Generic(model, graph):
 
 #    for _curkMoment in xSimpleMoments(graph):
 
-    print "start generic"
+#    print "start generic"
     if model.checktadpoles:
         graph.FindTadpoles()
     for _curkMoment in xLoopMoments(graph):
