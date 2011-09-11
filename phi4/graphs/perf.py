@@ -1,3 +1,4 @@
+
 from dummy_model import _phi3,_phi4
 import moments
 from graphs import Graph
@@ -23,9 +24,10 @@ print "index:",moments.Generic(phi4, g1)
 print_moments(g1._moments())
 print [x for x in g1.xInternalLines()]
 print g1._subgraphs_m
+for g in phi4.dTau(g1):
+    print "---------"
+    strechMoments(g, phi4)
 
-strechMoments(g1, phi4)
-
-print g1.expr(phi4)
-print g1.det(phi4)
-print g1.subs_vars()
+    print g.expr(phi4)
+    print g.det(phi4)
+    print g.subs_vars()

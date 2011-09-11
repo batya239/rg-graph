@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding:utf8
+import copy
 
 class Line:
     """ Class represents lines
@@ -11,7 +12,7 @@ class Line:
              raise ValueError, "Lines required fields are %s"%required_fields
         self.type=type
         self.momenta=momenta
-        self.modifiers=modifiers
+        self.modifiers=copy.copy(modifiers)
         for field in kwargs:
             self.__dict__[field] = kwargs[field]
 

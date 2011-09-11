@@ -128,7 +128,7 @@ class Graph:
     def __str__(self):
         res=dict()
         for line in self._lines:
-            res[line.idx()]=[x.idx() for x in line.Nodes()]
+            res[line.idx()]=line.__repr__()
         return str(res)
 
     def Clone(self):

@@ -115,6 +115,10 @@ class Test_dTau:
         
     def test_dtau(self):
         g1=Graph('e11-e-')
+        self.phi3.SetTypes(g1)
+        g1.FindSubgraphs(self.phi3)
         assert len(self.phi3.dTau(g1)) == 2
         g2=Graph('e111-e-')
+        self.phi4.SetTypes(g2)
+        g2.FindSubgraphs(self.phi4)
         assert len(self.phi4.dTau(g2)) == 3

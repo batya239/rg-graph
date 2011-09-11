@@ -23,6 +23,8 @@ def  strechMoments(graph,model):
         subgraphs=graph._subgraphs_m
     else:
         subgraphs=graph._subgraphs
+    subgraphs.append(graph.asSubgraph())
+
     for sub in subgraphs:
         dim = sub.Dim(model)
         print "%s : %s"%(dim,sub)
