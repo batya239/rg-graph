@@ -144,41 +144,7 @@ class Graph:
         for line in self.xInternalLines():
             res=res*line.Propagator(model)
         d=sympy.var('d')
-        for i in range(self.NLoops()):
-            res=res*sympy.var('q%s'%i)**(d-1)
+#         for i in range(self.NLoops()):
+#             res=res*sympy.var('q%s'%i)**(d-1)
         return res
 
-    def det(self,model):
-        res=sympy.Number(1)
-        d=sympy.var('d')
-        for i in range(self.NLoops()):
-            res=res*sympy.var('q%s'%i)**(d-1)
-        if model.space_dim - self.NLoops()-2<0:
-            raise ValueError, "Det not implemented: d=%s, nloops=%s "%(model.space_dim,self.NLoops())
-        for i in range(self.NLoops()):
-            for j in range(i+1,self.NLoops()):
-                res=res*sympy.var('st_%s_%s'%(i,j))**(d-3-i)
-        return res
-
-    def subs_vars(self):
-        res=dict()
-        jakob=sympy.Number(1)
-        for i in range(self.NLoops()):
-            qi=sympy.var('q%s'%i)
-            res['y%s'%i]=(1-qi)/qi
-            jakob=jakob/qi/qi
-            for j in range(i+1,self.NLoops()):
-                ct_ij=sympy.var('ct_%s_%s'%(i,j))
-                res['st_%s_%s'%(i,j)]=(1-ct_ij**2)**0.5
-                res['ct_%s_%s'%(i,j)]=sympy.var('z_%s_%s'%(i,j))*2-1
-                jakob=jakob*2
-
-                if i == 0:
-                    res['q%sOq%s'%(i,j)]=eval('ct_%s_%s'%(i,j))
-                elif  i == 1:
-                    res['q%sOq%s'%(i,j)]=eval('ct_0_{1}*ct_0_{2}+st_0_{1}*st_0_{2}*ct_{1}_{2}'.format(i,j))
-                elif  i == 2:
-                    res['q%sOq%s'%(i,j)]=eval('ct_0_{1}*ct_0_{2}+st_0_{1}*st_0_{2}*(ct_1_{1}*ct_1_{2}+st_1_{1}*st_1_{2}*ct_{1}_{2})'.format(i,j))
-                else:
-                    raise NotImplementedError, "nloops>4"
-        return jakob, res

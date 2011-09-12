@@ -34,7 +34,13 @@ class _generic_model:
             return _dTau(graph)
 
     def propagator(self, line):
-        return 1/(line.momenta.Squared()+1)
+        tau=sympy.var('tau')
+        res=1/(line.momenta.Squared()+tau)
+        if 'tau' in line.modifiers:
+            res=res.diff(tau)
+        return res.subs(tau,1)
+            
+        
 
     def vertex(self, node):
         return sympy.Number(1)

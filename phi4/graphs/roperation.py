@@ -32,12 +32,22 @@ def  strechMoments(graph,model):
 
     for sub in subgraphs:
         dim = sub.Dim(model)
-        print "%s : %s"%(dim,sub)
+#        print "%s : %s"%(dim,sub)
         if dim>=0:
             sub._strechvar = "a_%s"%(sub.asLinesIdxStr())
             sub._diffcnt=dim+1
             extatoms=FindExternalAtoms(sub)
             setStrech(sub, extatoms)
+
+def find_strech_atoms(expr):
+    atoms = expr.atoms(sympy.core.symbol.Symbol)
+    atomlst = list()
+    for atom in atoms:
+        reg1 = regex.match("^a_\d*.*$", str(atom))
+        if reg1:
+            atomlst.append(atom)
+    return set(atomlst)
+
 
 def expr(graph, model):
     if "_subgraphs_m" in graph.__dict__:
@@ -77,21 +87,33 @@ def subs_vars(graph):
                 ct_ij=sympy.var('ct_%s_%s'%(i,j))
                 res['ct_%s_%s'%(i,j)]=sympy.var('z_%s_%s'%(i,j))*2-1
                 res['st_%s_%s'%(i,j)]=(1-ct_ij**2)**0.5
+                sympy.var('st_%s_%s'%(i,j))
                 jakob=jakob*2
 
                 if i == 0:
                     res['q%sOq%s'%(i,j)]=eval('ct_%s_%s'%(i,j))
                 elif  i == 1:
-                    res['q%sOq%s'%(i,j)]=eval('ct_0_{1}*ct_0_{2}+st_0_{1}*st_0_{2}*ct_{1}_{2}'.format(i,j))
+                    res['q%sOq%s'%(i,j)]=eval('ct_0_{0}*ct_0_{1}+st_0_{0}*st_0_{1}*ct_{0}_{1}'.format(i,j))
                 elif  i == 2:
-                    res['q%sOq%s'%(i,j)]=eval('ct_0_{1}*ct_0_{2}+st_0_{1}*st_0_{2}*(ct_1_{1}*ct_1_{2}+st_1_{1}*st_1_{2}*ct_{1}_{2})'.format(i,j))
+                    res['q%sOq%s'%(i,j)]=eval('ct_0_{0}*ct_0_{1}+st_0_{0}*st_0_{1}*(ct_1_{0}*ct_1_{1}+st_1_{0}*st_1_{1}*ct_{0}_{1})'.format(i,j))
                 else:
                     raise NotImplementedError, "nloops>4"
         return jakob, res
 
 
-def export_subs_vars(subs_vars):
+def export_subs_vars_pv(subs_vars, strechs):
     res=""
+    atomset=set()
+    for expr in subs_vars.values():
+        atomset=atomset|expr.atoms(sympy.core.symbol.Symbol)
+    cnt=0
+    for atom in atomset|strechs:
+        if regex.match("^y\d*$",str(atom)) or regex.match("^z_\d+_\d+$",str(atom)) or regex.match("^a_\d+.*$",str(atom)):
+            res=res+"double %s = k[%s];\n"%(atom,cnt)
+            cnt+=1
+    region=("0.,"*cnt+"1.,"*cnt)[:-1]
+    res="#define DIMENSION %s\n"%cnt+"#define FUNCTIONS 1\n"+"#define ITERATIONS 5\n" + "#define NTHREADS 2\n" +"#define NEPS 0\n"+"#define NITER 2\n" +  "double reg_initial[2*DIMENSION]={%s};\nvoid func (double k[DIMENSION], double f[FUNCTIONS])\n {\n"%region+res
+
     for var in subs_vars:
         res=res + "double %s = %s;\n"%(var, sympy.printing.ccode(subs_vars[var]))
     return res
@@ -145,3 +167,102 @@ def AvgByExtDir(expr):
             res = res+t_expr
         
         return SetAtomsToUnity(res, FindExtAtoms(expr))
+
+def core_pv_code(integrand):
+    a1="""#include <math.h>
+#include <stdio.h>
+#include <vegas.h>
+#include <stdlib.h>
+"""
+    a1=a1+integrand
+    a1=a1+ """ }
+
+
+
+int t_gfsr_k;
+unsigned int t_gfsr_m[SR_P];
+double gfsr_norm;
+
+
+int main(int argc, char **argv)
+{
+  int i;
+  long long npoints;
+  int nthreads;
+  int niter;
+  double region_delta;
+  double reg[2*DIMENSION];
+  int idx;
+  if(argc >= 2)
+    {
+      npoints = atoll(argv[1]);
+
+    }
+  else 
+    {
+      npoints = ITERATIONS;
+    }
+
+  if(argc >= 3)
+    {
+      nthreads = atoi(argv[2]);
+
+    }
+  else 
+    {
+      nthreads = NTHREADS;
+    }
+   
+   if(argc >= 5)
+    {
+      region_delta = atof(argv[4]);
+
+    }
+  else 
+    {
+      region_delta = 0.;
+    } 
+
+  if(argc >= 4)
+    {
+      niter = atoi(argv[3]);
+
+    }
+  else 
+    {
+      niter = NITER;
+    }    
+    
+    for(idx=0; idx<2*DIMENSION; idx++)
+      {
+         if(idx<DIMENSION)
+           {
+             reg[idx] = reg_initial[idx]+region_delta;
+           }
+         else
+           {
+             reg[idx] = reg_initial[idx]-region_delta;
+           }
+      }
+      
+  double estim[FUNCTIONS];   /* estimators for integrals                     */
+  double std_dev[FUNCTIONS]; /* standard deviations                          */
+  double chi2a[FUNCTIONS];   /* chi^2/n                                      */
+
+  vegas(reg, DIMENSION, func,
+        0, npoints/10, 5, NPRN_INPUT | NPRN_RESULT,
+        FUNCTIONS, 0, nthreads,
+        estim, std_dev, chi2a);
+  vegas(reg, DIMENSION, func,
+        2, npoints , niter, NPRN_INPUT | NPRN_RESULT,
+        FUNCTIONS, 0, nthreads,
+        estim, std_dev, chi2a);
+double delta= std_dev[0]/estim[0];
+printf ("result = %20.18g\\nstd_dev = %20.18g\\ndelta = %20.18g\\n", estim[0], std_dev[0], delta);
+//  printf ("Result %d: %g +/- %g delta=%g\\n",NEPS, estim[0], std_dev[0], delta);
+//  for (i=1; i<FUNCTIONS; ++i)
+//    printf("Result %i:\\t%g +/- %g  \\tdelta=%g\\n", i, estim[i], std_dev[i],std_dev[i]/estim[i]);
+  return(0);
+}
+"""
+    return a1

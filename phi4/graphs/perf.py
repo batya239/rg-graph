@@ -4,6 +4,7 @@ import moments
 from graphs import Graph
 from lines import Line
 import roperation
+import sympy
 
 def print_moments(_moments):
     if isinstance(_moments.keys()[0],Line):
@@ -15,25 +16,37 @@ phi4=_phi4('dummy')
 #g1=Graph('e123-e45-444-555---')
 #g1=Graph('e112-33-444-4e--')
 #g1=Graph('e112-e3-333--')
-g1=Graph('e111-e-')
-print [x for x in g1.xInternalLines()]
+#g1=Graph('e111-e-')
+g1=Graph('e123-e23-e3-e-')
+#print [x for x in g1.xInternalLines()]
 phi4.SetTypes(g1)
 g1.FindSubgraphs(phi4)
-print "index:",moments.Generic(phi4, g1)
+moments.Generic(phi4, g1)
 
 print_moments(g1._moments())
-print [x for x in g1.xInternalLines()]
-print g1._subgraphs_m
+#print [x for x in g1.xInternalLines()]
+#print g1._subgraphs_m
+#print "\n\n\n"
+jakob,subsvars=roperation.subs_vars(g1)
+cnt=0
+d=sympy.var('d')
 for g in phi4.dTau(g1):
-    print "---------"
+    f=open('test%s.c'%cnt,'w')
     roperation.strechMoments(g, phi4)
+    print g
 
-    print g.expr(phi4)
-    print roperation.det(g,phi4)
-    print roperation.subs_vars(g)
+    det=roperation.det(g,phi4)
+    print roperation.AvgByExtDir(roperation.expr(g,phi4))
 
-    print "======\n\n\n"
-    expr=roperation.expr(g,phi4)
-    print roperation.AvgByExtDir(expr)
+    expr=(jakob*det*roperation.AvgByExtDir(roperation.expr(g,phi4))).subs(d,phi4.space_dim)
+    strechs=roperation.find_strech_atoms(expr)
+    integrand=roperation.export_subs_vars_pv(subsvars,strechs)
+    integrand+= "\nf[0]=0.;\n"
 
-print roperation.export_subs_vars(roperation.subs_vars(g)[1])
+    integrand+= "f[0]+=%s;\n"%sympy.printing.ccode(expr)
+#    integrand+='printf ("result = %20.18g %20.18g %20.18g %20.18g %20.18g %20.18g \\n", f[0],q0,q1,ct_0_1,st_0_1, z_0_1);\n'
+    f.write(roperation.core_pv_code(integrand))
+    f.close()
+    cnt+=1      
+
+
