@@ -3,7 +3,7 @@ from dummy_model import _phi3,_phi4
 import moments
 from graphs import Graph
 from lines import Line
-from roperation import strechMoments
+import roperation
 
 def print_moments(_moments):
     if isinstance(_moments.keys()[0],Line):
@@ -26,8 +26,14 @@ print [x for x in g1.xInternalLines()]
 print g1._subgraphs_m
 for g in phi4.dTau(g1):
     print "---------"
-    strechMoments(g, phi4)
+    roperation.strechMoments(g, phi4)
 
     print g.expr(phi4)
-    print g.det(phi4)
-    print g.subs_vars()
+    print roperation.det(g,phi4)
+    print roperation.subs_vars(g)
+
+    print "======\n\n\n"
+    expr=roperation.expr(g,phi4)
+    print roperation.AvgByExtDir(expr)
+
+print roperation.export_subs_vars(roperation.subs_vars(g)[1])
