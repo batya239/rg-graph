@@ -146,7 +146,7 @@ class Momenta:
         return self*self
 
     def setZerosByAtoms(self,atomsset):
-        """ atomsset - set of sympy variables
+        """ atomsset - set of str variables
         """
         moment=copy(self._dict)
         for atom in atomsset:
@@ -553,7 +553,7 @@ def ZeroExtMoments(graph,moments):
     res=dict()
     extMomentNumber=len(graph.Lines())-len([x for x in graph.xInternalLines()])
     if extMomentNumber >2:
-        zeroatomset=set([sympy.var('p%s'%x) for x in range(extMomentNumber-1)])
+        zeroatomset=set(['p%s'%x for x in range(extMomentNumber-1)])
         for line in moments.keys():
             res[line]=moments[line].setZerosByAtoms(zeroatomset)
         return res
