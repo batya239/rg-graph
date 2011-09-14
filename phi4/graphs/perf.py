@@ -18,7 +18,20 @@ phi4=_phi4('dummy')
 #g1=Graph('e112-e3-333--')
 #g1=Graph('e111-e-')
 #g1=Graph('e123-e23-e3-e-')
-g1=Graph('ee12-ee3-333--')
+#g1=Graph('ee12-ee3-333--')
+#g1=Graph('ee12-223-3-ee-')
+#g1=Graph('e122-e22--')
+#g1=Graph('ee12-e33-e33--')
+#g1=Graph('ee12-e23-33-e-')
+#g1=Graph('e112-e3-e33-e-')
+#g1=Graph('ee11-22-33-ee-')
+######g1=Graph('e112-e2-33-ee-')
+#g1=Graph('ee11-23-e33-e-')
+# g1=Graph('ee12-e22-e-')
+#4loop
+g1=Graph('e122-e33-33--')
+
+
 #print [x for x in g1.xInternalLines()]
 phi4.SetTypes(g1)
 g1.FindSubgraphs(phi4)
@@ -35,10 +48,10 @@ d=sympy.var('d')
 for g in phi4.dTau(g1):
     f=open('test%s.c'%cnt,'w')
     roperation.strechMoments(g, phi4)
-    print g
+    print cnt, g
 
     det=roperation.det(g,phi4)
-    print roperation.AvgByExtDir(roperation.expr(g,phi4))
+#    print roperation.AvgByExtDir(roperation.expr(g,phi4))
 
     expr=(jakob*det*roperation.AvgByExtDir(roperation.expr(g,phi4))).subs(d,phi4.space_dim)
     strechs=roperation.find_strech_atoms(expr)
