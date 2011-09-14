@@ -148,3 +148,8 @@ class Graph:
 #             res=res*sympy.var('q%s'%i)**(d-1)
         return res
 
+    def RemoveSubgaphs(self, sub_list):
+        if "_subgraphs_m" in self.__dict__:
+            raise Exception, "_subgraphs_m defined in graph"
+        for sub in sub_list:
+            self._subgraphs.remove(sub)

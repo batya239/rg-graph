@@ -146,6 +146,11 @@ class Subgraph:
         res=[x.idx() for x in  self._lines]
         res.sort()
         return reduce(lambda x,y: "%s_%s"%(x,y), res)
+
+    def eq(self, other):
+        """  cheks that subgraphs have same lines. assuming that there are no dublicates of lines in subgraph definition 
+        """
+        return reduce(lambda x,y: x&y, [line in other._lines for line in self._lines]) & reduce(lambda x,y: x&y, [line in self._lines for line in other._lines])
         
 
 def FindSubgraphs(graph,model):
@@ -158,3 +163,32 @@ def FindSubgraphs(graph,model):
             if sub.Dim(model)>=0 and sub.isSubgraph1PI():
                 _subgraphs.append(sub)
     return _subgraphs
+
+def DetectSauseges(_subgraphs):
+    def disjoint(sub1,sub2):
+        if len(set(sub1._lines)&(set(sub2._lines)))==0:
+            return True
+        else:
+            return False
+#    print _subgraphs
+    disjoint_subs=[]
+    for sub in _subgraphs:
+        for d_subs in disjoint_subs:
+            if reduce(lambda x,y: x&y, [disjoint(sub,x) for x in d_subs]):
+                d_subs.append(sub)
+        disjoint_subs.append([sub])
+    to_remove=set()
+
+    for d_subs in disjoint_subs:
+#        print
+#        print d_subs
+        for n in range(2, len(d_subs)+1):
+            for subs in xUniqueCombinations(d_subs,n):
+                sub=Subgraph(reduce(lambda x,y: x+y, [x._lines for x in subs]))
+#                print "sub:", sub
+                for sub1 in _subgraphs:
+ #                   print sub1, sub.eq(sub1)
+                    if sub.eq(sub1):
+                        to_remove=to_remove|set([sub1])
+                        break
+    return to_remove

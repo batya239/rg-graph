@@ -5,6 +5,7 @@ from graphs import Graph
 from lines import Line
 import roperation
 import sympy
+import subgraphs
 
 def print_moments(_moments):
     if isinstance(_moments.keys()[0],Line):
@@ -35,9 +36,12 @@ g1=Graph('e122-e33-33--')
 #print [x for x in g1.xInternalLines()]
 phi4.SetTypes(g1)
 g1.FindSubgraphs(phi4)
+subs_toremove=subgraphs.DetectSauseges(g1._subgraphs)
+g1.RemoveSubgaphs(subs_toremove)
 print moments.Generic(phi4, g1)
 
 print_moments(g1._moments())
+
 
 #print [x for x in g1.xInternalLines()]
 #print g1._subgraphs_m
@@ -49,6 +53,7 @@ for g in phi4.dTau(g1):
     f=open('test%s.c'%cnt,'w')
     roperation.strechMoments(g, phi4)
     print cnt, g
+    
 
     det=roperation.det(g,phi4)
 #    print roperation.AvgByExtDir(roperation.expr(g,phi4))
