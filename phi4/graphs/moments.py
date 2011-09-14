@@ -434,7 +434,8 @@ def Generic(model, graph):
                 continue
             graph._subgraphs_checktadpole = newSubgraphs
         curIndex = GetMomentaIndex(graph, curkMoment, checktadpoles=model.checktadpoles)
-#        print curIndex
+#        print curIndex, curkMoment
+#        print graph._subgraphs_checktadpole
         if (curIndex<minMomentIndex) and (curkMoment<>None):
             minMomentIndex = curIndex
             minkMoment = curkMoment
@@ -477,6 +478,17 @@ def CheckTadpoles(graph,moments):
     res.remove(graph_as_sub)
     return res
 
+def FindAtomsInSub(sub, moments):
+    extatoms = set()
+    intatoms = set()
+    extnodes,extlines=sub.FindExternal()
+    for line in extlines:
+        extatoms=extatoms|set(moments[line].strAtoms())
+    for line in sub._lines:
+        intatoms=intatoms|set(moments[line].strAtoms())
+    return  intatoms-extatoms
+        
+
 def GetMomentaIndex(graph,moments, checktadpoles=False):
     """ calculates penalties for moment layouts.
          checktadpoles=False for phi3-like models only!!!
@@ -502,13 +514,11 @@ def GetMomentaIndex(graph,moments, checktadpoles=False):
         for sub in _subgraphs:
             """ each subgraph must have number of simple moments equal to number of its  loops
             """
-            nsimple=0
-            for line in sub._lines:
-                if moments[line].isSimple():
-                    nsimple+=1
+#            print "SUB:", sub
+            nsimple=len(FindAtomsInSub(sub,moments))
             if nsimple <> sub.NLoopSub():
                 result+=penalties["badSub"]
-
+#            print "badsub", result, nsimple
 
             extnodes,extlines=sub.FindExternal()
 #            if len(extlines)==2:
@@ -524,8 +534,11 @@ def GetMomentaIndex(graph,moments, checktadpoles=False):
                 extpath=ExtMomentPath(graph, sub, moments)
                 if len(extpath)>=2:
                     result+=penalties['longIn']*(len(extpath)-1)
+  #          print "2-In", result
         for moment in moments.values():
-            result+=penalties['longMoment']*(len(moment._dict.keys())-1)
+            if len(moment._dict.keys())>0:
+                result+=penalties['longMoment']*(len(moment._dict.keys())-1)
+#        print "long", result
 
 #    print "Index:", result
     return result

@@ -57,7 +57,10 @@ def expr(graph, model):
     res=graph.expr(model)
     for sub in subgraphs:
         if "_strechvar" in sub.__dict__:
-            res = res.diff(sympy.var(sub._strechvar), sub._diffcnt)
+            var=sympy.var(sub._strechvar)
+            res = res.diff(var, sub._diffcnt)
+            if sub._diffcnt>1:
+                res=res*(1-var)**(sub._diffcnt-1)/sympy.factorial(sub._diffcnt-1)
     g_as_sub=graph.asSubgraph()
     if graph.Dim(model)==0:
         strechvar=sympy.var("a_%s"%(graph.asSubgraph().asLinesIdxStr()))
@@ -69,7 +72,7 @@ def det(graph,model):
         d=sympy.var('d')
         for i in range(graph.NLoops()):
             res=res*sympy.var('q%s'%i)**(d-1)
-        if model.space_dim - graph.NLoops()-2<0:
+        if model.space_dim -3 - (graph.NLoops()-3)<0:
             raise ValueError, "Det not implemented: d=%s, nloops=%s "%(model.space_dim, graph.NLoops())
         for i in range(graph.NLoops()):
             for j in range(i+1,graph.NLoops()):
@@ -102,6 +105,25 @@ def subs_vars(graph):
 
 
 def export_subs_vars_pv(subs_vars, strechs):
+    def sort_vars(var_list):
+        c=[]
+        s=[]
+        q=[]
+        a=[]
+        for var in var_list:
+            if regex.match('^c.*',var):
+                c.append(var)
+            elif regex.match('^s.*',var):
+                s.append(var)
+            elif regex.match('^q.*',var):
+                q.append(var)
+            elif regex.match('^a.*',var):
+                a.append(var)
+        c.sort()
+        s.sort()
+        q.sort()
+        a.sort()
+        return c+s+q+a
     res=""
     atomset=set()
     for expr in subs_vars.values():
@@ -114,7 +136,7 @@ def export_subs_vars_pv(subs_vars, strechs):
     region=("0.,"*cnt+"1.,"*cnt)[:-1]
     res="#define DIMENSION %s\n"%cnt+"#define FUNCTIONS 1\n"+"#define ITERATIONS 5\n" + "#define NTHREADS 2\n" +"#define NEPS 0\n"+"#define NITER 2\n" +  "double reg_initial[2*DIMENSION]={%s};\nvoid func (double k[DIMENSION], double f[FUNCTIONS])\n {\n"%region+res
 
-    for var in subs_vars:
+    for var in sort_vars(subs_vars.keys()):
         res=res + "double %s = %s;\n"%(var, sympy.printing.ccode(subs_vars[var]))
     return res
 

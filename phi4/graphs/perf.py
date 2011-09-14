@@ -17,13 +17,15 @@ phi4=_phi4('dummy')
 #g1=Graph('e112-33-444-4e--')
 #g1=Graph('e112-e3-333--')
 #g1=Graph('e111-e-')
-g1=Graph('e123-e23-e3-e-')
+#g1=Graph('e123-e23-e3-e-')
+g1=Graph('ee12-ee3-333--')
 #print [x for x in g1.xInternalLines()]
 phi4.SetTypes(g1)
 g1.FindSubgraphs(phi4)
-moments.Generic(phi4, g1)
+print moments.Generic(phi4, g1)
 
 print_moments(g1._moments())
+
 #print [x for x in g1.xInternalLines()]
 #print g1._subgraphs_m
 #print "\n\n\n"
