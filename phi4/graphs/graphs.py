@@ -56,12 +56,14 @@ class Graph:
             else:
                 raise ValueError, "Invalid line %s"%line
         self._nodes=_nodes_dict.values()
+        self._reindex()
+
+    def _reindex(self):
         for node_idx in range(len(self._nodes)):
             self._nodes[node_idx]._idx=node_idx
         for line_idx in range(len(self._lines)):
             self._lines[line_idx]._idx=line_idx
-
-                
+            
     def _edges(self):
         res=[]
         for line in self._lines:
@@ -76,7 +78,9 @@ class Graph:
         return res
                          
     def GenerateNickel(self):
-        self.nickel=nickel.Canonicalize(self._edges())
+        if 'nickel' not in self.__dict__:
+            self.nickel=nickel.Canonicalize(self._edges())
+        return self.nickel
 
     def xInternalNodes(self):
         
@@ -143,6 +147,7 @@ class Graph:
             res=res*node.Vertex(model)
         for line in self.xInternalLines():
             res=res*line.Propagator(model)
+        
         d=sympy.var('d')
 #         for i in range(self.NLoops()):
 #             res=res*sympy.var('q%s'%i)**(d-1)
@@ -153,3 +158,81 @@ class Graph:
             raise Exception, "_subgraphs_m defined in graph"
         for sub in sub_list:
             self._subgraphs.remove(sub)
+
+    def Clean(self, items = ['_subgraphs_m', '_nloops', '_asSubgraph','nickel','_subgraphs']):
+        """ clean all cached values
+        """
+        for item in items:
+            try:
+                del self.__dict__[item]
+            except:
+                pass
+    def RemoveLine(self, line):
+        if line not in self._lines:
+            raise ValueError, "line doesnt belongs to this graph"
+        line.Nodes()[0].RemoveLine(line)
+        self._lines.remove(line)
+        
+    def RemoveNode(self,node):
+        if node not in self._nodes:
+            raise ValueError, "node doesnt belongs to this graph"
+        for line in node.Lines():
+            self.RemoveLine(line)
+        self._nodes.remove(node)
+
+    def AddNode(self, node):
+        if node in self._nodes:
+            raise ValueError, "Node allready in graph"
+        self._nodes.append(node)
+        self._reindex()
+        print node
+        print self._nodes
+        for line in node.Lines():
+            if line not in self._lines:
+                self.AddLine(line)
+      
+
+    def AddLine(self,line):
+        if line in self._lines:
+            raise ValueError, "Line allready in graph"
+        print self._nodes[3]       
+        if line.Nodes()[0] not in self._nodes or line.Nodes()[1] not in self._nodes:
+            raise ValueError, "One of nodes does not belong to graph nodes:%s, line: %s"%(self._nodes, line.Nodes())
+        self._lines.append(line)
+        self._reindex()        
+
+    def ReduceSubgraphs(self, model):
+        if not model.reduce:
+            return self
+        else:
+            g=self.Clone()
+            for sub in self._subgraphs:
+#                print "'%s'"%sub.Nickel(), sub
+                if str(sub.Nickel()) in model.subgraphs2reduce:
+                    print "reducing: %s (%s)"%(sub.Nickel(), sub)
+                    g=g.Clone()
+                    newsub=g._subgraphs[self._subgraphs.index(sub)]
+                    extnodes,extlines=newsub.FindExternal()
+                    print newsub
+                    print extlines
+
+                    for node in newsub.InternalNodes():
+                        g.RemoveNode(node)
+                    newnode=Node(type=str(sub.Nickel()))
+#                    g.AddNode(newnode)
+                    for line in extlines:
+#TODO: tadpoles does not taken into account
+                        
+                        if newsub.nodePresent(line.Nodes()[0]) and not newsub.nodePresent(line.Nodes()[1]):
+                            node=line.Nodes()[1]
+                        elif not newsub.nodePresent(line.Nodes()[0]) and newsub.nodePresent(line.Nodes()[1]):
+                            node=line.Nodes()[0]
+                        else:
+                            raise Exception, "Tadpole detected, line=%s, %s %s"%(line, newsub.nodePresent(line.Nodes()[0]), newsub.nodePresent(line.Nodes()[1]) )
+                        
+                        node.AddLine(newnode, type=line.type)
+                    g.AddNode(newnode)
+    
+            g.Clean()
+            return g
+        

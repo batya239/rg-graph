@@ -3,6 +3,7 @@
 
 from comb import xUniqueCombinations
 from copy import copy
+import nickel
 
 class Subgraph:
     def __init__(self,lines_list):
@@ -81,6 +82,12 @@ class Subgraph:
         else:
             return False
 
+    def nodePresent(self, node):
+        if node in self.InternalNodes():
+            return True
+        else:
+            return False
+
     def FindTadpoles(self,_subgraphs=None):
 	if not "_tadpoles" in self.__dict__:
             intnodes=self.InternalNodes()
@@ -148,9 +155,15 @@ class Subgraph:
         return reduce(lambda x,y: "%s_%s"%(x,y), res)
 
     def eq(self, other):
-        """  cheks that subgraphs have same lines. assuming that there are no dublicates of lines in subgraph definition 
+        """  logical equality: cheks that subgraphs have same lines. assuming that there are no dublicates of lines in subgraph definition 
         """
         return reduce(lambda x,y: x&y, [line in other._lines for line in self._lines]) & reduce(lambda x,y: x&y, [line in self._lines for line in other._lines])
+
+    def Nickel(self):
+        if 'nickel' not in self.__dict__:
+            self.nickel=nickel.Canonicalize(self.ToEdges())
+        return self.nickel
+        
         
 
 def FindSubgraphs(graph,model):

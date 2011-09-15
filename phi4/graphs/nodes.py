@@ -31,9 +31,11 @@ class Node:
 #TODO: change node type to None?
         return line
  
-#    def RemoveLine(self, line):
-#        for node in line.Nodes():
-#            node.lines.remove(line_idx)
+    def RemoveLine(self, line):
+        if line not in self.lines:
+            raise ValueError, "line %s does not belong to node %s"%(line,self)
+        for node in line.Nodes():
+            node.lines.remove(line)
 ##TODO: change node type to None?
 
     def Vertex(self, model):

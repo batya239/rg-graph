@@ -44,8 +44,10 @@ def find_strech_atoms(expr):
     atomlst = list()
     for atom in atoms:
         reg1 = regex.match("^a_\d*.*$", str(atom))
-        if reg1:
+        reg2 = regex.match("^u_\d*.*$", str(atom))
+        if reg1 or reg2:
             atomlst.append(atom)
+    print atomlst
     return set(atomlst)
 
 
@@ -110,6 +112,7 @@ def export_subs_vars_pv(subs_vars, strechs):
         s=[]
         q=[]
         a=[]
+        u=[]
         for var in var_list:
             if regex.match('^c.*',var):
                 c.append(var)
@@ -119,18 +122,21 @@ def export_subs_vars_pv(subs_vars, strechs):
                 q.append(var)
             elif regex.match('^a.*',var):
                 a.append(var)
+            elif regex.match('^u.*',var):
+                u.append(var)        
         c.sort()
         s.sort()
         q.sort()
         a.sort()
-        return c+s+q+a
+        u.sort()
+        return u+c+s+q+a
     res=""
     atomset=set()
     for expr in subs_vars.values():
         atomset=atomset|expr.atoms(sympy.core.symbol.Symbol)
     cnt=0
     for atom in atomset|strechs:
-        if regex.match("^y\d*$",str(atom)) or regex.match("^z_\d+_\d+$",str(atom)) or regex.match("^a_\d+.*$",str(atom)):
+        if regex.match("^y\d*$",str(atom)) or regex.match("^z_\d+_\d+$",str(atom)) or regex.match("^a_\d+.*$",str(atom))or regex.match("^u_\d+.*$",str(atom)):
             res=res+"double %s = k[%s];\n"%(atom,cnt)
             cnt+=1
     region=("0.,"*cnt+"1.,"*cnt)[:-1]
@@ -195,6 +201,7 @@ def core_pv_code(integrand):
 #include <stdio.h>
 #include <vegas.h>
 #include <stdlib.h>
+#define gamma tgamma
 """
     a1=a1+integrand
     a1=a1+ """ }

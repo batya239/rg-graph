@@ -74,13 +74,42 @@ class _phi3(_generic_model):
 class _phi4(_generic_model):
     def __init__( self , name):
         self.name=name
-        self.space_dim=4
+        self.space_dim=4.
         self.lines_dim={1:-2}
         self.modifiers_dim={'tau':-2,'p':-1}
         self.lines_modifiers={'default':['tau','p']}
         self.nodes_modifiers={None:[], 1:[], 'default':['tau','p']}
-        self.nodes_dim={1:0}
+        self.nodes_dim={1:0, 'e111-e-':2}
         self.checktadpoles=True
+        self.reduce=True
+        self.subgraphs2reduce=['e111-e-',]
+
+    def vertex(self,node):
+        def helper1(k2,B,e):
+            return B*k2-(1.-B*k2)*sympy.ln(1.+B*k2)#+1./2.*e*(1.+B*k2)*sympy.ln(1.+B*k2)**2
+        def helper2(k2,B,e):
+            return -sympy.ln(1.+k2*B)
+        if node.type=='e111-e-':
+            u,t,d=sympy.var("u_%s_0 u_%s_1 d"%(node.idx(),node.idx()))
+            e=self.space_dim-d
+            k2=node.Lines()[0].momenta.Squared()
+            gamma=sympy.special.gamma_functions.gamma
+            B1=1./2.*(u*t*(1.-u)*(1.-u*t/2.))/(1.+t/2.*(1.-u)*(1.-u*t/2.))
+            B2=1./2.*(u*t*(1.-u*t)*(1.-u/2.))/(t+1./2.*(1.-u*t)*(1.-u/2.))
+
+            if 'tau' not in node.modifiers:
+                res=(-gamma(1.+e)*gamma(2.-e/2.)**2/(4.*(1.-e))*u**(e/2.-1.)*
+                        (1./(1.-u)**(1.-e/2.)*( helper1(k2,B1,e))/(1.+t/2.*(1.-u)*(1.-u*t/2.))**(2.-e/2.) + 
+                        1./(1.-u*t)**(1.-e/2.)*( helper1(k2,B2,e))/(t+1./2.*(1.-u*t)*(1.-u/2.))**(2.-e/2.) ))
+                print "NOT TAU"
+            else:
+                res=(-gamma(1+e)*gamma(2-e/2.)**2/(4.*(1-e))*u**(e/2.-1)*
+                        (1/(1-u)**(1-e/2.)*( helper2(k2,B1,e))/(1+t/2.*(1-u)*(1-u*t/2.))**(2-e/2.) + 
+                        1/(1-u*t)**(1-e/2.)*( helper2(k2,B2,e))/(t+1/2.*(1-u*t)*(1-u/2.))**(2-e/2.) ))
+                print "TAU"
+            return res
+        else:
+            return sympy.Number(1)
 
 
 def _SetTypes(graph):
