@@ -2,6 +2,7 @@
 # -*- coding:utf8
 
 from lines import Line
+import copy
 
 class Node:
     """ Class represens nodes
@@ -13,7 +14,7 @@ class Node:
         if not required_fields.issubset(set(kwargs.keys())):
             raise ValueError, "Nodes required fields are %s"%required_fields
         self.type=type
-        self.modifiers=modifiers
+        self.modifiers=copy.copy(modifiers)
         self.lines=list()
         for field in kwargs:
             self.__dict__[field] = kwargs[field]
