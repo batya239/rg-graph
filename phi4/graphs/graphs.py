@@ -184,9 +184,8 @@ class Graph:
         if node in self._nodes:
             raise ValueError, "Node allready in graph"
         self._nodes.append(node)
-        self._reindex()
-        print node
-        print self._nodes
+#        print node
+#        print self._nodes
         for line in node.Lines():
             if line not in self._lines:
                 self.AddLine(line)
@@ -195,7 +194,7 @@ class Graph:
     def AddLine(self,line):
         if line in self._lines:
             raise ValueError, "Line allready in graph"
-        print self._nodes[3]       
+#        print self._nodes[3]       
         if line.Nodes()[0] not in self._nodes or line.Nodes()[1] not in self._nodes:
             raise ValueError, "One of nodes does not belong to graph nodes:%s, line: %s"%(self._nodes, line.Nodes())
         self._lines.append(line)
@@ -214,24 +213,21 @@ class Graph:
                     newsub=g._subgraphs[self._subgraphs.index(sub)]
                     extnodes,extlines=newsub.FindExternal()
                     print newsub
-                    print extlines
+                    nodes=list(newsub.BorderNodes())
+                    if len(nodes)==2:
+                        nodes2remove=set(newsub.InternalNodes())-newsub.BorderNodes()
+                        for line in newsub._lines:
+                            g.RemoveLine(line)
 
-                    for node in newsub.InternalNodes():
-                        g.RemoveNode(node)
-                    newnode=Node(type=str(sub.Nickel()))
-#                    g.AddNode(newnode)
-                    for line in extlines:
-#TODO: tadpoles does not taken into account
+                        for node in nodes2remove:
+                            g.RemoveNode(node)
                         
-                        if newsub.nodePresent(line.Nodes()[0]) and not newsub.nodePresent(line.Nodes()[1]):
-                            node=line.Nodes()[1]
-                        elif not newsub.nodePresent(line.Nodes()[0]) and newsub.nodePresent(line.Nodes()[1]):
-                            node=line.Nodes()[0]
-                        else:
-                            raise Exception, "Tadpole detected, line=%s, %s %s"%(line, newsub.nodePresent(line.Nodes()[0]), newsub.nodePresent(line.Nodes()[1]) )
-                        
-                        node.AddLine(newnode, type=line.type)
-                    g.AddNode(newnode)
+
+                        g.AddLine(nodes[0].AddLine(nodes[1], type=str(sub.Nickel())))
+
+                    else:
+                        raise Exception, "Can't  convert subgraph to line"
+   
     
             g.Clean()
             return g

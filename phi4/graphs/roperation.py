@@ -59,8 +59,9 @@ def expr(graph, model):
     res=graph.expr(model)
     for sub in subgraphs:
         if "_strechvar" in sub.__dict__:
+            
             var=sympy.var(sub._strechvar)
-            res = res.diff(var, sub._diffcnt)
+            res = res.diff(var, int(sub._diffcnt))
             if sub._diffcnt>1:
                 res=res*(1-var)**(sub._diffcnt-1)/sympy.factorial(sub._diffcnt-1)
     g_as_sub=graph.asSubgraph()

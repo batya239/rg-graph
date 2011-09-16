@@ -75,41 +75,61 @@ class _phi4(_generic_model):
     def __init__( self , name):
         self.name=name
         self.space_dim=4.
-        self.lines_dim={1:-2}
+        self.lines_dim={1:-2, 'e111-e-':2,'ee11-ee-':0}
         self.modifiers_dim={'tau':-2,'p':-1}
         self.lines_modifiers={'default':['tau','p']}
         self.nodes_modifiers={None:[], 1:[], 'default':['tau','p']}
-        self.nodes_dim={1:0, 'e111-e-':2}
+        self.nodes_dim={1:0}
         self.checktadpoles=True
         self.reduce=True
-        self.subgraphs2reduce=['e111-e-',]
+        self.subgraphs2reduce=['e111-e-','ee11-ee-']
 
-    def vertex(self,node):
+    def propagator(self, line):
         def helper1(k2,B,e):
             return B*k2-(1.+B*k2)*sympy.ln(1.+B*k2)#+1./2.*e*(1.+B*k2)*sympy.ln(1.+B*k2)**2
         def helper2(k2,B,e):
             return -sympy.ln(1.+k2*B)
-        if node.type=='e111-e-':
-            u,t,d=sympy.var("u_%s_0 u_%s_1 d"%(node.idx(),node.idx()))
+
+        if line.type=='e111-e-':
+            u,t,d=sympy.var("u_%sL_0 u_%sL_1 d"%(line.idx(),line.idx()))
             e=self.space_dim-d
-            k2=node.Lines()[0].momenta.Squared()
+            k2=line.momenta.Squared()
             gamma=sympy.special.gamma_functions.gamma
             B1=1./2.*(u*t*(1.-u)*(1.-u*t/2.))/(1.+t/2.*(1.-u)*(1.-u*t/2.))
             B2=1./2.*(u*t*(1.-u*t)*(1.-u/2.))/(t+1./2.*(1.-u*t)*(1.-u/2.))
 
-            if 'tau' not in node.modifiers:
+            if 'tau' not in line.modifiers:
                 res=(-gamma(1.+e)*gamma(2.-e/2.)**2/(4.*(1.-e))*u**(e/2.-1.)*
                         (1./(1.-u)**(1.-e/2.)*( helper1(k2,B1,e))/(1.+t/2.*(1.-u)*(1.-u*t/2.))**(2.-e/2.) + 
                         1./(1.-u*t)**(1.-e/2.)*( helper1(k2,B2,e))/(t+1./2.*(1.-u*t)*(1.-u/2.))**(2.-e/2.) ))
-                print "NOT TAU"
+#                print "NOT TAU"
             else:
                 res=(-gamma(1+e)*gamma(2-e/2.)**2/(4.*(1-e))*u**(e/2.-1)*
                         (1/(1-u)**(1-e/2.)*( helper2(k2,B1,e))/(1+t/2.*(1-u)*(1-u*t/2.))**(2-e/2.) + 
                         1/(1-u*t)**(1-e/2.)*( helper2(k2,B2,e))/(t+1/2.*(1-u*t)*(1-u/2.))**(2-e/2.) ))
-                print "TAU"
+ #               print "TAU"
+            return res
+#end of e111-e-
+        elif line.type=='ee11-ee-':
+            u,d=sympy.var("u_%sL_0 d"%(line.idx()))
+            e=self.space_dim-d
+            k2=line.momenta.Squared()
+
+            if 'tau' not in line.modifiers:
+                res=-1/2.*sympy.ln(1+k2*u*(1-u))+e*(1/4.*sympy.ln(1+k2*u*(1-u))+1/8.*sympy.ln(1+k2*u*(1-u))**2)
+#                print "NOT TAU"
+            else:
+                res=-(1/2./(1+k2*u*(1-u))-e/4./(1+k2*u*(1-u))*(1+sympy.ln(1+k2*u*(1-u))))
+ #               print "TAU"
             return res
         else:
-            return sympy.Number(1)
+            tau=sympy.var('tau')
+            res=1/(line.momenta.Squared()+tau)
+            if 'tau' in line.modifiers:
+                res=res.diff(tau)
+            return res.subs(tau,1)
+
+
 
 
 def _SetTypes(graph):
