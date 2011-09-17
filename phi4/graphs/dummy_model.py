@@ -40,11 +40,12 @@ class _generic_model:
         if 'tau' in line.modifiers:
             res=res.diff(tau)
         return res.subs(tau,1)
-            
-        
 
     def vertex(self, node):
         return sympy.Number(1)
+
+    def toreduce(self,g):
+        return []
 
     def checkmodifier(self,obj,modifier):
 #        print obj, obj.type
