@@ -9,7 +9,7 @@ def S(d):
 
 
 def series_lst(expr, var, n):
-    """ f_0+e*f_1+...+e^n*f_n
+    """ f_0+var*f_1+...+var^n*f_n
     """
     if n<0:
         raise ValueError,  "n = %s <0"%n
@@ -22,7 +22,18 @@ def series_lst(expr, var, n):
     
 
 
-
+def norm(n,d):
+    if n>0:
+        res = 1.
+    if n>1:
+        res = res*S(d-1)/S(d)
+    if n>2:
+        res = res*S(d-2)/S(d)
+    if n>3:
+        res = res*S(d-3)/S(d)
+    if n>4:
+        raise NotImplementedError, "not implemented n=%s, d=%s"%(n,d)
+    return res
 
 
 

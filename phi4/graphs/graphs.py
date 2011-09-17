@@ -205,6 +205,7 @@ class Graph:
             return self
         else:
             g=self.Clone()
+            g._nloops_orig = self.NLoops()
             for sub in model.toreduce(self):
 #                print "'%s'"%sub.Nickel(), sub
                 if str(sub.Nickel()) in model.subgraphs2reduce:

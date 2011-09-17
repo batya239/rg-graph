@@ -1,5 +1,46 @@
 #!/usr/bin/python
 # -*- coding:utf8
+import os
+import roperation
+import sympy
+import utils
+
+def save(name, graph, model, overwrite=True):
+    dirname = '%s/%s/'%(model.workdir,name)
+    try:
+        os.mkdir(dirname)
+    except:
+        if overwrite:
+            file_list = os.listdir(dirname)
+            for file in file_list:
+                os.remove(dirname+file)
+
+    jakob,subsvars = roperation.subs_vars(graph)
+    cnt=0
+    d,e=sympy.var('d e')
+    for g in model.dTau(graph):
+        roperation.strechMoments(g, model)
+        print cnt, g
+        det=roperation.det(g, model)
+        expr=(utils.norm(graph.NLoops(),d)*jakob*det*roperation.AvgByExtDir(roperation.expr(g,model))).subs(d, model.space_dim-e)
+        strechs=roperation.find_strech_atoms(expr)
+        eps_cnt=0
+        if "_nloops_orig" in graph.__dict__:
+            _nloops_orig=graph._nloops_orig
+        else:
+            _nloops_orig=graph.NLoops()
+
+        for _expr in utils.series_lst(expr,e,model.target-_nloops_orig):
+            integrand=roperation.export_subs_vars_pv(subsvars,strechs)
+            integrand+= "\nf[0]=0.;\n"
+            integrand+= "f[0]+=%s;\n"%sympy.printing.ccode(_expr)
+            f=open('%s/%s_E%s_%s.c'%(dirname,name,eps_cnt,cnt),'w')
+            f.write(core_pv_code(integrand))
+            f.close()
+            eps_cnt+=1
+        cnt+=1  
+    
+
 
 def core_pv_code(integrand):
     a1="""#include <math.h>
