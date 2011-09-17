@@ -177,12 +177,19 @@ def FindSubgraphs(graph,model):
                 _subgraphs.append(sub)
     return _subgraphs
 
+def disjoint(sub1,sub2):
+    if len(set(sub1._lines)&(set(sub2._lines)))==0:
+        return True
+    else:
+        return False
+
+def cover(sub1,sub2):
+    if set(sub1._lines)&(set(sub2._lines))==set(sub1._lines) or set(sub1._lines)&(set(sub2._lines))==set(sub2._lines):
+        return True
+    else:
+        return False
+
 def DetectSauseges(_subgraphs):
-    def disjoint(sub1,sub2):
-        if len(set(sub1._lines)&(set(sub2._lines)))==0:
-            return True
-        else:
-            return False
 #    print _subgraphs
     disjoint_subs=[]
     for sub in _subgraphs:

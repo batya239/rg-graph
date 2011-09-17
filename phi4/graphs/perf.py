@@ -16,6 +16,7 @@ def print_moments(_moments):
 
 phi4=_phi4('dummy')
 #g1=Graph('e123-e45-444-555---')
+g1=Graph('e112-e3-334-5-555--')
 #g1=Graph('e112-33-444-4e--')
 #g1=Graph('e112-e3-333--')
 #g1=Graph('e111-e-')
@@ -32,23 +33,24 @@ phi4=_phi4('dummy')
 # g1=Graph('ee12-e22-e-')
 #4loop
 #g1=Graph('e122-e33-33--')
-g1=Graph('e112-e3-333--') #арбуз в арбузе
+#g1=Graph('e112-e3-333--') #арбуз в арбузе
 
 
 #print [x for x in g1.xInternalLines()]
 #phi4.reduce=False
 phi4.SetTypes(g1)
 g1.FindSubgraphs(phi4)
+print g1._subgraphs
 g1=g1.ReduceSubgraphs(phi4)
 g1.FindSubgraphs(phi4)
 print g1
 subs_toremove=subgraphs.DetectSauseges(g1._subgraphs)
 g1.RemoveSubgaphs(subs_toremove)
 
-print moments.Generic(phi4, g1)
+print "moment index: ", moments.Generic(phi4, g1)
 
 print_moments(g1._moments())
-print g1._subgraphs_m
+print "subgraphs: ",g1._subgraphs_m
 
 #print [x for x in g1.xInternalLines()]
 #print g1._subgraphs_m
@@ -66,9 +68,9 @@ for g in phi4.dTau(g1):
 #    print roperation.AvgByExtDir(roperation.expr(g,phi4))
 
     expr=(jakob*det*roperation.AvgByExtDir(roperation.expr(g,phi4))).subs(d,phi4.space_dim)
-    print
-    print expr
-    print
+#    print
+#    print expr
+#    print
     strechs=roperation.find_strech_atoms(expr)
     integrand=roperation.export_subs_vars_pv(subsvars,strechs)
     integrand+= "\nf[0]=0.;\n"

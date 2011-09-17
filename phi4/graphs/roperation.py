@@ -47,7 +47,7 @@ def find_strech_atoms(expr):
         reg2 = regex.match("^u_\d*.*$", str(atom))
         if reg1 or reg2:
             atomlst.append(atom)
-    print atomlst
+#    print atomlst
     return set(atomlst)
 
 

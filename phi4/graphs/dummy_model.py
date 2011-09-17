@@ -3,6 +3,7 @@ import sympy
 from lines import Line
 from nodes import Node
 import moments
+import subgraphs
 
 class _generic_model: 
     def __init__( self, name):
@@ -46,7 +47,7 @@ class _generic_model:
         return sympy.Number(1)
 
     def checkmodifier(self,obj,modifier):
-        print obj, obj.type
+#        print obj, obj.type
         if isinstance(obj, Line):
             if obj.type in self.lines_modifiers:
                 return modifier in self.lines_modifiers[obj.type]
@@ -129,6 +130,24 @@ class _phi4(_generic_model):
                 res=res.diff(tau)
             return res.subs(tau,1)
 
+    def toreduce(self,g):
+        res=[]
+        for sub in g._subgraphs:
+            if str(sub.Nickel())=='e111-e-':
+                res.append(sub)
+            elif str(sub.Nickel())=='ee11-ee-':
+                good=True
+                print sub
+                for sub2 in g._subgraphs:
+                    if sub<>sub2 and subgraphs.cover(sub,sub2):
+                        print "sub2", sub2
+                        if str(sub2.Nickel()) in self.subgraphs2reduce:
+                            good=False
+                            break
+                if good:
+                    res.append(sub)
+        return res
+                        
 
 
 

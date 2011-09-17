@@ -205,14 +205,14 @@ class Graph:
             return self
         else:
             g=self.Clone()
-            for sub in self._subgraphs:
+            for sub in model.toreduce(self):
 #                print "'%s'"%sub.Nickel(), sub
                 if str(sub.Nickel()) in model.subgraphs2reduce:
                     print "reducing: %s (%s)"%(sub.Nickel(), sub)
                     g=g.Clone()
                     newsub=g._subgraphs[self._subgraphs.index(sub)]
                     extnodes,extlines=newsub.FindExternal()
-                    print newsub
+#                    print newsub
                     nodes=list(newsub.BorderNodes())
                     if len(nodes)==2:
                         nodes2remove=set(newsub.InternalNodes())-newsub.BorderNodes()

@@ -495,7 +495,7 @@ def GetMomentaIndex(graph,moments, checktadpoles=False):
         phi4 model -> checktadpoles=True
         checktadpoles=True - generates new (redueced) _subfgraphs field
     """
-    penalties={"badKirghoff":10**9, "badSub":10**6, "badIn":10000, "longInPath":100,"longMoment":1}
+    penalties={"badKirghoff":10**9, "badSub":10**6, "badIn":10000, "longIn":100,"longMoment":1}
     result=0
     if moments==None:
         """ if Kirghoff returns None - it can't solve Kirghoff equtaions due to inconsistent initial conditions
