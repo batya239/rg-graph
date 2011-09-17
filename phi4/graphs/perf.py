@@ -7,6 +7,7 @@ from lines import Line
 import roperation
 import sympy
 import subgraphs
+import calculate
 
 def print_moments(_moments):
     if isinstance(_moments.keys()[0],Line):
@@ -77,7 +78,7 @@ for g in phi4.dTau(g1):
 
     integrand+= "f[0]+=%s;\n"%sympy.printing.ccode(expr)
 #    integrand+='printf ("result = %20.18g %20.18g %20.18g %20.18g %20.18g %20.18g \\n", f[0],q0,q1,ct_0_1,st_0_1, z_0_1);\n'
-    f.write(roperation.core_pv_code(integrand))
+    f.write(calculate.core_pv_code(integrand))
     f.close()
     cnt+=1      
 

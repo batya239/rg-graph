@@ -2,6 +2,35 @@
 
 import time                                                
 
+import sympy
+
+def S(d):
+    return d*sympy.pi**(d/2.)/sympy.special.gamma_functions.gamma(d/2.+1)
+
+
+def series_lst(expr, var, n):
+    """ f_0+e*f_1+...+e^n*f_n
+    """
+    if n<0:
+        raise ValueError,  "n = %s <0"%n
+    res=[]
+    t_expr=expr
+    for i in range(n+1):
+        res.append(t_expr.subs(var,0))
+        t_expr=t_expr.diff(var)/(i+1)
+    return res
+    
+
+
+
+
+
+
+
+
+
+
+
 class TimerStorage:
     def __init__(self):
         self._count=dict()

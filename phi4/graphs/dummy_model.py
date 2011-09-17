@@ -85,10 +85,12 @@ class _phi4(_generic_model):
         self.checktadpoles=True
         self.reduce=True
         self.subgraphs2reduce=['e111-e-','ee11-ee-']
+        self.target=6
+        self.workdir='/home/mkompan/work/rg-graph/phi_4/'
 
     def propagator(self, line):
         def helper1(k2,B,e):
-            return B*k2-(1.+B*k2)*sympy.ln(1.+B*k2)#+1./2.*e*(1.+B*k2)*sympy.ln(1.+B*k2)**2
+            return B*k2-(1.+B*k2)*sympy.ln(1.+B*k2)+1./2.*e*(1.+B*k2)*sympy.ln(1.+B*k2)**2
         def helper2(k2,B,e):
             return -sympy.ln(1.+k2*B)
 
