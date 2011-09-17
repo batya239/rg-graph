@@ -41,7 +41,7 @@ g1=Graph('e112-e3-334-5-555--')
 #phi4.reduce=False
 phi4.SetTypes(g1)
 g1.FindSubgraphs(phi4)
-print g1._subgraphs
+#print g1._subgraphs
 g1=g1.ReduceSubgraphs(phi4)
 g1.FindSubgraphs(phi4)
 print g1

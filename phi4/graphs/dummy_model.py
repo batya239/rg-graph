@@ -140,10 +140,8 @@ class _phi4(_generic_model):
                 res.append(sub)
             elif str(sub.Nickel())=='ee11-ee-':
                 good=True
-                print sub
                 for sub2 in g._subgraphs:
                     if sub<>sub2 and subgraphs.cover(sub,sub2):
-                        print "sub2", sub2
                         if str(sub2.Nickel()) in self.subgraphs2reduce:
                             good=False
                             break
