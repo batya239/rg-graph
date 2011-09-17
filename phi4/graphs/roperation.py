@@ -65,9 +65,9 @@ def expr(graph, model):
             if sub._diffcnt>1:
                 res=res*(1-var)**(sub._diffcnt-1)/sympy.factorial(sub._diffcnt-1)
     g_as_sub=graph.asSubgraph()
-    if graph.Dim(model)==0:
+    if graph.Dim(model)==0:  #self-energy subgraph
         strechvar=sympy.var("a_%s"%(graph.asSubgraph().asLinesIdxStr()))
-        res=res.diff(strechvar, 2).subs(strechvar,0)
+        res=res.diff(strechvar, 2).subs(strechvar,0)/2.
     return res
             
 def det(graph,model):
