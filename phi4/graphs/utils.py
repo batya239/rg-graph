@@ -1,8 +1,10 @@
 #!/usr/bin/python
+# -*- coding: utf8
 
 import time                                                
-
+import re as regex
 import sympy
+from graphs import Graph
 
 def S(d):
     return d*sympy.pi**(d/2.)/sympy.special.gamma_functions.gamma(d/2.+1)
@@ -48,6 +50,104 @@ def norm(n,d):
     return res
 
 
+
+def LoadFromGRC(filename, model):
+
+#search for External nodes
+    def SearchGRCExternalNodes(lines):
+        res = []
+        for idx in range(len(lines)):
+            reg = regex.match("External\s*=\s*(\d+);",lines[idx])
+            if reg:
+                n_external_lines = int(reg.groups()[0])
+                break
+            
+        
+        external_start = idx
+        for idx in range(external_start+1,len(lines)):
+            reg = regex.match("Eend;", lines[idx])
+
+            if reg:
+                break
+            reg = regex.match("\s*(\d+)\s*=.*;$", lines[idx])
+            if reg:
+                res.append(int(reg.groups()[0]))
+        return res
+    
+    def SplitGRCGraphs(lines):
+        res = []
+        graph = False
+        for line in lines:
+            reg = regex.match("Graph\s*=",line)
+            if reg and (not graph):
+                graph = True
+                graph_lines = dict()
+            reg = regex.match("Gend;",line)
+            if reg and graph:
+                graph = False
+                res.append(graph_lines)
+            if graph:
+                reg1 = regex.match("\s*(\d+)=\{(.+)\};",line)
+                if reg1:
+#TODO: обрабатываются линии только одного типа!!!
+                    cur_node=int(reg1.groups()[0])
+                    str_lines = reg1.groups()[1].split(",")
+                    for str_line in str_lines:
+                        reg2 = regex.match("^\s*(\d+)\[.*\]$",str_line)
+                        if reg2:
+                            cur_line = int(reg2.groups()[0])
+                        else:
+                            raise ValueError, "error while parsing grc nodes: %s" %str_line
+                        if cur_line in graph_lines.keys(): 
+                            graph_lines[cur_line].append(cur_node)
+                        else:
+                            graph_lines[cur_line] = [cur_node,]
+        return res
+    
+    res = dict()
+    lines = open(filename,"r").read().splitlines()
+    node_types=dict()
+    ext_nodes=SearchGRCExternalNodes(lines)
+    for ext_node in ext_nodes:
+        node_types[ext_node] = 0       
+#    print ext_nodes
+    
+    for graph_lines in SplitGRCGraphs(lines):
+        edges=[]
+#        print graph_lines
+        for line in graph_lines.values():
+            newline=list()
+            for node in line:
+                if node in ext_nodes:
+                    newline.append(-1)
+                else:
+                    newline.append(node)
+            edges.append(newline)
+#        print edges
+        g=Graph(edges)
+        if not tadpole(g,model):
+            res[str(g.GenerateNickel())]=1
+#         graph = Graph(model)
+#         for idxL in graph_lines.keys():
+#             graph.AddLine(idxL, 
+#                           Line(model, 1, start=graph_lines[idxL][0], 
+#                                end=graph_lines[idxL][1], 
+#                                momenta=None, dots=dict()) 
+#                           )
+#             
+#         graph.DefineNodes(node_types)
+#         res.append(graph)
+    return res.keys()
+
+def tadpole(g,model):
+    res=False
+    model.SetTypes(g)
+    g.FindSubgraphs(model)
+    for sub in g._subgraphs+[g.asSubgraph()]:
+        if sub.CountExtLegs()==2:
+            if len(sub.BorderNodes())<>2:
+                res=True
+    return res
 
 
 

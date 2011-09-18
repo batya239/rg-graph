@@ -115,7 +115,7 @@ def save(name, graph, model, overwrite=True):
     else:
         _nloops_orig=graph.NLoops()
     print "norm start"
-    norm=utils.series_f(utils.norm(graph.NLoops(),model.space_dim-e), e, model.target-_nloops_orig)
+    norm=utils.series_f(utils.norm(graph.NLoops(),model.space_dim-e)*graph.sym_coef(), e, model.target-_nloops_orig)
     print norm
     for g in model.dTau(graph):
         roperation.strechMoments(g, model)
@@ -129,7 +129,7 @@ def save(name, graph, model, overwrite=True):
 
         for _expr in utils.series_lst(expr,e,model.target-_nloops_orig):
             integrand=roperation.export_subs_vars_pv(subsvars,strechs)
-            integrand+= "\nf[0]=0.;\n"
+            integrand+= "\nf[0]=1.0e-38;\n"
             integrand+= "f[0]+=%s;\n"%sympy.printing.ccode(_expr)
             f=open('%s/%s_E%s_%s.c'%(dirname,name,eps_cnt,cnt),'w')
             f.write(core_pv_code(integrand))

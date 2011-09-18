@@ -82,6 +82,23 @@ class Graph:
             self.nickel=nickel.Canonicalize(self._edges())
         return self.nickel
 
+    def sym_coef(self):
+        if '_sym_coef_orig' in self.__dict__:
+            return self._sym_coef_orig
+        edges = self._edges()
+        unique_edges = dict()
+        for idx in edges:
+            idx.sort()
+            if str(idx) in unique_edges:
+                unique_edges[str(idx)] = unique_edges[str(idx)] +1
+            else:
+                unique_edges[str(idx)] = 1
+        C=sympy.Factorial(len(self.ExternalLines()))/self.nickel.num_symmetries
+        for idxE in unique_edges:
+            C = C / sympy.Factorial(unique_edges[idxE])
+        self._sym_coeff = C
+        return self._sym_coeff
+
     def xInternalNodes(self):
         
         for node in self._nodes:
@@ -98,6 +115,13 @@ class Graph:
         for line in self._lines:
             if line.isInternal():
                 yield line
+
+    def ExternalLines(self):
+        res=[]
+        for line in self._lines:
+            if not line.isInternal():
+                res.append(line)
+        return res
 
     def Lines(self):
         return self._lines

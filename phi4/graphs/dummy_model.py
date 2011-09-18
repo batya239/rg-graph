@@ -85,14 +85,25 @@ class _phi4(_generic_model):
         self.checktadpoles=True
         self.reduce=True
         self.subgraphs2reduce=['e111-e-','ee11-ee-']
-        self.target=6
+        self.target=3
         self.workdir='/home/mkompan/work/rg-graph/phi_4/'
 
     def propagator(self, line):
         def helper1(k2,B,e):
-            return B*k2-(1.+B*k2)*sympy.ln(1.+B*k2)+1./2.*e*(1.+B*k2)*sympy.ln(1.+B*k2)**2
+#            return B*k2-(1.+B*k2)*sympy.ln(1.+B*k2)+1./2.*e*(1.+B*k2)*sympy.ln(1.+B*k2)**2
+            return ( -sympy.ln(1.0 + B*k2) + B*k2 - B*k2*sympy.ln(1.0 + B*k2) + 0.5*e*sympy.ln(1.0 + B*k2)**2 + 
+                        0.5*B*e*k2*sympy.ln(1.0 + B*k2)**2 - 0.166666666666667*e**2*sympy.ln(1.0 + B*k2)**3 - 
+                        0.166666666666667*B*k2*e**2*sympy.ln(1.0 + B*k2)**3 + 0.0416666666666667*e**3*sympy.ln(1.0 + B*k2)**4 + 
+                        0.0416666666666667*B*k2*e**3*sympy.ln(1.0 + B*k2)**4 - 0.00833333333333333*e**4*sympy.ln(1.0 + B*k2)**5 - 
+                        0.00833333333333333*B*k2*e**4*sympy.ln(1.0 + B*k2)**5 + 0.00138888888888889*e**5*sympy.ln(1.0 + B*k2)**6 + 
+                        0.00138888888888889*B*k2*e**5*sympy.ln(1.0 + B*k2)**6 - 0.000198412698412698*e**6*sympy.ln(1.0 + B*k2)**7 - 
+                        0.000198412698412698*B*k2*e**6*sympy.ln(1.0 + B*k2)**7)
+
         def helper2(k2,B,e):
-            return -sympy.ln(1.+k2*B)
+#            return -sympy.ln(1.+k2*B)
+            return (-sympy.ln(1.0 + B*k2) + 0.5*e*sympy.ln(1.0 + B*k2)**2 - 0.166666666666667*e**2*sympy.ln(1.0 + B*k2)**3 + 
+                        0.0416666666666667*e**3*sympy.ln(1.0 + B*k2)**4- 0.00833333333333333*e**4*sympy.ln(1.0 + B*k2)**5 + 
+                        0.00138888888888889*e**5*sympy.ln(1.0 + B*k2)**6 - 0.000198412698412698*e**6*sympy.ln(1.0 + B*k2)**7)
 
         if line.type=='e111-e-':
             u,t,d=sympy.var("u_%sL_0 u_%sL_1 d"%(line.idx(),line.idx()))
@@ -120,10 +131,17 @@ class _phi4(_generic_model):
             k2=line.momenta.Squared()
 
             if 'tau' not in line.modifiers:
-                res=-1/2.*sympy.ln(1+k2*u*(1-u))+e*(1/4.*sympy.ln(1+k2*u*(1-u))+1/8.*sympy.ln(1+k2*u*(1-u))**2)
+#                res=-1/2.*sympy.ln(1+k2*u*(1-u))+e*(1/4.*sympy.ln(1+k2*u*(1-u))+1/8.*sympy.ln(1+k2*u*(1-u))**2)
+                res=( -0.5*sympy.ln(1.0 + k2*u - k2*u**2) + 0.25*e*sympy.ln(1.0 + k2*u - k2*u**2) + 0.125*e*sympy.ln(1.0 + k2*u - k2*u**2)**2 - 
+                        0.0625*e**2*sympy.ln(1.0 + k2*u - k2*u**2)**2 + 0.0104166666666667*e**3*sympy.ln(1.0 + k2*u - k2*u**2)**3 - 
+                        0.0208333333333333*e**2*sympy.ln(1.0 + k2*u - k2*u**2)**3 + 0.00260416666666667*e**3*sympy.ln(1.0 + k2*u - k2*u**2)**4 - 
+                        0.00130208333333333*e**4*sympy.ln(1.0 + k2*u - k2*u**2)**4 + 0.000130208333333333*e**5*sympy.ln(1.0 + k2*u - k2*u**2)**5 -
+                        0.000260416666666667*e**4*sympy.ln(1.0 + k2*u - k2*u**2)**5 + 2.17013888888889e-5*e**5*sympy.ln(1.0 + k2*u - k2*u**2)**6 - 
+                        1.08506944444444e-5*e**6*sympy.ln(1.0 + k2*u - k2*u**2)**6 - 1.55009920634921e-6*e**6*sympy.ln(1.0 + k2*u - k2*u**2)**7 )
 #                print "NOT TAU"
             else:
-                res=-(1/2./(1+k2*u*(1-u))-e/4./(1+k2*u*(1-u))*(1+sympy.ln(1+k2*u*(1-u))))
+#                res=-(1/2./(1+k2*u*(1-u))-e/4./(1+k2*u*(1-u))*(1+sympy.ln(1+k2*u*(1-u))))
+                res=-0.5*(1.-0.5*e)*(1.+k2*u*(1.-u))**(-1-0.5*e)
  #               print "TAU"
             return res
         else:

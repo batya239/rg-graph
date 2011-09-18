@@ -23,10 +23,13 @@ g1=Graph(sys.argv[1])
 
 #phi4.reduce=False
 name=str(g1.GenerateNickel())
+if name in ['e111-e-','ee11-22-ee-','ee11-23-e33-e-']:
+    phi4.reduce=False
 phi4.SetTypes(g1)
 g1.FindSubgraphs(phi4)
-
+sym_coef=g1.sym_coef()
 g1=g1.ReduceSubgraphs(phi4)
+g1._sym_coef_orig=sym_coef
 g1.FindSubgraphs(phi4)
 print g1
 subs_toremove=subgraphs.DetectSauseges(g1._subgraphs)
