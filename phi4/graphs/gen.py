@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf8
+import sys
 from dummy_model import _phi3,_phi4
 import moments
 from graphs import Graph
@@ -16,26 +17,8 @@ def print_moments(_moments):
         print dict([(x,_moments[x]._string) for x in _moments])
 
 phi4=_phi4('dummy')
-#g1=Graph('e123-e45-444-555---')
-g1=Graph('e112-e3-334-5-555--')
-#g1=Graph('e112-33-444-4e--')
-#g1=Graph('e112-e3-333--')
-#g1=Graph('e111-e-')
-#g1=Graph('e123-e23-e3-e-')
-#g1=Graph('ee12-ee3-333--')  #8
-#g1=Graph('ee12-223-3-ee-')
-g1=Graph('e122-e22--') #N5
-#g1=Graph('ee12-e33-e33--')
-#g1=Graph('ee12-e23-33-e-')
-#g1=Graph('e112-e3-e33-e-')
-#g1=Graph('ee11-22-33-ee-')
-######g1=Graph('e112-e2-33-ee-')
-#g1=Graph('ee11-23-e33-e-')
-# g1=Graph('ee12-e22-e-')
-#4loop
-#g1=Graph('e122-e33-33--')
-#g1=Graph('e112-e3-333--') #арбуз в арбузе
 
+g1=Graph(sys.argv[1])
 
 
 #phi4.reduce=False

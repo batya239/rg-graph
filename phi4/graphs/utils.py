@@ -14,11 +14,23 @@ def series_lst(expr, var, n):
     if n<0:
         raise ValueError,  "n = %s <0"%n
     res=[]
-    t_expr=expr
+    if isinstance(expr,(float,int)):
+        t_expr=sympy.Number(expr)
+    else:
+        t_expr=expr
     for i in range(n+1):
         res.append(t_expr.subs(var,0))
         t_expr=t_expr.diff(var)/(i+1)
     return res
+
+def series_f(expr,var, n):
+    res=0.
+    idx=0
+    for expr in series_lst(expr,var,n):
+        res=res+expr.evalf()*var**(idx)
+        idx+=1
+    return res
+
     
 
 
