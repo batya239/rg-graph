@@ -44,11 +44,17 @@ def execute(name, model, points=10000, threads=2, calc_delta=0., neps=0):
                 error[n]+=err
     time_str=time.strftime("-%Y-%m-%d-%H:%M:%S")
     f=open("result_%s"%time_str,'w')
+    g=open("result",'w')
     f.write(str((result,error)))
+    g.write(str((result,error)))
     f.close()
+    g.close()
     f=open("points_%s"%time_str,'w')
+    g=open("points",'w')
     f.write(str(points))
+    g.write(str(points))
     f.close()
+    g.close()
     return (result, error)
 
 
