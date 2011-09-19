@@ -195,7 +195,9 @@ def DetectSauseges(_subgraphs):
     for sub in _subgraphs:
         for d_subs in disjoint_subs:
             if reduce(lambda x,y: x&y, [disjoint(sub,x) for x in d_subs]):
-                d_subs.append(sub)
+                d_subs2=d_subs+[sub]
+                disjoint_subs.append(d_subs2)
+        
         disjoint_subs.append([sub])
     to_remove=set()
 
@@ -207,7 +209,7 @@ def DetectSauseges(_subgraphs):
                 sub=Subgraph(reduce(lambda x,y: x+y, [x._lines for x in subs]))
 #                print "sub:", sub
                 for sub1 in _subgraphs:
- #                   print sub1, sub.eq(sub1)
+#                    print sub1, sub.eq(sub1)
                     if sub.eq(sub1):
                         to_remove=to_remove|set([sub1])
                         break
