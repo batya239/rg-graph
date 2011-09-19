@@ -339,18 +339,22 @@ def CheckLoopAndPath(loop,path,graph):
     for l in loop:
        lines=lines|set(l)
 #    _lines=set([x.idx() for x in list(lines)])
-    if not lines == set(graph.asSubgraph()._lines):
+    g_as_sub=graph.asSubgraph()
+    if not lines == set(g_as_sub._lines):
 #TODO: change set(graph.asSubgraph()._lines to smth more obvious
         return False
     else:
-        for p in path:
-            lines=lines|set(p)
-#        _lines=set([x.idx() for x in list(lines)])
-#    print _lines, set(graph._lines)
-        if lines == set(graph._lines):
-            return True
+        if g_as_sub.CountExtLegs()==2:
+            for p in path:
+                lines=lines|set(p)
+    #        _lines=set([x.idx() for x in list(lines)])
+    #    print _lines, set(graph._lines)
+            if lines == set(graph._lines):
+                return True
+            else:
+                return False
         else:
-            return False
+            return True
 
 def xLoopMoments(graph):
     """ найти все циклы по которым могут течь импульсы + пути протечки
@@ -367,9 +371,14 @@ def xLoopMoments(graph):
     
 #    _extlines=[_lines_storage.Get(x) for x in extlines]
     pcnt=0
-    for p in  comb.xUniqueCombinations(paths, graph_as_sub.CountExtLegs()-1):
+    if  graph_as_sub.CountExtLegs()==2:
+        iterator = comb.xUniqueCombinations
+    else:
+        iterator = lambda x,y: [[]]
+
+    for p in iterator(paths, graph_as_sub.CountExtLegs()-1):
 #        print "path:",pcnt
-        if not set(reduce(lambda x,y: set(x)|set(y), p))&set(extlines)==set(extlines):
+        if iterator == comb.xUniqueCombinations and  not set(reduce(lambda x,y: set(x)|set(y), p))&set(extlines)==set(extlines):
             """ if all lines included in selected path does not include all external lines - paths combination is invalid
             """
             continue
@@ -379,29 +388,25 @@ def xLoopMoments(graph):
 #            print l,p
             moment=dict()
 #            primitives=dict()
-            cnt=0
+            
 #            print CheckLoopAndPath(l,p,graph)
             if not CheckLoopAndPath(l,p,graph):
                 lcnt+=1
                 yield None
             else:
+                cnt=0
                 for path in p:
                     curMoment=Momenta(string="p%s"%cnt)
-#                    SetChainPrimitives(path, primitives,"p%s"%paths.index(path))
                     SetChainMoments(path, moment, curMoment)
                     cnt+=1
                 cnt=0
                 for loop in l:
                     curMoment=Momenta(string="q%s"%cnt)
-#                    SetChainPrimitives(path, primitives,"p%s"%paths.index(path))
                     SetChainMoments(loop, moment, curMoment)
                     cnt+=1
                 lcnt+=1
                 yield moment
-#                if len(moment.keys())==len(graph._lines):
-#                    yield moment
-#                else:
-#                    yield None
+
         pcnt+=1
 
 
@@ -442,6 +447,9 @@ def Generic(model, graph):
             if newSubgraphs <> None:
                 minSubgraphs = newSubgraphs
 #    graph._moments, graph._subgraphs_m = minkMoment, minSubgraphs
+#        if minMomentIndex<graph.NLoops():
+##TODO: impoove performance of moments and remove this workaround
+#            break
     graph._subgraphs_m = minSubgraphs    
     for line in  minkMoment:
         line.momenta=minkMoment[line]
@@ -451,7 +459,11 @@ def CheckTadpoles(graph,moments):
     graph_as_sub=graph.asSubgraph()
     res =  copy(graph._subgraphs)
     res.append(graph_as_sub) #Durty trick
-    for sub in [graph_as_sub] + sorted(graph._subgraphs,key=len,reverse=True):
+    if graph_as_sub.CountExtLegs()==2:
+        lst=[graph_as_sub]
+    else:
+        lst=[]
+    for sub in lst + sorted(graph._subgraphs,key=len,reverse=True):
         if sub not in res:
             continue
         else:
@@ -567,8 +579,14 @@ def ZeroExtMoments(graph,moments):
     extMomentNumber=len(graph.Lines())-len([x for x in graph.xInternalLines()])
     if extMomentNumber >2:
         zeroatomset=set(['p%s'%x for x in range(extMomentNumber-1)])
-        for line in moments.keys():
-            res[line]=moments[line].setZerosByAtoms(zeroatomset)
+        for line in graph.Lines():
+            try:
+                res[line]=moments[line].setZerosByAtoms(zeroatomset)
+            except KeyError:
+                if not line.isInternal():
+                    res[line]=Momenta(string="")
+                else:
+                    raise Exception, "line %s has no momenta"%line
         return res
     else:
         return moments
