@@ -123,6 +123,7 @@ def save(name, graph, model, overwrite=True):
     print "norm start"
     norm=utils.series_f(utils.norm(graph.NLoops(),model.space_dim-e)*graph.sym_coef(), e, model.target-_nloops_orig)
     print norm
+    print utils.series_f(utils.norm(graph.NLoops(),model.space_dim-e), e, model.target-_nloops_orig), graph.sym_coef()
     for g in model.dTau(graph):
         roperation.strechMoments(g, model)
         print cnt, g
