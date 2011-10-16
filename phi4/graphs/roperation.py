@@ -109,29 +109,22 @@ def subs_vars(graph):
 
 def export_subs_vars_pv(subs_vars, strechs):
     def sort_vars(var_list):
-        c=[]
-        s=[]
-        q=[]
-        a=[]
-        u=[]
+        vars_=('u','c','s','q','a')
+        dict_={}
+        for var in vars_:
+            dict_[var]=[]
         for var in var_list:
-            if regex.match('^c.*',var):
-                c.append(var)
-            elif regex.match('^s.*',var):
-                s.append(var)
-            elif regex.match('^q.*',var):
-                q.append(var)
-            elif regex.match('^a.*',var):
-                a.append(var)
-            elif regex.match('^u.*',var):
-                u.append(var)        
-        c.sort()
-        s.sort()
-        q.sort()
-        a.sort()
-        u.sort()
-        return u+c+s+q+a
+            for var_ in vars_:
+                if regex.match('^%s.*'%var_,var):
+                    dict_[var_].append(var)
+        for var in vars_:
+            (dict_[var]).sort()
+        res=[]
+        for var in vars_:
+            res=res+dict_[var]
+        return res
     res=""
+
     atomset=set()
     for expr in subs_vars.values():
         atomset=atomset|expr.atoms(sympy.core.symbol.Symbol)
