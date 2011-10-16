@@ -165,17 +165,7 @@ class Graph:
     def _moments(self):
         return dict([(x,x.momenta) for x in self._lines])
 
-    def expr(self,model):
-        res=sympy.Number(1)
-        for node in self.xInternalNodes():
-            res=res*node.Vertex(model)
-        for line in self.xInternalLines():
-            res=res*line.Propagator(model)
-        
-        d=sympy.var('d')
-#         for i in range(self.NLoops()):
-#             res=res*sympy.var('q%s'%i)**(d-1)
-        return res
+
 
     def RemoveSubgaphs(self, sub_list):
         if "_subgraphs_m" in self.__dict__:

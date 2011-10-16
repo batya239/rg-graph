@@ -56,7 +56,13 @@ def expr(graph, model):
         subgraphs=graph._subgraphs_m
     else:
         subgraphs=graph._subgraphs
-    res=graph.expr(model)
+
+    res=sympy.Number(1)
+    for node in graph.xInternalNodes():
+        res=res*node.Vertex(model)
+    for line in graph.xInternalLines():
+        res=res*line.Propagator(model)    
+
     for sub in subgraphs:
         if "_strechvar" in sub.__dict__:
             
