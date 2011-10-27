@@ -413,7 +413,7 @@ def xLoopMoments(graph):
         pcnt+=1
 
 
-def Generic(model, graph):
+def Generic(model, graph, level=None):
     minMomentIndex = 10**13
     minkMoment = None
     minSubgraphs = None
@@ -449,6 +449,9 @@ def Generic(model, graph):
             minkMoment = curkMoment
             if newSubgraphs <> None:
                 minSubgraphs = newSubgraphs
+
+        if level<>None and minMomentIndex<level:
+            break
 #    graph._moments, graph._subgraphs_m = minkMoment, minSubgraphs
 #        if minMomentIndex<graph.NLoops():
 ##TODO: impoove performance of moments and remove this workaround

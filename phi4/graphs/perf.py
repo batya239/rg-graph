@@ -55,7 +55,7 @@ g1.RemoveSubgaphs(subs_toremove)
 subgraphs.RemoveTadpoles(g1)
 phi4.checktadpoles=False
 
-print "moment index: ", moments.Generic(phi4, g1)
+print "moment index: ", moments.Generic(phi4, g1, level=10**6)
 
 print_moments(g1._moments())
 print "subgraphs: ",g1._subgraphs
@@ -80,8 +80,9 @@ print "B=",B
 print "c=",c
 print "b=", b
 print "v=\n", v
-print "det(v)=", v.det()
-print "det(v)*C = ", ((b.transpose()*v.adjugate()*b)[0] -c*v.det()).expand()
+det=v.det()
+print "det(v)=", det
+print "det(v)*C = ", ((b.transpose()*v.adjugate()*b)[0] -c*det).expand()
 #calculate.save(name,g1,phi4)
 
 #calculate.compile(name,phi4)
