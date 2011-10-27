@@ -214,3 +214,23 @@ def DetectSauseges(_subgraphs):
                         to_remove=to_remove|set([sub1])
                         break
     return to_remove
+
+
+def RemoveTadpoles(graph):
+    graph_as_sub=graph.asSubgraph()
+    res =  copy(graph._subgraphs)
+    res.append(graph_as_sub) #Durty trick
+    if graph_as_sub.CountExtLegs()==2:
+        lst=[graph_as_sub]
+    else:
+        lst=[]
+    for sub in lst + sorted(graph._subgraphs,key=len,reverse=True):
+        if sub not in res:
+            continue
+        else:
+            tadpoles=sub.FindTadpoles(res)
+            for tadsub in tadpoles:
+                if tadsub in res:
+                    res.remove(tadsub)
+    res.remove(graph_as_sub)
+    graph._subgraphs=res

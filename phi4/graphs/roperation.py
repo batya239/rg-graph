@@ -23,12 +23,13 @@ def setStrech(sub,atomsset):
             else:
                 line.momenta._strech[atom].append(sub._strechvar)
 
-def  strechMoments(graph,model):
+def  strechMoments(graph,model, external_strech=True):
     if "_subgraphs_m" in graph.__dict__:
         subgraphs=copy.copy(graph._subgraphs_m)
     else:
         subgraphs=copy.copy(graph._subgraphs)
-    subgraphs.append(graph.asSubgraph())
+    if external_strech:
+        subgraphs.append(graph.asSubgraph())
 
     for sub in subgraphs:
         dim = sub.Dim(model)
@@ -144,6 +145,26 @@ def export_subs_vars_pv(subs_vars, strechs):
 
     for var in sort_vars(subs_vars.keys()):
         res=res + "double %s = %s;\n"%(var, sympy.printing.ccode(subs_vars[var]))
+    return res
+
+def FindAtoms_sympy(expr):
+    atoms = expr.atoms(sympy.core.symbol.Symbol)
+    int=list()
+    ext=list()
+    for atom in atoms:
+        if regex.match("^(p\d*)$", str(atom)):
+            ext.append(atom)
+        elif regex.match("^(q\d*)$", str(atom)):
+            int.append(atom)
+    return (ext,int)
+
+def FindExtAtoms_sympy(expr):
+    atoms = expr.atoms(sympy.core.symbol.Symbol)
+    res = list()
+    for atom in atoms:
+        reg1 = regex.match("^(p\d*)$", str(atom))
+        if reg1:
+            res.append(atom)
     return res
 
 def FindExtCosAtoms(expr):
@@ -295,3 +316,76 @@ printf ("result = %20.18g\\nstd_dev = %20.18g\\ndelta = %20.18g\\n", estim[0], s
 }
 """
     return a1
+
+#feynman
+def feynman_qi_lambda(graph):
+    qi={}
+    
+    for line in graph.xInternalLines():
+        if line.momenta    not in qi.keys():
+            qi[line.momenta]=1
+        else:
+            qi[line.momenta]+=1
+    return qi
+
+def feynman_B(qi, order=None):
+    B=sympy.Number(1)
+    cnt=0
+    if order==None:
+        order_=[i for i in range(len(qi))]
+    else:
+        order_=order
+    print qi.keys()
+    print order_
+    print 
+    for i in order_:
+        q=qi.keys()[i]
+        print q, 
+        u=sympy.var('u_%s'%cnt)
+        B=B+u*q.Squared()
+        cnt+=1
+    return B
+
+
+def q_number(atom):
+    reg=regex.match('^q(\d+)$',str(atom))
+    if reg:
+        return int(reg.groups()[0])
+
+def decompose_B(B):
+    (ext,int)=FindAtoms_sympy(B)
+    m_cnt=len(int)
+    b=sympy.matrices.Matrix([0 for i in range(m_cnt)])
+    if len(ext)==0:
+        c=0
+        b=sympy.matrices.Matrix([0 for i in range(m_cnt)])
+    elif len(ext)>1:
+        raise ValueError, 'to much ext moments: %s'%ext
+    else:
+        c=B.diff(ext[0]).diff(ext[0])/2.
+        for i in range(m_cnt):
+            pq=sympy.var("%sO%s"%(ext[0],int[i]))
+            p=sympy.var('%s'%ext[0])
+            q1=sympy.var('%s'%int[i])
+            b[i]=B.diff(pq)/p/q1/2.
+    v=sympy.matrices.Matrix(sympy.zeros(m_cnt))
+    for i1 in range(m_cnt):
+        for i2 in range(m_cnt):
+            if i1==i2:
+                v[i1,i1]=B.diff(int[i1]).diff(int[i1])/2.
+            else:
+                if q_number(int[i1])<q_number(int[i2]):
+                    q1Oq2=sympy.var('%sO%s'%(int[i1],int[i2]))
+                else:
+                    q1Oq2=sympy.var('%sO%s'%(int[i2],int[i1]))
+                q1=sympy.var('%s'%int[i1])
+                q2=sympy.var('%s'%int[i2])
+                v[i1,i2]=B.diff(q1Oq2)/q1/q2/2.
+    return (c,b,v)
+
+                
+
+def feynman_expr(graph, model):
+    res=sympy.Number(1)
+    
+    return res

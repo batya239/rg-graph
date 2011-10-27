@@ -184,6 +184,9 @@ class Momenta:
 
     def strAtoms(self):
         return self._dict.keys()
+
+    def __hash__(self):
+        return hash(self._string)
 #     def SetZeros(self,zero_momenta):
 #         pass
 #
@@ -450,7 +453,9 @@ def Generic(model, graph):
 #        if minMomentIndex<graph.NLoops():
 ##TODO: impoove performance of moments and remove this workaround
 #            break
-    graph._subgraphs_m = minSubgraphs    
+    if model.checktadpoles:
+        graph._subgraphs_m = minSubgraphs    
+
     for line in  minkMoment:
         line.momenta=minkMoment[line]
     return minMomentIndex
