@@ -81,8 +81,13 @@ print "c=",c
 print "b=", b
 print "v=\n", v
 det=v.det()
-print "det(v)=", det
-print "det(v)*C = ", ((b.transpose()*v.adjugate()*b)[0] -c*det).expand()
+Cdet=((b.transpose()*v.adjugate()*b)[0] -c*det).expand()
+
+det1=roperation.SubsSquaresStrechs(det)
+Cdet1=roperation.SubsSquaresStrechs(Cdet)
+
+print "det(v)=", det1
+print "det(v)*C = ", Cdet1
 #calculate.save(name,g1,phi4)
 
 #calculate.compile(name,phi4)

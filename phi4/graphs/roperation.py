@@ -158,6 +158,14 @@ def FindAtoms_sympy(expr):
             int.append(atom)
     return (ext,int)
 
+def FindStrechs_sympy(expr):
+    atoms = expr.atoms(sympy.core.symbol.Symbol)
+    res=list()
+    for atom in atoms:
+        if regex.match("^(a_\d*.*)$", str(atom)):
+            res.append(atom)
+    return res
+
 def FindExtAtoms_sympy(expr):
     atoms = expr.atoms(sympy.core.symbol.Symbol)
     res = list()
@@ -384,6 +392,14 @@ def decompose_B(B):
     return (c,b,v)
 
                 
+
+def SubsSquaresStrechs(expr):
+    res=expr
+    for atom in FindStrechs_sympy(expr):
+        
+        res=res.subs(atom*atom, atom)
+#TODO : if there are atom**(2n+1) - we get WRONG expr
+    return res
 
 def feynman_expr(graph, model):
     res=sympy.Number(1)
