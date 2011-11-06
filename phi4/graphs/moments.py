@@ -70,8 +70,11 @@ class Momenta:
             raise TypeError,  'unknown datatype in kwargs: %s'%kwargs
         self._strech=dict()
 
-    def _applyStrechOnSympy(self,sympy_expr):
-        res=sympy_expr
+    def _applyStrechOnSympy(self, sympy_expr=None):
+        if sympy_expr==None:
+            res=copy(self._sympy)
+        else:
+            res=copy(sympy_expr)
         for atom in self._strech:
             for strech in self._strech[atom]:
                 satom=sympy.var(atom)
@@ -83,7 +86,7 @@ class Momenta:
     def sympy(self):
         if not "_sympy" in self.__dict__:
             self._sympy=_dict2sympy(self._dict)
-        return self._applyStrechOnSympy(self._sympy)
+        return self._applyStrechOnSympy()
 
     def __neg__(self):
         t_dict={}
@@ -117,6 +120,8 @@ class Momenta:
 #        return Momenta(sympy=(self._sympy-other._sympy))
 
     def __str__(self):
+        if len(self._strech)<>0:
+            return str(self.sympy())
         return self._string
 
     def __abs__(self):
@@ -180,13 +185,13 @@ class Momenta:
         return res
 
     def __repr__(self):
-        return self._string
+        return str(self)
 
     def strAtoms(self):
         return self._dict.keys()
 
     def __hash__(self):
-        return hash(self._string)
+        return hash(str(self))
 #     def SetZeros(self,zero_momenta):
 #         pass
 #
