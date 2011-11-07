@@ -89,7 +89,7 @@ class Subgraph:
             return False
 
     def FindTadpoles(self,_subgraphs=None):
-	if not "_tadpoles" in self.__dict__:
+        if not "_tadpoles" in self.__dict__:
             intnodes=self.InternalNodes()
             (extnodes,extlines)=self.FindExternal()
             border=self.BorderNodes()

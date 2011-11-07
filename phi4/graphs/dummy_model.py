@@ -59,6 +59,9 @@ class _generic_model:
                 return modifier in self.nodes_modifiers[obj.type]
             else:
                 return modifier in self.nodes_modifiers['default']
+                
+        else:
+            raise TypeError,  "Unsuppoerted object %s"%obj
 
 
 class _phi3(_generic_model):

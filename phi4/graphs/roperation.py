@@ -6,6 +6,8 @@ import copy
 import re as regex
 import comb
 
+from lines import Line
+
 def FindExternalAtoms(sub):
     res=list()
     for line in sub.FindExternal()[1]:
@@ -328,13 +330,16 @@ printf ("result = %20.18g\\nstd_dev = %20.18g\\ndelta = %20.18g\\n", estim[0], s
 #feynman
 def feynman_qi_lambda(graph):
     qi={}
+    qi2line={}
     
     for line in graph.xInternalLines():
         if line.momenta    not in qi.keys():
             qi[line.momenta]=1
+            qi2line[line.momenta]=[line]
         else:
             qi[line.momenta]+=1
-    return qi
+            qi2line[line.momenta].append(line)
+    return (qi, qi2line)
 
 def feynman_B(qi, order=None):
     B=sympy.Number(1)
@@ -343,7 +348,8 @@ def feynman_B(qi, order=None):
         order_=[i for i in range(len(qi))]
     else:
         order_=order
-    print qi.keys()
+    print "qi.keys()=", qi.keys()
+    print type(qi.keys()[0]),  dir(qi.keys()[0])
     print order_
     print 
     for i in order_:

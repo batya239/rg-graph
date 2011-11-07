@@ -10,6 +10,9 @@ import subgraphs
 import calculate
 import sys
 import roperation
+import feynman
+
+from sympy.printing.ccode2 import ccode2
 
 def print_moments(_moments):
     if isinstance(_moments.keys()[0],Line):
@@ -63,31 +66,38 @@ print "subgraphs: ",g1._subgraphs
 roperation.strechMoments(g1, phi4, external_strech=False)
 #print_moments(g1._moments())
 
-qi=roperation.feynman_qi_lambda(g1)
-print "qi=",qi
-if len(sys.argv)==3:
-    order=eval(sys.argv[2])
-    if not isinstance(order,list):
-        raise ValueError, "second argument should be list, arv[2]=%s"%sys.argv[2]
-else:
-    order=None
+##qi=roperation.feynman_qi_lambda(g1)
+##print "qi=",qi
+##if len(sys.argv)==3:
+##    order=eval(sys.argv[2])
+##    if not isinstance(order,list):
+##        raise ValueError, "second argument should be list, arv[2]=%s"%sys.argv[2]
+##else:
+##    order=None
+##
+##print "order=",order
+##
+##B=roperation.feynman_B(qi,order=order)
+##print "B=",B
+##(c,b,v)=roperation.decompose_B(B)
+##print "c=",c
+##print "b=", b
+##print "v=\n", v
+##det=v.det()
+##Cdet=((b.transpose()*v.adjugate()*b)[0] -c*det).expand()
+##
+##det1=roperation.SubsSquaresStrechs(det)
+##Cdet1=roperation.SubsSquaresStrechs(Cdet)
 
-print "order=",order
+feynman.Prepare(g1)
 
-B=roperation.feynman_B(qi,order=order)
-print "B=",B
-(c,b,v)=roperation.decompose_B(B)
-print "c=",c
-print "b=", b
-print "v=\n", v
-det=v.det()
-Cdet=((b.transpose()*v.adjugate()*b)[0] -c*det).expand()
+print "det(v)=", g1._det_f
+print "det(v)*C = ", g1._cdet
 
-det1=roperation.SubsSquaresStrechs(det)
-Cdet1=roperation.SubsSquaresStrechs(Cdet)
-
-print "det(v)=", det1
-print "det(v)*C = ", Cdet1
+for qi in g1._qi:
+    print "\n------------------------\n"
+    print ccode2(feynman.feynman_term(g1, qi, phi4))
+    
 #calculate.save(name,g1,phi4)
 
 #calculate.compile(name,phi4)
