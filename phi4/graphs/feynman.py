@@ -41,11 +41,11 @@ def strech_indexes(g_qi, model):
     for sub in g_qi._subgraphs:
         dim=sub.Dim(model)
         if dim<0:
-            res[sub._sterch_var]=-1
+            res[sub._strechvar]=-1
         elif dim==0:
-            res[sub._sterch_var]=1
+            res[sub._strechvar]=1
         elif dim==2:
-            res[sub._strech_var]=2
+            res[sub._strechvar]=2
         else:
             raise ValueError, "Unsupported subgaphs dim = %s"%dim
     return res
