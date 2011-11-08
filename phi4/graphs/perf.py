@@ -12,7 +12,7 @@ import sys
 import roperation
 import feynman
 
-from sympy.printing.ccode2 import ccode2
+#from sympy.printing.ccode2 import ccode2
 
 def print_moments(_moments):
     if isinstance(_moments.keys()[0],Line):
@@ -94,14 +94,14 @@ feynman.Prepare(g1)
 print "det(v)=", g1._det_f
 print "det(v)*C = ", g1._cdet
 
-for qi in g1._qi:
-    print "\n------------------------\n"
-    print ccode2(feynman.feynman_term(g1, qi, phi4))
-    
-#calculate.save(name,g1,phi4)
+#for qi in g1._qi:
+#    print "\n------------------------\n"
+#    print ccode2(feynman.feynman_term(g1, qi, phi4))
 
-#calculate.compile(name,phi4)
+feynman.save(name,g1,phi4)
 
-#(res,err) = calculate.execute(name, phi4, neps=0)
-#for i in range(len(res)):
-#    print i, (res[i],err[i])
+feynman.compile(name,phi4)
+
+(res,err) = feynman.execute(name, phi4, neps=0)
+for i in range(len(res)):
+    print i, (res[i],err[i])

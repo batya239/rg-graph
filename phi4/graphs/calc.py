@@ -17,14 +17,21 @@ def print_moments(_moments):
         print dict([(x,_moments[x]._string) for x in _moments])
 
 phi4=_phi4('dummy')
-
+if len(sys.argv)>3:
+    exec('from %s import execute, normalize'%sys.argv[3])
+else:
+    exec('from calculate import execute')
+    
 g1=Graph(sys.argv[1])
+
 
 
 #phi4.reduce=False
 name=str(g1.GenerateNickel())
 
 
-(res,err) = calculate.execute(name, phi4, points=int(sys.argv[2]), neps=phi4.target-g1.NLoops())
+(res,err) = execute(name, phi4, points=int(sys.argv[2]), neps=phi4.target-g1.NLoops())
 for i in range(len(res)):
     print i, (res[i],err[i])
+if 'normalize' in dir():
+    print normalize(g1, res)

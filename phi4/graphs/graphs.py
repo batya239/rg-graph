@@ -93,9 +93,9 @@ class Graph:
                 unique_edges[str(idx)] = unique_edges[str(idx)] +1
             else:
                 unique_edges[str(idx)] = 1
-        C=sympy.Factorial(len(self.ExternalLines()))/self.nickel.num_symmetries
+        C=sympy.factorial(len(self.ExternalLines()))/self.nickel.num_symmetries
         for idxE in unique_edges:
-            C = C / sympy.Factorial(unique_edges[idxE])
+            C = C / sympy.factorial(unique_edges[idxE])
         self._sym_coeff = C
         return self._sym_coeff
 

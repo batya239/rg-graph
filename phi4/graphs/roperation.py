@@ -6,6 +6,8 @@ import copy
 import re as regex
 import comb
 
+from sympy import Symbol
+
 from lines import Line
 
 def FindExternalAtoms(sub):
@@ -43,7 +45,7 @@ def  strechMoments(graph,model, external_strech=True):
             setStrech(sub, extatoms)
 
 def find_strech_atoms(expr):
-    atoms = expr.atoms(sympy.core.symbol.Symbol)
+    atoms = expr.atoms(Symbol)
     atomlst = list()
     for atom in atoms:
         reg1 = regex.match("^a_\d*.*$", str(atom))
@@ -136,7 +138,7 @@ def export_subs_vars_pv(subs_vars, strechs):
 
     atomset=set()
     for expr in subs_vars.values():
-        atomset=atomset|expr.atoms(sympy.core.symbol.Symbol)
+        atomset=atomset|expr.atoms(Symbol)
     cnt=0
     for atom in atomset|strechs:
         if regex.match("^y\d*$",str(atom)) or regex.match("^z_\d+_\d+$",str(atom)) or regex.match("^a_\d+.*$",str(atom))or regex.match("^u_\d+.*$",str(atom)):
@@ -150,7 +152,8 @@ def export_subs_vars_pv(subs_vars, strechs):
     return res
 
 def FindAtoms_sympy(expr):
-    atoms = expr.atoms(sympy.core.symbol.Symbol)
+    print expr.atoms()    
+    atoms = expr.atoms(Symbol)
     int=list()
     ext=list()
     for atom in atoms:
@@ -161,7 +164,7 @@ def FindAtoms_sympy(expr):
     return (ext,int)
 
 def FindStrechs_sympy(expr):
-    atoms = expr.atoms(sympy.core.symbol.Symbol)
+    atoms = expr.atoms(Symbol)
     res=list()
     for atom in atoms:
         if regex.match("^(a_\d*.*)$", str(atom)):
@@ -169,7 +172,7 @@ def FindStrechs_sympy(expr):
     return res
 
 def FindExtAtoms_sympy(expr):
-    atoms = expr.atoms(sympy.core.symbol.Symbol)
+    atoms = expr.atoms(Symbol)
     res = list()
     for atom in atoms:
         reg1 = regex.match("^(p\d*)$", str(atom))
@@ -178,7 +181,7 @@ def FindExtAtoms_sympy(expr):
     return res
 
 def FindExtCosAtoms(expr):
-    atoms = expr.atoms(sympy.core.symbol.Symbol)
+    atoms = expr.atoms(Symbol)
     atom_map = dict()
     for atom in atoms:
         reg1 = regex.match("^p\d*O(q\d+)$", str(atom))
@@ -187,7 +190,7 @@ def FindExtCosAtoms(expr):
     return atom_map
 
 def FindExtAtoms(expr):
-    atoms = expr.atoms(sympy.core.symbol.Symbol)
+    atoms = expr.atoms(Symbol)
     res = list()
     for atom in atoms:
         reg1 = regex.match("^(p\d*)$", str(atom))
