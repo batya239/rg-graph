@@ -74,7 +74,7 @@ def feynman_term(graph, qi, model):
     for ai in strechs:
         ai_=sympy.var(ai)
         if strechs[ai]==-1:
-            res=res.sub(ai_, 1.)
+            res=res.subs(ai_, 1.)
         elif strechs[ai]==1:
             res=res.diff(ai_)
         elif strechs[ai]==2:
@@ -159,7 +159,7 @@ def save(name, graph, model, overwrite=True):
         for _expr in utils.series_lst(expr, e,  model.target - graph.NLoops()):
             integrand=subs_vars(_expr)
             integrand+= "\nf[0]=1.0e-38;\n"
-            integrand+= "f[0]+=factor*%s;\n"%( sympy.printing.ccode(_expr*graph.sym_coef()))
+            integrand+= "f[0]+=factor*(%s);\n"%( sympy.printing.ccode(_expr*graph.sym_coef()))
             f=open('%s/%s_E%s_%s.c'%(dirname,name,eps_cnt,cnt),'w')
             f.write(calculate.core_pv_code(integrand))
             f.close()

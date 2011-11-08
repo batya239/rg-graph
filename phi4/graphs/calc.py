@@ -30,7 +30,7 @@ g1=Graph(sys.argv[1])
 name=str(g1.GenerateNickel())
 
 
-(res,err) = execute(name, phi4, points=int(sys.argv[2]), neps=phi4.target-g1.NLoops())
+(res,err) = execute(name, phi4, points=int(sys.argv[2]), neps=phi4.target-g1.NLoops(), threads=4)
 for i in range(len(res)):
     print i, (res[i],err[i])
 if 'normalize' in dir():

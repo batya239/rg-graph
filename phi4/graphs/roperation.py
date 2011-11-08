@@ -336,12 +336,16 @@ def feynman_qi_lambda(graph):
     qi2line={}
     
     for line in graph.xInternalLines():
-        if line.momenta    not in qi.keys():
-            qi[line.momenta]=1
-            qi2line[line.momenta]=[line]
-        else:
+        if line.momenta   in qi.keys():
             qi[line.momenta]+=1
             qi2line[line.momenta].append(line)
+        elif (-line.momenta) in qi.keys():
+            qi[-line.momenta]+=1
+            qi2line[-line.momenta].append(line)            
+        else:
+            qi[line.momenta]=1
+            qi2line[line.momenta]=[line]
+            
     return (qi, qi2line)
 
 def feynman_B(qi, order=None):
