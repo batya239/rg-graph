@@ -34,4 +34,4 @@ name=str(g1.GenerateNickel())
 for i in range(len(res)):
     print i, (res[i],err[i])
 if 'normalize' in dir():
-    print normalize(g1, res)
+    print normalize(g1, (res, err))

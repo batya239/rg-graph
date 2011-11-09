@@ -18,7 +18,6 @@ def Prepare(graph):
     (graph._qi, graph._qi2line)=feynman_qi_lambda(graph)
     B=feynman_B(graph._qi)
     (c,b,v)=decompose_B(B)
-    
     #t=time.time()    
     #det=v.det()
     #print time.time()-t
@@ -26,7 +25,10 @@ def Prepare(graph):
     det=utils.det(v)
     print "det calculation time: ", time.time()-t
     t=time.time()
-    Cdet=((b.transpose()*v.adjugate()*b)[0] -c*det).expand()
+    if v.shape==(1, 1):
+        Cdet=(((b.transpose()*v.inverse_GE()*b)[0] -c*det)*det).expand()
+    else:
+        Cdet=((b.transpose()*v.adjugate()*b)[0] -c*det).expand()
     print "cdet calculation time: ", time.time()-t
 
     graph._det_f=SubsSquaresStrechs(det)
@@ -186,14 +188,18 @@ def execute(name, model, points=10000, threads=2, calc_delta=0., neps=0):
     return calculate.execute("%s/feynman"%name, model, points=points, threads=threads, calc_delta=calc_delta, neps=neps)
     
 def normalize(graph, result):
+    (res_, err_)=result
     n=graph.NLoops()
     e=sympy.var('e')
     res=0.
+    err=0.
     
-    for i in range(len(result)):
-        res+=e**i*result[i]
+    for i in range(len(res_)):
+        res+=e**i*res_[i]
+        err+=e**i*abs(err_[i])
     res=res*sympy.special.gamma_functions.gamma(1+n*e/2.)*sympy.special.gamma_functions.gamma(2-e/2.)**n/2**n
+    err=err*sympy.special.gamma_functions.gamma(1+n*e/2.)*sympy.special.gamma_functions.gamma(2-e/2.)**n/2**n
     
-    return [float(i) for i in utils.series_lst(res, e,  len(result)-1)]
+    return ([float(i) for i in utils.series_lst(res, e,  len(res_)-1)], [float(i) for i in utils.series_lst(err, e,  len(res_)-1)])
     
  
