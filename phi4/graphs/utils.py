@@ -4,11 +4,29 @@
 import time                                                
 import re as regex
 import sympy
+import copy
 from graphs import Graph
 
 def S(d):
     return d*sympy.pi**(d/2.)/sympy.special.gamma_functions.gamma(d/2.+1)
 
+def det(matrix):
+    _matrix=matrix.clone()
+    var_lst=[]
+    for i in range(_matrix.shape[0]):
+        for j in range(_matrix.shape[1]):
+            if matrix[i, j]<>0:
+                var=sympy.var('matr_%s_%s'%(i, j))
+                _matrix[i, j]=var
+                var_lst.append((var, (i, j)))
+    det1=_matrix.det()
+    for item in var_lst:
+        (var, (i, j) )=item
+        det1=det1.subs(var, matrix[i, j])
+        
+    return det1.expand()
+    
+    
 
 def series_lst(expr, var, n):
     """ f_0+var*f_1+...+var^n*f_n

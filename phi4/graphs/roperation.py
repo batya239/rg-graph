@@ -356,9 +356,9 @@ def feynman_B(qi, order=None):
     else:
         order_=order
     print "qi.keys()=", qi.keys()
-    print type(qi.keys()[0]),  dir(qi.keys()[0])
-    print order_
-    print 
+#    print type(qi.keys()[0]),  dir(qi.keys()[0])
+#    print order_
+#    print 
     for i in order_:
         q=qi.keys()[i]
         print q, 

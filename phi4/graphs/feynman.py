@@ -6,6 +6,8 @@ from sympy import Symbol
 import os
 import re as regex
 import fnmatch
+import utils
+import time
 
 
 from roperation import feynman_qi_lambda, feynman_B, decompose_B, SubsSquaresStrechs
@@ -16,8 +18,16 @@ def Prepare(graph):
     (graph._qi, graph._qi2line)=feynman_qi_lambda(graph)
     B=feynman_B(graph._qi)
     (c,b,v)=decompose_B(B)
-    det=v.det()
+    
+    #t=time.time()    
+    #det=v.det()
+    #print time.time()-t
+    t=time.time()
+    det=utils.det(v)
+    print "det calculation time: ", time.time()-t
+    t=time.time()
     Cdet=((b.transpose()*v.adjugate()*b)[0] -c*det).expand()
+    print "cdet calculation time: ", time.time()-t
 
     graph._det_f=SubsSquaresStrechs(det)
     graph._cdet=SubsSquaresStrechs(Cdet)
