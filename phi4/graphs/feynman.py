@@ -53,7 +53,7 @@ def strech_indexes(g_qi, model):
     for sub in g_qi._subgraphs:
         dim=sub.Dim(model)
         if dim<0:
-            res[sub._strechvar]=-1
+            res[sub._strechvar]=0
         elif dim==0:
             res[sub._strechvar]=1
         elif dim==2:
@@ -85,7 +85,7 @@ def feynman_term(graph, qi, model):
         
     for ai in strechs:
         ai_=sympy.var(ai)
-        if strechs[ai]==-1:
+        if strechs[ai]==0:
             res=res.subs(ai_, 1.)
         elif strechs[ai]==1:
             res=res.diff(ai_)
@@ -186,7 +186,7 @@ def compile(name,model):
 
 def execute(name, model, points=10000, threads=2, calc_delta=0., neps=0):
     return calculate.execute("%s/feynman"%name, model, points=points, threads=threads, calc_delta=calc_delta, neps=neps)
-    
+
 def normalize(graph, result):
     (res_, err_)=result
     n=graph.NLoops()
@@ -201,5 +201,9 @@ def normalize(graph, result):
     err=err*sympy.special.gamma_functions.gamma(1+n*e/2.)*sympy.special.gamma_functions.gamma(2-e/2.)**n/2**n
     
     return ([float(i) for i in utils.series_lst(res, e,  len(res_)-1)], [float(i) for i in utils.series_lst(err, e,  len(res_)-1)])
+
+def result(model, method, normalize=normalize):
+    return calculate.result(model, method, normalize=normalize)
+
     
  

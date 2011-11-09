@@ -8,8 +8,36 @@ import subprocess
 import fnmatch
 import re as regex
 import time
+from graphs import Graph
 
-
+def result(model, method,  normalize=lambda y, x:x):
+    res=dict()
+    err=dict()
+    e,g=sympy.var('e g')
+    os.chdir(model.workdir)
+    for file in os.listdir('.'): 
+        g=Graph(file)
+        nloop=g.NLoops()
+        n_ext=len(g.ExternalLines())
+        f=open("%s/%s/result"%(file, method),'r')
+        res_,err_=normalize(g, eval(f.read()))
+        f.close()
+        if n_ext not in res.keys():
+            res[n_ext]=dict()
+            err[n_ext]=dict()            
+        
+        g_res=res[n_ext]
+        g_err=err[n_ext]
+        
+    
+        if not nloop in g_res:
+            g_res[nloop]=0.
+            g_err[nloop]=0.
+        g_res[nloop]+=reduce(lambda x,y: x+y, [res_[x]*e**x for x in range(len(res_))])
+        g_err[nloop]+=reduce(lambda x,y: x+y, [err_[x]*e**x for x in range(len(err_))])
+    return (res, err)
+    
+    
 def execute(name, model, points=10000, threads=2, calc_delta=0., neps=0):
     dirname = '%s/%s/'%(model.workdir,name)
     MAXPOINTS=10**9
