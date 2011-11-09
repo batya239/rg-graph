@@ -161,6 +161,8 @@ def save(name, graph, model, overwrite=True):
                     os.remove(dirname+file)
                     
     Prepare(graph)
+    print "det(v)=", graph._det_f
+    print "det(v)*C = ", graph._cdet    
     e=sympy.var('e')
     cnt=0
     for qi in graph._qi:
