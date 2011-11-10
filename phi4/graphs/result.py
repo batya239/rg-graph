@@ -10,13 +10,13 @@ import sympy
 
 phi4=_phi4('dummy')
 
-if len(sys.argv)>2:
+if len(sys.argv)>=2:
     exec('from %s import result, normalize'%sys.argv[1])
     method=sys.argv[1]
 else:
     exec('from calculate import result')
     method=""
-    
+
 res, err=result(phi4, method)
 for G in res.keys():
     print "G%s:\n %s \n %s\n\n"%(G, res[G],  err[G])
