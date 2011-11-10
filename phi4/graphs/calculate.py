@@ -16,25 +16,34 @@ def result(model, method,  normalize=lambda y, x:x):
     e,g=sympy.var('e g')
     os.chdir(model.workdir)
     for file in os.listdir('.'): 
-        g=Graph(file)
-        nloop=g.NLoops()
-        n_ext=len(g.ExternalLines())
-        f=open("%s/%s/result"%(file, method),'r')
-        res_,err_=normalize(g, eval(f.read()))
-        f.close()
-        if n_ext not in res.keys():
-            res[n_ext]=dict()
-            err[n_ext]=dict()            
-        
-        g_res=res[n_ext]
-        g_err=err[n_ext]
-        
+        try:
+            f=open("%s/%s/result"%(file, method),'r')
+            g=Graph(file)
+            nloop=g.NLoops()
+            n_ext=len(g.ExternalLines())
     
-        if not nloop in g_res:
-            g_res[nloop]=0.
-            g_err[nloop]=0.
-        g_res[nloop]+=reduce(lambda x,y: x+y, [res_[x]*e**x for x in range(len(res_))])
-        g_err[nloop]+=reduce(lambda x,y: x+y, [err_[x]*e**x for x in range(len(err_))])
+            answ=eval(f.read())
+            print file
+            print answ
+            res_,err_=normalize(g, answ)
+            print res_, err_
+            print
+            f.close()
+            if n_ext not in res.keys():
+                res[n_ext]=dict()
+                err[n_ext]=dict()            
+            
+            g_res=res[n_ext]
+            g_err=err[n_ext]
+            
+        
+            if not nloop in g_res:
+                g_res[nloop]=0.
+                g_err[nloop]=0.
+            g_res[nloop]+=reduce(lambda x,y: x+y, [res_[x]*e**x for x in range(len(res_))])
+            g_err[nloop]+=reduce(lambda x,y: x+y, [err_[x]*e**x for x in range(len(err_))])
+        except:
+            pass
     return (res, err)
     
     
