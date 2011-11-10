@@ -246,6 +246,24 @@ def timeit(method):
 
     return timed
 
+def normalize_variable_name(var, symbol):
+    """ for C_a5_a0_a2 normalized var name is C_a0_a2_a5
+        indices are sorted in alphabetical order
+    """
+    s_var=str(var)
+    s_symbol=str(symbol)
+    t_list=s_var.split("_")
+    ind_list=t_list[1:]
+    ind_list.append(s_symbol)
+    ind_list.sort()
+    if len(ind_list)==1:
+        res=t_list[0]+"_%s"%ind_list[0]
+    else:
+        res=t_list[0]+"_%s"%reduce(lambda x, y:"%s_%s"%(x, y),  ind_list)
+    return sympy.var(res)
+    
+    
+
 def diff(expr, symbol, exclude=list()):
     """ Perform differentiation of sympy expression expr by sympy variable symbol.
         exclude - list of patterns (regex) of symbols that does not depend on symbol. (i.e. diff(..)=0 )
@@ -273,7 +291,7 @@ def diff(expr, symbol, exclude=list()):
         if expr == symbol:
             return sympy.Number(1)
         elif ([regex.match(i,str(expr))<>None for i in exclude]).count(True)==0:
-            return sympy.var('%s_%s'%(expr,symbol))
+            return normalize_variable_name(expr,symbol)
         else:
             return 0
     elif isinstance(expr,sympy.Number):
