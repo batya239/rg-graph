@@ -88,7 +88,7 @@ class _phi4(_generic_model):
         self.checktadpoles=True
         self.reduce=True
         self.subgraphs2reduce=['e111-e-','ee11-ee-']
-        self.target=4
+        self.target=5
         self.workdir='/home/mkompan/work/rg-graph/phi_4/'
 
     def propagator(self, line):
