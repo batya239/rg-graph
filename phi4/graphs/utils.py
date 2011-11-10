@@ -246,3 +246,38 @@ def timeit(method):
 
     return timed
 
+def diff(expr, symbol, exclude=list()):
+    """ Perform differentiation of sympy expression expr by sympy variable symbol.
+        exclude - list of patterns (regex) of symbols that does not depend on symbol. (i.e. diff(..)=0 )
+    """
+    
+    if isinstance(expr, sympy.Mul):
+        res=0.
+        for arg in expr.args:
+            res_=diff(arg,symbol,exclude=exclude)
+            for arg2 in expr.args:
+                if arg<>arg2:
+                    res_=res_*arg2
+            res+=res_
+        return res
+    elif isinstance(expr, sympy.Pow):
+        a,b=expr.args
+        return a**b*(diff(b,symbol,exclude=exclude)*sympy.log(a)+diff(a,symbol,exclude=exclude)*b/a)
+
+    elif isinstance(expr, sympy.Add):
+        res=0.
+        for arg in expr.args:
+            res+=diff(arg,symbol,exclude=exclude)
+        return res
+    elif isinstance(expr,sympy.Symbol):
+        if expr == symbol:
+            return sympy.Number(1)
+        elif ([regex.match(i,str(expr))<>None for i in exclude]).count(True)==0:
+            return sympy.var('%s_%s'%(expr,symbol))
+        else:
+            return 0
+    elif isinstance(expr,sympy.Number):
+        return 0
+    else:
+        raise TypeError, "type: %s, %s"%(type(expr),expr)
+
