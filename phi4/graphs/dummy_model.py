@@ -136,9 +136,9 @@ class _phi4(_generic_model):
                         1./(1.-u*t)**(1.-e/2.)*( helper1(k2,B2,e))/(t+1./2.*(1.-u*t)*(1.-u/2.))**(2.-e/2.) ))
 #                print "NOT TAU"
             else:
-                res=(-1./(4.)*u**(e/2.-1.)*
+                res=-((-1./(4.)*u**(e/2.-1.)*
                         (1./(1.-u)**(1.-e/2.)*( helper2(k2,B1,e))/(1.+t/2.*(1.-u)*(1.-u*t/2.))**(2.-e/2.) + 
-                        1./(1.-u*t)**(1.-e/2.)*( helper2(k2,B2,e))/(t+1./2.*(1.-u*t)*(1.-u/2.))**(2.-e/2.) ))
+                        1./(1.-u*t)**(1.-e/2.)*( helper2(k2,B2,e))/(t+1./2.*(1.-u*t)*(1.-u/2.))**(2.-e/2.) )))
  #               print "TAU"
             return res
 #end of e111-e-
@@ -159,14 +159,14 @@ class _phi4(_generic_model):
 #                print "NOT TAU"
             else:
 #                res=-(1/2./(1+k2*u*(1-u))-e/4./(1+k2*u*(1-u))*(1+sympy.ln(1+k2*u*(1-u))))
-                res=-gammas*(1.+k2*u*(1.-u))**(-1.-0.5*e)
+                res=gammas*(1.+k2*u*(1.-u))**(-1.-0.5*e)
  #               print "TAU"
             return res
         else:
             tau=sympy.var('tau')
             res=1/(line.momenta.Squared()+tau)
             if 'tau' in line.modifiers:
-                res=res.diff(tau)
+                res=-res.diff(tau)
             return res.subs(tau,1)
 
     def toreduce(self,g):
