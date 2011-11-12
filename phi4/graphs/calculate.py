@@ -76,7 +76,7 @@ def execute(name, model, points=10000, threads=2, calc_delta=0., neps=0):
                     raise Exception,  "Failed while executing %s"%file
                 res,err=parse_output(std_out)
                 if res==None or err==None:
-                    raise ValueError, "Failed while parsing %s output:%s"%(file, stdout)
+                    raise ValueError, "Failed while parsing %s output:%s"%(file, std_out)
                 result[n]+=res
                 error[n]+=err
     time_str=time.strftime("-%Y-%m-%d-%H:%M:%S")
