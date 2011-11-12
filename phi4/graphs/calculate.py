@@ -23,11 +23,11 @@ def result(model, method,  normalize=lambda y, x:x):
             n_ext=len(g.ExternalLines())
     
             answ=eval(f.read())
-            print file
-            print answ
+#            print file
+#            print answ
             res_,err_=normalize(g, answ)
-            print res_, err_
-            print
+#            print res_, err_
+#            print
             f.close()
             if n_ext not in res.keys():
                 res[n_ext]=dict()
