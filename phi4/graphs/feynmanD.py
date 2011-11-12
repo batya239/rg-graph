@@ -131,6 +131,9 @@ def feynman_D_func(graph, model):
     cdet=graph._cdet
     
     func=dict()
+    lfactor=1.
+    for qi in graph._qi.keys():
+        lfactor=lfactor/sympy.factorial(graph._qi[qi]-1)
     
     for i in range(len(graph._qi.keys())):
         print "   term ", i
@@ -138,7 +141,7 @@ def feynman_D_func(graph, model):
         g_qi=dTau_line(graph, qi,  model)
         strechs=strech_indexes(g_qi, model)
         
-        U=sympy.Number(1.)
+        U=sympy.Number(1.)*lfactor
         
         for j in range(len(graph._qi.keys())):
             q=graph._qi.keys()[j]
