@@ -22,16 +22,20 @@ from feynman import *
 
 def symplify_expr(expr, C, D, ai_dict):
     vars=dict()
+    print "C=", C
+    print "D=", D
     vars['C']=C
     vars['D']=D
     for atom in expr.atoms(sympy.Symbol):
         satom=str(atom)
+        print satom,  satom not in vars, vars.keys()
+        var=None
         if satom not in vars:
-            var=None
             if regex.match('^C_.*', satom):
                 var=C
             elif regex.match('^D_.*', satom):
                 var=D
+        
         if var<>None:
             diffs=satom.split('_')[1:]
             
@@ -39,6 +43,7 @@ def symplify_expr(expr, C, D, ai_dict):
             for d in diffs:
                 d_=sympy.var(ai_dict[d])
                 dvar=dvar.diff(d_)
+            print satom
             vars[satom]=dvar
     res=expr
     to_remove=[]
@@ -114,67 +119,69 @@ def term_func(name, expr, subs, ai_dict, qi):
     for sub in subs:
         subs_+="double %s = %s;\n"%(sub, ccode(subs[sub]))
         
-    c_expr="double res = %s;"%ccode(expr)
+    c_expr="double res = factor*(%s);"%ccode(expr)
     res="double %s(%s)\n{\n%s\n%s\n%s\n return res;\n}\n"%(name, vars, usubs_, subs_, c_expr)
     return res
     
-def feynman_D(graph, model):
+def feynman_D_func(graph, model):
     
     det=graph._det_f
     cdet=graph._cdet
     
-    strechs_orig=strech_indexes(graph, model)
-    res, ai_dict=diff_by_strechs(graph, model)
-    (expr, vars)=symplify_expr(res, cdet, det, ai_dict)
+    func=dict()
     
-    print
-    
-    print expr
-    
-    print
-    print vars
-    print
-    
-    print term_func("func1", expr, vars, ai_dict, graph._qi)
-    
-    
-    for qi in graph._qi:
+    for i in range(len(graph._qi.keys())):
+        qi = graph._qi.keys()[i]
         g_qi=dTau_line(graph, qi,  model)
         strechs=strech_indexes(g_qi, model)
-    
-    
-        cur_u=1.
-        for i in range(len(graph._qi.keys())):
-            q=graph._qi.keys()[i]
-            ui=sympy.var('u_%s'%i)
+        
+        U=sympy.Number(1.)
+        
+        for j in range(len(graph._qi.keys())):
+            q=graph._qi.keys()[j]
+            ui=sympy.var('u_%s'%j)
             if graph._qi[q]>1:
-                cur_u=cur_u*ui**(graph._qi[q]-1)
+                U=U*ui**(graph._qi[q]-1)
             if q==qi:
-                cur_u=cur_u*ui
-            cur_u=cur_u/sympy.factorial(graph._qi[q]-1)
+                U=U*ui
         
-    for ai in strechs:
-        ai_=sympy.var(ai)
-        if strechs_orig[ai] - strechs[ai]==1 :
-            res=res*ai_
-        elif strechs_orig[ai] - strechs[ai]<>0:
-            raise ValueError,  " strech %s problem: %s %s"%(ai, strechs_orig[ai], strechs[ai])
+        A=sympy.Number(1.)
+        det_=det
+        cdet_=cdet
+        for ai in strechs:
+            ai_=sympy.var(ai)
+            if strechs[ai]==0:
+                det_=det_.subs(ai_, 1)
+                cdet_=cdet_.subs(ai_, 1)
+            elif strechs[ai]==1:
+                pass
+            elif strechs[ai]==2:
+                A=A*(1-ai_)
         
-            
-        if strechs_orig[ai]==1:
-            res=res.diff(ai_)
-        elif strechs_orig[ai]==2:
-            res=res.diff(ai_).diff(ai_)*(1-ai_)
-        else:
-            raise ValueError,  " invalid strech count %s -> %s"%(ai, strech_orig[ai])
-            
-#TODO: add gammas Gamma(1+ne/2)*Gamma(2-e/2)**n ??.
-    return res
+        print i
+        print cdet_ 
+        print det_
+        
+        res, ai_dict=diff_by_strechs(g_qi, model)
+        (expr, vars)=symplify_expr(res, cdet_, det_, ai_dict)
+        vars['U']=U*graph.sym_coef()
+        vars['A ']=A
+        eseries=[]
+        print vars
+        
+        for _expr in utils.series_lst(expr, e,  model.target-graph.NLoops()):
+            eseries.append(term_func("func%s"%i, _expr, vars, ai_dict, g_qi._qi))
+        func["func%s"%i]=eseries
+    
+    
+    return func
 
-
+def nintegrations(graph, model):
+    n=len(graph._qi)-1+len(strech_indexes(graph, model))
+    return n
         
 def save(name, graph, model, overwrite=True):
-    dirname = '%s/%s/feynmanA/'%(model.workdir,name)
+    dirname = '%s/%s/feynmanD/'%(model.workdir,name)
     try:
         os.mkdir('%s/%s/'%(model.workdir,name))
     except:
@@ -194,25 +201,45 @@ def save(name, graph, model, overwrite=True):
     e=sympy.var('e')
     cnt=0
     expr=0
-    feynman_D(graph, model)
+    func=feynman_D_func(graph, model)
+#    for f in func:
+#        for f1 in func[f]:
+#            print  f1
+#            print   
+#        print
 #    for qi in graph._qi:
 #        expr+=feynman_term(graph, qi, model)
     eps_cnt=0
-    for _expr in utils.series_lst(expr, e,  model.target - graph.NLoops()):
-        integrand=subs_vars(_expr)
-        integrand+= "\nf[0]=1.0e-38;\n"
-        integrand+= "f[0]+=factor*(%s);\n"%( sympy.printing.ccode(_expr*graph.sym_coef()))
+    integrand=dict()
+    N=nintegrations(graph, model)
+    region=("0.,"*N+"1.,"*N)[:-1]
+    args=""
+    for i in range(N):
+        args+="k[%s],"%i
+    args=args[:-1]
+    main="void func (double k[DIMENSION], double f[FUNCTIONS])\n {\nf[0]=0.;\n"
+    for f_series in func:
+        for i in range(len(func[f_series])):
+            f=func[f_series][i]
+            if i not in integrand:
+                integrand[i]="#define DIMENSION %s\n"%N+"#define FUNCTIONS 1\n"+"#define ITERATIONS 5\n" + "#define NTHREADS 2\n" +"#define NEPS 0\n"+"#define NITER 2\n" +  "double reg_initial[2*DIMENSION]={%s};\n"%region
+            integrand[i]+=f
+        main+="f[0]+=%s(%s);\n"%(f_series, args)
+    
+    for eps_cnt in integrand.keys():
+        integrand_=integrand[eps_cnt]
         f=open('%s/%s_E%s_O.c'%(dirname,name,eps_cnt),'w')
-        f.write(calculate.core_pv_code(integrand))
+        f.write(calculate.core_pv_code(integrand_+main))
         f.close()
         eps_cnt+=1
          
                     
 
 def compile(name,model):
-    calculate.compile("%s/feynmanA"%name, model)
+    calculate.compile("%s/feynmanD"%name, model)
 
 def execute(name, model, points=10000, threads=4, calc_delta=0., neps=0):
-    return calculate.execute("%s/feynmanA"%name, model, points=points, threads=threads, calc_delta=calc_delta, neps=neps)
+    return calculate.execute("%s/feynmanD"%name, model, points=points, threads=threads, calc_delta=calc_delta, neps=neps)
+
     
 
