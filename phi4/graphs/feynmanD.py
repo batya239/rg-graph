@@ -22,13 +22,13 @@ from feynman import *
 
 def symplify_expr(expr, C, D, ai_dict):
     vars=dict()
-    print "C=", C
-    print "D=", D
+#    print "C=", C
+#    print "D=", D
     vars['C']=C
     vars['D']=D
     for atom in expr.atoms(sympy.Symbol):
         satom=str(atom)
-        print satom,  satom not in vars, vars.keys()
+#           print satom,  satom not in vars, vars.keys()
         var=None
         if satom not in vars:
             if regex.match('^C_.*', satom):
@@ -43,7 +43,7 @@ def symplify_expr(expr, C, D, ai_dict):
             for d in diffs:
                 d_=sympy.var(ai_dict[d])
                 dvar=dvar.diff(d_)
-            print satom
+#            print satom
             vars[satom]=dvar
     res=expr
     to_remove=[]
@@ -68,16 +68,18 @@ def diff_by_strechs(graph, model):
     for ai in strechs_orig:        
         ai__=sympy.var('a%s'%strechs_orig.keys().index(ai))
         ai_dict[str(ai__)]=str(ai)
-        if strechs_orig[ai]==1:
+        if strechs_orig[ai]==0:
+            pass
+        elif strechs_orig[ai]==1:            
             res=diff(res, ai__, exclude=['^e$', '^A.*', '^U.*'])
         elif strechs_orig[ai]==2:
             res=diff(diff(res, ai__, exclude=['^e$', '^A.*', '^U.*']), ai__, exclude=['^e$', '^A.*', '^U.*'])
         else:
-            raise ValueError,  " invalid strech count %s -> %s"%(ai, strech_orig[ai])
+            raise ValueError,  " invalid strech count %s -> %s"%(ai, strechs_orig[ai])
     print t-time.time()
     print
-    print res
-    print
+#    print res
+#    print
 
     return res, ai_dict
 
@@ -131,6 +133,7 @@ def feynman_D_func(graph, model):
     func=dict()
     
     for i in range(len(graph._qi.keys())):
+        print "   term ", i
         qi = graph._qi.keys()[i]
         g_qi=dTau_line(graph, qi,  model)
         strechs=strech_indexes(g_qi, model)
@@ -158,16 +161,16 @@ def feynman_D_func(graph, model):
             elif strechs[ai]==2:
                 A=A*(1-ai_)
         
-        print i
-        print cdet_ 
-        print det_
+
+#        print cdet_ 
+#        print det_
         
         res, ai_dict=diff_by_strechs(g_qi, model)
         (expr, vars)=symplify_expr(res, cdet_, det_, ai_dict)
         vars['U']=U*graph.sym_coef()
         vars['A ']=A
         eseries=[]
-        print vars
+#        print vars
         
         for _expr in utils.series_lst(expr, e,  model.target-graph.NLoops()):
             eseries.append(term_func("func%s"%i, _expr, vars, ai_dict, g_qi._qi))
