@@ -342,6 +342,21 @@ def SetChainMoments(chain,moments,moment):
 #    print moments
 #    print "-------------------"
 
+def CheckKirghoff(loops):
+    for i in range(1, len(loops)):
+        for c in comb.xUniqueCombinations(range(len(loops)), i):
+            lines=set()
+            for j in c:
+                lines=lines|set(loops[j])
+            
+            for j in range(len(loops)):
+                if j not in c:
+                    if set(loops[j])&lines==set(loops[j]):
+                        return False
+                        
+    return True
+
+
 def CheckLoopAndPath(loop,path,graph):
     lines=set()
     for l in loop:
@@ -396,24 +411,27 @@ def xLoopMoments(graph):
 #            print l,p
             moment=dict()
 #            primitives=dict()
-            
+#            print CheckKirghoff(l)
 #            print CheckLoopAndPath(l,p,graph)
             if not CheckLoopAndPath(l,p,graph):
                 lcnt+=1
                 yield None
             else:
-                cnt=0
-                for path in p:
-                    curMoment=Momenta(string="p%s"%cnt)
-                    SetChainMoments(path, moment, curMoment)
-                    cnt+=1
-                cnt=0
-                for loop in l:
-                    curMoment=Momenta(string="q%s"%cnt)
-                    SetChainMoments(loop, moment, curMoment)
-                    cnt+=1
-                lcnt+=1
-                yield moment
+                if not CheckKirghoff(l):
+                    yield None
+                else:
+                    cnt=0
+                    for path in p:
+                        curMoment=Momenta(string="p%s"%cnt)
+                        SetChainMoments(path, moment, curMoment)
+                        cnt+=1
+                    cnt=0
+                    for loop in l:
+                        curMoment=Momenta(string="q%s"%cnt)
+                        SetChainMoments(loop, moment, curMoment)
+                        cnt+=1
+                    lcnt+=1
+                    yield moment
 
         pcnt+=1
 
