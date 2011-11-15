@@ -8,13 +8,35 @@ import re as regex
 import fnmatch
 import utils
 import time
+import subgraphs
+import moments
 
 
-from roperation import feynman_qi_lambda, feynman_B, decompose_B, SubsSquaresStrechs
+from roperation import feynman_qi_lambda, feynman_B, decompose_B, SubsSquaresStrechs,  strechMoments
 import calculate
 import utils
 
-def Prepare(graph):
+def Prepare(graph, model):
+    model.SetTypes(graph)
+
+    model.checktadpoles=False
+    
+    graph.FindSubgraphs(model)
+
+    subs_toremove=subgraphs.DetectSauseges(graph._subgraphs)
+    graph.RemoveSubgaphs(subs_toremove)
+
+    subgraphs.RemoveTadpoles(graph)
+    
+
+    print "moment index: ", moments.Generic(model, graph, level=10**6)
+
+    utils.print_moments(graph._moments())
+    print "subgraphs: ",graph._subgraphs
+
+    strechMoments(graph, model, external_strech=False)
+    
+    
     (graph._qi, graph._qi2line)=feynman_qi_lambda(graph)
     B=feynman_B(graph._qi)
     (c,b,v)=decompose_B(B)
@@ -162,7 +184,7 @@ def save(name, graph, model, overwrite=True):
                 if fnmatch.fnmatch(file,"*.c") or fnmatch.fnmatch(file,"*.run"):
                     os.remove(dirname+file)
                     
-    Prepare(graph)
+    Prepare(graph, model)
     print "det(v)=", graph._det_f
     print "det(v)*C = ", graph._cdet    
     e=sympy.var('e')

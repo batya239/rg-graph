@@ -18,7 +18,11 @@ def print_moments(_moments):
 
 phi4=_phi4('dummy')
 if len(sys.argv)>3:
-    exec('from %s import execute, normalize'%sys.argv[3])
+    exec('from %s import execute'%sys.argv[3])
+    try:
+        exec('from %s normalize'%sys.argv[3])
+    except:
+        pass
 else:
     exec('from calculate import execute')
     

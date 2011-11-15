@@ -6,9 +6,17 @@ import re as regex
 import sympy
 import copy
 from graphs import Graph
+from lines import Line
 
 def S(d):
     return d*sympy.pi**(d/2.)/sympy.special.gamma_functions.gamma(d/2.+1)
+
+def print_moments(_moments):
+    if isinstance(_moments.keys()[0],Line):
+        print dict([(x.idx(),_moments[x]._string) for x in _moments])
+    else:
+        print dict([(x,_moments[x]._string) for x in _moments])
+
 
 def det(matrix):
     _matrix=matrix.clone()
