@@ -11,7 +11,8 @@ phi4=_phi4('dummy')
 if len(sys.argv)==3:
     exec('from %s import save, compile, execute'%sys.argv[2])
 else:
-    exec('from feynman import save,compile, execute')
+    print "provide method"
+    sys.exit(1)
 
 g1=Graph(sys.argv[1])
 name=str(g1.GenerateNickel())
