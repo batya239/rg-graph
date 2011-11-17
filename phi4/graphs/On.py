@@ -33,8 +33,43 @@ def On(graph):
     for line in graph.ExternalLines():
         phi=sympy.var('phi_%s'%line.idx())
         res=res*phi
-    return utils.kronecker.contract(res)*factor
+#    return utils.kronecker.contract(res)*factor
+    return utils.kronecker.contract(res)
             
+
+
+def reduce_to_r(expr):
+    r=sympy.var('n,r1 r2 r3 r4 r5 r6 r7')
+    n=r[0]
+    r_map={n+2              :   r[1]*3,  
+       n+8              :   r[2]*9,
+       5*n+22           :   r[3]*27, 
+       n*n+6*n+20       :   r[4]*27, 
+       3*n*n+22*n+56    :   r[5]*81, 
+       n*n+20*n+60      :   r[6]*81, 
+       n*n*n+8*n*n+24*n+48: r[7]*81
+       }
+    res=expr
+    if isinstance(expr, sympy.Mul):
+        res=sympy.Number(1)
+        for arg in expr.args:
+            if isinstance(arg, sympy.Add):
+                if arg in r_map.keys():
+                    res=res*r_map[arg]
+                else:
+                    res=res*arg
+            else:
+                res=res*reduce_to_r(arg)
+    elif isinstance(expr, sympy.Pow):
+        arg1, arg2=expr.args
+        res=reduce_to_r(arg1)**arg2
+    elif isinstance(expr, sympy.Add):
+        if expr in r_map.keys():
+            return r_map[expr]
+        else:
+            return expr
+    return res
+        
 
 
 phi4 = _phi4('dummy')
@@ -47,5 +82,7 @@ O = On(g1)
 O1=sympy.factor(O)
 print O1
 phi__=sympy.var('phi')
-print sympy.factor(O1.subs(phi__, 1))
+O2=sympy.factor(O1.subs(phi__, 1))
 
+#print O2,  type(O2), O2.args    
+print reduce_to_r(O2)
