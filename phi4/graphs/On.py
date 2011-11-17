@@ -30,6 +30,9 @@ def On(graph):
     for node in graph.xInternalNodes():
         res=res*vertex_strucutre([i.idx() for i in node.Lines()])
         factor=factor/3
+    for line in graph.ExternalLines():
+        phi=sympy.var('phi_%s'%line.idx())
+        res=res*phi
     return utils.kronecker.contract(res)*factor
             
 
@@ -37,9 +40,12 @@ def On(graph):
 phi4 = _phi4('dummy')
 g1 = Graph(sys.argv[1])
 O = On(g1)
-print O
-print
+#print O
+#print
 #print sympy.simplify(O)
-print
-print sympy.factor(O)
+#print
+O1=sympy.factor(O)
+print O1
+phi__=sympy.var('phi')
+print sympy.factor(O1.subs(phi__, 1))
 

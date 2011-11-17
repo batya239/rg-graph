@@ -67,7 +67,7 @@ def contract_monom(s_list):
     for s in s_list:
         s_parsed.append(parse(s))
     res_list=copy.copy(s_list)
-    
+#    print s_parsed
     c_idx=count_idx(s_parsed)
     for idx in c_idx.keys():
         if c_idx[idx]<>2:
@@ -87,8 +87,18 @@ def contract_monom(s_list):
                 name1, tuple1 =s_parsed[idx1]
                 name2, tuple2 =s_parsed[idx2]
                 tuple2_=substitute_idx(tuple1, tuple2, idx)
+#                print res_list, idx1, idx2,  name1, name2
+
                 res_list[idx2]=restore((name2, tuple2_))
                 res_list.remove(res_list[idx1])
+                res_list=contract_monom(res_list)
+                break
+            elif len(to_contract)==2 and (s_parsed[to_contract[0]][0]=='phi' and s_parsed[to_contract[1]][0]=='phi'):
+                idx1, idx2=to_contract
+                name1, tuple1 =s_parsed[idx1]
+                name2, tuple2 =s_parsed[idx2]
+                res_list[idx2]=name2
+                res_list[idx1]=name1
                 res_list=contract_monom(res_list)
                 break
     return res_list
