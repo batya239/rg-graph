@@ -17,7 +17,12 @@ def restore(parsed):
     string (not sympy.Symbol)
     """
     res=parsed[0]
-    for idx in parsed[1]:
+    if parsed[0]=='d':
+        t_lst=sorted(parsed[1])
+    else:
+        t_lst=parsed[1]
+        
+    for idx in t_lst:
         res="%s_%s"%(res, idx)
     return res
 
