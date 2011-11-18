@@ -3,6 +3,7 @@
 
 import copy
 import sympy    
+import pydot
 
 import nickel
 
@@ -246,4 +247,34 @@ class Graph:
     
             g.Clean()
             return g
-        
+    
+    def Cluster(self):
+        def prepare(graph):
+            name=str(graph.GenerateNickel())
+            lines=[]
+            nodes=dict()
+            ext_cnt=0
+            for line in graph._lines:
+                nodes_ = line.start, line.end
+                nodes__=list()
+                for node in nodes_:
+                    if node.isInternal():
+                        nodes__.append(("%s_%s"%(name, node.idx()), "%s"%node.idx()))
+                    else:
+                        nodes__.append(("%s_%s_%s"%(name, node.idx(), ext_cnt), "ext"))
+                        ext_cnt+=1
+                    if nodes__[-1][0] not in nodes.keys():
+                        nodes[nodes__[-1][0]]=nodes__[-1][1]
+                lines.append([n[0] for n in nodes__])
+            return nodes, lines
+
+        name=str(self.GenerateNickel())
+        nodes, lines=prepare(self)
+        cluster=pydot.Cluster(name.replace("-", "_"),  label=name)
+
+        for node in nodes:
+            cluster.add_node(pydot.Node(node,  label=nodes[node]))
+
+        for line in lines:
+            cluster.add_edge(pydot.Edge(line[0], line[1]))        
+        return cluster
