@@ -9,19 +9,31 @@ import sympy
 from dummy_model import _phi4
 import utils
 
-phi4=_phi4('dummy')
+def result_by_method(model,  method=""):
+    if len(method)<>0:
+        exec('from %s import result, normalize'%method)
+    else:
+        exec('from calculate import result')
 
+    return result(phi4, method)
+
+def solve_linear(expr, var):
+    a=expr.diff(var)
+    b=expr.subs(var, 0)
+    return -b/a
+    
+    
+
+phi4=_phi4('dummy')
 if len(sys.argv)>=2:
-    exec('from %s import result, normalize'%sys.argv[1])
     method=sys.argv[1]
 else:
-    exec('from calculate import result')
     method=""
 
-resG, err=result(phi4, method)
+resG, err=result_by_method(phi4, method)
 for G in resG.keys():
     print "G%s:\n %s \n %s\n\n"%(G, resG[G],  err[G])
-
+    
 g, n, e = sympy.var('g n e')
 A=sympy.var('A0 A1 A2 A3 A4 A5 A6 A7')
 B=sympy.var('B0 B1 B2 B3 B4 B5 B6 B7')
@@ -57,11 +69,9 @@ for i in range(N+1):
     subs[B[i]]=subs_b
     
 subs_g=0
-tofind=[]
 for i in range(1, N+1):
     varg=sympy.var('g_%s'%i)
     subs_g+=varg*e**i
-    tofind.append(varg)
 subs[g]=subs_g
 
 zeros=[]
@@ -70,12 +80,7 @@ for var in subs:
     gGs=gGs.subs(var, subs[var])
 gGs_e=utils.series_lst(gGs+e, e, N)
 
-def solve_linear(expr, var):
-    a=expr.diff(var)
-    b=expr.subs(var, 0)
-    return -b/a
 
-#print gGs_e
 print
 subs_=dict()
 gZ=subs[g]
@@ -84,21 +89,20 @@ for i in range(1, N+1):
     eq=gGs_e[i]
     for sub in subs_:
         eq=eq.subs(sub, subs_[sub])
-#    print eq.expand()
+
     res=sympy.factor(solve_linear(eq.expand(), gvar))
-#    print gvar, res
+
     subs_[gvar]=res
 for sub in subs_:
     gZ=gZ.subs(sub, subs_[sub])   
-#print
-#print gZ
+
 
 eta=g2s.subs(g, gZ)
 for var in subs:
     eta=eta.subs(var, subs[var])
 eta_e=utils.series_f(eta, e, N)
 print 
-#print "eta=" , eta_e
+
     
 for i in range(2, N+1):
     bi=utils.series_lst(resG[2][i], e, N-i)
@@ -113,10 +117,7 @@ print utils.series_f(eta, e, N)
 
 beta=-g*(e+g4s-2*g2s)
 w=beta.diff(g)
-print
-#print w
-#print
-#print gZ
+
 print
 w_=w.subs(g, gZ)
 for var in subs:
