@@ -10,10 +10,10 @@ import re as regex
 import time
 from graphs import Graph
 
-def result(model, method,  normalize=lambda y, x:x):
+def result(model, method,  normalize=lambda y, x:x, struct=None):
     res=dict()
     err=dict()
-    e,g=sympy.var('e g')
+    e=sympy.var('e')
     os.chdir(model.workdir)
     for file in os.listdir('.'): 
         try:
@@ -23,16 +23,14 @@ def result(model, method,  normalize=lambda y, x:x):
             n_ext=len(g.ExternalLines())
     
             answ=eval(f.read())
-#            print file
-#            print answ
+
             res_,err_=normalize(g, answ)
-#            print res_, err_
-#            print
+
             f.close()
             if n_ext not in res.keys():
                 res[n_ext]=dict()
                 err[n_ext]=dict()            
-            
+                
             g_res=res[n_ext]
             g_err=err[n_ext]
             
@@ -40,9 +38,15 @@ def result(model, method,  normalize=lambda y, x:x):
             if not nloop in g_res:
                 g_res[nloop]=0.
                 g_err[nloop]=0.
-            g_res[nloop]+=reduce(lambda x,y: x+y, [res_[x]*e**x for x in range(len(res_))])
-            g_err[nloop]+=reduce(lambda x,y: x+y, [err_[x]*e**x for x in range(len(err_))])
-        except:
+
+            if struct<>None:
+                struct_=struct[file]
+            else:
+                struct_=1
+
+            g_res[nloop]+=reduce(lambda x,y: x+y, [res_[x]*e**x for x in range(len(res_))])*struct_
+            g_err[nloop]+=reduce(lambda x,y: x+y, [err_[x]*e**x for x in range(len(err_))])*struct_
+        except IOError:
             pass
     return (res, err)
     

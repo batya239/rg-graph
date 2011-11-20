@@ -9,20 +9,31 @@ import sympy
 from dummy_model import _phi4
 import utils
 
-def result_by_method(model,  method=""):
+def result_by_method(model,  method="",  struct=None):
     if len(method)<>0:
         exec('from %s import result, normalize'%method)
     else:
         exec('from calculate import result')
 
-    return result(phi4, method)
+    return result(phi4, method, struct=struct)
 
 def solve_linear(expr, var):
     a=expr.diff(var)
     b=expr.subs(var, 0)
     return -b/a
     
+def load_structures(fname,  struct=dict()):
+    import copy
+    res=copy.copy(struct)
+    for i in range(1, 93):
+        sympy.var('r%s'%i)
+    for line in open(fname).readlines():
+        struct_, diag=tuple(line.split(" "))
+        res[diag[:-1]]=eval(struct_)
+    return res
     
+
+
 
 phi4=_phi4('dummy')
 if len(sys.argv)>=2:
@@ -30,15 +41,24 @@ if len(sys.argv)>=2:
 else:
     method=""
 
-resG, err=result_by_method(phi4, method)
+if len(sys.argv)==4:
+    struct=load_structures(sys.argv[2])
+    struct=load_structures(sys.argv[3], struct=struct)
+else:
+    struct=None
+
+
+resG, err=result_by_method(phi4, method, struct=struct)
 for G in resG.keys():
     print "G%s:\n %s \n %s\n\n"%(G, resG[G],  err[G])
-    
+
+#sys.exit()
+
 g, n, e = sympy.var('g n e')
 A=sympy.var('A0 A1 A2 A3 A4 A5 A6 A7')
 B=sympy.var('B0 B1 B2 B3 B4 B5 B6 B7')
 N=phi4.target
-#N=2
+N=3
 f2=0
 for i in range(2, N+1):
     f2=f2+B[i]*g**i

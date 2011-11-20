@@ -224,8 +224,8 @@ def normalize(graph, result):
     
     return ([float(i) for i in utils.series_lst(res, e,  len(res_)-1)], [float(i) for i in utils.series_lst(err, e,  len(res_)-1)])
 
-def result(model, method, normalize=normalize):
-    return calculate.result(model, method, normalize=normalize)
+def result(model, method, **kwargs):
+    return calculate.result(model, method, **kwargs)
 
     
  
