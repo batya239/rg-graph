@@ -20,14 +20,13 @@ else:
 
 resG, err=result(phi4, method)
 for G in resG.keys():
-    print type(G)
     print "G%s:\n %s \n %s\n\n"%(G, resG[G],  err[G])
 
 g, n, e = sympy.var('g n e')
 A=sympy.var('A0 A1 A2 A3 A4 A5 A6 A7')
 B=sympy.var('B0 B1 B2 B3 B4 B5 B6 B7')
 N=phi4.target
-#N=3
+#N=2
 f2=0
 for i in range(2, N+1):
     f2=f2+B[i]*g**i
@@ -40,8 +39,8 @@ gam4=2*f4/(1+f2)
 
 g2s=utils.series_f(gam2, g, N)
 g4s=utils.series_f(gam4, g, N)
-print g2s
-print g4s
+#print g2s
+#print g4s
 
 subs=dict()
 for i in range(N+1):
@@ -76,7 +75,7 @@ def solve_linear(expr, var):
     b=expr.subs(var, 0)
     return -b/a
 
-print gGs_e
+#print gGs_e
 print
 subs_=dict()
 gZ=subs[g]
@@ -99,18 +98,37 @@ for var in subs:
     eta=eta.subs(var, subs[var])
 eta_e=utils.series_f(eta, e, N)
 print 
-print "eta=" , eta_e
+#print "eta=" , eta_e
     
 for i in range(2, N+1):
     bi=utils.series_lst(resG[2][i], e, N-i)
-    print bi
     for j in range(N+1-i):
         eta=eta.subs(sympy.var('B%s_%s'%(i, j)), (-1)**(i+1)*bi[j])
         
 for i in range(1, N+1):
     ai=utils.series_lst(resG[4][i], e, N-i)
-    print ai
     for j in range(N+1-i):
-        print i, j
         eta=eta.subs(sympy.var('A%s_%s'%(i, j)), (-1)**(i)*ai[j])
 print utils.series_f(eta, e, N)
+
+beta=-g*(e+g4s-2*g2s)
+w=beta.diff(g)
+print
+#print w
+#print
+#print gZ
+print
+w_=w.subs(g, gZ)
+for var in subs:
+    w_=w_.subs(var, subs[var])
+w_e=utils.series_f(w_, e, N)
+for i in range(2, N+1):
+    bi=utils.series_lst(resG[2][i], e, N-i)
+    for j in range(N+1-i):
+        w_e=w_e.subs(sympy.var('B%s_%s'%(i, j)), (-1)**(i+1)*bi[j])
+        
+for i in range(1, N+1):
+    ai=utils.series_lst(resG[4][i], e, N-i)
+    for j in range(N+1-i):
+        w_e=w_e.subs(sympy.var('A%s_%s'%(i, j)), (-1)**(i)*ai[j])
+print utils.series_f(w_e, e, N)
