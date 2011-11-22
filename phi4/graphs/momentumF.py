@@ -32,7 +32,11 @@ def Prepare(graph, model):
 
 
 def save(name, graph, model, overwrite=True):
-    dirname = '%s/graph/%s/momentumF/'%(model.workdir,name)
+    dirname = '%s/momentumF/%s/'%(model.workdir,name)
+    try:
+        os.mkdir('%s/momentumF'%model.workdir)
+    except:
+        pass
     try:
         os.mkdir(dirname)
     except:
@@ -76,10 +80,10 @@ def save(name, graph, model, overwrite=True):
         cnt+=1  
         
 def compile(name,model):
-    calculate.compile("%s/momentumF"%name, model)
+    calculate.compile("momentumF/%s/"%name, model)
 
 def execute(name, model, points=10000, threads=2, calc_delta=0., neps=0):
-    return calculate.execute("%s/momentumF"%name, model, points=points, threads=threads, calc_delta=calc_delta, neps=neps)        
+    return calculate.execute("momentumF/%s/"%name, model, points=points, threads=threads, calc_delta=calc_delta, neps=neps)        
     
 def result(model, method):
     return calculate.result(model, method)

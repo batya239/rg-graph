@@ -171,9 +171,9 @@ def subs_vars(expr):
         
         
 def save(name, graph, model, overwrite=True):
-    dirname = '%s/graph/%s/feynman/'%(model.workdir,name)
+    dirname = '%s/feynman/%s/'%(model.workdir,name)
     try:
-        os.mkdir(dirname)
+        os.mkdir('%s/feynman'%model.workdir)
     except:
         pass
     try:
@@ -205,10 +205,10 @@ def save(name, graph, model, overwrite=True):
                     
 
 def compile(name,model):
-    calculate.compile("%s/feynman"%name, model)
+    calculate.compile("feynman/%s"%name, model)
 
 def execute(name, model, points=10000, threads=2, calc_delta=0., neps=0):
-    return calculate.execute("%s/feynman"%name, model, points=points, threads=threads, calc_delta=calc_delta, neps=neps)
+    return calculate.execute("feynman/%s"%name, model, points=points, threads=threads, calc_delta=calc_delta, neps=neps)
 
 def normalize(graph, result):
     (res_, err_)=result

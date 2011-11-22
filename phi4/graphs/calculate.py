@@ -14,10 +14,10 @@ def result(model, method,  normalize=lambda y, x:x, struct=None):
     res=dict()
     err=dict()
     e=sympy.var('e')
-    os.chdir(model.workdir+'/graph/')
+    os.chdir(model.workdir+"/%s/"%method)
     for file in os.listdir('.'): 
         try:
-            f=open("%s/%s/result"%(file, method),'r')
+            f=open("%s/result"%(file),'r')
             g=Graph(file)
             nloop=g.NLoops()
             n_ext=len(g.ExternalLines())
@@ -52,7 +52,7 @@ def result(model, method,  normalize=lambda y, x:x, struct=None):
     
     
 def execute(name, model, points=10000, threads=2, calc_delta=0., neps=0):
-    dirname = '%s/graph/%s/'%(model.workdir,name)
+    dirname = '%s/%s/'%(model.workdir,name)
     MAXPOINTS=10**9
     if points >= MAXPOINTS:
         iterations = 2*int(points/MAXPOINTS)
@@ -114,7 +114,7 @@ def parse_output(stdout):
     return (res, err)
 
 def compile(name,model):
-    dirname = '%s/graph/%s/'%(model.workdir,name)
+    dirname = '%s/%s/'%(model.workdir,name)
     os.chdir(dirname)
     for file in os.listdir("."):
         if fnmatch.fnmatch(file,"*.c"):
@@ -144,7 +144,7 @@ def compile(name,model):
 
 
 def save(name, graph, model, overwrite=True):
-    dirname = '%s/graph/%s/'%(model.workdir,name)
+    dirname = '%s/%s/'%(model.workdir,name)
     try:
         os.mkdir(dirname)
     except:

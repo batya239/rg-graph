@@ -187,9 +187,9 @@ def nintegrations(graph, model):
     return n
         
 def save(name, graph, model, overwrite=True):
-    dirname = '%s/graph/%s/feynmanD/'%(model.workdir,name)
+    dirname = '%s/feynmanD/%s/'%(model.workdir,name)
     try:
-        os.mkdir(dirname)
+        os.mkdir('%s/feynmanD'%model.workdir)
     except:
         pass
     try:
@@ -242,10 +242,10 @@ def save(name, graph, model, overwrite=True):
                     
 
 def compile(name,model):
-    calculate.compile("%s/feynmanD"%name, model)
+    calculate.compile("feynmanD/%s/"%name, model)
 
 def execute(name, model, points=10000, threads=4, calc_delta=0., neps=0):
-    return calculate.execute("%s/feynmanD"%name, model, points=points, threads=threads, calc_delta=calc_delta, neps=neps)
+    return calculate.execute("feynmanD/%s/"%name, model, points=points, threads=threads, calc_delta=calc_delta, neps=neps)
 
     
 

@@ -19,9 +19,9 @@ from feynman import *
         
         
 def save(name, graph, model, overwrite=True):
-    dirname = '%s/graph/%s/feynmanO/'%(model.workdir,name)
+    dirname = '%s/feynmanO/%s/'%(model.workdir,name)
     try:
-        os.mkdir(dirname)
+        os.mkdir('%s/feynmanO/'%model.workdir)
     except:
         pass
     try:
@@ -54,9 +54,9 @@ def save(name, graph, model, overwrite=True):
                     
 
 def compile(name,model):
-    calculate.compile("%s/feynmanO"%name, model)
+    calculate.compile("feynmanO/%s/"%name, model)
 
 def execute(name, model, points=10000, threads=2, calc_delta=0., neps=0):
-    return calculate.execute("%s/feynmanO"%name, model, points=points, threads=threads, calc_delta=calc_delta, neps=neps)
+    return calculate.execute("feynmanO/%s/"%name, model, points=points, threads=threads, calc_delta=calc_delta, neps=neps)
     
 

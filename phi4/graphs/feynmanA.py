@@ -57,9 +57,9 @@ def feynman_term(graph, qi, model):
 
         
 def save(name, graph, model, overwrite=True):
-    dirname = '%s/graph/%s/feynmanA/'%(model.workdir,name)
+    dirname = '%s/feynmanA/%s/'%(model.workdir,name)
     try:
-        os.mkdir('%s/%s/'%(model.workdir,name))
+        os.mkdir('%s/feynmanA/'%(model.workdir))
     except:
         pass
     try:
@@ -92,9 +92,9 @@ def save(name, graph, model, overwrite=True):
                     
 
 def compile(name,model):
-    calculate.compile("%s/feynmanA"%name, model)
+    calculate.compile("feymanA/%s/"%name, model)
 
 def execute(name, model, points=10000, threads=4, calc_delta=0., neps=0):
-    return calculate.execute("%s/feynmanA"%name, model, points=points, threads=threads, calc_delta=calc_delta, neps=neps)
+    return calculate.execute("feynmanA/%s/"%name, model, points=points, threads=threads, calc_delta=calc_delta, neps=neps)
     
 
