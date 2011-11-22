@@ -136,7 +136,7 @@ for i in range(1, N+1):
 print utils.series_f(eta, e, N)
 
 beta=-g*(e+g4s-2*g2s)
-w=g*(g4s-2*g2s).diff(g)
+w=-g*(g4s-2*g2s).diff(g)
 
 print
 w_=w.subs(g, gZ)
