@@ -32,7 +32,7 @@ def Prepare(graph, model):
 
 
 def save(name, graph, model, overwrite=True):
-    dirname = '%s/%s/momentumF/'%(model.workdir,name)
+    dirname = '%s/graph/%s/momentumF/'%(model.workdir,name)
     try:
         os.mkdir(dirname)
     except:

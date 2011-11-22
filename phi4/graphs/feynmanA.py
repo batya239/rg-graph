@@ -57,7 +57,7 @@ def feynman_term(graph, qi, model):
 
         
 def save(name, graph, model, overwrite=True):
-    dirname = '%s/%s/feynmanA/'%(model.workdir,name)
+    dirname = '%s/graph/%s/feynmanA/'%(model.workdir,name)
     try:
         os.mkdir('%s/%s/'%(model.workdir,name))
     except:

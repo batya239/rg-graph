@@ -171,9 +171,9 @@ def subs_vars(expr):
         
         
 def save(name, graph, model, overwrite=True):
-    dirname = '%s/%s/feynman/'%(model.workdir,name)
+    dirname = '%s/graph/%s/feynman/'%(model.workdir,name)
     try:
-        os.mkdir('%s/%s/'%(model.workdir,name))
+        os.mkdir(dirname)
     except:
         pass
     try:

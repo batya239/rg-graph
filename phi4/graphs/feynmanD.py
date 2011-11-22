@@ -187,9 +187,9 @@ def nintegrations(graph, model):
     return n
         
 def save(name, graph, model, overwrite=True):
-    dirname = '%s/%s/feynmanD/'%(model.workdir,name)
+    dirname = '%s/graph/%s/feynmanD/'%(model.workdir,name)
     try:
-        os.mkdir('%s/%s/'%(model.workdir,name))
+        os.mkdir(dirname)
     except:
         pass
     try:
@@ -201,7 +201,7 @@ def save(name, graph, model, overwrite=True):
                 if fnmatch.fnmatch(file,"*.c") or fnmatch.fnmatch(file,"*.run"):
                     os.remove(dirname+file)
                     
-    Prepare(graph)
+    Prepare(graph, model)
     print "det(v)=", graph._det_f
     print "det(v)*C = ", graph._cdet    
     e=sympy.var('e')

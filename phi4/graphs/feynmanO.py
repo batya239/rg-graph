@@ -19,9 +19,9 @@ from feynman import *
         
         
 def save(name, graph, model, overwrite=True):
-    dirname = '%s/%s/feynmanO/'%(model.workdir,name)
+    dirname = '%s/graph/%s/feynmanO/'%(model.workdir,name)
     try:
-        os.mkdir('%s/%s/'%(model.workdir,name))
+        os.mkdir(dirname)
     except:
         pass
     try:
