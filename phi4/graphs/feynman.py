@@ -39,6 +39,7 @@ def Prepare(graph, model):
     
     (graph._qi, graph._qi2line)=feynman_qi_lambda(graph)
     B=feynman_B(graph._qi)
+    print 
     (c,b,v)=decompose_B(B)
     #t=time.time()    
     #det=v.det()
@@ -108,7 +109,7 @@ def feynman_term(graph, qi, model):
     for ai in strechs:
         ai_=sympy.var(ai)
         if strechs[ai]==0:
-            res=res.subs(ai_, 1.)
+            res=res.subs(ai_, sympy.Number(1))
         elif strechs[ai]==1:
             res=res.diff(ai_)
         elif strechs[ai]==2:

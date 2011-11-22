@@ -383,17 +383,17 @@ def decompose_B(B):
     elif len(ext)>1:
         raise ValueError, 'to much ext moments: %s'%ext
     else:
-        c=B.diff(ext[0]).diff(ext[0])/2.
+        c=B.diff(ext[0]).diff(ext[0])/sympy.Number(2)
         for i in range(m_cnt):
             pq=sympy.var("%sO%s"%(ext[0],int[i]))
             p=sympy.var('%s'%ext[0])
             q1=sympy.var('%s'%int[i])
-            b[i]=B.diff(pq)/p/q1/2.
+            b[i]=B.diff(pq)/p/q1/sympy.Number(2)
     v=sympy.matrices.Matrix(sympy.zeros(m_cnt))
     for i1 in range(m_cnt):
         for i2 in range(m_cnt):
             if i1==i2:
-                v[i1,i1]=B.diff(int[i1]).diff(int[i1])/2.
+                v[i1,i1]=B.diff(int[i1]).diff(int[i1])/sympy.Number(2)
             else:
                 if q_number(int[i1])<q_number(int[i2]):
                     q1Oq2=sympy.var('%sO%s'%(int[i1],int[i2]))
@@ -401,7 +401,7 @@ def decompose_B(B):
                     q1Oq2=sympy.var('%sO%s'%(int[i2],int[i1]))
                 q1=sympy.var('%s'%int[i1])
                 q2=sympy.var('%s'%int[i2])
-                v[i1,i2]=B.diff(q1Oq2)/q1/q2/2.
+                v[i1,i2]=B.diff(q1Oq2)/q1/q2/sympy.Number(2)
     return (c,b,v)
 
                 
