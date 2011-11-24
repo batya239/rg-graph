@@ -12,10 +12,12 @@ import utils
 def result_by_method(model,  method="",  struct=None):
     if len(method)<>0:
         exec('from %s import result, normalize'%method)
+        return result(phi4, method, struct=struct, normalize=normalize)
     else:
         exec('from calculate import result')
+        return result(phi4, method, struct=struct)
 
-    return result(phi4, method, struct=struct)
+    
 
 def solve_linear(expr, var):
     a=expr.diff(var)
@@ -96,11 +98,14 @@ subs[g]=subs_g
 
 zeros=[]
 gGs=g4s-2*g2s
+g__=sympy.var('g__')
+gGs_=gGs.subs(g, g__)
 for var in subs:
     gGs=gGs.subs(var, subs[var])
+    gGs_=gGs_.subs(var, subs[var])
 gGs_e=utils.series_lst(gGs+e, e, N)
 
-
+print gGs_
 print
 subs_=dict()
 gZ=subs[g]
@@ -123,16 +128,21 @@ for var in subs:
 eta_e=utils.series_f(eta, e, N)
 print 
 
-    
+gGs__=gGs_    
 for i in range(2, N+1):
     bi=utils.series_lst(resG[2][i], e, N-i)
     for j in range(N+1-i):
         eta=eta.subs(sympy.var('B%s_%s'%(i, j)), (-1)**(i+1)*bi[j])
+        gGs__=gGs__.subs(sympy.var('B%s_%s'%(i, j)), (-1)**(i+1)*bi[j])
+        
         
 for i in range(1, N+1):
     ai=utils.series_lst(resG[4][i], e, N-i)
     for j in range(N+1-i):
         eta=eta.subs(sympy.var('A%s_%s'%(i, j)), (-1)**(i)*ai[j])
+        gGs__=gGs__.subs(sympy.var('A%s_%s'%(i, j)), (-1)**(i)*ai[j])
+print 'gGs__=',utils.series_f(gGs__.subs(g__, g), e, N)        
+print
 print utils.series_f(eta, e, N)
 
 beta=-g*(e+g4s-2*g2s)
