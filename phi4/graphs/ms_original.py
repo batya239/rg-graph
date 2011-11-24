@@ -75,6 +75,7 @@ g2=-4*(
        )
        
 print g4-2*g2
+print (g4-2*g2).evalf()
 
 r_map={
    n+2                          :   r[1]*3,  
@@ -186,6 +187,10 @@ for r_ in rr_map:
     gG=gG.subs(r_, rr_map[r_])
     
 print gG
+print
+print gG.evalf()
+print
+
 
 print
 print gG.series(n, 0, 10)
@@ -193,3 +198,4 @@ print
 
 
 print utils.series_f(gG, n, 10)
+print utils.series_f(gG, n, 10).subs(n, 1)
