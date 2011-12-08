@@ -8,6 +8,9 @@ import copy
 from graphs import Graph
 from lines import Line
 
+def add_dicts(dict1, dict2):
+    return dict(list(dict1.viewitems())+list(dict2.viewitems()))
+
 def S(d):
     return d*sympy.pi**(d/2.)/sympy.special.gamma_functions.gamma(d/2.+1)
 

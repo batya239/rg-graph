@@ -24,13 +24,14 @@ else:
 g1=Graph(sys.argv[1])
 name=str(g1.GenerateNickel())
 print name
+print g1._edges()
+print type(g1._lines[0])
 
 
+#save(name,g1,phi4)
 
-save(name,g1,phi4)
+#compile(name,phi4)
 
-compile(name,phi4)
-
-(res,err) = execute(name, phi4, neps=0)
-for i in range(len(res)):
-    print i, (res[i],err[i])
+#(res,err) = execute(name, phi4, neps=0)
+#for i in range(len(res)):
+#    print i, (res[i],err[i])

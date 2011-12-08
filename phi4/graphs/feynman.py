@@ -38,9 +38,11 @@ def Prepare(graph, model):
     
     
     (graph._qi, graph._qi2line)=feynman_qi_lambda(graph)
+    print  "qi2line =",[(i, graph._qi2line.values()[i]) for i in range(len(graph._qi2line))]
     B=feynman_B(graph._qi)
     print 
     (c,b,v)=decompose_B(B)
+    print v
     #t=time.time()    
     #det=v.det()
     #print time.time()-t
