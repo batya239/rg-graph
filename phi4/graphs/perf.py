@@ -10,6 +10,8 @@ import subgraphs
 import calculate
 import sys
 import roperation
+import conserv
+import comb
 
 #from sympy.printing.ccode2 import ccode2
 
@@ -24,9 +26,32 @@ else:
 g1=Graph(sys.argv[1])
 name=str(g1.GenerateNickel())
 print name
-print g1._edges()
-print type(g1._lines[0])
+int_edges=g1._internal_edges_dict()
+cons = conserv.Conservations(int_edges)
+print cons
 
+det_start = [x for x in comb.xUniqueCombinations(int_edges.keys(), g1.NLoops())]
+
+det=list()
+for term in det_start:
+    valid = True
+    for cterm in cons:
+        if cterm.issubset(term):
+            valid = False
+#            print term, cterm
+            break
+    if valid:
+        det.append(term)
+print det
+res=0
+
+for term in det:
+    sterm=1
+    for term2 in term:
+       ui=sympy.var('u_%s'%term2)
+       sterm=sterm*ui
+    res+=sterm
+print res
 
 #save(name,g1,phi4)
 
@@ -35,3 +60,4 @@ print type(g1._lines[0])
 #(res,err) = execute(name, phi4, neps=0)
 #for i in range(len(res)):
 #    print i, (res[i],err[i])
+

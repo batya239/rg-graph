@@ -77,6 +77,21 @@ class Graph:
             res.append(_nodes)
 #        res.sort()
         return res
+        
+    def _internal_edges_dict(self):
+        res=dict()
+        for line in self._lines:
+            if not line.isInternal():
+                continue
+            _nodes=[]
+            for node in line.Nodes():
+                if (node.type<>None) and (node.type<0) :
+                    _nodes.append(-1)
+                else:
+                    _nodes.append(node.idx())
+            res[line.idx()]=_nodes
+#        res.sort()
+        return res
                          
     def GenerateNickel(self):
         if 'nickel' not in self.__dict__:
