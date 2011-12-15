@@ -18,18 +18,19 @@ def Prepare(graph, model):
     model.SetTypes(graph)
     graph.FindSubgraphs(model)
     sym_coef=graph.sym_coef()
-    graph=graph.ReduceSubgraphs(model)
-    graph._sym_coef_orig=sym_coef
-    graph.FindSubgraphs(model)
+    graph1=graph.ReduceSubgraphs(model)
+    graph1._sym_coef_orig=sym_coef
+    graph1.FindSubgraphs(model)
     print graph
-    subs_toremove=subgraphs.DetectSauseges(graph._subgraphs)
-    graph.RemoveSubgaphs(subs_toremove)
+    subs_toremove=subgraphs.DetectSauseges(graph1._subgraphs)
+    graph1.RemoveSubgaphs(subs_toremove)
 
-    print "moment index: ", moments.Generic(model, graph)
+    print "moment index: ", moments.Generic(model, graph1)
 
-    utils.print_moments(graph._moments())
-    print "subgraphs: ",graph._subgraphs_m
-
+    utils.print_moments(graph1._moments())
+    print "subgraphs: ",graph1._subgraphs_m
+    print dir(graph1)
+    return graph1
 
 def save(name, graph, model, overwrite=True):
     dirname = '%s/momentumF/%s/'%(model.workdir,name)
@@ -46,8 +47,8 @@ def save(name, graph, model, overwrite=True):
                 if fnmatch.fnmatch(file,"*.c") or fnmatch.fnmatch(file,"*.run"):
                     os.remove(dirname+file)
                     
-    Prepare(graph, model)
-
+    graph=Prepare(graph, model)
+    print dir(graph)
     jakob,subsvars = roperation.subs_vars(graph)
     cnt=0
     d,e=sympy.var('d e')
@@ -59,6 +60,7 @@ def save(name, graph, model, overwrite=True):
     norm=utils.series_f(utils.norm(graph.NLoops(),model.space_dim-e)*graph.sym_coef(), e, model.target-_nloops_orig)
     print norm
     print utils.series_f(utils.norm(graph.NLoops(),model.space_dim-e), e, model.target-_nloops_orig), graph.sym_coef()
+    print dir(graph)
     for g in model.dTau(graph):
         roperation.strechMoments(g, model)
         print cnt, g

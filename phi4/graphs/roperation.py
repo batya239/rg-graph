@@ -34,7 +34,7 @@ def  strechMoments(graph,model, external_strech=True):
         subgraphs=copy.copy(graph._subgraphs)
     if external_strech:
         subgraphs.append(graph.asSubgraph())
-
+    print dir(graph)
     for sub in subgraphs:
         dim = sub.Dim(model)
 #        print "%s : %s"%(dim,sub)
