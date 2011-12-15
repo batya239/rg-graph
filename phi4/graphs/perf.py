@@ -1,17 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf8
-from dummy_model import _phi3,_phi4
-import moments
-from graphs import Graph
-from lines import Line
-import roperation
-import sympy
-import subgraphs
-import calculate
 import sys
-import roperation
+
+from dummy_model import _phi3,_phi4
+from graphs import Graph
+import sympy
 import conserv
 import comb
+import methods.feynman_tools
 
 #from sympy.printing.ccode2 import ccode2
 
@@ -26,23 +22,14 @@ else:
 g1=Graph(sys.argv[1])
 name=str(g1.GenerateNickel())
 print name
+g1.FindSubgraphs(phi4)
+
 int_edges=g1._internal_edges_dict()
 cons = conserv.Conservations(int_edges)
-print cons
+qi, qi2l = qi_lambda(cons, eqs)
 
-det_start = [x for x in comb.xUniqueCombinations(int_edges.keys(), g1.NLoops())]
+det=methods.feynman_tools.det_as_lst(cons)
 
-det=list()
-for term in det_start:
-    valid = True
-    for cterm in cons:
-        if cterm.issubset(term):
-            valid = False
-#            print term, cterm
-            break
-    if valid:
-        det.append(term)
-print det
 res=0
 
 for term in det:
