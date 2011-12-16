@@ -50,11 +50,11 @@ def qi_lambda(cons):
         qi2line[ui].append(eq)
     return (qi, qi2line)
 
-def det_as_lst(cons):
+def det_as_lst(cons, nloops):
     eqs = find_eq(cons)
     cons=apply_eq(cons, eqs)
     ui=list(unique_ui(cons))
-    det_start = [x for x in comb.xUniqueCombinations(ui, graph.NLoops())]
+    det_start = [x for x in comb.xUniqueCombinations(ui, nloops)]
 # реализовать равенство ui
     det=list()
     for term in det_start:
@@ -67,12 +67,33 @@ def det_as_lst(cons):
             det.append(term)
     return det
 
-def det(cons, subgraphs_):
-    det_lst=det_as_lst(graph)
+def conv_sub(subgraphs_):
+    res=list()
+    for sub in subgraphs_:
+        tsub=[i.idx() for i in sub._lines]
+        res.append(tsub)
+    return res
+
+def strechname(sub_i):
+    name="a"
+    for t in sub_i:
+        name+="_%s"%t
+    return name
+
+def det(cons, subgraphs_, nloops):
+    det_lst=det_as_lst(cons, nloops)
     res=0
+    subs=conv_sub(subgraphs_)
     for term in det_lst:
         sterm=1
         for term2 in term:
             ui=sympy.var('u_%s'%term2)
-            strem*=ui
-        
+            sterm*=ui
+        for i in range(len(subs)):
+            si=len(set(term)&set(subs[i]))-subgraphs_[i].NLoopSub()
+            if si>0:
+                ai=sympy.var('a_%s'%subgraphs_[i].asLinesIdxStr())
+                sterm*=ai**si
+        res+=sterm
+    return res
+

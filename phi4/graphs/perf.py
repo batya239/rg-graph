@@ -8,6 +8,7 @@ import sympy
 import conserv
 import comb
 import methods.feynman_tools
+import subgraphs
 
 #from sympy.printing.ccode2 import ccode2
 
@@ -22,23 +23,23 @@ else:
 g1=Graph(sys.argv[1])
 name=str(g1.GenerateNickel())
 print name
+phi4.SetTypes(g1)
+phi4.checktadpoles=False
 g1.FindSubgraphs(phi4)
+
+subs_toremove=subgraphs.DetectSauseges(g1._subgraphs)
+g1.RemoveSubgaphs(subs_toremove)
+
+subgraphs.RemoveTadpoles(g1)
+
 
 int_edges=g1._internal_edges_dict()
 cons = conserv.Conservations(int_edges)
-qi, qi2l = qi_lambda(cons, eqs)
+qi, qi2l = methods.feynman_tools.qi_lambda(cons)
 
-det=methods.feynman_tools.det_as_lst(cons)
+det=methods.feynman_tools.det(cons, g1._subgraphs,  g1.NLoops())
 
-res=0
-
-for term in det:
-    sterm=1
-    for term2 in term:
-       ui=sympy.var('u_%s'%term2)
-       sterm=sterm*ui
-    res+=sterm
-print res
+print det
 
 #save(name,g1,phi4)
 
