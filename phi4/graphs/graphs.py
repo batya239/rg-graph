@@ -85,9 +85,6 @@ class Graph:
                 continue
             _nodes=[]
             for node in line.Nodes():
-                if (node.type<>None) and (node.type<0) :
-                    _nodes.append(-1)
-                else:
                     _nodes.append(node.idx())
             res[line.idx()]=_nodes
 #        res.sort()
@@ -138,7 +135,15 @@ class Graph:
             if not line.isInternal():
                 res.append(line)
         return res
-
+        
+    def ExternalNodes(self):
+        res=[]
+        for line in self._lines:
+            if not line.isInternal():
+                for node in line.Nodes():
+                    if node.isInternal():
+                        res.append(node)
+        return res
     def Lines(self):
         return self._lines
             

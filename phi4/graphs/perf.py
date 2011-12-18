@@ -23,23 +23,11 @@ else:
 g1=Graph(sys.argv[1])
 name=str(g1.GenerateNickel())
 print name
-phi4.SetTypes(g1)
-phi4.checktadpoles=False
-g1.FindSubgraphs(phi4)
 
-subs_toremove=subgraphs.DetectSauseges(g1._subgraphs)
-g1.RemoveSubgaphs(subs_toremove)
+methods.feynman_tools.Prepare(g1, phi4)
 
-subgraphs.RemoveTadpoles(g1)
-
-
-int_edges=g1._internal_edges_dict()
-cons = conserv.Conservations(int_edges)
-qi, qi2l = methods.feynman_tools.qi_lambda(cons)
-
-det=methods.feynman_tools.det(cons, g1._subgraphs,  g1.NLoops())
-
-print det
+print g1._det_f
+print g1._cdet
 
 #save(name,g1,phi4)
 

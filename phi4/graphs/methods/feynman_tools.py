@@ -7,6 +7,7 @@ import sympy
 #from .. import comb
 import conserv
 import comb
+import subgraphs
 
 def find_eq(cons):
     res=dict()
@@ -35,6 +36,7 @@ def unique_ui(cons):
     res=set()
     for tcons in cons:
         res=res|tcons
+    res=res-set([1000000])
     return res
     
 def qi_lambda(cons):
@@ -97,3 +99,27 @@ def det(cons, subgraphs_, nloops):
         res+=sterm
     return res
 
+
+def Prepare(graph, model):
+    model.SetTypes(graph)
+    model.checktadpoles=False
+    graph.FindSubgraphs(model)
+    
+    subs_toremove=subgraphs.DetectSauseges(graph._subgraphs)
+    graph.RemoveSubgaphs(subs_toremove)
+
+    subgraphs.RemoveTadpoles(graph)
+    
+    int_edges=graph._internal_edges_dict()
+    cons = conserv.Conservations(int_edges)
+    graph._qi, qi2l = qi_lambda(cons)
+    
+    det_ = det(cons, graph._subgraphs,  graph.NLoops())
+    Cdet=0
+    if len(graph.ExternalLines())==2:
+        int_edges[1000000]=[i.idx() for i in graph.ExternalNodes()]
+        cons = conserv.Conservations(int_edges)
+        Cdet = det(cons, graph._subgraphs,  graph.NLoops()+1)
+    
+    graph._det_f=det_
+    graph._cdet=Cdet
