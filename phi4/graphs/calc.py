@@ -20,7 +20,7 @@ phi4=_phi4('dummy')
 if len(sys.argv)>3:
     exec('from %s import execute'%sys.argv[3])
     try:
-        exec('from %s normalize'%sys.argv[3])
+        exec('from %s import normalize'%sys.argv[3])
     except:
         pass
 else:
