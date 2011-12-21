@@ -62,7 +62,10 @@ def Prepare(graph, model):
 
 def dTau_line(graph, qi,  model):
 #FIXME: choose most suitable line for qi?
-    line=graph._qi2line[qi][0]
+    if isinstance(qi, int):
+        line=graph._lines[qi] #hack for feynman_tools
+    else:
+        line=graph._qi2line[qi][0]
 
     if model.checkmodifier(line,'tau'):
         idx=graph.Lines().index(line)
