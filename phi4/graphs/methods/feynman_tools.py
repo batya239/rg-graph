@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding:utf8
 
+import re
+
 import sympy
 
 #from .. import conserv
@@ -8,6 +10,7 @@ import sympy
 import conserv
 import comb
 import subgraphs
+
 
 def find_eq(cons):
     res=dict()
@@ -39,8 +42,7 @@ def unique_ui(cons):
     res=res-set([1000000])
     return res
     
-def qi_lambda(cons):
-    eqs=find_eq(cons)
+def qi_lambda(cons, eqs):
     qi=dict()
     qi2line=dict()
     for ui in unique_ui(cons):
@@ -53,8 +55,6 @@ def qi_lambda(cons):
     return (qi, qi2line)
 
 def det_as_lst(cons, nloops):
-    eqs = find_eq(cons)
-    cons=apply_eq(cons, eqs)
     ui=list(unique_ui(cons))
     det_start = [x for x in comb.xUniqueCombinations(ui, nloops)]
 # реализовать равенство ui
@@ -100,6 +100,14 @@ def det(cons, subgraphs_, nloops):
     return res
 
 
+def remove_strechs(expr):
+    res=expr
+    for atom in expr.atoms(sympy.Symbol):
+        regex=re.match('^a_', str(atom))
+        if regex:
+            res=res.subs(atom, 1)
+    return res
+
 def Prepare(graph, model):
     model.SetTypes(graph)
     model.checktadpoles=False
@@ -112,7 +120,9 @@ def Prepare(graph, model):
     
     int_edges=graph._internal_edges_dict()
     cons = conserv.Conservations(int_edges)
-    graph._qi, qi2l = qi_lambda(cons)
+    eqs = find_eq(cons)
+    cons=apply_eq(cons, eqs)
+    graph._qi, graph._qi2l = qi_lambda(cons, eqs)
     
     det_ = det(cons, graph._subgraphs,  graph.NLoops())
     Cdet=0
