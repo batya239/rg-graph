@@ -68,7 +68,20 @@ def det_as_lst(cons, nloops):
         if valid:
             det.append(term)
     return det
-
+    
+def _adet_as_lst(cons, nloops):
+    """ helper function for testing purposes
+    """
+    det=det_as_lst(cons, nloops)
+    ui=unique_ui(cons)
+    res=list()
+    for term in det:
+        t2=list(ui-set(term))
+        t2.sort()
+        res.append(t2)
+    return res
+        
+    
 def conv_sub(subgraphs_):
     res=list()
     for sub in subgraphs_:
@@ -96,6 +109,8 @@ def det(cons, subgraphs_, nloops):
             if si>0:
                 ai=sympy.var('a_%s'%subgraphs_[i].asLinesIdxStr())
                 sterm*=ai**si
+                subgraphs_[i]._strechvar=str(ai)
+#?                subgraphs_[i]._diffcnt=
         res+=sterm
     return res
 
@@ -122,13 +137,16 @@ def Prepare(graph, model):
     cons = conserv.Conservations(int_edges)
     eqs = find_eq(cons)
     cons=apply_eq(cons, eqs)
+    graph._cons=cons
     graph._qi, graph._qi2l = qi_lambda(cons, eqs)
     
     det_ = det(cons, graph._subgraphs,  graph.NLoops())
-    Cdet=0
+    Cdet=sympy.Number(0)
     if len(graph.ExternalLines())==2:
         int_edges[1000000]=[i.idx() for i in graph.ExternalNodes()]
         cons = conserv.Conservations(int_edges)
+        eqs = find_eq(cons)
+        cons=apply_eq(cons, eqs)        
         Cdet = det(cons, graph._subgraphs,  graph.NLoops()+1)
     
     graph._det_f=det_

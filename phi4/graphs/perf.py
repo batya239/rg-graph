@@ -31,7 +31,21 @@ methods.feynman_tools.Prepare(g1, phi4)
 print g1._lines 
 print g1._qi
 print g1._qi2l
+eq_grp=g1.GenerateNickel().GetGroupedEdges()
+print eq_grp
+print
+
+
+    
+
+
+
+
 print methods.feynman_tools.remove_strechs(g1._det_f)
+print methods.feynman_tools.remove_strechs(g1._cdet)
+print
+for item in sorted(methods.feynman_tools._adet_as_lst(g1._cons, g1.NLoops())):
+    print item
 #save(name,g1,phi4)
 
 #compile(name,phi4)
