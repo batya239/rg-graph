@@ -84,14 +84,16 @@ def diff_by_strechs(graph, model):
 
     return res, ai_dict
 
-def usubs(n):
+def usubs_qi(qi):
     """ part form feynman.subs_vars
     """
-    u_last = 'double u_%s=1'%(n-1)
+    n=len(  qi)
+    u_last = 'double u_%s=1.'%(qi.keys()[-1])
     factor = 'double factor=1.'
     res=""
     for i in range(n-1):
-        u_str="double u_%s="%i
+        qii=qi.keys()[i]
+        u_str="double u_%s="%qii
         for j in range(i):
             u_str+='w_%s*'%j
         if i<>n-2:
@@ -100,7 +102,7 @@ def usubs(n):
             u_str+='w_%s;\n'%i
         res+=u_str
         
-        u_last+='-u_%s'%i
+        u_last+='-u_%s'%qii
         if n-i-2>1:
             factor+='*pow(w_%s,%s)'%(i, n-2-i)
         elif n-i-2==1:
@@ -116,7 +118,7 @@ def term_func(name, expr, subs, ai_dict, qi):
     for var in wi+ai_dict.values():
         vars+=" double %s,"%var
     vars=vars[:-1]
-    usubs_=usubs(len(qi))
+    usubs_=usubs_qi(qi)
     
     subs_=""
     for sub in subs:
@@ -146,7 +148,7 @@ def feynman_D_func(graph, model):
         
         for j in range(len(graph._qi.keys())):
             q=graph._qi.keys()[j]
-            ui=sympy.var('u_%s'%j)
+            ui=sympy.var('u_%s'%q)
             if graph._qi[q]>1:
                 U=U*ui**(graph._qi[q]-1)
             if q==qi:
@@ -203,8 +205,8 @@ def save(name, graph, model, overwrite=True):
                     os.remove(dirname+file)
                     
     Prepare(graph, model)
-    print "det(v)=", graph._det_f
-    print "det(v)*C = ", graph._cdet    
+#    print "det(v)=", graph._det_f
+#    print "det(v)*C = ", graph._cdet    
     e=sympy.var('e')
     cnt=0
     expr=0
