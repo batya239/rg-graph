@@ -33,6 +33,7 @@ print g1._qi
 print g1._qi2l
 eq_grp=g1.GenerateNickel().GetGroupedEdges()
 print eq_grp
+print g1._eq_grp
 print
 
 

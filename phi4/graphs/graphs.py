@@ -93,6 +93,16 @@ class Graph:
     def GenerateNickel(self):
         if 'nickel' not in self.__dict__:
             self.nickel=nickel.Canonicalize(self._edges())
+            eq_grp=self.nickel.GetGroupedEdges()
+            eq_grp_=[[] for i in eq_grp]
+
+            for line in self._lines:
+                line_=[line.start.idx(), line.end.idx()]
+#sort? 
+                for i in range(len(eq_grp)):
+                    if line_ in eq_grp[i]:
+                        eq_grp_[i].append(line.idx())
+            self._eq_grp=eq_grp_
         return self.nickel
 
     def sym_coef(self):

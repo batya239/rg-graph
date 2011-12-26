@@ -19,7 +19,7 @@ import utils
 import re as regex
 
 from feynman import *
-from feynman_tools import Prepare
+from feynman_tools import Prepare, line_to_qi
 
 def symplify_expr(expr, C, D, ai_dict):
     vars=dict()
@@ -138,9 +138,30 @@ def feynman_D_func(graph, model):
     for qi in graph._qi.keys():
         lfactor=lfactor/sympy.factorial(graph._qi[qi]-1)
     
-    for i in range(len(graph._qi.keys())):
+
+    i=-1
+    eq_grp_flag=[0 for i_ in graph._eq_grp]
+    for qi in graph._qi.keys():    
+#    for grp in graph._eq_grp:
+#        qi = graph._qi.keys()[i]
+        flag=False
+        for j in range(len(graph._eq_grp)):
+            grp=graph._eq_grp[j]
+            if qi in grp:
+                if eq_grp_flag[j]<>0:
+                   flag=True 
+                else:
+                    eq_grp_flag[j]=1
+                    break
+        if flag:
+            continue
+        i=i+1
+
         print "   term ", i
-        qi = graph._qi.keys()[i]
+#        print graph._eq_grp, eq_grp_flag
+#        qi = line_to_qi(graph, grp[0])
+        grp_factor=len(set(grp)-set(graph._qi2l[qi]))+1
+#        print graph._qi2l[qi], grp,  grp_factor
         g_qi=dTau_line(graph, qi,  model)
         strechs=strech_indexes(g_qi, model)
         
@@ -173,6 +194,8 @@ def feynman_D_func(graph, model):
         
         res, ai_dict=diff_by_strechs(g_qi, model)
         (expr, vars)=symplify_expr(res, cdet_, det_, ai_dict)
+#        print expr
+        expr=expr*grp_factor
         vars['U']=U*graph.sym_coef()
         vars['A ']=A
         eseries=[]
