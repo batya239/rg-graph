@@ -14,7 +14,11 @@ def result(model, method,  normalize=lambda y, x:x, struct=None):
     res=dict()
     err=dict()
     e=sympy.var('e')
-    os.chdir(model.workdir+"/%s/"%method)
+    method_=method
+    regex_=regex.match('methods.(.*)', method_)
+    if regex_:
+        method_=regex_.groups()[0]
+    os.chdir(model.workdir+"/%s/"%method_)
     for file in os.listdir('.'): 
         try:
             f=open("%s/result"%(file),'r')
@@ -51,7 +55,7 @@ def result(model, method,  normalize=lambda y, x:x, struct=None):
     return (res, err)
     
     
-def execute(name, model, points=10000, threads=2, calc_delta=0., neps=0):
+def _execute(name, model, points=10000, threads=2, calc_delta=0., neps=0, start_arg_lst=list()):
     dirname = '%s/%s/'%(model.workdir,name)
     MAXPOINTS=10**9
     if points >= MAXPOINTS:
@@ -68,7 +72,7 @@ def execute(name, model, points=10000, threads=2, calc_delta=0., neps=0):
         error.append(0.)
         for file in filelist:
             if fnmatch.fnmatch(file,"*E%s_*.run"%n):
-                arg_lst=["./%s"%file, "%s"%points, "%s"%threads]
+                arg_lst=start_arg_lst + ["./%s"%file, "%s"%points, "%s"%threads]
                 arg_lst.append(str(iterations))
                 if calc_delta<>0:
                     arg_lst.append("%s"%calc_delta)
@@ -98,6 +102,12 @@ def execute(name, model, points=10000, threads=2, calc_delta=0., neps=0):
     g.close()
     return (result, error)
 
+def execute(name, model, **kwargs):
+    return _execute(name, model, **kwargs)
+
+def execute_mpi(name, model, **kwargs):
+    return _execute(name, model, start_arg_lst=["mpirun", "-np", "%s"%kwargs["threads"]], **kwargs)
+
 
 def parse_output(stdout):
     res=None
@@ -113,7 +123,7 @@ def parse_output(stdout):
                 err = abs(float(reg.groups()[0]))
     return (res, err)
 
-def compile(name,model):
+def _compile(name,model, options=list(), cc="gcc"):
     dirname = '%s/%s/'%(model.workdir,name)
     os.chdir(dirname)
     for file in os.listdir("."):
@@ -124,9 +134,7 @@ def compile(name,model):
                                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             exit_code = process.wait()
             (std_out, std_err) = process.communicate()
-
-            process = subprocess.Popen(["gcc", file, "-lm", "-lpthread", 
-                                        "-lpvegas","-O2", "-o", prog_name], shell=False, 
+            process = subprocess.Popen([cc, file] + options + ["-o", prog_name], shell=False, 
                                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             exit_code = process.wait()
             (std_out, std_err) = process.communicate()
@@ -142,6 +150,11 @@ def compile(name,model):
                         
     return
 
+def compile(name,model):
+    _compile(name, model, options=["-lm", "-lpthread", "-lpvegas", "-O2"])
+
+def compile_mpi(name,model):
+    _compile(name, model, options=["-lm", "-lpvegas_mpi", "-O2"], cc="mpicc")
 
 def save(name, graph, model, overwrite=True):
     dirname = '%s/%s/'%(model.workdir,name)
@@ -187,7 +200,7 @@ def save(name, graph, model, overwrite=True):
     
 
 
-def core_pv_code(integrand):
+def core_pv_code(integrand, mpi=False):
     a1="""#include <math.h>
 #include <stdio.h>
 #include <vegas.h>
@@ -268,7 +281,12 @@ int main(int argc, char **argv)
   double estim[FUNCTIONS];   /* estimators for integrals                     */
   double std_dev[FUNCTIONS]; /* standard deviations                          */
   double chi2a[FUNCTIONS];   /* chi^2/n                                      */
+"""
+    if mpi:
+        a1+="""   MPI_Init(&argv, &argc);
+"""
 
+    a1+="""
   vegas(reg, DIMENSION, func,
         0, npoints/10, 5, NPRN_INPUT | NPRN_RESULT,
         FUNCTIONS, 0, nthreads,
@@ -286,3 +304,6 @@ printf ("result = %20.18g\\nstd_dev = %20.18g\\ndelta = %20.18g\\n", estim[0], s
 }
 """
     return a1
+
+def core_pvmpi_code(integrand):
+    return core_pv_code(integrand, mpi=True)

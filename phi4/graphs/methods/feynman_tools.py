@@ -162,7 +162,7 @@ def Prepare(graph, model):
         cons = conserv.Conservations(int_edges)
         eqs = find_eq(cons)
         cons=apply_eq(cons, eqs)        
-        Cdet = det(cons, graph._subgraphs,  graph.NLoops()+1)
+        Cdet = - det(cons, graph._subgraphs,  graph.NLoops()+1)
     
     graph._det_f=det_
     graph._cdet=Cdet

@@ -60,7 +60,7 @@ g, n, e = sympy.var('g n e')
 A=sympy.var('A0 A1 A2 A3 A4 A5 A6 A7')
 B=sympy.var('B0 B1 B2 B3 B4 B5 B6 B7')
 N=phi4.target
-N=4
+#N=4
 f2=0
 for i in range(2, N+1):
     f2=f2+B[i]*g**i
@@ -143,7 +143,7 @@ for i in range(1, N+1):
         gGs__=gGs__.subs(sympy.var('A%s_%s'%(i, j)), (-1)**(i)*ai[j])
 print 'gGs__=',utils.series_f(gGs__.subs(g__, g), e, N)        
 print
-print utils.series_f(eta, e, N)
+print "eta=", utils.series_f(eta, e, N)
 
 beta=-g*(e+g4s-2*g2s)
 w=-g*(g4s-2*g2s).diff(g)
@@ -162,4 +162,4 @@ for i in range(1, N+1):
     ai=utils.series_lst(resG[4][i], e, N-i)
     for j in range(N+1-i):
         w_e=w_e.subs(sympy.var('A%s_%s'%(i, j)), (-1)**(i)*ai[j])
-print utils.series_f(w_e, e, N)
+print "w=", utils.series_f(w_e, e, N)
