@@ -283,7 +283,7 @@ int main(int argc, char **argv)
   double chi2a[FUNCTIONS];   /* chi^2/n                                      */
 """
     if mpi:
-        a1+="""   MPI_Init(&argv, &argc);
+        a1+="""   MPI_Init(&argc, &argv);
 """
 
     a1+="""
