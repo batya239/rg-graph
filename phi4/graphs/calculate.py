@@ -295,6 +295,11 @@ int main(int argc, char **argv)
         2, npoints , niter, NPRN_INPUT | NPRN_RESULT,
         FUNCTIONS, 0, nthreads,
         estim, std_dev, chi2a);
+"""
+    if mpi:
+        a1+="""   MPI_Finalize();
+"""
+    a1+="""        
 double delta= std_dev[0]/estim[0];
 printf ("result = %20.18g\\nstd_dev = %20.18g\\ndelta = %20.18g\\n", estim[0], std_dev[0], delta);
 //  printf ("Result %d: %g +/- %g delta=%g\\n",NEPS, estim[0], std_dev[0], delta);
