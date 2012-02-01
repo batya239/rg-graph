@@ -205,8 +205,11 @@ def core_pv_code(integrand, mpi=False):
 #include <stdio.h>
 #include <vegas.h>
 #include <stdlib.h>
+#include <time.h>
 #define gamma tgamma
 """
+    if mpi:
+        a1+="#include <mpi.h>\n"
     a1=a1+integrand
     a1=a1+ """ }
 
@@ -281,9 +284,13 @@ int main(int argc, char **argv)
   double estim[FUNCTIONS];   /* estimators for integrals                     */
   double std_dev[FUNCTIONS]; /* standard deviations                          */
   double chi2a[FUNCTIONS];   /* chi^2/n                                      */
+    clock_t start, end;
+    double elapsed;
+    start = clock();
 """
     if mpi:
-        a1+="""   MPI_Init(&argc, &argv);
+        a1+="""
+    MPI_Init(&argc, &argv);
 """
 
     a1+="""
@@ -295,19 +302,27 @@ int main(int argc, char **argv)
         2, npoints , niter, NPRN_INPUT | NPRN_RESULT,
         FUNCTIONS, 0, nthreads,
         estim, std_dev, chi2a);
+    int rank=0;
 """
     if mpi:
-        a1+="""   MPI_Finalize();
+        a1+="""
+
+    MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+    MPI_Finalize();
 """
-    a1+="""        
-double delta= std_dev[0]/estim[0];
-printf ("result = %20.18g\\nstd_dev = %20.18g\\ndelta = %20.18g\\n", estim[0], std_dev[0], delta);
-//  printf ("Result %d: %g +/- %g delta=%g\\n",NEPS, estim[0], std_dev[0], delta);
-//  for (i=1; i<FUNCTIONS; ++i)
-//    printf("Result %i:\\t%g +/- %g  \\tdelta=%g\\n", i, estim[i], std_dev[i],std_dev[i]/estim[i]);
-  return(0);
+    a1+="""
+    if(rank==0) {
+        end = clock();
+        elapsed = ((double) (end - start)) / CLOCKS_PER_SEC;
+        double delta= std_dev[0]/estim[0];
+        printf ("result = %20.18g\\nstd_dev = %20.18g\\ndelta = %20.18g\\ntime = %20.10g\\n", estim[0], std_dev[0], delta, elapsed);
+    }
+    return(0);
 }
 """
+
+
+
     return a1
 
 def core_pvmpi_code(integrand):
