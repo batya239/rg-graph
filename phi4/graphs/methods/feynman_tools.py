@@ -10,6 +10,7 @@ import sympy
 import conserv
 import comb
 import subgraphs
+import utils
 
 
 def line_to_qi(graph, line_idx):
@@ -166,3 +167,48 @@ def Prepare(graph, model):
     
     graph._det_f=det_
     graph._cdet=Cdet
+    
+def normalize(graph, result):
+    (res_, err_)=result
+    n=graph.NLoops()
+    e=sympy.var('e')
+    res=0.
+    err=0.
+    
+    for i in range(len(res_)):
+        res+=e**i*res_[i]
+        err+=e**i*abs(err_[i])
+    res=res*sympy.special.gamma_functions.gamma(1+n*e/2.)*sympy.special.gamma_functions.gamma(2-e/2.)**n/2**n
+    err=err*sympy.special.gamma_functions.gamma(1+n*e/2.)*sympy.special.gamma_functions.gamma(2-e/2.)**n/2**n
+    
+    return ([float(i) for i in utils.series_lst(res, e,  len(res_)-1)], [float(i) for i in utils.series_lst(err, e,  len(res_)-1)])
+def dTau_line(graph, qi,  model):
+#FIXME: choose most suitable line for qi?
+    if isinstance(qi, int):
+        line=graph._lines[qi] #hack for feynman_tools
+    else:
+        line=graph._qi2line[qi][0]
+
+    if model.checkmodifier(line,'tau'):
+        idx=graph.Lines().index(line)
+        g=graph.Clone()
+        newline=g._Line(idx)
+        newline.AddModifier("tau")
+        return g
+    else:
+        raise Exception,  "something wrong! :)"
+        
+def strech_indexes(g_qi, model):
+    res=dict()
+    for sub in g_qi._subgraphs:
+        dim=sub.Dim(model)
+        if dim<0:
+            res[sub._strechvar]=0
+        elif dim==0:
+            res[sub._strechvar]=1
+        elif dim==2:
+            res[sub._strechvar]=2
+        else:
+            raise ValueError, "Unsupported subgaphs dim = %s"%dim
+    return res
+            

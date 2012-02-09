@@ -18,8 +18,8 @@ import calculate
 import utils
 import re as regex
 
-from feynman import *
-from feynman_tools import Prepare, line_to_qi
+#from feynman import *
+from feynman_tools import Prepare, line_to_qi,  normalize,  dTau_line,  strech_indexes
 
 def symplify_expr(expr, C, D, ai_dict):
     vars=dict()
