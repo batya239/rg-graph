@@ -32,9 +32,10 @@ def  strechMoments(graph,model, external_strech=True):
         subgraphs=copy.copy(graph._subgraphs_m)
     else:
         subgraphs=copy.copy(graph._subgraphs)
+    n=len(subgraphs)
     if external_strech:
         subgraphs.append(graph.asSubgraph())
-    print dir(graph)
+#    print dir(graph)
     for sub in subgraphs:
         dim = sub.Dim(model)
 #        print "%s : %s"%(dim,sub)
@@ -43,6 +44,7 @@ def  strechMoments(graph,model, external_strech=True):
             sub._diffcnt=dim+1
             extatoms=FindExternalAtoms(sub)
             setStrech(sub, extatoms)
+    return n
 
 def find_strech_atoms(expr):
     atoms = expr.atoms(Symbol)
