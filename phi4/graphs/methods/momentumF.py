@@ -12,6 +12,11 @@ import roperation
 import fnmatch
 import momentum_tools
 
+method_name= "momentumF"
+code_=calculate.core_pv_code
+compile_=calculate.compile
+execute_=calculate.execute
+
 def Prepare(graph, model):
     name=str(graph.GenerateNickel())
     if name in ['e111-e-','ee11-22-ee-','ee11-23-e33-e-']:
@@ -34,9 +39,9 @@ def Prepare(graph, model):
     return graph1
 
 def save(name, graph, model, overwrite=True):
-    dirname = '%s/momentumF/%s/'%(model.workdir,name)
+    dirname = '%s/%s/%s/'%(model.workdir,method_name, name)
     try:
-        os.mkdir('%s/momentumF'%model.workdir)
+        os.mkdir('%s/%s'%(model.workdir, method_name))
     except:
         pass
     try:
@@ -72,36 +77,16 @@ def save(name, graph, model, overwrite=True):
     for eps_cnt in integrand.keys():
         integrand_=integrand[eps_cnt]
         f=open('%s/%s_E%s_O.c'%(dirname,name,eps_cnt),'w')
-        f.write(calculate.core_pv_code(integrand_+main))
+        f.write(code_(integrand_+main))
         f.close()
         eps_cnt+=1
         
-
-#    for g in model.dTau(graph):
-#        roperation.strechMoments(g, model)
-#        print cnt, g
-#        det=roperation.det(g, model)
-#        #expr=(jakob*det*roperation.AvgByExtDir(roperation.expr(g,model))).subs(d, model.space_dim-e)
-#        expr=(norm*jakob*det*roperation.AvgByExtDir(roperation.expr(g,model))).subs(d, model.space_dim-e)
-#        strechs=roperation.find_strech_atoms(expr)
-#        eps_cnt=0
-#
-#
-#        for _expr in utils.series_lst(expr,e,model.target-_nloops_orig):
-#            integrand=roperation.export_subs_vars_pv(subsvars,strechs)
-#            integrand+= "\nf[0]=1.0e-38;\n"
-#            integrand+= "f[0]+=%s;\n"%sympy.printing.ccode(_expr)
-#            f=open('%s/%s_E%s_%s.c'%(dirname,name,eps_cnt,cnt),'w')
-#            f.write(calculate.core_pv_code(integrand))
-#            f.close()
-#            eps_cnt+=1
-#        cnt+=1  
         
 def compile(name,model):
-    calculate.compile("momentumF/%s/"%name, model)
+    compile_("%s/%s/"%(method_name, name), model)
 
 def execute(name, model, points=10000, threads=2, calc_delta=0., neps=0):
-    return calculate.execute("momentumF/%s/"%name, model, points=points, threads=threads, calc_delta=calc_delta, neps=neps)        
+    return execute_("%s/%s/"%(method_name, name), model, points=points, threads=threads, calc_delta=calc_delta, neps=neps)        
     
 def result(model, method):
     return calculate.result(model, method)

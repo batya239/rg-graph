@@ -11,7 +11,7 @@ import calculate
 import utils
 import re as regex
 
-from feynman2D import Prepare, feynman_D_func, nintegrations 
+from feynman2D import Prepare, feynman_D_func, nintegrations ,  normalize
 
 def save(name, graph, model, overwrite=True):
     dirname = '%s/feynman2D_mpi/%s/'%(model.workdir,name)
