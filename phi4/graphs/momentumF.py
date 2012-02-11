@@ -29,13 +29,12 @@ def Prepare(graph, model):
 
     utils.print_moments(graph1._moments())
     print "subgraphs: ",graph1._subgraphs_m
-    print dir(graph1)
     return graph1
 
 def save(name, graph, model, overwrite=True):
-    dirname = '%s/momentumF/%s/'%(model.workdir,name)
+    dirname = '%s/momentumF-old/%s/'%(model.workdir,name)
     try:
-        os.mkdir('%s/momentumF'%model.workdir)
+        os.mkdir('%s/momentumF-old'%model.workdir)
     except:
         pass
     try:
@@ -48,7 +47,7 @@ def save(name, graph, model, overwrite=True):
                     os.remove(dirname+file)
                     
     graph=Prepare(graph, model)
-    print dir(graph)
+
     jakob,subsvars = roperation.subs_vars(graph)
     cnt=0
     d,e=sympy.var('d e')
@@ -60,7 +59,7 @@ def save(name, graph, model, overwrite=True):
     norm=utils.series_f(utils.norm(graph.NLoops(),model.space_dim-e)*graph.sym_coef(), e, model.target-_nloops_orig)
     print norm
     print utils.series_f(utils.norm(graph.NLoops(),model.space_dim-e), e, model.target-_nloops_orig), graph.sym_coef()
-    print dir(graph)
+
     for g in model.dTau(graph):
         roperation.strechMoments(g, model)
         print cnt, g
@@ -82,10 +81,10 @@ def save(name, graph, model, overwrite=True):
         cnt+=1  
         
 def compile(name,model):
-    calculate.compile("momentumF/%s/"%name, model)
+    calculate.compile("momentumF-old/%s/"%name, model)
 
 def execute(name, model, points=10000, threads=2, calc_delta=0., neps=0):
-    return calculate.execute("momentumF/%s/"%name, model, points=points, threads=threads, calc_delta=calc_delta, neps=neps)        
+    return calculate.execute("momentumF-old/%s/"%name, model, points=points, threads=threads, calc_delta=calc_delta, neps=neps)        
     
 def result(model, method):
     return calculate.result(model, method)

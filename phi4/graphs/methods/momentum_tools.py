@@ -72,7 +72,6 @@ def momentumF_func(graph, model):
 
     func=dict()
     cnt=0
-    n_strechs=roperation.strechMoments(graph.Clone(), model)
     for g in model.dTau(graph):
         roperation.strechMoments(g, model)
         print cnt
@@ -94,7 +93,13 @@ def momentumF_func(graph, model):
     return func
     
 def nintegrations(graph, model):
-    n_strechs=roperation.strechMoments(graph.Clone(), model)
-    res, n = find_independent(graph._subsvars, set())
-    print n, n_strechs
-    return n+n_strechs
+    g1=graph.Clone()
+    roperation.strechMoments(g1, model)
+    expr=(roperation.AvgByExtDir(roperation.expr(g1,model)))
+#        print expr
+    strechs=roperation.find_strech_atoms(expr)
+    res, n = find_independent(graph._subsvars, strechs)
+    if g1.Dim(model)==2:
+        n=n-1
+    print "nintegrations=", n
+    return n

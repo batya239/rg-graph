@@ -35,7 +35,7 @@ def Prepare(graph, model):
 
     utils.print_moments(graph1._moments())
     print "subgraphs: ",graph1._subgraphs_m
-    graph1._jakob,graph1._subsvars = roperation.subs_vars(graph)
+    graph1._jakob,graph1._subsvars = roperation.subs_vars(graph1) 
     return graph1
 
 def save(name, graph, model, overwrite=True):
