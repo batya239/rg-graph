@@ -78,7 +78,7 @@ def momentumF_func(graph, model):
         det=roperation.det(g, model)
 #        print roperation.AvgByExtDir(roperation.expr(g,model))
         expr=(norm*jakob*det*roperation.AvgByExtDir(roperation.expr(g,model))).subs(d, model.space_dim-e)
-#        print expr
+        #print expr
         strechs=roperation.find_strech_atoms(expr)
         
         eseries=[]
@@ -96,10 +96,9 @@ def nintegrations(graph, model):
     g1=graph.Clone()
     roperation.strechMoments(g1, model)
     expr=(roperation.AvgByExtDir(roperation.expr(g1,model)))
-#        print expr
+
     strechs=roperation.find_strech_atoms(expr)
     res, n = find_independent(graph._subsvars, strechs)
-    if g1.Dim(model)==2:
-        n=n-1
+
     print "nintegrations=", n
     return n
