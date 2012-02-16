@@ -12,4 +12,7 @@ accuracy = float(sys.argv[1])
 
 for dir in os.listdir('.'):
    if re.match('e.*-', dir):
-       tools.print_bad(tools.find_bestresult(dir),accuracy)
+       try:
+          tools.print_bad(tools.find_bestresult(dir),accuracy)
+       except:
+          print dir, "Error"
