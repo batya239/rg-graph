@@ -1,0 +1,43 @@
+#!/usr/bin/python
+
+import sys
+import os
+import fnmatch
+import re
+from graphs import Graph
+
+import cluster.tools
+from dummy_model import _phi4
+
+
+
+method = sys.argv[1]
+phi4=_phi4('dummy')
+try:
+    exec('from %s import normalize'%method)
+except ImportError:
+    normalize=lambda x, y: y
+    
+#name = sys.argv[2]
+max=phi4.target-1
+for dir in os.listdir('.'):
+    if re.match('e.*-', dir):
+        g=Graph(dir) 
+#       try:
+        print "%s,"%dir, 
+        try:
+            res, err= normalize(g, cluster.tools.collect_result(cluster.tools.find_bestresult(dir)))
+        except ValueError:
+            res=[]
+            err=[]
+        
+        for res_ in res:
+            print "%s,"%res_, 
+        print ","*(max-len(res)+1), 
+        for err_ in err:
+            print "%s,"%err_, 
+        print ","*(max-len(err)), 
+        print method
+              
+#       except:
+#          print dir, "Error"

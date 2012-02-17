@@ -4,6 +4,7 @@ import sys
 import os
 import fnmatch
 import re
+import math
 
 def get_results(fname):
    res=None
@@ -49,7 +50,10 @@ def find_bestresult(name):
            iname = regex.groups()[0]
            result = get_results("%s/%s"%(name,file))
            (res, std_dev, delta, time, ncall) = result
-
+           if res==None or std_dev==None:
+               continue
+           if math.isnan(res) or math.isnan(std_dev):
+               continue
            if iname in reslist.keys():
                if None in reslist[iname][0] and None not in reslist:
                      reslist[iname] = (result, file)
@@ -61,6 +65,25 @@ def find_bestresult(name):
                      reslist[iname] = (result, file)
 
     return reslist
+    
+def collect_result(res_dict):
+    keys = res_dict.keys()
+    regex=re.compile('^(.*)_E(.*)_O.run.*')
+    name=None
+    res=[None]*len(keys)
+    err=[None]*len(keys)    
+    for i in keys:
+        reg_=regex.match(i)
+        if reg_:
+            name=reg_.groups()[0]
+            eps=int(reg_.groups()[1])
+        else:
+            raise ValueError, "invalid key %s"%i
+        ((res_, std_dev_, delta_, time, ncall),fname) = res_dict[i]
+        res[eps]=res_
+        err[eps]=std_dev_
+    return  res, err
+    
 
 def print_bad(reslist, accuracy):
    for iname  in reslist:
