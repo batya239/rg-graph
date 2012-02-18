@@ -420,6 +420,7 @@ def xLoopMoments(graph):
                 if not CheckKirghoff(l):
                     yield None
                 else:
+#                    print "QQ"
                     cnt=0
                     for path in p:
                         curMoment=Momenta(string="p%s"%cnt)
@@ -431,6 +432,7 @@ def xLoopMoments(graph):
                         SetChainMoments(loop, moment, curMoment)
                         cnt+=1
                     lcnt+=1
+#                    print moment
                     yield moment
 
         pcnt+=1
@@ -457,11 +459,13 @@ def Generic(model, graph, level=None):
         #print dict([(x.idx(),_curkMoment[x]._string) for x in _curkMoment]),[(x.idx(),x.isInternal()) for x in i]
 
         curkMoment = ZeroExtMoments(graph,_curkMoment)
+#        print curkMoment
         if model.checktadpoles:
             try:
                 newSubgraphs = CheckTadpoles(graph, curkMoment)
 #                print newSubgraphs
             except TadpoleError:
+#                print "TADPOLE"
                 continue
             graph._subgraphs_checktadpole = newSubgraphs
         curIndex = GetMomentaIndex(graph, curkMoment, checktadpoles=model.checktadpoles)
@@ -516,6 +520,9 @@ def CheckTadpoles(graph,moments):
 #            print to_remove,res
             if len(tadpoles)>0 and len(to_remove)<1:
                 raise TadpoleError, "moment doesn't pass through subgraph that produced tadpole"
+# как то я забыл почему это плохо?
+
+
             for _sub in to_remove:
                 res.remove(_sub)
     res.remove(graph_as_sub)
@@ -538,7 +545,7 @@ def GetMomentaIndex(graph,moments, checktadpoles=False):
         phi4 model -> checktadpoles=True
         checktadpoles=True - generates new (redueced) _subfgraphs field
     """
-    penalties={"badKirghoff":10**9, "badSub":10**6, "badIn":10000, "longIn":100,"longMoment":1}
+    penalties={"badKirghoff":10**9, "badSub":10**6, "badIn":10000, 'complexLineType':1000,  "longIn":100,"longMoment":1}
     result=0
     if moments==None:
         """ if Kirghoff returns None - it can't solve Kirghoff equtaions due to inconsistent initial conditions
@@ -565,6 +572,7 @@ def GetMomentaIndex(graph,moments, checktadpoles=False):
 
             extnodes,extlines=sub.FindExternal()
 #            if len(extlines)==2:
+            extpath=ExtMomentPath(graph, sub, moments)
             if sub.CountExtLegs()==2:
                 """ is external moment for self-energy subgraph simple?
 
@@ -574,15 +582,20 @@ def GetMomentaIndex(graph,moments, checktadpoles=False):
 
                 """ count length of external moment path for self-energy subgraph
                 """
-                extpath=ExtMomentPath(graph, sub, moments)
+#                extpath=ExtMomentPath(graph, sub, moments)
                 if len(extpath)>=2:
                     result+=penalties['longIn']*(len(extpath)-1)
+            for line in extpath:
+                if isinstance(line.type, str):
+                    result+=penalties['complexLineType']
   #          print "2-In", result
+        
         for moment in moments.values():
             if len(moment._dict.keys())>0:
                 result+=penalties['longMoment']*(len(moment._dict.keys())-1)
 #        print "long", result
 
+#    print moments
 #    print "Index:", result
     return result
 
