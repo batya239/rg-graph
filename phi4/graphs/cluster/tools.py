@@ -11,6 +11,7 @@ def get_results(fname):
    std_dev=None
    delta=None
    time=None
+   threads=None
    ncall_tot=0
    for line in open(fname).readlines():
        regex=re.match("^std_dev = (.*)$",line)
@@ -29,6 +30,11 @@ def get_results(fname):
        if regex:
            time=float(regex.groups()[0])
 
+       regex=re.match(".*\s+(\d+)\s(thread|CPU)\(s\).*",line)
+       if regex:
+           threads=int(regex.groups()[0])
+
+
        regex=re.match(".*ncall=\s+(\d+)\s.*",line)
        if regex:
            ncall=int(regex.groups()[0])
@@ -39,7 +45,7 @@ def get_results(fname):
            ncall_tot+=ncall*nit
            ncall=0
 
-   return (res,std_dev,delta,time,ncall_tot)
+   return (res,std_dev,delta,time,ncall_tot, threads)
 
 def find_bestresult(name):
     filelist =  os.listdir("%s/"%name)
@@ -49,7 +55,7 @@ def find_bestresult(name):
         if regex:
            iname = regex.groups()[0]
            result = get_results("%s/%s"%(name,file))
-           (res, std_dev, delta, time, ncall) = result
+           (res, std_dev, delta, time, ncall,  threads) = result
            if res==None or std_dev==None:
                continue
            if math.isnan(res) or math.isnan(std_dev):
@@ -71,7 +77,8 @@ def collect_result(res_dict):
     regex=re.compile('^(.*)_E(.*)_O.run.*')
     name=None
     res=[None]*len(keys)
-    err=[None]*len(keys)    
+    err=[None]*len(keys)
+    time=[0, ]*len(keys)    
     for i in keys:
         reg_=regex.match(i)
         if reg_:
@@ -79,15 +86,17 @@ def collect_result(res_dict):
             eps=int(reg_.groups()[1])
         else:
             raise ValueError, "invalid key %s"%i
-        ((res_, std_dev_, delta_, time, ncall),fname) = res_dict[i]
+        ((res_, std_dev_, delta_, time_, ncall_, thread_),fname) = res_dict[i]
         res[eps]=res_
         err[eps]=std_dev_
-    return  res, err
+#        print time_ , thread_ , ncall_
+        time[eps]=(time_/thread_/ncall_*10**6, (ncall_/10**5)/10.)
+    return  res, err, time
     
 
 def print_bad(reslist, accuracy):
    for iname  in reslist:
-       ((res, std_dev, delta, time, ncall),fname) = reslist[iname]
+       ((res, std_dev, delta, time, ncall, thread),fname) = reslist[iname]
        if std_dev==None:
            print iname, "bad output!!!"
            continue
