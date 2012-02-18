@@ -23,13 +23,13 @@ max=phi4.target-1
 for dir in os.listdir('.'):
     if re.match('e.*-', dir):
         g=Graph(dir) 
-#       try:
-        print "%s,"%dir, 
         try:
-            res, err= normalize(g, cluster.tools.collect_result(cluster.tools.find_bestresult(dir)))
+            res__, err__, time__=cluster.tools.collect_result(cluster.tools.find_bestresult(dir))
+            res, err= normalize(g, (res__, err__))
         except ValueError:
             res=[]
             err=[]
+            time__=[]
         
         for res_ in res:
             print "%s,"%res_, 
@@ -37,7 +37,10 @@ for dir in os.listdir('.'):
         for err_ in err:
             print "%s,"%err_, 
         print ","*(max-len(err)), 
-        print method
+        print method, ",", 
+        for time_ in time__:
+            print "%s,%s,"%time_, 
+        print ","*(max-len(time__)), 
+        print
+
               
-#       except:
-#          print dir, "Error"
