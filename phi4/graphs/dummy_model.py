@@ -88,6 +88,7 @@ class _phi4(_generic_model):
         self.checktadpoles=True
         self.reduce=True
         self.subgraphs2reduce=['e111-e-','ee11-ee-']
+        self.use_analitic_sub=False
 #        self.subgraphs2reduce=['e111-e-', ]        
         self.target=5
         self.workdir='/home/mkompan/work/rg-graph/phi_4/'

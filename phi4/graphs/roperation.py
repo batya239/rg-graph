@@ -64,11 +64,19 @@ def expr(graph, model):
     else:
         subgraphs=graph._subgraphs
 
+    if "_nloops_orig" in graph.__dict__:
+        nloops=graph._nloops_orig
+    else:
+        nloops=graph.NLoops()
+
     res=sympy.Number(1)
     for node in graph.xInternalNodes():
         res=res*node.Vertex(model)
     for line in graph.xInternalLines():
-        res=res*line.Propagator(model)    
+        if model.use_analitic_sub:
+            res=res*line.Propagator(model, neps=model.target-nloops)    
+        else:
+            res=res*line.Propagator(model)    
 
     for sub in subgraphs:
         if "_strechvar" in sub.__dict__:
