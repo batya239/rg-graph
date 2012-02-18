@@ -28,9 +28,11 @@ def Prepare(graph, model):
     graph1._sym_coef_orig=sym_coef
     graph1.FindSubgraphs(model)
     print graph
+    print "reduced:", graph1
     subs_toremove=subgraphs.DetectSauseges(graph1._subgraphs)
     graph1.RemoveSubgaphs(subs_toremove)
 
+    print graph1._subgraphs
     print "moment index: ", moments.Generic(model, graph1)
 
     utils.print_moments(graph1._moments())
