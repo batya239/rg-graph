@@ -20,10 +20,10 @@ class Line:
         return (self.start, self.end)
         
 
-    def Propagator(self, model):
+    def Propagator(self, model, **kwargs):
         """ line propagator
         """
-        return model.propagator(self)
+        return model.propagator(self, **kwargs)
 
     def Dim(self, model):
         """ line dimension
