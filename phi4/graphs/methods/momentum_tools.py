@@ -74,7 +74,7 @@ def momentumF_func(graph, model):
     cnt=0
     for g in model.dTau(graph):
         roperation.strechMoments(g, model)
-        print cnt
+        print cnt,  g
         det=roperation.det(g, model)
 #        print roperation.AvgByExtDir(roperation.expr(g,model))
         expr=(norm*jakob*det*roperation.AvgByExtDir(roperation.expr(g,model))).subs(d, model.space_dim-e)

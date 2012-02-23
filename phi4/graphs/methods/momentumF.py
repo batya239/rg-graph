@@ -32,11 +32,19 @@ def Prepare(graph, model):
     subs_toremove=subgraphs.DetectSauseges(graph1._subgraphs)
     graph1.RemoveSubgaphs(subs_toremove)
 
+## temporary hack 
+#    subgraphs.RemoveTadpoles(graph1)
+#    model.checktadpoles=False
+
     print graph1._subgraphs
     print "moment index: ", moments.Generic(model, graph1)
 
     utils.print_moments(graph1._moments())
-    print "subgraphs: ",graph1._subgraphs_m
+    try:
+        print "subgraphs_m: ",graph1._subgraphs_m
+    except:
+        print "subgraphs: ",graph1._subgraphs
+    
     graph1._jakob,graph1._subsvars = roperation.subs_vars(graph1) 
     return graph1
 
