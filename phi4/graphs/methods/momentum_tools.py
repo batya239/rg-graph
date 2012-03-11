@@ -77,6 +77,12 @@ def momentumF_func(graph, model):
         print cnt,  g
         det=roperation.det(g, model)
 #        print roperation.AvgByExtDir(roperation.expr(g,model))
+##        print
+##        print norm
+##        print jakob
+##        print det
+##        print roperation.AvgByExtDir(roperation.expr(g,model))
+##        print
         expr=(norm*jakob*det*roperation.AvgByExtDir(roperation.expr(g,model))).subs(d, model.space_dim-e)
         #print expr
         strechs=roperation.find_strech_atoms(expr)
