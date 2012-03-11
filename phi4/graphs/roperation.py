@@ -116,7 +116,7 @@ def subs_vars(graph):
                 res['ct_%s_%s'%(i,j)]=sympy.var('z_%s_%s'%(i,j))*2-1
                 res['st_%s_%s'%(i,j)]=(1-ct_ij**2)**0.5
                 sympy.var('st_%s_%s'%(i,j))
-                jakob=jakob*2
+                jakob=jakob*2 # due to transition from cos vars (-1,1) to z vars (0,1)
 
                 if i == 0:
                     res['q%sOq%s'%(i,j)]=eval('ct_%s_%s'%(i,j))
