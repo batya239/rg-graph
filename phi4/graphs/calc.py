@@ -23,8 +23,8 @@ if len(sys.argv)>3:
         exec('from %s import normalize'%sys.argv[3])
     except:
         pass
-else:
-    exec('from calculate import execute')
+#else:
+#    exec('from calculate import execute')
     
 g1=Graph(sys.argv[1])
 

@@ -147,6 +147,7 @@ class _phi4(_generic_model):
             u,d=sympy.var("u_%sL_0 d"%(line.idx()))
             e=self.space_dim-d
             k2=line.momenta.Squared()
+            print "neps=", neps
             if neps==None:
                 gammas=0.5 - 0.25*e + 0.205616758356028*e**2 - 0.102808379178014*e**3 + 0.0591895518435779*e**4 - 0.0295947759217889*e**5 + 0.0153992358015224*e**6 - 0.00769961790076121*e**7
                 if 'tau' not in line.modifiers:
@@ -158,10 +159,18 @@ class _phi4(_generic_model):
             elif neps==0:
                 k=k2**0.5
                 if 'tau' not in line.modifiers:
-                    res=1.-(4./k2+1.)**0.5/2.*sympy.ln(((4./k2+1.)**0.5+1.)/((4./k2+1.)**0.5-1.))
+                    res=1.-(4./k2+1.)**0.5/2.*sympy.ln(((4./k2+1.)**0.5+1.)**2*k2/4.)
                 else:
-                    res=1./(4./k2+1.)**0.5/k2*sympy.ln(((4./k2+1.)**0.5+1.)/((4./k2+1.)**0.5-1.))
+                    res=1./(4./k2+1.)**0.5/k2*sympy.ln(((4./k2+1.)**0.5+1.)**2*k2/4.)
                 return res
+#                if 'tau' not in line.modifiers:
+#                    res=1.-(4./(k2+1)+1.)**0.5/2.*sympy.ln(((4./(k2+1)+1.)**0.5+1.)/((4./(k2+1)+1.)**0.5-1.))
+##                       res=1.
+#                else:
+##                       res=0.
+#                    res=1./(4./(k2+1)+1.)**0.5/(k2+1)*sympy.ln(((4./(k2+1)+1.)**0.5+1.)/((4./(k2+1)+1.)**0.5-1.))
+#                return res
+
 
         else:
             tau=sympy.var('tau')

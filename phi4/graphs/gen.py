@@ -18,11 +18,11 @@ g1=Graph(sys.argv[1])
 name=str(g1.GenerateNickel())
 print name
 
-
+#phi4.reduce=False
 
 save(name,g1,phi4)
 
-#compile(name,phi4)
+compile(name,phi4)
 
 (res,err) = execute(name, phi4, neps=0)
 for i in range(len(res)):

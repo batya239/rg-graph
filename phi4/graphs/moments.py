@@ -343,7 +343,7 @@ def SetChainMoments(chain,moments,moment):
 #    print "-------------------"
 
 def CheckKirghoff(loops):
-    for i in range(1, len(loops)):
+    for i in range(1, len(loops)): #temporary hack for kirghoff
         for c in comb.xUniqueCombinations(range(len(loops)), i):
             lines=set()
             for j in c:
@@ -352,9 +352,49 @@ def CheckKirghoff(loops):
             for j in range(len(loops)):
                 if j not in c:
                     if set(loops[j])&lines==set(loops[j]):
+                        print "c=", c
+                        print lines, loops[j]
                         return False
                         
     return True
+    
+    
+def CheckKirghoff2(loops, graph):
+    lines=set()
+    for loop in loops:
+        lines=lines|set(loop)
+    
+    for line in graph.xInternalLines():
+        if line not in lines:
+            return False
+    return True
+
+def CheckKirghoff3(loops, graph):
+    """ петли должны покрывать все линии графа и не распадаться на разные области связности при "разрыве вершины"
+    """
+    komp_sv=list()
+    for loop in loops:
+        int_lst=list()
+        rest_lst=list()
+        for komp in komp_sv:
+            if len(set(loop)&komp)>0:
+                int_lst.append(komp)
+            else:
+                rest_lst.append(komp)
+        union=set()
+        for elem in int_lst:
+            union=union|elem
+        union=union|set(loop)
+        rest_lst.append(union)
+        komp_sv=copy(rest_lst)
+    if len(rest_lst)>1: 
+        return False
+    else:
+        for line in graph.xInternalLines():
+            if line not in rest_lst[0]:
+                return False
+        return True
+        
 
 
 def CheckLoopAndPath(loop,path,graph):
@@ -412,12 +452,13 @@ def xLoopMoments(graph):
             moment=dict()
 #            primitives=dict()
 #            print CheckKirghoff(l)
+#            print CheckKirghoff2(l, graph)
 #            print CheckLoopAndPath(l,p,graph)
             if not CheckLoopAndPath(l,p,graph):
                 lcnt+=1
                 yield None
             else:
-                if not CheckKirghoff(l):
+                if not CheckKirghoff3(l, graph):
                     yield None
                 else:
 #                    print "QQ"
