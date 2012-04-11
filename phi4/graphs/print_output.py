@@ -30,7 +30,7 @@ for dir in os.listdir('.'):
             res=[]
             err=[]
             time__=[]
-        
+        print "%s,"%dir[:-1] ,
         for res_ in res:
             print "%s,"%res_, 
         print ","*(max-len(res)+1), 
