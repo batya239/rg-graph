@@ -55,7 +55,7 @@ def unique_ui(cons):
 def qi_lambda(cons, eqs):
     qi=dict()
     qi2line=dict()
-    print cons, eqs
+#    print cons, eqs
     for ui in unique_ui(cons):
         qi[ui]=1
         qi2line[ui]=[ui]
