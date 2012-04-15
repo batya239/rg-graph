@@ -158,7 +158,7 @@ class poly_exp:
         for monom in self.poly[1:]:
             gcd_=[]
             for var in set(gcd):
-                gcd+=[var, ]*(min(gcd.count(var), monom.count(var)))
+                gcd_+=[var, ]*(min(gcd.count(var), monom.count(var)))
             gcd=gcd_
         return poly_exp([gcd], self.power, self.degree)
     
@@ -184,7 +184,7 @@ def set0_poly_lst(poly_lst, var):
 #        print "========="
 #        print poly
         poly_=poly.set0(var)
-        if len(poly_.poly)>1:
+        if len(poly_.poly)>0:
 #            print "========="
 #            print poly
 
@@ -197,7 +197,9 @@ def set0_poly_lst(poly_lst, var):
                 res.append(gcd)
             else:
                 res.append(poly_)
-        else:
+#        elif len(poly_.poly)==1:
+#            res.append(poly_)
+        else: 
             if poly_.power.a>0:
                 return []
             else:
@@ -549,110 +551,121 @@ def minus(poly_list):
 
 
 def save_sd(name, g1,  model):
-
-    ui=reduce(lambda x, y:x+y,  [[qi]*(g1._qi[qi]-1) for qi in g1._qi])
-#    print ui
-    qi=g1._qi.keys()[0]
-    ui.append(qi)
-    print ui,  g1._eq_grp
-    for sub in g1._subgraphs:
-        sub._strechvar=1000+g1._subgraphs.index(sub)
-
-    lfactor=1.
-    for qi_ in g1._qi.keys():
-        if qi_==qi:
-            lfactor=lfactor/sympy.factorial(g1._qi[qi_])
-        else:
-            lfactor=lfactor/sympy.factorial(g1._qi[qi_]-1)
-
+    print g1._eq_grp
+    for grp_ in g1._eq_grp:
+        if len(grp_)==0:
+            continue
+#        print grp_  ,  g1._qi, list(set(grp_)& set(g1._qi))
+        qi=list(set(grp_)&set(g1._qi))[0]
+        name_="%s_%s_"%(name, qi)
+        ui=reduce(lambda x, y:x+y,  [[qi_]*(g1._qi[qi_]-1) for qi_ in g1._qi])
+    #    print ui
+#        qi=g1._qi.keys()[0]
+        ui.append(qi)
+        print "   term u%s"%qi
+        print ui,  g1._eq_grp
+        for sub in g1._subgraphs:
+            sub._strechvar=1000+g1._subgraphs.index(sub)
     
-    grp=None
-    for grp in g1._eq_grp:
-        if qi in grp:
-            break
-    grp_factor=len(grp)
-
-#    print lfactor, g1.sym_coef(), grp_factor 
-
-    A1=poly_exp(g1._det, (-2, 0), g1.NLoops(), coef=(float(lfactor*g1.sym_coef()*grp_factor ), 0))
-#    print A1
-    A2=poly_exp([ui, ], (1, 0))
-    A3=poly_exp([g1._qi.keys()], (1, 0))
-    A4=poly_exp([g1._qi.keys()], (-1, 0))
-    g_qi=dTau_line(g1, qi,  model)
-    strechs=strech_indexes(g_qi, model)
-    #print [A1, A2, A3 ]
+        lfactor=1.
+        for qi_ in g1._qi.keys():
+            if qi_==qi:
+                lfactor=lfactor/sympy.factorial(g1._qi[qi_])
+            else:
+                lfactor=lfactor/sympy.factorial(g1._qi[qi_]-1)
     
-    strech_vars=[]
-    for var in strechs:
-        if strechs[var]>0:
-            strech_vars.append(var)
-            
-    Nf=100
-    sect_terms=dict()
-    for sector in g1._sectors:
-        idx=g1._sectors.index(sector)
-        if (idx+1) % (Nf/10)==0:
-            print "%s " %(idx+1)
-
         
-        active_strechs=strech_list(sector, g1._subgraphs)
-#        print sector,  active_strechs
-#        print A1, A2, A3, A4
-#        print
-        subs=[[x] for x in g1._qi.keys()]
-        subs.remove([sector[0]])
-#        print poly_exp(subs,  (1, 0))
-        subs_polyl=decompose(sector[1:], [poly_exp(subs,  (1, 0))], g1._qi,  g1._cons )
-#        print subs_polyl
-#        print 
-        expr=decompose(sector,[A1, A2, A3 ], g1._qi,  g1._cons )+[A4]+[poly_exp([[sector[0]]], (1, 0))]
-#        print expr
-#        print poly_list2ccode(expr)
-        terms=[expr]
-#        print
-#        print terms
+        grp=None
+        for grp in g1._eq_grp:
+            if qi in grp:
+                break
+        grp_factor=len(grp)
+    
+    #    print lfactor, g1.sym_coef(), grp_factor 
+    
+        A1=poly_exp(g1._det, (-2, 0), g1.NLoops(), coef=(float(lfactor*g1.sym_coef()*grp_factor ), 0))
+    #    print A1
+        A2=poly_exp([ui, ], (1, 0))
+        A3=poly_exp([g1._qi.keys()], (1, 0))
+        A4=poly_exp([g1._qi.keys()], (-1, 0))
+        g_qi=dTau_line(g1, qi,  model)
+        strechs=strech_indexes(g_qi, model)
+        #print [A1, A2, A3 ]
+        
+        strech_vars=[]
         for var in strechs:
-#            print
-#            print var
-#            print terms
-            terms_=[]
-            if strechs[var]==0:
-                for term in terms:
-                    terms_.append(set1_poly_lst(term, var))
-            if strechs[var]==1:
-                for term in terms:
-#                    print "---"
-#                    print term
-                    if var not in active_strechs:
-                        terms_+=diff_poly_lst(term, var)
-                    else:
-                        terms_.append(minus(set0_poly_lst(term, var)))
-                        terms_.append(set1_poly_lst(term, var))
-                    
-            terms=terms_
-        tres=""
-        for i in  map(poly_list2ccode,  terms):
-            tres+="%s;\nres+="%i
-        sect_terms[tuple(sector)]=(tres[:-5], poly_list2ccode(subs_polyl))
-        
-#        print "f=", tres[:-5]
-#        print poly_list2ccode(subs_polyl)
-        if (idx+1) % Nf==0:
-            if len(sect_terms)<>0:
-                print
-                print "write to disk... %s"%(idx+1)
-                f=open("tmp/%s%s.c"%(name,idx/Nf),'w')
-                f.write(code(functions(sect_terms, g1._qi.keys(), strech_vars), len(g1._qi.keys())+len(strech_vars)))
-                f.close()
-                sect_terms=dict()
-
-    if len(sect_terms)<>0:
-        print "write to disk... %s"%(idx+1)
-        f=open("tmp/%s%s.c"%(name,idx/Nf),'w')
-        f.write(code(functions(sect_terms, g1._qi.keys(), strech_vars), len(g1._qi.keys())+len(strech_vars)))
-        f.close()
+            if strechs[var]>0:
+                strech_vars.append(var)
+                
+        Nf=100
         sect_terms=dict()
+#        g1._sectors=[[6, 7], [7, 6]]
+        for sector in g1._sectors:
+            idx=g1._sectors.index(sector)
+            if (idx+1) % (Nf/10)==0:
+                print "%s " %(idx+1)
+    
+            
+            active_strechs=strech_list(sector, g1._subgraphs)
+    #        print sector,  active_strechs
+    #        print A1, A2, A3, A4
+    #        print
+            subs=[[x] for x in g1._qi.keys()]
+            subs.remove([sector[0]])
+    #        print poly_exp(subs,  (1, 0))
+            subs_polyl=decompose(sector[1:], [poly_exp(subs,  (1, 0))], g1._qi,  g1._cons )
+    #        print subs_polyl
+    #        print 
+            expr=decompose(sector,[A1, A2, A3 ], g1._qi,  g1._cons )+[A4]+[poly_exp([[sector[0]]], (1, 0))]
+            print
+            print sector
+            print expr
+    #        print poly_list2ccode(expr)
+            terms=[expr]
+    #        print
+    #        print terms
+            for var in strechs:
+                print
+                print var,  active_strechs
+                print terms
+                terms_=[]
+                if strechs[var]==0:
+                    for term in terms:
+                        terms_.append(set1_poly_lst(term, var))
+                if strechs[var]==1:
+                    for term in terms:
+                        print "---"
+                        print term
+                        if var not in active_strechs:
+                            terms_+=diff_poly_lst(term, var)
+                        else:
+                            terms_.append(minus(set0_poly_lst(term, var)))
+                            terms_.append(set1_poly_lst(term, var))
+                        
+                terms=terms_
+            tres=""
+            print terms
+            for i in  map(poly_list2ccode,  terms):
+                tres+="%s;\nres+="%i
+            sect_terms[tuple(sector)]=(tres[:-5], poly_list2ccode(subs_polyl))
+            
+    #        print "f=", tres[:-5]
+    #        print poly_list2ccode(subs_polyl)
+            if (idx+1) % Nf==0:
+                if len(sect_terms)<>0:
+                    print
+                    print "write to disk... %s"%(idx+1)
+                    f=open("tmp/%s%s.c"%(name_,idx/Nf),'w')
+                    f.write(code(functions(sect_terms, g1._qi.keys(), strech_vars), len(g1._qi.keys())+len(strech_vars)))
+                    f.close()
+                    sect_terms=dict()
+    
+        if len(sect_terms)<>0:
+            print "write to disk... %s"%(idx+1)
+            f=open("tmp/%s%s.c"%(name_,idx/Nf),'w')
+            f.write(code(functions(sect_terms, g1._qi.keys(), strech_vars), len(g1._qi.keys())+len(strech_vars)))
+            f.close()
+            sect_terms=dict()
     
 
 
