@@ -134,16 +134,19 @@ def feynman_D_func(graph, model):
     cdet=graph._cdet
     
     func=dict()
-    lfactor=1.
-    for qi in graph._qi.keys():
-        lfactor=lfactor/sympy.factorial(graph._qi[qi]-1)
-    
+#    lfactor=1.
+#    for qi in graph._qi.keys():
+#        lfactor=lfactor/sympy.factorial(graph._qi[qi]-1)
+#    print lfactor
 
     i=-1
     eq_grp_flag=[0 for i_ in graph._eq_grp]
     for qi in graph._qi.keys():    
 #    for grp in graph._eq_grp:
 #        qi = graph._qi.keys()[i]
+
+#нафига такие сложности не проще ли было 
+#проитерироваться по _eq_grp и взять первый элемент?
         flag=False
         for j in range(len(graph._eq_grp)):
             grp=graph._eq_grp[j]
@@ -157,11 +160,24 @@ def feynman_D_func(graph, model):
             continue
         i=i+1
 
+        lfactor=1.
+        for qi_ in graph._qi.keys():
+            if qi_==qi:
+                lfactor=lfactor/sympy.factorial(graph._qi[qi_])
+            else:
+                lfactor=lfactor/sympy.factorial(graph._qi[qi_]-1)
+        print lfactor
+
+
         print "   term ", i
 #        print graph._eq_grp, eq_grp_flag
 #        qi = line_to_qi(graph, grp[0])
-        grp_factor=len(set(grp)-set(graph._qi2l[qi]))+1
-#        print graph._qi2l[qi], grp,  grp_factor
+        grp_factor=len(grp)
+
+#grp_factor=len(set(grp)-set(graph._qi2l[qi]))+1  #очень странная формула
+   
+
+        print graph._qi2l[qi], grp,  grp_factor
         g_qi=dTau_line(graph, qi,  model)
         strechs=strech_indexes(g_qi, model)
         
