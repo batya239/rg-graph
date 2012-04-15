@@ -1,0 +1,706 @@
+#!/usr/bin/python
+from comb import xCombinations, xUniqueCombinations
+#import sympy
+import copy
+import sys
+import sympy
+from methods.feynman_tools import find_eq,  qi_lambda,  apply_eq,  conv_sub
+import conserv
+import subgraphs
+from methods.feynman_tools import strech_indexes, dTau_line
+
+def Prepare(graph, model):
+    model.SetTypes(graph)
+    model.checktadpoles=False
+    graph.FindSubgraphs(model)
+    
+    subs_toremove=subgraphs.DetectSauseges(graph._subgraphs)
+    graph.RemoveSubgaphs(subs_toremove)
+
+    subgraphs.RemoveTadpoles(graph)
+    
+    int_edges=graph._internal_edges_dict()
+    cons = conserv.Conservations(int_edges)
+    eqs = find_eq(cons)
+#    print cons, eqs
+    cons=apply_eq(cons, eqs)
+    print cons
+    graph._cons=cons
+    graph._qi, graph._qi2l = qi_lambda(cons, eqs)
+    print graph._qi, graph._qi2l
+    graph._det=gendet(cons, graph._subgraphs, graph._qi, graph.NLoops())
+#    print graph._det
+#    print len(gensectors(cons, graph._qi,  graph.NLoops()))
+    graph._sectors=gensectors(cons, graph._qi, graph.NLoops())
+    
+"""
+    det_ = det(cons, graph._subgraphs,  graph.NLoops())
+    Cdet=sympy.Number(0)
+    if len(graph.ExternalLines())==2:
+        int_edges[1000000]=[i.idx() for i in graph.ExternalNodes()]
+        cons = conserv.Conservations(int_edges)
+        eqs = find_eq(cons)
+        cons=apply_eq(cons, eqs)        
+        Cdet = - det(cons, graph._subgraphs,  graph.NLoops()+1)
+    
+    graph._det_f=det_
+    graph._cdet=Cdet
+"""
+
+def valid_vars(sector,used_vars, vars, cons):
+   res=[]
+   for i in vars:
+#      print i, used_vars
+      if i in used_vars:
+          continue
+      t_set=set(used_vars[:-1]+[i])
+
+      valid=reduce(lambda x,y: x and y, map(lambda x: (not x.issubset(t_set))and(x <>t_set), cons )+[True,True]) # to make reduce work with any length of cons
+#      print i, t_set, valid, map(lambda x: (not x.issubset(t_set))and(x <>t_set), cons )
+#      print cons[0],t_set, cons[0] not in t_set
+      if valid:
+          res.append(i)
+   return res
+
+
+class exp_pow:
+    def __init__(self,tup2):
+       self.a=tup2[0]
+       self.b=tup2[1]
+
+    def __add__(self,other):
+        if isinstance(other, int):
+            return exp_pow((self.a+other, self.b))
+        else:
+            return exp_pow((self.a+other.a, self.b+other.b))
+
+    def __sub__(self,other):
+        if isinstance(other, int):
+            return exp_pow((self.a-other, self.b))
+        else:
+            return exp_pow((self.a-other.a, self.b-other.b))
+
+
+    def __repr__(self):
+       return str((self.a,self.b))
+
+class poly_exp:
+    def __init__(self, poly, power, degree=None, coef=(1, 0)):
+       self.poly = poly #list of monoms (monom -> list)
+       if isinstance(power,tuple):
+           self.power = exp_pow(power) #tuple (a,b) :  a+b*eps
+       else:
+           self.power = power #tuple (a,b) :  a+b*eps
+ 
+       self.degree = degree
+       if isinstance(coef,tuple):
+           self.coef = exp_pow(coef) #tuple (a,b) :  a+b*eps
+       else:
+           self.coef = coef #tuple (a,b) :  a+b*eps
+       
+
+    def __repr__(self):
+       return "(c=%s,%s,pow=%s)"%(self.coef, self.poly,self.power)
+    
+    def strech(self,svar,varlist):
+       res=[]
+       for monom in self.poly:
+          factor=[]
+          for var in monom:
+             if var in varlist:
+                factor.append(svar)
+          res.append(copy.copy(monom)+factor)
+       return poly_exp(res,self.power,self.degree,  self.coef)
+
+    def extract(self,varlist):
+       res=copy.deepcopy(self.poly)
+       for monom in res:
+#          print monom, varlist
+          for var in varlist:
+             monom.remove(var)
+       return poly_exp(res,self.power,self.degree, self.coef)
+       
+    def set0(self, var):
+        res=[]
+        for monom in self.poly:
+            if var not in monom:
+                res.append(copy.copy(monom))
+        return poly_exp(res,self.power,self.degree, self.coef)
+            
+    def set1(self, var):
+        res=[]
+        for monom in self.poly:
+            monom_=copy.copy(monom)
+            if var in monom:
+                for i in range(monom.count(var)):
+                    monom_.remove(var)
+            res.append(copy.copy(monom_))
+        return poly_exp(res,self.power,self.degree, self.coef)
+        
+    def diff(self, var):
+        res=copy.copy(self.poly)
+        diff_=[]
+        for monom in self.poly:
+            monom_=copy.copy(monom)
+            if var in monom:
+                for i in range(monom.count(var)):
+                    monom_.remove(var)
+                for i in range(monom.count(var)):
+                    diff_.append(monom_)
+        if len(diff_)==0:
+            return []
+        else:
+            return [poly_exp(diff_,(1, 0), coef=self.power), poly_exp(res,self.power-1,self.degree, self.coef)]
+    
+    def GCD(self):
+#        print self
+        gcd=self.poly[0]
+        for monom in self.poly[1:]:
+            gcd_=[]
+            for var in set(gcd):
+                gcd+=[var, ]*(min(gcd.count(var), monom.count(var)))
+            gcd=gcd_
+        return poly_exp([gcd], self.power, self.degree)
+    
+    
+def diff_poly_lst(poly_lst, var):
+    terms=[]
+    for poly in poly_lst:
+        poly_lst_=[]
+        for poly2 in poly_lst:
+            if poly<>poly2:
+                poly_lst_.append(copy.deepcopy(poly2))
+        
+        pd=poly.diff(var)
+        if len(pd)<>0:
+            terms.append(poly_lst_+pd)
+    return terms
+           
+def set0_poly_lst(poly_lst, var):
+    res=[]
+#    print "===="
+#    print poly_lst
+    for poly in poly_lst:
+#        print "========="
+#        print poly
+        poly_=poly.set0(var)
+        if len(poly_.poly)>1:
+#            print "========="
+#            print poly
+
+            gcd=poly_.GCD()
+#            print poly_
+#            print gcd
+
+            if len(gcd.poly[0])>0:
+                res.append(poly_.extract(gcd.poly[0]))
+                res.append(gcd)
+            else:
+                res.append(poly_)
+        else:
+            if poly_.power.a>0:
+                return []
+            else:
+                raise ZeroDivisionError,  "var:=%s poly="%(var, poly)
+    return res
+    
+def set1_poly_lst(poly_lst, var):
+    res=[]
+    for poly in poly_lst:
+        res.append(poly.set1(var))
+    return res
+
+
+def decompose(sector, poly_lst, vars, cons):
+#    print sector, poly_lst
+    res = [copy.deepcopy(x) for x in poly_lst]
+    used_vars = []
+    extracted=dict()
+    for var in sector:
+        sector_idx=sector.index(var)
+        used_vars.append(var)
+        v_vars = valid_vars(sector, used_vars, vars, cons)
+
+#        print
+#        print var,v_vars
+        res_n=[]
+        for poly in res:
+            idx=res.index(poly)
+            poly=poly.strech(var,v_vars)
+         
+            if poly.degree<>None:
+                if idx  not in extracted:
+                     extracted[idx]=poly_exp([[]],poly.power)
+                extracted[idx].poly[0]+=[var,]*(poly.degree-sector_idx)
+#                print
+#                print poly
+                poly=poly.extract([var,]*(poly.degree-sector_idx))
+#                print poly
+#                print
+            res_n.append(poly)
+        res=res_n
+
+#        print "\n ---\n %s \n ---\n"%res
+
+     
+    for poly in extracted.values():
+       res.append(poly)
+                
+    return res
+
+def monom2str(monom):
+#   print monom
+   if len(monom)==0:
+       return "1"
+   res=""
+   for var in monom:
+      res=res+"u%s*"%var
+   return res[:-1]
+
+def poly2str(poly):
+   if len(poly)==0:
+      return "1"
+   else:
+      res=""
+      for monom in poly:
+          res+="%s+"%monom2str(monom)
+      return res[:-1]
+
+
+def poly_list2ccode(poly_list):
+    res=""
+    factor=dict()
+    #eps=0
+    C=1.
+    if len(poly_list)==0:
+        return "0."
+#    print "---"
+#    print poly_list
+    for poly in poly_list:
+        if len(poly.poly)==0:
+            pass
+        elif len(poly.poly)==1:
+            for var in poly.poly[0]:
+                if var not in factor:
+                    factor[var]=exp_pow((0,0))
+                factor[var]+=poly.power
+        else:
+            t_poly=poly2str(poly.poly)
+            # eps = 0 !!!!
+            if poly.power.a==1:
+                res+= "(%s)*"%(t_poly)
+            else:
+                res+= "pow(%s,%s)*"%(t_poly, poly.power.a)
+        C=C*poly.coef.a
+        
+    for var in factor.keys():
+       # eps = 0 !!!!
+        power=factor[var]
+        if power.a == 0:
+            continue
+        else:
+            if power.a ==1:
+                res+="(u%s)*"%(var)
+            else:
+                res+="pow(u%s,%s)*"%(var,power.a)
+#    print C
+    if C==1:
+        return res[:-1]
+    else:
+        return "%s(%s)"%(res, C)
+
+def functions(poly_dict,vars,  strechs):
+    res2="""
+void func(double k[DIMENSION], double f[FUNCTIONS])
+{
+f[0]=0.;
+"""
+    cnt=0
+    res=""
+    varstring=""
+    varstring2=""
+    for i in range(len(vars)+len(strechs)-1):
+        varstring+="double w_%s,"%i
+        varstring2+="k[%s],"%i
+    varstring=varstring[:-1]
+    varstring2=varstring2[:-1]
+    for sector in poly_dict.keys():
+        res+="""
+double func%s( %s)
+{
+//sector %s
+"""%(cnt,varstring,sector)
+        cnt2=0
+        
+        s0="1./(1.+"
+        for var in vars+strechs:
+            if var<>sector[0]:
+                res+="double u%s=w_%s;\n"%(var,cnt2)
+                cnt2+=1
+        
+        
+
+        expr, subs=poly_dict[sector]
+        res+="double u%s=1./(1.+%s);\n"%(sector[0],subs)
+        res+="double res = %s;\n return res;\n}\n"%expr
+        res2+="f[0]+=func%s(%s);\n"%(cnt,varstring2)
+        cnt+=1
+    return res + res2 + "}\n"
+
+def code(func,N):
+    res="""
+#include <math.h>
+#include <stdio.h>
+#include <vegas.h>
+#include <stdlib.h>
+#define gamma tgamma
+#define DIMENSION %s
+#define FUNCTIONS 1
+#define ITERATIONS 5
+#define NTHREADS 2
+#define NEPS 0
+#define NITER 2
+double reg_initial[2*DIMENSION]={%s};
+
+"""%(N-1, ("0.,"*(N-1)+"1.,"*(N-1))[:-1])
+    res+=func + """
+int t_gfsr_k;
+unsigned int t_gfsr_m[SR_P];
+double gfsr_norm;
+
+
+int main(int argc, char **argv)
+{
+  int i;
+  long long npoints;
+  int nthreads;
+  int niter;
+  double region_delta;
+  double reg[2*DIMENSION];
+  int idx;
+  if(argc >= 2)
+    {
+      npoints = atoll(argv[1]);
+
+    }
+  else
+    {
+      npoints = ITERATIONS;
+    }
+
+  if(argc >= 3)
+    {
+      nthreads = atoi(argv[2]);
+
+    }
+  else
+    {
+      nthreads = NTHREADS;
+    }
+   if(argc >= 5)
+    {
+      region_delta = atof(argv[4]);
+
+    }
+  else
+    {
+      region_delta = 0.;
+    }
+
+  if(argc >= 4)
+    {
+      niter = atoi(argv[3]);
+
+    }
+  else
+    {
+      niter = NITER;
+    }
+
+    for(idx=0; idx<2*DIMENSION; idx++)
+      {
+         if(idx<DIMENSION)
+           {
+             reg[idx] = reg_initial[idx]+region_delta;
+           }
+         else
+           {
+             reg[idx] = reg_initial[idx]-region_delta;
+           }
+      }
+  double estim[FUNCTIONS];   /* estimators for integrals                     */
+  double std_dev[FUNCTIONS]; /* standard deviations                          */
+  double chi2a[FUNCTIONS];   /* chi^2/n                                      */
+
+  vegas(reg, DIMENSION, func,
+        0, npoints/10, 5, NPRN_INPUT | NPRN_RESULT,
+        FUNCTIONS, 0, nthreads,
+        estim, std_dev, chi2a);
+  vegas(reg, DIMENSION, func,
+        2, npoints , niter, NPRN_INPUT | NPRN_RESULT,
+        FUNCTIONS, 0, nthreads,
+        estim, std_dev, chi2a);
+double delta= std_dev[0]/estim[0];
+printf ("result = %20.18g\\nstd_dev = %20.18g\\ndelta = %20.18g\\n", estim[0], std_dev[0], delta);
+//  printf ("Result %d: %g +/- %g delta=%g\\n",NEPS, estim[0], std_dev[0], delta);
+//  for (i=1; i<FUNCTIONS; ++i)
+//    printf("Result %i:\\t%g +/- %g  \\tdelta=%g\\n", i, estim[i], std_dev[i],std_dev[i]/estim[i]);
+  return(0);
+}
+
+"""
+    return res
+    
+## e123-e23-e3-e-
+"""
+N=6
+L=3
+cons=map(set,[[0,1,2],[0,3,5],[1,3,4],[2,4,5]])
+name="tmp/sd7_3loop_1_"
+"""
+##
+
+## e123-e24-35-45-e5-e-
+"""
+N=10
+L=5
+cons = [frozenset([8, 9, 6]),
+    frozenset([0, 1, 2, 4, 7, 9]), 
+    frozenset([1, 3, 4, 5, 6, 7, 9]), 
+    frozenset([0, 3, 4, 6, 8, 9]), 
+    frozenset([1, 2, 3, 4, 6, 8, 9]), 
+    frozenset([0, 2, 3, 5, 6]), 
+    frozenset([9, 2, 5, 6, 7]), 
+    frozenset([0, 1, 5, 6, 7, 9]), 
+    frozenset([0, 2, 3, 5, 8, 9]), 
+    frozenset([8, 9, 2, 4, 5]), 
+    frozenset([0, 1, 2, 6, 8, 9]), 
+    frozenset([0, 1, 2]), 
+    frozenset([1, 2, 3, 9, 7]), 
+    frozenset([2, 4, 5, 6]), 
+    frozenset([0, 1, 4, 5, 8, 9]), 
+    frozenset([8, 1, 3, 5, 9]), 
+    frozenset([1, 2, 3, 4]), 
+    frozenset([0, 2, 3, 4, 5, 7, 8]), 
+    frozenset([1, 3, 5, 6]), 
+    frozenset([9, 4, 7]), 
+    frozenset([8, 0, 3, 6, 7]), 
+    frozenset([0, 1, 5, 8, 7]), 
+    frozenset([1, 3, 4, 5, 7, 8]), 
+    frozenset([0, 1, 4, 5, 6]), 
+    frozenset([0, 9, 3, 7]), 
+    frozenset([1, 2, 3, 6, 7, 8]), 
+    frozenset([8, 2, 5, 7]), 
+    frozenset([0, 3, 4]), 
+    frozenset([0, 2, 3, 4, 5, 6, 7, 9]), 
+    frozenset([0, 1, 2, 4, 6, 7, 8]), 
+    frozenset([8, 4, 6, 7])]
+name="sd7_5loop_1_"
+"""
+def check_comb(term, cons):
+    res=True
+    for constr in cons:
+        if constr.issubset(term):
+            res=False
+            break
+    return res
+    
+    
+def strech_list(term, subgraphs_):
+    strechs=[]
+    subs=conv_sub(subgraphs_)
+    for j in range(len(subs)):
+        si=len(set(term)&set(subs[j]))-subgraphs_[j].NLoopSub()
+        strechs+=[1000+j]*si
+    return strechs
+
+
+def gensectors(cons,vars, L):
+    sect=[]
+    for i in xCombinations(vars.keys(), L):
+        if check_comb(i, cons):
+            sect.append(i)            
+    return sect
+
+"""
+        for i in range(len(subs)):
+            si=len(set(term)&set(subs[i]))-subgraphs_[i].NLoopSub()
+            if si>0:
+                ai=sympy.var('a_%s'%subgraphs_[i].asLinesIdxStr())
+                sterm*=ai**si
+                subgraphs_[i]._strechvar=str(ai)
+"""
+def gendet(cons, subgraphs_, vars, L):
+    det=[]
+    subs=conv_sub(subgraphs_)
+    for i in xUniqueCombinations(vars.keys(),L):
+        if check_comb(i, cons):
+            det.append(i+strech_list(i, subgraphs_))
+    return det
+    
+def minus(poly_list):
+    if len(poly_list)==0:
+        return []
+    res=copy.deepcopy(poly_list)
+    res[0].coef=exp_pow((0, 0))-res[0].coef
+    return res
+
+
+
+
+def save_sd(name, g1,  model):
+
+    ui=reduce(lambda x, y:x+y,  [[qi]*(g1._qi[qi]-1) for qi in g1._qi])
+#    print ui
+    qi=g1._qi.keys()[0]
+    ui.append(qi)
+    print ui,  g1._eq_grp
+    for sub in g1._subgraphs:
+        sub._strechvar=1000+g1._subgraphs.index(sub)
+
+    lfactor=1.
+    for qi_ in g1._qi.keys():
+        if qi_==qi:
+            lfactor=lfactor/sympy.factorial(g1._qi[qi_])
+        else:
+            lfactor=lfactor/sympy.factorial(g1._qi[qi_]-1)
+
+    
+    grp=None
+    for grp in g1._eq_grp:
+        if qi in grp:
+            break
+    grp_factor=len(grp)
+
+#    print lfactor, g1.sym_coef(), grp_factor 
+
+    A1=poly_exp(g1._det, (-2, 0), g1.NLoops(), coef=(float(lfactor*g1.sym_coef()*grp_factor ), 0))
+#    print A1
+    A2=poly_exp([ui, ], (1, 0))
+    A3=poly_exp([g1._qi.keys()], (1, 0))
+    A4=poly_exp([g1._qi.keys()], (-1, 0))
+    g_qi=dTau_line(g1, qi,  model)
+    strechs=strech_indexes(g_qi, model)
+    #print [A1, A2, A3 ]
+    
+    strech_vars=[]
+    for var in strechs:
+        if strechs[var]>0:
+            strech_vars.append(var)
+            
+    Nf=100
+    sect_terms=dict()
+    for sector in g1._sectors:
+        idx=g1._sectors.index(sector)
+        if (idx+1) % (Nf/10)==0:
+            print "%s " %(idx+1)
+
+        
+        active_strechs=strech_list(sector, g1._subgraphs)
+#        print sector,  active_strechs
+#        print A1, A2, A3, A4
+#        print
+        subs=[[x] for x in g1._qi.keys()]
+        subs.remove([sector[0]])
+#        print poly_exp(subs,  (1, 0))
+        subs_polyl=decompose(sector[1:], [poly_exp(subs,  (1, 0))], g1._qi,  g1._cons )
+#        print subs_polyl
+#        print 
+        expr=decompose(sector,[A1, A2, A3 ], g1._qi,  g1._cons )+[A4]+[poly_exp([[sector[0]]], (1, 0))]
+#        print expr
+#        print poly_list2ccode(expr)
+        terms=[expr]
+#        print
+#        print terms
+        for var in strechs:
+#            print
+#            print var
+#            print terms
+            terms_=[]
+            if strechs[var]==0:
+                for term in terms:
+                    terms_.append(set1_poly_lst(term, var))
+            if strechs[var]==1:
+                for term in terms:
+#                    print "---"
+#                    print term
+                    if var not in active_strechs:
+                        terms_+=diff_poly_lst(term, var)
+                    else:
+                        terms_.append(minus(set0_poly_lst(term, var)))
+                        terms_.append(set1_poly_lst(term, var))
+                    
+            terms=terms_
+        tres=""
+        for i in  map(poly_list2ccode,  terms):
+            tres+="%s;\nres+="%i
+        sect_terms[tuple(sector)]=(tres[:-5], poly_list2ccode(subs_polyl))
+        
+#        print "f=", tres[:-5]
+#        print poly_list2ccode(subs_polyl)
+        if (idx+1) % Nf==0:
+            if len(sect_terms)<>0:
+                print
+                print "write to disk... %s"%(idx+1)
+                f=open("tmp/%s%s.c"%(name,idx/Nf),'w')
+                f.write(code(functions(sect_terms, g1._qi.keys(), strech_vars), len(g1._qi.keys())+len(strech_vars)))
+                f.close()
+                sect_terms=dict()
+
+    if len(sect_terms)<>0:
+        print "write to disk... %s"%(idx+1)
+        f=open("tmp/%s%s.c"%(name,idx/Nf),'w')
+        f.write(code(functions(sect_terms, g1._qi.keys(), strech_vars), len(g1._qi.keys())+len(strech_vars)))
+        f.close()
+        sect_terms=dict()
+    
+
+
+
+"""
+det=gendet(cons,N,L)
+sect=gensectors(cons,N,L)
+print len(det)
+#print sect
+print len(sect)
+print "//det generated"
+
+det_p=poly_exp(det,(-2,0),L)
+u_p=poly_exp([range(N)],(1,0))
+u_mp=poly_exp([range(N)],(-1,0))
+
+sect_expr=dict()
+
+Nf=1000
+
+
+for sector in sect:
+    idx=sect.index(sector)
+    if (idx+1) % Nf == 0:
+        print "write to disk... %s"%(idx+1)
+        f=open("%s%s.c"%(name,idx/Nf),'w')
+        f.write(code(functions(sect_expr, N), N))
+        f.close()
+        sect_expr=dict()
+
+    sys.stdout.flush()
+    poly_list = decompose(sector,[det_p,u_p],N,cons) + [u_mp]
+    sect_expr[tuple(sector)] = poly_list2ccode(poly_list+[poly_exp([[sector[0]]],(1,0))])
+
+if len(sect_expr)<>0:
+    print "write to disk... %s"%(idx+1)
+    f=open("%s%s.c"%(name,idx/Nf),'w')
+    f.write(code(functions(sect_expr, N), N))
+    f.close()
+    sect_expr=dict()
+ 
+
+"""
+    
+
+
+
+
+
+
+
