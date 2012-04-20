@@ -12,6 +12,16 @@ import comb
 import subgraphs
 import utils
 
+def merge_grp_qi(eq_grp, qi2l):
+    d=dict()
+    for set_ in eq_grp+qi2l.values():
+       for var in set_:
+           if var not in d:
+               d[var]=set_
+           else:
+               d[var]=tuple(set(d[var])|set(set_))
+    return list(set(d.values()))
+
 
 def line_to_qi(graph, line_idx):
     for qi in graph._qi2l.keys():
@@ -156,6 +166,9 @@ def Prepare(graph, model):
     graph._cons=cons
     graph._qi, graph._qi2l = qi_lambda(cons, eqs)
     
+    graph._eq_grp_orig=graph._eq_grp
+    graph._eq_grp=merge_grp_qi(graph._eq_grp, graph._qi2l)
+
     det_ = det(cons, graph._subgraphs,  graph.NLoops())
     Cdet=sympy.Number(0)
     if len(graph.ExternalLines())==2:

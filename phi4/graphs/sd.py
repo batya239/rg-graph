@@ -1,13 +1,18 @@
 #!/usr/bin/python
+# -*- coding:utf8
 from comb import xCombinations, xUniqueCombinations
 #import sympy
 import copy
 import sys
 import sympy
-from methods.feynman_tools import find_eq,  qi_lambda,  apply_eq,  conv_sub
+from methods.feynman_tools import find_eq,  qi_lambda,  apply_eq,  conv_sub,  merge_grp_qi
 import conserv
 import subgraphs
 from methods.feynman_tools import strech_indexes, dTau_line
+
+
+
+
 
 def Prepare(graph, model):
     model.SetTypes(graph)
@@ -22,12 +27,16 @@ def Prepare(graph, model):
     int_edges=graph._internal_edges_dict()
     cons = conserv.Conservations(int_edges)
     eqs = find_eq(cons)
-#    print cons, eqs
+    print
+    print cons, eqs
     cons=apply_eq(cons, eqs)
     print cons
     graph._cons=cons
     graph._qi, graph._qi2l = qi_lambda(cons, eqs)
     print graph._qi, graph._qi2l
+    graph._eq_grp_orig=graph._eq_grp
+    graph._eq_grp=merge_grp_qi(graph._eq_grp, graph._qi2l)
+
     graph._det=gendet(cons, graph._subgraphs, graph._qi, graph.NLoops())
 #    print graph._det
 #    print len(gensectors(cons, graph._qi,  graph.NLoops()))
@@ -113,11 +122,17 @@ class poly_exp:
        return poly_exp(res,self.power,self.degree,  self.coef)
 
     def extract(self,varlist):
-       res=copy.deepcopy(self.poly)
-       for monom in res:
+#       print
+       res=[]
+       for i in range(len(self.poly)):
+           
+          monom=copy.deepcopy(self.poly[i])
+#          print 
+#          print i, res
 #          print monom, varlist
           for var in varlist:
              monom.remove(var)
+          res.append(monom)
        return poly_exp(res,self.power,self.degree, self.coef)
        
     def set0(self, var):
@@ -252,12 +267,18 @@ def decompose(sector, poly_lst, vars, cons):
 
 def monom2str(monom):
 #   print monom
-   if len(monom)==0:
-       return "1"
-   res=""
-   for var in monom:
-      res=res+"u%s*"%var
-   return res[:-1]
+    if len(monom)==0:
+        return "1"
+    res=""
+    sign=1
+    for var in monom:
+        if var<0:
+            sign=-sign
+        res=res+"u%s*"%abs(var)
+    if sign>0:
+        return res[:-1]
+    else:
+        return "(-%s)"%res[:-1]
 
 def poly2str(poly):
    if len(poly)==0:
@@ -291,6 +312,8 @@ def poly_list2ccode(poly_list):
             # eps = 0 !!!!
             if poly.power.a==1:
                 res+= "(%s)*"%(t_poly)
+            if poly.power.a==0:
+                res+= "(1.)*"
             else:
                 res+= "pow(%s,%s)*"%(t_poly, poly.power.a)
         C=C*poly.coef.a
@@ -453,52 +476,7 @@ printf ("result = %20.18g\\nstd_dev = %20.18g\\ndelta = %20.18g\\n", estim[0], s
 """
     return res
     
-## e123-e23-e3-e-
-"""
-N=6
-L=3
-cons=map(set,[[0,1,2],[0,3,5],[1,3,4],[2,4,5]])
-name="tmp/sd7_3loop_1_"
-"""
-##
 
-## e123-e24-35-45-e5-e-
-"""
-N=10
-L=5
-cons = [frozenset([8, 9, 6]),
-    frozenset([0, 1, 2, 4, 7, 9]), 
-    frozenset([1, 3, 4, 5, 6, 7, 9]), 
-    frozenset([0, 3, 4, 6, 8, 9]), 
-    frozenset([1, 2, 3, 4, 6, 8, 9]), 
-    frozenset([0, 2, 3, 5, 6]), 
-    frozenset([9, 2, 5, 6, 7]), 
-    frozenset([0, 1, 5, 6, 7, 9]), 
-    frozenset([0, 2, 3, 5, 8, 9]), 
-    frozenset([8, 9, 2, 4, 5]), 
-    frozenset([0, 1, 2, 6, 8, 9]), 
-    frozenset([0, 1, 2]), 
-    frozenset([1, 2, 3, 9, 7]), 
-    frozenset([2, 4, 5, 6]), 
-    frozenset([0, 1, 4, 5, 8, 9]), 
-    frozenset([8, 1, 3, 5, 9]), 
-    frozenset([1, 2, 3, 4]), 
-    frozenset([0, 2, 3, 4, 5, 7, 8]), 
-    frozenset([1, 3, 5, 6]), 
-    frozenset([9, 4, 7]), 
-    frozenset([8, 0, 3, 6, 7]), 
-    frozenset([0, 1, 5, 8, 7]), 
-    frozenset([1, 3, 4, 5, 7, 8]), 
-    frozenset([0, 1, 4, 5, 6]), 
-    frozenset([0, 9, 3, 7]), 
-    frozenset([1, 2, 3, 6, 7, 8]), 
-    frozenset([8, 2, 5, 7]), 
-    frozenset([0, 3, 4]), 
-    frozenset([0, 2, 3, 4, 5, 6, 7, 9]), 
-    frozenset([0, 1, 2, 4, 6, 7, 8]), 
-    frozenset([8, 4, 6, 7])]
-name="sd7_5loop_1_"
-"""
 def check_comb(term, cons):
     res=True
     for constr in cons:
@@ -547,7 +525,19 @@ def minus(poly_list):
     res[0].coef=exp_pow((0, 0))-res[0].coef
     return res
 
-
+def factorize_poly_lst(poly_lst):
+    res=[]
+    for poly in poly_lst:
+        gcd=poly.GCD()
+        if len(gcd.poly)==1:
+#            print gcd.poly[0] ,  poly
+            res.append(gcd)
+            res.append(poly.extract(gcd.poly[0]))
+        elif len(gcd.poly)==0:
+            res.append(poly)
+        else:
+            raise Exception,  "GCD must be monomial"
+    return res
 
 
 def save_sd(name, g1,  model):
@@ -555,7 +545,7 @@ def save_sd(name, g1,  model):
     for grp_ in g1._eq_grp:
         if len(grp_)==0:
             continue
-#        print grp_  ,  g1._qi, list(set(grp_)& set(g1._qi))
+        print grp_  ,  g1._qi, list(set(grp_)& set(g1._qi))
         qi=list(set(grp_)&set(g1._qi))[0]
         name_="%s_%s_"%(name, qi)
         ui=reduce(lambda x, y:x+y,  [[qi_]*(g1._qi[qi_]-1) for qi_ in g1._qi])
@@ -599,7 +589,7 @@ def save_sd(name, g1,  model):
                 
         Nf=100
         sect_terms=dict()
-#        g1._sectors=[[6, 7], [7, 6]]
+#        g1._sectors=[[6, 7, 10, 12, 8]]
         for sector in g1._sectors:
             idx=g1._sectors.index(sector)
             if (idx+1) % (Nf/10)==0:
@@ -607,50 +597,60 @@ def save_sd(name, g1,  model):
     
             
             active_strechs=strech_list(sector, g1._subgraphs)
-    #        print sector,  active_strechs
-    #        print A1, A2, A3, A4
-    #        print
+
             subs=[[x] for x in g1._qi.keys()]
             subs.remove([sector[0]])
-    #        print poly_exp(subs,  (1, 0))
+    
             subs_polyl=decompose(sector[1:], [poly_exp(subs,  (1, 0))], g1._qi,  g1._cons )
-    #        print subs_polyl
-    #        print 
+
             expr=decompose(sector,[A1, A2, A3 ], g1._qi,  g1._cons )+[A4]+[poly_exp([[sector[0]]], (1, 0))]
-            print
-            print sector
-            print expr
-    #        print poly_list2ccode(expr)
+
             terms=[expr]
-    #        print
-    #        print terms
+            print
+            ttt = decompose(sector,[A1 ], g1._qi,  g1._cons )
+
             for var in strechs:
-                print
-                print var,  active_strechs
-                print terms
+
                 terms_=[]
                 if strechs[var]==0:
                     for term in terms:
                         terms_.append(set1_poly_lst(term, var))
-                if strechs[var]==1:
+                elif strechs[var]==1:
                     for term in terms:
-                        print "---"
-                        print term
+
                         if var not in active_strechs:
                             terms_+=diff_poly_lst(term, var)
                         else:
                             terms_.append(minus(set0_poly_lst(term, var)))
                             terms_.append(set1_poly_lst(term, var))
+                elif strechs[var]==2:
+                    for term in terms:
+                        firstD=diff_poly_lst(term, var)
+                        if var not in active_strechs: 
+                            print var, term
+                            for term_ in firstD:
+                                seconD=diff_poly_lst(term_, var)
+                                for term__ in seconD:
+#не работает если переменная имеет индекс 0                                    
+                                    term__.append(poly_exp([[], [-var]], (1, 0)))
+                                    terms_+=[term__]
+                        else:
+                            terms_.append(set1_poly_lst(term, var))
+                            terms_.append(minus(set0_poly_lst(term, var)))
+                            for term_ in firstD:
+                                terms_.append(minus(set0_poly_lst(term_, var)))
+                else:
+                    raise NotImplementedError,  "strech level   = %s"%strechs[var]
+
+                        
                         
                 terms=terms_
             tres=""
-            print terms
-            for i in  map(poly_list2ccode,  terms):
-                tres+="%s;\nres+="%i
+            for term in   terms:
+                f_term=factorize_poly_lst(term)
+                tres+="%s;\nres+="%poly_list2ccode(f_term)
             sect_terms[tuple(sector)]=(tres[:-5], poly_list2ccode(subs_polyl))
             
-    #        print "f=", tres[:-5]
-    #        print poly_list2ccode(subs_polyl)
             if (idx+1) % Nf==0:
                 if len(sect_terms)<>0:
                     print

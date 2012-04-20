@@ -19,7 +19,7 @@ import utils
 import re as regex
 
 #from feynman import *
-from feynman_tools import Prepare, line_to_qi,  normalize,  dTau_line,  strech_indexes
+from feynman_tools import Prepare, line_to_qi,  normalize,  dTau_line,  strech_indexes, merge_grp_qi
 
 def symplify_expr(expr, C, D, ai_dict):
     vars=dict()
@@ -140,24 +140,29 @@ def feynman_D_func(graph, model):
 #    print lfactor
 
     i=-1
-    eq_grp_flag=[0 for i_ in graph._eq_grp]
-    for qi in graph._qi.keys():    
-#    for grp in graph._eq_grp:
+#    eq_grp_flag=[0 for i_ in graph._eq_grp]
+#    for qi in graph._qi.keys():    
+    for grp in graph._eq_grp:
+        if len(grp)==0:
+            continue
+        print grp  ,  graph._qi, list(set(grp)& set(graph._qi))
+        qi=list(set(grp)&set(graph._qi))[0]
+
 #        qi = graph._qi.keys()[i]
 
-#нафига такие сложности не проще ли было 
-#проитерироваться по _eq_grp и взять первый элемент?
-        flag=False
-        for j in range(len(graph._eq_grp)):
-            grp=graph._eq_grp[j]
-            if qi in grp:
-                if eq_grp_flag[j]<>0:
-                   flag=True 
-                else:
-                    eq_grp_flag[j]=1
-                    break
-        if flag:
-            continue
+##нафига такие сложности не проще ли было 
+##проитерироваться по _eq_grp и взять первый элемент?
+#        flag=False
+#        for j in range(len(graph._eq_grp)):
+#            grp=graph._eq_grp[j]
+#            if qi in grp:
+#                if eq_grp_flag[j]<>0:
+#                   flag=True 
+#                else:
+#                    eq_grp_flag[j]=1
+#                    break
+#        if flag:
+#            continue
         i=i+1
 
         lfactor=1.
