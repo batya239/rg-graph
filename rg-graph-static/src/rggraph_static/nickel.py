@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding:utf8
 
-from comb import xCombinations, xPermutations
+import itertools
 
 class Nickel(object):
     """Class to generate Nickel-like graph notations.
@@ -214,7 +214,7 @@ class Expander(object):
         new_nodes = [n for n in nodes if n > self.free_node]
         new_nodes = list(set(new_nodes))
         free_nodes = range(self.free_node, self.free_node + len(new_nodes))
-        for perm in xPermutations(free_nodes):
+        for perm in itertools.permutations(free_nodes):
             node_map = dict(zip(new_nodes, perm))
             expanded_nodes = MapNodes1(node_map, nodes)
             edges = MapNodes2(node_map, edge_rest)
