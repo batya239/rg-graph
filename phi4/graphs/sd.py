@@ -300,6 +300,7 @@ def poly_list2ccode(poly_list):
 #    print "---"
 #    print poly_list
     for poly in poly_list:
+#        print poly,  len(poly.poly)
         if len(poly.poly)==0:
             pass
         elif len(poly.poly)==1:
@@ -309,15 +310,16 @@ def poly_list2ccode(poly_list):
                 factor[var]+=poly.power
         else:
             t_poly=poly2str(poly.poly)
+#            print t_poly
             # eps = 0 !!!!
             if poly.power.a==1:
                 res+= "(%s)*"%(t_poly)
-            if poly.power.a==0:
+            elif poly.power.a==0:
                 res+= "(1.)*"
             else:
                 res+= "pow(%s,%s)*"%(t_poly, poly.power.a)
         C=C*poly.coef.a
-        
+#    print res,  poly.power.a
     for var in factor.keys():
        # eps = 0 !!!!
         power=factor[var]
@@ -329,6 +331,7 @@ def poly_list2ccode(poly_list):
             else:
                 res+="pow(u%s,%s)*"%(var,power.a)
 #    print C
+#    print res
     if C==1:
         return res[:-1]
     else:
@@ -590,6 +593,7 @@ def save_sd(name, g1,  model):
         Nf=100
         sect_terms=dict()
 #        g1._sectors=[[6, 7, 10, 12, 8]]
+        sector_terms=dict()
         for sector in g1._sectors:
             idx=g1._sectors.index(sector)
             if (idx+1) % (Nf/10)==0:
@@ -598,15 +602,12 @@ def save_sd(name, g1,  model):
             
             active_strechs=strech_list(sector, g1._subgraphs)
 
-            subs=[[x] for x in g1._qi.keys()]
-            subs.remove([sector[0]])
-    
-            subs_polyl=decompose(sector[1:], [poly_exp(subs,  (1, 0))], g1._qi,  g1._cons )
+
 
             expr=decompose(sector,[A1, A2, A3 ], g1._qi,  g1._cons )+[A4]+[poly_exp([[sector[0]]], (1, 0))]
 
             terms=[expr]
-            print
+            
             ttt = decompose(sector,[A1 ], g1._qi,  g1._cons )
 
             for var in strechs:
@@ -642,15 +643,22 @@ def save_sd(name, g1,  model):
                 else:
                     raise NotImplementedError,  "strech level   = %s"%strechs[var]
 
-                        
-                        
                 terms=terms_
+            sector_terms[tuple(sector)]=terms    
+        
+        for sector in sector_terms.keys():
+            subs=[[x] for x in g1._qi.keys()]
+            subs.remove([sector[0]])
+    
+            subs_polyl=decompose(sector[1:], [poly_exp(subs,  (1, 0))], g1._qi,  g1._cons )
+#            print subs_polyl, poly_list2ccode(subs_polyl)
+            terms=sector_terms[sector]
             tres=""
             for term in   terms:
                 f_term=factorize_poly_lst(term)
                 tres+="%s;\nres+="%poly_list2ccode(f_term)
             sect_terms[tuple(sector)]=(tres[:-5], poly_list2ccode(subs_polyl))
-            
+#            print (tres[:-5], poly_list2ccode(subs_polyl))
             if (idx+1) % Nf==0:
                 if len(sect_terms)<>0:
                     print
