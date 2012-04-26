@@ -228,12 +228,18 @@ def set1_poly_lst(poly_lst, var):
     return res
 
 
-def decompose(sector, poly_lst, vars, cons):
+def decompose(sector, poly_lst, vars, cons,  subs_poly=False):
 #    print sector, poly_lst
     res = [copy.deepcopy(x) for x in poly_lst]
     used_vars = []
     extracted=dict()
-    for var in sector:
+    if subs_poly:
+        sector_=sector[1:]
+        used_vars.append(sector[0])
+    else:
+        sector_=sector
+        
+    for var in sector_:
         sector_idx=sector.index(var)
         used_vars.append(var)
         v_vars = valid_vars(sector, used_vars, vars, cons)
@@ -650,7 +656,7 @@ def save_sd(name, g1,  model):
             subs=[[x] for x in g1._qi.keys()]
             subs.remove([sector[0]])
     
-            subs_polyl=decompose(sector[1:], [poly_exp(subs,  (1, 0))], g1._qi,  g1._cons )
+            subs_polyl=decompose(sector, [poly_exp(subs,  (1, 0))], g1._qi,  g1._cons ,  subs_poly=True)
 #            print subs_polyl, poly_list2ccode(subs_polyl)
             terms=sector_terms[sector]
             tres=""
