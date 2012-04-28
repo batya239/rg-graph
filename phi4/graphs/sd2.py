@@ -116,7 +116,7 @@ class poly_exp:
           for var in monom:
              if var in varlist:
                 factor.append(svar)
-          res.append(copy.copy(monom)+factor)
+          res.append(monom+factor)
        return poly_exp(res,self.power,self.degree,  self.coef)
 
     def extract(self,varlist):
@@ -124,7 +124,7 @@ class poly_exp:
        res=[]
        for i in range(len(self.poly)):
            
-          monom=copy.deepcopy(self.poly[i])
+          monom=copy.copy(self.poly[i])
 #          print 
 #          print i, res
 #          print monom, varlist
@@ -137,7 +137,8 @@ class poly_exp:
         res=[]
         for monom in self.poly:
             if var not in monom:
-                res.append(copy.copy(monom))
+#                res.append(copy.copy(monom))
+                res.append(monom)
         return poly_exp(res,self.power,self.degree, self.coef)
             
     def set1(self, var):
