@@ -226,20 +226,22 @@ def set1_poly_lst(poly_lst, var):
     return res
 
 
-def decompose(sector, poly_lst):
+def decompose(sector, poly_lst,  jakob=True):
 #    print sector, poly_lst
-    res = [copy.deepcopy(x) for x in poly_lst]
-    used_vars = []
+    res = copy.copy(poly_lst)
     extracted=dict()
+    jakob_poly=[]
+    sector_idx=-1
     for var in sector.sect:
-        sector_idx=sector.sect.index(var)
+        sector_idx+=1
         v_vars = sector.var[sector_idx]
-
+        jakob_poly+=[var]*len(v_vars)
 #        print
 #        print var,v_vars
         res_n=[]
+        idx=-1
         for poly in res:
-            idx=res.index(poly)
+            idx+=1
             poly=poly.strech(var,v_vars)
          
             if poly.degree<>None:
@@ -248,20 +250,25 @@ def decompose(sector, poly_lst):
                 extracted[idx].poly[0]+=[var,]*(poly.degree-sector_idx)
 #                print
 #                print poly
-#                print var
+#                print [var,]*(poly.degree-sector_idx)
                 poly=poly.extract([var,]*(poly.degree-sector_idx))
 #                print poly
 #                print
             res_n.append(poly)
         res=res_n
+#        print "-----"
+#        print var,  v_vars, res
 
 #        print "\n ---\n %s \n ---\n"%res
 
      
     for poly in extracted.values():
        res.append(poly)
+       
+    if jakob:
+        res.append(poly_exp([jakob_poly], (1, 0), coef=(1, 0)))
                 
-    return res
+    return factorize_poly_lst( res)
 
 def monom2str(monom):
 #   print monom
@@ -503,14 +510,6 @@ def gensectors(cons,vars, L):
             sect.append(i)            
     return sect
 
-"""
-        for i in range(len(subs)):
-            si=len(set(term)&set(subs[i]))-subgraphs_[i].NLoopSub()
-            if si>0:
-                ai=sympy.var('a_%s'%subgraphs_[i].asLinesIdxStr())
-                sterm*=ai**si
-                subgraphs_[i]._strechvar=str(ai)
-"""
 def gendet(cons, subgraphs_, vars, L):
     det=[]
     subs=conv_sub(subgraphs_)
@@ -529,6 +528,8 @@ def minus(poly_list):
 def factorize_poly_lst(poly_lst):
     res=[]
     for poly in poly_lst:
+        if poly.coef.a==0 and poly.coef.b==0:
+            return []
         if (len(poly.poly)==1):
            if (len(poly.poly[0])==0) and float(poly.coef.a)==1.:
                 #print poly
@@ -550,6 +551,13 @@ def factorize_poly_lst(poly_lst):
 #    print "FACTORIZE",  res
     return res
 
+def find_bad_poly(term):
+    res=list()
+    for poly in term:
+        if poly.power.a<0 and len(poly.poly)>1:
+            if min(map(len, poly.poly))<>0:
+                res.append(poly)
+    return res
 
 def split_sector_dict(sector_terms):
     good_terms=dict()
@@ -559,12 +567,7 @@ def split_sector_dict(sector_terms):
         bad_terms[sector]=[]
         for term in sector_terms[sector]:
             term_=factorize_poly_lst(term)
-            sd_required=False
-            for poly in term_:
-                if poly.power.a<0 and len(poly.poly)>1:
-                    if min(map(len, poly.poly))<>0:
-                        sd_required=True
-            if sd_required:
+            if len(find_bad_poly(term_))>0:
                 bad_terms[sector].append(term_)
             else:
                 good_terms[sector].append(term_)
@@ -608,8 +611,45 @@ class sect:
     def __hash__(self):
         return str(self).__hash__()
         
+    def __add__(self, other):
+        return sect(self.sect+other.sect,  self.var+other.var)
+        
+def max_monom_degree(poly):
+    return max([len(set(term))  for term in poly])
+        
+def poly_vars(poly):
+    res=set()
+    for term in poly:
+        res=res|set(term)
+    return list(res)
     
-
+        
+        
+def find_zeroes(polyexp, level=10000000):
+    poly=polyexp.poly
+    level_=min(level, len(poly_vars(poly)))
+#    print "level %s"%level_ 
+    zeroes=list()
+    for i in xrange(level_):
+        for uu in xUniqueCombinations(poly_vars(poly), i):
+            polyexp_=copy.copy(polyexp)
+            for u in uu:
+                polyexp_=polyexp_.set0(u)
+            if len(polyexp_.poly)==0:
+                zeroes.append(uu)
+    return zeroes
+    
+def minimal_zeroes(zeroes):
+    res=[]
+    for zero in sorted(zeroes, key=len):
+        good=True
+        for z1 in res:
+            if set(z1).issubset(set(zero)):
+                good=False
+                break
+        if good:
+            res.append(zero)
+    return res
 
 def save_sd(name, g1,  model):
     print g1._eq_grp
@@ -644,8 +684,12 @@ def save_sd(name, g1,  model):
     
     #    print lfactor, g1.sym_coef(), grp_factor 
     
-        A1=poly_exp(g1._det, (-2, 0), g1.NLoops(), coef=(float(lfactor*g1.sym_coef()*grp_factor ), 0))
-#        print "DET=", A1
+#        A1=poly_exp(g1._det, (-2, 0), g1.NLoops(), coef=(float(lfactor*g1.sym_coef()*grp_factor ), 0))
+        A1=poly_exp(g1._det, (-2, 0),  coef=(float(lfactor*g1.sym_coef()*grp_factor ), 0))
+
+        zeroes=minimal_zeroes(find_zeroes(A1) ) 
+        print "Zeroes %s:\n%s\n"%(len(zeroes), zeroes)
+        print "DET=", A1
 #        print "DET0=", set0_poly_lst([A1], 1000)
         A2=poly_exp([ui, ], (1, 0))
         A3=poly_exp([g1._qi.keys()], (1, 0))
@@ -659,9 +703,13 @@ def save_sd(name, g1,  model):
             if strechs[var]>0:
                 strech_vars.append(var)
                 
-        Nf=100
+        Nf=1000
         sect_terms=dict()
-#        g1._sectors=[[6, 7, 10, 12, 8]]
+        
+#        g1._sectors=[[9, 8, 5]]
+        second_decompose=True  # for debugging
+#        second_decompose=False
+        
         sector_terms=dict()
         for sector in g1._sectors:
             vars_lst=[]
@@ -670,7 +718,7 @@ def save_sd(name, g1,  model):
                 used_vars.append(var)
                 vars_lst.append( valid_vars(sector, used_vars, g1._qi, g1._cons))
             sector_=sect(sector, vars_lst)
-            print sector_
+#            print sector_
             
             
             idx=g1._sectors.index(sector)
@@ -682,7 +730,7 @@ def save_sd(name, g1,  model):
 
 
 
-            expr=decompose(sector_,[A1, A2, A3 ] )+[A4]+[poly_exp([[sector[0]]], (1, 0))]
+            expr=decompose(sector_,[A1, A2 ] )+[poly_exp([[sector[0]]], (1, 0))]
 
             terms=[expr]
             
@@ -727,32 +775,63 @@ def save_sd(name, g1,  model):
         
 #        print [(sector, len(sector_terms[sector])) for sector in sector_terms.keys()]
         #perform additional decomposition for terms with a_i=0 (if necessary)
-        
-        
-        sector_terms2,  sdsector_terms = split_sector_dict(sector_terms)
-        sector_terms2,  sdsector_terms = split_sector_dict(sector_terms)
-        while False and len(sdsector_terms.keys())>0:
-            decomposed=dict()
-            for sector in sdsector_terms:
-                terms=sdsector_terms[sector]
-                v_vars = sector.var[-1]
+
+        if second_decompose:
+            sector_terms,  sdsector_terms = split_sector_dict(sector_terms)
+    
+            
+    #        while False and len(sdsector_terms.keys())>0:
+            while len(sdsector_terms.keys())>0:
+                print "Bad sectors: ", len(sdsector_terms.keys())
+                sdsector_terms_=dict()
+                for sector in sdsector_terms:
+                    terms=sdsector_terms[sector]
+#                    print
+#                    print sector
+                    for term in  terms:
+                        bad_polys=find_bad_poly(term)
+                        if len(bad_polys)<>1:
+                            raise NotImplementedError ,  " badpoly= %s, \nsector=%s,\n term=%s"%(bad_polys, sector, term)
+                        else:
+                            poly=bad_polys[0]
+                        zeroes=minimal_zeroes(find_zeroes(poly) )
+#                        print zeroes
+#                        print term
+                        sectors=list()
+                        for u in zeroes[0]:
+                            vars=copy.copy(zeroes[0])
+                            vars.remove(u)
+                            new_sector=sect([u], [vars] )
+   
+                            d_term=decompose(new_sector, term)
+                            new_sector_=sector+new_sector
+    #                        print d_term
+#                            print new_sector_    
+                            if new_sector_ not in sdsector_terms_:
+                                sdsector_terms_[new_sector_]=[]
+                            sdsector_terms_[new_sector_].append(d_term)
+                        
+                good_terms, sdsector_terms=split_sector_dict(sdsector_terms_)
+                sector_terms=combine_dicts(sector_terms,  good_terms)
+                print "saved:" , len(good_terms.keys())
 #                print
-#                print sector,  v_vars
-#                for term in  terms:
-#                    print term
+            
 
-        
-#        print sdsector_terms.keys()
+        print len(sector_terms.keys())
 
-        
-        
-        
+#        print
+#        print sector_terms.keys()
+#        print
+
+
         for sector in sector_terms.keys():
+            idx=sector_terms.keys().index(sector)
             subs=[[x] for x in g1._qi.keys()]
             subs.remove([sector.sect[0]])
             
-
-            subs_polyl=decompose(sect(sector.sect[1:], sector.var[1:]), [poly_exp(subs,  (1, 0))] )
+#            print sector,  subs
+            subs_polyl=decompose(sect(sector.sect[1:], sector.var[1:]), [poly_exp(subs,  (1, 0))] , jakob=False)
+            
 #            print subs_polyl, poly_list2ccode(subs_polyl)
             terms=sector_terms[sector]
             tres=""
@@ -777,52 +856,6 @@ def save_sd(name, g1,  model):
             f.close()
             sect_terms=dict()
     
-
-
-
-"""
-det=gendet(cons,N,L)
-sect=gensectors(cons,N,L)
-print len(det)
-#print sect
-print len(sect)
-print "//det generated"
-
-det_p=poly_exp(det,(-2,0),L)
-u_p=poly_exp([range(N)],(1,0))
-u_mp=poly_exp([range(N)],(-1,0))
-
-sect_expr=dict()
-
-Nf=1000
-
-
-for sector in sect:
-    idx=sect.index(sector)
-    if (idx+1) % Nf == 0:
-        print "write to disk... %s"%(idx+1)
-        f=open("%s%s.c"%(name,idx/Nf),'w')
-        f.write(code(functions(sect_expr, N), N))
-        f.close()
-        sect_expr=dict()
-
-    sys.stdout.flush()
-    poly_list = decompose(sector,[det_p,u_p],N,cons) + [u_mp]
-    sect_expr[tuple(sector)] = poly_list2ccode(poly_list+[poly_exp([[sector[0]]],(1,0))])
-
-if len(sect_expr)<>0:
-    print "write to disk... %s"%(idx+1)
-    f=open("%s%s.c"%(name,idx/Nf),'w')
-    f.write(code(functions(sect_expr, N), N))
-    f.close()
-    sect_expr=dict()
- 
-
-"""
-    
-
-
-
 
 
 
