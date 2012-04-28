@@ -182,7 +182,7 @@ def diff_poly_lst(poly_lst, var):
         poly_lst_=[]
         for poly2 in poly_lst:
             if poly<>poly2:
-                poly_lst_.append(copy.deepcopy(poly2))
+                poly_lst_.append(copy.copy(poly2))
         
         pd=poly.diff(var)
         if len(pd)<>0:
@@ -665,8 +665,10 @@ def save_sd(name, g1,  model):
         ui.append(qi)
         print "   term u%s"%qi
         print ui,  g1._eq_grp
+        sub_idx=-1
         for sub in g1._subgraphs:
-            sub._strechvar=1000+g1._subgraphs.index(sub)
+            sub_idx+=1
+            sub._strechvar=1000+sub_idx
     
         lfactor=1.
         for qi_ in g1._qi.keys():
@@ -711,7 +713,9 @@ def save_sd(name, g1,  model):
 #        second_decompose=False
         
         sector_terms=dict()
+        idx=-1
         for sector in g1._sectors:
+            idx+=1
             vars_lst=[]
             used_vars=[]
             for var in sector:
@@ -721,7 +725,7 @@ def save_sd(name, g1,  model):
 #            print sector_
             
             
-            idx=g1._sectors.index(sector)
+            
             if (idx+1) % (Nf/10)==0:
                 print "%s " %(idx+1)
     
@@ -823,9 +827,9 @@ def save_sd(name, g1,  model):
 #        print sector_terms.keys()
 #        print
 
-
+        idx=-1
         for sector in sector_terms.keys():
-            idx=sector_terms.keys().index(sector)
+            idx+=1
             subs=[[x] for x in g1._qi.keys()]
             subs.remove([sector.sect[0]])
             
