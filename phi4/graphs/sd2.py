@@ -132,7 +132,14 @@ class poly_exp:
              monom.remove(var)
           res.append(monom)
        return poly_exp(res,self.power,self.degree, self.coef)
-       
+
+    def set0_list(self, var_list):
+        res=[]
+        for monom in self.poly:
+            if len(set(var_list)&set(monom))==0:
+                res.append(monom)
+        return res
+
     def set0(self, var):
         res=[]
         for monom in self.poly:
@@ -495,13 +502,15 @@ def check_comb(term, cons):
     return res
     
     
-def strech_list(term, subgraphs_):
+def strech_list(sector, subgraphs_):
+    """ generate list of strechs extracted in leading term by first pass of sector decomposition
+    """
     strechs=[]
     subs=conv_sub(subgraphs_)
     for j in range(len(subs)):
-        si=len(set(term)&set(subs[j]))-subgraphs_[j].NLoopSub()
+        si=len(set(sector)&set(subs[j]))-subgraphs_[j].NLoopSub()
         strechs+=[1000+j]*si
-    return strechs
+    return list(set(strechs))
 
 
 def gensectors(cons,vars, L):
@@ -552,12 +561,28 @@ def factorize_poly_lst(poly_lst):
 #    print "FACTORIZE",  res
     return res
 
+def split_u_a(monom):
+    res_a=[]
+    res_u=[]
+    for var in monom:
+        if abs(var)<1000:
+            res_u.append(var)
+        else:
+            res_a.append(var)
+    return (res_u, res_a)
+    
 def find_bad_poly(term):
     res=list()
     for poly in term:
         if poly.power.a<0 and len(poly.poly)>1:
-            if min(map(len, poly.poly))<>0:
-                res.append(poly)
+            splitted=map(split_u_a, poly.poly)
+            u_, a_=zip(*splitted)
+            if min(map(len, u_))<>0:
+                res.append((poly, []))
+            else:
+                a__=a_[u_.index([])]
+                if len(a__)>0:
+                    res.append((poly, a__)) 
     return res
 
 def split_sector_dict(sector_terms):
@@ -567,15 +592,17 @@ def split_sector_dict(sector_terms):
         good_terms[sector]=[]
         bad_terms[sector]=[]
         for term in sector_terms[sector]:
-            term_=factorize_poly_lst(term)
-            if len(find_bad_poly(term_))>0:
-                bad_terms[sector].append(term_)
+            term_=factorize_poly_lst(term[0])
+            bp_list=find_bad_poly(term_)
+            if len(bp_list)>0:
+                for bp in bp_list:
+                    bad_terms[sector].append((term_, term[1]))
             else:
-                good_terms[sector].append(term_)
+                good_terms[sector].append((term_, term[1]))
         if len(good_terms[sector])==0:
             del good_terms[sector]
         if len(bad_terms[sector])==0:
-            del bad_terms[sector]
+            del bad_terms[sector]            
     return (good_terms,  bad_terms)
             
             
@@ -634,13 +661,12 @@ def find_zeroes(polyexp, level=10000000):
     for i in xrange(level_):
         for uu in xUniqueCombinations(poly_vars(poly), i):
             polyexp_=copy.copy(polyexp)
-            for u in uu:
-                polyexp_=polyexp_.set0(u)
-            if len(polyexp_.poly)==0:
+            
+            if len(polyexp_.set0_list(uu))==0:
                 zeroes.append(uu)
     return zeroes
     
-def minimal_zeroes(zeroes):
+def minimal_zeroes(zeroes,  nostrechs=False):
     res=[]
     for zero in sorted(zeroes, key=len):
         good=True
@@ -648,9 +674,129 @@ def minimal_zeroes(zeroes):
             if set(z1).issubset(set(zero)):
                 good=False
                 break
+        if good and nostrechs:
+            for z in zero:
+                if abs(z)>=1000:
+                    good=False
+                    break
         if good:
             res.append(zero)
     return res
+
+def diff_subtraction(term,  strechs):
+    """ perform diff subtraction for ALL strechs that wasn't affected by direct_subtraction
+    N.B. output differs from that if direct_subtraction (no need to store affected strechs)
+    """
+    res=[term[0]]
+    for var in strechs:
+        if var in term[1]:
+            continue
+        terms_=[]
+        if strechs[var]==0:
+            for term_ in res:
+                terms_.append(set1_poly_lst(term_, var))
+        elif strechs[var]==1:
+            for term_ in res:
+                terms_+=diff_poly_lst(term_, var)
+        elif strechs[var]==2:
+            for term_ in res:
+                firstD=diff_poly_lst(term_, var)
+                for term_ in firstD:
+                    seconD=diff_poly_lst(term_, var)
+                    for term__ in seconD:
+##не работает если переменная имеет индекс 0                                    
+                        term__.append(poly_exp([[], [-var]], (1, 0)))
+                        terms_+=[term__]
+        else:
+            raise NotImplementedError,  "strech level   = %s"%strechs[var]
+        res=terms_    
+    return res
+
+"""
+            for var in strechs:
+#                print var,  strechs[var] ,   var in active_strechs[sector]
+                if var in active_strechs[sector] or strechs[var]==0:
+                    continue
+#                print "---"
+                terms_=[]
+                if strechs[var]==1:
+                    for term in terms:
+                        terms_+=diff_poly_lst(term, var)
+                elif strechs[var]==2:
+                    for term in terms:
+                        firstD=diff_poly_lst(term, var)
+                        for term_ in firstD:
+                            seconD=diff_poly_lst(term_, var)
+                            for term__ in seconD:
+##не работает если переменная имеет индекс 0                                    
+                                term__.append(poly_exp([[], [-var]], (1, 0)))
+                                terms_+=[term__]
+                else:
+                    raise NotImplementedError,  "strech level   = %s"%strechs[var]
+#                print terms_
+                terms=terms_    
+"""    
+
+
+def direct_subtraction(term, strechs,  drop_azero_terms=False):
+    """ strechs -> dict of strechs to be subtracted
+    """
+    res=[term[0]]
+#    print "direct_subtraction:",  term
+    for var in strechs:            
+        if var in term[1]:
+            raise ValueError,  "can't perform subtraction on var=%s, term[1]=%s, strechs=%s"%(var, term[1], strechs)
+        terms_=[]
+        if strechs[var]==0:
+            for term_ in res:
+                terms_.append(set1_poly_lst(term_, var))
+        elif strechs[var]==1:
+            for term_ in res:
+                if not drop_azero_terms:
+#                    print term_
+                    terms_.append(minus(set0_poly_lst(term_, var)))
+                terms_.append(set1_poly_lst(term_, var))
+        elif strechs[var]==2:
+            for term_ in res:
+                firstD=diff_poly_lst(term_, var)
+                terms_.append(set1_poly_lst(term_, var))
+                if not drop_azero_terms:
+                    terms_.append(minus(set0_poly_lst(term_, var)))
+                    for term_ in firstD:
+                        terms_.append(minus(set0_poly_lst(term_, var)))
+        else:
+            raise NotImplementedError,  "strech level   = %s"%strechs[var]
+
+        res=terms_
+    res=[(term_, term[1]+strechs.keys()) for term_ in res]
+    return res
+
+###    for var in vars:
+###        if var not in active_strechs[sector_] and strechs[var]<>0:
+###            continue
+###            
+###        terms_=[]
+###        if strechs[var]==0:
+###            for term in terms:
+###                terms_.append(set1_poly_lst(term, var))
+###        elif strechs[var]==1:
+###            for term in terms:
+###                if not drop_azero_terms:
+###                    terms_.append(minus(set0_poly_lst(term, var)))
+###                terms_.append(set1_poly_lst(term, var))
+###        elif strechs[var]==2:
+###            for term in terms:
+###                firstD=diff_poly_lst(term, var)
+###                terms_.append(set1_poly_lst(term, var))
+###                if not drop_azero_terms:
+###                    terms_.append(minus(set0_poly_lst(term, var)))
+###                     for term_ in firstD:
+###                        terms_.append(minus(set0_poly_lst(term_, var)))
+###        else:
+###            raise NotImplementedError,  "strech level   = %s"%strechs[var]
+###
+###        terms=terms_
+
 
 def save_sd(name, g1,  model):
     print g1._eq_grp
@@ -687,7 +833,6 @@ def save_sd(name, g1,  model):
     
     #    print lfactor, g1.sym_coef(), grp_factor 
     
-#        A1=poly_exp(g1._det, (-2, 0), g1.NLoops(), coef=(float(lfactor*g1.sym_coef()*grp_factor ), 0))
         A1=poly_exp(g1._det, (-2, 0),  coef=(float(lfactor*g1.sym_coef()*grp_factor ), 0))
 
         zeroes=minimal_zeroes(find_zeroes(A1) ) 
@@ -710,10 +855,16 @@ def save_sd(name, g1,  model):
         sect_terms=dict()
         
 #        g1._sectors=[[9, 8, 5]]
+
+#        g1._sectors=[[8, 11, 12, 7, 6]]
+        g1._sectors=[[12, 13, 7, 10, 11]]
+        drop_azero_terms=False
         second_decompose=True  # for debugging
 #        second_decompose=False
+#        (second_decompose, drop_azero_terms)=(False,  True)
         
         sector_terms=dict()
+        active_strechs=dict()
         idx=-1
         for sector in g1._sectors:
             idx+=1
@@ -731,61 +882,20 @@ def save_sd(name, g1,  model):
                 print "%s " %(idx+1)
     
             
-            active_strechs=strech_list(sector, g1._subgraphs)
-
-
+            d_strechs=dict([(x, strechs[x]) for x in strech_list(sector, g1._subgraphs)])
 
             expr=decompose(sector_,[A1, A2 ] )+[poly_exp([[sector[0]]], (1, 0))]
 
-            terms=[expr]
-            
-#            ttt = decompose(sector,[A1 ], g1._qi,  g1._cons )
-#            print sector, ttt
+            terms=direct_subtraction((expr, []), d_strechs)
 
-            for var in strechs:
-
-                terms_=[]
-                if strechs[var]==0:
-                    for term in terms:
-                        terms_.append(set1_poly_lst(term, var))
-                elif strechs[var]==1:
-                    for term in terms:
-
-                        if var not in active_strechs:
-                            terms_+=diff_poly_lst(term, var)
-                        else:
-                            terms_.append(minus(set0_poly_lst(term, var)))
-                            terms_.append(set1_poly_lst(term, var))
-                elif strechs[var]==2:
-                    for term in terms:
-                        firstD=diff_poly_lst(term, var)
-                        if var not in active_strechs: 
-#                            print var, term
-                            for term_ in firstD:
-                                seconD=diff_poly_lst(term_, var)
-                                for term__ in seconD:
-#не работает если переменная имеет индекс 0                                    
-                                    term__.append(poly_exp([[], [-var]], (1, 0)))
-                                    terms_+=[term__]
-                        else:
-                            terms_.append(set1_poly_lst(term, var))
-                            terms_.append(minus(set0_poly_lst(term, var)))
-                            for term_ in firstD:
-                                terms_.append(minus(set0_poly_lst(term_, var)))
-                else:
-                    raise NotImplementedError,  "strech level   = %s"%strechs[var]
-
-                terms=terms_
             sector_terms[sector_]=terms    
-        
-#        print [(sector, len(sector_terms[sector])) for sector in sector_terms.keys()]
         #perform additional decomposition for terms with a_i=0 (if necessary)
 
         if second_decompose:
             sector_terms,  sdsector_terms = split_sector_dict(sector_terms)
-    
-            
-    #        while False and len(sdsector_terms.keys())>0:
+        
+#            print 
+#            print sdsector_terms
             while len(sdsector_terms.keys())>0:
                 print "Bad sectors: ", len(sdsector_terms.keys())
                 sdsector_terms_=dict()
@@ -794,27 +904,46 @@ def save_sd(name, g1,  model):
 #                    print
 #                    print sector
                     for term in  terms:
-                        bad_polys=find_bad_poly(term)
+                        print "---------"
+                        print poly_list2ccode(term[0])
+
+                        bad_polys=find_bad_poly(term[0])
+#                        print "bad_polys", bad_polys
                         if len(bad_polys)<>1:
                             raise NotImplementedError ,  " badpoly= %s, \nsector=%s,\n term=%s"%(bad_polys, sector, term)
                         else:
-                            poly=bad_polys[0]
-                        zeroes=minimal_zeroes(find_zeroes(poly) )
-#                        print zeroes
-#                        print term
-                        sectors=list()
-                        for u in zeroes[0]:
-                            vars=copy.copy(zeroes[0])
-                            vars.remove(u)
-                            new_sector=sect([u], [vars] )
-   
-                            d_term=decompose(new_sector, term)
-                            new_sector_=sector+new_sector
-    #                        print d_term
-#                            print new_sector_    
-                            if new_sector_ not in sdsector_terms_:
-                                sdsector_terms_[new_sector_]=[]
-                            sdsector_terms_[new_sector_].append(d_term)
+                            poly=bad_polys[0][0]
+#                            print bad_polys[0]
+                            a_=list(set(bad_polys[0][1]))
+                        
+                        print "a_", a_
+                        if len(a_)==0:
+#                            print poly
+                            azeroes=find_zeroes(poly) 
+                            zeroes=minimal_zeroes(azeroes  ,  nostrechs=True)
+                            print zeroes
+                            print "sector=", sector
+                            sectors=list()
+                            for u in zeroes[0]:
+                                vars=copy.copy(zeroes[0])
+                                vars.remove(u)
+                                new_sector=sect([u], [vars] )
+                                print "   new sector: ", new_sector
+                                d_term=(decompose(new_sector, term[0]), term[1])
+                                print "   d_term=",  poly_list2ccode(d_term[0])
+                                new_sector_=sector+new_sector
+#                                active_strechs[new_sector_]=active_strechs[sector]
+        #                            print d_term
+        #                            print new_sector_    
+                                if new_sector_ not in sdsector_terms_:
+                                    sdsector_terms_[new_sector_]=[]
+                                sdsector_terms_[new_sector_].append(d_term)
+                        else:
+                            if sector not in sdsector_terms_:
+                                sdsector_terms_[sector]=[]
+                            d_strechs=dict([(x, strechs[x]) for x in a_])
+                            sdsector_terms_[sector]+=direct_subtraction(term, d_strechs)
+                            
                         
                 good_terms, sdsector_terms=split_sector_dict(sdsector_terms_)
                 sector_terms=combine_dicts(sector_terms,  good_terms)
@@ -822,11 +951,26 @@ def save_sd(name, g1,  model):
 #                print
             
 
-        print len(sector_terms.keys())
+        print "Total sectors: ",  len(sector_terms.keys())
 
-#        print
-#        print sector_terms.keys()
-#        print
+#
+        for sector in sector_terms.keys():
+            terms=sector_terms[sector]
+            print "sector ",  sector
+            for term in terms:
+                print "   term[1] = ",  term[1]
+                print "   term = ",  poly_list2ccode(term[0])
+                
+            
+
+            s_terms=[]
+            for term in terms:
+                s_terms+=diff_subtraction(term, strechs)
+
+            if len(s_terms)==0:
+                del sector_terms[sector]
+            else:
+                sector_terms[sector]=s_terms
 
         idx=-1
         for sector in sector_terms.keys():
@@ -834,17 +978,16 @@ def save_sd(name, g1,  model):
             subs=[[x] for x in g1._qi.keys()]
             subs.remove([sector.sect[0]])
             
-#            print sector,  subs
             subs_polyl=decompose(sect(sector.sect[1:], sector.var[1:]), [poly_exp(subs,  (1, 0))] , jakob=False)
             
-#            print subs_polyl, poly_list2ccode(subs_polyl)
+
             terms=sector_terms[sector]
             tres=""
             for term in   terms:
                 f_term=factorize_poly_lst(term)
                 tres+="%s;\nres+="%poly_list2ccode(f_term)
             sect_terms[sector]=(tres[:-5], poly_list2ccode(subs_polyl))
-#            print (tres[:-5], poly_list2ccode(subs_polyl))
+
             if (idx+1) % Nf==0:
                 if len(sect_terms)<>0:
                     print
