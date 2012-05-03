@@ -68,7 +68,7 @@ def FindExtendedTadpoles(graph):
             for tadpole in tadpoles:
 #                print "tadpoles", tadpoles
 #                print "   tadpole: ", tadpole,  key_by_value(sub_comb, tadpole)
-                _tadpoles.append(key_by_value(sub_comb, tadpole))
+                _tadpoles.append(tuple(map(lambda x:x+1000,  key_by_value(sub_comb, tadpole))))
     graph._tadpoles=_tadpoles
     print "tadpoles=", _tadpoles
 
@@ -94,7 +94,7 @@ def Prepare(graph, model):
     cons = conserv.Conservations(int_edges)
     eqs = find_eq(cons)
     print
-    print cons, eqs
+#    print cons, eqs
     cons=apply_eq(cons, eqs)
     print "Conservations:\n", cons
     graph._cons=cons
@@ -661,6 +661,9 @@ def split_sector_dict(sector_terms):
         good_terms[sector]=[]
         bad_terms[sector]=[]
         for term in sector_terms[sector]:
+#            print
+#            print sector
+#            print term
             term_=factorize_poly_lst(term[0])
             bp_list=find_bad_poly(term_)
             if len(bp_list)>0:
@@ -806,38 +809,84 @@ def diff_subtraction(term,  strechs):
                 terms=terms_    
 """    
 
+def get_tadpole_constrains(var,  strech_dict,  tadpoles):
+    to_unit=list()
+    zeroes=list()
+    unity=list()
+    for strech in strech_dict:
+        if strech_dict[strech]==0:
+            zeroes.append(strech)
+        elif strech_dict[strech]==1:
+            unity.append(strech)
+    s_zeroes=set(zeroes+[var])
+    for tadpole in tadpoles:
+        rest=list(set(tadpole)-s_zeroes)
+        if len(rest)==1:
+            if rest[0] not in unity:
+                to_unit.append(rest[0])
+        elif len(rest)==0:
+            raise ValueError,  "combination of vars set to zero (%s) is equal to constrain %s"%(tadpole, s_zeroes)
+    return to_unit
+            
+def set_termvar_to0_minus(term, var, units):
+    expr=minus(set0_poly_lst(term[0], var))
+    vars=combine_dicts(term[1], {var:0})
+    for var in units:
+        expr=set1_poly_lst(expr, var)
+        vars=combine_dicts(vars, {var:1})
+    return (expr, vars)
 
-def direct_subtraction(term, strechs,  drop_azero_terms=False):
+def direct_subtraction(term, strechs,  tadpoles,  drop_azero_terms=False):
     """ strechs -> dict of strechs to be subtracted
     """
-    res=[term[0]]
-#    print "direct_subtraction:",  term
-    for var in strechs:            
+    res=[term]
+    print "direct_subtraction:",  term
+    print "strechs", strechs
+    comulative_term1=term[1]
+    for var in strechs: 
         if var in term[1]:
             raise ValueError,  "can't perform subtraction on var=%s, term[1]=%s, strechs=%s"%(var, term[1], strechs)
         terms_=[]
         if strechs[var]==0:
             for term_ in res:
-                terms_.append(set1_poly_lst(term_, var))
+                if var in term_[1]:
+                    continue
+                terms_.append((set1_poly_lst(term_[0], var), combine_dicts(term_[1], {var:1}) ))
         elif strechs[var]==1:
             for term_ in res:
+                if var in term_[1]:
+                    continue
+
                 if not drop_azero_terms:
 #                    print term_
-                    terms_.append(minus(set0_poly_lst(term_, var)))
-                terms_.append(set1_poly_lst(term_, var))
+#                    terms_.append((minus(set0_poly_lst(term_[0], var)), combine_dicts(term_[1], {var:0}) ))
+                    print var,  term_[1],  tadpoles
+                    to_unit=get_tadpole_constrains(var, term_[1],  tadpoles)
+                    print var,  to_unit
+                    print poly_list2ccode(term_[0])
+                    
+                    
+                    terms_.append(set_termvar_to0_minus(term_, var, to_unit))
+                terms_.append((set1_poly_lst(term_[0], var),  combine_dicts(term_[1], {var:1}) ))
+
         elif strechs[var]==2:
             for term_ in res:
-                firstD=diff_poly_lst(term_, var)
-                terms_.append(set1_poly_lst(term_, var))
+                firstD=diff_poly_lst(term_[0] , var)
+                terms_.append((set1_poly_lst(term_[0], var), combine_dicts(term_[1], {var:1}) ))
                 if not drop_azero_terms:
-                    terms_.append(minus(set0_poly_lst(term_, var)))
-                    for term_ in firstD:
-                        terms_.append(minus(set0_poly_lst(term_, var)))
+#                    terms_.append((minus(set0_poly_lst(term_[0], var)),  combine_dicts(term_[1], {var:0}) ))
+                    to_unit=get_tadpole_constrains(var, term_[1],  tadpoles)
+#                    print var,  to_unit
+
+                    terms_.append(set_termvar_to0_minus(term_, var, to_unit) )
+                    for term__ in firstD:
+#                        terms_.append((minus(set0_poly_lst(term__, var)), combine_dicts(term_[1], {var:0}) ))
+                        terms_.append(set_termvar_to0_minus((term__, term_[1]), var, to_unit) )                       
         else:
             raise NotImplementedError,  "strech level   = %s"%strechs[var]
 
         res=terms_
-    res=[(term_, term[1]+strechs.keys()) for term_ in res]
+#    res=[(term_, term[1]+strechs.keys()) for term_ in res]
     return res
 
 ###    for var in vars:
@@ -928,7 +977,9 @@ def save_sd(name, g1,  model):
 #        g1._sectors=[[9, 8, 5]]
 
 #        g1._sectors=[[8, 11, 12, 7, 6]]
-        #g1._sectors=[[12, 13, 7, 10, 11]]
+#        g1._sectors=[[12, 13, 7, 10, 11]]
+#        g1._sectors=[[7, 8, 10, 11, 12]]
+        g1._sectors=[[12, 13, 10, 9, 8]]
         drop_azero_terms=False
         second_decompose=True  # for debugging
 #        second_decompose=False
@@ -964,13 +1015,17 @@ def save_sd(name, g1,  model):
             print 
             print "   expr = ",  poly_list2ccode(expr)
             print
+            
 #            bp=find_bad_poly(expr)
 #            print "    bp = ",  bp
 #            print "    zeroes = ",  find_zeroes(bp[0][0])
-            
-            terms=direct_subtraction((expr, []), d_strechs)
-            
-            
+
+#            print sector, g1._subgraphs
+            print "d_strechs", d_strechs
+            terms=direct_subtraction((expr, {}), d_strechs, g1._tadpoles)
+            print
+            print "terms=", terms
+            print
             
             sector_terms[sector_]=terms    
 
@@ -989,9 +1044,9 @@ def save_sd(name, g1,  model):
 #                    print
 #                    print sector
                     for term in  terms:
-                        print "---------"
-                        print "term = ", poly_list2ccode(term[0])
-                        print "term[1] = ", term[1]
+#                        print "---------"
+#                        print "term = ", poly_list2ccode(term[0])
+#                        print "term[1] = ", term[1]
 
                         bad_polys=find_bad_poly(term[0])
 #                        print "bad_polys", bad_polys
@@ -1003,21 +1058,21 @@ def save_sd(name, g1,  model):
                             a_=list(set(bad_polys[0][1]))
                             
                         
-                        print "a_", a_
+#                        print "a_", a_
                         if len(a_)==0:
 #                            print poly
                             azeroes=find_zeroes(poly) 
                             zeroes=minimal_zeroes(azeroes  ,  nostrechs=True)
-                            print zeroes
-                            print "sector=", sector
+#                            print zeroes
+#                            print "sector=", sector
                             sectors=list()
                             for u in zeroes[0]:
                                 vars=copy.copy(zeroes[0])
                                 vars.remove(u)
                                 new_sector=sect([u], [vars] )
-                                print "   new sector: ", new_sector
+#                                print "   new sector: ", new_sector
                                 d_term=(decompose(new_sector, term[0]), term[1])
-                                print "   d_term=",  poly_list2ccode(d_term[0])
+#                                print "   d_term=",  poly_list2ccode(d_term[0])
                                 new_sector_=sector+new_sector
 #                                active_strechs[new_sector_]=active_strechs[sector]
         #                            print d_term
@@ -1029,7 +1084,7 @@ def save_sd(name, g1,  model):
                             if sector not in sdsector_terms_:
                                 sdsector_terms_[sector]=[]
                             d_strechs=dict([(x, strechs[x]) for x in a_])
-                            sdsector_terms_[sector]+=direct_subtraction(term, d_strechs)
+                            sdsector_terms_[sector]+=direct_subtraction(term,  d_strechs, g1._tadpoles)
                             
                         
                 good_terms, sdsector_terms=split_sector_dict(sdsector_terms_)
@@ -1043,10 +1098,10 @@ def save_sd(name, g1,  model):
 #
         for sector in sector_terms.keys():
             terms=sector_terms[sector]
-            print "sector ",  sector
-            for term in terms:
-                print "   term[1] = ",  term[1]
-                print "   term = ",  poly_list2ccode(term[0])
+#            print "sector ",  sector
+#            for term in terms:
+#                print "   term[1] = ",  term[1]
+#                print "   term = ",  poly_list2ccode(term[0])
                 
             
 
@@ -1062,8 +1117,8 @@ def save_sd(name, g1,  model):
         idx=-1
         for sector in sector_terms.keys():
             idx+=1
-            print "sector= ",  sector
-            print "qi = ", g1._qi
+#            print "sector= ",  sector
+#            print "qi = ", g1._qi
             subs=[[x] for x in g1._qi.keys()]
             subs.remove([sector.sect[0]])
             
