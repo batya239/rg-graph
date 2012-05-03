@@ -11,6 +11,68 @@ import subgraphs
 from methods.feynman_tools import strech_indexes, dTau_line
 
 
+def FindExtendedTadpoles(graph):
+    def key_by_value(_dict, value):
+        res=list()
+        for key in _dict:
+            if value==_dict[key]:
+                res.append(key)
+        if len(res)==0:
+            raise ValueError,  "no such value in dict %s"%(str(value))
+        elif len(res)>1:
+            raise ValueError,  "multiple values in dict:%s"%res
+        else:
+            return res[0]
+    
+    def check_subsets(_subgraphs):
+        for sub in _subgraphs:
+#            print "sub=", sub
+            for sub2 in _subgraphs:
+                if sub==sub2:
+                    continue
+                if sub2.isSubSet(sub) or sub.isSubSet(sub2):
+#                    print sub,  sub2
+                    return False
+        return True
+    
+    graph_as_sub=graph.asSubgraph()
+    if graph_as_sub.CountExtLegs()==2:
+        lst=[graph_as_sub]
+    else:
+        lst=[]
+    sub_comb=dict()
+    for i in range(2, len(graph._subgraphs)):
+        for subs in xUniqueCombinations(range(len(graph._subgraphs)), i):
+#            print "subs = ", subs
+            c_subsets=check_subsets([graph._subgraphs[x] for x in subs])
+            if not c_subsets:
+#                print "check_subsets : " , subs,   c_subsets
+                continue
+            sub_u=graph._subgraphs[subs[0]]
+            for sub in subs[1:]:
+                _sub=graph._subgraphs[sub]
+                sub_u=sub_u+_sub
+                
+            if sub_u. isSubgraph1PI() : #we need connected subgraph, but in our case sum of 1pi subgraphs must be 1pi if connected.
+#                print "sub_u", sub_u
+                sub_comb[tuple(subs)]=sub_u
+#    sub_comb=dict()
+#    sub_comb[tuple([0, 1])]=graph._subgraphs[0]+graph._subgraphs[1]
+    _tadpoles=list()
+    for sub in lst+graph._subgraphs:
+#        print "start:",  sub,  sub_comb.keys()
+        tadpoles=sub._CheckTadpoles(sub_comb.values(), check_equal=True)
+#        print tadpoles
+        if len(tadpoles)>0:
+#            print "subgraph:",  sub
+            for tadpole in tadpoles:
+#                print "tadpoles", tadpoles
+#                print "   tadpole: ", tadpole,  key_by_value(sub_comb, tadpole)
+                _tadpoles.append(key_by_value(sub_comb, tadpole))
+    graph._tadpoles=_tadpoles
+    print "tadpoles=", _tadpoles
+
+            
 
 def Prepare(graph, model):
     model.SetTypes(graph)
@@ -22,6 +84,12 @@ def Prepare(graph, model):
 
     subgraphs.RemoveTadpoles(graph)
     
+    for i in range(len(graph._subgraphs)):
+        print "sub %s : %s"%(i, graph._subgraphs[i])
+        
+    FindExtendedTadpoles(graph)
+#    raise Exception,  "force quit"
+    
     int_edges=graph._internal_edges_dict()
     cons = conserv.Conservations(int_edges)
     eqs = find_eq(cons)
@@ -32,6 +100,7 @@ def Prepare(graph, model):
     graph._cons=cons
     graph._qi, graph._qi2l = qi_lambda(cons, eqs)
     print graph._qi, graph._qi2l
+    print "lines = ", graph.Lines()
     graph._eq_grp_orig=graph._eq_grp
     graph._eq_grp=merge_grp_qi(graph._eq_grp, graph._qi2l)
 
@@ -224,7 +293,7 @@ def set0_poly_lst(poly_lst, var):
             if poly_.power.a>0:
                 return []
             else:
-                raise ZeroDivisionError,  "var:=%s poly="%(var, poly)
+                raise ZeroDivisionError,  "var:=%s poly=%s"%(var, poly)
     return res
     
 def set1_poly_lst(poly_lst, var):
@@ -799,7 +868,7 @@ def direct_subtraction(term, strechs,  drop_azero_terms=False):
 
 
 def save_sd(name, g1,  model):
-    print g1._eq_grp
+    #print g1._eq_grp
     for grp_ in g1._eq_grp:
         if len(grp_)==0:
             continue
@@ -816,6 +885,7 @@ def save_sd(name, g1,  model):
         for sub in g1._subgraphs:
             sub_idx+=1
             sub._strechvar=1000+sub_idx
+            print "%s sub = %s"%(sub._strechvar,  sub)
     
         lfactor=1.
         for qi_ in g1._qi.keys():
@@ -844,6 +914,7 @@ def save_sd(name, g1,  model):
         A4=poly_exp([g1._qi.keys()], (-1, 0))
         g_qi=dTau_line(g1, qi,  model)
         strechs=strech_indexes(g_qi, model)
+        print "strechs = ", strechs
         #print [A1, A2, A3 ]
         
         strech_vars=[]
@@ -857,7 +928,7 @@ def save_sd(name, g1,  model):
 #        g1._sectors=[[9, 8, 5]]
 
 #        g1._sectors=[[8, 11, 12, 7, 6]]
-        g1._sectors=[[12, 13, 7, 10, 11]]
+        #g1._sectors=[[12, 13, 7, 10, 11]]
         drop_azero_terms=False
         second_decompose=True  # for debugging
 #        second_decompose=False
@@ -885,11 +956,25 @@ def save_sd(name, g1,  model):
             d_strechs=dict([(x, strechs[x]) for x in strech_list(sector, g1._subgraphs)])
 
             expr=decompose(sector_,[A1, A2 ] )+[poly_exp([[sector[0]]], (1, 0))]
-
+            
+            print
+            print  "    sector ", sector_
+            print
+            print "   expr = ",  expr
+            print 
+            print "   expr = ",  poly_list2ccode(expr)
+            print
+#            bp=find_bad_poly(expr)
+#            print "    bp = ",  bp
+#            print "    zeroes = ",  find_zeroes(bp[0][0])
+            
             terms=direct_subtraction((expr, []), d_strechs)
-
+            
+            
+            
             sector_terms[sector_]=terms    
-        #perform additional decomposition for terms with a_i=0 (if necessary)
+
+#perform additional decomposition for terms with a_i=0 (if necessary)
 
         if second_decompose:
             sector_terms,  sdsector_terms = split_sector_dict(sector_terms)
@@ -905,7 +990,8 @@ def save_sd(name, g1,  model):
 #                    print sector
                     for term in  terms:
                         print "---------"
-                        print poly_list2ccode(term[0])
+                        print "term = ", poly_list2ccode(term[0])
+                        print "term[1] = ", term[1]
 
                         bad_polys=find_bad_poly(term[0])
 #                        print "bad_polys", bad_polys
@@ -915,6 +1001,7 @@ def save_sd(name, g1,  model):
                             poly=bad_polys[0][0]
 #                            print bad_polys[0]
                             a_=list(set(bad_polys[0][1]))
+                            
                         
                         print "a_", a_
                         if len(a_)==0:
@@ -975,6 +1062,8 @@ def save_sd(name, g1,  model):
         idx=-1
         for sector in sector_terms.keys():
             idx+=1
+            print "sector= ",  sector
+            print "qi = ", g1._qi
             subs=[[x] for x in g1._qi.keys()]
             subs.remove([sector.sect[0]])
             

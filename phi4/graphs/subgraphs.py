@@ -12,6 +12,12 @@ class Subgraph:
     def __repr__(self):
         return self._lines.__repr__()
     
+    def __add__(self, other):
+        return Subgraph(list(set(self._lines+other._lines)))
+        
+    def isSubSet(self, other):
+        return set(self._lines).issubset(set(other._lines))
+    
     def InternalNodes(self):
         if not "_InternalNodes" in self.__dict__:
             nodes=set()
@@ -88,33 +94,38 @@ class Subgraph:
         else:
             return False
 
+    def _CheckTadpoles(self, _subgraphs=None, check_equal=False):
+        intnodes=self.InternalNodes()
+        (extnodes,extlines)=self.FindExternal()
+#        print 
+#        print self
+#        print "intnodes", intnodes
+#        print extnodes, extlines
+        border=self.BorderNodes()
+#        print border
+        tadpoles=list()
+        for sub in _subgraphs:
+            if (len(self)>len(sub))or(check_equal and len(self)==len(sub)):
+                """ othewise sub cant be subgraph of sub1
+                """
+                if reduce(lambda x,y: x&y,[(line in self._lines) for line in sub._lines]):
+                    """ all lines in sub are in sub1
+                    """
+#                    print "sub2", sub
+                    _border=sub.BorderNodes()
+#                    print _border
+                    if reduce(lambda x,y: x&y,[(node in _border) for node in border]):
+                        """ border of sub1 (biger) inside border sub (smaller)
+                            this gives us tadpole in sub1 after sub reduced to point
+                        """
+                        tadpoles.append(sub)
+                
+#        print "tadpoles:", tadpoles
+        return tadpoles
+
     def FindTadpoles(self,_subgraphs=None):
         if not "_tadpoles" in self.__dict__:
-            intnodes=self.InternalNodes()
-            (extnodes,extlines)=self.FindExternal()
-#            print 
-#            print self
-#            print "intnodes", intnodes
-#            print extnodes, extlines
-            border=self.BorderNodes()
-#            print border
-            tadpoles=list()
-            for sub in _subgraphs:
-                if len(self)>len(sub):
-                    """ othewise sub cant be subgraph of sub1
-                    """
-                    if reduce(lambda x,y: x&y,[(line in self._lines) for line in sub._lines]):
-                        """ all lines in sub are in sub1
-                        """
-#                        print "sub2", sub
-                        _border=sub.BorderNodes()
-#                        print _border
-                        if reduce(lambda x,y: x&y,[(node in _border) for node in border]):
-                            """ border of sub1 (biger) inside border sub (smaller)
-                                this gives us tadpole in sub1 after sub reduced to point
-                            """
-                            tadpoles.append(sub)
-            self._tadpoles=tadpoles
+            self._tadpoles=self._CheckTadpoles(_subgraphs=_subgraphs)
         return self._tadpoles
     
 
