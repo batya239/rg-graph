@@ -419,12 +419,16 @@ def poly_list2ccode(poly_list):
     else:
         return "%s(%s)"%(res, C)
 
-def functions(poly_dict,vars,  strechs):
+def functions(poly_dict, vars,  strechs,  index=None):
+    if index==None:
+        sindex=""
+    else:
+        sindex="_t_%s"%index
     res2="""
-void func(double k[DIMENSION], double f[FUNCTIONS])
+double func%s(double k[DIMENSION])
 {
-f[0]=0.;
-"""
+double f=0.;
+"""%sindex
     cnt=0
     res=""
     varstring=""
@@ -436,10 +440,10 @@ f[0]=0.;
     varstring2=varstring2[:-1]
     for sector in poly_dict.keys():
         res+="""
-double func%s( %s)
+double func%s_%s( %s)
 {
 //sector %s
-"""%(cnt,varstring,sector)
+"""%(cnt,index, varstring,sector)
         cnt2=0
         
         s0="1./(1.+"
@@ -453,11 +457,25 @@ double func%s( %s)
         expr, subs=poly_dict[sector]
         res+="double u%s=1./(1.+%s);\n"%(sector.sect[0],subs)
         res+="double res = %s;\n return res;\n}\n"%expr
-        res2+="f[0]+=func%s(%s);\n"%(cnt,varstring2)
+        res2+="f+=func%s_%s(%s);\n"%(cnt,index, varstring2)
         cnt+=1
-    return res + res2 + "}\n"
+    return res + res2 + "return f;}\n"
 
-def code(func,N):
+def code( Nf, N,  func_fname):
+    include=""
+    func="""
+void func(double k[DIMENSION], double f[FUNCTIONS])
+{
+f[0]=0.;
+"""
+    for i in range(Nf+1):
+        func+="""
+f[0]+=func_t_%s(k);
+"""%i
+        include+="#include \"%s_%s.h\"\n"%(func_fname, i)
+    func+="}\n\n"
+        
+    
     res="""
 #include <math.h>
 #include <stdio.h>
@@ -470,9 +488,12 @@ def code(func,N):
 #define NTHREADS 2
 #define NEPS 0
 #define NITER 2
+
+%s
+
 double reg_initial[2*DIMENSION]={%s};
 
-"""%(N-1, ("0.,"*(N-1)+"1.,"*(N-1))[:-1])
+"""%(N-1, include,  ("0.,"*(N-1)+"1.,"*(N-1))[:-1])
     res+=func + """
 int t_gfsr_k;
 unsigned int t_gfsr_m[SR_P];
@@ -560,7 +581,28 @@ printf ("result = %20.18g\\nstd_dev = %20.18g\\ndelta = %20.18g\\n", estim[0], s
 
 """
     return res
+
+
+def code_f(func,N):
+    res="""
+#include <math.h>
+#define DIMENSION %s
+"""%(N-1)
+    res+=func 
+    return res
     
+def code_h(idx, N):
+    res="""
+#include <math.h>
+#define DIMENSION %s
+double func_t_%s(double k[DIMENSION]);
+
+"""%(N-1, idx)
+
+    return res
+
+
+
 
 def check_comb(term, cons):
     res=True
@@ -935,10 +977,16 @@ def save_sd(name, g1,  model):
         print grp_  ,  g1._qi, list(set(grp_)& set(g1._qi))
         qi=list(set(grp_)&set(g1._qi))[0]
         name_="%s_%s_"%(name, qi)
+        name_="%s_%s_"%(name, qi)
         ui=reduce(lambda x, y:x+y,  [[qi_]*(g1._qi[qi_]-1) for qi_ in g1._qi])
-    #    print ui
+
+#        print ui
 #        qi=g1._qi.keys()[0]
+
+
         ui.append(qi)
+
+
         print "   term u%s"%qi
         print ui,  g1._eq_grp
         sub_idx=-1
@@ -948,13 +996,20 @@ def save_sd(name, g1,  model):
             print "%s sub = %s"%(sub._strechvar,  sub)
     
         lfactor=1.
+##        for qi_ in g1._qi.keys():
+###            if qi_==qi:
+###                lfactor=lfactor/sympy.factorial(g1._qi[qi_])
+###            else:
+##                lfactor=lfactor/sympy.factorial(g1._qi[qi_]-1)
+    
         for qi_ in g1._qi.keys():
             if qi_==qi:
                 lfactor=lfactor/sympy.factorial(g1._qi[qi_])
             else:
                 lfactor=lfactor/sympy.factorial(g1._qi[qi_]-1)
-    
-        
+
+
+
         grp=None
         for grp in g1._eq_grp:
             if qi in grp:
@@ -964,6 +1019,7 @@ def save_sd(name, g1,  model):
     #    print lfactor, g1.sym_coef(), grp_factor 
     
         A1=poly_exp(g1._det, (-2, 0),  coef=(float(lfactor*g1.sym_coef()*grp_factor ), 0))
+ ##       A1=poly_exp(g1._det, (-2, 0),  coef=(1., 0))
 
         zeroes=minimal_zeroes(find_zeroes(A1) ) 
         print "Zeroes %s:\n%s\n"%(len(zeroes), zeroes)
@@ -983,6 +1039,7 @@ def save_sd(name, g1,  model):
                 strech_vars.append(var)
                 
         Nf=1000
+#        Nf=10
         sect_terms=dict()
         
 #        g1._sectors=[[9, 8, 5]]
@@ -1148,17 +1205,28 @@ def save_sd(name, g1,  model):
                 if len(sect_terms)<>0:
                     print
                     print "write to disk... %s"%(idx+1)
-                    f=open("tmp/%s%s.c"%(name_,idx/Nf),'w')
-                    f.write(code(functions(sect_terms, g1._qi.keys(), strech_vars), len(g1._qi.keys())+len(strech_vars)))
+                    f=open("tmp/%s_func_%s.c"%(name_,idx/Nf),'w')
+                    f.write(code_f(functions(sect_terms, g1._qi.keys(), strech_vars, idx/Nf), len(g1._qi.keys())+len(strech_vars)))
+                    f.close()
+                    f=open("tmp/%s_func_%s.h"%(name_,idx/Nf),'w')
+                    f.write(code_h( idx/Nf, len(g1._qi.keys())+len(strech_vars)))
                     f.close()
                     sect_terms=dict()
     
         if len(sect_terms)<>0:
             print "write to disk... %s"%(idx+1)
-            f=open("tmp/%s%s.c"%(name_,idx/Nf),'w')
-            f.write(code(functions(sect_terms, g1._qi.keys(), strech_vars), len(g1._qi.keys())+len(strech_vars)))
+            f=open("tmp/%s_func_%s.c"%(name_,idx/Nf),'w')
+            f.write(code_f(functions(sect_terms, g1._qi.keys(), strech_vars, idx/Nf), len(g1._qi.keys())+len(strech_vars)))
             f.close()
+            f=open("tmp/%s_func_%s.h"%(name_,idx/Nf),'w')
+            f.write(code_h( idx/Nf, len(g1._qi.keys())+len(strech_vars)))
+            f.close()            
             sect_terms=dict()
+        f=open("tmp/%s.c"%(name_),'w')
+        f.write(code(idx/Nf, len(g1._qi.keys())+len(strech_vars), "%s_func"%name_))
+        f.close()
+
+        
     
 
 
