@@ -969,6 +969,36 @@ def direct_subtraction(term, strechs,  tadpoles,  drop_azero_terms=False):
 ###        terms=terms_
 
 
+def save_sectors(g1, sector_terms, strech_vars, name_, idx):
+
+        sect_terms=dict()
+        for sector in sector_terms.keys():
+            
+#            print "sector= ",  sector
+#            print "qi = ", g1._qi
+            subs=[[x] for x in g1._qi.keys()]
+            subs.remove([sector.sect[0]])
+            
+            subs_polyl=decompose(sect(sector.sect[1:], sector.var[1:]), [poly_exp(subs,  (1, 0))] , jakob=False)
+            
+
+            terms=sector_terms[sector]
+            tres=""
+            for term in   terms:
+                f_term=factorize_poly_lst(term)
+                tres+="%s;\nres+="%poly_list2ccode(f_term)
+            sect_terms[sector]=(tres[:-5], poly_list2ccode(subs_polyl))
+
+
+#        print
+#        print "write to disk... %s"%(idx+1)
+        f=open("tmp/%s_func_%s.c"%(name_,idx),'w')
+        f.write(code_f(functions(sect_terms, g1._qi.keys(), strech_vars, idx), len(g1._qi.keys())+len(strech_vars)))
+        f.close()
+        f=open("tmp/%s_func_%s.h"%(name_,idx),'w')
+        f.write(code_h( idx, len(g1._qi.keys())+len(strech_vars)))
+        f.close()
+
 def save_sd(name, g1,  model):
     #print g1._eq_grp
     if len(g1._subgraphs)==0:
@@ -1057,7 +1087,7 @@ def save_sd(name, g1,  model):
                 
         Nf=1000
 #        Nf=10
-        sect_terms=dict()
+
         
 #        g1._sectors=[[9, 8, 5]]
 
@@ -1072,9 +1102,12 @@ def save_sd(name, g1,  model):
 #        (second_decompose, drop_azero_terms)=(False,  True)
         
         sector_terms=dict()
-        active_strechs=dict()
+        
         idx=-1
+        idx_save=0
+        Nsaved=0
         for sector in g1._sectors:
+	    current_terms=dict()
             idx+=1
             vars_lst=[]
             used_vars=[]
@@ -1113,77 +1146,77 @@ def save_sd(name, g1,  model):
 #            print "terms=", terms
 #            print
             
-            sector_terms[sector_]=terms    
+            current_terms[sector_]=terms    
 
 #perform additional decomposition for terms with a_i=0 (if necessary)
 
-        if second_decompose:
-            sector_terms,  sdsector_terms = split_sector_dict(sector_terms)
+	    if second_decompose:
+		current_terms,  sdsector_terms = split_sector_dict(current_terms)
         
 #            print 
 #            print sdsector_terms
-            while len(sdsector_terms.keys())>0:
-                print "Bad sectors: ", len(sdsector_terms.keys())
-                sdsector_terms_=dict()
-                for sector in sdsector_terms:
-                    terms=sdsector_terms[sector]
+###
+                while len(sdsector_terms.keys())>0:
+                    print "Bad sectors: ", len(sdsector_terms.keys())
+                    sdsector_terms_=dict()
+                    for sector in sdsector_terms:
+                        terms=sdsector_terms[sector]
 #                    print
 #                    print sector
-                    for term in  terms:
+                        for term in  terms:
 #                        print "---------"
 #                        print "term = ", poly_list2ccode(term[0])
 #                        print "term[1] = ", term[1]
 
-                        bad_polys=find_bad_poly(term[0])
+                            bad_polys=find_bad_poly(term[0])
 #                        print "bad_polys", bad_polys
-                        if len(bad_polys)<>1:
-                            raise NotImplementedError ,  " badpoly= %s, \nsector=%s,\n term=%s"%(bad_polys, sector, term)
-                        else:
-                            poly=bad_polys[0][0]
+                            if len(bad_polys)<>1:
+                                raise NotImplementedError ,  " badpoly= %s, \nsector=%s,\n term=%s"%(bad_polys, sector, term)
+                            else:
+                                poly=bad_polys[0][0]
 #                            print bad_polys[0]
-                            a_=list(set(bad_polys[0][1]))
+                                a_=list(set(bad_polys[0][1]))
                             
                         
 #                        print "a_", a_
-                        if len(a_)==0:
+                            if len(a_)==0:
 #                            print poly
-                            azeroes=find_zeroes(poly) 
-                            zeroes=minimal_zeroes(azeroes  ,  nostrechs=True)
+                                azeroes=find_zeroes(poly) 
+                                zeroes=minimal_zeroes(azeroes  ,  nostrechs=True)
 #                            print zeroes
 #                            print "sector=", sector
-                            sectors=list()
-                            for u in zeroes[0]:
-                                vars=copy.copy(zeroes[0])
-                                vars.remove(u)
-                                new_sector=sect([u], [vars] )
+                                sectors=list()
+                                for u in zeroes[0]:
+                                    vars=copy.copy(zeroes[0])
+                                    vars.remove(u)
+                                    new_sector=sect([u], [vars] )
 #                                print "   new sector: ", new_sector
-                                d_term=(decompose(new_sector, term[0]), term[1])
+                                    d_term=(decompose(new_sector, term[0]), term[1])
 #                                print "   d_term=",  poly_list2ccode(d_term[0])
-                                new_sector_=sector+new_sector
+                                    new_sector_=sector+new_sector
 #                                active_strechs[new_sector_]=active_strechs[sector]
 #                                print poly_list2ccode(d_term[0])
 #                                print new_sector_    
-                                if new_sector_ not in sdsector_terms_:
-                                    sdsector_terms_[new_sector_]=[]
-                                sdsector_terms_[new_sector_].append(d_term)
-                        else:
-                            if sector not in sdsector_terms_:
-                                sdsector_terms_[sector]=[]
-                            d_strechs=dict([(x, strechs[x]) for x in a_])
-                            sdsector_terms_[sector]+=direct_subtraction(term,  d_strechs, g1._tadpoles)
+                                    if new_sector_ not in sdsector_terms_:
+                                        sdsector_terms_[new_sector_]=[]
+                                    sdsector_terms_[new_sector_].append(d_term)
+                            else:
+                                if sector not in sdsector_terms_:
+                                    sdsector_terms_[sector]=[]
+                                d_strechs=dict([(x, strechs[x]) for x in a_])
+                                sdsector_terms_[sector]+=direct_subtraction(term,  d_strechs, g1._tadpoles)
                             
                         
-                good_terms, sdsector_terms=split_sector_dict(sdsector_terms_)
-                sector_terms=combine_dicts(sector_terms,  good_terms)
-                print "saved:" , len(good_terms.keys())
+                    good_terms, sdsector_terms=split_sector_dict(sdsector_terms_)
+                    current_terms=combine_dicts(current_terms,  good_terms)
+                    print "saved:" , len(good_terms.keys())
 #                print
             
-
-        print "Total sectors: ",  len(sector_terms.keys())
-
+###
+            #print "Total sectors: ",  len(current_terms.keys())
 #
-        for sector in sector_terms.keys():
-            terms=sector_terms[sector]
+            for sector in current_terms.keys():
+                terms=current_terms[sector]
 #            print "sector ",  sector
 #            for term in terms:
 #                print "   term[1] = ",  term[1]
@@ -1191,57 +1224,33 @@ def save_sd(name, g1,  model):
                 
             
 
-            s_terms=[]
-            for term in terms:
-                s_terms+=diff_subtraction(term, strechs)
+                s_terms=[]
+                for term in terms:
+                    s_terms+=diff_subtraction(term, strechs)
 
-            if len(s_terms)==0:
-                del sector_terms[sector]
-            else:
-                sector_terms[sector]=s_terms
+                if len(s_terms)==0:
+                    del current_terms[sector]
+                else:
+                    current_terms[sector]=s_terms
+	    sector_terms=combine_dicts(sector_terms, current_terms)                    
+	    
+	    if len(sector_terms)>=Nf:
+	        save_sectors(g1,sector_terms,strech_vars,name_,idx_save)
+	        idx_save+=1
+	        Nsaved+=len(sector_terms)
+	        print "saved to file  %s sectors (%s) ..."%(Nsaved,idx_save)
+	        sector_terms=dict()
 
-        idx=-1
-        for sector in sector_terms.keys():
-            idx+=1
-#            print "sector= ",  sector
-#            print "qi = ", g1._qi
-            subs=[[x] for x in g1._qi.keys()]
-            subs.remove([sector.sect[0]])
-            
-            subs_polyl=decompose(sect(sector.sect[1:], sector.var[1:]), [poly_exp(subs,  (1, 0))] , jakob=False)
-            
-
-            terms=sector_terms[sector]
-            tres=""
-            for term in   terms:
-                f_term=factorize_poly_lst(term)
-                tres+="%s;\nres+="%poly_list2ccode(f_term)
-            sect_terms[sector]=(tres[:-5], poly_list2ccode(subs_polyl))
-
-            if (idx+1) % Nf==0:
-                if len(sect_terms)<>0:
-                    print
-                    print "write to disk... %s"%(idx+1)
-                    f=open("tmp/%s_func_%s.c"%(name_,idx/Nf),'w')
-                    f.write(code_f(functions(sect_terms, g1._qi.keys(), strech_vars, idx/Nf), len(g1._qi.keys())+len(strech_vars)))
-                    f.close()
-                    f=open("tmp/%s_func_%s.h"%(name_,idx/Nf),'w')
-                    f.write(code_h( idx/Nf, len(g1._qi.keys())+len(strech_vars)))
-                    f.close()
-                    sect_terms=dict()
-    
-        if len(sect_terms)<>0:
-            print "write to disk... %s"%(idx+1)
-            f=open("tmp/%s_func_%s.c"%(name_,idx/Nf),'w')
-            f.write(code_f(functions(sect_terms, g1._qi.keys(), strech_vars, idx/Nf), len(g1._qi.keys())+len(strech_vars)))
-            f.close()
-            f=open("tmp/%s_func_%s.h"%(name_,idx/Nf),'w')
-            f.write(code_h( idx/Nf, len(g1._qi.keys())+len(strech_vars)))
-            f.close()            
-            sect_terms=dict()
-        f=open("tmp/%s.c"%(name_),'w')
-        f.write(code(idx/Nf, len(g1._qi.keys())+len(strech_vars), "%s_func"%name_))
+	if len(sector_terms)>0:
+	    save_sectors(g1,sector_terms,strech_vars,name_,idx_save)
+	    idx_save+=1
+	    Nsaved+=len(sector_terms)
+	    print "saved to file  %s sectors (%s) ..."%(Nsaved,idx_save)
+	    sector_terms=dict()
+	f=open("tmp/%s.c"%(name_),'w')
+        f.write(code(idx_save-1, len(g1._qi.keys())+len(strech_vars), "%s_func"%name_))
         f.close()
+
 
         
     
