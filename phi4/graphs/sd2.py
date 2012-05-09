@@ -971,21 +971,32 @@ def direct_subtraction(term, strechs,  tadpoles,  drop_azero_terms=False):
 
 def save_sd(name, g1,  model):
     #print g1._eq_grp
+    if len(g1._subgraphs)==0:
+        no_dm2=True
+	g1._eq_grp=[None]
+    else:
+        no_dm2=False
+
     for grp_ in g1._eq_grp:
-        if len(grp_)==0:
+        if (not no_dm2) and len(grp_)==0:
             continue
-        print grp_  ,  g1._qi, list(set(grp_)& set(g1._qi))
-        qi=list(set(grp_)&set(g1._qi))[0]
-        name_="%s_%s_"%(name, qi)
-        name_="%s_%s_"%(name, qi)
+        print grp_  ,  g1._qi, 
+	if not no_dm2:
+            print list(set(grp_)& set(g1._qi))
+        else:
+            print
+
         ui=reduce(lambda x, y:x+y,  [[qi_]*(g1._qi[qi_]-1) for qi_ in g1._qi])
 
 #        print ui
 #        qi=g1._qi.keys()[0]
 
-
-        ui.append(qi)
-
+	if not no_dm2:
+            qi=list(set(grp_)&set(g1._qi))[0]
+            ui.append(qi)
+        else:
+            qi="O"
+        name_="%s_%s_"%(name, qi)
 
         print "   term u%s"%qi
         print ui,  g1._eq_grp
@@ -1003,20 +1014,22 @@ def save_sd(name, g1,  model):
 ##                lfactor=lfactor/sympy.factorial(g1._qi[qi_]-1)
     
         for qi_ in g1._qi.keys():
-            if qi_==qi:
+            if (not no_dm2) and qi_==qi:
                 lfactor=lfactor/sympy.factorial(g1._qi[qi_])
             else:
                 lfactor=lfactor/sympy.factorial(g1._qi[qi_]-1)
 
 
-
-        grp=None
-        for grp in g1._eq_grp:
-            if qi in grp:
-                break
-        grp_factor=len(grp)
+        if not no_dm2:
+            grp=None
+            for grp in g1._eq_grp:
+                if qi in grp:
+                    break
+            grp_factor=len(grp)
+        else:
+            grp_factor=1.
     
-    #    print lfactor, g1.sym_coef(), grp_factor 
+        print lfactor, g1.sym_coef(), grp_factor 
     
         A1=poly_exp(g1._det, (-2, 0),  coef=(float(lfactor*g1.sym_coef()*grp_factor ), 0))
  ##       A1=poly_exp(g1._det, (-2, 0),  coef=(1., 0))
@@ -1028,7 +1041,11 @@ def save_sd(name, g1,  model):
         A2=poly_exp([ui, ], (1, 0))
         A3=poly_exp([g1._qi.keys()], (1, 0))
         A4=poly_exp([g1._qi.keys()], (-1, 0))
-        g_qi=dTau_line(g1, qi,  model)
+        if not no_dm2:
+            g_qi=dTau_line(g1, qi,  model)
+        else:
+            g_qi=g1
+
         strechs=strech_indexes(g_qi, model)
         print "strechs = ", strechs
         #print [A1, A2, A3 ]
