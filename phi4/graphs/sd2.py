@@ -1085,7 +1085,7 @@ def save_sd(name, g1,  model):
             if strechs[var]>0:
                 strech_vars.append(var)
                 
-        Nf=1000
+        Nf=300
 #        Nf=10
 
         
