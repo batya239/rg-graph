@@ -28,5 +28,7 @@ for sector in g1._sectors:
     print sector
 
 print "=========="
-for sector in sorted(g1._sectors):
+ss=list(set(g1._sectors))
+print len(ss)
+for sector in ss:
     print sector

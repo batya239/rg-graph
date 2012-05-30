@@ -64,10 +64,17 @@ class Sector:
             return S
         else:
             raise TypeError, "cant perform addition of decomposition and %s" % type(other)
+    def __hash__(self):
+        return str(self).__hash__()
 
+
+    def __eq__(self, other):
+        return str(self)==str(other)
 
     def cut(self, level):
-        return Sector(copy.deepcopy(self.subsectors[:level]), coef=self.coef)
+        S=Sector(copy.deepcopy(self.subsectors[:level]), coef=self.coef)
+        S.domains=copy.deepcopy(self.domains)
+        return S
 
     def PrimaryVars(self):
         """
@@ -90,11 +97,27 @@ class Sector:
                     raise ValueError, " %s already in ds : %s; sector: %s" % (var, self.ds, self)
                 self.ds[var] = subsector.ds[var]
 
+    def SplitDomain(self, graph, subgraph_idx):
+        new_domains = list()
+        splitted = False
+        subgraph_lines=graph._eqsubgraphs[subgraph_idx]
+        for domain in self.domains:
+            if subgraph_lines.issubset(set(domain.vars)):
+                new_domains += list(domain.split(graph, subgraph_idx))
+                splitted = True
+            else:
+                new_domains.append(domain)
+        if not splitted:
+            raise Exception, "Failed to split domain. domains: %s, subgraph: %s"%(self.domains, subgraph_lines)
+        self.domains = new_domains
+
 
 class SubSector:
     def __init__(self, primary_var, secondary_vars, primary=False, ds_vars=None):
         self.pvar = primary_var
+
         self.svars = sorted(secondary_vars)
+        print secondary_vars, self.svars
         self.primary = primary
         if ds_vars == None:
             self.ds = {}
@@ -126,24 +149,27 @@ class Domain:
     def __repr__(self):
         return str(self.vars)
 
-    def split(self, subgraph):
+    def split(self, graph, subgraph_idx):
         """
         split domain
         """
-        subgraph_lines = [x.idx() for x in subgraph._lines]
+#        subgraph_lines = [x.idx() for x in subgraph._lines]
+        subgraph_lines = graph._eqsubgraphs[subgraph_idx]
+        subgraph = graph._subgraphs[subgraph_idx]
         if not set(subgraph_lines).issubset(set(self.vars)):
             raise ValueError, "Cant split domain %s using subgraph %s"%(self.vars, subgraph_lines)
         vars1=list(set(subgraph_lines) & set(self.vars))
         vars2=list(set(self.vars) - set(subgraph_lines))
-        cons1=[]
+        cons1=set([])
         cons2=copy.copy(self.cons)
         for cons_ in self.cons:
-            cons__=list(set(cons_)&set(vars1))
+            cons__=frozenset(set(cons_)&set(vars1))
             if len(cons__)>0:
-                cons1.append(cons__)
-        for cons_ in xUniqueCombinations(subgraph.Dim(self.model),vars1):
-            cons2.append(cons_)
-        return (Domain(vars1,cons1),Domain(vars2,cons2))
+                cons1 = cons1 | set([cons__])
+        print cons1
+        for cons_ in xUniqueCombinations(vars1, subgraph.Dim(self.model)):
+            cons2 = cons2 | set([frozenset(cons_)])
+        return (Domain(vars1, cons1, self.model), Domain(vars2, cons2, self.model))
 
 
 
@@ -155,7 +181,7 @@ def decompose(var_list, primary=False):
     for var in var_list:
         _vars = copy.copy(var_list)
         _vars.remove(var)
-        subsectors.append(SubSector(var, [_vars], primary=primary))
+        subsectors.append(SubSector(var, _vars, primary=primary))
     return subsectors
 
 def SetPrimaryDomain(sector, vars,cons, model):
@@ -188,30 +214,30 @@ def _SpeerSectors(start_sectors):
         stop = True
         _sectors = []
         for sector in sectors:
-#            print "sector",sector
+#            print "SS sector",sector, sector.domains
             pvars = sector.PrimaryVars()
             _domain=False
             for domain in sector.domains:
-#                print "domain",domain
+#                print "SS domain",domain
                 vars_ = list(set(domain.vars)-set(pvars))
                 vars = list()
                 for var in vars_:
                     if check_cons(pvars+[var], domain.cons):
                         vars.append(var)
                 if len(vars)>1:
-#                    print "vars",vars
+#                    print "SS vars",vars
                     for subsector in decompose(vars):
                         _domain = True
                         _sectors.append(sector + subsector)
                     break
-#                print _domain
+#                print "SS _domein",_domain
             if _domain:
                 stop = False
             else:
                 final.append(sector)
-#            print "-----"
-#            print final
-#            print _sectors
+#            print "SS -----"
+#            print "SS final", final
+#            print "SS _sectors",_sectors
         sectors=_sectors
     final += sectors
     return final
@@ -253,13 +279,32 @@ def CheckForDs(subgraphs_cnt, subgraphs_total, subgraph_loops, subgraph_dims, ds
 #        print
 #        print i
 #        print subgraphs_total, subgraph_loops
+
         if subgraphs_total[i] >= subgraph_loops[i] + 1:
+#         if True:
             if subgraphs_cnt[i] >= RequiredDecompositions(subgraph_dims[i]) and i not in ds.keys():
                 return i
     return None
 
+def apply_eq_onsub(qi2l, subgraphs_as_set):
+    print qi2l
+    reverse_qi = dict()
+    for var in qi2l:
+        for v_ in qi2l[var]:
+            reverse_qi[v_] = var
+        reverse_qi[var] = var
 
-def ASectors(sector, graph, model):
+    res = list()
+    for sub in subgraphs_as_set:
+        sub_ = set([])
+        for v in sub:
+            sub_ = sub_|set([reverse_qi[v]])
+        res.append(sub_)
+    return res
+
+
+
+def ASectors(sector, graph, model, start=0):
     """
     generate sectors for strech parameters eq 0
     """
@@ -276,6 +321,7 @@ def ASectors(sector, graph, model):
     subgraphs_cnt_total = dict([(i, 0) for i in range(len(subgraphs))])
     pvars = sector.PrimaryVars()
 
+
     asectors = list()
 
     print  pvars
@@ -285,20 +331,23 @@ def ASectors(sector, graph, model):
             if pvars[i] in subgraphs[j]:
                 subgraphs_cnt_total[j] += 1
 
-    for i in range(len(sector)):
+    for i in range(start, len(sector)):
         for j in range(len(subgraphs)):
             if pvars[i] in subgraphs[j]:
                 subgraphs_cnt[j] += 1
-        print "sector:", sector
+        print "sector:", sector,"i=", i
         print pvars[:i + 1], subgraphs_cnt, subgraphs_cnt_total, CheckForDs(subgraphs_cnt, subgraphs_cnt_total, subgraph_loops, subgraph_dims, sector.ds)
 
         cfds = CheckForDs(subgraphs_cnt, subgraphs_cnt_total, subgraph_loops, subgraph_dims, sector.ds)
         if cfds <> None:
             _asector = sector.cut(i + 1)
             _asector.SetDS(i, cfds, 0)
+            _asector.SplitDomain(graph,cfds)
+            print _asector, _asector.domains
+            print "speer ", _SpeerSectors([_asector])
             for __sector in _SpeerSectors([_asector]):
 
-                asectors+=ASectors(__sector,graph, model)
+                asectors+=ASectors(__sector,graph, model, start=len(_asector.PrimaryVars()))
             sector.SetDS(i, cfds, 1)
 
     print "sector = ", sector
@@ -336,6 +385,7 @@ def Prepare(graph, model):
 
     g1 = dTau_line(graph, 5, model)
     FeynmanSubgraphs(g1, model)
+    g1._eqsubgraphs = apply_eq_onsub(graph._qi2l, conv_sub(g1._subgraphs))
 
     graph._sectors = gensectors(g1, model)
     #    graph._det=gendet(cons, graph._subgraphs, graph._qi, graph.NLoops())
