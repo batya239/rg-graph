@@ -1003,15 +1003,15 @@ def save_sd(name, g1,  model):
     #print g1._eq_grp
     if len(g1._subgraphs)==0:
         no_dm2=True
-	g1._eq_grp=[None]
+        g1._eq_grp=[None]
     else:
         no_dm2=False
 
     for grp_ in g1._eq_grp:
-        if (not no_dm2) and len(grp_)==0:
+        if (not no_dm2) and len(grp_) == 0:
             continue
         print grp_  ,  g1._qi, 
-	if not no_dm2:
+        if not no_dm2:
             print list(set(grp_)& set(g1._qi))
         else:
             print

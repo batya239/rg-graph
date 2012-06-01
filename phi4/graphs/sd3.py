@@ -1,10 +1,12 @@
 #!/usr/bin/python
 # -*- coding: utf8
 import copy
+import sympy
 from comb import xUniqueCombinations
 import conserv
-from methods.feynman_tools import conv_sub
+from methods.feynman_tools import conv_sub, strech_indexes
 from methods.feynman_tools import find_eq, apply_eq, qi_lambda, merge_grp_qi, dTau_line
+from sd2 import poly_exp, factorize_poly_lst, set1_poly_lst, set0_poly_lst, minus, diff_poly_lst
 
 import subgraphs
 
@@ -34,6 +36,7 @@ class Sector:
         self.coef = coef
         self._UpdateDS()
         self.domains = []
+        self.excluded_vars = list()
 
     def __len__(self):
         return len(self.subsectors)
@@ -117,7 +120,7 @@ class SubSector:
         self.pvar = primary_var
 
         self.svars = sorted(secondary_vars)
-        print secondary_vars, self.svars
+#        print secondary_vars, self.svars
         self.primary = primary
         if ds_vars == None:
             self.ds = {}
@@ -166,7 +169,7 @@ class Domain:
             cons__=frozenset(set(cons_)&set(vars1))
             if len(cons__)>0:
                 cons1 = cons1 | set([cons__])
-        print cons1
+#        print cons1
         for cons_ in xUniqueCombinations(vars1, subgraph.Dim(self.model)):
             cons2 = cons2 | set([frozenset(cons_)])
         return (Domain(vars1, cons1, self.model), Domain(vars2, cons2, self.model))
@@ -287,7 +290,7 @@ def CheckForDs(subgraphs_cnt, subgraphs_total, subgraph_loops, subgraph_dims, ds
     return None
 
 def apply_eq_onsub(qi2l, subgraphs_as_set):
-    print qi2l
+#    print qi2l
     reverse_qi = dict()
     for var in qi2l:
         for v_ in qi2l[var]:
@@ -324,7 +327,7 @@ def ASectors(sector, graph, model, start=0):
 
     asectors = list()
 
-    print  pvars
+#    print  pvars
 
     for i in range(len(sector)):
         for j in range(len(subgraphs)):
@@ -335,23 +338,23 @@ def ASectors(sector, graph, model, start=0):
         for j in range(len(subgraphs)):
             if pvars[i] in subgraphs[j]:
                 subgraphs_cnt[j] += 1
-        print "sector:", sector,"i=", i
-        print pvars[:i + 1], subgraphs_cnt, subgraphs_cnt_total, CheckForDs(subgraphs_cnt, subgraphs_cnt_total, subgraph_loops, subgraph_dims, sector.ds)
+#        print "sector:", sector,"i=", i
+#        print pvars[:i + 1], subgraphs_cnt, subgraphs_cnt_total, CheckForDs(subgraphs_cnt, subgraphs_cnt_total, subgraph_loops, subgraph_dims, sector.ds)
 
         cfds = CheckForDs(subgraphs_cnt, subgraphs_cnt_total, subgraph_loops, subgraph_dims, sector.ds)
         if cfds <> None:
             _asector = sector.cut(i + 1)
             _asector.SetDS(i, cfds, 0)
             _asector.SplitDomain(graph,cfds)
-            print _asector, _asector.domains
-            print "speer ", _SpeerSectors([_asector])
+#            print _asector, _asector.domains
+#            print "speer ", _SpeerSectors([_asector])
             for __sector in _SpeerSectors([_asector]):
 
                 asectors+=ASectors(__sector,graph, model, start=len(_asector.PrimaryVars()))
             sector.SetDS(i, cfds, 1)
 
-    print "sector = ", sector
-    print "asectors = ", asectors
+#    print "sector = ", sector
+#    print "asectors = ", asectors
     return [sector] + asectors
 
 
@@ -362,8 +365,26 @@ def gensectors(graph, model):
     for sector in speer:
         res+=ASectors(sector, graph, model)
 
-    return res
+    return list(set(res))
 
+def strech_list(sector, subgraphs_):
+    """ generate list of strechs extracted in leading term by first pass of sector decomposition
+    """
+
+    strechs=[]
+    subs=conv_sub(subgraphs_)
+    for j in range(len(subs)):
+        si=len(set(sector)&set(subs[j]))-subgraphs_[j].NLoopSub()
+        strechs+=[1000+j]*si
+    return list(set(strechs))
+
+def gendet(cons, subgraphs_, vars, L):
+    det=[]
+    subs=conv_sub(subgraphs_)
+    for i in xUniqueCombinations(vars.keys(),L):
+        if check_cons(i, cons):
+            det.append(i+strech_list(i, subgraphs_))
+    return det
 
 def Prepare(graph, model):
     FeynmanSubgraphs(graph, model)
@@ -383,9 +404,201 @@ def Prepare(graph, model):
     graph._eq_grp_orig = graph._eq_grp
     graph._eq_grp = merge_grp_qi(graph._eq_grp, graph._qi2l)
 
-    g1 = dTau_line(graph, 5, model)
-    FeynmanSubgraphs(g1, model)
-    g1._eqsubgraphs = apply_eq_onsub(graph._qi2l, conv_sub(g1._subgraphs))
+#    g1 = dTau_line(graph, 5, model)
+    FeynmanSubgraphs(graph, model)
+    graph._eqsubgraphs = apply_eq_onsub(graph._qi2l, conv_sub(graph._subgraphs))
 
-    graph._sectors = gensectors(g1, model)
+    graph._det=gendet(cons, graph._subgraphs, graph._qi, graph.NLoops())
+    graph._sectors = gensectors(graph, model)
     #    graph._det=gendet(cons, graph._subgraphs, graph._qi, graph.NLoops())
+
+def jakob_poly(sector):
+    res = list()
+    for subsector in sector.subsectors:
+        res+=[subsector.pvar]*len(subsector.svars)
+        if subsector.primary:
+            res+=[subsector.pvar]
+    return res
+
+def decompose_expr(sector,poly_lst, strechs):
+    jakobian=jakob_poly(sector)
+    res = copy.copy(poly_lst)
+    for subsector in sector.subsectors:
+        res_n = list()
+        for poly in res:
+#            print poly
+            res_n.append(poly.strech(subsector.pvar,subsector.svars))
+#            print poly
+#            print
+        res = res_n
+
+    res.append(poly_exp([jakobian],(1,0), coef=(1,0)))
+    res = factorize_poly_lst(res)
+
+    print strechs
+    print sector.ds
+    terms=[res]
+    for strech in strechs:
+        sidx=strech-1000
+        terms_n=[]
+        if strechs[strech]==0:
+            if not (sidx in sector.ds.keys() and sector.ds[sidx]!=1):
+                """
+                strech set to 1 or doesn't require subtraction
+                drop sectors with subtractions (else)
+                """
+                for term in terms:
+                    terms_n.append(set1_poly_lst(res, strech))
+                sector.excluded_vars.append(strech)
+            else:
+                terms=[]
+        elif  strechs[strech]==1 and (sidx in sector.ds.keys() and sector.ds[sidx]==0):
+            for term in terms:
+                terms_n.append(minus(set0_poly_lst(res,strech)))
+            sector.excluded_vars.append(strech)
+        elif  strechs[strech]==1 and (sidx in sector.ds.keys() and sector.ds[sidx]==0):
+            for term in terms:
+                terms_n.append(minus(set0_poly_lst(res,strech)))
+                firstD=diff_poly_lst(term, var)
+                for term_ in firstD:
+                    terms_n.append(minus(set0_poly_lst(term_,strech)))
+            sector.excluded_vars.append(strech)
+        terms=terms_n
+
+
+    return terms_n
+
+
+
+def save_sd(name, g1,  model):
+
+    if len(g1._subgraphs)==0:
+        no_dm2=True
+        g1._eq_grp=[None]
+    else:
+        no_dm2=False
+
+    for grp_ in g1._eq_grp:
+        if (not no_dm2) and len(grp_) == 0:
+            continue
+        print grp_  ,  g1._qi,
+        if not no_dm2:
+            print list(set(grp_)& set(g1._qi))
+        else:
+            print
+
+        ui=reduce(lambda x, y:x+y,  [[qi_]*(g1._qi[qi_]-1) for qi_ in g1._qi])
+
+        if not no_dm2:
+            qi=list(set(grp_)&set(g1._qi))[0]
+            ui.append(qi)
+        else:
+            qi="O"
+        name_="%s_%s_"%(name, qi)
+
+        print "   term u%s"%qi
+        print ui,  g1._eq_grp
+        sub_idx=-1
+        for sub in g1._subgraphs:
+            sub_idx+=1
+            sub._strechvar=1000+sub_idx
+            print "%s sub = %s"%(sub._strechvar,  sub)
+
+        lfactor=1.
+
+        for qi_ in g1._qi.keys():
+            if (not no_dm2) and qi_==qi:
+                lfactor=lfactor/sympy.factorial(g1._qi[qi_])
+            else:
+                lfactor=lfactor/sympy.factorial(g1._qi[qi_]-1)
+
+
+        if not no_dm2:
+            grp=None
+            for grp in g1._eq_grp:
+                if qi in grp:
+                    break
+            grp_factor=len(grp)
+        else:
+            grp_factor=1.
+
+        print lfactor, g1.sym_coef(), grp_factor
+
+        A1=poly_exp(g1._det, (-2, 0),  coef=(float(lfactor*g1.sym_coef()*grp_factor ), 0))
+
+#        zeroes=minimal_zeroes(find_zeroes(A1) )
+#        print "Zeroes %s:\n%s\n"%(len(zeroes), zeroes)
+        print "DET=", A1
+
+        A2=poly_exp([ui, ], (1, 0))
+#        strechs=strech_indexes(g1, model)
+#        print "strechs = ", strechs
+        if not no_dm2:
+            g_qi=dTau_line(g1, qi,  model)
+        else:
+            g_qi=g1
+
+        strechs=strech_indexes(g_qi, model)
+        print "strechs = ", strechs
+        #print [A1, A2, A3 ]
+
+        strech_vars=[]
+        for var in strechs:
+            if strechs[var]>0:
+                strech_vars.append(var)
+
+        Nf=300
+        #        Nf=10
+
+
+        #        g1._sectors=[[9, 8, 5]]
+
+        #        g1._sectors=[[8, 11, 12, 7, 6]]
+        #        g1._sectors=[[12, 13, 7, 10, 11]]
+        #        g1._sectors=[[7, 8, 10, 11, 12]]
+        #        g1._sectors=[[12, 13, 10, 9, 8]]
+        #        g1._sectors=[[13, 11, 12, 10, 7]]
+#        drop_azero_terms=False
+#        second_decompose=True  # for debugging
+        #        second_decompose=False
+        #        (second_decompose, drop_azero_terms)=(False,  True)
+
+        sector_terms=dict()
+
+        idx=-1
+        idx_save=0
+        Nsaved=0
+        for sector in g1._sectors:
+            current_terms=dict()
+            idx+=1
+
+            if (idx+1) % (Nf/10)==0:
+                print "%s " %(idx+1)
+
+
+#            d_strechs=dict([(x, strechs[x]) for x in strech_list(sector.PrimaryVars(), g1._subgraphs)])
+#            print d_strechs
+            terms=decompose_expr(sector,[A1, A2 ], strechs )
+            print "sector: ", sector
+            print "decomposed: ", terms
+            print
+            sector_terms[sector] = terms
+
+            if len(sector_terms)>=Nf:
+                save_sectors(g1,sector_terms,strech_vars,name_,idx_save)
+                idx_save+=1
+                Nsaved+=len(sector_terms)
+                print "saved to file  %s sectors (%s) ..."%(Nsaved,idx_save)
+                sector_terms=dict()
+
+        if len(sector_terms)>0:
+            save_sectors(g1,sector_terms,strech_vars,name_,idx_save)
+            idx_save+=1
+            Nsaved+=len(sector_terms)
+            print "saved to file  %s sectors (%s) ..."%(Nsaved,idx_save)
+            sector_terms=dict()
+        f=open("tmp/%s.c"%(name_),'w')
+        f.write(code(idx_save-1, len(g1._qi.keys())+len(strech_vars), "%s_func"%name_))
+        f.close()
+
+

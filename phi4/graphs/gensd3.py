@@ -8,7 +8,7 @@ from graphs import Graph
 
 phi4=_phi4("dummy")
 
-from sd3 import Prepare
+from sd3 import Prepare, save_sd
 
 #g1=Graph(sys.argv[1])
 g1=Graph("ee12-e22-e-")
@@ -27,8 +27,10 @@ print "=========="
 for sector in g1._sectors:
     print sector
 
-print "=========="
-ss=list(set(g1._sectors))
-print len(ss)
-for sector in ss:
-    print sector
+#save_sd(name, g1, phi4)
+
+#print "=========="
+#ss=list(set(g1._sectors))
+#print len(ss)
+#for sector in ss:
+#    print sector
