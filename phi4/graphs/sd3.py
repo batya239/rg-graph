@@ -420,53 +420,68 @@ def jakob_poly(sector):
             res+=[subsector.pvar]
     return res
 
-def decompose_expr(sector,poly_lst, strechs):
+def decompose_expr(sector,poly_lst, strechs, jakob=True):
     jakobian=jakob_poly(sector)
     res = copy.copy(poly_lst)
     for subsector in sector.subsectors:
         res_n = list()
         for poly in res:
 #            print poly
+#            print subsector.pvar,subsector.svars
             res_n.append(poly.strech(subsector.pvar,subsector.svars))
-#            print poly
+#            print poly.strech(subsector.pvar,subsector.svars)
 #            print
         res = res_n
-
-    res.append(poly_exp([jakobian],(1,0), coef=(1,0)))
+    if jakob:
+        res.append(poly_exp([jakobian],(1,0), coef=(1,0)))
     res = factorize_poly_lst(res)
 
-    print strechs
-    print sector.ds
+#    print strechs
+#    print sector.ds
+#    print res
     terms=[res]
     for strech in strechs:
-        sidx=strech-1000
+        sidx=strech
         terms_n=[]
         if strechs[strech]==0:
-            if not (sidx in sector.ds.keys() and sector.ds[sidx]!=1):
+#            print (sidx in sector.ds.keys() , sector.ds[sidx]!=1)
+            if not sidx in sector.ds.keys() or sector.ds[sidx]==1:
                 """
                 strech set to 1 or doesn't require subtraction
                 drop sectors with subtractions (else)
                 """
                 for term in terms:
-                    terms_n.append(set1_poly_lst(res, strech))
+                    terms_n.append(set1_poly_lst(term, strech))
                 sector.excluded_vars.append(strech)
             else:
                 terms=[]
-        elif  strechs[strech]==1 and (sidx in sector.ds.keys() and sector.ds[sidx]==0):
-            for term in terms:
-                terms_n.append(minus(set0_poly_lst(res,strech)))
+                break
+        elif  strechs[strech]==1 and sidx in sector.ds.keys():
+            if sector.ds[sidx]==0:
+                for term in terms:
+                    terms_n.append(minus(set0_poly_lst(term,strech)))
+            else:
+                for term in terms:
+                    terms_n.append(set1_poly_lst(term,strech))
+
             sector.excluded_vars.append(strech)
-        elif  strechs[strech]==1 and (sidx in sector.ds.keys() and sector.ds[sidx]==0):
-            for term in terms:
-                terms_n.append(minus(set0_poly_lst(res,strech)))
-                firstD=diff_poly_lst(term, var)
-                for term_ in firstD:
-                    terms_n.append(minus(set0_poly_lst(term_,strech)))
+        elif  strechs[strech]==2 and (sidx in sector.ds.keys()) :
+            if sector.ds[sidx]==0:
+                for term in terms:
+                    terms_n.append(minus(set0_poly_lst(term,strech)))
+                    firstD=diff_poly_lst(term, strech)
+                    for term_ in firstD:
+                        terms_n.append(minus(set0_poly_lst(term_,strech)))
+            else:
+                for term in terms:
+                    terms_n.append(set1_poly_lst(term,strech))
             sector.excluded_vars.append(strech)
+        else:
+            terms_n=terms
         terms=terms_n
 
 
-    return terms_n
+    return terms
 
 
 

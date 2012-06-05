@@ -8,4 +8,4 @@ for i in `ls $NAME*func*|grep  "\.c$"`; do A=`echo $i|sed 's/\.c$/\.o/'`; if [ !
 
 CODE=`ls $NAME*.c|grep -v func`
 
-#gcc $CODE $NAME*func*.o -lm -lpvegas -o $NAME -I . -I ~/soft/pvegas -L ~/soft/pvegas
+gcc $CODE $NAME*func*.o -lm -lpvegas -o $NAME -I . -I ~/soft/pvegas -L ~/soft/pvegas
