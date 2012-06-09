@@ -251,6 +251,7 @@ class poly_exp:
                 gcd_+=[var, ]*(min(gcd.count(var), monom.count(var)))
             gcd=gcd_
         return poly_exp([gcd], self.power, self.degree)
+
     
     
 def diff_poly_lst(poly_lst, var):
@@ -278,11 +279,9 @@ def set0_poly_lst(poly_lst, var):
 #            print "========="
 #            print poly
 
-            gcd=poly_.GCD()
-#            print poly_
-#            print gcd
-
-            if len(gcd.poly[0])>0:
+#            gcd=poly_.GCD()
+#            if len(gcd.poly[0])>0:
+            if False and len(gcd.poly[0])>0: # for eps_series
                 res.append(poly_.extract(gcd.poly[0]))
                 res.append(gcd)
             else:
@@ -461,20 +460,24 @@ double func%s_%s( %s)
         cnt+=1
     return res + res2 + "return f;}\n"
 
-def code( Nf, N,  func_fname):
+def code( Nf, N,  func_fname, neps=-1):
     include=""
     func="""
 void func(double k[DIMENSION], double f[FUNCTIONS])
 {
 f[0]=0.;
 """
+
     for i in range(Nf+1):
         func+="""
 f[0]+=func_t_%s(k);
 """%i
-        include+="#include \"%s_%s.h\"\n"%(func_fname, i)
+        if neps<0: #old behavior
+            include+="#include \"%s_%s.h\"\n"%(func_fname, i)
+        else:
+            include+="#include \"%s_%s_E%s.h\"\n"%(func_fname, i,neps)
     func+="}\n\n"
-        
+
     
     res="""
 #include <math.h>

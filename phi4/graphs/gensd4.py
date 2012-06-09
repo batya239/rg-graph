@@ -12,11 +12,11 @@ from sd4 import Prepare, print_tree, save_sd
 try:
     g1=Graph(sys.argv[1])
 except:
-#   g1=Graph("ee12-e22-e-")
+   g1=Graph("ee12-e22-e-")
 #   g1=Graph("ee12-223-3-ee-")
 #   g1=Graph("e123-e34-e34-4-e-")
 #   g1=Graph("e12-34-56-56-57-7-e-")
-   g1=Graph("e111-e-")
+#   g1=Graph("e111-e-")
 #   g1=Graph("e12-23-3-e-")
 #   g1=Graph("e123-e23-e3-e-")
 #   g1=Graph('e123-e24-34-e4-e-')

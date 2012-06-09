@@ -5,7 +5,7 @@ import sympy
 from comb import xUniqueCombinations
 import conserv
 from methods.feynman_tools import merge_grp_qi, conv_sub, qi_lambda, apply_eq, find_eq, strech_indexes
-from sd2 import poly_exp, code, factorize_poly_lst, poly_list2ccode, code_f, code_h, diff_subtraction, set1_poly_lst, diff_poly_lst
+from sd2 import poly_exp, code, factorize_poly_lst, poly_list2ccode, code_f, code_h, diff_subtraction, set1_poly_lst, diff_poly_lst, exp_pow, poly2str
 from sd3 import FeynmanSubgraphs, apply_eq_onsub, check_cons, Domain, RequiredDecompositions, SubSector, decompose_expr, Sector
 
 def decompose_vars(var_list):
@@ -313,17 +313,45 @@ double func%s_%s( %s)
 
 
 
-        expr, subs=poly_dict[sector]
+        expr, subs, D_=poly_dict[sector]
         res+="double u%s=1./(1.+%s);\n"%(sector.subsectors[0].pvar,subs)
+        res+="double D=(%s);\n"%(D_)
         res+="double res = %s;\n return res;\n}\n"%expr
         res2+="f+=func%s_%s(%s);\n"%(cnt,index, varstring2)
         cnt+=1
     return res + res2 + "return f;}\n"
 
+def extract_eps(term):
+    leading=list()
+    eps_poly=sympy.Number(1)
+    e=sympy.var('e')
+    log_func=None
+    for poly in term:
+        if poly.power.b<>0:
+            if log_func<>None:
+                raise ValueError, "More than one polynom in eps power %s and %s"%(log_func, poly.poly)
+            if poly.coef.b <> 0:
+                raise ValueError, "Polynom in eps power has nontrivial coef %s"%(poly.coef)
+            log_func = copy.deepcopy(poly.poly)
+            log_pow = poly.power.b
+            poly_=copy.deepcopy(poly)
+            poly_.power.b=0
+            leading.append(poly_)
+        else:
+            if poly.coef.b<>0:
+                eps_poly=eps_poly*(poly.coef.a+e*poly.coef.b)
+                poly_=copy.deepcopy(poly)
+                poly_.coef=exp_pow((1,0))
+                leading.append(poly_)
+            else:
+                poly_=copy.deepcopy(poly)
+                leading.append(poly_)
+    return (leading, eps_poly, log_func, log_pow)
 
-def save_sectors(g1, sector_terms, strech_vars, name_, idx):
 
-    sect_terms=dict()
+def save_sectors(g1, sector_terms, strech_vars, name_, idx, neps=0):
+
+    sect_terms=[dict() for i in range(neps+1)]
     for sector in sector_terms.keys():
 
     #            print "sector= ",  sector
@@ -331,26 +359,56 @@ def save_sectors(g1, sector_terms, strech_vars, name_, idx):
         subs=[[x] for x in g1._qi.keys()]
         subs.remove([sector.subsectors[0].pvar])
 
-        subs_polyl=decompose_expr(Sector(sector.subsectors[1:]), [poly_exp(subs,  (1, 0))], list() , jakob=False)
+        subs_polyl = decompose_expr(Sector(sector.subsectors[1:]), [poly_exp(subs,  (1, 0))], list() , jakob=False)
         if len(subs_polyl)<>1:
             raise Exception, "invalid decomposition for delta function term"
 
-        terms=sector_terms[sector]
-        tres=""
-        for term in   terms:
-            f_term=factorize_poly_lst(term)
-            tres+="%s;\nres+="%poly_list2ccode(f_term)
-        sect_terms[sector]=(tres[:-5], poly_list2ccode(subs_polyl[0]))
+        terms = sector_terms[sector]
+        tres = ["",]*(neps+1)
+        e,D = sympy.var('e D')
+        D_ = None
+        D_present = [False,]*(neps+1)
+        for i in range(len(terms)):
+            term = terms[i]
+            #print "term=", term
+            (leading, eps_poly, log_func, log_pow) = extract_eps(term)
+            #print leading
+            #print eps_poly
+            #print log_func
+            if D_==None:
+                D_ = poly2str(log_func)
+            else:
+                if D_<>poly2str(log_func):
+                    raise Exception, "Determinants are different: \n%s\n%s "%(D_,poly2str(log_func))
 
+            #print log_pow
+            f_term = poly_list2ccode(factorize_poly_lst(leading))
+            for j in range(neps+1):
+                eps_term_= (eps_poly*(sympy.exp(log_pow*e*sympy.log(D)))).diff(e,j).subs(e,0)/sympy.factorial(j)
+                if D in eps_term_.atoms():
+                    D_present[j] = True
+                eps_term = sympy.printing.ccode((eps_term_).evalf())
+                #print eps_term
 
+                tres[j]+="(%s)*(%s);\nres+="%(f_term, eps_term)
+#                print tres
+        for j in range(neps+1):
+            if D_present[j]:
+                sect_terms[j][sector] = (tres[j][:-5], poly_list2ccode(subs_polyl[0]),D_)
+            else:
+                sect_terms[j][sector] = (tres[j][:-5], poly_list2ccode(subs_polyl[0]),"0.")
+#            print "sect term %s"%j
+#            print sect_terms[j][sector]
     #        print
     #        print "write to disk... %s"%(idx+1)
-    f=open("tmp/%s_func_%s.c"%(name_,idx),'w')
-    f.write(code_f(functions(sect_terms, g1._qi.keys(), strech_vars, idx), len(g1._qi.keys())+len(strech_vars)))
-    f.close()
-    f=open("tmp/%s_func_%s.h"%(name_,idx),'w')
-    f.write(code_h( idx, len(g1._qi.keys())+len(strech_vars)))
-    f.close()
+#    print sect_terms[0]
+    for j in range(neps+1):
+        f=open("tmp/%s_func_%s_E%s.c"%(name_,idx, j),'w')
+        f.write(code_f(functions(sect_terms[j], g1._qi.keys(), strech_vars, idx), len(g1._qi.keys())+len(strech_vars)))
+        f.close()
+        f=open("tmp/%s_func_%s_E%s.h"%(name_,idx, j),'w')
+        f.write(code_h( idx, len(g1._qi.keys())+len(strech_vars)))
+        f.close()
 
 def diff_subtraction(term,  strechs, sector):
     """ perform diff subtraction for ALL strechs that wasn't affected by direct_subtraction
@@ -383,13 +441,16 @@ def diff_subtraction(term,  strechs, sector):
 
 def save_sd(name, graph, model):
     name_="%s_%s_"%(name,"O")
+
+    neps=model.target-graph.NLoops()
+
     lfactor = 1.
     for qi_ in graph._qi.keys():
         lfactor=lfactor/sympy.factorial(graph._qi[qi_]-1)
     if graph._cdet==None:
-        A1=poly_exp(graph._det,(-2,0), coef=(float(lfactor*graph.sym_coef()), 0))
+        A1=poly_exp(graph._det,(-2,0.5), coef=(float(lfactor*graph.sym_coef()), 0))
     else:
-        A1=poly_exp(graph._det,(-3,0), coef=(float(lfactor*graph.sym_coef()), 0))
+        A1=poly_exp(graph._det,(-3,0.5), coef=(float(lfactor*graph.sym_coef()), 0))
     ui=reduce(lambda x, y:x+y,  [[qi_]*(graph._qi[qi_]-1) for qi_ in graph._qi])
     ui=list()
     for qi_ in graph._qi:
@@ -453,9 +514,10 @@ def save_sd(name, graph, model):
 #            print
             s_terms = list()
             for term in terms:
-                #print term
+#                print strechs
+#                print term
                 s_terms+=diff_subtraction(term, strechs, sector)
-            #print s_terms
+#            print "s_terms=",s_terms
 
 #            print
 
@@ -465,7 +527,7 @@ def save_sd(name, graph, model):
             size+=s_terms.__sizeof__()
 
             if size>=maxsize:
-                save_sectors(graph, sector_terms, strechs.keys(), name_, idx_save)
+                save_sectors(graph, sector_terms, strechs.keys(), name_, idx_save, neps)
                 idx_save+=1
                 Nsaved+=len(sector_terms)
                 print "saved to file  %s sectors (%s) size=%s..."%(Nsaved, idx_save, size)
@@ -473,14 +535,15 @@ def save_sd(name, graph, model):
                 size=0
 
     if len(sector_terms)>0:
-        save_sectors(graph, sector_terms, strechs.keys(), name_, idx_save)
+        save_sectors(graph, sector_terms, strechs.keys(), name_, idx_save, neps)
         idx_save+=1
         Nsaved+=len(sector_terms)
         print "saved to file  %s sectors (%s) size=%s..."%(Nsaved,idx_save,size)
         sector_terms=dict()
-    f=open("tmp/%s.c"%(name_),'w')
-    f.write(code(idx_save-1, len(graph._qi.keys())+len(strechs.keys()), "%s_func"%name_))
-    f.close()
+    for j in range(neps+1):
+        f=open("tmp/%s_E%s.c"%(name_, j),'w')
+        f.write(code(idx_save-1, len(graph._qi.keys())+len(strechs.keys()), "%s_func"%name_, neps=j))
+        f.close()
 
 
 

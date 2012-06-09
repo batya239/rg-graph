@@ -434,10 +434,11 @@ def decompose_expr(sector,poly_lst, strechs, jakob=True):
         res = res_n
     if jakob:
         res.append(poly_exp([jakobian],(1,0), coef=(1,0)))
-    res = factorize_poly_lst(res)
+    # factorization omitted for eps-series implementation
+    #res = factorize_poly_lst(res)
 
 #    print strechs
-#    print sector.ds
+#    print sector, sector.ds
 #    print res
     terms=[res]
     for strech in strechs:
@@ -479,7 +480,7 @@ def decompose_expr(sector,poly_lst, strechs, jakob=True):
         else:
             terms_n=terms
         terms=terms_n
-
+#    print terms
 
     return terms
 
