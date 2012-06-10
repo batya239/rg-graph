@@ -586,6 +586,8 @@ def save_sectors(g1, sector_terms, strech_vars, name_, idx, neps=0):
         D_present = [False,]*(neps+1)
         for i in range(len(terms)):
             term = terms[i]
+            if len(term)==0:
+                continue
             (leading, eps_poly, log_func, log_pow) = extract_eps(term)
             if D_==None:
                 D_ = poly2str(log_func)
@@ -776,6 +778,7 @@ def extract_eps(term):
     eps_poly=sympy.Number(1)
     e=sympy.var('e')
     log_func=None
+#    log_pow=None
     for poly in term:
         if poly.power.b<>0:
             if log_func<>None:
@@ -796,6 +799,9 @@ def extract_eps(term):
             else:
                 poly_=copy.deepcopy(poly)
                 leading.append(poly_)
+    #print
+    #print ( eps_poly, log_func)
+    #print term
     return (leading, eps_poly, log_func, log_pow)
 
 
