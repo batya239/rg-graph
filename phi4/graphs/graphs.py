@@ -77,6 +77,19 @@ class Graph:
             res.append(_nodes)
 #        res.sort()
         return res
+
+    def _edges_dict(self):
+        res=dict()
+        for line in self._lines:
+            _nodes=[]
+            for node in line.Nodes():
+                if (node.type<>None) and (node.type<0) :
+                    _nodes.append(-1)
+                else:
+                    _nodes.append(node.idx())
+            _nodes=[x+1 for x in _nodes] ## temporary hack for DiagAlgo
+            res[line.idx()]=_nodes
+        return res
         
     def _internal_edges_dict(self):
         res=dict()
@@ -308,3 +321,4 @@ class Graph:
         for line in lines:
             cluster.add_edge(pydot.Edge(line[0], line[1]))        
         return cluster
+

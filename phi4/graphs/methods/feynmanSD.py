@@ -13,3 +13,5 @@ def execute(name, model, points=10000, threads=4, calc_delta=0., neps=0):
     return calculate.execute("%s/%s/"%(method_name,name), model, points=points, threads=threads, calc_delta=calc_delta, neps=neps)
 
 
+def result(model, method, **kwargs):
+    return calculate.result(model, method, **kwargs)

@@ -11,14 +11,21 @@ import conserv
 from methods.feynman_tools import find_eq, apply_eq, qi_lambda, conv_sub, merge_grp_qi, strech_indexes
 from methods.poly_tools import poly_exp, set1_poly_lst, minus, set0_poly_lst, diff_poly_lst, poly_list2ccode, factorize_poly_lst, exp_pow, poly2str
 
+try:
+    import DiagramAlgo
+    _DiagramAlgo=True
+except:
+    _DiagramAlgo=False
+
 import subgraphs
 
 class SubSector:
-    def __init__(self, primary_var, secondary_vars, primary=False, ds_vars=None):
+    def __init__(self, primary_var, secondary_vars, primary=False, ds_vars=None, coef=1.):
         self.pvar = primary_var
 
         self.svars = sorted(secondary_vars)
         self.primary = primary
+        self.coef=coef
         if ds_vars == None:
             self.ds = {}
         else:
@@ -41,13 +48,17 @@ class SubSector:
 
 
 class Sector:
-    def __init__(self, sect_list, coef=1):
+    def __init__(self, sect_list):
         """
         sector (sec_list -> list of SubSectors),
         coef - coefficient of this sector (symmetries)
         """
         self.subsectors = copy.deepcopy(sect_list)
         self.ds = {}
+        coef=1.
+        for subsector in self.subsectors:
+            if 'coef' in dir(subsector):
+                coef=coef*subsector.coef
         self.coef = coef
         self._UpdateDS()
         self.domains = []
@@ -60,7 +71,7 @@ class Sector:
         return str(self)
 
     def __str__(self):
-        return str(self.subsectors)
+        return "coef=%s,%s"%(self.coef, self.subsectors)
 
     def append(self, subsector):
         """
@@ -206,22 +217,22 @@ def decompose_vars(var_list):
         subsectors.append((var, _vars))
     return subsectors
 
-def xTreeElement(sector_tree, parents=list()):
+def xTreeElement(sector_tree, parents=list(), coef=1):
     """
     Iterate over sector tree
     """
 
     if len(sector_tree.branches) == 0:
-        parents_=parents + [SubSector(sector_tree.pvar,sector_tree.svars,primary=sector_tree.primary, ds_vars=sector_tree.ds)]
+        parents_=parents + [SubSector(sector_tree.pvar,sector_tree.svars,primary=sector_tree.primary, ds_vars=sector_tree.ds, coef=coef*sector_tree.coef)]
         yield parents_
     else:
         for branch in sector_tree.branches:
             parents_=parents + [SubSector(sector_tree.pvar,sector_tree.svars,primary=sector_tree.primary)]
-            for term in xTreeElement(branch, parents_):
+            for term in xTreeElement(branch, parents_, coef*sector_tree.coef):
                 yield term
 
 class SectorTree:
-    def __init__(self, pvar, svars, domains=list(), ds=dict(), parents=list(), primary=False):
+    def __init__(self, pvar, svars, domains=list(), ds=dict(), parents=list(), primary=False, coef=1):
         self.pvar = pvar
         self.svars = svars
         self.domains = domains
@@ -231,6 +242,7 @@ class SectorTree:
         self.branches = list()
         self.__addbranches()
         self.strechs = list()
+        self.coef = coef
 
 
     def __addbranches(self):
@@ -261,7 +273,15 @@ class SectorTree:
             str_strechs = ""
         else:
             str_strechs = str(tuple(self.strechs))
-        return "%s%s%s%s" % (self.pvar, str_primary, tuple(sorted(self.svars)), str_ds)
+        return "(%s)%s%s%s%s" % (self.coef,self.pvar, str_primary, tuple(sorted(self.svars)), str_ds)
+
+
+def print_tree(sector_tree, parents=list()):
+    if len(sector_tree.branches) == 0:
+        print parents + [sector_tree.str()]
+    else:
+        for branch in sector_tree.branches:
+            print_tree(branch, parents + [sector_tree.str()])
 
 
 def FeynmanSubgraphs(graph, model):
@@ -313,6 +333,8 @@ def PrimaryTrees(graph, model):
         pvar, svars = subsect_vars
         trees.append(SectorTree(pvar, svars, primary=True, domains=[Domain(graph._qi.keys(), graph._cons, model)]))
 
+
+
     return trees
 
 def strechs_on_tree(sector_tree, graph):
@@ -329,12 +351,58 @@ def strechs_on_tree(sector_tree, graph):
         sector_tree.strechs = list(res)
         return sector_tree.strechs
 
+def ColouredLines(lines_dict, colouredlines):
+    _lines_dict=copy.deepcopy(lines_dict)
+    for line in lines_dict:
+        _lines_dict[line].append(0)
+    for i in range(len(colouredlines)):
+        _lines_dict[colouredlines[i]][2]=(i+1)
+    return _lines_dict
+
+
+def RemoveEquivalentSpeerSectors(branches, lines_dict, coef=1):
+    """
+    Remove equivalent speer sectors
+    """
+
+    if len(branches) == 0:
+        return branches
+    else:
+
+        equiv_sectors = dict()
+        nomenkl_sector = dict()
+        for branch in branches:
+            CL = ColouredLines(lines_dict,branch.parents+[branch.pvar])
+#            print "CL=", CL
+            cnomenkl = DiagramAlgo.NickelLabel(CL)
+            if cnomenkl not in equiv_sectors.keys():
+                equiv_sectors[cnomenkl]=1
+                nomenkl_sector[cnomenkl]=branch
+            else:
+                equiv_sectors[cnomenkl]+=1
+        _branches=list()
+        for cnomenkl in nomenkl_sector:
+            branch=nomenkl_sector[cnomenkl]
+            branch_factor = equiv_sectors[cnomenkl]
+
+            branch.coef = branch_factor
+            branch.branches=RemoveEquivalentSpeerSectors(branch.branches, lines_dict, coef=branch.coef)
+            _branches.append(branch)
+        return _branches
+
+
 
 def SpeerTrees(graph, model):
     """
     Generate Speer sectors for graph, then label nodes with strechs on sub tree
     """
     trees = PrimaryTrees(graph, model)
+    t_=[]
+    for tree in trees:
+        t_+=[x for x in xTreeElement(tree)]
+    print "speer_sectors:",len(t_)
+    if _DiagramAlgo:
+        trees = RemoveEquivalentSpeerSectors(trees, graph._edges_dict())
     for tree in trees:
         strechs_on_tree(tree, graph)
     return trees
@@ -348,7 +416,9 @@ def gensectors(graph, model):
     t_=list()
     for tree in speer_trees:
         t_+=[x for x in xTreeElement(tree)]
-    print "speer_sectors:",len(t_)
+#        print_tree(tree)
+    print "speer_sectors symm:",len(t_)
+
     ASectors(speer_trees,graph)
     return speer_trees
 
@@ -409,7 +479,7 @@ def ASectors(branches, graph, parent_ds=dict()):
                         ds_[strech2] = 0
                     else:
                         ds_[strech2] = 1
-                branch_=SectorTree(branch.pvar, branch.svars,ds=ds_,parents=branch.parents, domains=SplitDomains(branch.domains, graph, idx),primary=branch.primary )
+                branch_=SectorTree(branch.pvar, branch.svars,ds=ds_,parents=branch.parents, domains=SplitDomains(branch.domains, graph, idx),primary=branch.primary, coef=branch.coef )
 
                 branch.ds=copy.copy(parent_ds)
                 for strech2 in strechs:
@@ -473,6 +543,7 @@ def Prepare(graph, model):
     t_=0
     for tree in graph._sectors:
         t_+=len([x for x in xTreeElement(tree)])
+#        print_tree(tree)
     print "A_sectors: ",t_
 
 def jakob_poly(sector):
@@ -721,19 +792,20 @@ def save_sd(name, graph, model):
     strechs = strech_indexes(graph, model)
     print "strechs =", strechs
 
-    Nf=10000
-    maxsize=50000
-    sector_terms=dict()
+    Nf = 10000
+    maxsize = 50000
+    sector_terms = dict()
 
-    idx=-1
-    size=0
-    idx_save=0
-    Nsaved=0
+    idx = -1
+    size = 0
+    idx_save = 0
+    Nsaved = 0
     for tree in graph._sectors:
         for subsectors in xTreeElement(tree):
         #            print "sector = ", subsectors
-            sector=Sector(subsectors)
+            sector = Sector(subsectors)
 
+            C_= poly_exp([[]],(1,0),coef=(sector.coef,0))
             idx+=1
 
             if (idx+1) % (Nf/10)==0:
@@ -741,9 +813,9 @@ def save_sd(name, graph, model):
 
 
             if graph._cdet==None:
-                terms=decompose_expr(sector,[A1, A2, A3 ], strechs )
+                terms=decompose_expr(sector,[A1, A2, A3, C_ ], strechs )
             else:
-                terms=decompose_expr(sector,[A1, A2, A3, A4 ], strechs )
+                terms=decompose_expr(sector,[A1, A2, A3, A4, C_ ], strechs )
             s_terms = list()
             for term in terms:
                 s_terms+=diff_subtraction(term, strechs, sector)
@@ -778,7 +850,6 @@ def extract_eps(term):
     eps_poly=sympy.Number(1)
     e=sympy.var('e')
     log_func=None
-#    log_pow=None
     for poly in term:
         if poly.power.b<>0:
             if log_func<>None:
@@ -799,9 +870,7 @@ def extract_eps(term):
             else:
                 poly_=copy.deepcopy(poly)
                 leading.append(poly_)
-    #print
-    #print ( eps_poly, log_func)
-    #print term
+
     return (leading, eps_poly, log_func, log_pow)
 
 

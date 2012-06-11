@@ -29,6 +29,7 @@ def result(model, method,  normalize=lambda y, x:x, struct=None):
             answ=eval(f.read())
 
             res_,err_=normalize(g, answ)
+#            print file, res_,err_
 
             f.close()
             if n_ext not in res.keys():
