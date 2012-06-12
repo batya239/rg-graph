@@ -17,6 +17,8 @@ try:
 except:
     _DiagramAlgo=False
 
+#_DiagramAlgo=False
+
 import subgraphs
 
 class SubSector:
@@ -148,26 +150,32 @@ class Domain:
         self.model = model
 
     def __repr__(self):
+#        return str(self.vars) +" (" + str(self.cons) + ") "
         return str(self.vars)
 
-    def split(self, graph, subgraph_idx):
+    def split(self, graph, subgraph_lines):
         """
         split domain
         """
-        subgraph_lines = graph._eqsubgraphs[subgraph_idx]
-        subgraph = graph._subgraphs[subgraph_idx]
         if not set(subgraph_lines).issubset(set(self.vars)):
             raise ValueError, "Cant split domain %s using subgraph %s"%(self.vars, subgraph_lines)
         vars1=list(set(subgraph_lines) & set(self.vars))
         vars2=list(set(self.vars) - set(subgraph_lines))
         cons1=set([])
-        cons2=copy.copy(self.cons)
+        cons2=set([])
         for cons_ in self.cons:
             cons__=frozenset(set(cons_)&set(vars1))
             if len(cons__)>0:
                 cons1 = cons1 | set([cons__])
-        for cons_ in comb.xUniqueCombinations(vars1, subgraph.Dim(self.model)):
-            cons2 = cons2 | set([frozenset(cons_)])
+            else:
+                cons2 = cons2 | set([cons_])
+#        print vars1, subgraph.Dim(self.model), subgraph.NLoopSub()
+##        for cons_ in comb.xUniqueCombinations(vars1, subgraph.Dim(self.model)):
+#        for cons_ in comb.xUniqueCombinations(vars1, subgraph.NLoopSub()):
+#            print "2", cons2
+#            cons2 = cons2 | set([frozenset(cons_)])
+#        print "cons1 ", cons1
+#        print "cons2 ", cons2
         return (Domain(vars1, cons1, self.model), Domain(vars2, cons2, self.model))
 
 def check_cons(term, cons):
@@ -176,6 +184,7 @@ def check_cons(term, cons):
     """
     res = True
     for constr in cons:
+#        print term, constr, constr.issubset(term)
         if constr.issubset(term):
             res = False
             break
@@ -192,18 +201,23 @@ def RequiredDecompositions(degree):
     else:
         raise NotImplementedError, "Direct subtractions not available for graphs with degree=%s" % degree
 
-def SplitDomains(domains, graph, subgraph_idx):
+def SplitDomains(domains, graph, subgraph_idx=None, subgraph=None):
     new_domains = list()
     splitted = False
-    subgraph_lines=graph._eqsubgraphs[subgraph_idx]
+    if subgraph_idx<>None and subgraph<>None:
+        raise ValueError, "subgraph_idx and subgraph are set at the same time"
+    if subgraph_idx<>None:
+        subgraph_lines=graph._eqsubgraphs[subgraph_idx]
+    if subgraph<>None:
+        subgraph_lines=subgraph
     for domain in domains:
         if subgraph_lines.issubset(set(domain.vars)):
-            new_domains += list(domain.split(graph, subgraph_idx))
+            new_domains += list(domain.split(graph, subgraph_lines))
             splitted = True
         else:
             new_domains.append(domain)
     if not splitted:
-        raise Exception, "Failed to split domain. domains: %s, subgraph: %s"%(self.domains, subgraph_lines)
+        raise Exception, "Failed to split domain. domains: %s, subgraph: %s"%(domains, subgraph_lines)
     return new_domains
 
 def decompose_vars(var_list):
@@ -247,13 +261,17 @@ class SectorTree:
 
     def __addbranches(self):
         pvars = self.parents + [self.pvar]
-
+#        print
+#        print "addbranches ", pvars, self.domains
         for domain in self.domains:
+#            print domain, domain.cons
             vars_ = list(set(domain.vars) - set(pvars))
+#            print vars_
             vars = list()
             for var in vars_:
                 if check_cons(pvars + [var], domain.cons):
                     vars.append(var)
+#            print vars
             if len(vars) > 1:
                 for subsect_vars in decompose_vars(vars):
                     pvar, svars = subsect_vars
@@ -273,12 +291,13 @@ class SectorTree:
             str_strechs = ""
         else:
             str_strechs = str(tuple(self.strechs))
-        return "(%s)%s%s%s%s" % (self.coef,self.pvar, str_primary, tuple(sorted(self.svars)), str_ds)
+        return "(%s)%s%s%s%s %s" % (self.coef,self.pvar, str_primary, tuple(sorted(self.svars)), str_ds, str_strechs)
+#        return "(%s)%s%s%s%s" % (self.coef,self.pvar, str_primary, tuple(sorted(self.svars)), str_ds)
 
 
 def print_tree(sector_tree, parents=list()):
     if len(sector_tree.branches) == 0:
-        print parents + [sector_tree.str()]
+        print parents + [sector_tree.str()], sector_tree.domains
     else:
         for branch in sector_tree.branches:
             print_tree(branch, parents + [sector_tree.str()])
@@ -324,6 +343,7 @@ def strech_list(sector, graph):
     subs = graph._eqsubgraphs
     for j in range(len(subs)):
         si = len(set(sector) & set(subs[j])) - graph._subgraphs[j].NLoopSub()
+#        print subs[j], sector, si
         strechs += [1000 + j] * si
     return list(set(strechs))
 
@@ -342,7 +362,10 @@ def strechs_on_tree(sector_tree, graph):
     label nodes with strechs on sub tree
     """
     if len(sector_tree.branches) == 0:
+#        print "strechs_on_tree"
+#        print sector_tree.parents + [sector_tree.pvar]
         sector_tree.strechs = strech_list(sector_tree.parents + [sector_tree.pvar], graph)
+#        print sector_tree.strechs
         return sector_tree.strechs
     else:
         res = set()
@@ -401,10 +424,11 @@ def SpeerTrees(graph, model):
     for tree in trees:
         t_+=[x for x in xTreeElement(tree)]
     print "speer_sectors:",len(t_)
-    if _DiagramAlgo:
-        trees = RemoveEquivalentSpeerSectors(trees, graph._edges_dict())
     for tree in trees:
         strechs_on_tree(tree, graph)
+#        print_tree(tree)
+    if _DiagramAlgo:
+        trees = RemoveEquivalentSpeerSectors(trees, graph._edges_dict())
     return trees
 
 
@@ -436,17 +460,36 @@ def gendet(graph, N=None):
             det.append(i+strech_list(i, graph))
     return det
 
+def RequiredDecompositionSum(graph, ds, idx):
+    res=0
+    subs=graph._eqsubgraphs
+#    print "ds=",ds
+    for idx_ in range(len(graph._eqsubgraphs)):
+#           print idx_, idx_+1000 in ds.keys() and  ds[idx_+1000]==0
+        if idx_+1000 in ds.keys() and ds[idx_+1000]==0:
+#            print  subs[idx_].issubset(subs[idx])
+            if idx<>idx_ and subs[idx_].issubset(subs[idx]):
+                res+=RequiredDecompositions(graph._subgraph_dims[idx_])
+    res+=RequiredDecompositions(graph._subgraph_dims[idx])
+    return res
+
+
+
 def FindStrechsForDS(sectortree, graph):
     res=list()
     subs = graph._eqsubgraphs
     sub_dims = graph._subgraph_dims
     strechs = sectortree.strechs
     sector = sectortree.parents+[sectortree.pvar]
+#    print sector, sectortree.ds, "a_strechs ",strechs, subs
     for strech in strechs:
         idx = strech - 1000
         if strech in sectortree.ds.keys():
             continue
-        if len(set(subs[idx]) & set(sector)) >= RequiredDecompositions(sub_dims[idx]):
+#        if len(set(subs[idx]) & set(sector)) >= RequiredDecompositions(sub_dims[idx]):
+#        print sectortree.ds
+#        print strech, RequiredDecompositionSum(graph, sectortree.ds, idx )
+        if len(set(subs[idx]) & set(sector)) >= RequiredDecompositionSum(graph, sectortree.ds, idx ):
             sub=set(subs[idx])
             bad=False
             for strech2 in res:
@@ -459,6 +502,15 @@ def FindStrechsForDS(sectortree, graph):
                 res.append(strech)
     return res
 
+def FindOverlapingSubgraphsIdx(eqsubgraphs,subgraph_idx):
+    sub=eqsubgraphs[subgraph_idx]
+    res=list()
+    for i in range(len(eqsubgraphs)):
+        intersect= eqsubgraphs[i]&sub
+        if len(intersect)>0 and intersect<>sub and intersect<>eqsubgraphs[i]:
+            res.append(i)
+    return res
+
 
 def ASectors(branches, graph, parent_ds=dict()):
     """
@@ -467,20 +519,47 @@ def ASectors(branches, graph, parent_ds=dict()):
     if len(branches) == 0:
         return
     else:
+#        print
         new_branches = list()
+        subs = graph._eqsubgraphs
         for branch in branches:
             branch.ds=copy.copy(parent_ds)
+
+#            if len(branch.branches)>0:
+#                strechs=FindStrechsForDS(branch, graph)
+#            else:
+#                continue
+
             strechs=FindStrechsForDS(branch, graph)
+            print branch.parents,  branch.pvar, branch.ds, "a_strechs", branch.strechs, "strechs", strechs
             for strech in strechs:
                 idx = strech - 1000
                 ds_ = copy.copy(parent_ds)
+                _subgraph=copy.copy(subs[idx])
+                for strech3 in ds_:
+                    idx_=strech3-1000
+                    if ds_[strech3]==0:
+                        if subs[idx_].issubset(_subgraph):
+                            _subgraph=_subgraph-subs[idx_]
+
                 for strech2 in strechs:
                     if strech2==strech:
                         ds_[strech2] = 0
                     else:
                         ds_[strech2] = 1
-                branch_=SectorTree(branch.pvar, branch.svars,ds=ds_,parents=branch.parents, domains=SplitDomains(branch.domains, graph, idx),primary=branch.primary, coef=branch.coef )
+#                print "overlap", FindOverlapingSubgraphsIdx(subs, idx)
+                for idx2 in FindOverlapingSubgraphsIdx(subs, idx):
+                    if idx2+1000 not in ds_:
+                        ds_[idx2+1000] = 1
 
+                branch_=SectorTree(branch.pvar, branch.svars,ds=ds_,parents=branch.parents,
+                    domains=SplitDomains(branch.domains, graph, subgraph=_subgraph),primary=branch.primary, coef=branch.coef )
+#                print "child: ", branch_.parents,  branch_.pvar, branch_.ds, "a_strechs", branch_.strechs
+#                strechs_on_tree(branch_,graph)
+#                print "child: ", branch_.parents,  branch_.pvar, branch_.ds, "a_strechs", branch_.strechs
+#                print branch_.str(), branch_.domains
+#                print_tree(branch_)
+#                print
                 branch.ds=copy.copy(parent_ds)
                 for strech2 in strechs:
                     branch.ds[strech2]=1
@@ -488,6 +567,7 @@ def ASectors(branches, graph, parent_ds=dict()):
 
         for tree in new_branches:
             strechs_on_tree(tree,graph)
+#            print_tree(tree)
 
         for branch in new_branches:
             branches.append(branch)
@@ -539,6 +619,12 @@ def Prepare(graph, model):
     graph._det = gendet(graph)
     print "Det terms:",len(graph._det)
     #print "det=",graph._det
+    sub_idx=-1
+    for sub in graph._subgraphs:
+        sub_idx+=1
+        sub._strechvar=1000+sub_idx
+        print "%s sub = %s"%(sub._strechvar,  sub)
+        
     graph._sectors = gensectors(graph, model)
     t_=0
     for tree in graph._sectors:
@@ -593,12 +679,16 @@ def decompose_expr(sector,poly_lst, strechs, jakob=True):
         for poly in res:
             res_n.append(poly.strech(subsector.pvar,subsector.svars))
         res = res_n
+
     if jakob:
         res.append(poly_exp([jakobian],(1,0), coef=(1,0)))
     terms=[res]
+#    print terms
+#    print strechs
     for strech in strechs:
         sidx=strech
         terms_n=[]
+#        print strech, strechs[strech], sector.ds
         if strechs[strech]==0:
             if not sidx in sector.ds.keys() or sector.ds[sidx]==1:
                 """
@@ -617,6 +707,8 @@ def decompose_expr(sector,poly_lst, strechs, jakob=True):
                     terms_n.append(minus(set0_poly_lst(term,strech)))
             else:
                 for term in terms:
+#                    print "1  ", term
+#                    print "11 ", set1_poly_lst(term,strech)
                     terms_n.append(set1_poly_lst(term,strech))
 
             sector.excluded_vars.append(strech)
@@ -634,7 +726,7 @@ def decompose_expr(sector,poly_lst, strechs, jakob=True):
         else:
             terms_n=terms
         terms=terms_n
-    #    print terms
+#        print terms
 
     return terms
 
@@ -778,6 +870,8 @@ def save_sd(name, graph, model):
 
 
     A3=poly_exp(ua,(1,0))
+#    print
+#    print "A3 ", A3
 
     if graph._cdet<>None:
         A4 = poly_exp(graph._cdet,(1,0),coef=(-1,0))
@@ -800,11 +894,13 @@ def save_sd(name, graph, model):
     size = 0
     idx_save = 0
     Nsaved = 0
+    NZero = 0
     for tree in graph._sectors:
         for subsectors in xTreeElement(tree):
-        #            print "sector = ", subsectors
+#            print "sector = ", subsectors
             sector = Sector(subsectors)
-
+#            print
+#            print "sector = ", sector
             C_= poly_exp([[]],(1,0),coef=(sector.coef,0))
             idx+=1
 
@@ -816,20 +912,31 @@ def save_sd(name, graph, model):
                 terms=decompose_expr(sector,[A1, A2, A3, C_ ], strechs )
             else:
                 terms=decompose_expr(sector,[A1, A2, A3, A4, C_ ], strechs )
+
+#            print "A3=",A3
+#            print "A4=",A4
+#            print
+#            print factorize_poly_lst(terms[0])
+
             s_terms = list()
             for term in terms:
                 s_terms+=diff_subtraction(term, strechs, sector)
 
-
-            sector_terms[sector] = s_terms
-
-            size+=s_terms.__sizeof__()
+            s_terms_=list()
+            for term in s_terms:
+                if len(term)>0:
+                    s_terms_.append(term)
+            if len(s_terms_)>0:
+                sector_terms[sector] = s_terms_
+                size+=s_terms_.__sizeof__()
+            else:
+                NZero+=1
 
             if size>=maxsize:
                 save_sectors(graph, sector_terms, strechs.keys(), name_, idx_save, neps)
                 idx_save+=1
                 Nsaved+=len(sector_terms)
-                print "saved to file  %s sectors (%s) size=%s..."%(Nsaved, idx_save, size)
+                print "saved to file  %s(%s) sectors (%s) size=%s..."%(Nsaved, Nsaved+NZero, idx_save, size)
                 sector_terms=dict()
                 size=0
 
@@ -837,7 +944,7 @@ def save_sd(name, graph, model):
         save_sectors(graph, sector_terms, strechs.keys(), name_, idx_save, neps)
         idx_save+=1
         Nsaved+=len(sector_terms)
-        print "saved to file  %s sectors (%s) size=%s..."%(Nsaved,idx_save,size)
+        print "saved to file  %s(%s) sectors (%s) size=%s..."%(Nsaved, Nsaved+NZero, idx_save, size)
         sector_terms=dict()
     for j in range(neps+1):
         f=open("%s_E%s.c"%(name_, j),'w')
