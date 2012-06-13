@@ -276,6 +276,8 @@ class SectorTree:
                 for subsect_vars in decompose_vars(vars):
                     pvar, svars = subsect_vars
                     self.branches.append(SectorTree(pvar, svars, domains=copy.copy(self.domains), parents=pvars))
+                if len(self.branches)>0:
+                    break
 
     def str(self):
         if self.primary:
@@ -531,7 +533,8 @@ def ASectors(branches, graph, parent_ds=dict()):
 #                continue
 
             strechs=FindStrechsForDS(branch, graph)
-            print branch.parents,  branch.pvar, branch.ds, "a_strechs", branch.strechs, "strechs", strechs
+#            print branch.parents,  branch.pvar, branch.ds, "a_strechs", branch.strechs, "strechs", strechs, "domains", branch.domains
+
             for strech in strechs:
                 idx = strech - 1000
                 ds_ = copy.copy(parent_ds)
@@ -539,7 +542,8 @@ def ASectors(branches, graph, parent_ds=dict()):
                 for strech3 in ds_:
                     idx_=strech3-1000
                     if ds_[strech3]==0:
-                        if subs[idx_].issubset(_subgraph):
+#                        if subs[idx_].issubset(_subgraph):
+                        if subs[idx_].issubset(subs[idx]):
                             _subgraph=_subgraph-subs[idx_]
 
                 for strech2 in strechs:
@@ -629,8 +633,10 @@ def Prepare(graph, model):
     t_=0
     for tree in graph._sectors:
         t_+=len([x for x in xTreeElement(tree)])
-#        print_tree(tree)
+        #print
+        #print_tree(tree)
     print "A_sectors: ",t_
+
 
 def jakob_poly(sector):
     """
@@ -862,6 +868,7 @@ def save_sd(name, graph, model):
 
     ua=list()
     for qi_ in graph._qi:
+#    for qi_ in [7]:
         strechs=list()
         for i in range(len(graph._eqsubgraphs)):
             if qi_ in graph._eqsubgraphs[i]:
@@ -870,8 +877,8 @@ def save_sd(name, graph, model):
 
 
     A3=poly_exp(ua,(1,0))
-#    print
-#    print "A3 ", A3
+    print
+    print "A3 ", A3
 
     if graph._cdet<>None:
         A4 = poly_exp(graph._cdet,(1,0),coef=(-1,0))
