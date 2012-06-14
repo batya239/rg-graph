@@ -483,15 +483,27 @@ def FindStrechsForDS(sectortree, graph):
     sub_dims = graph._subgraph_dims
     strechs = sectortree.strechs
     sector = sectortree.parents+[sectortree.pvar]
-#    print sector, sectortree.ds, "a_strechs ",strechs, subs
-    for strech in strechs:
-        idx = strech - 1000
+    sector_set=set(sector)
+#    print
+#    print "FindStrechsForDS", sector, sectortree.ds, "a_strechs ",strechs, subs
+    MinNloop=None
+    for idx in range(len(subs)):
+#    for strech in strechs:
+
+        strech = idx + 1000
+#        print strech, sector_set, sectortree.ds, subs[idx], sector_set-subs[idx]
         if strech in sectortree.ds.keys():
+            if sectortree.ds[strech]==0:
+                sector_set=sector_set-subs[idx]
+            continue
+        if strech not in strechs:
             continue
 #        if len(set(subs[idx]) & set(sector)) >= RequiredDecompositions(sub_dims[idx]):
 #        print sectortree.ds
-#        print strech, RequiredDecompositionSum(graph, sectortree.ds, idx )
-        if len(set(subs[idx]) & set(sector)) >= RequiredDecompositionSum(graph, sectortree.ds, idx ):
+#        print strech, set(subs[idx]) & set(sector_set), RequiredDecompositions(sub_dims[idx]), MinNloop, graph._subgraphs[idx].NLoopSub()
+        if MinNloop==None and len(set(subs[idx]) & set(sector_set))>0:
+            MinNloop=graph._subgraphs[idx].NLoopSub()
+        if MinNloop==graph._subgraphs[idx].NLoopSub() and (len(set(subs[idx]) & set(sector_set)) >= RequiredDecompositions(sub_dims[idx])):
             sub=set(subs[idx])
             bad=False
             for strech2 in res:
@@ -633,8 +645,8 @@ def Prepare(graph, model):
     t_=0
     for tree in graph._sectors:
         t_+=len([x for x in xTreeElement(tree)])
-        #print
-        #print_tree(tree)
+#        print
+#        print_tree(tree)
     print "A_sectors: ",t_
 
 
@@ -868,7 +880,7 @@ def save_sd(name, graph, model):
 
     ua=list()
     for qi_ in graph._qi:
-#    for qi_ in [7]:
+#    for qi_ in [5,]:
         strechs=list()
         for i in range(len(graph._eqsubgraphs)):
             if qi_ in graph._eqsubgraphs[i]:
