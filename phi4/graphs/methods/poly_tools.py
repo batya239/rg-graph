@@ -2,6 +2,11 @@
 # -*- coding:utf8
 import copy
 
+class InvalidDecomposition(Exception):
+    pass
+
+class DivergencePresent(Exception):
+    pass
 
 class exp_pow:
     def __init__(self,tup2):
@@ -197,6 +202,12 @@ def monom2str(monom):
     else:
         return "(-%s)"%res[:-1]
 
+def is1present(poly):
+    for monom in poly:
+        if len(monom)==0:
+            return True
+    return False
+
 def poly_list2ccode(poly_list):
     res=""
     factor=dict()
@@ -212,12 +223,15 @@ def poly_list2ccode(poly_list):
                     factor[var]=exp_pow((0,0))
                 factor[var]+=poly.power
         else:
+            unitpresent=is1present(poly.poly)
             t_poly=poly2str(poly.poly)
             if poly.power.a==1:
                 res+= "(%s)*"%(t_poly)
             elif poly.power.a==0:
                 res+= "(1.)*"
             else:
+                if poly.power.a<0 and not unitpresent:
+                    raise InvalidDecomposition, "polynom in negative power without 1 term"
                 res+= "pow(%s,%s)*"%(t_poly, poly.power.a)
         C=C*poly.coef.a
     for var in factor.keys():
@@ -228,6 +242,8 @@ def poly_list2ccode(poly_list):
             if power.a ==1:
                 res+="(u%s)*"%(var)
             else:
+                if power.a<0:
+                    raise DivergencePresent, "Negative power of feynman parameter ==> divergence"
                 res+="pow(u%s,%s)*"%(var,power.a)
     if C==1:
         return res[:-1]
