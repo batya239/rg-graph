@@ -6,6 +6,7 @@ import os
 import re
 import subprocess
 import sympy
+import sys
 import comb
 import conserv
 from methods.feynman_tools import find_eq, apply_eq, qi_lambda, conv_sub, merge_grp_qi, strech_indexes
@@ -19,6 +20,9 @@ except:
     _DiagramAlgo = False
 
 #_DiagramAlgo=False
+
+debug=True
+debug=False
 
 import subgraphs
 
@@ -151,6 +155,7 @@ class Domain:
         self.cons = conservations
         self.model = model
 
+
     def __repr__(self):
     #        return str(self.vars) +" (" + str(self.cons) + ") "
         return str(self.vars)
@@ -171,13 +176,7 @@ class Domain:
                 cons1 = cons1 | set([cons__])
             else:
                 cons2 = cons2 | set([cons_])
-            #        print vars1, subgraph.Dim(self.model), subgraph.NLoopSub()
-            ##        for cons_ in comb.xUniqueCombinations(vars1, subgraph.Dim(self.model)):
-            #        for cons_ in comb.xUniqueCombinations(vars1, subgraph.NLoopSub()):
-            #            print "2", cons2
-            #            cons2 = cons2 | set([frozenset(cons_)])
-            #        print "cons1 ", cons1
-            #        print "cons2 ", cons2
+
         return (Domain(vars1, cons1, self.model), Domain(vars2, cons2, self.model))
 
 
@@ -256,13 +255,14 @@ def xTreeElement(sector_tree, parents=list(), coef=1):
 
 
 class SectorTree:
-    def __init__(self, pvar, svars, domains=list(), ds=dict(), parents=list(), primary=False, coef=1):
+    def __init__(self, pvar, svars, domains=list(), ds=dict(), ds_vars=list(), parents=list(), primary=False, coef=1):
         self.pvar = pvar
         self.svars = svars
         self.domains = domains
         self.parents = parents
         self.primary = primary
         self.ds = ds
+        self.ds_vars = ds_vars
         self.branches = list()
         self.__addbranches()
         self.strechs = list()
@@ -270,19 +270,31 @@ class SectorTree:
 
 
     def __addbranches(self):
+        def cons_with_var(cons,var):
+            """
+            при  добавлении переменной в сектор не должно порождаться *новых* законов сохранения
+            возможно срабатывание законов сохранения после стягивания подграфа.
+            """
+            res=list()
+            for x in cons:
+                if var in x:
+                    res.append(x)
+            return res
         pvars = self.parents + [self.pvar]
-        #        print
-        #        print "addbranches ", pvars, self.domains
+#        print
+#        print "addbranches ", pvars, self.domains
         for domain in self.domains:
-        #            print domain, domain.cons
+#            print domain, domain.cons
             vars_ = list(set(domain.vars) - set(pvars))
-            #            print vars_
+#            print vars_
             vars = list()
             for var in vars_:
-                if check_cons(pvars + [var], domain.cons):
+#                print pvars+[var]
+                if check_cons(pvars + [var], cons_with_var(domain.cons,var)):
                     vars.append(var)
-                #            print vars
+#            print vars
             if len(vars) > 1:
+
                 for subsect_vars in decompose_vars(vars):
                     pvar, svars = subsect_vars
                     self.branches.append(SectorTree(pvar, svars, domains=copy.copy(self.domains), parents=pvars))
@@ -399,7 +411,7 @@ def ColouredLines(lines_dict, colouredlines):
     return _lines_dict
 
 
-def RemoveEquivalentSpeerSectors(branches, lines_dict, coef=1):
+def RemoveEquivalentSpeerSectors(branches, lines_dict):
     """
     Remove equivalent speer sectors
     """
@@ -427,9 +439,10 @@ def RemoveEquivalentSpeerSectors(branches, lines_dict, coef=1):
             branch_factor = equiv_sectors[cnomenkl]
 
             branch.coef = branch_factor
-            branch.branches = RemoveEquivalentSpeerSectors(branch.branches, lines_dict, coef=branch.coef)
+            branch.branches = RemoveEquivalentSpeerSectors(branch.branches, lines_dict)
             _branches.append(branch)
         return _branches
+
 
 
 def SpeerTrees(graph, model):
@@ -499,15 +512,17 @@ def FindStrechsForDS(sectortree, graph):
     sub_dims = graph._subgraph_dims
     strechs = sectortree.strechs
     sector = sectortree.parents + [sectortree.pvar]
-    sector_set = set(sector)
-    #    print
-    #    print "FindStrechsForDS", sector, sectortree.ds, "a_strechs ",strechs, subs
+    sector_set = set(sector)-set(sectortree.ds_vars) #exclude vars that already used in DS
+    if debug:
+        print
+        print "FindStrechsForDS", sector, sectortree.ds, "a_strechs ",strechs, "ds_vars", sectortree.ds_vars, subs
     MinNloop = None
+    DS_Vars = None
     for idx in range(len(subs)):
-    #    for strech in strechs:
 
         strech = idx + 1000
-        #        print strech, sector_set, sectortree.ds, subs[idx], sector_set-subs[idx]
+        if debug:
+            print strech, sector_set, sectortree.ds, subs[idx], sector_set-subs[idx]
         if strech in sectortree.ds.keys():
             if sectortree.ds[strech] == 0:
                 sector_set = sector_set - subs[idx]
@@ -516,11 +531,13 @@ def FindStrechsForDS(sectortree, graph):
             continue
         #        if len(set(subs[idx]) & set(sector)) >= RequiredDecompositions(sub_dims[idx]):
         #        print sectortree.ds
-        #        print strech, set(subs[idx]) & set(sector_set), RequiredDecompositions(sub_dims[idx]), MinNloop, graph._subgraphs[idx].NLoopSub()
+        if debug:
+            print strech, sector_set, set(subs[idx]) & set(sector_set), RequiredDecompositions(sub_dims[idx]), MinNloop, graph._subgraphs[idx].NLoopSub()
         if MinNloop == None and len(set(subs[idx]) & set(sector_set)) > 0:
             MinNloop = graph._subgraphs[idx].NLoopSub()
+        intersect=set(subs[idx]) & set(sector_set)
         if MinNloop == graph._subgraphs[idx].NLoopSub() and (
-        len(set(subs[idx]) & set(sector_set)) >= RequiredDecompositions(sub_dims[idx])):
+        len(intersect) >= RequiredDecompositions(sub_dims[idx])) and sectortree.pvar in intersect:
             sub = set(subs[idx])
             bad = False
             for strech2 in res:
@@ -530,8 +547,16 @@ def FindStrechsForDS(sectortree, graph):
                     bad = True
                     break
             if not bad:
+#                if len(intersect)> RequiredDecompositions(sub_dims[idx]):
+#                    raise ValueError, "intesect %s > RequiresDecompositions %s, idx=%s \n sector: %s\nds: %s"%(intersect, RequiredDecompositions(sub_dims[idx]), idx, sector, sectortree.ds)
+                if DS_Vars==None:
+                    DS_Vars=intersect
+                elif DS_Vars<>intersect:
+                    raise ValueError, "sector intersections for overlaping subgraphs are different : %s %s %s %s"%(DS_Vars,intersect,res, strech)
                 res.append(strech)
-    return res
+    if debug:
+        print "FindStrechsForDS Result:", (res, DS_Vars)
+    return (res, DS_Vars)
 
 
 def FindOverlapingSubgraphsIdx(eqsubgraphs, subgraph_idx):
@@ -544,26 +569,29 @@ def FindOverlapingSubgraphsIdx(eqsubgraphs, subgraph_idx):
     return res
 
 
-def ASectors(branches, graph, parent_ds=dict()):
+def ASectors(branches, graph, parent_ds=dict(), ds_vars=list()):
     """
     generate branches for ds terms with a=0
     """
     if len(branches) == 0:
         return
     else:
-    #        print
+        #print
         new_branches = list()
         subs = graph._eqsubgraphs
         for branch in branches:
             branch.ds = copy.copy(parent_ds)
+            branch.ds_vars = copy.copy(ds_vars)
 
             #            if len(branch.branches)>0:
             #                strechs=FindStrechsForDS(branch, graph)
             #            else:
             #                continue
 
-            strechs = FindStrechsForDS(branch, graph)
-            #            print branch.parents,  branch.pvar, branch.ds, "a_strechs", branch.strechs, "strechs", strechs, "domains", branch.domains
+            strechs, ds_vars_ = FindStrechsForDS(branch, graph)
+            if debug:
+                print branch.parents,  branch.pvar, branch.ds, "a_strechs", branch.strechs, \
+                "ds_vars", branch.ds_vars, ds_vars_, "strechs", strechs, "domains", branch.domains
 
             for strech in strechs:
                 idx = strech - 1000
@@ -586,16 +614,18 @@ def ASectors(branches, graph, parent_ds=dict()):
                     if idx2 + 1000 not in ds_:
                         ds_[idx2 + 1000] = 1
 
-                branch_ = SectorTree(branch.pvar, branch.svars, ds=ds_, parents=branch.parents,
+                branch_ = SectorTree(branch.pvar, branch.svars, ds=ds_, ds_vars=branch.ds_vars+list(ds_vars_), parents=branch.parents,
                     domains=SplitDomains(branch.domains, graph, subgraph=_subgraph), primary=branch.primary,
                     coef=branch.coef)
-                #                print "child: ", branch_.parents,  branch_.pvar, branch_.ds, "a_strechs", branch_.strechs
-                #                strechs_on_tree(branch_,graph)
+                if debug:
+                    print "child: ", branch_.parents,  branch_.pvar, branch_.ds, "ds_vars", ds_vars, "a_strechs", branch_.strechs,
+                #strechs_on_tree(branch_,graph)
                 #                print "child: ", branch_.parents,  branch_.pvar, branch_.ds, "a_strechs", branch_.strechs
                 #                print branch_.str(), branch_.domains
                 #                print_tree(branch_)
                 #                print
                 branch.ds = copy.copy(parent_ds)
+                branch.ds_vars+=list(ds_vars_)
                 for strech2 in strechs:
                     branch.ds[strech2] = 1
                 new_branches.append(branch_)
@@ -607,7 +637,7 @@ def ASectors(branches, graph, parent_ds=dict()):
         for branch in new_branches:
             branches.append(branch)
         for branch in branches:
-            ASectors(branch.branches, graph, branch.ds)
+            ASectors(branch.branches, graph, branch.ds, ds_vars=branch.ds_vars)
 
 
 def Prepare(graph, model):
@@ -662,8 +692,9 @@ def Prepare(graph, model):
     t_ = 0
     for tree in graph._sectors:
         t_ += len([x for x in xTreeElement(tree)])
-    #        print
-    #        print_tree(tree)
+        if debug:
+            print
+            print_tree(tree)
     print "A_sectors: ", t_
 
 
@@ -799,7 +830,7 @@ def save_sectors(g1, sector_terms, strech_vars, name_, idx, neps=0):
                 raise Exception, "Invalid decomposition in sector %s\ndomains:%s\nexpr:\n%s" % (
                 sector, sector.domains, factorize_poly_lst(leading))
             except DivergencePresent:
-                raise Exception, "Divergence present in sector: %s" % (sector)
+                raise Exception, "Divergence present in sector: %s\ndomains:%s" % (sector, sector.domains)
 
             for j in range(neps + 1):
                 eps_term_ = (eps_poly * (sympy.exp(log_pow * e * sympy.log(D)))).diff(e, j).subs(e,
@@ -978,6 +1009,7 @@ def save_sd(name, graph, model):
                 idx_save += 1
                 Nsaved += len(sector_terms)
                 print "saved to file  %s(%s) sectors (%s) size=%s..." % (Nsaved, Nsaved + NZero, idx_save, size)
+                sys.stdout.flush()
                 sector_terms = dict()
                 size = 0
 
@@ -986,6 +1018,7 @@ def save_sd(name, graph, model):
         idx_save += 1
         Nsaved += len(sector_terms)
         print "saved to file  %s(%s) sectors (%s) size=%s..." % (Nsaved, Nsaved + NZero, idx_save, size)
+        sys.stdout.flush()
         sector_terms = dict()
     for j in range(neps + 1):
         f = open("%s_E%s.c" % (name_, j), 'w')
@@ -998,26 +1031,33 @@ def extract_eps(term):
     eps_poly = sympy.Number(1)
     e = sympy.var('e')
     log_func = None
+#    print
     for poly in term:
+#        print poly
         if poly.power.b <> 0:
             if log_func <> None:
                 raise ValueError, "More than one polynom in eps power %s and %s" % (log_func, poly.poly)
             if poly.coef.b <> 0:
                 raise ValueError, "Polynom in eps power has nontrivial coef %s" % (poly.coef)
-            log_func = copy.deepcopy(poly.poly)
+#            log_func = copy.deepcopy(poly.poly)
+            log_func = poly.poly
             log_pow = poly.power.b
-            poly_ = copy.deepcopy(poly)
-            poly_.power.b = 0
+            poly_ = poly_exp(poly.poly,(poly.power.a,0),coef=poly.coef)
+#            poly_ = copy.deepcopy(poly)
+#            poly_.power.b = 0
+#            print log_pow, poly_.power.b
             leading.append(poly_)
         else:
             if poly.coef.b <> 0:
                 eps_poly = eps_poly * (poly.coef.a + e * poly.coef.b)
-                poly_ = copy.deepcopy(poly)
-                poly_.coef = exp_pow((1, 0))
+                poly_ = poly_exp(poly.poly, poly.power, coef=(1,0))
+#                poly_ = copy.deepcopy(poly)
+#                poly_.coef = exp_pow((1, 0))
                 leading.append(poly_)
             else:
-                poly_ = copy.deepcopy(poly)
-                leading.append(poly_)
+#                poly_ = copy.deepcopy(poly)
+#                leading.append(poly_)
+                leading.append(poly)
 
     return (leading, eps_poly, log_func, log_pow)
 
@@ -1191,6 +1231,7 @@ def _compile(name, model, options=list(), cc="gcc"):
                     obj_list[eps_num] = list()
                 obj_list[eps_num].append(file)
             print "Compiling objects %s ..." % file,
+            sys.stdout.flush()
             obj_name = file[:-2] + ".o"
             try:
                 os.remove(obj_name)
@@ -1210,6 +1251,7 @@ def _compile(name, model, options=list(), cc="gcc"):
                 else:
                     print "CHECK"
                     print std_err
+            sys.stdout.flush()
     print
 
     for file in os.listdir("."):
@@ -1219,6 +1261,7 @@ def _compile(name, model, options=list(), cc="gcc"):
                 eps_num = int(regex.groups()[0])
 
             print "Compiling %s ..." % file,
+            sys.stdout.flush()
             prog_name = file[:-2] + "_.run"
             try:
                 os.remove(prog_name)
@@ -1239,5 +1282,6 @@ def _compile(name, model, options=list(), cc="gcc"):
                 else:
                     print "CHECK"
                     print std_err
+            sys.stdout.flush()
 
     return not failed

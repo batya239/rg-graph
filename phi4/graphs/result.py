@@ -60,7 +60,7 @@ g, n, e = sympy.var('g n e')
 A=sympy.var('A0 A1 A2 A3 A4 A5 A6 A7')
 B=sympy.var('B0 B1 B2 B3 B4 B5 B6 B7')
 N=phi4.target
-N=4
+#N=4
 f2=0
 for i in range(2, N+1):
     f2=f2+B[i]*g**i
@@ -139,7 +139,11 @@ for i in range(2, N+1):
         
         
 for i in range(1, N+1):
-    ai=utils.series_lst(resG[4][i], e, N-i)
+    try:
+        ai=utils.series_lst(resG[4][i], e, N-i)
+    except:
+        ai=[0.]*(N+1-i)
+        print "No term %s in G4"%i
     print ai
     for j in range(N+1-i):
         eta=eta.subs(sympy.var('A%s_%s'%(i, j)), (-1)**(i)*ai[j])
