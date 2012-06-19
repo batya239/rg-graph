@@ -167,7 +167,12 @@ for i in range(2, N+1):
         w_e=w_e.subs(sympy.var('B%s_%s'%(i, j)), (-1)**(i+1)*bi[j])
         
 for i in range(1, N+1):
-    ai=utils.series_lst(resG[4][i], e, N-i)
+    try:
+        ai=utils.series_lst(resG[4][i], e, N-i)
+    except KeyError:
+        ai=0.
+        print " no term %s in G4"%i
+
     for j in range(N+1-i):
         w_e=w_e.subs(sympy.var('A%s_%s'%(i, j)), (-1)**(i)*ai[j])
 print "w=", utils.series_f(w_e, e, N)

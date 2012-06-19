@@ -234,6 +234,7 @@ class Domain:
 def check_cons(term, cons):
     """
     check if the combination of vars denied by conservation laws
+    False -> Denied
     """
     res = True
     for constr in cons:
@@ -485,6 +486,28 @@ def PrimaryTrees(graph, model):
 
 #    return trees
 
+def parents_removed_cons(sector_tree):
+    """
+    remove parents terms that denied by conservation laws that comes from a_i=0
+    Main idea is to find det term corresponding to this branch of diagramm with a_i=0
+    """
+    res=list()
+    for i in range(len(sector_tree.parents)):
+        _parents=res + [sector_tree.parents[i]]
+        match=False
+        for domain in sector_tree.domains:
+#            print _parents, domain.cons, check_cons(_parents, domain.cons)
+            if not check_cons(_parents, domain.cons):
+                match=True
+                break
+        if not match:
+            res=_parents
+#    print sector_tree.parents, res, _parents
+#    print sector_tree.domains
+    return res
+
+
+
 
 def strechs_on_tree(sector_tree, graph):
     """
@@ -493,7 +516,8 @@ def strechs_on_tree(sector_tree, graph):
     if len(sector_tree.branches) == 0:
 #        print "strechs_on_tree"
 #        print sector_tree.parents + [sector_tree.pvar]
-        sector_tree.strechs = strech_list(sector_tree.parents + [sector_tree.pvar], graph)
+#        sector_tree.strechs = strech_list(sector_tree.parents + [sector_tree.pvar], graph)
+        sector_tree.strechs = strech_list(parents_removed_cons(sector_tree) + [sector_tree.pvar], graph)
 #        print sector_tree.strechs
         return sector_tree.strechs
     else:
@@ -643,6 +667,7 @@ def FindStrechsForDS(sectortree, graph):
         print "FindStrechsForDS", sector, sectortree.ds, "a_strechs ",strechs, "ds_vars", sectortree.ds_vars, subs
     MinNloop = None
     DS_Vars = None
+    decomposed=False
     for idx in range(len(subs)):
 
         strech = idx + 1000
@@ -657,28 +682,34 @@ def FindStrechsForDS(sectortree, graph):
         #        if len(set(subs[idx]) & set(sector)) >= RequiredDecompositions(sub_dims[idx]):
         #        print sectortree.ds
         if debug:
-            print strech, sector_set, set(subs[idx]) & set(sector_set), RequiredDecompositions(sub_dims[idx]), MinNloop, graph._subgraphs[idx].NLoopSub()
-        if MinNloop == None and len(set(subs[idx]) & set(sector_set)) > 0:
+            print strech, sector_set, set(subs[idx]) & set(sector_set), RequiredDecompositions(sub_dims[idx]), MinNloop, graph._subgraphs[idx].NLoopSub(), decomposed
+        if (MinNloop == None or not decomposed) and len(set(subs[idx]) & set(sector_set)) > 0:
             MinNloop = graph._subgraphs[idx].NLoopSub()
         intersect=set(subs[idx]) & set(sector_set)
-        if MinNloop == graph._subgraphs[idx].NLoopSub() and (
-        len(intersect) >= RequiredDecompositions(sub_dims[idx])) and sectortree.pvar in intersect:
-            sub = set(subs[idx])
-            bad = False
-            for strech2 in res:
-                idx2 = strech2 - 1000
-                sub2 = set(subs[idx2])
-                if sub2.issubset(sub) or len(sub2 & sub) == 0:
-                    bad = True
-                    break
-            if not bad:
-#                if len(intersect)> RequiredDecompositions(sub_dims[idx]):
-#                    raise ValueError, "intesect %s > RequiresDecompositions %s, idx=%s \n sector: %s\nds: %s"%(intersect, RequiredDecompositions(sub_dims[idx]), idx, sector, sectortree.ds)
-                if DS_Vars==None:
-                    DS_Vars=intersect
-                elif DS_Vars<>intersect:
-                    raise ValueError, "sector intersections for overlaping subgraphs are different : %s %s %s %s"%(DS_Vars,intersect,res, strech)
-                res.append(strech)
+#        print strech, sector_set, intersect, MinNloop,  graph._subgraphs[idx].NLoopSub(), sectortree.pvar
+        if (MinNloop == graph._subgraphs[idx].NLoopSub()):
+#            print "---"
+            if (len(intersect) >= RequiredDecompositions(sub_dims[idx])) and sectortree.pvar in intersect:
+                sub = set(subs[idx])
+                bad = False
+                for strech2 in res:
+                    idx2 = strech2 - 1000
+                    sub2 = set(subs[idx2])
+                    if sub2.issubset(sub) or len(sub2 & sub) == 0:
+                        bad = True
+                        break
+                if not bad:
+                    decomposed=True
+    #                if len(intersect)> RequiredDecompositions(sub_dims[idx]):
+    #                    raise ValueError, "intesect %s > RequiresDecompositions %s, idx=%s \n sector: %s\nds: %s"%(intersect, RequiredDecompositions(sub_dims[idx]), idx, sector, sectortree.ds)
+                    if DS_Vars==None:
+                        DS_Vars=intersect
+                    elif DS_Vars<>intersect:
+                        raise ValueError, "sector intersections for overlaping subgraphs are different : %s %s %s %s"%(DS_Vars,intersect,res, strech)
+                    res.append(strech)
+            else:
+                sector_set=sector_set-intersect
+#        print sector_set
     if debug:
         print "FindStrechsForDS Result:", (res, DS_Vars)
     return (res, DS_Vars)
@@ -743,7 +774,7 @@ def ASectors(branches, graph, parent_ds=dict(), ds_vars=list()):
                     domains=SplitDomains(branch.domains, graph, subgraph=_subgraph), primary=branch.primary,
                     coef=branch.coef, graph=graph)
                 if debug:
-                    print "child: ", branch_.parents,  branch_.pvar, branch_.ds, "ds_vars", ds_vars, "a_strechs", branch_.strechs,
+                    print "child: ", branch_.parents,  branch_.pvar, branch_.ds, "ds_vars", ds_vars, "a_strechs", branch_.strechs
                 #strechs_on_tree(branch_,graph)
                 #                print "child: ", branch_.parents,  branch_.pvar, branch_.ds, "a_strechs", branch_.strechs
                 #                print branch_.str(), branch_.domains
@@ -757,7 +788,7 @@ def ASectors(branches, graph, parent_ds=dict(), ds_vars=list()):
 
         for tree in new_branches:
             strechs_on_tree(tree, graph)
-        #            print_tree(tree)
+            #print_tree(tree)
 
         for branch in new_branches:
             branches.append(branch)
@@ -955,7 +986,7 @@ def save_sectors(g1, sector_terms, strech_vars, name_, idx, neps=0):
                 raise Exception, "Invalid decomposition in sector %s\ndomains:%s\nexpr:\n%s" % (
                 sector, sector.domains, factorize_poly_lst(leading))
             except DivergencePresent:
-                raise Exception, "Divergence present in sector: %s\ndomains:%s" % (sector, sector.domains)
+                raise Exception, "Divergence present in sector: %s\ndomains:%s\nexpr:\n%s" % (sector, sector.domains, factorize_poly_lst(leading))
 
             for j in range(neps + 1):
                 eps_term_ = (eps_poly * (sympy.exp(log_pow * e * sympy.log(D)))).diff(e, j).subs(e,
