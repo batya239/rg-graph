@@ -132,11 +132,12 @@ def diff_poly_lst(poly_lst, var):
 def set0_poly_lst(poly_lst, var):
     res=[]
     for poly in poly_lst:
+#        print var, poly
         poly_=poly.set0(var)
         if len(poly_.poly)>0:
             res.append(poly_)
         else:
-            if poly_.power.a>0:
+            if poly_.power.a>=0:
                 return []
             else:
                 raise ZeroDivisionError,  "var:=%s poly=%s"%(var, poly)

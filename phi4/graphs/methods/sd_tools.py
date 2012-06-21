@@ -205,7 +205,8 @@ class Domain:
 
     def __repr__(self):
     #        return str(self.vars) +" (" + str(self.cons) + ") "
-        return str(self.vars) + " " + str(self.lines_dict)
+        #return str(self.vars) + " " + str(self.lines_dict)
+        return str(self.vars)
 
     def split(self, graph, subgraph_lines):
         """
@@ -619,10 +620,12 @@ def gensectors(graph, model):
     t_ = list()
     for tree in speer_trees:
         t_ += [x for x in xTreeElement(tree)]
-    #        print_tree(tree)
+        #print_tree(tree)
     print "speer_sectors symm:", len(t_)
+    sys.stdout.flush()
 
     ASectors(speer_trees, graph)
+    sys.stdout.flush()
     return speer_trees
 
 
@@ -677,16 +680,21 @@ def FindStrechsForDS(sectortree, graph):
             if sectortree.ds[strech] == 0:
                 sector_set = sector_set - subs[idx]
             continue
+        intersect=set(subs[idx]) & set(sector_set)
         if strech not in strechs:
+            overlap=FindOverlapingSubgraphsIdx(subs, idx)
+            if len(overlap)==0:
+                sector_set = sector_set - subs[idx] #вставка арбуза в арбузе, вопрос не будет ли проблем с пересекающимися графами, когда вычитаемая
+# линия принадлежит обоим подграфам
             continue
         #        if len(set(subs[idx]) & set(sector)) >= RequiredDecompositions(sub_dims[idx]):
         #        print sectortree.ds
         if debug:
-            print strech, sector_set, set(subs[idx]) & set(sector_set), RequiredDecompositions(sub_dims[idx]), MinNloop, graph._subgraphs[idx].NLoopSub(), decomposed
+            print strech, sector_set, intersect, RequiredDecompositions(sub_dims[idx]), MinNloop, graph._subgraphs[idx].NLoopSub(), decomposed
         if (MinNloop == None or not decomposed) and len(set(subs[idx]) & set(sector_set)) > 0:
             MinNloop = graph._subgraphs[idx].NLoopSub()
-        intersect=set(subs[idx]) & set(sector_set)
-#        print strech, sector_set, intersect, MinNloop,  graph._subgraphs[idx].NLoopSub(), sectortree.pvar
+        if debug:
+            print strech, sector_set, intersect, MinNloop,  graph._subgraphs[idx].NLoopSub(), sectortree.pvar
         if (MinNloop == graph._subgraphs[idx].NLoopSub()):
 #            print "---"
             if (len(intersect) >= RequiredDecompositions(sub_dims[idx])) and sectortree.pvar in intersect:
@@ -709,7 +717,7 @@ def FindStrechsForDS(sectortree, graph):
                     res.append(strech)
             else:
                 sector_set=sector_set-intersect
-#        print sector_set
+        #print sector_set
     if debug:
         print "FindStrechsForDS Result:", (res, DS_Vars)
     return (res, DS_Vars)
@@ -725,26 +733,45 @@ def FindOverlapingSubgraphsIdx(eqsubgraphs, subgraph_idx):
     return res
 
 
-def ASectors(branches, graph, parent_ds=dict(), ds_vars=list()):
+def ASectors(branches, graph, parent_ds=dict(), ds_vars=list(), lastDS=False):
     """
     generate branches for ds terms with a=0
     """
-    if len(branches) == 0:
+    if lastDS:
+        needLastDS=False
+        for branch in branches:
+            if len(branch.branches)==0 and len(set(branch.strechs)-set(branch.ds.keys()))>0:
+                needLastDS=True
+
+
+    if len(branches) == 0 or (lastDS and not needLastDS):
         return
     else:
         #print
         new_branches = list()
         subs = graph._eqsubgraphs
         for branch in branches:
-            branch.ds = copy.copy(parent_ds)
-            branch.ds_vars = copy.copy(ds_vars)
+            if not lastDS:
+                branch.ds = copy.copy(parent_ds)
+                branch.ds_vars = copy.copy(ds_vars)
+                strechs, ds_vars_ = FindStrechsForDS(branch, graph)
+            elif len(branch.branches)==0:
+
+                strechs=sorted(list(set(branch.strechs)-set(branch.ds.keys())))[:1]
+                ds_vars_=list()
+                parent_ds=branch.ds
+                ds_vars=branch.ds_vars
+                if debug:
+                    print "LastDS ", branch.parents, branch.pvar, strechs, branch.strechs, branch.ds
+            else:
+                continue
 
             #            if len(branch.branches)>0:
             #                strechs=FindStrechsForDS(branch, graph)
             #            else:
             #                continue
 
-            strechs, ds_vars_ = FindStrechsForDS(branch, graph)
+
             if debug:
                 print branch.parents,  branch.pvar, branch.ds, "a_strechs", branch.strechs, \
                 "ds_vars", branch.ds_vars, ds_vars_, "strechs", strechs, "domains", branch.domains
@@ -784,16 +811,27 @@ def ASectors(branches, graph, parent_ds=dict(), ds_vars=list()):
                 branch.ds_vars+=list(ds_vars_)
                 for strech2 in strechs:
                     branch.ds[strech2] = 1
+#                print branch.ds, branch.ds_vars
                 new_branches.append(branch_)
 
         for tree in new_branches:
             strechs_on_tree(tree, graph)
             #print_tree(tree)
 
+
         for branch in new_branches:
             branches.append(branch)
-        for branch in branches:
-            ASectors(branch.branches, graph, branch.ds, ds_vars=branch.ds_vars)
+
+        ASectors(branches, graph, lastDS=True)
+#        for branch in branches:
+#            print branch.str()
+
+
+        if not lastDS:
+
+            for branch in branches:
+                ASectors(branch.branches, graph, branch.ds, ds_vars=branch.ds_vars)
+
 
 
 def Prepare(graph, model):
@@ -907,8 +945,13 @@ def decompose_expr(sector, poly_lst, strechs, jakob=True):
     if jakob:
         res.append(poly_exp([jakobian], (1, 0), coef=(1, 0)))
     terms = [res]
-    #    print terms
-    #    print strechs
+#    print
+#    print sector
+#    t___=factorize_poly_lst(terms[0])
+#    print t___
+#    print set0_poly_lst(set0_poly_lst(t___,1000),1001)
+#    print strechs
+
     for strech in strechs:
         sidx = strech
         terms_n = []
@@ -941,7 +984,16 @@ def decompose_expr(sector, poly_lst, strechs, jakob=True):
                 for term in terms:
                     terms_n.append(minus(set0_poly_lst(term, strech)))
                     firstD = diff_poly_lst(term, strech)
+
                     for term_ in firstD:
+#                        print
+#                        print sector
+#                        print factorize_poly_lst(term)
+#                        print
+#                        print strech, term_
+#                        print
+#                        print factorize_poly_lst(term_)
+#                        print
                         terms_n.append(minus(set0_poly_lst(term_, strech)))
             else:
                 for term in terms:
@@ -1116,7 +1168,7 @@ def save_sd(name, graph, model):
     print "strechs =", strechs
 
     Nf = 10000
-    maxsize = 50000
+    maxsize = 30000
     sector_terms = dict()
 
     idx = -1
