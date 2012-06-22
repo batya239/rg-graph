@@ -603,7 +603,7 @@ def SpeerTrees(graph, model):
     t_ = []
     for tree in trees:
         t_ += [x for x in xTreeElement(tree)]
-    print "speer_sectors:", len(t_)
+    print "speer_sectors:", len(graph._det)*sympy.factorial(graph.NLoops())
 #    for tree in trees:
 #        strechs_on_tree(tree, graph)
 #        print_tree(tree)
@@ -1230,7 +1230,7 @@ def save_sd(name, graph, model):
         sector_terms = dict()
     for j in range(neps + 1):
         f = open("%s_E%s.c" % (name_, j), 'w')
-        f.write(code(idx_save - 1, len(graph._qi.keys()) + len(strechs.keys()), "%s_func" % name_, neps=j))
+        f.write(code_(idx_save - 1, len(graph._qi.keys()) + len(strechs.keys()), "%s_func" % name_, neps=j))
         f.close()
 
 
@@ -1270,7 +1270,7 @@ def extract_eps(term):
     return (leading, eps_poly, log_func, log_pow)
 
 
-def code( Nf, N, func_fname, neps=-1):
+def core_pv_code( Nf, N, func_fname, neps=-1, mpi=False):
     include = ""
     func = """
 void func(double k[DIMENSION], double f[FUNCTIONS])
@@ -1288,11 +1288,17 @@ f[0]+=func_t_%s(k);
             include += "#include \"%s_%s_E%s.h\"\n" % (func_fname, i, neps)
     func += "}\n\n"
 
-    res = """
+    if mpi:
+        res="#include <mpi.h>\n"
+    else:
+        res=""
+
+    res += """
 #include <math.h>
 #include <stdio.h>
 #include <vegas.h>
 #include <stdlib.h>
+#include <time.h>
 #define gamma tgamma
 #define DIMENSION %s
 #define FUNCTIONS 1
@@ -1374,7 +1380,16 @@ int main(int argc, char **argv)
   double estim[FUNCTIONS];   /* estimators for integrals                     */
   double std_dev[FUNCTIONS]; /* standard deviations                          */
   double chi2a[FUNCTIONS];   /* chi^2/n                                      */
+    clock_t start, end;
+    double elapsed;
+    start = clock();
+"""
+    if mpi:
+        res+="""
+    MPI_Init(&argc, &argv);
+"""
 
+    res+="""
   vegas(reg, DIMENSION, func,
         0, npoints/10, 5, NPRN_INPUT | NPRN_RESULT,
         FUNCTIONS, 0, nthreads,
@@ -1383,16 +1398,28 @@ int main(int argc, char **argv)
         2, npoints , niter, NPRN_INPUT | NPRN_RESULT,
         FUNCTIONS, 0, nthreads,
         estim, std_dev, chi2a);
-double delta= std_dev[0]/estim[0];
-printf ("result = %20.18g\\nstd_dev = %20.18g\\ndelta = %20.18g\\n", estim[0], std_dev[0], delta);
-//  printf ("Result %d: %g +/- %g delta=%g\\n",NEPS, estim[0], std_dev[0], delta);
-//  for (i=1; i<FUNCTIONS; ++i)
-//    printf("Result %i:\\t%g +/- %g  \\tdelta=%g\\n", i, estim[i], std_dev[i],std_dev[i]/estim[i]);
-  return(0);
+    int rank=0;
+"""
+    if mpi:
+        res+="""
+    MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+    MPI_Finalize();
+"""
+    res+="""
+    if(rank==0) {
+        end = clock();
+        elapsed = ((double) (end - start)) / CLOCKS_PER_SEC;
+        double delta= std_dev[0]/estim[0];
+        printf ("result = %20.18g\\nstd_dev = %20.18g\\ndelta = %20.18g\\ntime = %20.10g\\n", estim[0], std_dev[0], delta, elapsed);
+    }
+    return(0);
 }
-
 """
     return res
+
+def core_pvmpi_code(Nf, N, func_fname, neps=-1):
+    return core_pv_code(Nf, N, func_fname, neps=neps, mpi=True)
+
 
 
 def save(name, graph, model, overwrite=True):
@@ -1418,7 +1445,7 @@ def compile(name, model):
 
 
 def compile_mpi(name, model):
-    _compile("%s/%s/" % (method_name, name), model, options=["-lm", "-lpthread_mpi", "-lpvegas", "-O2"], cc="mpicc")
+    _compile("%s/%s/" % (method_name, name), model, options=["-lm", "-lpvegas_mpi", "-O2"], cc="mpicc")
 
 
 def execute():
