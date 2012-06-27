@@ -12,7 +12,7 @@ import cluster.tools
 method = sys.argv[1]
 
 for dir in os.listdir('.'):
-    if re.match('e.*-', dir):
+    if re.match('^e.*-$', dir):
        res__, err__, time__=cluster.tools.collect_result(cluster.tools.find_bestresult(dir))
        f=open('%s/result'%dir,'w')
        f.write(str((res__,err__)))
