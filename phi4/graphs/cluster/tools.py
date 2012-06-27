@@ -74,7 +74,7 @@ def find_bestresult(name):
     
 def collect_result(res_dict):
     keys = res_dict.keys()
-    regex=re.compile('^(.*)_E(.*)_O.run.*')
+    regex=re.compile('^(.*)_E(.*).run.*')
     name=None
     res=[None]*len(keys)
     err=[None]*len(keys)
