@@ -11,7 +11,7 @@ accuracy = float(sys.argv[1])
 #name = sys.argv[2]
 
 for dir in os.listdir('.'):
-   if re.match('e.*-', dir):
+   if re.match('^e.*-$', dir):
        try:
           tools.print_bad(tools.find_bestresult(dir),accuracy)
        except:
