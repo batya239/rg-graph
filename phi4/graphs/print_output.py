@@ -17,6 +17,11 @@ try:
     exec('from %s import normalize'%method)
 except ImportError:
     normalize=lambda x, y: y
+
+if len(sys.argv)>2:
+    accuracy=float(sys.argv[2])
+else:
+    accuracy=None
     
 #name = sys.argv[2]
 max=phi4.target-1
@@ -30,17 +35,18 @@ for dir in os.listdir('.'):
             res=[]
             err=[]
             time__=[]
-        print "%s,"%dir[:-1] ,
-        for res_ in res:
-            print "%s,"%res_, 
-        print ","*(max-len(res)+1), 
-        for err_ in err:
-            print "%s,"%err_, 
-        print ","*(max-len(err)), 
-        print method, ",", 
-        for time_ in time__:
-            print "%s,%s,"%time_, 
-        print ","*(max-len(time__)), 
-        print
+        if accuracy==None or abs(err)> accuracy:
+            print "%s,"%dir[:-1] ,
+            for res_ in res:
+                print "%s,"%res_,
+            print ","*(max-len(res)+1),
+            for err_ in err:
+                print "%s,"%err_,
+            print ","*(max-len(err)),
+            print method, ",",
+            for time_ in time__:
+                print "%s,%s,"%time_,
+            print ","*(max-len(time__)),
+            print
 
               
