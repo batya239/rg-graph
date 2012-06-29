@@ -6,7 +6,7 @@ import fnmatch
 import re
 from graphs import Graph
 
-import tools
+import cluster.tools as tools
 from dummy_model import _phi4
 
 method = sys.argv[1]
