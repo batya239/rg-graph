@@ -26,7 +26,7 @@ else:
 #name = sys.argv[2]
 max=phi4.target-1
 for dir in os.listdir('.'):
-    if re.match('e.*-', dir):
+    if re.match('^e.*-$', dir):
         g=Graph(dir) 
         try:
             res__, err__, time__=cluster.tools.collect_result(cluster.tools.find_bestresult(dir))
