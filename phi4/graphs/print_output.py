@@ -35,7 +35,11 @@ for dir in os.listdir('.'):
             res=[]
             err=[]
             time__=[]
-        if accuracy==None or abs(err)> accuracy:
+        bad=False
+        for x in err:
+            if accuracy==None or abs(x)>accuracy:
+                bad=True
+        if bad:
             print "%s,"%dir[:-1] ,
             for res_ in res:
                 print "%s,"%res_,
