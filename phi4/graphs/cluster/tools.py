@@ -94,13 +94,14 @@ def collect_result(res_dict):
     return  res, err, time
     
 
-def print_bad(reslist, accuracy):
+def print_bad(reslist, accuracy, normalize, g):
    for iname  in reslist:
        ((res, std_dev, delta, time, ncall, thread),fname) = reslist[iname]
        if std_dev==None:
            print iname, "bad output!!!"
            continue
-       if abs(std_dev)>abs(accuracy):
-           ratio=abs(std_dev/accuracy)
-           print iname, res, std_dev, delta, time, ncall, " -> ", int(time*ratio**2),"( %10.2f h)"%(time*ratio**2/3600.),  int(ncall*ratio**2),"( %10.2f M)"%(ncall*ratio**2/1000000.),  fname
+       res__,err__=normalize(g, (res, std_dev))
+       if abs(err__)>abs(accuracy):
+           ratio=abs(err__/accuracy)
+           print iname, res__, err__, delta, time, ncall, " -> ", int(time*ratio**2),"( %10.2f h)"%(time*ratio**2/3600.),  int(ncall*ratio**2),"( %10.2f M)"%(ncall*ratio**2/1000000.),  fname
 
