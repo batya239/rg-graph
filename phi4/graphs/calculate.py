@@ -10,6 +10,9 @@ import re as regex
 import time
 from graphs import Graph
 
+
+
+
 def result(model, method,  normalize=lambda y, x:x, struct=None):
     res=dict()
     err=dict()

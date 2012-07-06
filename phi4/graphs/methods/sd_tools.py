@@ -360,15 +360,19 @@ class SectorTree:
                 equiv_sectors = dict()
                 nomenkl_sector = dict()
                 nomenkl_strechs = dict()
+                sect_cnt=0
 
                 for subsect_vars in decompose_vars(vars):
                     pvar, svars = subsect_vars
 #                    print pvars, pvar,
-
-                    CL = ColouredLines(domain.lines_dict, pvars+[pvar])
+                    if _DiagramAlgo:
+                        CL = ColouredLines(domain.lines_dict, pvars+[pvar])
 
 #                    print CL
-                    cnomenkl = DiagramAlgo.NickelLabel(CL)
+                        cnomenkl = DiagramAlgo.NickelLabel(CL)
+                    else:
+                        cnomenkl = sect_cnt
+                        sect_cnt+=1
 #                    print cnomenkl
                     if cnomenkl not in equiv_sectors.keys():
                         equiv_sectors[cnomenkl] = 1

@@ -2,6 +2,7 @@
 
 import sympy
 import utils
+import copy
 n, e = sympy.var('n e')
 z = sympy.var('z0 z1 z2 z3 z4 z5 z6 z7')
 
@@ -17,13 +18,23 @@ eta=((2*e)**2*(n+2)/2/(n+8)**2*
       )
      )
 zeta=sympy.special.zeta_functions.zeta
-eta_n1=eta.subs(n, 1)
-
+eta_z=eta.subs(e,e/2)
 for i in range(len(z)):
-    eta_n1=eta_n1.subs(z[i], zeta(i))
+    eta_z=eta_z.subs(z[i], zeta(i))
 
-eta_n1=eta_n1.subs(e, e/2)
+eta_n1=eta_z.subs(n, 1)
+
+eta_nm3678=eta_z.subs(n, -3.678)
+
+
 print eta_n1.evalf()
+print eta_nm3678.evalf()
+
+N=sympy.var('N')
+eta_1n=eta_z.subs(n,1/N)
+print
+print eta_1n.series(N,0,10).evalf()
+print
 
 w=((2*e)- (2*e)**2/(n+8)**2*(9*n+42)
    +(2*e)**3/4/(n+8)**4*(33*n**3+538*n**2+4288*n+9568+96*(n+8)*(5*n+22)*z[3])
@@ -45,8 +56,16 @@ w_n1=w.subs(n, 1)
 for i in range(len(z)):
     w_n1=w_n1.subs(z[i], zeta(i))
 
+print
 w_n1=w_n1.subs(e, e/2)
 print w_n1.evalf()
+
+w_1n=w.subs(n,1/N).subs(e,e/2)
+for i in range(len(z)):
+    w_1n=w_1n.subs(z[i], zeta(i))
+
+print w_1n.series(N,0,4).evalf()
+
 
 print
 print

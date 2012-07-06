@@ -151,7 +151,9 @@ for i in range(1, N+1):
 print 'gGs__=',utils.series_f(gGs__.subs(g__, g), e, N)        
 print
 print "eta=", eta
-print "eta=", utils.series_f(eta, e, N)
+eta_series=utils.series_f(eta, e, N)
+print "eta=", eta_series
+print "eta n=0 ==", eta_series.subs(n, 0)
 
 beta=-g*(e+g4s-2*g2s)
 w=-g*(g4s-2*g2s).diff(g)
