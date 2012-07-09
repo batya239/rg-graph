@@ -51,15 +51,19 @@ def find_bestresult(name):
     filelist =  os.listdir("%s/"%name)
     reslist = dict()
     for file in filelist:
-        regex = re.match("(%s_E.*\.run)\.o.*"%name,file)
+        regex = re.match("(%s.*_E.*\.run)\.o.*"%name,file)
+#        print file, regex
         if regex:
            iname = regex.groups()[0]
            result = get_results("%s/%s"%(name,file))
            (res, std_dev, delta, time, ncall,  threads) = result
            if res==None or std_dev==None:
                continue
-           if math.isnan(res) or math.isnan(std_dev):
-               continue
+           try:
+               if math.isnan(res) or math.isnan(std_dev):
+                   continue
+           except:
+               pass
            if iname in reslist.keys():
                if None in reslist[iname][0] and None not in reslist:
                      reslist[iname] = (result, file)
