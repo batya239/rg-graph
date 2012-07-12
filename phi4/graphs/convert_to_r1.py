@@ -159,4 +159,150 @@ def f(nomenkl):
         i+=1
     return res
 
-print f('ee11-ee-')
+def K_ms(expr):
+    e=sympy.var('e')
+    return expr.series(e,0,0).removeO()
+
+def K(expr,N=1000):
+    e=sympy.var('e')
+    return expr.series(e,0,N).removeO()
+
+def printKR1(key):
+    print key
+    print "   ", KR1_ms[key]
+    print "       ", KR1[key]
+    print "       ", G[key]
+    print
+
+e=sympy.var('e')
+KR1=dict()
+KR1_ms=dict()
+G=dict()
+
+
+KR1['ee11-ee-'] = K(2/e*f('ee11-ee-'))
+KR1_ms['ee11-ee-'] = K_ms(2/e*f('ee11-ee-'))
+G['ee11-ee-'] = KR1['ee11-ee-']
+printKR1('ee11-ee-')
+
+KR1['e111-e-'] = K(1/e*f('e111-e-'))
+KR1_ms['e111-e-'] = K_ms(KR1['e111-e-'])
+G['e111-e-'] = KR1['e111-e-']
+printKR1('e111-e-')
+
+
+
+KR1['ee11-22-ee-'] = K(1/e*(sympy.Number(0)-2*KR1['ee11-ee-']*f('ee11-ee-')))
+KR1_ms['ee11-22-ee-'] = K_ms(KR1['ee11-22-ee-']+2*2/e*f('ee11-ee-')*(KR1['ee11-ee-']-KR1_ms['ee11-ee-']))
+G['ee11-22-ee-'] = K( KR1['ee11-22-ee-']+2*G['ee11-ee-']*KR1['ee11-ee-'])
+printKR1('ee11-22-ee-')
+
+
+KR1['ee12-e22-e-'] = K(1/e*(f('ee12-e22-e-')-KR1['ee11-ee-']*f('ee11-ee-')))
+KR1_ms['ee12-e22-e-'] = K_ms(KR1['ee12-e22-e-'] + 2/e*f('ee11-ee-')*(2/e*f('ee11-ee-')-K_ms(2/e*f('ee11-ee-'))))
+G['ee12-e22-e-'] = K(KR1['ee12-e22-e-'] + G['ee11-ee-']*KR1['ee11-ee-'])
+printKR1('ee12-e22-e-')
+
+
+KR1['ee11-22-33-ee-'] = K(sympy.Number(2)/3/e*(sympy.Number(0)-3*KR1['ee11-22-ee-']*f('ee11-ee-')))  #-2*G['ee11-ee-']*f('ee11-22-ee-')))
+KR1_ms['ee11-22-33-ee-'] = K_ms(KR1['ee11-22-33-ee-']
+                                + 3*G['ee11-22-ee-']*(KR1['ee11-ee-']-KR1_ms['ee11-ee-'])
+                                + 2*G['ee11-ee-']*(KR1['ee11-22-ee-']-KR1_ms['ee11-22-ee-'])
+                                - G['ee11-ee-']*(KR1['ee11-ee-']**2-KR1_ms['ee11-ee-']**2))
+G['ee11-22-33-ee-'] = K(KR1['ee11-22-33-ee-']
+                        + 3*G['ee11-22-ee-']*KR1['ee11-ee-']
+                        +2*G['ee11-ee-']*KR1['ee11-22-ee-']
+                        -G['ee11-ee-']*KR1['ee11-ee-']**2)
+printKR1('ee11-22-33-ee-')
+
+
+KR1['ee11-23-e33-e-'] = K(sympy.Number(2)/3/e*(sympy.Number(0)
+                                               -KR1['ee11-22-ee-']*f('ee11-ee-')
+                                               -KR1['ee11-ee-']*f('ee12-e22-e-')
+                                               -KR1['ee12-e22-e-']*f('ee11-ee-')))
+KR1_ms['ee11-23-e33-e-'] = K_ms(KR1['ee11-23-e33-e-']
+                                +G['ee12-e22-e-']*(KR1['ee11-ee-']-KR1_ms['ee11-ee-'])
+                                +G['ee11-ee-']*(KR1['ee12-e22-e-']-KR1_ms['ee12-e22-e-'])
+                                +G['ee11-22-ee-']*(KR1['ee11-ee-']-KR1_ms['ee11-ee-'])
+                                -G['ee11-ee-']*(KR1['ee11-ee-']**2-KR1_ms['ee11-ee-']**2)
+                                )
+G['ee11-23-e33-e-'] = K(KR1['ee11-23-e33-e-']
+                        +G['ee12-e22-e-']*(KR1['ee11-ee-'])
+                        +G['ee11-ee-']*(KR1['ee12-e22-e-'])
+                        +G['ee11-22-ee-']*(KR1['ee11-ee-'])
+                        -G['ee11-ee-']*(KR1['ee11-ee-']**2)
+                        )
+printKR1('ee11-23-e33-e-')
+
+
+
+G['ee11-ee-_1']=sympy.Number(1)/2*f('ee11-ee-')
+G['ee11-ee-_1k']=G['ee11-ee-']-G['ee11-ee-_1']
+KR1['ee11-ee-_1k']=G['ee11-ee-_1k']
+
+
+KR1['ee12-ee3-333--'] = K(sympy.Number(2)/3/e*(f('ee12-ee3-333--')
+                                               -KR1['ee11-ee-_1k']*f('e111-e-')))
+KR1_ms['ee12-ee3-333--'] = K_ms(KR1['ee12-ee3-333--']
+                                +G['ee11-ee-_1k']*(KR1['e111-e-']-KR1_ms['e111-e-'])
+                                )
+G['ee12-ee3-333--'] = K(KR1['ee12-ee3-333--']
+                        +G['ee11-ee-_1k']*(KR1['e111-e-'])
+                        )
+printKR1('ee12-ee3-333--')
+
+KR1['e123-e23-e3-e-'] = K(sympy.Number(2)/3/e*f('e123-e23-e3-e-'))
+KR1_ms['e123-e23-e3-e-'] = K_ms(KR1['e123-e23-e3-e-'])
+G['e123-e23-e3-e-'] = KR1['e123-e23-e3-e-']
+printKR1('e123-e23-e3-e-')
+
+KR1['ee12-e33-e33--'] = K(sympy.Number(2)/3/e*(f('ee12-e33-e33--')-2*KR1['ee12-e22-e-']*f('ee11-ee-')))
+KR1_ms['ee12-e33-e33--'] = K_ms(KR1['ee12-e33-e33--']
+    + 2 * G['ee12-e22-e-']*(KR1['ee11-ee-']-KR1_ms['ee11-ee-'])
+    + G['ee11-ee-']*(KR1['ee11-22-ee-']-KR1_ms['ee11-22-ee-'])
+    )
+
+G['ee12-e33-e33--'] = K(KR1['ee12-e33-e33--']
+    + 2 * G['ee12-e22-e-']*(KR1['e111-e-'])
+    + G['ee11-ee-']*(KR1['ee11-22-ee-'])
+    )
+printKR1('ee12-e33-e33--')
+
+KR1['e112-e3-e33-e-'] = K(sympy.Number(2)/3/e*(f('e112-e3-e33-e-')-2*KR1['ee12-e22-e-']*f('ee11-ee-')))
+KR1_ms['e112-e3-e33-e-'] = K_ms(KR1['e112-e3-e33-e-']
+    + 2 * G['ee12-e22-e-']*(KR1['ee11-ee-']-KR1_ms['ee11-ee-'])
+    - G['ee11-ee-']*(KR1['ee11-ee-']**2-KR1_ms['ee11-ee-']**2)
+    )
+
+G['e112-e3-e33-e-'] = K(KR1['e112-e3-e33-e-']
+    + 2 * G['ee12-e22-e-']*(KR1['ee11-ee-'])
+    - G['ee11-ee-']*(KR1['ee11-ee-']**2)
+    )
+printKR1('e112-e3-e33-e-')
+
+
+gamma='ee12-e23-33-e-'
+KR1[gamma] = K(sympy.Number(2)/3/e*(f(gamma)-KR1['ee12-e22-e-']*f('ee11-ee-')-KR1['ee11-ee-']*f('ee12-e22-e-')))
+KR1_ms[gamma] = K_ms(KR1[gamma]
+    + G['ee12-e22-e-']*(KR1['ee11-ee-']-KR1_ms['ee11-ee-'])
+    + G['ee11-ee-']*(KR1['ee12-e22-e-']-KR1_ms['ee12-e22-e-'])
+    )
+
+G[gamma] = K(KR1[gamma]
+    + G['ee12-e22-e-']*(KR1['ee11-ee-'])
+    + G['ee11-ee-']*(KR1['ee12-e22-e-'])
+    )
+printKR1(gamma)
+
+gamma='ee12-223-3-ee-'
+KR1[gamma] = K(sympy.Number(2)/3/e*(f(gamma)-2*KR1['ee11-ee-']*f('ee12-e22-e-')-KR1['ee11-22-ee-']*f('ee11-ee-')))
+KR1_ms[gamma] = K_ms(KR1[gamma]
+    + 2*G['ee11-ee-']*(KR1['ee12-e22-e-']-KR1_ms['ee12-e22-e-'])
+    + G['ee11-22-ee-']*(KR1['ee11-ee-']-KR1_ms['ee11-ee-'])
+    )
+
+G[gamma] = K(KR1[gamma]
+    + 2*G['ee11-ee-']*(KR1['ee12-e22-e-'])
+    + G['ee11-22-ee-']*(KR1['ee11-ee-'])
+    )
+printKR1(gamma)
