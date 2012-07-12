@@ -22,7 +22,14 @@ except:
 #_DiagramAlgo=False
 
 debug=True
-debug=False
+#debug=False
+
+
+MaxSDLevel=-1
+MaxABranches=0
+_CheckBadDecomposition=False
+#_ASectors=False
+_ASectors=True
 
 import subgraphs
 
@@ -323,7 +330,8 @@ class SectorTree:
         self.strechs = None
         self.coef = coef
         self.graph = graph
-        self.__addbranches()
+        if MaxSDLevel<0 or (len(self.parents)<MaxSDLevel or self.pvar==None):
+            self.__addbranches()
 
 
 
@@ -338,6 +346,7 @@ class SectorTree:
                 if var in x:
                     res.append(x)
             return res
+
         if self.pvar==None:
             pvars = []
             primary = True
@@ -627,8 +636,8 @@ def gensectors(graph, model):
         #print_tree(tree)
     print "speer_sectors symm:", len(t_)
     sys.stdout.flush()
-
-    ASectors(speer_trees, graph)
+    if _ASectors:
+        ASectors(speer_trees, graph)
     sys.stdout.flush()
     return speer_trees
 
@@ -736,6 +745,13 @@ def FindOverlapingSubgraphsIdx(eqsubgraphs, subgraph_idx):
             res.append(i)
     return res
 
+def count0(ds):
+    cnt=0
+    for i in ds.values():
+        if i==0:
+            cnt+=1
+    return cnt
+
 
 def ASectors(branches, graph, parent_ds=dict(), ds_vars=list(), lastDS=False):
     """
@@ -744,8 +760,9 @@ def ASectors(branches, graph, parent_ds=dict(), ds_vars=list(), lastDS=False):
     if lastDS:
         needLastDS=False
         for branch in branches:
-            if len(branch.branches)==0 and len(set(branch.strechs)-set(branch.ds.keys()))>0:
-                needLastDS=True
+            if MaxABranches<0 or len(branch.ds)<MaxABranches:
+                if len(branch.branches)==0 and len(set(branch.strechs)-set(branch.ds.keys()))>0:
+                    needLastDS=True
 
 
     if len(branches) == 0 or (lastDS and not needLastDS):
@@ -779,6 +796,8 @@ def ASectors(branches, graph, parent_ds=dict(), ds_vars=list(), lastDS=False):
             if debug:
                 print branch.parents,  branch.pvar, branch.ds, "a_strechs", branch.strechs, \
                 "ds_vars", branch.ds_vars, ds_vars_, "strechs", strechs, "domains", branch.domains
+            if MaxABranches>=0 and len(branch.ds)>=MaxABranches:
+                continue
 
             for strech in strechs:
                 idx = strech - 1000
