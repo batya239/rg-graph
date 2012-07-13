@@ -22,14 +22,16 @@ except:
 #_DiagramAlgo=False
 
 debug=True
-#debug=False
+debug=False
 
 
 MaxSDLevel=-1
-MaxABranches=0
+MaxABranches=-1
 _CheckBadDecomposition=False
+_CheckBadDecomposition=True
 #_ASectors=False
 _ASectors=True
+_ASym=False
 
 import subgraphs
 
@@ -219,7 +221,7 @@ class Domain:
         """
         split domain
         """
-        if not set(subgraph_lines).issubset(set(self.vars)):
+        if not set(subgraph_lines).issubset(set(self.vars)) or len(subgraph_lines)==0:
             raise ValueError, "Cant split domain %s using subgraph %s" % (self.vars, subgraph_lines)
 #        print
 #        print "split", self.lines_dict, subgraph_lines
@@ -316,9 +318,22 @@ def xTreeElement(sector_tree, parents=list(), coef=1):
             for term in xTreeElement(branch, parents_, coef * sector_tree.coef):
                 yield term
 
+def _cnomenkl(domains,vars):
+    cl_list=list()
+    for domain in domains:
+        cl_list.append(ColouredLines(domain.lines_dict, vars))
+        #                        print
+        #                        print "sector:", pvars+[pvar]
+        #                        print "CL:", CL
+    #            print cl_list
+    #            for cl in cl_list:
+    #                print cl
+    #                print DiagramAlgo.NickelLabel(cl)
+    res=sorted(map(DiagramAlgo.NickelLabel, cl_list))
+    return str(res)
 
 class SectorTree:
-    def __init__(self, pvar, svars, domains=list(), ds=dict(), ds_vars=list(), parents=list(), primary=False, coef=1, graph=None):
+    def __init__(self, pvar, svars, domains=list(), ds=dict(), ds_vars=list(), parents=list(), primary=False, coef=1, graph=None, UseSym=True):
         self.pvar = pvar
         self.svars = svars
         self.domains = domains
@@ -331,11 +346,11 @@ class SectorTree:
         self.coef = coef
         self.graph = graph
         if MaxSDLevel<0 or (len(self.parents)<MaxSDLevel or self.pvar==None):
-            self.__addbranches()
+            self.__addbranches(UseSym)
 
 
 
-    def __addbranches(self):
+    def __addbranches(self, UseSym):
         def cons_with_var(cons,var):
             """
             при  добавлении переменной в сектор не должно порождаться *новых* законов сохранения
@@ -355,6 +370,7 @@ class SectorTree:
             primary = False
 #        print
 #        print "addbranches ", pvars, self.domains
+        strechs=list()
         for domain in self.domains:
 #            print domain, domain.cons
             vars_ = list(set(domain.vars) - set(pvars))
@@ -365,7 +381,12 @@ class SectorTree:
                 if check_cons(pvars + [var], cons_with_var(domain.cons,var)):
                     vars.append(var)
 #            print vars
-            if len(vars) > 1:
+
+            if len(vars) ==1:
+#                print self.parents, remove_cons(self.parents+[self.pvar], self.domains) + vars, self.domains
+                strechs+=strech_list(remove_cons(self.parents+[self.pvar], self.domains) + vars, self.graph)
+#                print strechs
+            elif len(vars) > 1:
                 equiv_sectors = dict()
                 nomenkl_sector = dict()
                 nomenkl_strechs = dict()
@@ -374,18 +395,23 @@ class SectorTree:
                 for subsect_vars in decompose_vars(vars):
                     pvar, svars = subsect_vars
 #                    print pvars, pvar,
-                    if _DiagramAlgo:
-                        CL = ColouredLines(domain.lines_dict, pvars+[pvar])
+                    if _DiagramAlgo and UseSym:
+#                        CL = ColouredLines(domain.lines_dict, pvars+[pvar])
+ #                        print
+ #                        print "sector:", pvars+[pvar]
+ #                        print "CL:", CL
+#                        cnomenkl = DiagramAlgo.NickelLabel(CL)
+ #                        print "cnomenkl:", cnomenkl
+ #                        print
 
-#                    print CL
-                        cnomenkl = DiagramAlgo.NickelLabel(CL)
+                        cnomenkl=_cnomenkl(self.domains, pvars+[pvar])
                     else:
                         cnomenkl = sect_cnt
                         sect_cnt+=1
 #                    print cnomenkl
                     if cnomenkl not in equiv_sectors.keys():
                         equiv_sectors[cnomenkl] = 1
-                        branch = SectorTree(pvar, svars, domains=copy.copy(self.domains), parents=pvars, primary=primary, graph=self.graph)
+                        branch = SectorTree(pvar, svars, domains=copy.copy(self.domains), parents=pvars, primary=primary, graph=self.graph, UseSym=UseSym)
                         strechs_on_tree(branch, self.graph)
                         nomenkl_sector[cnomenkl] = branch
                         nomenkl_strechs[cnomenkl] = branch.strechs
@@ -393,14 +419,14 @@ class SectorTree:
 
                     else:
                         equiv_sectors[cnomenkl] += 1
-                        branch = SectorTree(pvar, svars, domains=copy.copy(self.domains), parents=pvars, primary=primary, graph=self.graph)
+                        branch = SectorTree(pvar, svars, domains=copy.copy(self.domains), parents=pvars, primary=primary, graph=self.graph, UseSym=UseSym)
                         strechs_on_tree(branch, self.graph)
                         nomenkl_strechs[cnomenkl] += branch.strechs
 #                        print pvars, pvar, "strechs ", branch.strechs,nomenkl_strechs[cnomenkl]
 
 #                print
-#                print pvars, vars, equiv_sectors
-                strechs=list()
+#                print " ! ", domain, pvars, vars, equiv_sectors
+                _strechs=list()
                 for cnomenkl in nomenkl_sector:
                     branch=nomenkl_sector[cnomenkl]
                     branch.coef=equiv_sectors[cnomenkl]
@@ -408,13 +434,17 @@ class SectorTree:
 #                    print branch.strechs
 
                     self.branches.append(branch)
-                    strechs+=list(set(nomenkl_strechs[cnomenkl]))
-                self.strechs=strechs
+                    _strechs+=nomenkl_strechs[cnomenkl]
+
+
 #                print "final ", pvars, strechs
 
 
                 if len(self.branches) > 0:
+                    self.strechs=list(set(_strechs))
                     break
+        self.strechs=strechs
+
 
     def str(self):
         if self.primary:
@@ -430,14 +460,14 @@ class SectorTree:
             str_strechs = ""
         else:
             str_strechs = str(tuple(self.strechs))
-        return "(%s)%s%s%s%s %s" % (self.coef, self.pvar, str_primary, tuple(sorted(self.svars)), str_ds, str_strechs)
-
-    #        return "(%s)%s%s%s%s" % (self.coef,self.pvar, str_primary, tuple(sorted(self.svars)), str_ds)
+#        return "(%s)%s%s%s%s %s" % (self.coef, self.pvar, str_primary, tuple(sorted(self.svars)), str_ds, str_strechs)
+        return "(%s)%s%s%s%s" % (self.coef,self.pvar, str_primary, tuple(sorted(self.svars)), str_ds)
 
 
 def print_tree(sector_tree, parents=list()):
+    import hashlib
     if len(sector_tree.branches) == 0:
-        print parents + [sector_tree.str()], sector_tree.domains
+        print hashlib.sha1(_cnomenkl(sector_tree.domains, sector_tree.parents+[sector_tree.pvar])).hexdigest(), parents + [sector_tree.str()], sector_tree.domains
     else:
         for branch in sector_tree.branches:
             print_tree(branch, parents + [sector_tree.str()])
@@ -499,6 +529,22 @@ def PrimaryTrees(graph, model):
     return sect_tree.branches
 
 #    return trees
+def remove_cons(vars,domains):
+    res=list()
+    for i in range(len(vars)):
+        _parents=res + [vars[i]]
+        match=False
+        for domain in domains:
+        #            print _parents, domain.cons, check_cons(_parents, domain.cons)
+            if not check_cons(_parents, domain.cons):
+                match=True
+                break
+        if not match:
+            res=_parents
+        #    print sector_tree.parents, res, _parents
+        #    print sector_tree.domains
+    return res
+
 
 def parents_removed_cons(sector_tree):
     """
@@ -531,7 +577,9 @@ def strechs_on_tree(sector_tree, graph):
 #        print "strechs_on_tree"
 #        print sector_tree.parents + [sector_tree.pvar]
 #        sector_tree.strechs = strech_list(sector_tree.parents + [sector_tree.pvar], graph)
-        sector_tree.strechs = strech_list(parents_removed_cons(sector_tree) + [sector_tree.pvar], graph)
+        if sector_tree.strechs==None:
+            sector_tree.strechs=list()
+        sector_tree.strechs += strech_list(parents_removed_cons(sector_tree) + [sector_tree.pvar], graph)
 #        print sector_tree.strechs
         return sector_tree.strechs
     else:
@@ -822,7 +870,7 @@ def ASectors(branches, graph, parent_ds=dict(), ds_vars=list(), lastDS=False):
 
                 branch_ = SectorTree(branch.pvar, branch.svars, ds=ds_, ds_vars=branch.ds_vars+list(ds_vars_), parents=branch.parents,
                     domains=SplitDomains(branch.domains, graph, subgraph=_subgraph), primary=branch.primary,
-                    coef=branch.coef, graph=graph)
+                    coef=branch.coef, graph=graph, UseSym=_ASym)
                 if debug:
                     print "child: ", branch_.parents,  branch_.pvar, branch_.ds, "ds_vars", ds_vars, "a_strechs", branch_.strechs
                 #strechs_on_tree(branch_,graph)
