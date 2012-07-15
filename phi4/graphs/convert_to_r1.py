@@ -4,6 +4,7 @@ import sys
 table=eval(open(sys.argv[1]).read())
 table['ee11-22-ee-']=[0,]
 table['ee11-22-33-ee-']=[0,]
+table['ee11-23-e33-e-']=[0,]
 
 import kleinert
 
@@ -96,7 +97,7 @@ KR1_ms[gamma] = K_ms(KR1[gamma]
     )
 
 G[gamma] = K(KR1[gamma]
-    + 2*G['e111-e-']*(KR1['ee11-ee-']-KR1_ms['ee11-ee-']))
+    + 2*G['e111-e-']*(KR1['ee11-ee-']))
 printKR1(gamma)
 
 
@@ -597,8 +598,8 @@ R1op=[
 KR(gamma, R1op, 4)
 printKR1(gamma)
 
-G['ee12-e22-e-_']=f('ee12-e22-e-')+f('ee11-ee-')*KR1['ee11-ee-']
-G['ee12-e22-e-_k']=K(G['ee12-e22-e-']-G['ee12-e22-e-_'])
+G['ee12-e22-e-_']=K(f('ee12-e22-e-')+f('ee11-ee-')*KR1['ee11-ee-'])
+G['ee12-e22-e-_k']=K(4*G['ee12-e22-e-']-G['ee12-e22-e-_'])
 KR1['ee12-e22-e-_k']=K(G['ee12-e22-e-_k']-2*G['ee11-ee-']*KR1['ee11-ee-_1k']-2*G['ee11-ee-_1k']*KR1['ee11-ee-'])
 
 print "16+19"
@@ -659,12 +660,104 @@ KR(gamma, R1op, 4)
 printKR1(gamma)
 
 print "22"
-#4x 4loop 20
+#4x 4loop 22
 gamma='ee12-334-344-e-e-'
 R1op=[
       (2,'ee12-e23-33-e-',('ee11-ee-',)),
       (1,'ee11-ee-',('e112-e3-e33-e-',)),
       (-1,'ee12-e22-e-',('ee11-ee-','ee11-ee-')),
      ]
+KR(gamma, R1op, 4)
+printKR1(gamma)
+
+print "23"
+#4x 4loop 23
+gamma='ee12-e33-344-4-e-'
+R1op=[
+    (1,'ee12-e23-33-e-',('ee11-ee-',)),
+    (1,'ee12-e33-e33--',('ee11-ee-',)),
+    (1,'ee12-e22-e-',('ee12-e22-e-',)),
+    (1,'ee11-ee-',('ee11-23-e33-e-',)),
+    (-1,'ee12-e22-e-',('ee11-ee-','ee11-ee-')),
+]
+KR(gamma, R1op, 4)
+printKR1(gamma)
+
+print "24"
+#4x 4loop 24
+gamma='ee12-e23-44-e44--'
+R1op=[
+    (2,'ee12-e23-33-e-',('ee11-ee-',)),
+    (1,'ee11-ee-',('ee12-e33-e33--',)),
+    (1,'ee12-e22-e-',('ee11-22-ee-',)),
+]
+KR(gamma, R1op, 4)
+printKR1(gamma)
+
+print "25"
+#4x 4loop 25
+gamma='ee12-e34-334-4-e-'
+R1op=[
+    (1,'ee12-e23-33-e-',('ee11-ee-',)),
+    (1,'ee12-e22-e-',('ee12-e22-e-',)),
+    (1,'ee11-ee-',('ee12-e23-33-e-',)),
+]
+KR(gamma, R1op, 4)
+printKR1(gamma)
+
+print "26"
+#4x 4loop 26
+gamma='ee12-e23-34-44-e-'
+R1op=[
+    (1,'ee12-e23-33-e-',('ee11-ee-',)),
+    (1,'ee12-e22-e-',('ee12-e22-e-',)),
+    (1,'ee11-ee-',('ee12-e23-33-e-',)),
+]
+KR(gamma, R1op, 4)
+printKR1(gamma)
+
+print "2x 4loop 1"
+#2x 4loop 1
+gamma='e112-33-e33--'
+R1op=[
+    (3,'e112-22-e-',('ee11-ee-',)),
+    (2,'e111-e-',('ee11-22-ee-',)),
+    (-1,'e111-e-',('ee11-ee-','ee11-ee-')),
+]
+KR(gamma, R1op, 4)
+printKR1(gamma)
+
+
+G['e111-e-_1']=sympy.Number(1)/3*f('e111-e-')
+G['e111-e-_1k']=K(G['e111-e-']-G['e111-e-_1'])
+KR1['e111-e-_1k']=K(G['e111-e-_1k'])
+
+print "2x 4loop 2"
+#2x 4loop 2
+gamma='e112-e3-333--'
+R1op=[
+    (1,'e111-e-_1k',('e111-e-',)),
+]
+KR(gamma, R1op, 4)
+printKR1(gamma)
+
+print "2x 4loop 3"
+#2x 4loop 3
+gamma='e123-e23-33--'
+R1op=[
+    (1,'e112-22-e-',('ee11-ee-',)),
+    (2,'e111-e-',('ee12-e22-e-',)),
+]
+KR(gamma, R1op, 4)
+printKR1(gamma)
+
+print "2x 4loop 4"
+#2x 4loop 4
+gamma='e112-23-33-e-'
+R1op=[
+    (2,'e112-22-e-',('ee11-ee-',)),
+    (2,'e111-e-',('ee12-e22-e-',)),
+    (-1,'e111-e-',('ee11-ee-','ee11-ee-',)),
+]
 KR(gamma, R1op, 4)
 printKR1(gamma)
