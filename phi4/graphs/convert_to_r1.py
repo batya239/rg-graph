@@ -53,6 +53,8 @@ def printKR1(key):
          bad=True
     if not bad:
         print "   ", res
+        print
+        print "   ", K(KR1_ms[key]-res)
 #    print "       ", KR1[key]
 #    print "       ", G[key]
     print
