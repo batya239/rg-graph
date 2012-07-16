@@ -31,6 +31,7 @@ _CheckBadDecomposition=False
 _CheckBadDecomposition=True
 #_ASectors=False
 _ASectors=True
+_ASym=True
 _ASym=False
 
 import subgraphs
@@ -318,10 +319,10 @@ def xTreeElement(sector_tree, parents=list(), coef=1):
             for term in xTreeElement(branch, parents_, coef * sector_tree.coef):
                 yield term
 
-def _cnomenkl(domains,vars):
+def _cnomenkl(domains,vars, ds=dict(), subs=list()):
     cl_list=list()
     for domain in domains:
-        cl_list.append(ColouredLines(domain.lines_dict, vars))
+        cl_list.append(ColouredLines(domain.lines_dict, vars, ds=ds, subs=subs))
         #                        print
         #                        print "sector:", pvars+[pvar]
         #                        print "CL:", CL
@@ -404,7 +405,8 @@ class SectorTree:
  #                        print "cnomenkl:", cnomenkl
  #                        print
 
-                        cnomenkl=_cnomenkl(self.domains, pvars+[pvar])
+                        cnomenkl=_cnomenkl(self.domains, pvars+[pvar], ds = self.ds, subs=self.graph._subgraphs)
+#                        print cnomenkl, self.ds
                     else:
                         cnomenkl = sect_cnt
                         sect_cnt+=1
@@ -467,7 +469,12 @@ class SectorTree:
 def print_tree(sector_tree, parents=list()):
     import hashlib
     if len(sector_tree.branches) == 0:
-        print hashlib.sha1(_cnomenkl(sector_tree.domains, sector_tree.parents+[sector_tree.pvar])).hexdigest(), parents + [sector_tree.str()], sector_tree.domains
+#        print hashlib.sha1(_cnomenkl(sector_tree.domains, sector_tree.parents+[sector_tree.pvar])).hexdigest(), parents + [sector_tree.str()], sector_tree.domains
+        print " pp tt ", hashlib.sha1(_cnomenkl(sector_tree.domains, sector_tree.parents+[sector_tree.pvar])).hexdigest(),\
+            hashlib.sha1(_cnomenkl(sector_tree.domains, sector_tree.parents+[sector_tree.pvar], ds=sector_tree.ds, subs=sector_tree.graph._subgraphs)).hexdigest(),\
+            _cnomenkl(sector_tree.domains, sector_tree.parents+[sector_tree.pvar], ds=sector_tree.ds, subs=sector_tree.graph._subgraphs), \
+            parents + [sector_tree.str()], \
+            sector_tree.domains
     else:
         for branch in sector_tree.branches:
             print_tree(branch, parents + [sector_tree.str()])
@@ -592,15 +599,25 @@ def strechs_on_tree(sector_tree, graph):
         sector_tree.strechs = list(res)
         return sector_tree.strechs
 
+def ds_color(line, ds, subs):
+    subs_=conv_sub(subs)
+    res=0
+    for i in range(len(subs_)):
+        sub=subs_[i]
+#        print "   ", i, sub, line,line in sub, ds
+        if line in sub:
+            if i+1000 in ds.keys():
+                res=res+(ds[i+1000]+1)*10**(i+2)
+    return res
 
-def ColouredLines(lines_dict, colouredlines):
+def ColouredLines(lines_dict, colouredlines, ds=dict(), subs=list()):
     _lines_dict = copy.deepcopy(lines_dict)
-#    print _lines_dict, colouredlines
+
     for line in lines_dict:
-        _lines_dict[line].append(0)
+        _lines_dict[line].append(0 + ds_color(line, ds, subs))
     for i in range(len(colouredlines)):
         if colouredlines[i] in _lines_dict and 0 not in _lines_dict[colouredlines[i]][:2]:
-            _lines_dict[colouredlines[i]][2] = (i + 1)
+            _lines_dict[colouredlines[i]][2] += (i + 1)
     __lines_dict=dict()
     vertex_map={0:0}
     idx=1
@@ -1247,8 +1264,20 @@ def save_sd(name, graph, model):
     idx_save = 0
     Nsaved = 0
     NZero = 0
+    sectors=dict()
     for tree in graph._sectors:
         for sector in xTreeElement(tree):
+            cnomenkl=_cnomenkl(sector.domains,sector.PrimaryVars(), sector.ds, subs=graph._subgraphs)
+            if cnomenkl in sectors.keys():
+                sectors[cnomenkl].coef+=sector.coef
+            else:
+                sectors[cnomenkl]=sector
+
+    print "ASectors2 = ", len(sectors.keys())
+
+#    for tree in graph._sectors:
+#        for sector in xTreeElement(tree):
+    for sector in sectors.values():
         #            print "sector = ", subsectors
             #sector = Sector(subsectors)
             #            print
