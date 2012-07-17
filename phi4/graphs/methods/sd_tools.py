@@ -1,3 +1,4 @@
+
 #!/usr/bin/python
 # -*- coding: utf8
 import copy
@@ -11,7 +12,7 @@ import comb
 import conserv
 from methods.feynman_tools import find_eq, apply_eq, qi_lambda, conv_sub, merge_grp_qi, strech_indexes
 from methods.poly_tools import poly_exp, set1_poly_lst, minus, set0_poly_lst, diff_poly_lst, poly_list2ccode, factorize_poly_lst, exp_pow, poly2str, InvalidDecomposition, DivergencePresent
-
+import hashlib
 try:
     import DiagramAlgo
 
@@ -22,7 +23,7 @@ except:
 #_DiagramAlgo=False
 
 debug=True
-debug=False
+#debug=False
 
 
 MaxSDLevel=-1
@@ -33,6 +34,8 @@ _CheckBadDecomposition=True
 _ASectors=True
 _ASym=True
 _ASym=False
+_ASym2=True
+#_ASym2=False
 
 import subgraphs
 
@@ -467,7 +470,7 @@ class SectorTree:
 
 
 def print_tree(sector_tree, parents=list()):
-    import hashlib
+
     if len(sector_tree.branches) == 0:
 #        print hashlib.sha1(_cnomenkl(sector_tree.domains, sector_tree.parents+[sector_tree.pvar])).hexdigest(), parents + [sector_tree.str()], sector_tree.domains
         print " pp tt ", hashlib.sha1(_cnomenkl(sector_tree.domains, sector_tree.parents+[sector_tree.pvar])).hexdigest(),\
@@ -1265,13 +1268,22 @@ def save_sd(name, graph, model):
     Nsaved = 0
     NZero = 0
     sectors=dict()
+    cnt=0
     for tree in graph._sectors:
         for sector in xTreeElement(tree):
-            cnomenkl=_cnomenkl(sector.domains,sector.PrimaryVars(), sector.ds, subs=graph._subgraphs)
+            if _ASym2:
+                cnomenkl=_cnomenkl(sector.domains,sector.PrimaryVars(), sector.ds, subs=graph._subgraphs)
+            else:
+                cnomenkl=cnt
+                cnt+=1
             if cnomenkl in sectors.keys():
                 sectors[cnomenkl].coef+=sector.coef
             else:
                 sectors[cnomenkl]=sector
+
+    if debug:
+        for cnom in sectors:
+            print " pt pt ",  hashlib.sha1(cnom).hexdigest(), sectors[cnom].coef
 
     print "ASectors2 = ", len(sectors.keys())
 
