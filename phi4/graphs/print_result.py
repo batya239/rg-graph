@@ -25,6 +25,7 @@ else:
     
 #name = sys.argv[2]
 max=phi4.target-1
+print "{"
 for dir in os.listdir('.'):
 #    print dir
     if re.match('^e.*-$', dir):
@@ -49,15 +50,15 @@ for dir in os.listdir('.'):
             if accuracy==None or abs(x)>accuracy:
                 bad=True
         if bad:
-            print '        "%s": ['%dir ,
+            print '        "%s": [['%dir ,
             for res_ in res:
                 print "%s,"%res_,
 #            print ","*(max-len(res)),"], # [",
-            print "], # [",
+            print "],  [",
             for err_ in err:
                 print "%s,"%err_,
 #            print ","*(max-len(err)),"],",
-            print "],",
+            print "]],#",
             print method, ",",
 #            for time_ in time__:
 #                print "%s,%s,"%time_,
@@ -65,3 +66,4 @@ for dir in os.listdir('.'):
             print
 
               
+print "}"
