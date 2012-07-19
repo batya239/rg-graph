@@ -1,4 +1,3 @@
-
 #!/usr/bin/python
 # -*- coding: utf8
 import copy
@@ -23,7 +22,7 @@ except:
 #_DiagramAlgo=False
 
 debug=True
-#debug=False
+debug=False
 
 
 MaxSDLevel=-1
@@ -1272,7 +1271,8 @@ def save_sd(name, graph, model):
     for tree in graph._sectors:
         for sector in xTreeElement(tree):
             if _ASym2:
-                cnomenkl=_cnomenkl(sector.domains,sector.PrimaryVars(), sector.ds, subs=graph._subgraphs)
+                cnomenkl=DiagramAlgo.NickelLabel(ColouredLines(graph._edges_dict(), sector.PrimaryVars(), ds=sector.ds, subs=graph._subgraphs))
+#                cnomenkl=_cnomenkl(sector.domains,sector.PrimaryVars(), sector.ds, subs=graph._subgraphs)
             else:
                 cnomenkl=cnt
                 cnt+=1
@@ -1570,6 +1570,7 @@ def _compile(name, model, options=list(), cc="gcc"):
     os.chdir(dirname)
     obj_list = dict()
     for file in os.listdir("."):
+#        print file, fnmatch.fnmatch(file, "*__func_*.c")
         if fnmatch.fnmatch(file, "*__func_*.c"):
             regex = re.match('.*_func_\d+_E(\d+)\.c', file)
             if regex:
@@ -1603,9 +1604,11 @@ def _compile(name, model, options=list(), cc="gcc"):
 
     for file in os.listdir("."):
         if fnmatch.fnmatch(file, "*.c") and not fnmatch.fnmatch(file, "*__func_*.c"):
-            regex = re.match('.*_E(\d+)\.c', file)
+            regex = re.match('(.*)_E(\d+)\.c', file)
             if regex:
-                eps_num = int(regex.groups()[0])
+                code_name=regex.groups()[0]
+                eps_num = int(regex.groups()[1])
+#            print code_name
 
             print "Compiling %s ..." % file,
             sys.stdout.flush()
@@ -1614,8 +1617,17 @@ def _compile(name, model, options=list(), cc="gcc"):
                 os.remove(prog_name)
             except:
                 pass
+            obj_=list()
+#            print
+            for obj__ in obj_list[eps_num]:
+                if re.match('^%s.*'%code_name, obj__):
+#                    print code_name,  obj__[:-2]+".o"
+                    obj_.append(obj__[:-2]+".o")
+#            print
+#            print obj_
+#            print [cc, file] + options + ["-I", ".", "-L", "."] + obj_ + ["-o", prog_name]
             process = subprocess.Popen(
-                [cc, file] + options + ["-I", ".", "-L", "."] + obj_list[eps_num] + ["-o", prog_name], shell=False,
+                [cc, file] + options + ["-I", ".", "-L", "."] + obj_ + ["-o", prog_name], shell=False,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             exit_code = process.wait()
             (std_out, std_err) = process.communicate()

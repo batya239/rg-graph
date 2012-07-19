@@ -763,3 +763,16 @@ R1op=[
 ]
 KR(gamma, R1op, 4)
 printKR1(gamma)
+
+print "2x 5loop 1"
+
+gamma='e112-33-e44-44--'
+R1op=[
+    (4,'e112-33-e33--',('ee11-ee-',)),
+    (3,'e112-22-e-',('ee11-22-ee-',)),
+    (2,'e111-e-',('ee11-22-33-ee-',)),
+    (-3,'e112-22-e-',('ee11-ee-','ee11-ee-',)),
+    (-2,'e111-e-',('ee11-22-ee-','ee11-ee-',)),
+]
+KR(gamma, R1op, 5)
+printKR1(gamma)
