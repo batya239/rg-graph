@@ -96,7 +96,6 @@ class Canonicalize(object):
         assertEqual(c.nickel, [[-1, 1], [-1]])
         assertEqual(c.num_symmetries, 2)
         assertEqual(c.node_maps, [{10: 0, 11: 1}, {10: 1, 11: 0}])
-        assertTrue(c.is_valid)
     """
     def __init__(self, edges):
         if not [n for n in sum(edges, []) if n < 0]:
@@ -126,9 +125,9 @@ class Canonicalize(object):
         nickels = [s.nickel_list for s in self.curr_states]
         self.num_symmetries = len(nickels)
         self.nickel = min(nickels)
-        is_valid = self.nickel == max(nickels)
-        self.is_valid = is_valid and (len(sum(self.nickel, [])) ==
-                                      len(self.edges))
+        assert min(nickels) == max(nickels), 'All nickels must be equal.'
+        assert len(sum(self.nickel, [])) == len(self.edges), ('Nickel must '
+                'include all edges.')
 
         # Shift back to original nodes.
         self.node_maps = []
@@ -176,8 +175,8 @@ def PermutatedFromCanonical(list_of_dicts):
     back_dic = dict(zip(dic.values(), dic.keys()))
     permutations = []
     for d in list_of_dicts:
-      permutation = dict(zip(d.keys(), [back_dic[v] for v in d.values()]))
-      permutations.append(permutation)
+        permutation = dict(zip(d.keys(), [back_dic[v] for v in d.values()]))
+        permutations.append(permutation)
     return permutations
 
 
