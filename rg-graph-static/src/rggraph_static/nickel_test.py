@@ -167,6 +167,10 @@ class TestUtil(unittest.TestCase):
         self.assertFalse(conn([[-1, 0], [2, 1]]))
         self.assertTrue(conn([[1, 0], [3, 4], [1, 2], [2, 3]]))
 
+    def testFlatten(self):
+        self.assertEqual(nickel.flatten([[1, 2], [3, 4]]), [1, 2, 3, 4])
+        self.assertEqual(nickel.flatten([(1, 2), (3, 4)]), [1, 2, 3, 4])
+
 
 if __name__ == "__main__":
     unittest.main()
