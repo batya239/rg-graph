@@ -43,33 +43,28 @@ class TestCanonicalize(unittest.TestCase):
         c = nickel.Canonicalize([[-1, 0]])
         self.assertEqual(c.num_symmetries, 1)
         self.assertEqual(c.nickel, [[-1]])
-        self.assertTrue(c.is_valid)
 
     def testCanon1(self):
         c = nickel.Canonicalize([[-1, 0], [-1, 0]])
         self.assertEqual(c.num_symmetries, 1)
         self.assertEqual(c.nickel, [[-1, -1]])
-        self.assertTrue(c.is_valid)
 
     def testCanon2(self):
         c = nickel.Canonicalize([[-1, 10], [-1, 11], [10, 11]])
         self.assertEqual(c.nickel, [[-1, 1], [-1]])
         self.assertEqual(c.num_symmetries, 2)
         self.assertEqual(c.node_maps, [{10: 0, 11: 1}, {10: 1, 11: 0}])
-        self.assertTrue(c.is_valid)
 
     def testCanon3(self):
         c = nickel.Canonicalize([[-1, 11], [-1, 11], [-1, 10], [10, 11]])
         self.assertEqual(c.num_symmetries, 1)
         self.assertEqual(c.nickel, [[-1, -1, 1], [-1]])
-        self.assertTrue(c.is_valid)
 
     def testCanon4(self):
         c = nickel.Canonicalize([[-1, 0], [0, 1], [0, 2], [1, 2], [1, 3], [2, 3],
                                                         [3, -1]])
         self.assertEqual(c.num_symmetries, 4)
         self.assertEqual(c.nickel, [[-1, 1, 2], [2, 3], [3], [-1]])
-        self.assertTrue(c.is_valid)
 
     def testCanon5(self):
         c = nickel.Canonicalize([[-1, 3], [-1, 4], [-1, 5], [3, 4], [3, 5],
@@ -78,7 +73,6 @@ class TestCanonicalize(unittest.TestCase):
         self.assertEqual(c.num_symmetries, 2)
         self.assertEqual(c.nickel, [[-1, 1, 2], [-1, 3], [-1, 4], [5, 5],
                                     [6, 6], [7], [8], [8, 8], []])
-        self.assertTrue(c.is_valid)
 
     def testCanon6(self):
         c = nickel.Canonicalize([[-1, 3], [-1, 4], [-1, 7], [3, 4], [3, 5],
@@ -87,7 +81,6 @@ class TestCanonicalize(unittest.TestCase):
         self.assertEqual(c.num_symmetries, 1)
         self.assertEqual(c.nickel, [[-1, 1, 2], [-1, 3], [3, 4], [5], [-1, 6],
                                     [6, 7], [8], [8, 8], []])
-        self.assertTrue(c.is_valid)
 
     def testCanon7(self):
         c = nickel.Canonicalize([[-1, 2], [-1, 3], [2, 3], [2, 4], [3, 5],
@@ -96,7 +89,6 @@ class TestCanonicalize(unittest.TestCase):
         self.assertEqual(c.num_symmetries, 4)
         self.assertEqual(c.nickel, [[-1, 1, 2], [-1, 3], [4, 5], [4, 5], [6],
                                     [7], [7, 7], []])
-        self.assertTrue(c.is_valid)
 
 
 class TestGetGroupedEdges(unittest.TestCase):
@@ -174,6 +166,10 @@ class TestUtil(unittest.TestCase):
         self.assertTrue(conn([[-1, 0], [0, 1]]))
         self.assertFalse(conn([[-1, 0], [2, 1]]))
         self.assertTrue(conn([[1, 0], [3, 4], [1, 2], [2, 3]]))
+
+    def testFlatten(self):
+        self.assertEqual(nickel.flatten([[1, 2], [3, 4]]), [1, 2, 3, 4])
+        self.assertEqual(nickel.flatten([(1, 2), (3, 4)]), [1, 2, 3, 4])
 
 
 if __name__ == "__main__":

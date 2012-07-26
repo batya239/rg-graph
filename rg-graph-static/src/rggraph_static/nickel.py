@@ -43,7 +43,7 @@ class Nickel(object):
             self.edges = self.EdgesFromNickel(self.nickel)
 
     def NickelFromEdges(self, edges):
-        max_node = max(sum(edges, []))
+        max_node = max(flatten(edges))
         nickel = [[] for i in range(max(1, max_node))]
         for e in edges:
             [s, d] = sorted(e, key=lambda n: n if n >= 0 else 1000)
@@ -62,7 +62,7 @@ class Nickel(object):
 
     def StringFromNickel(self, nickel):
         temp = [nn + [-2] for nn in nickel]
-        temp = sum(temp, [])
+        temp = flatten(temp)
         temp = [str(Nickel.node_to_char.get(n, n)) for n in temp]
         return ''.join(temp)
 
@@ -96,10 +96,9 @@ class Canonicalize(object):
         assertEqual(c.nickel, [[-1, 1], [-1]])
         assertEqual(c.num_symmetries, 2)
         assertEqual(c.node_maps, [{10: 0, 11: 1}, {10: 1, 11: 0}])
-        assertTrue(c.is_valid)
     """
     def __init__(self, edges):
-        if not [n for n in sum(edges, []) if n < 0]:
+        if not [n for n in flatten(edges) if n < 0]:
             raise InputError('No external (negative) nodes found in the input.')
         if not IsConnected(edges):
             raise InputError('Input edge list is an unconnected graph.')
@@ -107,7 +106,7 @@ class Canonicalize(object):
         self.orig = edges
 
         self.num_internal_nodes = 0
-        for n in set(sum(edges, [])):
+        for n in set(flatten(edges)):
             if n >= 0:
                 self.num_internal_nodes += 1
 
@@ -126,9 +125,9 @@ class Canonicalize(object):
         nickels = [s.nickel_list for s in self.curr_states]
         self.num_symmetries = len(nickels)
         self.nickel = min(nickels)
-        is_valid = self.nickel == max(nickels)
-        self.is_valid = is_valid and (len(sum(self.nickel, [])) ==
-                                      len(self.edges))
+        assert min(nickels) == max(nickels), 'All nickels must be equal.'
+        assert len(flatten(self.nickel)) == len(self.edges), ('Nickel must '
+                'include all edges.')
 
         # Shift back to original nodes.
         self.node_maps = []
@@ -152,7 +151,7 @@ class Canonicalize(object):
 
     def DoExpand(self, curr_states):
         states = [list(s.Expand()) for s in curr_states]
-        states = sum(states, [])
+        states = flatten(states)
         minimum = min(states)
         return [s for s in states if s == minimum]
 
@@ -176,8 +175,8 @@ def PermutatedFromCanonical(list_of_dicts):
     back_dic = dict(zip(dic.values(), dic.keys()))
     permutations = []
     for d in list_of_dicts:
-      permutation = dict(zip(d.keys(), [back_dic[v] for v in d.values()]))
-      permutations.append(permutation)
+        permutation = dict(zip(d.keys(), [back_dic[v] for v in d.values()]))
+        permutations.append(permutation)
     return permutations
 
 
@@ -245,7 +244,12 @@ def IsConnected(edges):
         for edge in edges:
             if edge[0] in visited_nodes or edge[1] in visited_nodes:
                 visited_nodes.update(edge)
-    return visited_nodes == set(sum(edges, edges[0][0:0]))
+    return visited_nodes == set(flatten(edges))
+
+
+def flatten(edges):
+   '''Flattens shallow iterable of iterables.'''
+   return list(itertools.chain(*edges))
 
 
 def MapNodes1(dic, list_of_nodes):
