@@ -18,7 +18,7 @@ class Nickel(object):
     def __init__(self, edges=None, nickel=None, string=None):
         if edges != None:
             self.edges = [sorted(edge) for edge in edges]
-            self.edges.sort()
+            self.edges.sort(key=lambda e: e if e[0] >= 0 else [e[1], e[0]])
             self.nickel = self.NickelFromEdges(self.edges)
             self.string = self.StringFromNickel(self.nickel)
         elif nickel != None:
@@ -47,7 +47,6 @@ class Nickel(object):
         for n in range(len(nickel)):
             for m in nickel[n]:
                 edges.append(sorted([n, m]))
-        edges.sort()
         return edges
 
     def StringFromNickel(self, nickel):
