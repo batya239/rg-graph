@@ -24,6 +24,13 @@ def err_mul(a,b):
     else:
         return add(a.error/a.number,b.error/b.number)*a.number*b.number
 
+def err_pow(a,i):
+    if a.number==0:
+        return 0
+    else:
+        return (a.error/a.number*abs(i))*a.number**i
+
+
 
 class Number:
     def __init__(self, number, error):
@@ -76,6 +83,20 @@ class Number:
 
     def __repr__(self):
         return str((self.number, self.error))
+
+    def __pow__(self, other):
+        if isinstance(other, (sympy.Number, int, float)):
+            return Number(self.number**other,err_pow(self, other))
+        else:
+            raise NotImplementedError, "pow of Number and not (int, float, sympy.Number)"
+
+def sympyseries_to_list(expr,var,start=0,end=10):
+    t=expr/var**start
+    res=list()
+    for i in range(end-start):
+        res.append((t.subs(var,0),start+i))
+        t=t.diff(var)/(i+1)
+    return res
 
 
 class Series:
@@ -154,7 +175,7 @@ class Series:
         res=0
         for pow in sorted(self._series.keys()):
             if n==None or pow<n:
-                res+=self._series[pow].number*e**pow
+                res+=self._series[pow].number*var**pow
         return res
 
     def sympy_err_series(self,n=None, var=None):
@@ -163,6 +184,6 @@ class Series:
         res=0
         for pow in sorted(self._series.keys()):
             if n==None or pow<n:
-                res+=self._series[pow].error*e**pow
+                res+=self._series[pow].error*var**pow
         return res
 

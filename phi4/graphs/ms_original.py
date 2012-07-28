@@ -24,11 +24,9 @@ for i in range(len(z)):
 
 eta_n1=eta_z.subs(n, 1)
 
-eta_nm3678=eta_z.subs(n, -3.678)
 
 
 print eta_n1.evalf()
-print eta_nm3678.evalf()
 
 N=sympy.var('N')
 eta_1n=eta_z.subs(n,1/N)
@@ -69,6 +67,9 @@ print w_1n.series(N,0,4).evalf()
 
 print
 print
+import sys
+sys.exit(0)
+
 r_str=""
 for i in range(94):
     r_str+="r%s "%i
@@ -93,8 +94,8 @@ g2=-4*(
        +r[1]*r[3]*(-13./48*1./4.-2./3.*1./4.)
        )
        
-print g4-2*g2
-print (g4-2*g2).evalf()
+#print g4-2*g2
+#print (g4-2*g2).evalf()
 
 r_map={
    n+2                          :   r[1]*3,  
