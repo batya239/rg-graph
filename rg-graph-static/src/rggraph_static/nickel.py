@@ -19,12 +19,12 @@ class Nickel(object):
         if edges != None:
             self.edges = [sorted(edge) for edge in edges]
             self.edges.sort()
-            self.nickel = self.NickelFromEdges(edges)
+            self.nickel = self.NickelFromEdges(self.edges)
             self.string = self.StringFromNickel(self.nickel)
         elif nickel != None:
-            self.edges = self.EdgesFromNickel(nickel)
             self.nickel = [sorted(nn) for nn in nickel]
-            self.string = self.StringFromNickel(nickel)
+            self.edges = self.EdgesFromNickel(self.nickel)
+            self.string = self.StringFromNickel(self.nickel)
         elif string != None:
             self.string = string
             self.nickel = self.NickelFromString(string)
@@ -32,10 +32,12 @@ class Nickel(object):
 
     def NickelFromEdges(self, edges):
         max_node = max(flatten(edges))
-        nickel = [[] for i in range(max(1, max_node))]
+        nickel = [[] for _ in range(max_node + 1)]
         for e in edges:
             [s, d] = sorted(e, key=lambda n: n if n >= 0 else 1000)
             nickel[s].append(d)
+        while nickel[-1] == []:
+            nickel = nickel[:-1]
         for nn in nickel:
             nn.sort()
         return nickel

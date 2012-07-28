@@ -32,6 +32,9 @@ class TestNickel(unittest.TestCase):
         self.assertEqual(e.nickel, [[-1, -1]])
         self.assertEqual(e.string, 'ee-')
 
+        e = nickel.Nickel(edges=[(-1, 0), (0, 1), (1, -1)])
+        self.assertEqual(e.nickel, [[-1, 1], [-1]])
+
 
 class TestCanonicalize(unittest.TestCase):
     def testInit(self):
