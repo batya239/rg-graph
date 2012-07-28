@@ -16,26 +16,14 @@ class Nickel(object):
     node_to_char = {-2: '-', -1: 'e', 10: 'A', 11: 'B', 12: 'C', 13: 'D',
                     14: 'E', 15: 'F'}
     def __init__(self, edges=None, nickel=None, string=None):
-        self.edges = edges
-        self.nickel = nickel
-        self.string = string
-
-        if self.edges:
-            for e in self.edges:
-                e.sort()
-            self.edges.sort()
-
-        if self.nickel:
-            for nn in self.nickel:
-                nn.sort()
-
         if edges != None:
-            self.edges = edges
+            self.edges = [sorted(edge) for edge in edges]
+            self.edges.sort()
             self.nickel = self.NickelFromEdges(edges)
             self.string = self.StringFromNickel(self.nickel)
         elif nickel != None:
             self.edges = self.EdgesFromNickel(nickel)
-            self.nickel = nickel
+            self.nickel = [sorted(nn) for nn in nickel]
             self.string = self.StringFromNickel(nickel)
         elif string != None:
             self.string = string

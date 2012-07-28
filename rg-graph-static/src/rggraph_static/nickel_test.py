@@ -27,6 +27,11 @@ class TestNickel(unittest.TestCase):
         self.assertEqual(s1.nickel, [[-1, 14]])
         self.assertEqual(s1.edges, [[-1, 0], [0, 14]])
 
+    def testNickelFromEdgeTuples(self):
+        e = nickel.Nickel(edges=[(0, -1), (-1, 0)])
+        self.assertEqual(e.nickel, [[-1, -1]])
+        self.assertEqual(e.string, 'ee-')
+
 
 class TestCanonicalize(unittest.TestCase):
     def testInit(self):
