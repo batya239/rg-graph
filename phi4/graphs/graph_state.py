@@ -69,6 +69,13 @@ class Rainbow(object):
     def __hash__(self):
         return hash(self.colors)
 
+    def __str__(self):
+        return str(self.colors)
+
+    @staticmethod
+    def fromStr(string):
+        return Rainbow(eval(string))
+
 
 class Edge(object):
     '''Representation of an edge of a graph.'''
@@ -181,11 +188,15 @@ class GraphState(object):
                     fields_chars_with_sep.append(fields_chars_iter.next())
             fields_str = ''.join(fields_chars_with_sep)
 
-        return edges_str + self.SEP + fields_str
+        colors_str = ''
+        if [1 for edge in self.sortings[0] if edge.colors]:
+            colors_str = str([str(edge.colors) for edge in self.sortings[0]])
+
+        return edges_str + self.SEP + fields_str + self.SEP + colors_str
 
     @staticmethod
     def fromStr(string):
-        edges_str, fields_str = string.split(GraphState.SEP)
+        edges_str, fields_str, colors_str = string.split(GraphState.SEP, 2)
 
         nickel_edges = nickel.Nickel(string=edges_str).edges
         if not fields_str:
@@ -194,9 +205,14 @@ class GraphState(object):
             fields = [Fields.fromStr(char)
                     for char in fields_str if char != GraphState.NICKEL_SEP]
 
+        if not colors_str:
+            colors_list = [None] * len(nickel_edges)
+        else:
+            colors_list = itertools.imap(Rainbow.fromStr, eval(colors_str))
+
         edges = []
-        for nodes, fields in itertools.izip(nickel_edges, fields):
-            edges.append(Edge(nodes, fields=fields))
+        for nodes, fields, colors in itertools.izip(nickel_edges, fields, colors_list):
+            edges.append(Edge(nodes, fields=fields, colors=colors))
 
         return GraphState(edges)
 

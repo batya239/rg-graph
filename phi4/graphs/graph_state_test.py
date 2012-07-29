@@ -35,6 +35,13 @@ class TestFields(unittest.TestCase):
         self.assertEqual(graph_state.Fields.bb(), graph_state.Fields([b, b]))
 
 
+class TestRainbow(unittest.TestCase):
+    def testToFromStr(self):
+        r = graph_state.Rainbow((0, 1))
+        self.assertEqual(str(r), '(0, 1)')
+        self.assertEqual(r, graph_state.Rainbow.fromStr(str(r)))
+
+
 class TestEdge(unittest.TestCase):
     def testCompare(self):
         self.assertEqual(graph_state.Edge((0, 1)), graph_state.Edge((1, 0)),
@@ -120,22 +127,31 @@ class testGraphState(unittest.TestCase):
         self.assertTrue(a == b)
         self.assertTrue(hash(a) == hash(b))
 
-    def testToFromStrNoFields(self):
+    def testToFromStr(self):
         edges = (graph_state.Edge((-1, 0)),
                  graph_state.Edge((0, 1)),
                  graph_state.Edge((1, -1)))
         state = graph_state.GraphState(edges)
-        self.assertEqual(str(state), 'e1-e-:')
+        self.assertEqual(str(state), 'e1-e-::')
 
         decoded = graph_state.GraphState.fromStr(str(state))
         self.assertEqual(decoded.sortings[0], edges)
 
-    def testToFromStr(self):
+    def testToFromStrWithFields(self):
         edges = (graph_state.Edge((-1, 0), fields=graph_state.Fields.aa()),
                  graph_state.Edge((0, 1), fields=graph_state.Fields.ab()),
                  graph_state.Edge((1, -1), fields=graph_state.Fields.aa()))
         state = graph_state.GraphState(edges)
-        self.assertEqual(str(state), 'e1-e-:c1-c-')
+        self.assertEqual(str(state), 'e1-e-:c1-c-:')
+
+        decoded = graph_state.GraphState.fromStr(str(state))
+        self.assertEqual(decoded.sortings[0], edges)
+
+    def testToFromStrWithColors(self):
+        edges = (graph_state.Edge((-1, 0),
+                                  colors=graph_state.Rainbow((1, 7))),)
+        state = graph_state.GraphState(edges)
+        self.assertEqual(str(state), "e-::['(1, 7)']")
 
         decoded = graph_state.GraphState.fromStr(str(state))
         self.assertEqual(decoded.sortings[0], edges)
