@@ -16,6 +16,7 @@ class TestFields(unittest.TestCase):
 
     def testToFromString(self):
         fields = graph_state.Fields.ab()
+        self.assertEqual(len(str(fields)), 1)
         decoded = graph_state.Fields.fromStr(str(fields))
         self.assertEqual(fields, decoded)
 
@@ -96,6 +97,15 @@ class testGraphState(unittest.TestCase):
         state = graph_state.GraphState(edges)
         self.assertEqual(len(state.sortings), 1, 'No symmetry 0 <--> 1.')
 
+    def testToFromStr(self):
+        edges = [graph_state.Edge((-1, 0), fields=graph_state.Fields.aa()),
+                 graph_state.Edge((0, 1), fields=graph_state.Fields.ab()),
+                 graph_state.Edge((1, -1), fields=graph_state.Fields.aa())]
+        state = graph_state.GraphState(edges)
+        self.assertEqual(str(state), 'e1-e-:c1-c-')
+
+        decoded = graph_state.GraphState.fromStr(str(state))
+        self.assertEqual(decoded.sortings[0], edges)
 
 
 if __name__ == "__main__":

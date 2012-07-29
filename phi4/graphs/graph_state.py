@@ -115,6 +115,7 @@ class Edge(object):
 
 class GraphState(object):
     SEP = ':'
+    NICKEL_SEP = '-'    #TODO: Move definition to Nickel.
     def __init__(self, edges, node_maps=None):
         node_maps = (node_maps or
                 nickel.Canonicalize([edge.nodes for edge in edges]).node_maps)
@@ -125,4 +126,38 @@ class GraphState(object):
             self.sortings.append(mapped_edges)
         min_edges = min(self.sortings)
         self.sortings = [edges for edges in self.sortings if edges == min_edges]
+
+    def __str__(self):
+        nickel_edges = [edge.nodes for edge in self.sortings[0]]
+        edges_str = nickel.Nickel(edges=nickel_edges).string
+
+        fields_chars = [str(edge.fields) for edge in self.sortings[0]]
+        # Add separators to the fields string to the same positions as in edges.
+        fields_chars_with_sep = []
+        it = iter(fields_chars)
+        for char in edges_str:
+            if char == self.NICKEL_SEP:
+                fields_chars_with_sep.append(self.NICKEL_SEP)
+            else:
+                fields_chars_with_sep.append(it.next())
+        fields_str = ''.join(fields_chars_with_sep)
+
+        return edges_str + self.SEP + fields_str
+
+    @staticmethod
+    def fromStr(string):
+        edges_str, fields_str = string.split(GraphState.SEP)
+
+        nickel_edges = nickel.Nickel(string=edges_str).edges
+        fields = [Fields.fromStr(char)
+                for char in fields_str if char != GraphState.NICKEL_SEP]
+
+        edges = []
+        for nodes, fields in itertools.izip(nickel_edges, fields):
+            edges.append(Edge(nodes, fields=fields))
+
+        return GraphState(edges)
+
+
+
 
