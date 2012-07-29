@@ -97,6 +97,16 @@ class testGraphState(unittest.TestCase):
         state = graph_state.GraphState(edges)
         self.assertEqual(len(state.sortings), 1, 'No symmetry 0 <--> 1.')
 
+    def testToFromStrNoFields(self):
+        edges = [graph_state.Edge((-1, 0)),
+                 graph_state.Edge((0, 1)),
+                 graph_state.Edge((1, -1))]
+        state = graph_state.GraphState(edges)
+        self.assertEqual(str(state), 'e1-e-:')
+
+        decoded = graph_state.GraphState.fromStr(str(state))
+        self.assertEqual(decoded.sortings[0], edges)
+
     def testToFromStr(self):
         edges = [graph_state.Edge((-1, 0), fields=graph_state.Fields.aa()),
                  graph_state.Edge((0, 1), fields=graph_state.Fields.ab()),
