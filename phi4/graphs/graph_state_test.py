@@ -20,6 +20,12 @@ class TestFields(unittest.TestCase):
         decoded = graph_state.Fields.fromStr(str(fields))
         self.assertEqual(fields, decoded)
 
+    def testHash(self):
+        first = graph_state.Fields.ab()
+        second = graph_state.Fields.ba().copy(swap=True)
+        self.assertTrue(first == second)
+        self.assertTrue(hash(first) == hash(second))
+
     def testFactories(self):
         a = graph_state.Fields.A
         b = graph_state.Fields.B
@@ -62,7 +68,9 @@ class TestEdge(unittest.TestCase):
 
     def testCopy(self):
         edge = graph_state.Edge((0, 1), external_node=1,
-                fields=graph_state.Fields.ab(), edge_id=333)
+                fields=graph_state.Fields.ab(),
+                colors=graph_state.Rainbow((0,)),
+                edge_id=333)
         missed_attrs = [attr for attr in edge.__dict__ if not edge.__dict__[attr]]
         self.assertEqual(len(missed_attrs), 0,
                 'Attributes %s should be set.' % missed_attrs)
@@ -70,10 +78,19 @@ class TestEdge(unittest.TestCase):
         self.assertEqual(edge, edge.copy())
         self.assertTrue(edge < edge.copy(node_map={0: 2}))
 
+    def testHash(self):
+        a = graph_state.Edge((0, 1), external_node=1,
+                fields=graph_state.Fields.ab())
+        b = graph_state.Edge((0, 1), external_node=1,
+                fields=graph_state.Fields.ab())
+        self.assertTrue(a == b)
+        self.assertTrue(hash(a) == hash(b))
+
 
 class testGraphState(unittest.TestCase):
     def testInit(self):
-        edges = [graph_state.Edge(e) for e in [(-1, 0), (0, 1), (1, -1)]]
+        edges = tuple([graph_state.Edge(e)
+                for e in [(-1, 0), (0, 1), (1, -1)]])
         state = graph_state.GraphState(edges, node_maps=[{}])
         self.assertEqual(state.sortings, [edges])
 
@@ -97,10 +114,16 @@ class testGraphState(unittest.TestCase):
         state = graph_state.GraphState(edges)
         self.assertEqual(len(state.sortings), 1, 'No symmetry 0 <--> 1.')
 
+    def testHash(self):
+        a = graph_state.GraphState((graph_state.Edge((0, -1)),))
+        b = graph_state.GraphState((graph_state.Edge((0, -1)),))
+        self.assertTrue(a == b)
+        self.assertTrue(hash(a) == hash(b))
+
     def testToFromStrNoFields(self):
-        edges = [graph_state.Edge((-1, 0)),
+        edges = (graph_state.Edge((-1, 0)),
                  graph_state.Edge((0, 1)),
-                 graph_state.Edge((1, -1))]
+                 graph_state.Edge((1, -1)))
         state = graph_state.GraphState(edges)
         self.assertEqual(str(state), 'e1-e-:')
 
@@ -108,9 +131,9 @@ class testGraphState(unittest.TestCase):
         self.assertEqual(decoded.sortings[0], edges)
 
     def testToFromStr(self):
-        edges = [graph_state.Edge((-1, 0), fields=graph_state.Fields.aa()),
+        edges = (graph_state.Edge((-1, 0), fields=graph_state.Fields.aa()),
                  graph_state.Edge((0, 1), fields=graph_state.Fields.ab()),
-                 graph_state.Edge((1, -1), fields=graph_state.Fields.aa())]
+                 graph_state.Edge((1, -1), fields=graph_state.Fields.aa()))
         state = graph_state.GraphState(edges)
         self.assertEqual(str(state), 'e1-e-:c1-c-')
 
