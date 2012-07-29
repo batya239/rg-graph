@@ -13,8 +13,9 @@ class Nickel(object):
     >>> n.string
     'e1-e-'
     """
-    node_to_char = {-2: '-', -1: 'e', 10: 'A', 11: 'B', 12: 'C', 13: 'D',
-                    14: 'E', 15: 'F'}
+    SEP = '-'
+    node_to_char = {-2: SEP, -1: 'e', 10: 'A', 11: 'B', 12: 'C',
+                    13: 'D', 14: 'E', 15: 'F'}
     def __init__(self, edges=None, nickel=None, string=None):
         if edges != None:
             self.edges = [sorted(edge) for edge in edges]

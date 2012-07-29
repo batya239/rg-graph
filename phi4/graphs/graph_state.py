@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf8 -*-
 
-import copy
 import itertools
 import nickel
 
@@ -12,7 +11,7 @@ class Fields(object):
     EXTERNAL = 3
 
     def __init__(self, pair):
-      self._pair = pair[0], pair[1]
+        self._pair = pair[0], pair[1]
 
     @property
     def pair(self):
@@ -26,11 +25,11 @@ class Fields(object):
 
     def copy(self, swap=False):
         if swap:
-          return Fields(tuple(reversed(self.pair)))
+            return Fields(tuple(reversed(self.pair)))
         return Fields(self.pair)
 
     def __str__(self):
-      return hex(self.pair[0] * 4 + self.pair[1])[-1]
+        return hex(self.pair[0] * 4 + self.pair[1])[-1]
 
     @staticmethod
     def fromStr(char):
@@ -148,7 +147,7 @@ class Edge(object):
 
 class GraphState(object):
     SEP = ':'
-    NICKEL_SEP = '-'    #TODO: Move definition to Nickel.
+    NICKEL_SEP = nickel.Nickel.SEP
     def __init__(self, edges, node_maps=None):
         # Fields must be in every edge or in no one.
         fields_count = len([edge.fields for edge in edges if edge.fields])
@@ -211,7 +210,8 @@ class GraphState(object):
             colors_list = itertools.imap(Rainbow.fromStr, eval(colors_str))
 
         edges = []
-        for nodes, fields, colors in itertools.izip(nickel_edges, fields, colors_list):
+        for nodes, fields, colors in itertools.izip(
+                nickel_edges, fields, colors_list):
             edges.append(Edge(nodes, fields=fields, colors=colors))
 
         return GraphState(edges)
