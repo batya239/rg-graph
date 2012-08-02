@@ -184,6 +184,26 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(nickel.flatten([(1, 2), (3, 4)]), [1, 2, 3, 4])
 
 
+class TestOrigNickel(unittest.TestCase):
+    # TODO: Find an example in in which original Nickel's representation
+    # differs from ours.
+    def testOrigNickelCompare(self):
+        orig_str = 'e12-e3-333--'
+        c = nickel.Canonicalize(nickel.Nickel(string=orig_str).edges)
+        self.assertEqual(orig_str, str(c))
+
+    def testOrigNickelCompare1(self):
+        orig_str = 'e123-e24-34-e4-e-'
+        c = nickel.Canonicalize(nickel.Nickel(string=orig_str).edges)
+        self.assertEqual(orig_str, str(c))
+
+    def testOrigNickelCompare2(self):
+        orig_str = 'e112-e2-33-44-56-e66-e-'
+        c = nickel.Canonicalize(nickel.Nickel(string=orig_str).edges)
+        self.assertEqual(orig_str, str(c))
+
+
+
 if __name__ == "__main__":
     unittest.main()
 
