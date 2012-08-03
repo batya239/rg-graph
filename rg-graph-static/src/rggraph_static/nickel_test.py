@@ -202,6 +202,12 @@ class TestOrigNickel(unittest.TestCase):
         c = nickel.Canonicalize(nickel.Nickel(string=orig_str).edges)
         self.assertEqual(orig_str, str(c))
 
+    def testFromStr(self):
+        not_minimum = 'e1-3-e3--'
+        n = nickel.Nickel(string=not_minimum)
+        self.assertEqual(n.string, not_minimum)
+        c = nickel.Canonicalize(nickel.Nickel(string=not_minimum).edges)
+        self.assertEqual('e1-2-3-e-', str(c))
 
 
 if __name__ == "__main__":
