@@ -9,6 +9,7 @@ import sympy
 import sys
 import comb
 import conserv
+import graph_state
 from methods.feynman_tools import find_eq, apply_eq, qi_lambda, conv_sub, merge_grp_qi, strech_indexes
 from methods.poly_tools import poly_exp, set1_poly_lst, minus, set0_poly_lst, diff_poly_lst, poly_list2ccode, factorize_poly_lst, exp_pow, poly2str, InvalidDecomposition, DivergencePresent
 import hashlib
@@ -305,20 +306,25 @@ def decompose_vars(var_list):
     return subsectors
 
 
-def xTreeElement(sector_tree, parents=list(), coef=1):
+def xTreeElement(sector_tree, parents=list(), coef=1, graphstate=False):
     """
     Iterate over sector tree
     """
+#TODO: rewrite
 
     if len(sector_tree.branches) == 0:
         parents_ = parents + [
             SubSector(sector_tree.pvar, sector_tree.svars, primary=sector_tree.primary,
                 ds_vars=sector_tree.ds, coef=coef * sector_tree.coef)]
-        yield Sector(parents_, domains=sector_tree.domains)
+        sector=Sector(parents_, domains=sector_tree.domains)
+        if graphstate:
+            CL=ColouredLines(sector_tree.graph._edges_dict(), sector_tree.parents+[sector_tree])
+            sector.graph_state=graph_state.GraphState(CL)
+        yield sector
     else:
         for branch in sector_tree.branches:
             parents_ = parents + [SubSector(sector_tree.pvar, sector_tree.svars, primary=sector_tree.primary)]
-            for term in xTreeElement(branch, parents_, coef * sector_tree.coef):
+            for term in xTreeElement(branch, parents=parents_, coef=coef * sector_tree.coef, graphstate=graphstate):
                 yield term
 
 def _cnomenkl(domains,vars, ds=dict(), subs=list()):
@@ -348,6 +354,8 @@ class SectorTree:
         self.strechs = None
         self.coef = coef
         self.graph = graph
+
+
         if MaxSDLevel<0 or (len(self.parents)<MaxSDLevel or self.pvar==None):
             self.__addbranches(UseSym)
 
@@ -367,9 +375,12 @@ class SectorTree:
 
         if self.pvar==None:
             pvars = []
+            parents = []
             primary = True
         else:
-            pvars = self.parents + [self.pvar]
+
+            parents = self.parents + [self,]
+            pvars = [parent.pvar for parent in parents]
             primary = False
 #        print
 #        print "addbranches ", pvars, self.domains
@@ -387,7 +398,7 @@ class SectorTree:
 
             if len(vars) ==1:
 #                print self.parents, remove_cons(self.parents+[self.pvar], self.domains) + vars, self.domains
-                strechs+=strech_list(remove_cons(self.parents+[self.pvar], self.domains) + vars, self.graph)
+                strechs+=strech_list(remove_cons(pvars, self.domains) + vars, self.graph)
 #                print strechs
             elif len(vars) > 1:
                 equiv_sectors = dict()
@@ -398,16 +409,25 @@ class SectorTree:
                 for subsect_vars in decompose_vars(vars):
                     pvar, svars = subsect_vars
 #                    print pvars, pvar,
-                    if _DiagramAlgo and UseSym:
-#                        CL = ColouredLines(domain.lines_dict, pvars+[pvar])
+                    if UseSym:
+                        #CL = ColouredLines(domain.lines_dict, pvars+[pvar])
  #                        print
  #                        print "sector:", pvars+[pvar]
  #                        print "CL:", CL
 #                        cnomenkl = DiagramAlgo.NickelLabel(CL)
  #                        print "cnomenkl:", cnomenkl
  #                        print
+                        if len(self.domains)==1 and len(self.ds)==0:
+#                            print "  domain=",self.domains[0].lines_dict
+                            CL=ColouredLines(self.domains[0].lines_dict, parents, subsect=subsect_vars)
+#                            print "  CL=",CL
+                            cnomenkl=graph_state.GraphState(CL)
+#                            print "  ", cnomenkl
 
-                        cnomenkl=_cnomenkl(self.domains, pvars+[pvar], ds = self.ds, subs=self.graph._subgraphs)
+                        else:
+                            raise NotImplementedError, "Can't use simplified symmetries for domains %s and ds %s"%(self.domains, self.ds)
+
+#                        cnomenkl=_cnomenkl(self.domains, pvars+[pvar], ds = self.ds, subs=self.graph._subgraphs)
 #                        print cnomenkl, self.ds
                     else:
                         cnomenkl = sect_cnt
@@ -415,7 +435,7 @@ class SectorTree:
 #                    print cnomenkl
                     if cnomenkl not in equiv_sectors.keys():
                         equiv_sectors[cnomenkl] = 1
-                        branch = SectorTree(pvar, svars, domains=copy.copy(self.domains), parents=pvars, primary=primary, graph=self.graph, UseSym=UseSym)
+                        branch = SectorTree(pvar, svars, domains=copy.copy(self.domains), parents=parents, primary=primary, graph=self.graph, UseSym=UseSym)
                         strechs_on_tree(branch, self.graph)
                         nomenkl_sector[cnomenkl] = branch
                         nomenkl_strechs[cnomenkl] = branch.strechs
@@ -423,7 +443,7 @@ class SectorTree:
 
                     else:
                         equiv_sectors[cnomenkl] += 1
-                        branch = SectorTree(pvar, svars, domains=copy.copy(self.domains), parents=pvars, primary=primary, graph=self.graph, UseSym=UseSym)
+                        branch = SectorTree(pvar, svars, domains=copy.copy(self.domains), parents=parents, primary=primary, graph=self.graph, UseSym=UseSym)
                         strechs_on_tree(branch, self.graph)
                         nomenkl_strechs[cnomenkl] += branch.strechs
 #                        print pvars, pvar, "strechs ", branch.strechs,nomenkl_strechs[cnomenkl]
@@ -472,6 +492,8 @@ def print_tree(sector_tree, parents=list()):
 
     if len(sector_tree.branches) == 0:
 #        print hashlib.sha1(_cnomenkl(sector_tree.domains, sector_tree.parents+[sector_tree.pvar])).hexdigest(), parents + [sector_tree.str()], sector_tree.domains
+
+#TODO : change parents
         print " pp tt ", hashlib.sha1(_cnomenkl(sector_tree.domains, sector_tree.parents+[sector_tree.pvar])).hexdigest(),\
             hashlib.sha1(_cnomenkl(sector_tree.domains, sector_tree.parents+[sector_tree.pvar], ds=sector_tree.ds, subs=sector_tree.graph._subgraphs)).hexdigest(),\
             _cnomenkl(sector_tree.domains, sector_tree.parents+[sector_tree.pvar], ds=sector_tree.ds, subs=sector_tree.graph._subgraphs), \
@@ -555,14 +577,14 @@ def remove_cons(vars,domains):
     return res
 
 
-def parents_removed_cons(sector_tree):
+def pvars_removed_cons(sector_tree):
     """
     remove parents terms that denied by conservation laws that comes from a_i=0
     Main idea is to find det term corresponding to this branch of diagramm with a_i=0
     """
     res=list()
     for i in range(len(sector_tree.parents)):
-        _parents=res + [sector_tree.parents[i]]
+        _parents=res + [sector_tree.parents[i].pvar]
         match=False
         for domain in sector_tree.domains:
 #            print _parents, domain.cons, check_cons(_parents, domain.cons)
@@ -588,7 +610,7 @@ def strechs_on_tree(sector_tree, graph):
 #        sector_tree.strechs = strech_list(sector_tree.parents + [sector_tree.pvar], graph)
         if sector_tree.strechs==None:
             sector_tree.strechs=list()
-        sector_tree.strechs += strech_list(parents_removed_cons(sector_tree) + [sector_tree.pvar], graph)
+        sector_tree.strechs += strech_list(pvars_removed_cons(sector_tree) + [sector_tree.pvar], graph)
 #        print sector_tree.strechs
         return sector_tree.strechs
     else:
@@ -612,33 +634,77 @@ def ds_color(line, ds, subs):
                 res=res+(ds[i+1000]+1)*10**(i+2)
     return res
 
-def ColouredLines(lines_dict, colouredlines, ds=dict(), subs=list()):
-    _lines_dict = copy.deepcopy(lines_dict)
+def ColouredLines(lines_dict, parent_sectors, subsect=None):
+    def _to_edges_dict(lines_dict):
+        res=dict()
+        for key in lines_dict:
+            line=list()
+            for v in lines_dict[key]:
+                if v==0:
+                    line.append(-1)
+                else:
+                    line.append(v)
 
-    for line in lines_dict:
-        _lines_dict[line].append(0 + ds_color(line, ds, subs))
-    for i in range(len(colouredlines)):
-        if colouredlines[i] in _lines_dict and 0 not in _lines_dict[colouredlines[i]][:2]:
-            _lines_dict[colouredlines[i]][2] += (i + 1)
-    __lines_dict=dict()
-    vertex_map={0:0}
-    idx=1
-#    print _lines_dict
+            res[key]=line
+        return res
+
+    _lines_dict = _to_edges_dict(lines_dict)
+
+    decompositions=dict([(line,[]) for line in _lines_dict.keys()])
+    subtractions=dict([(line,[]) for line in _lines_dict.keys()])
+    saved_subtractions=list()
+
+
+#TODO: we use subgraphs from 1st decomposition
+    if len(parent_sectors)>0:
+        subgraphs_=conv_sub(parent_sectors[0].graph._subgraphs)
+    else:
+#NOTE: no parent sectors -> primary sector -> no ds performed
+        subgraphs_=[]
+
+
+    for sector in parent_sectors:
+        _subtractions=list()
+        for ai in sector.ds.keys():
+            if ai in saved_subtractions:
+                continue
+            else:
+                _subtractions.append(ai)
+
+        for line in _lines_dict:
+            if line in sector.svars:
+                decompositions[line].append(2)
+            elif line==sector.pvar:
+                decompositions[line].append(1)
+            else:
+                decompositions[line].append(0)
+
+            for ai in _subtractions:
+                subgraph=subgraphs_[ai-1000]
+                if line in subgraph:
+                    if sector.ds[ai]==0:
+                        subtractions[line].append(0)
+                    elif sector.ds[ai]==1:
+                        subtractions[line].append(1)
+                    else:
+                        subtractions[line].append(2)
+    if subsect<>None:
+        pvar,svars=subsect
+        for line in _lines_dict:
+            if line in svars:
+                decompositions[line].append(2)
+            elif line==pvar:
+                decompositions[line].append(1)
+            else:
+                decompositions[line].append(0)
+
+
+    res=list()
     for line in _lines_dict:
-        _line=list()
-        for v in _lines_dict[line][:2]:
-#            print v
-            if v not in vertex_map:
-                vertex_map[v]=idx
-                idx+=1
-            _line.append(vertex_map[v])
-        _line.append(_lines_dict[line][2])
-        __lines_dict[line]=_line
+        res.append(graph_state.Edge(_lines_dict[line], colors=graph_state.Rainbow(decompositions[line]+subtractions[line])))
 
+    return res
 
-#    for i in range(len(_lines_dict.keys())):
-#        __lines_dict[i]=_lines_dict[_lines_dict.keys()[i]]
-    return __lines_dict
 
 
 def RemoveEquivalentSpeerSectors(branches, lines_dict):
@@ -653,7 +719,7 @@ def RemoveEquivalentSpeerSectors(branches, lines_dict):
         nomenkl_sector = dict()
         for branch in branches:
 #            print branch.parents+[branch.pvar]
-            CL = ColouredLines(lines_dict, branch.parents + [branch.pvar])
+            CL = ColouredLines(lines_dict, branch.parents + [branch])
 #            print "CL=", CL
             cnomenkl = DiagramAlgo.NickelLabel(CL)
 #            print cnomenkl
@@ -1269,9 +1335,10 @@ def save_sd(name, graph, model):
     sectors=dict()
     cnt=0
     for tree in graph._sectors:
-        for sector in xTreeElement(tree):
+        for sector in xTreeElement(tree, graphstate=True):
             if _ASym2:
-                cnomenkl=DiagramAlgo.NickelLabel(ColouredLines(graph._edges_dict(), sector.PrimaryVars(), ds=sector.ds, subs=graph._subgraphs))
+                cnomenkl=sector.graph_state
+#                cnomenkl=DiagramAlgo.NickelLabel(ColouredLines(graph._edges_dict(), sector.PrimaryVars()))
 #                cnomenkl=_cnomenkl(sector.domains,sector.PrimaryVars(), sector.ds, subs=graph._subgraphs)
             else:
                 cnomenkl=cnt
