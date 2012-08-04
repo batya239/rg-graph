@@ -71,6 +71,9 @@ class Rainbow(object):
     def __str__(self):
         return str(self.colors)
 
+    def __repr__(self):
+        return str(self)
+
     @staticmethod
     def fromStr(string):
         return Rainbow(eval(string))
@@ -111,6 +114,9 @@ class Edge(object):
 
     def key(self):
         return (self.internal_nodes, self.fields, self.colors)
+
+    def __repr__(self):
+        return "(%s, fields=%s, colors=%s)"%self.key()
 
     def __cmp__(self, other):
         return cmp(self.key(), other.key())
