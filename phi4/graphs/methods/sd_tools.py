@@ -487,6 +487,9 @@ class SectorTree:
 #        return "(%s)%s%s%s%s %s" % (self.coef, self.pvar, str_primary, tuple(sorted(self.svars)), str_ds, str_strechs)
         return "(%s)%s%s%s%s" % (self.coef,self.pvar, str_primary, tuple(sorted(self.svars)), str_ds)
 
+    def __repr__(self):
+        return self.str()
+
 
 def print_tree(sector_tree, parents=list()):
 
@@ -809,7 +812,7 @@ def FindStrechsForDS(sectortree, graph):
     subs = graph._eqsubgraphs
     sub_dims = graph._subgraph_dims
     strechs = sectortree.strechs
-    sector = sectortree.parents + [sectortree.pvar]
+    sector = [parent.pvar for parent in sectortree.parents] + [sectortree.pvar]
     sector_set = set(sector)-set(sectortree.ds_vars) #exclude vars that already used in DS
     if debug:
         print
