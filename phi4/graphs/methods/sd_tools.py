@@ -1346,7 +1346,7 @@ def save_sd(name, graph, model):
             else:
                 cnomenkl=cnt
                 cnt+=1
-            if cnomenkl in sectors.keys():
+            if sectors.has_key(cnomenkl):
                 sectors[cnomenkl].coef+=sector.coef
             else:
                 sectors[cnomenkl]=sector
