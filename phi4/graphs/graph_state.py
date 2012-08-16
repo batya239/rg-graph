@@ -6,12 +6,13 @@ import nickel
 
 
 class Fields(object):
-    A = 0
-    B = 1
-    EXTERNAL = 3
+    EXTERNAL = '0'
+    STR_LEN = 2
 
     def __init__(self, pair):
-        self._pair = pair[0], pair[1]
+        assert len(str(pair[0])) == 1
+        assert len(str(pair[1])) == 1
+        self._pair = str(pair[0]), str(pair[1])
 
     @property
     def pair(self):
@@ -29,28 +30,20 @@ class Fields(object):
         return Fields(self.pair)
 
     def __str__(self):
-        return hex(self.pair[0] * 4 + self.pair[1])[-1]
+        return self.pair[0] + self.pair[1]
 
     @staticmethod
-    def fromStr(char):
-        i = int(char[0], 16)
-        return Fields((i / 4, i % 4))
+    def fromStr(string):
+        return Fields(string)
 
     @staticmethod
-    def aa():
-        return Fields((Fields.A, Fields.A))
+    def fieldsToStr(seq):
+        return ''.join([str(fields) for fields in seq])
 
     @staticmethod
-    def ab():
-        return Fields((Fields.A, Fields.B))
-
-    @staticmethod
-    def ba():
-        return Fields((Fields.B, Fields.A))
-
-    @staticmethod
-    def bb():
-        return Fields((Fields.B, Fields.B))
+    def fieldsFromStr(string):
+        return [Fields.fromStr(string[i : i + Fields.STR_LEN])
+            for i in range(0, len(string), Fields.STR_LEN)]
 
 
 class Rainbow(object):
@@ -207,8 +200,8 @@ class GraphState(object):
         if not fields_str:
             fields = [None] * len(nickel_edges)
         else:
-            fields = [Fields.fromStr(char)
-                    for char in fields_str if char != GraphState.NICKEL_SEP]
+            fields_no_sep = filter(lambda c: c != GraphState.NICKEL_SEP, fields_str)
+            fields = Fields.fieldsFromStr(fields_no_sep)
 
         if not colors_str:
             colors_list = [None] * len(nickel_edges)

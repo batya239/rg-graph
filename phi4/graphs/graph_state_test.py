@@ -7,32 +7,30 @@ import unittest
 
 class TestFields(unittest.TestCase):
     def testCopy(self):
-        fields = graph_state.Fields([graph_state.Fields.A,
-                                     graph_state.Fields.B])
+        fields = graph_state.Fields('ab')
         self.assertEqual(fields, fields.copy())
         swapped = fields.copy(swap=True)
         self.assertTrue(fields != swapped)
         self.assertEqual(fields, swapped.copy(swap=True))
 
     def testToFromString(self):
-        fields = graph_state.Fields.ab()
-        self.assertEqual(len(str(fields)), 1)
+        fields = graph_state.Fields('ab')
+        self.assertEqual(len(str(fields)), graph_state.Fields.STR_LEN)
         decoded = graph_state.Fields.fromStr(str(fields))
         self.assertEqual(fields, decoded)
 
+    def testFieldsToFromString(self):
+        string = 'aBcD'
+        fields = graph_state.Fields.fieldsFromStr(string)
+        self.assertEqual(len(fields), 2)
+        self.assertEqual(graph_state.Fields.fieldsToStr(fields),
+                         string)
+
     def testHash(self):
-        first = graph_state.Fields.ab()
-        second = graph_state.Fields.ba().copy(swap=True)
+        first = graph_state.Fields('ab')
+        second = graph_state.Fields('ba').copy(swap=True)
         self.assertTrue(first == second)
         self.assertTrue(hash(first) == hash(second))
-
-    def testFactories(self):
-        a = graph_state.Fields.A
-        b = graph_state.Fields.B
-        self.assertEqual(graph_state.Fields.aa(), graph_state.Fields([a, a]))
-        self.assertEqual(graph_state.Fields.ab(), graph_state.Fields([a, b]))
-        self.assertEqual(graph_state.Fields.ba(), graph_state.Fields([b, a]))
-        self.assertEqual(graph_state.Fields.bb(), graph_state.Fields([b, b]))
 
 
 class TestRainbow(unittest.TestCase):
@@ -54,13 +52,13 @@ class TestEdge(unittest.TestCase):
 
     def testCompareWithFields(self):
         self.assertEqual(
-                graph_state.Edge((0, 1), fields=graph_state.Fields.ab()),
-                graph_state.Edge((1, 0), fields=graph_state.Fields.ba()))
+                graph_state.Edge((0, 1), fields=graph_state.Fields('ab')),
+                graph_state.Edge((1, 0), fields=graph_state.Fields('ba')))
 
-        cmp_fields = cmp(graph_state.Fields.ab(), graph_state.Fields.ba())
+        cmp_fields = cmp(graph_state.Fields('ab'), graph_state.Fields('ba'))
         cmp_edges = cmp(
-                graph_state.Edge((0, 1), fields=graph_state.Fields.ab()),
-                graph_state.Edge((0, 1), fields=graph_state.Fields.ba()))
+                graph_state.Edge((0, 1), fields=graph_state.Fields('ab')),
+                graph_state.Edge((0, 1), fields=graph_state.Fields('ba')))
         self.assertEqual(cmp_fields, cmp_edges)
 
     def testExternalNode(self):
@@ -69,13 +67,13 @@ class TestEdge(unittest.TestCase):
 
     def testAnnotateExternalField(self):
         edge = graph_state.Edge((0, 1), external_node=1,
-                fields=graph_state.Fields.ab())
-        self.assertEqual(edge.fields.pair[0], edge.fields.A)
+                fields=graph_state.Fields('ab'))
+        self.assertEqual(edge.fields.pair[0], 'a')
         self.assertEqual(edge.fields.pair[1], edge.fields.EXTERNAL)
 
     def testCopy(self):
         edge = graph_state.Edge((0, 1), external_node=1,
-                fields=graph_state.Fields.ab(),
+                fields=graph_state.Fields('ab'),
                 colors=graph_state.Rainbow((0,)),
                 edge_id=333)
         missed_attrs = [attr for attr in edge.__dict__ if not edge.__dict__[attr]]
@@ -87,9 +85,9 @@ class TestEdge(unittest.TestCase):
 
     def testHash(self):
         a = graph_state.Edge((0, 1), external_node=1,
-                fields=graph_state.Fields.ab())
+                fields=graph_state.Fields('ab'))
         b = graph_state.Edge((0, 1), external_node=1,
-                fields=graph_state.Fields.ab())
+                fields=graph_state.Fields('ab'))
         self.assertTrue(a == b)
         self.assertTrue(hash(a) == hash(b))
 
@@ -111,13 +109,13 @@ class testGraphState(unittest.TestCase):
         self.assertTrue(state.sortings != [edges])
 
     def testSymmetries(self):
-        edges = [graph_state.Edge((-1, 0), fields=graph_state.Fields.aa()),
-                 graph_state.Edge((0, 1), fields=graph_state.Fields.aa()),
-                 graph_state.Edge((1, -1), fields=graph_state.Fields.aa())]
+        edges = [graph_state.Edge((-1, 0), fields=graph_state.Fields('aa')),
+                 graph_state.Edge((0, 1), fields=graph_state.Fields('aa')),
+                 graph_state.Edge((1, -1), fields=graph_state.Fields('aa'))]
         state = graph_state.GraphState(edges)
         self.assertEqual(len(state.sortings), 2, 'Symmetry 0 <--> 1.')
 
-        edges[1] = graph_state.Edge((0, 1), fields=graph_state.Fields.ab())
+        edges[1] = graph_state.Edge((0, 1), fields=graph_state.Fields('ab'))
         state = graph_state.GraphState(edges)
         self.assertEqual(len(state.sortings), 1, 'No symmetry 0 <--> 1.')
 
@@ -138,11 +136,11 @@ class testGraphState(unittest.TestCase):
         self.assertEqual(decoded.sortings[0], edges)
 
     def testToFromStrWithFields(self):
-        edges = (graph_state.Edge((-1, 0), fields=graph_state.Fields.aa()),
-                 graph_state.Edge((0, 1), fields=graph_state.Fields.ab()),
-                 graph_state.Edge((1, -1), fields=graph_state.Fields.aa()))
+        edges = (graph_state.Edge((-1, 0), fields=graph_state.Fields('aa')),
+                 graph_state.Edge((0, 1), fields=graph_state.Fields('ab')),
+                 graph_state.Edge((1, -1), fields=graph_state.Fields('aa')))
         state = graph_state.GraphState(edges)
-        self.assertEqual(str(state), 'e1-e-:c1-c-:')
+        self.assertEqual(str(state), 'e1-e-:0aab-0a-:')
 
         decoded = graph_state.GraphState.fromStr(str(state))
         self.assertEqual(decoded.sortings[0], edges)
