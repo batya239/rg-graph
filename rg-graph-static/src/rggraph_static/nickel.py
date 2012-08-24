@@ -37,8 +37,6 @@ class Nickel(object):
         for e in edges:
             [s, d] = sorted(e, key=lambda n: n if n >= 0 else 1000)
             nickel[s].append(d)
-        while nickel[-1] == []:
-            nickel = nickel[:-1]
         for nn in nickel:
             nn.sort()
         return nickel

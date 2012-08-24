@@ -16,8 +16,8 @@ class TestNickel(unittest.TestCase):
         self.assertEqual(s.edges, e.edges)
 
         ee = nickel.Nickel(edges=[[0, -1], [-1, 0], [2, 1], [1, 0]])
-        self.assertEqual(ee.nickel, [[-1, -1, 1], [2]])
-        self.assertEqual(ee.string, 'ee1-2-')
+        self.assertEqual(ee.nickel, [[-1, -1, 1], [2], []])
+        self.assertEqual(ee.string, 'ee1-2--')
 
         ss = nickel.Nickel(string='ee1-2-')
         self.assertEqual(ss.nickel, [[-1, -1, 1], [2]])
