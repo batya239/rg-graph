@@ -2,6 +2,7 @@
 
 import sympy
 import copy
+from sympy.core.symbol import Symbol
 
 def parse(symbol):
     """ parse symbol from abc_def_fgh_wew_323 to (abc,('def','fgh','wew','323'))
@@ -44,6 +45,7 @@ def find_idx(parsed_list, idx):
     res=list()
     for i in range(len(parsed_list)):
         (name, idx_tuple)=parsed_list[i]
+#        print idx, i, parsed_list[i]
         if idx in idx_tuple:
             res.append(i)
     return res
@@ -69,11 +71,13 @@ def contract_monom(s_list):
     res_list=copy.copy(s_list)
 #    print s_parsed
     c_idx=count_idx(s_parsed)
+#    print c_idx
     for idx in c_idx.keys():
         if c_idx[idx]<>2:
             continue
         else:
             to_contract=find_idx(s_parsed, idx)
+#            print idx,to_contract
             if len(to_contract)==1 and s_parsed[to_contract[0]][0]=='d':
                 
                 res_list[to_contract[0]]='n'
@@ -93,7 +97,7 @@ def contract_monom(s_list):
                 res_list.remove(res_list[idx1])
                 res_list=contract_monom(res_list)
                 break
-            elif len(to_contract)==2 and (s_parsed[to_contract[0]][0]=='phi' and s_parsed[to_contract[1]][0]=='phi'):
+            elif len(to_contract)==2 and (s_parsed[to_contract[0]][0] == s_parsed[to_contract[1]][0]):
                 idx1, idx2=to_contract
                 name1, tuple1 =s_parsed[idx1]
                 name2, tuple2 =s_parsed[idx2]
@@ -101,6 +105,15 @@ def contract_monom(s_list):
                 res_list[idx1]=name1
                 res_list=contract_monom(res_list)
                 break
+            elif len(to_contract)==2 and (s_parsed[to_contract[0]][0] <> s_parsed[to_contract[1]][0]):
+                idx1, idx2=to_contract
+                name1, tuple1 =s_parsed[idx1]
+                name2, tuple2 =s_parsed[idx2]
+                res_list[idx2]=sympy.var("%sX%s"%tuple(sorted([name1,name2])))
+                res_list[idx1]=1
+                res_list=contract_monom(res_list)
+                break
+
     return res_list
     
 def expand_powers(monom):
@@ -114,6 +127,7 @@ def expand_powers(monom):
                 res.append(term1)
         else:
             res.append(term)
+#    print res
     return res
 
 def expr_to_monoms(expr):
@@ -141,7 +155,13 @@ def monoms_to_sympy(monoms):
     for monom in monoms:
         tres=sympy.Number(1)
         for svar in monom:
-            var=sympy.var(svar)
+#            print svar, type(svar)
+            if (isinstance(svar,str) and svar[0].isalpha()):
+                var=sympy.var(svar)
+            elif isinstance(svar,Symbol):
+                var=svar
+            else:
+                var=sympy.Number(svar)
             tres=tres*var
 
         res=res+tres
