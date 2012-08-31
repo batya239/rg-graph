@@ -32,10 +32,15 @@ _CheckBadDecomposition=False
 _CheckBadDecomposition=True
 #_ASectors=False
 _ASectors=True
+#search for A-symmetries during sector construction
 _ASym=True
 _ASym=False
+#search for A-symmetries after all sectors are constructed
 _ASym2=True
 #_ASym2=False
+#search for base symmetries
+_SSym=True
+#_SSym=False
 
 import subgraphs
 
@@ -406,6 +411,7 @@ class SectorTree:
                 nomenkl_strechs = dict()
                 sect_cnt=0
 
+
                 for subsect_vars in decompose_vars(vars):
                     pvar, svars = subsect_vars
 #                    print pvars, pvar,
@@ -497,11 +503,16 @@ def print_tree(sector_tree, parents=list()):
 #        print hashlib.sha1(_cnomenkl(sector_tree.domains, sector_tree.parents+[sector_tree.pvar])).hexdigest(), parents + [sector_tree.str()], sector_tree.domains
 
 #TODO : change parents
-        print " pp tt ", hashlib.sha1(_cnomenkl(sector_tree.domains, sector_tree.parents+[sector_tree.pvar])).hexdigest(),\
-            hashlib.sha1(_cnomenkl(sector_tree.domains, sector_tree.parents+[sector_tree.pvar], ds=sector_tree.ds, subs=sector_tree.graph._subgraphs)).hexdigest(),\
-            _cnomenkl(sector_tree.domains, sector_tree.parents+[sector_tree.pvar], ds=sector_tree.ds, subs=sector_tree.graph._subgraphs), \
-            parents + [sector_tree.str()], \
-            sector_tree.domains
+
+        CL=ColouredLines(sector_tree.graph._edges_dict(), sector_tree.parents+[sector_tree])
+        graphstate=graph_state.GraphState(CL)
+
+#        print " pp tt ", hashlib.sha1(str(graphstate)).hexdigest(),\
+#            str(graphstate),\
+#            parents + [sector_tree.str()], \
+#            sector_tree.domains
+        print " pp tt ", hashlib.sha1(str(graphstate)).hexdigest(),\
+            parents + [sector_tree.str()]
     else:
         for branch in sector_tree.branches:
             print_tree(branch, parents + [sector_tree.str()])
@@ -559,7 +570,7 @@ def PrimaryTrees(graph, model):
 #    for subsect_vars in decompose_vars(graph._qi.keys()):
 #        pvar, svars = subsect_vars
 #        trees.append(SectorTree(pvar, svars, primary=True, domains=[Domain(graph._qi.keys(), graph._cons, graph._edges_dict(), model)]))
-    sect_tree=SectorTree(None,None,domains=[Domain(graph._qi.keys(), graph._cons, graph._edges_dict(), model)], graph=graph)
+    sect_tree=SectorTree(None,None,domains=[Domain(graph._qi.keys(), graph._cons, graph._edges_dict(), model)], graph=graph, UseSym=_SSym)
     return sect_tree.branches
 
 #    return trees
@@ -1353,7 +1364,7 @@ def save_sd(name, graph, model):
 
     if debug:
         for cnom in sectors:
-            print " pt pt ",  hashlib.sha1(cnom).hexdigest(), sectors[cnom].coef
+            print " pt pt ",  hashlib.sha1(str(cnom)).hexdigest(), sectors[cnom].coef
 
     print "ASectors2 = ", len(sectors.keys())
 
