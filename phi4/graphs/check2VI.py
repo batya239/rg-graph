@@ -53,6 +53,28 @@ def NLoopTree(tree):
         nodes=nodes|set(line.Nodes())
     return len(tree)-len(nodes)+1
 
+def add_trees(trees,idxs):
+    res=list()
+    for i in idxs:
+        res+=trees[i]
+    return res
+
+
+def combine_trees(trees):
+    if len(trees)<=2:
+        return [trees]
+    else:
+        res=list()
+        for n in range(1,len(trees)):
+            for comb in xUniqueCombinations(range(len(trees)),n):
+                rest=list(set(range(len(trees)))-set(comb))
+                tree1=add_trees(trees,comb)
+                tree2=add_trees(trees,rest)
+                res.append((tree1,tree2))
+        return res
+
+
+
   
 def check2VI(graph):
      int_nodes=[node for node in graph.xInternalNodes()]
@@ -61,14 +83,21 @@ def check2VI(graph):
      mintree=1000000
      minnodes=None
      for nodes in xUniqueCombinations( int_nodes, 2):
+#         print
+#         print nodes
          trees=Tree2V(graph,nodes[0],nodes[1])
-         if len(trees)<>1:
-             r2VI=False
-             maxcurtree=max(map(NLoopTree, trees))
-#             print nodes, trees
-             if maxcurtree<mintree:
-                 mintree=maxcurtree
-                 minnodes=nodes
+#         print trees, mintree
+#         if len(trees)<>1:
+         for trees_ in combine_trees(trees):
+
+             if len(trees_)==2:
+                 r2VI=False
+#                 print map(NLoopTree, trees_)
+                 maxcurtree=max(map(NLoopTree, trees_))
+    #             print nodes, trees
+                 if maxcurtree<mintree:
+                     mintree=maxcurtree
+                     minnodes=nodes
 
 #     print minnodes, "max subdiagramm = ",mintree
      return (minnodes, mintree )
@@ -83,16 +112,18 @@ g2=Graph(name)
 Prepare(g2,phi4)
 
 if int(sys.argv[2])==-1:
-   if len(g2._subgraphs)==0:
+    subgraphs.RemoveTadpoles(g2)
+    if len(g2._subgraphs)==0:
        print name
 else:
-   if len(g2._subgraphs)<>0:
-       (nodes,maxtree)=check2VI(g2)
-       if maxtree > int(sys.argv[2]):
-           subs_toremove=subgraphs.DetectSauseges(g2._subgraphs)
-           g2.RemoveSubgaphs(subs_toremove)
-           subgraphs.RemoveTadpoles(g2)
+    if len(g2._subgraphs)<>0:
+         (nodes,maxtree)=check2VI(g2)
+#         print nodes, maxtree
+         if maxtree > int(sys.argv[2]):
+             subs_toremove=subgraphs.DetectSauseges(g2._subgraphs)
+             g2.RemoveSubgaphs(subs_toremove)
+             subgraphs.RemoveTadpoles(g2)
 
-           print "%s %s maxtree=%s #subgraphs=%s %s"%(name,nodes,maxtree, len(g2._subgraphs), g2._subgraphs)
+             print "%s %s maxtree=%s #subgraphs=%s %s"%(name,nodes,maxtree, len(g2._subgraphs), g2._subgraphs)
 
 
