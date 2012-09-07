@@ -16,5 +16,7 @@ for nickel in utils.LoadFromGRC(sys.argv[1], phi4):
     g.FindSubgraphs(phi4)
     gas=g.asSubgraph()
     to_remove=subgraphs.DetectSauseges([gas]+g._subgraphs)
-    if not gas in to_remove:
+    if gas in to_remove:
+        print "%s %s S"%(nickel, g.sym_coef())
+    else:
         print "%s %s"%(nickel, g.sym_coef())
