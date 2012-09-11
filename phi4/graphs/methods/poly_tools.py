@@ -96,8 +96,8 @@ class poly_exp:
         for monom in self.poly:
             monom_=copy.copy(monom)
             if var in monom:
-                for i in range(monom.count(var)):
-                    monom_.remove(var)
+#                for i in range(monom.count(var)):
+                monom_.remove(var)
                 for i in range(monom.count(var)):
                     diff_.append(monom_)
         if len(diff_)==0:
@@ -209,7 +209,7 @@ def is1present(poly):
             return True
     return False
 
-def poly_list2ccode(poly_list):
+def poly_list2ccode(poly_list, check_bad_decompositions=True):
     res=""
     factor=dict()
     C=1.
@@ -231,7 +231,7 @@ def poly_list2ccode(poly_list):
             elif poly.power.a==0:
                 res+= "(1.)*"
             else:
-                if poly.power.a<0 and not unitpresent:
+                if check_bad_decompositions and (poly.power.a<0 and not unitpresent):
                     raise InvalidDecomposition, "polynom in negative power without 1 term"
                 res+= "pow(%s,%s)*"%(t_poly, poly.power.a)
         C=C*poly.coef.a
@@ -243,7 +243,7 @@ def poly_list2ccode(poly_list):
             if power.a ==1:
                 res+="(u%s)*"%(var)
             else:
-                if power.a<0:
+                if check_bad_decompositions and power.a<0:
                     raise DivergencePresent, "Negative power of feynman parameter ==> divergence"
                 res+="pow(u%s,%s)*"%(var,power.a)
     if C==1:
