@@ -74,6 +74,8 @@ class _phi3(_generic_model):
         self.nodes_modifiers={None:[], 'default':['tau','p']}
         self.nodes_dim={1:0}
         self.checktadpoles=False
+        self.target=4
+        self.workdir='/home/mkompan/work/rg-graph/phi_4/'
         
     
 class _phi4(_generic_model):
