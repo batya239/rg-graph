@@ -275,6 +275,8 @@ def RequiredDecompositions(degree):
     else:
         raise NotImplementedError, "Direct subtractions not available for graphs with degree=%s" % degree
 
+class SplitDomainError(Exception):
+    pass
 
 def SplitDomains(domains, graph, subgraph_idx=None, subgraph=None):
     new_domains = list()
@@ -295,7 +297,7 @@ def SplitDomains(domains, graph, subgraph_idx=None, subgraph=None):
         else:
             new_domains.append(domain)
     if not splitted:
-        raise Exception, "Failed to split domain. domains: %s, subgraph: %s" % (domains, subgraph_lines)
+        raise SplitDomainError, "Failed to split domain. domains: %s, subgraph: %s" % (domains, subgraph_lines)
     return new_domains
 
 
@@ -359,6 +361,7 @@ class SectorTree:
         self.strechs = None
         self.coef = coef
         self.graph = graph
+        self._bad_ds=[]
 
 
         if MaxSDLevel<0 or (len(self.parents)<MaxSDLevel or self.pvar==None):
@@ -403,7 +406,7 @@ class SectorTree:
 
             if len(vars) ==1:
 #                print self.parents, remove_cons(self.parents+[self.pvar], self.domains) + vars, self.domains
-                strechs+=strech_list(remove_cons(pvars, self.domains) + vars, self.graph)
+                strechs+=strech_list(remove_cons(pvars, self.domains) + vars, self.graph, unique=True)
 #                print strechs
             elif len(vars) > 1:
                 equiv_sectors = dict()
@@ -552,7 +555,7 @@ def apply_eq_onsub(qi2l, subgraphs_as_set):
     return res
 
 
-def strech_list(sector, graph):
+def strech_list(sector, graph, unique=False):
     """ generate list of strechs extracted in leading term by first pass of sector decomposition
     """
 
@@ -562,8 +565,10 @@ def strech_list(sector, graph):
         si = len(set(sector) & set(subs[j])) - graph._subgraphs[j].NLoopSub()
         #        print subs[j], sector, si
         strechs += [1000 + j] * si
-    return list(set(strechs))
-
+    if unique:
+        return list(set(strechs))
+    else:
+        return strechs
 
 def PrimaryTrees(graph, model):
     trees = list()
@@ -624,7 +629,7 @@ def strechs_on_tree(sector_tree, graph):
 #        sector_tree.strechs = strech_list(sector_tree.parents + [sector_tree.pvar], graph)
         if sector_tree.strechs==None:
             sector_tree.strechs=list()
-        sector_tree.strechs += strech_list(pvars_removed_cons(sector_tree) + [sector_tree.pvar], graph)
+        sector_tree.strechs += strech_list(pvars_removed_cons(sector_tree) + [sector_tree.pvar], graph, unique=True)
 #        print sector_tree.strechs
         return sector_tree.strechs
     else:
@@ -904,28 +909,37 @@ def ASectors(branches, graph, parent_ds=dict(), ds_vars=list(), lastDS=False):
     """
     generate branches for ds terms with a=0
     """
+#    print "-----"
     if lastDS:
-        needLastDS=False
-        for branch in branches:
+        needLastDS=[False,]*len(branches)
+        needLastDS_=False
+        for i in range(len(branches)):
+            branch=branches[i]
             if MaxABranches<0 or len(branch.ds)<MaxABranches:
-                if len(branch.branches)==0 and len(set(branch.strechs)-set(branch.ds.keys()))>0:
-                    needLastDS=True
+#                print
+#                print set(branch.strechs),set(branch.ds.keys()),set(branch._bad_ds)
+#                print (set(branch.strechs)-set(branch.ds.keys()))-set(branch._bad_ds), len((set(branch.strechs)-set(branch.ds.keys()))-set(branch._bad_ds))
+                if len(branch.branches)==0 and len((set(branch.strechs)-set(branch.ds.keys()))-set(branch._bad_ds))>0:
+                    needLastDS[i]=True
+                    needLastDS_=True
+#                print lastDS, needLastDS, needLastDS_
 
 
-    if len(branches) == 0 or (lastDS and not needLastDS):
+    if len(branches) == 0 or (lastDS and not needLastDS_):
         return
     else:
         #print
         new_branches = list()
         subs = graph._eqsubgraphs
-        for branch in branches:
+        for b_idx in range(len(branches)):
+            branch=branches[b_idx]
             if not lastDS:
                 branch.ds = copy.copy(parent_ds)
                 branch.ds_vars = copy.copy(ds_vars)
                 strechs, ds_vars_ = FindStrechsForDS(branch, graph)
             elif len(branch.branches)==0:
 
-                strechs=sorted(list(set(branch.strechs)-set(branch.ds.keys())))[:1]
+                strechs=sorted(list((set(branch.strechs)-set(branch.ds.keys())-set(branch._bad_ds))))[:1]
                 ds_vars_=list()
                 parent_ds=branch.ds
                 ds_vars=branch.ds_vars
@@ -945,8 +959,15 @@ def ASectors(branches, graph, parent_ds=dict(), ds_vars=list(), lastDS=False):
                 "ds_vars", branch.ds_vars, ds_vars_, "strechs", strechs, "domains", branch.domains
             if MaxABranches>=0 and len(branch.ds)>=MaxABranches:
                 continue
+            if lastDS and not needLastDS[b_idx]:
+                continue
+#            if lastDS:
+#                print b_idx, needLastDS[b_idx]
+#                print strechs
 
             for strech in strechs:
+                if strech in branch._bad_ds:
+                    continue
                 idx = strech - 1000
                 ds_ = copy.copy(parent_ds)
                 _subgraph = copy.copy(subs[idx])
@@ -962,27 +983,31 @@ def ASectors(branches, graph, parent_ds=dict(), ds_vars=list(), lastDS=False):
                         ds_[strech2] = 0
                     else:
                         ds_[strech2] = 1
-                    #                print "overlap", FindOverlapingSubgraphsIdx(subs, idx)
-                for idx2 in FindOverlapingSubgraphsIdx(subs, idx):
-                    if idx2 + 1000 not in ds_:
-                        ds_[idx2 + 1000] = 1
-
-                branch_ = SectorTree(branch.pvar, branch.svars, ds=ds_, ds_vars=branch.ds_vars+list(ds_vars_), parents=branch.parents,
-                    domains=SplitDomains(branch.domains, graph, subgraph=_subgraph), primary=branch.primary,
-                    coef=branch.coef, graph=graph, UseSym=_ASym)
-                if debug:
-                    print "child: ", branch_.parents,  branch_.pvar, branch_.ds, "ds_vars", ds_vars, "a_strechs", branch_.strechs
+#                if debug:
+#                    print "overlap", FindOverlapingSubgraphsIdx(subs, idx)
+#                for idx2 in FindOverlapingSubgraphsIdx(subs, idx):
+#                    if idx2 + 1000 not in ds_:
+#                        ds_[idx2 + 1000] = 1
+                try:
+                    branch_ = SectorTree(branch.pvar, branch.svars, ds=ds_, ds_vars=branch.ds_vars+list(ds_vars_), parents=branch.parents,
+                        domains=SplitDomains(branch.domains, graph, subgraph=_subgraph), primary=branch.primary,
+                        coef=branch.coef, graph=graph, UseSym=_ASym)
+                    if debug:
+                        print "child: ", branch_.parents,  branch_.pvar, branch_.ds, "ds_vars", ds_vars, "a_strechs", branch_.strechs
                 #strechs_on_tree(branch_,graph)
                 #                print "child: ", branch_.parents,  branch_.pvar, branch_.ds, "a_strechs", branch_.strechs
                 #                print branch_.str(), branch_.domains
                 #                print_tree(branch_)
                 #                print
-                branch.ds = copy.copy(parent_ds)
-                branch.ds_vars+=list(ds_vars_)
-                for strech2 in strechs:
-                    branch.ds[strech2] = 1
+                    branch.ds = copy.copy(parent_ds)
+                    branch.ds_vars+=list(ds_vars_)
+                    for strech2 in strechs:
+                        branch.ds[strech2] = 1
 #                print branch.ds, branch.ds_vars
-                new_branches.append(branch_)
+                    new_branches.append(branch_)
+                except SplitDomainError:
+                    branch._bad_ds.append(strech)
+                    pass
 
         for tree in new_branches:
             strechs_on_tree(tree, graph)
@@ -1203,12 +1228,12 @@ def save_sectors(g1, sector_terms, strech_vars, name_, idx, neps=0):
                 if D_ <> poly2str(log_func):
                     raise Exception, "Determinants are different: \n%s\n%s " % (D_, poly2str(log_func))
             try:
-                f_term = poly_list2ccode(factorize_poly_lst(leading))
+                f_term = poly_list2ccode(factorize_poly_lst(leading), check_bad_decompositions=_CheckBadDecomposition)
             except InvalidDecomposition:
-                raise Exception, "Invalid decomposition in sector %s\ndomains:%s\nexpr:\n%s" % (
-                sector, sector.domains, factorize_poly_lst(leading))
+                    raise Exception, "Invalid decomposition in sector %s\ndomains:%s\nexpr:\n%s" % (
+                    sector, sector.domains, factorize_poly_lst(leading))
             except DivergencePresent:
-                raise Exception, "Divergence present in sector: %s\ndomains:%s\nexpr:\n%s" % (sector, sector.domains, factorize_poly_lst(leading))
+                    raise Exception, "Divergence present in sector: %s\ndomains:%s\nexpr:\n%s" % (sector, sector.domains, factorize_poly_lst(leading))
 
             for j in range(neps + 1):
                 eps_term_ = (eps_poly * (sympy.exp(log_pow * e * sympy.log(D)))).diff(e, j).subs(e,

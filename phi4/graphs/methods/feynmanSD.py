@@ -11,6 +11,9 @@ save = sd_tools.save
 compile = sd_tools.compile
 sd_tools.code_=sd_tools.core_pv_code
 
+
+#sd_tools._CheckBadDecomposition=False
+
 def execute(name, model, points=10000, threads=4, calc_delta=0., neps=0):
     return calculate.execute("%s/%s/"%(method_name,name), model, points=points, threads=threads, calc_delta=calc_delta, neps=neps)
 
