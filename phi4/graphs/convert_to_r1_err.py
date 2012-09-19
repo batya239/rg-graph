@@ -1,10 +1,18 @@
 #!/usr/bin/python
+# -*- coding: utf8 -*-
 
-from utils.numbers import Number, Series
+from utils.numbers import Number, Series, sympyseries_to_list
+import math
+import copy
 
 minerr=10**-20
 minerr=0
 import sys
+if len(sys.argv)==3:
+    max_err=-int(sys.argv[2])
+else:
+    max_err=-3
+
 table=eval(open(sys.argv[1]).read())
 table['ee11-22-ee-']=[[0,],[minerr,]]
 table['ee11-22-33-ee-']=[[0,],[minerr,]]
@@ -38,6 +46,18 @@ table['ee11-22-34-445-5-ee-']=[[0   ,],[minerr,]]
 table['ee11-23-334-4-55-ee-']=[[0   ,],[minerr,]]
 table['e112-e2-33-45-e55-e-']=[[0   ,],[minerr,]]
 table['ee12-223-3-45-e55-e-']=[[0   ,],[minerr,]]
+table['ee12-223-3-45-e55-e-']=[[0   ,],[minerr,]]
+
+f_=dict() #for graph summs
+
+def sum(n_list, table):
+    res=[]
+    err=[]
+    for term in n_list:
+        coef, nomen=term
+        for i in range(len(table[nomen])):
+            if len(res)>i:
+                res[i]+=coef*table[nomen]
 
 
 
@@ -49,8 +69,11 @@ zeta = lambda x: sympy.special.zeta_functions.zeta(x).evalf()
 
 def f(nomenkl):
 
-    if nomenkl not in table.keys():
-        raise ValueError, "no such graph in table: %s"%nomenkl
+    if not table.has_key(nomenkl):
+        if not f_.has_key(nomenkl):
+            raise ValueError, "no such graph in table: %s"%nomenkl
+        else:
+            return f_[nomenkl]
     g=Graph(nomenkl)
     g.GenerateNickel()
     res=list()
@@ -67,8 +90,6 @@ def K(expr,N=1000):
 
 def printKR1(key):
     e=sympy.var('e')
-    print key
-    print "   ", KR1_ms[key].sympy_series()
     res=0
     bad=False
     if isinstance(key,tuple):
@@ -79,15 +100,31 @@ def printKR1(key):
             else:
                 bad=True
 #                print bad, g_
+        key_=str(key)
     elif key in kleinert.MS.keys():
          res=kleinert.MS[key].evalf()
+         key_=key
     else:
          bad=True
+
+    print key_
+    print "   ", KR1_ms[key_].sympy_series()
+
     if not bad:
         print "   ", res
         print
-        print "   ", (KR1_ms[key].sympy_err_series()), "  #my"
-        print "   ", (KR1_ms[key].sympy_series()-res).series(e,0,10000), "   #difference"
+        print "   ", (KR1_ms[key_].sympy_err_series()), "  #my"
+        tdif=(KR1_ms[key_].sympy_series()-res).series(e,0,10000)
+        print "   ", tdif, "   #difference"
+        if tdif<>0:
+            aa=int(math.log10(max(map(abs,[x[0] for x in sympyseries_to_list(tdif,e, start=-6)]))))
+            print "   MAX_ERR_POW=",aa,
+            if aa>=max_err:
+                print "  WARN"
+            else:
+                print
+        else:
+            print "   ","-10000"
 
 
 #    print "       ", KR1[key]
@@ -102,6 +139,8 @@ def KR(gamma, R1op, nloops):
         for t_ in gamma:
             coef, gamma_=t_
             kr1+=coef*f(gamma_)
+        f_[str(gamma)]=kr1
+
     else:
         kr1=f(gamma)
 #        print kr1
@@ -140,9 +179,9 @@ def KR(gamma, R1op, nloops):
     kr1_ms=K_ms(kr1_ms)
 #    print kr1_ms
     g_=K(g_)
-    KR1[gamma]=kr1
-    KR1_ms[gamma]=kr1_ms
-    G[gamma]=g_
+    KR1[str(gamma)]=kr1
+    KR1_ms[str(gamma)]=kr1_ms
+    G[str(gamma)]=g_
 
 
 
@@ -223,8 +262,11 @@ printKR1(gamma)
 
 
 G['ee11-ee-_1']=sympy.Number(1)/2*f('ee11-ee-')
+G['ee11-ee-_']=f('ee11-ee-')
 G['ee11-ee-_1k']=G['ee11-ee-']-G['ee11-ee-_1']
+G['ee11-ee-_k']=2*G['ee11-ee-']-G['ee11-ee-_']
 KR1['ee11-ee-_1k']=G['ee11-ee-_1k']
+KR1['ee11-ee-_k']=G['ee11-ee-_k']
 
 #4x 3loop 3
 gamma='ee12-ee3-333--'
@@ -467,25 +509,25 @@ printKR1(gamma)
 
 G['ee12-e22-e-_']=K(f('ee12-e22-e-')+f('ee11-ee-')*KR1['ee11-ee-'])
 G['ee12-e22-e-_k']=K(4*G['ee12-e22-e-']-G['ee12-e22-e-_'])
-KR1['ee12-e22-e-_k']=K(G['ee12-e22-e-_k']-2*G['ee11-ee-']*KR1['ee11-ee-_1k']-2*G['ee11-ee-_1k']*KR1['ee11-ee-'])
-
-print G['ee12-e22-e-_']
-print G['ee12-e22-e-']
+KR1['ee12-e22-e-_k']=K(G['ee12-e22-e-_k']-G['ee11-ee-']*KR1['ee11-ee-_k']-G['ee11-ee-_k']*KR1['ee11-ee-'])
 
 print "16+19"
 #4x 4loop 16+19
 gamma=(
-       (1,'ee12-e23-e4-444--'),
-       (1,'ee12-e33-444-e4--'),
+       (2,'ee12-e23-e4-444--'),
+       (2,'ee12-e33-444-e4--'),
       )
 R1op=[  
-      (0.5,'ee12-e22-e-_k',('e111-e-',)),
-      (1,'ee11-ee-',('ee12-ee3-333--',)),
-      (1,'ee12-ee3-333--',('ee11-ee-',)),
-      (-1,'ee11-ee-_1k',('ee11-ee-','e111-e-',)),
+      (1,'ee12-e22-e-_k',('e111-e-',)),
+      (2,'ee11-ee-',('ee12-ee3-333--',)),
+      (2,'ee12-ee3-333--',('ee11-ee-',)),
+      (-1,'ee11-ee-_k',('ee11-ee-','e111-e-',)),
      ]
 KR(gamma, R1op, 4)
 printKR1(gamma)
+#print K_ms(G[str(gamma)])
+#print K_ms(KR1[str(gamma)])
+#print K_ms(KR1['ee12-e22-e-_k'])
 
 #4x 4loop 17
 gamma='ee12-e34-e34-44--'
@@ -675,21 +717,67 @@ printKR1(gamma)
 #printKR1(gamma)
 
 
-print "4x 5loop 4 + 5 + 2* 12 + 2* 16"
+
+G['ee12-e23-33-e-_'] = K(f('ee12-e23-33-e-')+G['ee11-ee-_']*KR1['ee12-e22-e-']+G['ee12-e22-e-_']*KR1['ee11-ee-'])  #формула обратная формуле для f
+G['ee12-e23-33-e-_k'] = K(6*G['ee12-e23-33-e-']-G['ee12-e23-33-e-_'])              #каждая линия порождает диаграмму без точки и вклад в диаграмму с \partial_{m^2}
+KR1['ee12-e23-33-e-_k'] = K(G['ee12-e23-33-e-_k']-G['ee11-ee-_k']*KR1['ee12-e22-e-']-G['ee12-e22-e-_k']*KR1['ee11-ee-']-G['ee11-ee-']*KR1['ee12-e22-e-_k']-G['ee12-e22-e-']*KR1['ee11-ee-_k'])
+
+print
+print G['ee12-e23-33-e-_'].sympy_series()
+print G['ee12-e23-33-e-_k'].sympy_series()
+print KR1['ee12-e23-33-e-_k'].sympy_series()
+print KR1['ee11-ee-'].sympy_series()
+print G['ee11-ee-_'].sympy_series()
+print KR1['ee12-e22-e-'].sympy_series()
+print G['ee12-e22-e-_'].sympy_series()
+
+print "4x 5loop 4 + 5 + 6 + 12 + 2* 16"
 gamma=(
-    (1,'ee12-e23-44-555-e5--'),
-    (1,'ee12-e34-335-e-555--'),
-    (2,'ee12-333-445-5-e5-e-'),
-    (2,'ee12-e23-34-e5-555--'),
+    (1 ,'ee12-e23-44-555-e5--'),
+    (1 ,'ee12-e34-335-e-555--'),
+    (1 ,'ee12-333-445-5-e5-e-'),
+    (1 ,'ee12-e34-555-e44-5--'),
+    (2 ,'ee12-e23-34-e5-555--'),
     )
 
 R1op=[
-    (0.5,'ee12-e22-e-_k',('e111-e-',)),
-    (1,'ee11-ee-',('ee12-ee3-333--',)),
-    (1,'ee12-ee3-333--',('ee11-ee-',)),
-    (-1,'ee11-ee-_1k',('ee11-ee-','e111-e-',)),
+    (1,'ee12-e23-33-e-_k',('e111-e-',)),
+    (1,"((2, 'ee12-e23-e4-444--'), (2, 'ee12-e33-444-e4--'))",('ee11-ee-',)),
+#    (2,'ee12-e23-e4-444--',('ee11-ee-',)),
+#    (2,'ee12-e33-444-e4--',('ee11-ee-',)),
+    (-1,'ee12-e22-e-_k',('ee11-ee-','e111-e-')),
+    (-1,'ee11-ee-_k',('ee12-e22-e-','e111-e-')),
+    (2,'ee12-ee3-333--',('ee12-e22-e-',)),
+    (2,'ee12-e22-e-',('ee12-ee3-333--',)),
+    (1, 'ee11-ee-', ("((2, 'ee12-e23-e4-444--'), (2, 'ee12-e33-444-e4--'))",) )
+#    (2,'ee11-ee-',('ee12-e23-e4-444--',)),
+#    (2,'ee11-ee-',('ee12-e33-444-e4--',)),
 ]
 KR(gamma, R1op, 5)
+print
+print str(gamma)
+print KR1[str(gamma)]
+print
+print
+print 'ee12-e23-33-e-_k'
+print KR1['ee12-e23-33-e-_k'].sympy_series()
+print
+print
+print "((2, 'ee12-e23-e4-444--'), (2, 'ee12-e33-444-e4--'))"
+print KR1["((2, 'ee12-e23-e4-444--'), (2, 'ee12-e33-444-e4--'))"].sympy_series()
+print f("((2, 'ee12-e23-e4-444--'), (2, 'ee12-e33-444-e4--'))").sympy_series()
+print
+print
+print "ee12-e22-e-"
+print KR1["ee12-e22-e-"].sympy_series()
+print f("ee12-e22-e-").sympy_series()
+print
+print
+print "ee12-ee3-333--"
+print KR1["ee12-ee3-333--"].sympy_series()
+print f("ee12-ee3-333--").sympy_series()
+print
+
 printKR1(gamma)
 
 

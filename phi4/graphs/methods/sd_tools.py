@@ -290,9 +290,10 @@ def SplitDomains(domains, graph, subgraph_idx=None, subgraph=None):
 #    print
 #    print "domains", domains, subgraph_lines
     for domain in domains:
-        if subgraph_lines.issubset(set(domain.vars)):
+        subgraph_lines_=subgraph_lines & set(domain.vars)
+        if subgraph_lines_.issubset(set(domain.vars)) and len(subgraph_lines_)<>0:
 #            print domain
-            new_domains += list(domain.split(graph, subgraph_lines))
+            new_domains += list(domain.split(graph, subgraph_lines_))
             splitted = True
         else:
             new_domains.append(domain)

@@ -91,7 +91,8 @@ class Number:
             raise NotImplementedError, "pow of Number and not (int, float, sympy.Number)"
 
 def sympyseries_to_list(expr,var,start=0,end=10):
-    t=expr/var**start
+    t=(expr/var**start).expand()
+#    print t
     res=list()
     for i in range(end-start):
         res.append((t.subs(var,0),start+i))
