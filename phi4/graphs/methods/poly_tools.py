@@ -134,13 +134,18 @@ def set0_poly_lst(poly_lst, var):
     for poly in poly_lst:
 #        print var, poly
         poly_=poly.set0(var)
-        if len(poly_.poly)>0:
-            res.append(poly_)
+
+        if poly_.power.a==0 and poly_.power.b==0:
+            res.append(poly_exp([[]],(1,0)))
         else:
-            if poly_.power.a>=0:
-                return []
+
+            if len(poly_.poly)>0:
+                    res.append(poly_)
             else:
-                raise ZeroDivisionError,  "var:=%s poly=%s"%(var, poly)
+                if poly_.power.a>0:
+                    return []
+                else:
+                    raise ZeroDivisionError,  "var:=%s poly=%s"%(var, poly)
     return res
 
 def set1_poly_lst(poly_lst, var):
