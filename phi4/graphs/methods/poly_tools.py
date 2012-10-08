@@ -136,7 +136,7 @@ def set0_poly_lst(poly_lst, var):
         poly_=poly.set0(var)
 
         if poly_.power.a==0 and poly_.power.b==0:
-            res.append(poly_exp([[]],(1,0)))
+            res.append(poly_exp([[]], (1,0), coef=poly_.coef))
         else:
 
             if len(poly_.poly)>0:
