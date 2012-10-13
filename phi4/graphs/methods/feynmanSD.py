@@ -11,7 +11,9 @@ save = sd_tools.save
 compile = sd_tools.compile
 sd_tools.code_=sd_tools.core_pv_code
 
-
+sd_tools.MaxSDLevel=-1
+sd_tools.MaxABranches=-1
+sd_tools._CheckBadDecomposition=True
 #sd_tools._CheckBadDecomposition=False
 
 def execute(name, model, points=10000, threads=4, calc_delta=0., neps=0):
