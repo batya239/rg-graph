@@ -86,27 +86,25 @@ class Canonicalize(object):
         assertEqual(c.node_maps, [{10: 0, 11: 1}, {10: 1, 11: 0}])
     """
     def __init__(self, edges):
-        if not [n for n in flatten(edges) if n < 0]:
-            raise InputError('No external (negative) nodes found in the input.')
         if not IsConnected(edges):
             raise InputError('Input edge list is an unconnected graph.')
 
         self.orig = edges
 
-        self.num_internal_nodes = 0
+        num_internal_nodes = 0
         for n in set(flatten(edges)):
             if n >= 0:
-                self.num_internal_nodes += 1
+                num_internal_nodes += 1
 
         # Shift original nodes to free space for canonical numbers.
-        self.offset = max(100, self.num_internal_nodes)
+        self.offset = max(100, num_internal_nodes)
         def shift(n):
             return n + self.offset if n >= 0 else -1
         self.edges = [[shift(n), shift(m)] for [n, m] in edges]
 
         # Do the work.
         self.curr_states = self.InitStates(self.edges)
-        for _ in range(self.num_internal_nodes):
+        for _ in range(num_internal_nodes):
             self.curr_states = self.DoExpand(self.curr_states)
 
         # Collect results.
@@ -130,11 +128,16 @@ class Canonicalize(object):
 
     def InitStates(self, edges):
         """Creates all possible initial states for node 0."""
-        boundary_nodes = list(set(AdjacentNodes(-1, edges)))
+        all_nodes = set(flatten(edges))
+        if -1 in all_nodes:
+            boundary_nodes = set(AdjacentNodes(-1, edges))
+        else:
+            boundary_nodes = all_nodes
+
         states = []
-        for bound in boundary_nodes:
-            states.append(Expander(MapNodes2({bound: 0}, self.edges),
-                                                         [], {bound: 0}, 0, 1))
+        for node in boundary_nodes:
+            states.append(Expander(MapNodes2({node: 0}, self.edges),
+                                                         [], {node: 0}, 0, 1))
         return states
 
     def DoExpand(self, curr_states):

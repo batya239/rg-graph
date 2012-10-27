@@ -48,7 +48,6 @@ class TestCanonicalize(unittest.TestCase):
         self.assertEqual(len(c.InitStates([[-1, 10], [10, 11], [11, -1]])), 2)
 
     def testRaise(self):
-        self.assertRaises(nickel.InputError, nickel.Canonicalize, [[0, 1]])
         self.assertRaises(nickel.InputError, nickel.Canonicalize, [[0, 1], [2, 3]])
 
     def testCanon(self):
@@ -185,22 +184,18 @@ class TestUtil(unittest.TestCase):
 
 
 class TestOrigNickel(unittest.TestCase):
-    # TODO: Find an example in in which original Nickel's representation
-    # differs from ours.
+    def _testStr(self, orig_str):
+        c = nickel.Canonicalize(nickel.Nickel(string=orig_str).edges)
+        self.assertEqual(orig_str, str(c))
+
     def testOrigNickelCompare(self):
-        orig_str = 'e12-e3-333--'
-        c = nickel.Canonicalize(nickel.Nickel(string=orig_str).edges)
-        self.assertEqual(orig_str, str(c))
-
-    def testOrigNickelCompare1(self):
-        orig_str = 'e123-e24-34-e4-e-'
-        c = nickel.Canonicalize(nickel.Nickel(string=orig_str).edges)
-        self.assertEqual(orig_str, str(c))
-
-    def testOrigNickelCompare2(self):
-        orig_str = 'e112-e2-33-44-56-e66-e-'
-        c = nickel.Canonicalize(nickel.Nickel(string=orig_str).edges)
-        self.assertEqual(orig_str, str(c))
+        self._testStr('e12-e3-333--')
+        self._testStr('e123-e24-34-e4-e-')
+        self._testStr('e112-e2-33-44-56-e66-e-')
+        # Vacuum loops.
+        self._testStr('111--')
+        self._testStr('123-23-3--')
+        self._testStr('112-3-33--')
 
     def testFromStr(self):
         not_minimum = 'e1-3-e3--'
