@@ -14,7 +14,8 @@ class Nickel(object):
     'e1-e-'
     """
     SEP = '-'
-    node_to_char = {-2: SEP, -1: 'e', 10: 'A', 11: 'B', 12: 'C',
+    _SEP_ID = -6
+    node_to_char = {_SEP_ID: SEP, -1: 'e', 10: 'A', 11: 'B', 12: 'C',
                     13: 'D', 14: 'E', 15: 'F'}
     def __init__(self, edges=None, nickel=None, string=None):
         if edges != None:
@@ -49,7 +50,7 @@ class Nickel(object):
         return edges
 
     def StringFromNickel(self, nickel):
-        temp = [nn + [-2] for nn in nickel]
+        temp = [nn + [self._SEP_ID] for nn in nickel]
         temp = flatten(temp)
         temp = [str(Nickel.node_to_char.get(n, n)) for n in temp]
         return ''.join(temp)
@@ -61,7 +62,7 @@ class Nickel(object):
         nickel = []
         accum = []
         for n in flat_nickel:
-            if n != -2:
+            if n != self._SEP_ID:
                 accum.append(n)
             else:
                 nickel.append(accum)
