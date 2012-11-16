@@ -8,4 +8,6 @@
 
 # User files that may appear at the root
 ^\.do_not_commit
+MANIFEST
+dist/*
 
