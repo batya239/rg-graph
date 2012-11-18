@@ -29,6 +29,10 @@ class MultiIndexTestCase(unittest.TestCase):
         stretched = mi.stretch(1, [2, 3])
         self.assertEquals(stretched.__repr__(), '(x_1^7)(x_3^5)(x_5^1)')
 
+    def testEmpty(self):
+        empty = MultiIndex()
+        self.assertEquals(empty.__repr__(), '1')
+
     if __name__ == "__main__":
         unittest.main()
 

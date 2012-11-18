@@ -44,7 +44,7 @@ class Polynomial:
         nMonomials = {}
         for mi, c in self.monomials.items():
             nmi = mi.stretch(sVar, varList)
-            if nMonomials[nmi]:
+            if nMonomials.has_key(nmi):
                 nMonomials[nmi] += c
             else:
                 nMonomials[nmi] = c
@@ -58,9 +58,19 @@ class Polynomial:
         for mi in self.monomials.keys():
             deg, nmi = mi.diff(varIndex)
             nMonomials[nmi] = self.monomials[mi] * deg
-
         nMonomials = dict(filter(lambda m: m[1] <> 0, nMonomials.items()))
-        return Polynomial(nMonomials, self.degree, self.c)
+
+        if len(nMonomials) == 0:
+            return [Polynomial(dict(), 1, 0)]
+
+        result = list()
+        if self.c.isInt():
+            result.append(Polynomial(nMonomials, self.degree - 1, self.degree.multiplyOnInt(self.c.a)))
+        else:
+            result.append(Polynomial(nMonomials, self.degree - 1, self.c))
+            result.append(Polynomial(dict(), 1, self.degree))
+
+        return result
 
     def isZero(self):
         if self.c == 0:
@@ -74,7 +84,10 @@ class Polynomial:
 
     def __repr__(self):
         if len(self.monomials) == 0:
-            return 'empty polynomial'
+            if self.c == 0:
+                return 'empty polynomial'
+            else:
+                return '(%s)^(%s)' % (self.c, self.degree)
         internal = '+'.join(map(lambda v: '%s*%s' % (v[1], v[0]), self.monomials.items()))
         return '(%s)(%s)^(%s)' % (self.c, internal, self.degree)
 

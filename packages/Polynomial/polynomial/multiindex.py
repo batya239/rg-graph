@@ -29,7 +29,9 @@ class MultiIndex:
         if self.vars.has_key(varIndex):
             deg = self.vars[varIndex]
             nVars = copy.copy(self.vars)
-            nVars[varIndex] -= 1
+            if deg == 1:
+                del nVars[varIndex]
+            else: nVars[varIndex] -= 1
             return deg, MultiIndex(nVars)
         else:
             return 0, MultiIndex()
@@ -40,8 +42,8 @@ class MultiIndex:
         for v in varList:
             if nVars.has_key(v):
                 deltaDegree += nVars[v]
-        deg = nVars[sVar]
-        if deg:
+        if nVars.has_key(sVar):
+            deg = nVars[sVar]
             nVars[sVar] = deg + deltaDegree
         elif deltaDegree:
             nVars[sVar] = deltaDegree
@@ -57,6 +59,9 @@ class MultiIndex:
         return dict_hash1(self.vars)
 
     def __repr__(self):
-        return ''.join(map(lambda v: '(x_%s^%s)' % (v[0], v[1]), self.vars.items()))
+        if len(self.vars) == 0:
+            return '1'
+        else:
+            return ''.join(map(lambda v: '(x_%s^%s)' % (v[0], v[1]), self.vars.items()))
 
 

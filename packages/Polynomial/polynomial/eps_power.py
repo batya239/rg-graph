@@ -20,17 +20,18 @@ class EpsPower:
         else:
             return EpsPower(self.a - other.a, self.b - other.b)
 
-    def __mul__(self, other):
+    def multiplyOnInt(self, other):
         if isinstance(other, int):
             return EpsPower(self.a * other, self.b * other)
-        else:
-            return EpsPower(self.a - other.a, self.b - other.b)
 
     def __repr__(self):
-        return '%s + eps*%s' % (self.a, self.b)
+        return '%s+eps*%s' % (self.a, self.b)
 
     def isZero(self):
         return self.a == 0 and self.b == 0
+
+    def isInt(self):
+        return self.b == 0
 
 
 def epsPower(power):
@@ -38,6 +39,8 @@ def epsPower(power):
     """
     if isinstance(power, tuple):
         return EpsPower(power[0], power[1])
+    elif isinstance(power, int):
+        return EpsPower(power)
     elif isinstance(power, EpsPower):
         return power
     else: raise AssertionError, 'power should be correct type'
