@@ -2,7 +2,7 @@
 # -*- coding: utf8
 
 class EpsPower:
-    def __init__(self, a, b):
+    def __init__(self, a, b=0):
         """Represents power in form: a + eps*b
         """
         self.a = a
@@ -17,6 +17,12 @@ class EpsPower:
     def __sub__(self, other):
         if isinstance(other, int):
             return EpsPower(self.a - other, self.b)
+        else:
+            return EpsPower(self.a - other.a, self.b - other.b)
+
+    def __mul__(self, other):
+        if isinstance(other, int):
+            return EpsPower(self.a * other, self.b * other)
         else:
             return EpsPower(self.a - other.a, self.b - other.b)
 

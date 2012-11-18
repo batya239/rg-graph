@@ -6,7 +6,7 @@ setup(
     author='D. Batkovich',
     author_email='batya239@gmail.com',
     packages=['polynomial'],
-    url='http://pypi.python.org/pypi/TowelStuff/',
+    url='http://pypi.python.org/pypi/PolynomialTools/',
     license='LICENSE.txt',
     description='Polynomial stuff for SD',
     long_description=open('README.txt').read(),
