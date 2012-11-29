@@ -25,10 +25,10 @@ class PolynomialTestCase(unittest.TestCase):
 
     def testDiff(self):
         self.assertEquals(p.diff(1)[0].__repr__(), '(3+eps*1)(9*(x_1^2)(x_2^4)(x_3^1)(x_4^4)+5*(x_5^2))^(0+eps*2)')
-        self.assertEquals(p.diff(1)[1].__repr__(), '(1+eps*2)^(1+eps*0)')
+        self.assertEquals(p.diff(1)[1].__repr__(), '(1+eps*2)(1*1)^(1+eps*0)')
         self.assertEquals(p.diff(5)[0].__repr__(), '(3+eps*1)(10*(x_1^1)(x_5^1))^(0+eps*2)')
-        self.assertEquals(p.diff(5)[1].__repr__(), '(1+eps*2)^(1+eps*0)')
-        self.assertEquals(p.diff(7)[0].__repr__(), '(0+eps*0)^(1+eps*0)')
+        self.assertEquals(p.diff(5)[1].__repr__(), '(1+eps*2)(1*1)^(1+eps*0)')
+        self.assertEquals(p.diff(7)[0].__repr__(), 'empty polynomial')
 
     def testStretch(self):
         self.assertEquals(p.stretch(5, [1]).__repr__(), '(3+eps*1)(4*1+5*(x_1^1)(x_5^3)+3*(x_1^3)(x_2^4)(x_3^1)(x_4^4)(x_5^3))^(1+eps*2)')
