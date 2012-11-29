@@ -95,6 +95,9 @@ class Polynomial:
     def isZero(self):
         return self.c == 0
 
+    def getVarsIndexes(self):
+        return reduce(lambda indexes, mi: indexes | mi.getVarsIndexes(), self.monomials.keys(), set())
+
     def __eq__(self, other):
         return self.monomials == other.monomials and self.degree == other.degree and self.c == other.c
 
@@ -122,7 +125,7 @@ class Polynomial:
             return '(%s)*(%s)^(%s)' % (self.c, internal, self.degree)
 
 
-def importPolynomial(p, degree=1, c=1):
+def poly(p, degree=1, c=1):
     monomials = dict()
     for tMonomial in p:
         dMonomial = dict()

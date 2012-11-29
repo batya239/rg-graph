@@ -7,6 +7,10 @@ ex: (3, 0, 1) --> x_1^3 * x_3 -->  {1: 3, 3: 1}
 import copy
 from util import dict_hash1
 
+def formatVar(var):
+    return 'u%s' % var if isinstance(var, int) else str(var)
+
+
 class MultiIndex:
     def __init__(self, vars=dict()):
         """self.vars -- dictionary {variable index --> variable power}
@@ -21,7 +25,7 @@ class MultiIndex:
         if nVars.has_key(varIndex):
             del nVars[varIndex]
         return MultiIndex(nVars)
-            
+
     def diff(self, varIndex):
         """
         decrease power of varIndex if exist and returns old power
@@ -49,12 +53,14 @@ class MultiIndex:
             nVars[sVar] = deltaDegree
         return MultiIndex(nVars)
 
+    def getVarsIndexes(self):
+        indexes = set()
+        map(lambda v: indexes.add(formatVar(v)), self.vars.keys())
+        return indexes
+
     def __len__(self):
         return len(self.vars)
 
-    #
-    # to collect this in dict
-    #
     def __eq__(self, other):
         return self.vars == other.vars
 
@@ -66,5 +72,8 @@ class MultiIndex:
             return '1'
         else:
             return '*'.join(map(lambda v: 'x_%s^%s' % (v[0], v[1]) if v[1] <> 1 else 'x_%s' % v[0], self.vars.items()))
+
+
+
 
 

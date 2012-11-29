@@ -1,10 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf8
-from polynomial.polynomial_product import Logarithm, PolynomialProduct
 
 HUMAN = 'HUMAN'
 PYTHON = 'PYTHON'
 CPP = 'CPP'
+
 
 def format(obj, exportType):
     """
@@ -34,6 +34,8 @@ def _format(obj, exportType):
         raise ValueError, 'export type %s is unknown' % exportType
     return formatter.format(obj)
 
+from polynomial_product import PolynomialProduct, Logarithm
+from multiindex import formatVar
 
 class AbstractFormatter:
     def format(self, obj):
@@ -77,7 +79,7 @@ class AbstractFormatter:
     def formatPolynomial(self, p):
         if not p.c:
             return '0'
-        internal = '+'.join(map(lambda v: '%s%s%s' % (v[1], self.multiplicationSign(), self.formatMultiIndex(v[0])),
+        internal = '+'.join(map(lambda v: self.formatMultiIndex(v[0]) if v[1] == 1 else '%s%s%s' % (v[1], self.multiplicationSign(), self.formatMultiIndex(v[0])),
             p.monomials.items()))
         if p.c == 1:
             if not p.degree:
@@ -95,11 +97,9 @@ class AbstractFormatter:
             return '1'
         else:
             return self.multiplicationSign().join(
-                map(lambda v: self.degree(self.formatVar(v[0]), v[1]) if v[1] <> 1 else self.formatVar(v[0]),
+                map(lambda v: self.degree(formatVar(v[0]), v[1]) if v[1] <> 1 else formatVar(v[0]),
                     mi.vars.items()))
 
-    def formatVar(self, var):
-        return 'x_%s' % var if isinstance(var, int) else str(var)
 
     def formatEpsNumber(self, epsNumber):
         if not epsNumber.a:
