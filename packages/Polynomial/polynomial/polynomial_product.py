@@ -61,20 +61,22 @@ class PolynomialProduct:
 
         cPart = PolynomialProduct(map(lambda m: Polynomial(m.monomials, c=m.c), self.polynomials))
 
-        dPart = PolynomialProduct(map(lambda m: Polynomial(m.monomials, c=m.c), self.polynomials))
+        dPart = PolynomialProduct(map(lambda m: Polynomial(m.monomials, c=m.d), self.polynomials))
 
         epsPolynomial = getCoefficients(map(lambda p: p.c, self.polynomials))
 
         mainEpsExpansion = dict()
         if len(epsPolynomial) == 1 and epsPolynomial[0].isInt():
-            pass
+            for i in xrange(0, toIndex + 1):
+                coefficient = [Logarithm(dPart, epsPolynomial[0].a / factorial(i), i)]
+                mainEpsExpansion[i] = coefficient
         else:
             for i in xrange(0, toIndex + 1):
                 coefficient = []
                 for j in xrange(0, len(epsPolynomial)):
                     if i - j < 0:
                         continue
-                    coefficient.append(Logarithm(dPart, epsPolynomial[j] / factorial(i), j))
+                    coefficient.append(Logarithm(dPart, epsPolynomial[j] / factorial(i), i))
                 mainEpsExpansion[i] = coefficient
         return cPart, mainEpsExpansion
 
