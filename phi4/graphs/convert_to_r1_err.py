@@ -126,6 +126,8 @@ def printKR1(key):
         else:
             print "   ","-10000"
 
+        print "   G ", G[key_].sympy_series()
+
 
 #    print "       ", KR1[key]
 #    print "       ", G[key]
@@ -199,6 +201,8 @@ R1op=[]
 KR(gamma, R1op, 1)
 printKR1(gamma)
 
+print G['ee11-ee-'].sympy_series()
+
 
 #2x 2loop 1
 gamma='e111-e-'
@@ -224,6 +228,8 @@ R1op=[
 ]
 KR(gamma, R1op, 2)
 printKR1(gamma)
+
+print G['ee12-e22-e-'].sympy_series()
 
 
 #2x 3loop 1
@@ -641,8 +647,11 @@ printKR1(gamma)
 
 
 G['e111-e-_1']=sympy.Number(1)/3*f('e111-e-')
+G['e111-e-_']=f('e111-e-')
 G['e111-e-_1k']=K(G['e111-e-']-G['e111-e-_1'])
+G['e111-e-_k']=K(3*G['e111-e-']-G['e111-e-_'])
 KR1['e111-e-_1k']=K(G['e111-e-_1k'])
+KR1['e111-e-_k']=K(G['e111-e-_k'])
 
 print "2x 4loop 2"
 #2x 4loop 2
@@ -722,15 +731,6 @@ G['ee12-e23-33-e-_'] = K(f('ee12-e23-33-e-')+G['ee11-ee-_']*KR1['ee12-e22-e-']+G
 G['ee12-e23-33-e-_k'] = K(6*G['ee12-e23-33-e-']-G['ee12-e23-33-e-_'])              #каждая линия порождает диаграмму без точки и вклад в диаграмму с \partial_{m^2}
 KR1['ee12-e23-33-e-_k'] = K(G['ee12-e23-33-e-_k']-G['ee11-ee-_k']*KR1['ee12-e22-e-']-G['ee12-e22-e-_k']*KR1['ee11-ee-']-G['ee11-ee-']*KR1['ee12-e22-e-_k']-G['ee12-e22-e-']*KR1['ee11-ee-_k'])
 
-print
-print G['ee12-e23-33-e-_'].sympy_series()
-print G['ee12-e23-33-e-_k'].sympy_series()
-print KR1['ee12-e23-33-e-_k'].sympy_series()
-print KR1['ee11-ee-'].sympy_series()
-print G['ee11-ee-_'].sympy_series()
-print KR1['ee12-e22-e-'].sympy_series()
-print G['ee12-e22-e-_'].sympy_series()
-
 print "4x 5loop 4 + 5 + 6 + 12 + 2* 16"
 gamma=(
     (1 ,'ee12-e23-44-555-e5--'),
@@ -754,42 +754,76 @@ R1op=[
 #    (2,'ee11-ee-',('ee12-e33-444-e4--',)),
 ]
 KR(gamma, R1op, 5)
-print
-print str(gamma)
-print KR1[str(gamma)]
-print
-print
-print 'ee12-e23-33-e-_k'
-print KR1['ee12-e23-33-e-_k'].sympy_series()
-print
-print
-print "((2, 'ee12-e23-e4-444--'), (2, 'ee12-e33-444-e4--'))"
-print KR1["((2, 'ee12-e23-e4-444--'), (2, 'ee12-e33-444-e4--'))"].sympy_series()
-print f("((2, 'ee12-e23-e4-444--'), (2, 'ee12-e33-444-e4--'))").sympy_series()
-print
-print
-print "ee12-e22-e-"
-print KR1["ee12-e22-e-"].sympy_series()
-print f("ee12-e22-e-").sympy_series()
-print
-print
-print "ee12-ee3-333--"
-print KR1["ee12-ee3-333--"].sympy_series()
-print f("ee12-ee3-333--").sympy_series()
-print
-
 printKR1(gamma)
 
 
-print "4x 5loop 6"
+C1=Series([[Number(0.5,0),1]])
+#print C1.sympy_series()
+C2=Series([ [Number(3,0),0], [Number(-1.25,0),1], [Number(0.125,0),2]])
+C3=Series([ [Number(6,0),0], [Number(-1.5,0),1]])
+#print C2.sympy_series()
+
+G['ee11-ee-_k_']=K(C1*G['ee11-ee-_k'])
+print G['ee11-ee-_k'].sympy_series()
+print G['ee11-ee-_k_'].sympy_series()
+G['ee11-ee-_k_k']=K(C2*G['ee11-ee-'])
+#print G['ee11-ee-'].sympy_series()
+print G['ee11-ee-_k_k'].sympy_series()
+KR1['ee11-ee-_k_k']=G['ee11-ee-_k_k']
+
+print
+G['ee12-ee3-333--_']=K(f('ee12-ee3-333--')+0.5*G['ee11-ee-_k_']*KR1['e111-e-']+0.5*G['ee11-ee-_']*3*KR1['ee12-e22-e-'])
+print "G['ee12-ee3-333--_']",G['ee12-ee3-333--_'].sympy_series()
+print
+print f('ee12-ee3-333--').sympy_series()
+print
+print
+print G['ee12-ee3-333--'].sympy_series()
+G['ee12-ee3-333--_k']=K(6*G['ee12-ee3-333--']-G['ee12-ee3-333--_'])
+print
+print "G['ee12-ee3-333--_k']   ", G['ee12-ee3-333--_k'].sympy_series()
+print "G['ee12-ee3-333--_k'] P ", (C3*G['ee12-ee3-333--']).sympy_series()
+print
+G['ee12-ee3-333--_k']=K(C3*G['ee12-ee3-333--'])
+KR1['ee12-ee3-333--_k']=K(G['ee12-ee3-333--_k']-G['ee11-ee-_k_k']*KR1['e111-e-']-0.5*G['ee11-ee-_k']*KR1['e111-e-_k'])
+print
+print KR1['e111-e-_k'].sympy_series()
+print
+print KR1['ee12-ee3-333--_k'].sympy_series()
+KR1['ee12-ee3-333--_k']=K(C3*KR1['ee12-ee3-333--'])
+print KR1['ee12-ee3-333--_k'].sympy_series()
+
+print "4x 5loop 14 + 6*15 + 2*23"
+gamma=(
+    (1 ,'ee12-333-444-5-5-ee-'),
+    (6 ,'ee12-ee3-334-5-555--'),
+    (2 ,'ee12-ee3-444-555-5--'),
+    )
+
+R1op=[
+    (2,'ee12-ee3-333--_k',('e111-e-',)),
+    (-1,'ee11-ee-_k_k', ('e111-e-','e111-e-',)),
+    (3,'ee11-ee-_k', ('ee12-ee3-333--',)),
+]
+
+KR(gamma, R1op, 5)
+print
+print K(KR1[str(gamma)]).sympy_series()
+
+printKR1(gamma)
+
+print
+print G[str(gamma)].sympy_series()
+print KR1[str(gamma)].sympy_series()
+
+
+
 print "4x 5loop 7"
 print "4x 5loop 8"
 print "4x 5loop 10"
 print "4x 5loop 11"
 
 print "4x 5loop 13"
-print "4x 5loop 14"
-print "4x 5loop 15"
 
 print "4x 5loop 17"
 print "4x 5loop 18"
@@ -797,7 +831,7 @@ print "4x 5loop 19"
 print "4x 5loop 20"
 print "4x 5loop 21"
 print "4x 5loop 22"
-print "4x 5loop 23"
+
 print "4x 5loop 24"
 
 gamma='e112-34-e35-45-e5-e-'
