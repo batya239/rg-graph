@@ -38,3 +38,9 @@ print "\ndifferential"
 print HUMAN, format(PP_diff, HUMAN)[0]
 print PYTHON, format(PP_diff, PYTHON)[0]
 print CPP, format(PP_diff, CPP)[0]
+
+print "\n VarsIndexes"
+print PP_diff[0].getVarsIndexes()
+
+print "\n EpsExpansion""
+print PP_diff[0].epsExpansion(1)
