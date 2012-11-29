@@ -3,6 +3,7 @@
 from polynomial.polynomial_product import PolynomialProduct
 from polynomial.multiindex import MultiIndex
 from polynomial.polynomial import Polynomial
+from polynomial.formatter import format
 
 # u1
 
@@ -17,21 +18,19 @@ mi3=MultiIndex({1:1,3:1})
 mi4=MultiIndex({2:1,3:1, "a0":1})
 
 P2=Polynomial({mi2:1,mi3:1,mi4:1} , degree=(-2,1))
-pp=PolynomialProduct(set([P1, P2]))
+pp=PolynomialProduct([P1, P2])
 
 mi_u1_1=MultiIndex()
 mi_u1_2=MultiIndex({2:1})
 mi_u1_3=MultiIndex({3:1})
 p_u1=Polynomial({mi_u1_1:1,mi_u1_2:1,mi_u1_3:1},  degree=-1)
-pp_u1=PolynomialProduct(set([p_u1]))
-
+pp_u1=PolynomialProduct([p_u1])
 
 
 print "\ninitial expr"
 print pp.__repr__()
 
 pp1_23=pp.stretch(1,[2,3])
-
 
 print "\nsector 1(2,3)"
 print pp1_23
@@ -49,4 +48,6 @@ p_diff=pp_123_23.diff("a0")
 
 print
 
-print p_diff
+print format(p_diff, 'HUMAN')
+print format(p_diff, 'PYTHON')
+print format(p_diff, 'CPP')

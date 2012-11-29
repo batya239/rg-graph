@@ -44,7 +44,13 @@ class EpsNumber:
         return hash(self.a) + 31 * hash(self.b)
 
     def __repr__(self):
-        return '%s+eps*%s' % (self.a, self.b)
+        if self.a == 0:
+            return "eps*%s" % self.b
+        elif self.b == 0:
+            return str(self.a)
+        elif self.b == 1:
+            return '%s+eps' % self.a
+        else: return '%s+eps*%s' % (self.a, self.b)
 
     def __mul__(self, other):
         otherEpsPower = epsNumber(other)

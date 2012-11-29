@@ -21,6 +21,7 @@ def prepareMonomials(monomials):
     nMonomials = dict((mi, c) for mi, c in monomials.items() if c <> 0)
     return nMonomials if len(nMonomials) <> 0 else None
 
+
 class Polynomial:
     def __init__(self, monomials, degree=1, c=1):
         """
@@ -87,7 +88,7 @@ class Polynomial:
             result.append(Polynomial(cMonomials, self.degree - 1, self.degree * self.c.a))
         else:
             result.append(Polynomial(cMonomials, self.degree - 1, self.c))
-            result.append(Polynomial(dict({MultiIndex() : 1}), 1, self.degree))
+            result.append(Polynomial(dict({MultiIndex(): 1}), 1, self.degree))
 
         return result
 
@@ -108,7 +109,15 @@ class Polynomial:
 
     def __repr__(self):
         if self.c == 0:
-            return 'empty polynomial'
+            return '0'
         internal = '+'.join(map(lambda v: '%s*%s' % (v[1], v[0]), self.monomials.items()))
-        return '(%s)(%s)^(%s)' % (self.c, internal, self.degree)
+        if self.c == 1:
+            if self.degree == 0:
+                return "1"
+            elif self.degree == 1:
+                return  '(%s)' % internal
+            else:
+                return  '(%s)^(%s)' % (internal, self.degree)
+        else:
+            return '(%s)*(%s)^(%s)' % (self.c, internal, self.degree)
 

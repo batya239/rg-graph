@@ -5,6 +5,7 @@ import copy
 from math import factorial
 from eps_power import getCoefficients
 from polynomial import Polynomial
+from formatter import formatRepr
 
 def preparePolynomials(polynomials):
     isZero = False
@@ -13,14 +14,14 @@ def preparePolynomials(polynomials):
             isZero = True
             break
 
-    return set() if isZero else polynomials
+    return list() if isZero else polynomials
 
 
 class PolynomialProduct:
     """
     immutable PolynomialProduct
 
-    self.polynomials -- set of Polynomial
+    self.polynomials -- list of Polynomial
     """
 
     def __init__(self, polynomials):
@@ -42,12 +43,12 @@ class PolynomialProduct:
         """
         return set of PolynomialProduct
         """
-        result = set()
+        result = list()
         for p in self.polynomials:
-            polySet = copy.deepcopy(set(filter(lambda _p: _p <> p, self.polynomials)))
-            polySet |= set(p.diff(varIndex))
-            pp = PolynomialProduct(polySet)
-            if not pp.isZero(): result.add(pp)
+            polyList = copy.deepcopy(filter(lambda _p: _p <> p, self.polynomials))
+            polyList += p.diff(varIndex)
+            pp = PolynomialProduct(polyList)
+            if not pp.isZero(): result.append(pp)
 
         return result
 
@@ -84,7 +85,7 @@ class PolynomialProduct:
         return len(self.polynomials) == 0
 
     def __repr__(self):
-        return "empty polynomial product" if self.isZero() else '*'.join(map(lambda p: '(%s)' % p, self.polynomials))
+        return formatRepr(self)
 
 
 class Logarithm:

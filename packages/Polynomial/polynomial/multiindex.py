@@ -65,6 +65,6 @@ class MultiIndex:
         if len(self.vars) == 0:
             return '1'
         else:
-            return ''.join(map(lambda v: '(x_%s^%s)' % (v[0], v[1]), self.vars.items()))
+            return '*'.join(map(lambda v: 'x_%s^%s' % (v[0], v[1]) if v[1] <> 1 else 'x_%s' % v[0], self.vars.items()))
 
 
