@@ -12,6 +12,7 @@ self.c -- coefficient in front of polynomial
 c * (polynomial)^degree
 
 """
+import copy
 from eps_power import epsNumber
 from multiindex import MultiIndex
 from util import dict_hash1
@@ -78,11 +79,14 @@ class Polynomial:
         if not len(nMonomials):
             return [Polynomial(dict(), 1, 0)]
 
+        cMonomials = copy.deepcopy(self.monomials)
+
         result = list()
+        result.append(Polynomial(nMonomials))
         if self.c.isInt():
-            result.append(Polynomial(nMonomials, self.degree - 1, self.degree * self.c.a))
+            result.append(Polynomial(cMonomials, self.degree - 1, self.degree * self.c.a))
         else:
-            result.append(Polynomial(nMonomials, self.degree - 1, self.c))
+            result.append(Polynomial(cMonomials, self.degree - 1, self.c))
             result.append(Polynomial(dict({MultiIndex() : 1}), 1, self.degree))
 
         return result
