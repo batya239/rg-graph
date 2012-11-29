@@ -41,6 +41,26 @@ class AbstractFormatter:
         """
         pass
 
+    def log(self, a):
+        pass
+
+    def formatPolynomialProductLogarithm(self, log):
+        if not log.c:
+            return '0'
+        elif log.c == 1:
+            if not log.power:
+                return '1'
+            elif log.power == 1:
+                return self.formatPolynomialProduct(log.polynomialProduct)
+            else:
+                return self.degree(self.log(log.polynomialProduct), log.power)
+        else:
+            return '%s%s%s' % (log.c, self.multiplicationSign(), self.degree(self.log(log.polynomialProduct), log.power))
+
+    def formatPolynomialProduct(self, pp):
+        return '0' if pp.isZero() else self.multiplicationSign().join(
+            map(lambda p: '(%s)' % self.formatPolynomial(p), pp.polynomials))
+
     def formatPolynomial(self, p):
         if not p.c:
             return '0'
@@ -81,18 +101,27 @@ class CppFormatter(AbstractFormatter):
         return '*'
 
     def degree(self, a, b):
-        return "pow(%s, %s)" % (a, b)
+        return 'pow(%s, %s)' % (a, b)
+
+    def log(self, a):
+        return 'log(%s)' % a
 
 class HumanReadableFormatter(AbstractFormatter):
     def multiplicationSign(self):
         return '*'
 
     def degree(self, a, b):
-        return "(%s)^%s" % (a, b)
+        return '(%s)^%s' % (a, b)
+
+    def log(self, a):
+        return 'ln(%s)' % a
 
 class PythonFormatter(AbstractFormatter):
     def multiplicationSign(self):
         return '*'
 
     def degree(self, a, b):
-        return "(%s)**%s" % (a, b)
+        return '(%s)**%s' % (a, b)
+
+    def log(self, a):
+        return 'log(%s)' % a

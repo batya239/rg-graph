@@ -26,6 +26,7 @@ mi_u1_3=MultiIndex({3:1})
 p_u1=Polynomial({mi_u1_1:1,mi_u1_2:1,mi_u1_3:1},  degree=-1)
 pp_u1=PolynomialProduct([p_u1])
 
+A=[(1,[2,3,"a0"]),(1,[1,3]),(1,[1,2])]
 
 print "\ninitial expr"
 print pp.__repr__()

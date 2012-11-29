@@ -13,7 +13,7 @@ c * (polynomial)^degree
 
 """
 import copy
-from eps_power import epsNumber
+from eps_number import epsNumber
 from multiindex import MultiIndex
 from util import dict_hash1
 

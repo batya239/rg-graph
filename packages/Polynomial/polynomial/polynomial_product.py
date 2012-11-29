@@ -3,7 +3,7 @@
 
 import copy
 from math import factorial
-from eps_power import getCoefficients
+from eps_number import getCoefficients
 from polynomial import Polynomial
 from formatter import formatRepr
 
