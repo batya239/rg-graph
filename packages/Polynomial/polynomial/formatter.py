@@ -1,5 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf8
+from polynomial.polynomial_product import Logarithm, PolynomialProduct
+
+HUMAN = 'HUMAN'
+PYTHON = 'PYTHON'
+CPP = 'CPP'
 
 def format(obj, exportType):
     """
@@ -10,27 +15,34 @@ def format(obj, exportType):
     else:
         return _format(obj, exportType)
 
-def _format(polynomialProduct, exportType):
-    """
-    export type should one of (PYTHON, CPP)
-    """
-    if exportType == 'PYTHON':
-        return PythonFormatter().format(polynomialProduct)
-    elif exportType == 'CPP':
-        return CppFormatter().format(polynomialProduct)
-    elif exportType == 'HUMAN':
-        return HumanReadableFormatter().format(polynomialProduct)
-    else:
-        raise ValueError, 'export type %s is unknown' % exportType
 
 def formatRepr(polynomialProduct):
-    return format(polynomialProduct, 'HUMAN')
+    return format(polynomialProduct, HUMAN)
+
+
+def _format(obj, exportType):
+    """
+    export type should one of (PYTHON, CPP, HUMAN)
+    """
+    if exportType == PYTHON:
+        formatter = PythonFormatter()
+    elif exportType == CPP:
+        formatter = CppFormatter()
+    elif exportType == HUMAN:
+        formatter = HumanReadableFormatter()
+    else:
+        raise ValueError, 'export type %s is unknown' % exportType
+    return formatter.format(obj)
 
 
 class AbstractFormatter:
-    def format(self, pp):
-        return '0' if pp.isZero() else self.multiplicationSign().join(
-            map(lambda p: '(%s)' % self.formatPolynomial(p), pp.polynomials))
+    def format(self, obj):
+        if isinstance(obj, Logarithm):
+            return self.formatPolynomialProductLogarithm(obj)
+        elif isinstance(obj, PolynomialProduct):
+            return self.formatPolynomialProduct(obj)
+        else:
+            raise ValueError, 'Unsupported type %s' % type(obj)
 
     def multiplicationSign(self):
         pass
@@ -55,7 +67,8 @@ class AbstractFormatter:
             else:
                 return self.degree(self.log(log.polynomialProduct), log.power)
         else:
-            return '%s%s%s' % (log.c, self.multiplicationSign(), self.degree(self.log(log.polynomialProduct), log.power))
+            return '%s%s%s' % (
+            log.c, self.multiplicationSign(), self.degree(self.log(log.polynomialProduct), log.power))
 
     def formatPolynomialProduct(self, pp):
         return '0' if pp.isZero() else self.multiplicationSign().join(
@@ -64,7 +77,8 @@ class AbstractFormatter:
     def formatPolynomial(self, p):
         if not p.c:
             return '0'
-        internal = '+'.join(map(lambda v: '%s%s%s' % (v[1], self.multiplicationSign(), self.formatMultiIndex(v[0])), p.monomials.items()))
+        internal = '+'.join(map(lambda v: '%s%s%s' % (v[1], self.multiplicationSign(), self.formatMultiIndex(v[0])),
+            p.monomials.items()))
         if p.c == 1:
             if not p.degree:
                 return '1'
@@ -73,7 +87,8 @@ class AbstractFormatter:
             else:
                 return self.degree(internal, self.formatEpsNumber(p.degree))
         else:
-            return '(%s)%s%s' % (self.formatEpsNumber(p.c), self.multiplicationSign(), self.degree(internal, self.formatEpsNumber(p.degree)))
+            return '(%s)%s%s' % (
+            self.formatEpsNumber(p.c), self.multiplicationSign(), self.degree(internal, self.formatEpsNumber(p.degree)))
 
     def formatMultiIndex(self, mi):
         if not len(mi):
@@ -106,6 +121,7 @@ class CppFormatter(AbstractFormatter):
     def log(self, a):
         return 'log(%s)' % a
 
+
 class HumanReadableFormatter(AbstractFormatter):
     def multiplicationSign(self):
         return '*'
@@ -115,6 +131,7 @@ class HumanReadableFormatter(AbstractFormatter):
 
     def log(self, a):
         return 'ln(%s)' % a
+
 
 class PythonFormatter(AbstractFormatter):
     def multiplicationSign(self):
