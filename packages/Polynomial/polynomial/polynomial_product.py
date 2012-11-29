@@ -7,7 +7,7 @@ from eps_power import getCoefficients
 from polynomial import Polynomial
 from formatter import formatRepr
 
-def preparePolynomials(polynomials):
+def _preparePolynomials(polynomials):
     isZero = False
     for p in polynomials:
         if p.isZero():
@@ -25,7 +25,7 @@ class PolynomialProduct:
     """
 
     def __init__(self, polynomials):
-        self.polynomials = preparePolynomials(polynomials)
+        self.polynomials = _preparePolynomials(polynomials)
 
     def set1toVar(self, varIndex):
         return PolynomialProduct(map(lambda p: p.set1toVar(varIndex), self.polynomials))

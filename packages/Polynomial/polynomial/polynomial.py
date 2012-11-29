@@ -17,7 +17,7 @@ from eps_power import epsNumber
 from multiindex import MultiIndex
 from util import dict_hash1
 
-def prepareMonomials(monomials):
+def _prepareMonomials(monomials):
     nMonomials = dict((mi, c) for mi, c in monomials.items() if c <> 0)
     return nMonomials if len(nMonomials) <> 0 else None
 
@@ -27,7 +27,7 @@ class Polynomial:
         """
         monomials -- dictionary MultiIndex->int
         """
-        nMonomials = prepareMonomials(monomials)
+        nMonomials = _prepareMonomials(monomials)
         if nMonomials:
             self.monomials = nMonomials
             self.degree = epsNumber(degree)
@@ -120,4 +120,22 @@ class Polynomial:
                 return  '(%s)^(%s)' % (internal, self.degree)
         else:
             return '(%s)*(%s)^(%s)' % (self.c, internal, self.degree)
+
+
+def polynomial(p, degree=1, c=1):
+    monomials = dict()
+    for tMonomial in p:
+        dMonomial = dict()
+        coefficient = tMonomial[0]
+        for varIndex in tMonomial[1]:
+            if dMonomial.has_key(varIndex):
+                dMonomial[varIndex] += 1
+            else:
+                dMonomial[varIndex] = 1
+        mi = MultiIndex(dMonomial)
+        if monomials.has_key(mi):
+            monomials[mi] += coefficient
+        else:
+            monomials[mi] = coefficient
+    return Polynomial(monomials, degree, c)
 
