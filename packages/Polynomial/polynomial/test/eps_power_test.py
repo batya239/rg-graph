@@ -12,6 +12,10 @@ class EpsPowerTestCase(unittest.TestCase):
         self.assertEquals(sub.a, -2)
         self.assertEquals(sub.b, -2)
 
+    def testMultiply(self):
+        self.assertEquals((3 * EpsPower(1, 2)).a, 3)
+        self.assertEquals((3 * EpsPower(1, 2)).b, 6)
+
 if __name__ == "__main__":
     unittest.main()
 
