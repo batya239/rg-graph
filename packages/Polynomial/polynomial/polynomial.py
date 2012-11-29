@@ -12,6 +12,7 @@ self.c -- coefficient in front of polynomial
 c * (polynomial)^degree
 
 """
+from eps_power import epsNumber
 from multiindex import MultiIndex
 from util import dict_hash1
 
@@ -27,12 +28,12 @@ class Polynomial:
         nMonomials = prepareMonomials(monomials)
         if nMonomials:
             self.monomials = nMonomials
-            self.degree = epsPower(degree)
-            self.c = epsPower(c)
+            self.degree = epsNumber(degree)
+            self.c = epsNumber(c)
         else:
             self.monomials = dict()
-            self.degree = epsPower(1)
-            self.c = epsPower(0)
+            self.degree = epsNumber(1)
+            self.c = epsNumber(0)
 
 
     def set1toVar(self, varIndex):

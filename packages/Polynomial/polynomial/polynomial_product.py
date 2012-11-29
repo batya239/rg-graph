@@ -2,6 +2,8 @@
 # -*- coding: utf8
 
 import copy
+from math import factorial
+from eps_power import getCoefficients
 from polynomial import Polynomial
 
 def preparePolynomials(polynomials):
@@ -51,10 +53,30 @@ class PolynomialProduct:
 
     def epsExpansion(self, toIndex):
         """
+        toIndex includes,
         return tuple of polynomial product and list (with size = toIndex + 1) of lists of polynomials
         """
-        mainPart = PolynomialProduct(map(lambda m: Polynomial(m.monomials, c=m.c), self.polynomials))
-        #TODO
+        if self.isZero():
+            return None
+
+        cPart = PolynomialProduct(map(lambda m: Polynomial(m.monomials, c=m.c), self.polynomials))
+
+        dPart = PolynomialProduct(map(lambda m: Polynomial(m.monomials, c=m.c), self.polynomials))
+
+        epsPolynomial = getCoefficients(map(lambda p: p.c, self.polynomials))
+
+        mainEpsExpansion = dict()
+        if len(epsPolynomial) == 1 and epsPolynomial[0].isInt():
+            pass
+        else:
+            for i in xrange(0, toIndex + 1):
+                coefficient = []
+                for j in xrange(0, len(epsPolynomial)):
+                    if i - j < 0:
+                        continue
+                    coefficient.append(Logarithm(dPart, epsPolynomial[j] / factorial(i), j))
+                mainEpsExpansion[i] = coefficient
+        return cPart, mainEpsExpansion
 
     def isZero(self):
         return len(self.polynomials) == 0
@@ -67,12 +89,12 @@ class Logarithm:
     """
     logarithm from polynomial product
     """
-
-    def __init__(self, polynomialProduct, power=1):
+    def __init__(self, polynomialProduct, c=1, power=1):
         self.polynomialProduct = polynomialProduct
         self.power = power
+        self.c = c
 
     def __repr__(self):
-        return '(log^(%s)(%s))' % self.power, self.polynomialProduct
+        return '(%s*log^(%s)(%s))' % (self.c, self.power, self.polynomialProduct)
 
 
