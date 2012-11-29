@@ -49,6 +49,9 @@ class MultiIndex:
             nVars[sVar] = deltaDegree
         return MultiIndex(nVars)
 
+    def __len__(self):
+        return len(self.vars)
+
     #
     # to collect this in dict
     #

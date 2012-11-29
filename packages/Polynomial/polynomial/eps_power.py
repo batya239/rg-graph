@@ -20,18 +20,39 @@ class EpsPower:
         else:
             return EpsPower(self.a - other.a, self.b - other.b)
 
+    def __eq__(self, other):
+            if isinstance(other, int):
+                return self.a == other and self.b == 0
+            else:
+                return self.a == other.a and self.b == other.b
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     def multiplyOnInt(self, other):
         if isinstance(other, int):
             return EpsPower(self.a * other, self.b * other)
-
-    def __repr__(self):
-        return '%s+eps*%s' % (self.a, self.b)
 
     def isZero(self):
         return self.a == 0 and self.b == 0
 
     def isInt(self):
         return self.b == 0
+
+    def __hash__(self):
+        return hash(self.a) + 31 * hash(self.b)
+
+    def __repr__(self):
+        return '%s+eps*%s' % (self.a, self.b)
+
+    def __mul__(self, other):
+        otherEpsPower = epsPower(other)
+        if otherEpsPower.isInt():
+            return EpsPower(self.a * otherEpsPower.a, self.b * otherEpsPower.a)
+        else:
+            raise ValueError, "couldn't multiply %s on %s" % (self, other)
+
+    __rmul__ = __mul__
 
 
 def epsPower(power):

@@ -12,16 +12,28 @@ self.c -- coefficient in front of polynomial
 c * (polynomial)^degree
 
 """
-from eps_power import epsPower
+from multiindex import MultiIndex
+from util import dict_hash1
+
+def prepareMonomials(monomials):
+    nMonomials = dict((mi, c) for mi, c in monomials.items() if c <> 0)
+    return nMonomials if len(nMonomials) <> 0 else None
 
 class Polynomial:
-    def __init__(self, monomials, degree=(1, 0), c=(1, 0)):
+    def __init__(self, monomials, degree=1, c=1):
         """
         monomials -- dictionary MultiIndex->int
         """
-        self.monomials = monomials
-        self.degree = epsPower(degree)
-        self.c = epsPower(c)
+        nMonomials = prepareMonomials(monomials)
+        if nMonomials:
+            self.monomials = nMonomials
+            self.degree = epsPower(degree)
+            self.c = epsPower(c)
+        else:
+            self.monomials = dict()
+            self.degree = epsPower(1)
+            self.c = epsPower(0)
+
 
     def set1toVar(self, varIndex):
         nMonomials = {}
@@ -52,42 +64,46 @@ class Polynomial:
 
     def diff(self, varIndex):
         """
-        differentiate all monomials and remove zeros from list
+        return list of polynomials
         """
         nMonomials = dict()
         for mi in self.monomials.keys():
+            if not len(mi):
+                continue
             deg, nmi = mi.diff(varIndex)
-            nMonomials[nmi] = self.monomials[mi] * deg
-        nMonomials = dict(filter(lambda m: m[1] <> 0, nMonomials.items()))
+            if deg <> 0:
+                nMonomials[nmi] = self.monomials[mi] * deg
 
-        if len(nMonomials) == 0:
+        if not len(nMonomials):
             return [Polynomial(dict(), 1, 0)]
 
         result = list()
         if self.c.isInt():
-            result.append(Polynomial(nMonomials, self.degree - 1, self.degree.multiplyOnInt(self.c.a)))
+            result.append(Polynomial(nMonomials, self.degree - 1, self.degree * self.c.a))
         else:
             result.append(Polynomial(nMonomials, self.degree - 1, self.c))
-            result.append(Polynomial(dict(), 1, self.degree))
+            result.append(Polynomial(dict({MultiIndex() : 1}), 1, self.degree))
 
         return result
 
     def isZero(self):
-        if self.c == 0:
-            return True
-        isZero = True
-        for c in self.monomials.values():
-            if c:
-                isZero = False
-                break
-        return isZero
+        return self.c == 0
+
+    def __eq__(self, other):
+        return self.monomials == other.monomials and self.degree == other.degree and self.c == other.c
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        hashCode = dict_hash1(self.monomials)
+        hashCode = 31 * hashCode + hash(self.c)
+        hashCode = 31 * hashCode + hash(self.degree)
+        return hashCode
 
     def __repr__(self):
-        if len(self.monomials) == 0:
-            if self.c == 0:
-                return 'empty polynomial'
-            else:
-                return '(%s)^(%s)' % (self.c, self.degree)
+        if self.c == 0:
+            return 'empty polynomial'
         internal = '+'.join(map(lambda v: '%s*%s' % (v[1], v[0]), self.monomials.items()))
         return '(%s)(%s)^(%s)' % (self.c, internal, self.degree)
 
