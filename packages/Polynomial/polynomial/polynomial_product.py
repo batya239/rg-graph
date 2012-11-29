@@ -1,10 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf8
-"""
-immutable PolynomialProduct
 
-self.polynomials -- set of Polynomial
-"""
 import copy
 from polynomial import Polynomial
 
@@ -19,6 +15,12 @@ def preparePolynomials(polynomials):
 
 
 class PolynomialProduct:
+    """
+    immutable PolynomialProduct
+
+    self.polynomials -- set of Polynomial
+    """
+
     def __init__(self, polynomials):
         self.polynomials = preparePolynomials(polynomials)
 
@@ -51,7 +53,7 @@ class PolynomialProduct:
         """
         return tuple of polynomial product and list (with size = toIndex + 1) of lists of polynomials
         """
-        mainPart = PolynomialProduct(map(lambda m: Polynomial(m.monomials, m.degree.a, m.c), self.polynomials))
+        mainPart = PolynomialProduct(map(lambda m: Polynomial(m.monomials, c=m.c), self.polynomials))
         #TODO
 
     def isZero(self):
@@ -59,5 +61,18 @@ class PolynomialProduct:
 
     def __repr__(self):
         return "empty polynomial product" if self.isZero() else '*'.join(map(lambda p: '(%s)' % p, self.polynomials))
+
+
+class Logarithm:
+    """
+    logarithm from polynomial product
+    """
+
+    def __init__(self, polynomialProduct, power=1):
+        self.polynomialProduct = polynomialProduct
+        self.power = power
+
+    def __repr__(self):
+        return '(log^(%s)(%s))' % self.power, self.polynomialProduct
 
 

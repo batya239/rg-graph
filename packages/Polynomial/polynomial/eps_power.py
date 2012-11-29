@@ -65,7 +65,3 @@ def epsPower(power):
     elif isinstance(power, EpsPower):
         return power
     else: raise AssertionError, 'power should be correct type'
-
-ONE = epsPower(1)
-
-ZERO = epsPower(0)

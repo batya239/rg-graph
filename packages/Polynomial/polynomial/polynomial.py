@@ -12,7 +12,6 @@ self.c -- coefficient in front of polynomial
 c * (polynomial)^degree
 
 """
-from eps_power import epsPower, ONE, ZERO
 from multiindex import MultiIndex
 from util import dict_hash1
 
@@ -21,7 +20,7 @@ def prepareMonomials(monomials):
     return nMonomials if len(nMonomials) <> 0 else None
 
 class Polynomial:
-    def __init__(self, monomials, degree=ONE, c=ONE):
+    def __init__(self, monomials, degree=1, c=1):
         """
         monomials -- dictionary MultiIndex->int
         """
@@ -32,8 +31,8 @@ class Polynomial:
             self.c = epsPower(c)
         else:
             self.monomials = dict()
-            self.degree = epsPower(ONE)
-            self.c = epsPower(ZERO)
+            self.degree = epsPower(1)
+            self.c = epsPower(0)
 
 
     def set1toVar(self, varIndex):
