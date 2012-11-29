@@ -95,6 +95,6 @@ class Logarithm:
         self.c = c
 
     def __repr__(self):
-        return '(%s*log^(%s)(%s))' % (self.c, self.power, self.polynomialProduct)
+        return '(%s*log^(%s)(%s))' % (self.c, self.power, self.polynomialProduct) if self.power else '(%s)' % self.c
 
 
