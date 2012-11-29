@@ -1,32 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf8
-from polynomial.multiindex import MultiIndex
-from polynomial.polynomial import Polynomial, poly
-from polynomial.formatter import format
-from polynomial.polynomial_product import PolynomialProduct, poly_prod
+from polynomial.polynomial import poly
+from polynomial.formatter import format, HUMAN, PYTHON, CPP
+from polynomial.polynomial_product import poly_prod
 
-
-
-# u1
-
-mi1 = MultiIndex({1: 2})
-P1 = Polynomial({mi1: 1})
-#P1_=Polynomial({mi1:1})
-
-# (u1 u2 +u1 u3 +u2 u3)**(2-e)
-
-mi2 = MultiIndex({1: 1, 2: 1})
-mi3 = MultiIndex({1: 1, 3: 1})
-mi4 = MultiIndex({2: 1, 3: 1, "a0": 1})
-
-P2 = Polynomial({mi2: 1, mi3: 1, mi4: 1}, degree=(-2, 1))
-pp = PolynomialProduct([P1, P2])
-
-mi_u1_1 = MultiIndex()
-mi_u1_2 = MultiIndex({2: 1})
-mi_u1_3 = MultiIndex({3: 1})
-p_u1 = Polynomial({mi_u1_1: 1, mi_u1_2: 1, mi_u1_3: 1}, degree=-1)
-pp_u1 = PolynomialProduct([p_u1])
 
 # u1**2
 P1 = poly([(1, [1, 1])])
@@ -35,26 +12,29 @@ P2 = poly([(1, [2, 3, "a0"]), (1, [1, 3]), (1, [1, 2])], degree=(-2, 1))
 # P1 * P2
 PP = poly_prod([P1, P2])
 
-print "\ninitial expr"
-print pp.__repr__()
+# (1 + u2 + u3)**(-1)
+P1_u1 = poly([(1, []), (1, [2]), (1, [3])], degree=-1)
+PP_u1 = poly_prod([P1_u1])
 
-pp1_23 = pp.stretch(1, [2, 3])
+print "\ninitial expression"
+print PP.__repr__()
+
+PP1_23 = PP.stretch(1, [2, 3])
 
 print "\nsector 1(2,3)"
-print pp1_23
-PP_1_23 = (pp1_23, pp_u1)
+print PP1_23
+PP_1_23 = (PP1_23, PP_u1)
 
 PP_1_23_2_3 = map(lambda x: x.stretch(2, [3]), PP_1_23)
 
 print "\nsector 1(2,3),2(3)"
 print PP_1_23_2_3
 
-pp_123_23 = PP_1_23_2_3[0]
+PP_123_23 = PP_1_23_2_3[0]
 
-p_diff = pp_123_23.diff("a0")
+PP_diff = PP_123_23.diff("a0")
 
-print
-
-print format(p_diff, 'HUMAN')
-print format(p_diff, 'PYTHON')
-print format(p_diff, 'CPP')
+print "\ndifferential"
+print HUMAN, format(PP_diff, HUMAN)[0]
+print PYTHON, format(PP_diff, PYTHON)[0]
+print CPP, format(PP_diff, CPP)[0]

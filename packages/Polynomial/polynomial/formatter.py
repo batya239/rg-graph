@@ -103,12 +103,12 @@ class AbstractFormatter:
 
     def formatEpsNumber(self, epsNumber):
         if not epsNumber.a:
-            return "(eps%s%s)" % (self.multiplicationSign(), epsNumber.b)
+            return "eps%s%s" % (self.multiplicationSign(), epsNumber.b)
         elif not epsNumber.b:
             return str(epsNumber.a)
         elif epsNumber.b == 1:
-            return '(%s+eps)' % epsNumber.a
-        else: return '(%s+eps%s%s)' % (epsNumber.a, self.multiplicationSign(), epsNumber.b)
+            return '%s+eps' % epsNumber.a
+        else: return '%s+eps%s%s' % (epsNumber.a, self.multiplicationSign(), epsNumber.b)
 
 
 class CppFormatter(AbstractFormatter):
@@ -127,7 +127,7 @@ class HumanReadableFormatter(AbstractFormatter):
         return '*'
 
     def degree(self, a, b):
-        return '(%s)^%s' % (a, b)
+        return '(%s)^(%s)' % (a, b)
 
     def log(self, a):
         return 'ln(%s)' % a
@@ -138,7 +138,7 @@ class PythonFormatter(AbstractFormatter):
         return '*'
 
     def degree(self, a, b):
-        return '(%s)**%s' % (a, b)
+        return '(%s)**(%s)' % (a, b)
 
     def log(self, a):
         return 'log(%s)' % a
