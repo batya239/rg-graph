@@ -6,6 +6,7 @@ from math import factorial
 from eps_number import getCoefficients
 from polynomial import Polynomial
 from formatter import formatRepr
+from polynomial.polynomial import importPolynomial
 
 def _preparePolynomials(polynomials):
     isZero = False
@@ -88,10 +89,15 @@ class PolynomialProduct:
         return formatRepr(self)
 
 
+def importPolynomialProduct(polynomials):
+    return PolynomialProduct(map(lambda p: importPolynomial(p), polynomials))
+
+
 class Logarithm:
     """
     logarithm from polynomial product
     """
+
     def __init__(self, polynomialProduct, c=1, power=1):
         self.polynomialProduct = polynomialProduct
         self.power = power

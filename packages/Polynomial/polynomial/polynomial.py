@@ -122,7 +122,7 @@ class Polynomial:
             return '(%s)*(%s)^(%s)' % (self.c, internal, self.degree)
 
 
-def polynomial(p, degree=1, c=1):
+def importPolynomial(p, degree=1, c=1):
     monomials = dict()
     for tMonomial in p:
         dMonomial = dict()

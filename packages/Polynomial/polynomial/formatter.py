@@ -11,7 +11,7 @@ def format(obj, exportType):
     export type should one of (PYTHON, CPP)
     """
     if isinstance(obj, list):
-        return map(lambda pp: _format(pp, exportType), obj)
+        return map(lambda o: _format(o, exportType), obj)
     else:
         return _format(obj, exportType)
 
