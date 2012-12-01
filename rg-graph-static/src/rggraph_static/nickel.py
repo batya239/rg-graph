@@ -111,8 +111,9 @@ class Nickel(object):
                 backward_nodes[forward_node].append(node_id)
             adjacent[node_id] = backward_nodes[node_id]
             adjacent[node_id].extend(forward_nodes)
+        for node in adjacent:
+            adjacent[node].sort()
         return adjacent
-
 
 
 class InputError(Exception):
