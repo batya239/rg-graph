@@ -42,6 +42,12 @@ class TestNickel(unittest.TestCase):
         n = nickel.Nickel(edges=[(-1, 0), (-1, 1), (0, 1)])
         self.assertEqual(n.edges, [[-1, 0], [0, 1], [-1, 1]])
 
+    def testNickelToAdjacent(self):
+        n = nickel.Nickel(nickel=[[1], []])
+        self.assertEqual({0: [1], 1: [0]}, n.adjacent)
+        n = nickel.Nickel(nickel=[[1]])
+        self.assertNotEqual({0: [1], 1: [0]}, n.adjacent)
+
 
 class TestCanonicalize(unittest.TestCase):
     def testInit(self):

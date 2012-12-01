@@ -1,12 +1,14 @@
 #!/usr/bin/python
 # -*- coding:utf8
 
+import collections
 import itertools
 
 class Nickel(object):
     """Class to convert graph representations.
 
-    Possible representations are string, edges, nickel-list.
+    Possible representations are serialized Nickel-string, list of edges,
+    Nickel-list of nodes, node adjacency dictionary.
     Usage:
     >>> n = nickel.Nickel(edges=[[-1, 0], [0, 1], [1, -1]])
     >>> n.nickel
@@ -26,10 +28,9 @@ class Nickel(object):
         self._edges = None
         self._nickel = None
         self._string = None
+        self._adjacent = None
         if edges != None:
-            self._edges = [sorted(edge) for edge in edges]
-            self._edges.sort(key=lambda e: e if e[0] >= 0 else [e[1], e[0]])
-            self._nickel = self.NickelFromEdges(self.edges)
+            self._nickel = self.NickelFromEdges(edges)
         elif nickel != None:
             self._nickel = [sorted(nn) for nn in nickel]
         elif string != None:
@@ -52,6 +53,12 @@ class Nickel(object):
         if self._string is None:
             self._string = self.StringFromNickel(self._nickel)
         return self._string
+
+    @property
+    def adjacent(self):
+        if self._adjacent is None:
+            self._adjacent = self.NickelToAdjacent(self._nickel)
+        return self._adjacent
 
     @classmethod
     def NickelFromEdges(self, edges):
@@ -93,6 +100,19 @@ class Nickel(object):
                 nickel.append(accum)
                 accum = []
         return nickel
+
+    @staticmethod
+    def NickelToAdjacent(nickel_list):
+        """Returns map of node id to adjacent nodes."""
+        adjacent = {}
+        backward_nodes = collections.defaultdict(list)
+        for node_id, forward_nodes in enumerate(nickel_list):
+            for forward_node in forward_nodes:
+                backward_nodes[forward_node].append(node_id)
+            adjacent[node_id] = backward_nodes[node_id]
+            adjacent[node_id].extend(forward_nodes)
+        return adjacent
+
 
 
 class InputError(Exception):
