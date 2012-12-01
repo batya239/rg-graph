@@ -14,10 +14,14 @@ class Nickel(object):
     'e1-e-'
     """
     SEP = '-'
-    _SEP_ID = -6
+    _SEP_ID = -600
     node_to_char = {_SEP_ID: SEP, -1: 'e', 10: 'A', 11: 'B', 12: 'C',
                     13: 'D', 14: 'E', 15: 'F'}
     def __init__(self, edges=None, nickel=None, string=None):
+        num_args = len(filter(lambda x: x is not None, (edges, nickel, string)))
+        if num_args != 1:
+            raise InputError(
+                'Exactly one argument is expected. Received %d' % num_args)
         if edges != None:
             self.edges = [sorted(edge) for edge in edges]
             self.edges.sort(key=lambda e: e if e[0] >= 0 else [e[1], e[0]])
