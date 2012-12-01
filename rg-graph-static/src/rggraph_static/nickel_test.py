@@ -6,6 +6,9 @@ import unittest
 #TODO: Exclude generator tests from nickel tests
 
 class TestNickel(unittest.TestCase):
+    def testRaisesOnManyArgs(self):
+        self.assertRaises(nickel.InputError, nickel.Nickel, edges=[], nickel=[])
+
     def testNickelFromEdges(self):
         e = nickel.Nickel(edges=[[0, -1], [-1, 0]])
         self.assertEqual(e.nickel, [[-1, -1]])
