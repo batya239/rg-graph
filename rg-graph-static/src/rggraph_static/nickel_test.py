@@ -50,6 +50,10 @@ class TestNickel(unittest.TestCase):
         n = nickel.Nickel(nickel=[[-1, 1], [-1]])
         self.assertEqual({0: [-1, 1], 1: [-1, 0]}, n.adjacent)
 
+    def testAdjacentDobleEdge(self):
+        n = nickel.Nickel(edges=[[0, 1], [0, 1]])
+        self.assertEqual({0: [1, 1], 1: [0, 0]}, n.adjacent)
+
 
 class TestCanonicalize(unittest.TestCase):
     def testInit(self):
