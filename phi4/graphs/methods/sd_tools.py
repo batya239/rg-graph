@@ -1349,6 +1349,12 @@ def save_sd(name, graph, model):
 
     A3 = poly_exp(ua, (1, 0))
     print
+
+    print "A1 ", A1
+    print
+    print "A2 ", A2
+    print
+
     print "A3 ", A3
 
     if graph._cdet <> None:
