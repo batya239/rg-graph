@@ -7,7 +7,7 @@ from polynomial.polynomial_product import poly_prod
 
 # u1**2
 P1 = poly([(1, [1, 1])])
-# (u1 u2 + u1 u3 + u2 u3)**(2-e)
+# (u1 u2 + u1 u3 + u2 u3)**(-2+e)
 P2 = poly([(1, [2, 3, "a0"]), (1, [1, 3]), (1, [1, 2])], degree=(-2, 1))
 # P1 * P2
 PP = poly_prod([P1, P2])
@@ -38,3 +38,9 @@ print "\ndifferential"
 print HUMAN, format(PP_diff, HUMAN)[0]
 print PYTHON, format(PP_diff, PYTHON)[0]
 print CPP, format(PP_diff, CPP)[0]
+
+print "\n VarsIndexes"
+print PP_diff[0].getVarsIndexes()
+
+print "\n EpsExpansion"
+print PP_diff[0].epsExpansion(1)

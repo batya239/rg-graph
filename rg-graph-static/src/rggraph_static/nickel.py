@@ -1,11 +1,14 @@
 #!/usr/bin/python
 # -*- coding:utf8
 
+import collections
 import itertools
 
 class Nickel(object):
-    """Class to generate Nickel-like graph notations.
+    """Class to convert graph representations.
 
+    Possible representations are serialized Nickel-string, list of edges,
+    Nickel-list of nodes, node adjacency dictionary.
     Usage:
     >>> n = nickel.Nickel(edges=[[-1, 0], [0, 1], [1, -1]])
     >>> n.nickel
@@ -14,33 +17,61 @@ class Nickel(object):
     'e1-e-'
     """
     SEP = '-'
-    node_to_char = {-2: SEP, -1: 'e', 10: 'A', 11: 'B', 12: 'C',
+    _SEP_ID = -600
+    NODE_TO_CHAR = {_SEP_ID: SEP, -1: 'e', 10: 'A', 11: 'B', 12: 'C',
                     13: 'D', 14: 'E', 15: 'F'}
     def __init__(self, edges=None, nickel=None, string=None):
+        num_args = len(filter(lambda x: x is not None, (edges, nickel, string)))
+        if num_args != 1:
+            raise InputError(
+                'Exactly one argument is expected. Received %d' % num_args)
+        self._edges = None
+        self._nickel = None
+        self._string = None
+        self._adjacent = None
         if edges != None:
-            self.edges = [sorted(edge) for edge in edges]
-            self.edges.sort(key=lambda e: e if e[0] >= 0 else [e[1], e[0]])
-            self.nickel = self.NickelFromEdges(self.edges)
-            self.string = self.StringFromNickel(self.nickel)
+            self._nickel = self.NickelFromEdges(edges)
         elif nickel != None:
-            self.nickel = [sorted(nn) for nn in nickel]
-            self.edges = self.EdgesFromNickel(self.nickel)
-            self.string = self.StringFromNickel(self.nickel)
+            self._nickel = [sorted(nn) for nn in nickel]
         elif string != None:
-            self.string = string
-            self.nickel = self.NickelFromString(string)
-            self.edges = self.EdgesFromNickel(self.nickel)
+            self._string = string
+            self._nickel = self.NickelFromString(string)
 
+    @property
+    def nickel(self):
+        # nickel is the main representation and is expected to be set.
+        return self._nickel
+
+    @property
+    def edges(self):
+        if self._edges is None:
+            self._edges = self.EdgesFromNickel(self._nickel)
+        return self._edges
+
+    @property
+    def string(self):
+        if self._string is None:
+            self._string = self.StringFromNickel(self._nickel)
+        return self._string
+
+    @property
+    def adjacent(self):
+        if self._adjacent is None:
+            self._adjacent = self.NickelToAdjacent(self._nickel)
+        return self._adjacent
+
+    @classmethod
     def NickelFromEdges(self, edges):
-        max_node = max(flatten(edges))
-        nickel = [[] for _ in range(max_node + 1)]
+        node_limit = max(flatten(edges)) + 1
+        nickel = [[] for _ in range(node_limit)]
         for e in edges:
-            [s, d] = sorted(e, key=lambda n: n if n >= 0 else 1000)
+            [s, d] = sorted(e, key=lambda n: n if n >= 0 else node_limit)
             nickel[s].append(d)
         for nn in nickel:
             nn.sort()
         return nickel
 
+    @classmethod
     def EdgesFromNickel(self, nickel):
         edges = []
         for n in range(len(nickel)):
@@ -48,25 +79,41 @@ class Nickel(object):
                 edges.append(sorted([n, m]))
         return edges
 
+    @classmethod
     def StringFromNickel(self, nickel):
-        temp = [nn + [-2] for nn in nickel]
+        temp = [nn + [self._SEP_ID] for nn in nickel]
         temp = flatten(temp)
-        temp = [str(Nickel.node_to_char.get(n, n)) for n in temp]
+        temp = [str(Nickel.NODE_TO_CHAR.get(n, n)) for n in temp]
         return ''.join(temp)
 
+    @classmethod
     def NickelFromString(self, string):
-        char_to_node = dict(zip(Nickel.node_to_char.values(),
-                                Nickel.node_to_char.keys()))
+        char_to_node = dict(zip(self.NODE_TO_CHAR.values(),
+                                self.NODE_TO_CHAR.keys()))
         flat_nickel = [int(char_to_node.get(c, c)) for c in string]
         nickel = []
         accum = []
         for n in flat_nickel:
-            if n != -2:
+            if n != self._SEP_ID:
                 accum.append(n)
             else:
                 nickel.append(accum)
                 accum = []
         return nickel
+
+    @staticmethod
+    def NickelToAdjacent(nickel_list):
+        """Returns map of node id to adjacent nodes."""
+        adjacent = {}
+        backward_nodes = collections.defaultdict(list)
+        for node_id, forward_nodes in enumerate(nickel_list):
+            for forward_node in forward_nodes:
+                backward_nodes[forward_node].append(node_id)
+            adjacent[node_id] = backward_nodes[node_id]
+            adjacent[node_id].extend(forward_nodes)
+        for node in adjacent:
+            adjacent[node].sort()
+        return adjacent
 
 
 class InputError(Exception):

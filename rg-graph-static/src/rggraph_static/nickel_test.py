@@ -6,6 +6,9 @@ import unittest
 #TODO: Exclude generator tests from nickel tests
 
 class TestNickel(unittest.TestCase):
+    def testRaisesOnManyArgs(self):
+        self.assertRaises(nickel.InputError, nickel.Nickel, edges=[], nickel=[])
+
     def testNickelFromEdges(self):
         e = nickel.Nickel(edges=[[0, -1], [-1, 0]])
         self.assertEqual(e.nickel, [[-1, -1]])
@@ -38,6 +41,22 @@ class TestNickel(unittest.TestCase):
     def testNickelEdgesSort(self):
         n = nickel.Nickel(edges=[(-1, 0), (-1, 1), (0, 1)])
         self.assertEqual(n.edges, [[-1, 0], [0, 1], [-1, 1]])
+
+    def testNickelToAdjacent(self):
+        n = nickel.Nickel(nickel=[[1], []])
+        self.assertEqual({0: [1], 1: [0]}, n.adjacent)
+        n = nickel.Nickel(nickel=[[1]])
+        self.assertNotEqual({0: [1], 1: [0]}, n.adjacent)
+        n = nickel.Nickel(nickel=[[-1, 1], [-1]])
+        self.assertEqual({0: [-1, 1], 1: [-1, 0]}, n.adjacent)
+
+    def testAdjacentDobleEdge(self):
+        n = nickel.Nickel(edges=[[0, 1], [0, 1]])
+        self.assertEqual({0: [1, 1], 1: [0, 0]}, n.adjacent)
+
+    def testVacuumBubble(self):
+        n = nickel.Nickel(edges=[[0, 1], [0, 1]])
+        self.assertEqual('11--', n.string)
 
 
 class TestCanonicalize(unittest.TestCase):
