@@ -6,6 +6,10 @@ PYTHON = 'PYTHON'
 CPP = 'CPP'
 
 
+import polynomial_product
+import multiindex
+
+
 def format(obj, exportType):
     """
     export type should one of (PYTHON, CPP)
@@ -34,14 +38,12 @@ def _format(obj, exportType):
         raise ValueError, 'export type %s is unknown' % exportType
     return formatter.format(obj)
 
-from polynomial_product import PolynomialProduct, Logarithm
-from multiindex import formatVar
 
 class AbstractFormatter:
     def format(self, obj):
-        if isinstance(obj, Logarithm):
+        if isinstance(obj, polynomial_product.Logarithm):
             return self.formatPolynomialProductLogarithm(obj)
-        elif isinstance(obj, PolynomialProduct):
+        elif isinstance(obj, polynomial_product.PolynomialProduct):
             return self.formatPolynomialProduct(obj)
         else:
             raise ValueError, 'Unsupported type %s' % type(obj)
@@ -97,7 +99,7 @@ class AbstractFormatter:
             return '1'
         else:
             return self.multiplicationSign().join(
-                map(lambda v: self.degree(formatVar(v[0]), v[1]) if v[1] <> 1 else formatVar(v[0]),
+                map(lambda v: self.degree(multiindex.formatVar(v[0]), v[1]) if v[1] <> 1 else multiindex.formatVar(v[0]),
                     mi.vars.items()))
 
 

@@ -5,7 +5,7 @@ import copy
 from math import factorial
 from eps_number import getCoefficients
 from polynomial import Polynomial
-from formatter import formatRepr
+import formatter
 
 def _preparePolynomials(polynomials):
     isZero = False
@@ -63,32 +63,27 @@ class PolynomialProduct:
         if self.isZero():
             return None
 
-        cPart = PolynomialProduct(map(lambda m: Polynomial(m.monomials, c=m.c), self.polynomials))
+        aPart = PolynomialProduct(map(lambda m: Polynomial(m.monomials, c=m.degree.a), self.polynomials))
 
-        dPart = PolynomialProduct(map(lambda m: Polynomial(m.monomials, c=m.d), self.polynomials))
+        bPart = PolynomialProduct(map(lambda m: Polynomial(m.monomials, c=m.degree.b), self.polynomials))
 
         epsPolynomial = getCoefficients(map(lambda p: p.c, self.polynomials))
 
         mainEpsExpansion = dict()
-        if len(epsPolynomial) == 1 and epsPolynomial[0].isInt():
-            for i in xrange(0, toIndex + 1):
-                coefficient = [Logarithm(dPart, epsPolynomial[0].a / factorial(i), i)]
-                mainEpsExpansion[i] = coefficient
-        else:
-            for i in xrange(0, toIndex + 1):
-                coefficient = []
-                for j in xrange(0, len(epsPolynomial)):
-                    if i - j < 0:
-                        continue
-                    coefficient.append(Logarithm(dPart, epsPolynomial[j] / factorial(i), i))
-                mainEpsExpansion[i] = coefficient
-        return cPart, mainEpsExpansion
+        for i in xrange(0, toIndex + 1):
+            coefficient = []
+            for j in xrange(0, len(epsPolynomial)):
+                if i - j < 0:
+                    continue
+                coefficient.append(Logarithm(bPart, epsPolynomial[j] / factorial(i), i))
+            mainEpsExpansion[i] = coefficient
+        return aPart, mainEpsExpansion
 
     def isZero(self):
         return len(self.polynomials) == 0
 
     def __repr__(self):
-        return formatRepr(self)
+        return formatter.formatRepr(self)
 
 
 def poly_prod(polynomials):
@@ -104,6 +99,6 @@ class Logarithm:
         self.c = c
 
     def __repr__(self):
-        return '(%s*log^(%s)(%s))' % (self.c, self.power, self.polynomialProduct) if self.power else '(%s)' % self.c
+        return formatter.formatRepr(self)
 
 
