@@ -13,10 +13,10 @@ c * (polynomial)^degree
 
 """
 import copy
-from eps_number import epsNumber
+import eps_number
 import formatter
-from multiindex import MultiIndex, dict_intersection, CONST
-from polynomial import polynomial_product, eps_number
+import polynomial_product
+from multiindex import MultiIndex, intersection
 from util import dict_hash1
 
 def _prepareMonomials(monomials):
@@ -32,13 +32,12 @@ class Polynomial:
         nMonomials = _prepareMonomials(monomials)
         if nMonomials:
             self.monomials = nMonomials
-            self.degree = epsNumber(degree)
-            self.c = epsNumber(c)
+            self.degree = eps_number.epsNumber(degree)
+            self.c = eps_number.epsNumber(c)
         else:
             self.monomials = dict()
-            self.degree = epsNumber(1)
-            self.c = epsNumber(0)
-
+            self.degree = eps_number.epsNumber(1)
+            self.c = eps_number.epsNumber(0)
 
     def set1toVar(self, varIndex):
         nMonomials = {}
@@ -80,7 +79,7 @@ class Polynomial:
                 nMonomials[nmi] = self.monomials[mi] * deg
 
         if not len(nMonomials):
-            return [Polynomial(dict(), 1, 0)]
+            return [Polynomial(dict(), c=0)]
 
         cMonomials = copy.deepcopy(self.monomials)
 
@@ -90,7 +89,7 @@ class Polynomial:
             result.append(Polynomial(cMonomials, self.degree - 1, self.degree * self.c.a))
         else:
             result.append(Polynomial(cMonomials, self.degree - 1, self.c))
-            result.append(Polynomial(dict({MultiIndex(): 1}), 1, self.degree))
+            result.append(Polynomial(dict({MultiIndex(): 1}), c=self.degree))
 
         return result
 
@@ -100,12 +99,15 @@ class Polynomial:
     def getVarsIndexes(self):
         return reduce(lambda indexes, mi: indexes | mi.getVarsIndexes(), self.monomials.keys(), set())
 
+    def toPolyProd(self):
+        return polynomial_product.PolynomialProduct([self])
+
     def factorize(self):
         """
         trying to factorize polynomial ang returns tuple of polynomials
         """
         multiIndexes = self.monomials.keys()
-        factorMultiIndex = reduce(lambda f, mi: dict_intersection(mi, f), multiIndexes[1:], multiIndexes[0])
+        factorMultiIndex = reduce(lambda f, mi: intersection(mi, f), multiIndexes[1:], multiIndexes[0])
 
         if not len(factorMultiIndex.vars):
             return [self]
@@ -130,8 +132,10 @@ class Polynomial:
             return polynomial_product.PolynomialProduct([self, other])
         elif isinstance(other, polynomial_product.PolynomialProduct):
             return polynomial_product.PolynomialProduct(other.polynomials + [self])
-        elif isinstance(other, epsNumber) or isinstance(other, int):
+        elif isinstance(other, eps_number.EpsNumber) or isinstance(other, int):
             return polynomial_product.PolynomialProduct([self, Polynomial({MultiIndex(): 1}, c=eps_number.epsNumber(other))])
+
+    __rmul__ = __mul__
 
     def __eq__(self, other):
         return self.monomials == other.monomials and self.degree == other.degree and self.c == other.c

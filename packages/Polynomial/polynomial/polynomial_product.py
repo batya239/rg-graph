@@ -2,10 +2,11 @@
 # -*- coding: utf8
 
 import copy
-from math import factorial
-from eps_number import getCoefficients
+import eps_number
 import formatter
 import polynomial
+import multiindex
+from math import factorial
 
 def _preparePolynomials(polynomials):
     isZero = False
@@ -15,7 +16,6 @@ def _preparePolynomials(polynomials):
             break
 
     return list() if isZero else polynomials
-
 
 class PolynomialProduct:
     """
@@ -69,10 +69,8 @@ class PolynomialProduct:
         bPart = PolynomialProduct(map(lambda p: polynomial.Polynomial(p.monomials, degree=p.degree.b),
                                       filter(lambda p: p.degree.b <> 0, self.polynomials)))
 
-        epsPolynomial = getCoefficients(map(lambda p: p.c, self.polynomials))
+        epsPolynomial = eps_number.getCoefficients(map(lambda p: p.c, self.polynomials))
 
-        print epsPolynomial
-        print bPart
         mainEpsExpansion = dict()
         for i in xrange(0, toIndex + 1):
             coefficient = []
@@ -122,6 +120,14 @@ class PolynomialProduct:
 
     def isZero(self):
         return len(self.polynomials) == 0
+
+    def __mul__(self, other):
+        if isinstance(other, PolynomialProduct):
+            return PolynomialProduct(self.polynomials + other.polynomials)
+        elif isinstance(other, eps_number.EpsNumber) or isinstance(other, int):
+            return PolynomialProduct(self.polynomials + [polynomial.Polynomial({multiindex.MultiIndex(): 1}, c=eps_number.epsNumber(other))])
+
+    __rmul__ = __mul__
 
     def __repr__(self):
         return formatter.formatRepr(self)

@@ -85,7 +85,7 @@ class MultiIndex:
 
 CONST = MultiIndex()
 
-def dict_intersection(mi1, mi2):
+def intersection(mi1, mi2):
     """
     finding intersection two dictionaries where values is numbers
     """

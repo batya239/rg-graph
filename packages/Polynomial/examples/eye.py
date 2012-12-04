@@ -10,11 +10,11 @@ P1 = poly([(1, [1, 1])])
 # (u1 u2 + u1 u3 + u2 u3)**(-2+e)
 P2 = poly([(1, [2, 3, "a0"]), (1, [1, 3]), (1, [1, 2])], degree=(-2, 1))
 # P1 * P2
-PP = poly_prod([P1, P2])
+PP = P1 * P2
 
 # (1 + u2 + u3)**(-1)
 P1_u1 = poly([(1, []), (1, [2]), (1, [3])], degree=-1)
-PP_u1 = poly_prod([P1_u1])
+PP_u1 = P1_u1.toPolyProd()
 
 print "\ninitial expression"
 print PP.__repr__()
