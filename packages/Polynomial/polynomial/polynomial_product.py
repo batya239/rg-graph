@@ -138,7 +138,8 @@ def poly_prod(polynomials):
 
 class Logarithm:
     """
-    logarithm from polynomial product
+    logarithm from polynomial product.
+    In real we use this only for formatting out
     """
 
     def __init__(self, polynomialProduct, c=1, power=1):

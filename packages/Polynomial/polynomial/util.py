@@ -11,14 +11,6 @@ def dict_hash1(dict):
         h += hash(p)
     return h
 
-def dict_hash2(dict):
-    """
-    hash from dictionary where key is dictionary too
-    """
-    h = 0
-    for p in dict.items():
-        h += dict_hash1(p[0]) + 31 * hash(p[1])
-    return h
 
 class frozendict(dict):
     def __setitem__(self, key, value):

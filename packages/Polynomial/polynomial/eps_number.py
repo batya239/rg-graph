@@ -67,7 +67,7 @@ class EpsNumber:
 
 
 def epsNumber(number):
-    """creates EpsPower from tuple or return argument if it's EpsPower
+    """creates EpsPower from tuple or return argument if it's EpsPower. Factory function
     """
     if isinstance(number, tuple):
         return EpsNumber(number[0], number[1])
@@ -77,6 +77,19 @@ def epsNumber(number):
         return number
     else: raise AssertionError, 'power should be correct type'
 
+def getCoefficients(epsNumberList):
+    """
+    returns list of coefficients which obtained by multiplications of EpsNumbers from epsNumberList
+    """
+    c, reduced, shift = _normalize(_reduceIntegers(epsNumberList))
+    ord = len(reduced)
+    if not ord:
+        return _shiftCoefficients([], shift)
+    else:
+        result = []
+        for i in xrange(0, ord + 1):
+            result.append(c * reduce(lambda x, y: x + y, _xCombinations(reduced, i)))
+        return _shiftCoefficients( result, shift)
 
 def _reduceIntegers(epsNumberList):
     """reduce all epsNumbers which are integers
@@ -94,18 +107,11 @@ def _reduceIntegers(epsNumberList):
     result.append(currEpsNumber)
     return result
 
-def getCoefficients(epsNumberList):
-    c, reduced, shift = _normalize(_reduceIntegers(epsNumberList))
-    ord = len(reduced)
-    if not ord:
-        return _shiftCoefficients([], shift)
-    else:
-        result = []
-        for i in xrange(0, ord + 1):
-            result.append(c * reduce(lambda x, y: x + y, _xCombinations(reduced, i)))
-        return _shiftCoefficients( result, shift)
-
 def _normalize(epsNumberList):
+    """
+    removes all epsNumbers where EpsNumber.a == 0 or EpsNumber.b == 0
+    and write corresponds coefficient to resultCoefficient
+    """
     resultList = []
     resultShift = 0
     resultCoefficient = 1
@@ -121,6 +127,9 @@ def _normalize(epsNumberList):
     return resultCoefficient, (resultList if resultList[0] <> 1 else resultList[1:]), resultShift
 
 def _shiftCoefficients(coefficients, shift):
+    """
+    add zeros to head of coefficients list
+    """
     shifter = [0 for i in xrange(0, shift)]
     return shifter + coefficients
 

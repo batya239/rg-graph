@@ -1,5 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf8
+"""
+Tools for formatting view of integrands to other languages
+"""
 import polynomial
 
 HUMAN = 'HUMAN'
@@ -12,7 +15,7 @@ import multiindex
 
 def format(obj, exportType):
     """
-    export type should one of (PYTHON, CPP, HUMAN)
+    return expression as string corresponds exportType. export type should one of (PYTHON, CPP, HUMAN)
     """
     if isinstance(obj, list):
         return map(lambda o: _format(o, exportType), obj)
@@ -21,6 +24,9 @@ def format(obj, exportType):
 
 
 def formatRepr(polynomialProduct):
+    """
+    view for __repr__ method
+    """
     return format(polynomialProduct, HUMAN)
 
 
@@ -37,6 +43,9 @@ def _format(obj, exportType):
 
 
 class AbstractFormatter:
+    """
+    contains main logic of expression formatting
+    """
     def format(self, obj):
         if isinstance(obj, polynomial_product.Logarithm):
             return self.formatPolynomialProductLogarithm(obj)
@@ -48,15 +57,21 @@ class AbstractFormatter:
             raise ValueError, 'Unsupported type %s' % type(obj)
 
     def multiplicationSign(self):
+        """
+        return multiplication sign
+        """
         pass
 
     def degree(self, a, b):
         """
-        should return representation a ^ b
+        return representation a ^ b
         """
         pass
 
     def log(self, a):
+        """
+        return valid log representation
+        """
         pass
 
     def formatPolynomialProductLogarithm(self, log):
@@ -129,6 +144,9 @@ class CppFormatter(AbstractFormatter):
 
 
 class HumanReadableFormatter(AbstractFormatter):
+    """
+    this formatter we use for stdouting of results
+    """
     def multiplicationSign(self):
         return '*'
 
