@@ -102,7 +102,7 @@ def getCoefficients(epsNumberList):
     else:
         result = []
         for i in xrange(0, ord + 1):
-            result.append(c * reduce(lambda x, y: x + y, _combinations(reduced, i)))
+            result.append(c * reduce(lambda x, y: x + y, _xCombinations(reduced, i)))
         return _shiftCoefficients( result, shift)
 
 def _normalize(epsNumberList):
@@ -124,7 +124,7 @@ def _shiftCoefficients(coefficients, shift):
     shifter = [0 for i in xrange(0, shift)]
     return shifter + coefficients
 
-def _combinations(numbersList, n):
+def _xCombinations(numbersList, n):
     length = len(numbersList)
     for bIndexes in itertools.combinations(xrange(0, length), n):
         bProd = reduce(lambda x, y: x * numbersList[y].b, bIndexes, 1)
