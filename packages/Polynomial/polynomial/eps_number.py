@@ -96,7 +96,7 @@ def _normalize(epsNumberList):
     resultCoefficient = 1
     for _epsNumber in epsNumberList:
         resultCoefficient *= _epsNumber.a
-        resultList.append(epsNumber((1, _epsNumber.a / _epsNumber.b)))
+        resultList.append(epsNumber((1, _epsNumber.b / _epsNumber.a)))
 
     return resultCoefficient, resultList
 

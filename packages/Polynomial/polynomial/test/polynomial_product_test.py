@@ -44,11 +44,11 @@ class PolynomialProductTestCase(PolynomialToolsTestCase):
            
 
     def testEpsExpansion(self):
-        print pp.epsExpansion(3)[0].__repr__()
-        print pp.epsExpansion(3)[1][0]
-        print pp.epsExpansion(3)[1][1]
-        print pp.epsExpansion(3)[1][2]
-        print pp.epsExpansion(3)[1][3]
+        print repr(pp.epsExpansion(3)[0])
+        print repr(pp.epsExpansion(3)[1][0])
+        print repr(pp.epsExpansion(3)[1][1])
+        print repr(pp.epsExpansion(3)[1][2])
+        print repr(pp.epsExpansion(3)[1][3])
 
 
 if __name__ == "__main__":

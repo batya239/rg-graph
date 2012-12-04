@@ -63,9 +63,9 @@ class PolynomialProduct:
         if self.isZero():
             return None
 
-        aPart = PolynomialProduct(map(lambda m: Polynomial(m.monomials, c=m.degree.a), self.polynomials))
+        aPart = PolynomialProduct(map(lambda p: Polynomial(p.monomials, degree=p.degree.a), self.polynomials))
 
-        bPart = PolynomialProduct(map(lambda m: Polynomial(m.monomials, c=m.degree.b), self.polynomials))
+        bPart = PolynomialProduct(map(lambda p: Polynomial(p.monomials, degree=p.degree.b), self.polynomials))
 
         epsPolynomial = getCoefficients(map(lambda p: p.c, self.polynomials))
 
@@ -75,7 +75,7 @@ class PolynomialProduct:
             for j in xrange(0, len(epsPolynomial)):
                 if i - j < 0:
                     continue
-                coefficient.append(Logarithm(bPart, epsPolynomial[j] / factorial(i), i))
+                coefficient.append(Logarithm(bPart, epsPolynomial[j] / factorial(i - j), i - j))
             mainEpsExpansion[i] = coefficient
         return aPart, mainEpsExpansion
 
