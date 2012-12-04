@@ -122,6 +122,7 @@ class CppFormatter(AbstractFormatter):
         return '*'
 
     def degree(self, a, b):
+        if b== 1: return a
         return 'pow(%s, %s)' % (a, b)
 
     def log(self, a):
@@ -133,6 +134,7 @@ class HumanReadableFormatter(AbstractFormatter):
         return '*'
 
     def degree(self, a, b):
+        if b== 1: return a
         return '(%s)^(%s)' % (a, b)
 
     def log(self, a):
@@ -144,6 +146,7 @@ class PythonFormatter(AbstractFormatter):
         return '*'
 
     def degree(self, a, b):
+        if b== 1: return a
         return '(%s)**(%s)' % (a, b)
 
     def log(self, a):
