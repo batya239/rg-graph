@@ -1,17 +1,16 @@
 #!/usr/bin/python
 # -*- coding: utf8
-from polynomial.polynomial import poly
-from polynomial.formatter import format, HUMAN, PYTHON, CPP
+import polynomial as pt
 
 # u1**2
-P1 = poly([(1, [1, 1])])
+P1 = pt.poly([(1, [1, 1])])
 # (u1 u2 + u1 u3 + u2 u3)**(-2+e)
-P2 = poly([(1, [2, 3, "a0"]), (1, [1, 3]), (1, [1, 2])], degree=(-2, 1))
+P2 = pt.poly([(1, [2, 3, "a0"]), (1, [1, 3]), (1, [1, 2])], degree=(-2, 1))
 # P1 * P2
 PP = P1 * P2
 
 # (1 + u2 + u3)**(-1)
-P1_u1 = poly([(1, []), (1, [2]), (1, [3])], degree=-1)
+P1_u1 = pt.poly([(1, []), (1, [2]), (1, [3])], degree=-1)
 PP_u1 = P1_u1.toPolyProd()
 
 print "\ninitial expression"
@@ -33,9 +32,9 @@ PP_123_23 = PP_1_23_2_3[0]
 PP_diff = PP_123_23.diff("a0")
 
 print "\ndifferential"
-print HUMAN, format(PP_diff, HUMAN)[0]
-print PYTHON, format(PP_diff, PYTHON)[0]
-print CPP, format(PP_diff, CPP)[0]
+print pt.formatter.HUMAN, pt.formatter.format(PP_diff, pt.formatter.HUMAN)[0]
+print pt.formatter.PYTHON, pt.formatter.format(PP_diff, pt.formatter.PYTHON)[0]
+print pt.formatter.CPP, pt.formatter.format(PP_diff, pt.formatter.CPP)[0]
 
 print "\nvariables"
 print PP_diff[0].getVarsIndexes()
