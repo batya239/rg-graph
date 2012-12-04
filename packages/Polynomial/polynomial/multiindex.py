@@ -83,6 +83,8 @@ class MultiIndex:
             return '*'.join(map(lambda v: 'x_%s^%s' % (v[0], v[1]) if v[1] <> 1 else 'x_%s' % v[0], self.vars.items()))
 
 
+CONST = MultiIndex()
+
 def dict_intersection(mi1, mi2):
     """
     finding intersection two dictionaries where values is numbers

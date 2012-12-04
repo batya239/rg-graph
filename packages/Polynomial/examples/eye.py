@@ -42,5 +42,8 @@ print CPP, format(PP_diff, CPP)[0]
 print "\nvariables"
 print PP_diff[0].getVarsIndexes()
 
+print "\nsimplifying"
+PP_diff[0] = PP_diff[0].simplify()
+
 print "\nepsilon expansion of %s" % PP_diff[0]
 print PP_diff[0].epsExpansion(1)

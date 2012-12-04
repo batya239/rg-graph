@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf8
 """
-testing diff, set0ToVar and set1ToVar methods using SymPy 
+testing diff, set0ToVar and set1ToVar methods using SymPy
 """
 import formatter
 from random import seed, random

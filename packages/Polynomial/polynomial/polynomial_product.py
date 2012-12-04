@@ -111,14 +111,14 @@ class PolynomialProduct:
             for p in polyList[1:]:
                 mergeResult = polynomial.Polynomial._merge(mainPolynomial, p)
                 if len(mergeResult) == 1:
-                    mainPolynomial = mergeResult
+                    mainPolynomial = mergeResult[0]
                 elif len(mergeResult) == 2:
                     mainPolynomial = mergeResult[1]
                     nPolynomials.append(mergeResult[0])
                 else: raise ValueError, 'invalid merge length %s' % mergeResult
             nPolynomials.append(mainPolynomial)
+        print nPolynomials
         return nPolynomials
-
 
     def isZero(self):
         return len(self.polynomials) == 0

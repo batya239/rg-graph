@@ -15,7 +15,8 @@ c * (polynomial)^degree
 import copy
 from eps_number import epsNumber
 import formatter
-from multiindex import MultiIndex, dict_intersection
+from multiindex import MultiIndex, dict_intersection, CONST
+from polynomial import polynomial_product, eps_number
 from util import dict_hash1
 
 def _prepareMonomials(monomials):
@@ -123,6 +124,14 @@ class Polynomial:
             return [Polynomial(p1.monomials, degree=p1.degree + p2.degree, c=p1.c * p2.c)]
         else:
             return [Polynomial(MultiIndex(), c=p1.c), Polynomial(p1.monomials, degree=p1.degree + p2.degree, c=p2.c)]
+
+    def __mul__(self, other):
+        if isinstance(other, Polynomial):
+            return polynomial_product.PolynomialProduct([self, other])
+        elif isinstance(other, polynomial_product.PolynomialProduct):
+            return polynomial_product.PolynomialProduct(other.polynomials + [self])
+        elif isinstance(other, epsNumber) or isinstance(other, int):
+            return polynomial_product.PolynomialProduct([self, Polynomial({MultiIndex(): 1}, c=eps_number.epsNumber(other))])
 
     def __eq__(self, other):
         return self.monomials == other.monomials and self.degree == other.degree and self.c == other.c
