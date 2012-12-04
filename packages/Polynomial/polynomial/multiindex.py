@@ -11,11 +11,14 @@ def formatVar(var):
     return 'u%s' % var if isinstance(var, int) else str(var)
 
 
+def _prepareVars(vars):
+    return dict((v, p) for v, p in vars.items() if p <> 0)
+
 class MultiIndex:
     def __init__(self, vars=dict()):
         """self.vars -- dictionary {variable index --> variable power}
         """
-        self.vars = vars
+        self.vars = _prepareVars(vars)
 
     def hasVar(self, varIndex):
         return self.vars.has_key(varIndex)
@@ -80,12 +83,15 @@ class MultiIndex:
             return '*'.join(map(lambda v: 'x_%s^%s' % (v[0], v[1]) if v[1] <> 1 else 'x_%s' % v[0], self.vars.items()))
 
 
-def subtraction(mi1, mi2):
+def dict_intersection(mi1, mi2):
+    """
+    finding intersection two dictionaries where values is numbers
+    """
     result = dict()
     for k, v in mi1.vars.items():
-        result[k] = v - (mi2.vars[k] if mi2.vars.has_key(k) else 0)
+        if mi2.vars.has_key(k):
+            result[k] = min(v, mi2.vars[k])
     return MultiIndex(result)
-
 
 
 

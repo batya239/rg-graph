@@ -24,6 +24,8 @@ class EpsNumber:
     def __eq__(self, other):
         if isinstance(other, int):
             return self.a == other and self.b == 0
+        elif isinstance(other, tuple):
+            return self.a == other[0] and self.b == other[1]
         else:
             return self.a == other.a and self.b == other.b
 
@@ -56,6 +58,8 @@ class EpsNumber:
         otherEpsPower = epsNumber(other)
         if otherEpsPower.isInt():
             return EpsNumber(self.a * otherEpsPower.a, self.b * otherEpsPower.a)
+        elif self.isInt():
+            return EpsNumber(self.a * otherEpsPower.a, self.a * otherEpsPower.b)
         else:
             raise ValueError, "couldn't multiply %s on %s" % (self, other)
 

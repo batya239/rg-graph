@@ -14,8 +14,9 @@ c * (polynomial)^degree
 """
 import copy
 from eps_number import epsNumber
-from multiindex import MultiIndex
-from util import dict_hash1, dict_intersection
+import formatter
+from multiindex import MultiIndex, dict_intersection
+from util import dict_hash1
 
 def _prepareMonomials(monomials):
     nMonomials = dict((mi, c) for mi, c in monomials.items() if c <> 0)
@@ -103,12 +104,25 @@ class Polynomial:
         trying to factorize polynomial ang returns tuple of polynomials
         """
         multiIndexes = self.monomials.keys()
-        factorMultiIndex = reduce(lambda mi, f: dict_intersection(mi, f), multiIndexes[1:], multiIndexes[0])
+        factorMultiIndex = reduce(lambda f, mi: dict_intersection(mi, f), multiIndexes[1:], multiIndexes[0])
+
+        if not len(factorMultiIndex.vars):
+            return [self]
+
         factor = Polynomial({factorMultiIndex: 1}, degree=self.degree)
 
-        nMonomials = dict(map(lambda m, c: (m - factorMultiIndex, c), self.monomials))
+        nMonomials = dict(map(lambda i: (i[0] - factorMultiIndex, i[1]), self.monomials.items()))
         nPolynomial = Polynomial(nMonomials, degree=self.degree, c=self.c)
-        return factor, nPolynomial
+        return [factor, nPolynomial]
+
+    @staticmethod
+    def _merge(p1, p2):
+        if tuple(p1.monomials) <> tuple(p2.monomials):
+            raise ValueError, 'can\'t merge polynomials: %s, %s' % (p1, p2)
+        if p1.c.isInt() or p2.c.isInt():
+            return [Polynomial(p1.monomials, degree=p1.degree + p2.degree, c=p1.c * p2.c)]
+        else:
+            return [Polynomial(MultiIndex(), c=p1.c), Polynomial(p1.monomials, degree=p1.degree + p2.degree, c=p2.c)]
 
     def __eq__(self, other):
         return self.monomials == other.monomials and self.degree == other.degree and self.c == other.c
@@ -123,18 +137,7 @@ class Polynomial:
         return hashCode
 
     def __repr__(self):
-        if self.c == 0:
-            return '0'
-        internal = '+'.join(map(lambda v: '%s*%s' % (v[1], v[0]), self.monomials.items()))
-        if self.c == 1:
-            if self.degree == 0:
-                return "1"
-            elif self.degree == 1:
-                return  '(%s)' % internal
-            else:
-                return  '(%s)^(%s)' % (internal, self.degree)
-        else:
-            return '(%s)*(%s)^(%s)' % (self.c, internal, self.degree)
+        return formatter.formatRepr(self)
 
 
 def poly(p, degree=1, c=1):

@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf8
+import polynomial
 
 HUMAN = 'HUMAN'
 PYTHON = 'PYTHON'
@@ -45,6 +46,8 @@ class AbstractFormatter:
             return self.formatPolynomialProductLogarithm(obj)
         elif isinstance(obj, polynomial_product.PolynomialProduct):
             return self.formatPolynomialProduct(obj)
+        elif isinstance(obj, polynomial.Polynomial):
+            return self.formatPolynomial(obj)
         else:
             raise ValueError, 'Unsupported type %s' % type(obj)
 
@@ -122,7 +125,7 @@ class CppFormatter(AbstractFormatter):
         return '*'
 
     def degree(self, a, b):
-        if b== 1: return a
+        if b == 1: return a
         return 'pow(%s, %s)' % (a, b)
 
     def log(self, a):
@@ -134,7 +137,7 @@ class HumanReadableFormatter(AbstractFormatter):
         return '*'
 
     def degree(self, a, b):
-        if b== 1: return a
+        if b == 1: return a
         return '(%s)^(%s)' % (a, b)
 
     def log(self, a):
@@ -146,7 +149,7 @@ class PythonFormatter(AbstractFormatter):
         return '*'
 
     def degree(self, a, b):
-        if b== 1: return a
+        if b == 1: return a
         return '(%s)**(%s)' % (a, b)
 
     def log(self, a):

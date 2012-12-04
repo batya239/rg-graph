@@ -4,8 +4,8 @@
 import copy
 from math import factorial
 from eps_number import getCoefficients
-from polynomial import Polynomial
 import formatter
+import polynomial
 
 def _preparePolynomials(polynomials):
     isZero = False
@@ -63,9 +63,11 @@ class PolynomialProduct:
         if self.isZero():
             return None
 
-        aPart = PolynomialProduct(map(lambda p: Polynomial(p.monomials, degree=p.degree.a), filter(lambda p: p.degree.a <> 0, self.polynomials)))
+        aPart = PolynomialProduct(map(lambda p: polynomial.Polynomial(p.monomials, degree=p.degree.a),
+                                      filter(lambda p: p.degree.a <> 0, self.polynomials)))
 
-        bPart = PolynomialProduct(map(lambda p: Polynomial(p.monomials, degree=p.degree.b), filter(lambda p: p.degree.b <> 0, self.polynomials)))
+        bPart = PolynomialProduct(map(lambda p: polynomial.Polynomial(p.monomials, degree=p.degree.b),
+                                      filter(lambda p: p.degree.b <> 0, self.polynomials)))
 
         epsPolynomial = getCoefficients(map(lambda p: p.c, self.polynomials))
 
@@ -77,10 +79,46 @@ class PolynomialProduct:
             for j in xrange(0, len(epsPolynomial)):
                 if i - j < 0:
                     continue
-
                 coefficient.append(Logarithm(bPart, epsPolynomial[j] / factorial(i - j), i - j))
             mainEpsExpansion[i] = coefficient
         return aPart, mainEpsExpansion
+
+    def simplify(self):
+        """
+        trying to simplifying product by polynomials factorization
+        """
+        rawPolynomials = list()
+        for p in self.polynomials:
+            rawPolynomials += p.factorize()
+        return PolynomialProduct(PolynomialProduct._simplify(rawPolynomials))
+
+    @staticmethod
+    def _simplify(polynomials):
+        """
+        collecting polynomials by monomial part
+        """
+        factorDict = dict()
+        for p in polynomials:
+            key = tuple(p.monomials)
+            if factorDict.has_key(key):
+                factorDict[key].append(p)
+            else:
+                factorDict[key] = [p]
+
+        nPolynomials = []
+        for polyList in factorDict.values():
+            mainPolynomial = polyList[0]
+            for p in polyList[1:]:
+                mergeResult = polynomial.Polynomial._merge(mainPolynomial, p)
+                if len(mergeResult) == 1:
+                    mainPolynomial = mergeResult
+                elif len(mergeResult) == 2:
+                    mainPolynomial = mergeResult[1]
+                    nPolynomials.append(mergeResult[0])
+                else: raise ValueError, 'invalid merge length %s' % mergeResult
+            nPolynomials.append(mainPolynomial)
+        return nPolynomials
+
 
     def isZero(self):
         return len(self.polynomials) == 0
@@ -92,10 +130,12 @@ class PolynomialProduct:
 def poly_prod(polynomials):
     return PolynomialProduct(polynomials)
 
+
 class Logarithm:
     """
     logarithm from polynomial product
     """
+
     def __init__(self, polynomialProduct, c=1, power=1):
         self.polynomialProduct = polynomialProduct
         self.power = power
