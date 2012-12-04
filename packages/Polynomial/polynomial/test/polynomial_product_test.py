@@ -21,7 +21,7 @@ mi2_2 = MultiIndex({1: 1, 4: 2, 5: 2})
 c2_2 = 6
 p2 = Polynomial({mi2_1: c2_1, mi2_2: c2_2}, (2, 3), (3, 0))
 
-pp = PolynomialProduct(set([p1, p2]))
+pp = p1 * p2
 
 VARS = [1, 2, 3, 4, 5, 'eps']
 
@@ -51,10 +51,10 @@ class PolynomialProductTestCase(PolynomialToolsTestCase):
 
     def testSimplifying(self):
         npp = pp.simplify()
-        self.assertEquals(len(npp.polynomials), 3)
-        self.assertEquals(npp.polynomials[1].monomials[MultiIndex({1: 1, 5: 1})], 1)
-        self.assertEquals(npp.polynomials[1].degree, (2, 3))
-        self.assertEquals(npp.polynomials[1].c, 1)
+        self.assertEquals(len(npp.polynomials), 4)
+        self.assertEquals(npp.polynomials[0].monomials[MultiIndex({1: 1})], 1)
+        self.assertEquals(npp.polynomials[0].degree, (2, 3))
+        self.assertEquals(npp.polynomials[0].c, 1)
         self.assertEquals(npp.polynomials[2].monomials[MultiIndex({2: 4, 3: 1})], 4)
         self.assertEquals(npp.polynomials[2].degree, (2, 3))
         self.assertEquals(npp.polynomials[2].c, 3)

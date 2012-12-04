@@ -115,11 +115,13 @@ class Polynomial:
         if not len(factorMultiIndex.vars):
             return [self]
 
-        factor = Polynomial({factorMultiIndex: 1}, degree=self.degree)
+        result = map(lambda i: Polynomial({i[0]:1}, degree=self.degree * i[1]),factorMultiIndex.split())
 
         nMonomials = dict(map(lambda i: (i[0] - factorMultiIndex, i[1]), self.monomials.items()))
         nPolynomial = Polynomial(nMonomials, degree=self.degree, c=self.c)
-        return [factor, nPolynomial]
+
+        result.append(nPolynomial)
+        return result
 
     @staticmethod
     def _merge(p1, p2):

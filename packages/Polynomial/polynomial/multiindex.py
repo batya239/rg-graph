@@ -61,6 +61,9 @@ class MultiIndex:
         map(lambda v: indexes.add(formatVar(v)), self.vars.keys())
         return indexes
 
+    def split(self):
+        return map(lambda i: (MultiIndex({i[0]:1}), i[1]), self.vars.items())
+
     def __sub__(self, other):
         result = dict()
         for k, v in self.vars.items():

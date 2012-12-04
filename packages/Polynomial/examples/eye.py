@@ -2,8 +2,6 @@
 # -*- coding: utf8
 from polynomial.polynomial import poly
 from polynomial.formatter import format, HUMAN, PYTHON, CPP
-from polynomial.polynomial_product import poly_prod
-
 
 # u1**2
 P1 = poly([(1, [1, 1])])
@@ -42,7 +40,7 @@ print CPP, format(PP_diff, CPP)[0]
 print "\nvariables"
 print PP_diff[0].getVarsIndexes()
 
-print "\nsimplifying"
+print "\nsimplifying %s" % PP_diff[0]
 PP_diff[0] = PP_diff[0].simplify()
 print PP_diff[0]
 
