@@ -96,6 +96,9 @@ class Polynomial:
     def isZero(self):
         return self.c == 0
 
+    def isOne(self):
+        return self.c == 1 and len(self.monomials) == 1 and self.monomials.has_key(multiindex.CONST) and self.monomials[multiindex.CONST] == 1
+
     def getVarsIndexes(self):
         return reduce(lambda indexes, mi: indexes | mi.getVarsIndexes(), self.monomials.keys(), set())
 
@@ -163,7 +166,7 @@ def poly(p, degree=1, c=1):
                 dMonomial[varIndex] += 1
             else:
                 dMonomial[varIndex] = 1
-        mi = multi_index.MultiIndex(dMonomial)
+        mi = multiindex.MultiIndex(dMonomial)
         if monomials.has_key(mi):
             monomials[mi] += coefficient
         else:

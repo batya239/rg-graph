@@ -9,13 +9,11 @@ import multiindex
 from math import factorial
 
 def _preparePolynomials(polynomials):
-    isZero = False
     for p in polynomials:
         if p.isZero():
-            isZero = True
-            break
+            return list()
 
-    return list() if isZero else polynomials
+    return filter(lambda p: not p.isOne(), polynomials)
 
 class PolynomialProduct:
     """
@@ -115,7 +113,6 @@ class PolynomialProduct:
                     nPolynomials.append(mergeResult[0])
                 else: raise ValueError, 'invalid merge length %s' % mergeResult
             nPolynomials.append(mainPolynomial)
-        print nPolynomials
         return nPolynomials
 
     def isZero(self):
