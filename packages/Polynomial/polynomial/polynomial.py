@@ -15,7 +15,7 @@ c * (polynomial)^degree
 import copy
 from eps_number import epsNumber
 from multiindex import MultiIndex
-from util import dict_hash1
+from util import dict_hash1, dict_intersection
 
 def _prepareMonomials(monomials):
     nMonomials = dict((mi, c) for mi, c in monomials.items() if c <> 0)
@@ -97,6 +97,18 @@ class Polynomial:
 
     def getVarsIndexes(self):
         return reduce(lambda indexes, mi: indexes | mi.getVarsIndexes(), self.monomials.keys(), set())
+
+    def factorize(self):
+        """
+        trying to factorize polynomial ang returns tuple of polynomials
+        """
+        multiIndexes = self.monomials.keys()
+        factorMultiIndex = reduce(lambda mi, f: dict_intersection(mi, f), multiIndexes[1:], multiIndexes[0])
+        factor = Polynomial({factorMultiIndex: 1}, degree=self.degree)
+
+        nMonomials = dict(map(lambda m, c: (m - factorMultiIndex, c), self.monomials))
+        nPolynomial = Polynomial(nMonomials, degree=self.degree, c=self.c)
+        return factor, nPolynomial
 
     def __eq__(self, other):
         return self.monomials == other.monomials and self.degree == other.degree and self.c == other.c

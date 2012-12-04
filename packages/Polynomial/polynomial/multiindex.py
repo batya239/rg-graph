@@ -58,6 +58,12 @@ class MultiIndex:
         map(lambda v: indexes.add(formatVar(v)), self.vars.keys())
         return indexes
 
+    def __sub__(self, other):
+        result = dict()
+        for k, v in self.vars.items():
+            result[k] = v - (other.vars[k] if other.vars.has_key(k) else 0)
+        return MultiIndex(result)
+
     def __len__(self):
         return len(self.vars)
 
@@ -72,6 +78,13 @@ class MultiIndex:
             return '1'
         else:
             return '*'.join(map(lambda v: 'x_%s^%s' % (v[0], v[1]) if v[1] <> 1 else 'x_%s' % v[0], self.vars.items()))
+
+
+def subtraction(mi1, mi2):
+    result = dict()
+    for k, v in mi1.vars.items():
+        result[k] = v - (mi2.vars[k] if mi2.vars.has_key(k) else 0)
+    return MultiIndex(result)
 
 
 

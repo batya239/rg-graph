@@ -39,7 +39,6 @@ class EpsNumberAuxFunctionsTestCase(unittest.TestCase):
         self.assertEquals(c3[3], 60)
 
 
-
 if __name__ == "__main__":
     unittest.main()
 

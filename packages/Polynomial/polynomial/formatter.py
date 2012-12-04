@@ -70,6 +70,8 @@ class AbstractFormatter:
                 return self.formatPolynomialProduct(log.polynomialProduct)
             else:
                 return self.degree(self.log(log.polynomialProduct), log.power)
+        elif not log.power:
+            return str(log.c)
         else:
             return '%s%s%s' % (
             log.c, self.multiplicationSign(), self.degree(self.log(log.polynomialProduct), log.power))
@@ -105,7 +107,9 @@ class AbstractFormatter:
 
     def formatEpsNumber(self, epsNumber):
         if not epsNumber.a:
-            return "eps%s%s" % (self.multiplicationSign(), epsNumber.b)
+            if not epsNumber.b:
+                return '0'
+            else: return "eps%s%s" % (self.multiplicationSign(), epsNumber.b)
         elif not epsNumber.b:
             return str(epsNumber.a)
         elif epsNumber.b == 1:
