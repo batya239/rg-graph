@@ -93,37 +93,39 @@ def _reduceIntegers(epsNumberList):
 
 def _normalize(epsNumberList):
     resultList = []
-    resultCoefficient = 1
     resultShift = 0
+    resultCoefficient = 1
     for _epsNumber in epsNumberList:
         if _epsNumber.a == 0:
             resultShift += 1
             resultCoefficient *= _epsNumber.b
-        else:
+        elif _epsNumber.b == 0:
             resultCoefficient *= _epsNumber.a
-            resultList.append(epsNumber((1, float(_epsNumber.b) / float(_epsNumber.a))))
+        else:
+            resultList.append(epsNumber((_epsNumber.a, _epsNumber.b)))
 
     return resultCoefficient, (resultList if resultList[0] <> 1 else resultList[1:]), resultShift
 
+def _shiftCoefficients(coefficients, shift):
+    shifter = [0 for i in xrange(0, shift)]
+    return shifter + coefficients
 
 def getCoefficients(epsNumberList):
     c, reduced, shift = _normalize(_reduceIntegers(epsNumberList))
-    shifter = [0 for i in xrange(0, shift)]
     ord = len(reduced)
     if not ord:
-        return shifter + []
-    elif ord == 1 and reduced[0].isInt():
-        return shifter + [c]
+        return _shiftCoefficients([], shift)
     else:
         result = []
         for i in xrange(0, ord + 1):
-            if i == 0:
-                result.append(c)
-            else:
-                result.append(c * reduce(lambda x, y: x + y, xPerm(map(lambda n: n.b, reduced), i)))
-        return shifter + result
+            result.append(c * reduce(lambda x, y: x + y, xPerm(map(lambda n: n.a, reduced), map(lambda n: n.b, reduced), i)))
+        return _shiftCoefficients( result, shift)
 
 
-def xPerm(A, n):
-    for z in itertools.combinations(A, n):
-        yield reduce(lambda x, y: x * y, z)
+def xPerm(A, B, n):
+    length = len(A)
+    for bIndexes in itertools.combinations(xrange(0, length), n):
+        bProd = reduce(lambda x, y: x * B[y], bIndexes, 1)
+        aIndexes = set([i for i in xrange(0, length)]) - set(bIndexes)
+        aProd = reduce(lambda x, y: x * A[y], aIndexes, 1)
+        yield aProd * bProd

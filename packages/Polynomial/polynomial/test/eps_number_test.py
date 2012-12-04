@@ -28,15 +28,15 @@ class EpsNumberAuxFunctionsTestCase(unittest.TestCase):
         print c2
         self.assertEquals(len(c2), 3)
         self.assertEquals(c2[0], 18)
-        self.assertEquals(c2[1], 69.0)
-        self.assertEquals(c2[2], 59.99999999999999)
+        self.assertEquals(c2[1], 69)
+        self.assertEquals(c2[2], 60)
         c3 = getCoefficients([epsNumber((0, 3)), epsNumber((2, 5)), epsNumber((3, 4))])
         print c3
         self.assertEquals(len(c3), 4)
         self.assertEquals(c3[0], 0)
         self.assertEquals(c3[1], 18)
         self.assertEquals(c3[2], 69.0)
-        self.assertEquals(c3[3], 59.99999999999999)
+        self.assertEquals(c3[3], 60)
 
 
 
