@@ -6,14 +6,13 @@ HUMAN = 'HUMAN'
 PYTHON = 'PYTHON'
 CPP = 'CPP'
 
-
 import polynomial_product
 import multiindex
 
 
 def format(obj, exportType):
     """
-    export type should one of (PYTHON, CPP)
+    export type should one of (PYTHON, CPP, HUMAN)
     """
     if isinstance(obj, list):
         return map(lambda o: _format(o, exportType), obj)
@@ -26,9 +25,6 @@ def formatRepr(polynomialProduct):
 
 
 def _format(obj, exportType):
-    """
-    export type should one of (PYTHON, CPP, HUMAN)
-    """
     if exportType == PYTHON:
         formatter = PythonFormatter()
     elif exportType == CPP:

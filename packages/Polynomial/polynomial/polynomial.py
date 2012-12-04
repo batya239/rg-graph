@@ -16,7 +16,7 @@ import copy
 import eps_number
 import formatter
 import polynomial_product
-from multiindex import MultiIndex, intersection
+import multiindex
 from util import dict_hash1
 
 def _prepareMonomials(monomials):
@@ -89,7 +89,7 @@ class Polynomial:
             result.append(Polynomial(cMonomials, self.degree - 1, self.degree * self.c.a))
         else:
             result.append(Polynomial(cMonomials, self.degree - 1, self.c))
-            result.append(Polynomial(dict({MultiIndex(): 1}), c=self.degree))
+            result.append(Polynomial(dict({multiindex.MultiIndex(): 1}), c=self.degree))
 
         return result
 
@@ -107,7 +107,7 @@ class Polynomial:
         trying to factorize polynomial ang returns tuple of polynomials
         """
         multiIndexes = self.monomials.keys()
-        factorMultiIndex = reduce(lambda f, mi: intersection(mi, f), multiIndexes[1:], multiIndexes[0])
+        factorMultiIndex = reduce(lambda f, mi: multiindex.intersection(mi, f), multiIndexes[1:], multiIndexes[0])
 
         if not len(factorMultiIndex.vars):
             return [self]
@@ -125,7 +125,7 @@ class Polynomial:
         if p1.c.isInt() or p2.c.isInt():
             return [Polynomial(p1.monomials, degree=p1.degree + p2.degree, c=p1.c * p2.c)]
         else:
-            return [Polynomial(MultiIndex(), c=p1.c), Polynomial(p1.monomials, degree=p1.degree + p2.degree, c=p2.c)]
+            return [Polynomial({multiindex.MultiIndex(): 1}, c=p1.c), Polynomial(p1.monomials, degree=p1.degree + p2.degree, c=p2.c)]
 
     def __mul__(self, other):
         if isinstance(other, Polynomial):
@@ -133,7 +133,7 @@ class Polynomial:
         elif isinstance(other, polynomial_product.PolynomialProduct):
             return polynomial_product.PolynomialProduct(other.polynomials + [self])
         elif isinstance(other, eps_number.EpsNumber) or isinstance(other, int):
-            return polynomial_product.PolynomialProduct([self, Polynomial({MultiIndex(): 1}, c=eps_number.epsNumber(other))])
+            return polynomial_product.PolynomialProduct([self, Polynomial({multiindex.MultiIndex(): 1}, c=eps_number.epsNumber(other))])
 
     __rmul__ = __mul__
 
@@ -163,7 +163,7 @@ def poly(p, degree=1, c=1):
                 dMonomial[varIndex] += 1
             else:
                 dMonomial[varIndex] = 1
-        mi = MultiIndex(dMonomial)
+        mi = multi_index.MultiIndex(dMonomial)
         if monomials.has_key(mi):
             monomials[mi] += coefficient
         else:

@@ -94,6 +94,16 @@ def _reduceIntegers(epsNumberList):
     result.append(currEpsNumber)
     return result
 
+def getCoefficients(epsNumberList):
+    c, reduced, shift = _normalize(_reduceIntegers(epsNumberList))
+    ord = len(reduced)
+    if not ord:
+        return _shiftCoefficients([], shift)
+    else:
+        result = []
+        for i in xrange(0, ord + 1):
+            result.append(c * reduce(lambda x, y: x + y, _combinations(reduced, i)))
+        return _shiftCoefficients( result, shift)
 
 def _normalize(epsNumberList):
     resultList = []
@@ -114,22 +124,10 @@ def _shiftCoefficients(coefficients, shift):
     shifter = [0 for i in xrange(0, shift)]
     return shifter + coefficients
 
-def getCoefficients(epsNumberList):
-    c, reduced, shift = _normalize(_reduceIntegers(epsNumberList))
-    ord = len(reduced)
-    if not ord:
-        return _shiftCoefficients([], shift)
-    else:
-        result = []
-        for i in xrange(0, ord + 1):
-            result.append(c * reduce(lambda x, y: x + y, xPerm(map(lambda n: n.a, reduced), map(lambda n: n.b, reduced), i)))
-        return _shiftCoefficients( result, shift)
-
-
-def xPerm(A, B, n):
-    length = len(A)
+def _combinations(numbersList, n):
+    length = len(numbersList)
     for bIndexes in itertools.combinations(xrange(0, length), n):
-        bProd = reduce(lambda x, y: x * B[y], bIndexes, 1)
+        bProd = reduce(lambda x, y: x * numbersList[y].b, bIndexes, 1)
         aIndexes = set([i for i in xrange(0, length)]) - set(bIndexes)
-        aProd = reduce(lambda x, y: x * A[y], aIndexes, 1)
+        aProd = reduce(lambda x, y: x * numbersList[y].a, aIndexes, 1)
         yield aProd * bProd
