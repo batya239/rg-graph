@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf8
 import unittest
-from eps_number import xPerm, EpsNumber, getCoefficients, epsNumber
+from eps_number import EpsNumber, getCoefficients, epsNumber
 
 class EpsNumberTestCase(unittest.TestCase):
     def testIt(self):
