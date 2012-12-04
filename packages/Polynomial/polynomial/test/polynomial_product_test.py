@@ -4,8 +4,7 @@ from string import find
 import unittest
 from multiindex import MultiIndex
 from polynomial import Polynomial
-from polynomial_product import PolynomialProduct
-from test.framework.framework import PolynomialToolsTestCase
+from framework.framework import PolynomialToolsTestCase
 
 mi1_1 = MultiIndex({1: 3, 2: 4, 4: 4, 3: 1})
 c1_1 = 3
@@ -43,11 +42,15 @@ class PolynomialProductTestCase(PolynomialToolsTestCase):
         self.assertTrue(find(repr(pp.stretch(1, [2, 3, 7, 8])), '(u1)^(8)*(u2)^(4)*u3*(u4)'))
 
     def testEpsExpansion(self):
-        print repr(pp.epsExpansion(3)[0])
-        print repr(pp.epsExpansion(3)[1][0])
-        print repr(pp.epsExpansion(3)[1][1])
-        print repr(pp.epsExpansion(3)[1][2])
-        print repr(pp.epsExpansion(3)[1][3])
+        self.assertEquals(p1.toPolyProd().epsExpansion(3)[0].polynomials[0].degree, 1)
+        self.assertEquals(len(p1.toPolyProd().epsExpansion(3)[0].polynomials), 1)
+        self.assertEquals(p1.toPolyProd().epsExpansion(3)[1][0][0].c, 3)
+        self.assertEquals(p1.toPolyProd().epsExpansion(3)[1][1][0].c, 3)
+        self.assertEquals(p1.toPolyProd().epsExpansion(3)[1][1][0].power, 1)
+        self.assertEquals(p1.toPolyProd().epsExpansion(3)[1][2][1].c, 1)
+        self.assertEquals(p1.toPolyProd().epsExpansion(3)[1][2][1].power, 1)
+        self.assertEquals(p1.toPolyProd().epsExpansion(3)[1][3][0].c, 0.5)
+        self.assertEquals(p1.toPolyProd().epsExpansion(3)[1][3][0].power, 3)
 
     def testSimplifying(self):
         npp = pp.simplify()

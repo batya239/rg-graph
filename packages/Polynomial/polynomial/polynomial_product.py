@@ -75,7 +75,7 @@ class PolynomialProduct:
             for j in xrange(0, len(epsPolynomial)):
                 if i - j < 0:
                     continue
-                coefficient.append(Logarithm(bPart, epsPolynomial[j] / factorial(i - j), i - j))
+                coefficient.append(Logarithm(bPart, float(epsPolynomial[j]) / float(factorial(i - j)), i - j))
             mainEpsExpansion[i] = coefficient
         return aPart, mainEpsExpansion
 

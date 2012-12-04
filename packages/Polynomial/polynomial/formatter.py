@@ -66,7 +66,7 @@ class AbstractFormatter:
             if not log.power:
                 return '1'
             elif log.power == 1:
-                return self.formatPolynomialProduct(log.polynomialProduct)
+                return self.log(self.formatPolynomialProduct(log.polynomialProduct))
             else:
                 return self.degree(self.log(log.polynomialProduct), log.power)
         elif not log.power:

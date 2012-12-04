@@ -45,4 +45,4 @@ PP_diff[0] = PP_diff[0].simplify()
 print PP_diff[0]
 
 print "\nepsilon expansion of %s" % PP_diff[0]
-print PP_diff[0].epsExpansion(1)
+print PP_diff[0].epsExpansion(3)
