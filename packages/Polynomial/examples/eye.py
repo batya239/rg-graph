@@ -39,8 +39,8 @@ print HUMAN, format(PP_diff, HUMAN)[0]
 print PYTHON, format(PP_diff, PYTHON)[0]
 print CPP, format(PP_diff, CPP)[0]
 
-print "\n VarsIndexes"
+print "\nvariables"
 print PP_diff[0].getVarsIndexes()
 
-print "\n EpsExpansion"
+print "\nepsilon expansion"
 print PP_diff[0].epsExpansion(1)
