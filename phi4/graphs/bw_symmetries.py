@@ -130,6 +130,7 @@ class Tree:
     def __init__(self, id):
         self.idx = id
         self.branches = set()
+        self.cnt=1
 
     def setBranches(self, branches):
         self.branches = map(Tree, branches)
@@ -148,12 +149,12 @@ class Tree:
         return str(self.idx)
 
 
-def xTreeDepthFirst(tree):
+def xTreeDepthFirst(tree, multiplier=1):
     if len(tree.branches) == 0:
-        yield tree.idx
+        yield (tree, multiplier*tree.cnt)
     else:
         for branch in tree.branches:
-            for x in xTreeDepthFirst(branch):
+            for x in xTreeDepthFirst(branch, multiplier*tree.cnt):
                 yield x
 
 
@@ -182,10 +183,14 @@ def removeBranches( tree, parentColors, edges_dict):
             gstate = getGraphState(edges_dict, tColors)
 #            print branch, tColors, parentColors, gstate
             if not uniqueBranches.has_key(gstate):
-                uniqueBranches[gstate] = (branch, tColors)
+                uniqueBranches[gstate] = [branch, tColors, 1]
+            else:
+                uniqueBranches[gstate][2]+=1
+
         tree.branches=set()
-        for (branch, tColors) in uniqueBranches.values():
+        for (branch, tColors, cnt) in uniqueBranches.values():
             removeBranches(branch, tColors, edges_dict)
+            branch.cnt=cnt
             tree.branches.add(branch)
         return
 
@@ -208,6 +213,7 @@ for tSector in sector_strings.splitlines():
         else:
             raise Exception, "pvar = %s, svars = %s, branches = %s , tSector = %s, subsector = %s " % (
             pvar, svars, currentBranch.branches, tSector, subsector)
+    currentBranch.sector=sector
 
 print len([x for x in xTreeDepthFirst(originalSectorTree)])
 
@@ -216,3 +222,5 @@ edges_dict = to_edges_dict(g)
 decompositions = dict([(line, []) for line in edges_dict.keys()])
 removeBranches(SectorTree, decompositions, edges_dict)
 print len([x for x in xTreeDepthFirst(SectorTree)])
+for x in xTreeDepthFirst(SectorTree):
+    print x[0].sector, x[1]
