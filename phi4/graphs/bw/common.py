@@ -51,31 +51,39 @@ def countEqualSectors(g, sector_strings):
             print
 
 
-class Tree:
-    def __init__(self, id):
-        self.idx = id
-        self.branches = set()
+class SDTree:
+    def __init__(self, pVar, sVars=list(), parent=None):
+        self.pVar = pVar
+        self.sVars =  sVars
+        self.branches = list()
+        self.parent = parent
+        self.coefficient = 0
 
-    def setBranches(self, branches):
-        self.branches = map(Tree, branches)
+    def addBranch(self, pVar, sVars):
+        self.branches.append(SDTree(pVar, sVars, self))
 
-    def hasBranch(self, branch):
-        if isinstance(branch, Tree):
-            id = branch.idx
-        else:
-            id = branch
-        for tBranch in self.branches:
-            if id == tBranch.idx:
-                return tBranch
+    def hasBranch(self, pVar, sVars=None):
+        for b in self.branches:
+            if b.pVar == pVar and (b.sVars == sVars or sVars == None):
+                return True
+        return False
+
+    def getBranch(self, pVar, sVars):
+        for b in self.branches:
+            if b.pVar == pVar and b.sVars == sVars:
+                return b
         return None
 
+    def setCoefficient(self, coefficient):
+        self.coefficient = coefficient
+
     def __repr__(self):
-        result = str(self.idx)
+        return repr(self.parent) if self.parent else "" + str(self.idx) + str(self.sVars)
 
 
 def xTreeDepthFirst(tree):
     if len(tree.branches) == 0:
-        yield tree.idx
+        yield tree.pVar
     else:
         for branch in tree.branches:
             for x in xTreeDepthFirst(branch):
@@ -97,9 +105,9 @@ def removeBranches(tree, parentColors, edges_dict):
         for branch in tree.branches:
             tColors = copy.deepcopy(parentColors)
             for line in tColors.keys():
-                if tree.hasBranch(line) and line <> branch.idx:
+                if tree.hasBranch(line) and line <> branch.pVar:
                     tColors[line].append(2)
-                elif line == branch.idx:
+                elif line == branch.pVar:
                     tColors[line].append(1)
                 else:
                     tColors[line].append(0)
@@ -121,23 +129,15 @@ def calculate_symmetries(graph_nomenclature, sectors_as_string):
 
     g = Graph(graph_nomenclature)
 
-    originalSectorTree = Tree(0)
-
+    originalSectorTree = SDTree(0)
     for tSector in sectors_as_string.splitlines():
         sector = eval(tSector)
         currentBranch = originalSectorTree
         for subSector in sector:
             pVar, sVars = subSector
-            S = set([pVar] + list(sVars))
-            if len(currentBranch.branches) == 0:
-                currentBranch.setBranches(S)
-                #        print currentBranch.branches, len(currentBranch.branches), S
-            branch = currentBranch.hasBranch(pVar)
-            if branch <> None:
-                currentBranch = branch
-            else:
-                raise Exception, "pvar = %s, svars = %s, branches = %s , tSector = %s, subSector = %s " % (
-                    pVar, sVars, currentBranch.branches, tSector, subSector)
+            if not currentBranch.hasBranch(pVar, sVars):
+                currentBranch.addBranch(pVar, sVars)
+            currentBranch = currentBranch.getBranch(pVar, sVars)
 
     print 'raw sectors count', len([x for x in xTreeDepthFirst(originalSectorTree)])
 
