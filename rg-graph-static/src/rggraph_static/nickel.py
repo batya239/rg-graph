@@ -144,9 +144,9 @@ class Canonicalize(object):
                 num_internal_nodes += 1
 
         # Shift original nodes to free space for canonical numbers.
-        self.offset = max(100, num_internal_nodes)
+        offset = max(100, num_internal_nodes)
         def shift(n):
-            return n + self.offset if n >= 0 else -1
+            return n + offset if n >= 0 else -1
         self.edges = [[shift(n), shift(m)] for [n, m] in edges]
 
         # Do the work.
@@ -167,7 +167,7 @@ class Canonicalize(object):
         for state in self.curr_states:
             node_map = {}
             for key, value in state.node_map.items():
-                node_map[key - self.offset] = value
+                node_map[key - offset] = value
             self.node_maps.append(node_map)
 
     def __str__(self):
