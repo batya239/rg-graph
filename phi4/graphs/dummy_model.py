@@ -76,8 +76,24 @@ class _phi3(_generic_model):
         self.checktadpoles=False
         self.target=4
         self.workdir='/home/mkompan/work/rg-graph/phi_4/'
-        
-    
+
+class _phi3_dyn(_generic_model):
+    def __init__( self , name):
+        self.name=name
+        self.space_dim=6
+        self.space_dim_eff=8
+        self.lines_dim={('a','A'):-2,('A','a'):-2, ('a','a'):-4}
+        self.modifiers_dim={'tau':-2,'p':-1}
+        self.lines_modifiers={'default':['tau','p']}
+        self.nodes_modifiers={None:[], 'default':['tau','p']}
+        self.nodes_dim={1:0}
+        self.checktadpoles=False
+        self.target=3
+        self.workdir='/home/mkompan/work/rg-graph/phi3_dyn/'
+
+
+
+
 class _phi4(_generic_model):
     def __init__( self , name):
         self.name=name
