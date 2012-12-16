@@ -61,8 +61,8 @@ class Polynomial:
         """
         polynomial should be Polynomial type
         """
-        if polynomial.degree.b <> 0 or polynomial.c.b <> 0:
-            raise ValueError, "Complex polynomial not supported now", repr(polynomial)
+        if polynomial.degree.b <> 0 or polynomial.c.b <> 0 or not isinstance(self.degree.a, int):
+            raise ValueError, "Complex polynomial not supported now"
 
         nMonomials = dict()
         for mi, c in self.monomials.items():
@@ -87,7 +87,7 @@ class Polynomial:
             monomials[mi] = c
 
     def _inPowerOf(self, power):
-        if self.degree.b <> 0 or self.c.b <> 0:
+        if self.degree.b <> 0 or self.c.b <> 0 or not isinstance(self.degree.a, int):
             raise ValueError, "Complex polynomial not supported"
         nC = self.c.a ** power
         rawMonomials = self.monomials.items()
