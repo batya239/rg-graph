@@ -79,6 +79,9 @@ class PolynomialProduct:
             mainEpsExpansion[i] = coefficient
         return aPart, mainEpsExpansion
 
+    def changeVarToPolynomial(self, varIndex, polynomial):
+        return PolynomialProduct(map(lambda p: p.changeVarToPolynomial(varIndex, polynomial), self.polynomials))
+
     def simplify(self):
         """
         trying to simplifying product by polynomials factorization
