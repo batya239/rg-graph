@@ -9,26 +9,7 @@ import conserv
 import polynomial
 
 
-def find_eq(cons):
-    res = dict()
-    eqs = list()
-    for tcons in cons:
-        if len(tcons) == 2:
-            a, b = tuple(tcons)
-            new = True
-            eqs_ = list()
-            for i in range(len(eqs)):
-                if a in eqs[i] or b in eqs[i]:
-                    eqs[i] = eqs[i] | set([a, b])
-                    new = False
-                    break
-            if new:
-                eqs.append(set([a, b]))
-    for eq in eqs:
-        eq_ = list(eq)
-        for var in eq_[1:]:
-            res[var] = eq_[0]
-    return res
+
 
 
 graph = Graph(sys.argv[1])
@@ -42,7 +23,7 @@ internalEdges = graph._internal_edges_dict()
 if len(graph.ExternalLines()) == 2:
     internalEdges[1000000] = [i.idx() for i in graph.ExternalNodes()] #Additional edge: suitable way to find F
     conservations = conserv.Conservations(internalEdges)
-    equations = find_eq(conservations)
+    equations = sd_tools.find_eq(conservations)
     conservations = sd_tools.apply_eq(conservations, equations)
     graph._qi, graph._qi2l = sd_tools.qi_lambda(conservations, equations)
     graph_ = graph.Clone()
@@ -58,7 +39,7 @@ else:
     F = None
 
     conservations = conserv.Conservations(internalEdges)
-    equations = find_eq(conservations)
+    equations = sd_tools.find_eq(conservations)
     conservations = sd_tools.apply_eq(conservations, equations)
     graph._qi, graph._qi2l = sd_tools.qi_lambda(conservations, equations)
     graph._cons = conservations
