@@ -10,7 +10,7 @@ import sys
 import comb
 import conserv
 import graph_state
-from methods.feynman_tools import find_eq, apply_eq, qi_lambda, conv_sub, merge_grp_qi, strech_indexes
+from methods.feynman_tools import apply_eq, qi_lambda, conv_sub, merge_grp_qi, strech_indexes
 from methods.poly_tools import poly_exp, set1_poly_lst, minus, set0_poly_lst, diff_poly_lst, poly_list2ccode, factorize_poly_lst, exp_pow, poly2str, InvalidDecomposition, DivergencePresent
 import hashlib
 try:
@@ -165,6 +165,29 @@ class Sector:
         if not splitted:
             raise Exception, "Failed to split domain. domains: %s, subgraph: %s" % (self.domains, subgraph_lines)
         self.domains = new_domains
+
+
+def find_eq(cons):
+    res = dict()
+    eqs = list()
+    for tcons in cons:
+        if len(tcons) == 2:
+            a, b = tuple(tcons)
+            new = True
+            eqs_ = list()
+            for i in range(len(eqs)):
+                if a in eqs[i] or b in eqs[i]:
+                    eqs[i] = eqs[i] | set([a, b])
+                    new = False
+                    break
+            if new:
+                eqs.append(set([a, b]))
+    for eq in eqs:
+        eq_ = list(eq)
+        for var in eq_[1:]:
+            res[var] = eq_[0]
+    return res
+
 
 def reverse_qi2l(qi2l):
     res=dict()
