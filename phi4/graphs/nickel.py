@@ -1,1 +1,0 @@
-../../rg-graph-static/src/rggraph_static/nickel.py
