@@ -9,6 +9,10 @@ class Subgraph:
     def __init__(self,lines_list):
         self._lines=copy(lines_list)
 
+    @property
+    def lines(self):
+        return self._lines
+
     def __repr__(self):
         return self._lines.__repr__()
     
