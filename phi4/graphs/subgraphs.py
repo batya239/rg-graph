@@ -9,6 +9,10 @@ class Subgraph:
     def __init__(self,lines_list):
         self._lines=copy(lines_list)
 
+    @property
+    def lines(self):
+        return self._lines
+
     def __repr__(self):
         return self._lines.__repr__()
     
@@ -37,7 +41,11 @@ class Subgraph:
             nodes_set=nodes_set|set(line.Nodes())
         for node in nodes_set:
             dim+=node.Dim(model)
-        dim+=model.space_dim*self.NLoopSub()
+        if model.__dict__.has_key('space_dim_eff'):
+            space_dim = model.space_dim_eff
+        else:
+            space_dim = model.space_dim
+        dim+=space_dim*self.NLoopSub()
         return dim
 
     def NLoopSub(self):

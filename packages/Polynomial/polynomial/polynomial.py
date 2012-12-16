@@ -13,6 +13,7 @@ c * (polynomial)^degree
 
 """
 import copy
+import itertools
 import eps_number
 import formatter
 import polynomial_product
@@ -40,7 +41,7 @@ class Polynomial:
             self.c = eps_number.epsNumber(0)
 
     def set1toVar(self, varIndex):
-        nMonomials = {}
+        nMonomials = dict()
         for mi, c in self.monomials.items():
             nmi = mi.set1toVar(varIndex)
             if nMonomials.has_key(nmi):
@@ -55,6 +56,50 @@ class Polynomial:
         """
         nMonomials = dict(filter(lambda m: not m[0].hasVar(varIndex), self.monomials.items()))
         return Polynomial(nMonomials, self.degree, self.c)
+
+    def changeVarToPolynomial(self, varIndex, polynomial):
+        """
+        polynomial should be Polynomial type
+        """
+        if polynomial.degree.b <> 0 or polynomial.c.b <> 0 or not isinstance(self.degree.a, int) or self.degree.a < 0:
+            raise ValueError, "Complex polynomial not supported now"
+
+        nMonomials = dict()
+        for mi, c in self.monomials.items():
+            if mi.hasVar(varIndex):
+                power = mi.vars[varIndex]
+                nPolynomial = polynomial._inPowerOf(power)
+                factor = nPolynomial.c
+                nMi = copy.copy(mi)
+                del nMi.vars[varIndex]
+                for pMi, pC in nPolynomial.monomials.items():
+                    Polynomial._append(nMonomials, pMi * mi, c * pC * factor)
+            else:
+                Polynomial._append(nMonomials, mi, c)
+
+        return Polynomial(nMonomials, self.degree, self.c)
+
+    @staticmethod
+    def _append(monomials, mi, c):
+        if monomials.has_key(mi):
+            monomials[mi] += c
+        else:
+            monomials[mi] = c
+
+    def _inPowerOf(self, power):
+        if self.degree.b <> 0 or self.c.b <> 0 or not isinstance(self.degree.a, int) or self.degree.a < 0:
+            raise ValueError, "Complex polynomial not supported"
+        nC = self.c.a ** power
+        rawMonomials = self.monomials.items()
+        nMonomials = dict()
+        for product in itertools.product(rawMonomials, repeat=power * self.degree.a):
+            mi = multiindex.MultiIndex()
+            c = 1
+            for pMi, pC in product:
+                mi *= pMi
+                c *= pC
+            Polynomial._append(nMonomials, mi, c)
+        return Polynomial(nMonomials, c=nC)
 
     def stretch(self, sVar, varList):
         nMonomials = {}
@@ -97,7 +142,8 @@ class Polynomial:
         return self.c == 0
 
     def isOne(self):
-        return self.c == 1 and len(self.monomials) == 1 and self.monomials.has_key(multiindex.CONST) and self.monomials[multiindex.CONST] == 1
+        return self.c == 1 and len(self.monomials) == 1 and self.monomials.has_key(multiindex.CONST) and self.monomials[
+                                                                                                         multiindex.CONST] == 1
 
     def getVarsIndexes(self):
         return reduce(lambda indexes, mi: indexes | mi.getVarsIndexes(), self.monomials.keys(), set())
@@ -108,6 +154,7 @@ class Polynomial:
     def factorize(self):
         """
         trying to factorize polynomial ang returns tuple of polynomials
+        u1 * u2 + u3 * u1 = u1 (u2 + u3)
         """
         multiIndexes = self.monomials.keys()
         factorMultiIndex = reduce(lambda f, mi: multiindex.intersection(mi, f), multiIndexes[1:], multiIndexes[0])
@@ -115,7 +162,7 @@ class Polynomial:
         if not len(factorMultiIndex.vars):
             return [self]
 
-        result = map(lambda i: Polynomial({i[0]:1}, degree=self.degree * i[1]),factorMultiIndex.split())
+        result = map(lambda i: Polynomial({i[0]: 1}, degree=self.degree * i[1]), factorMultiIndex.split())
 
         nMonomials = dict(map(lambda i: (i[0] - factorMultiIndex, i[1]), self.monomials.items()))
         nPolynomial = Polynomial(nMonomials, degree=self.degree, c=self.c)
@@ -130,7 +177,8 @@ class Polynomial:
         if p1.c.isInt() or p2.c.isInt():
             return [Polynomial(p1.monomials, degree=p1.degree + p2.degree, c=p1.c * p2.c)]
         else:
-            return [Polynomial({multiindex.MultiIndex(): 1}, c=p1.c), Polynomial(p1.monomials, degree=p1.degree + p2.degree, c=p2.c)]
+            return [Polynomial({multiindex.MultiIndex(): 1}, c=p1.c),
+                    Polynomial(p1.monomials, degree=p1.degree + p2.degree, c=p2.c)]
 
     def __mul__(self, other):
         if isinstance(other, Polynomial):
@@ -138,7 +186,8 @@ class Polynomial:
         elif isinstance(other, polynomial_product.PolynomialProduct):
             return polynomial_product.PolynomialProduct(other.polynomials + [self])
         elif isinstance(other, eps_number.EpsNumber) or isinstance(other, int):
-            return polynomial_product.PolynomialProduct([self, Polynomial({multiindex.MultiIndex(): 1}, c=eps_number.epsNumber(other))])
+            return polynomial_product.PolynomialProduct(
+                [self, Polynomial({multiindex.MultiIndex(): 1}, c=eps_number.epsNumber(other))])
 
     __rmul__ = __mul__
 

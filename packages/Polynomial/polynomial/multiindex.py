@@ -64,6 +64,19 @@ class MultiIndex:
     def split(self):
         return map(lambda i: (MultiIndex({i[0]:1}), i[1]), self.vars.items())
 
+    @staticmethod
+    def _append(vars, var, power):
+        if vars.has_key(var):
+            vars[var] += power
+        else:
+            vars[var] = power
+
+    def __mul__(self, other):
+        nVars = copy.copy(self.vars)
+        for v, p in other.vars.items():
+            MultiIndex._append(nVars, v, p)
+        return MultiIndex(nVars)
+
     def __sub__(self, other):
         result = dict()
         for k, v in self.vars.items():
