@@ -4,8 +4,12 @@
 """
 
 import collections
+import itertools
+
 import nickel
 
+# The node denoting a leg of a graph.
+LEG = -1
 
 def GetTopologies(valences):
     '''Generates one particle irreducible graphs for dict of valencies to num of nodes.
@@ -17,63 +21,146 @@ NickelPool = collections.namedtuple('NickelPool', 'nickel pool')
 
 
 def AddNodeFromPool(nickpool):
+    if IsOneParticleReducible(nickpool.nickel):
+        return
+    canonicals = set()
+
     node = len(nickpool.nickel)
     taken_valence = CountNode(nickpool.nickel, node)
-    fake_node = CountInternalNodes(nickpool)
+    free_node = MaxNode(nickpool.nickel) + 1
+    end_node = CountInternalNodes(nickpool)
+    num_legs = nickpool.pool.get(1, 0)
     for valence in nickpool.pool:
         if valence == 1:
             continue
         if valence < taken_valence:
             continue
-        add_nickel = [fake_node] * (valence - taken_valence)
-        new_nickel = list(nickpool.nickel) + [add_nickel]
-        new_pool = dict(nickpool.pool)
-        new_pool[valence] -= 1
-        yield NickelPool(nickel=new_nickel, pool=new_pool)
+        for add_nickel in AddEdges(valence - taken_valence,
+                                   node, free_node, end_node, num_legs):
+            new_nickel = list(nickpool.nickel) + [list(add_nickel)]
+            # Update pool.
+            new_pool = dict(nickpool.pool)
+            new_pool[valence] -= 1
+            if num_legs > 0:
+                new_pool[1] -= add_nickel.count(LEG)
+
+            if not NickelFitsPool(new_nickel, new_pool):
+                continue
+
+            canonical = CanonicalString(new_nickel)
+            if canonical in canonicals:
+                continue
+            canonicals.add(canonical)
+
+            yield NickelPool(nickel=new_nickel, pool=new_pool)
+
+
+def IsOneParticleReducible(nickel_list):
+    if not nickel_list:
+        return False
+    free_node = len(nickel_list)
+    edges_to_pool = CountNode(nickel_list, free_node)
+    # Disconnected.
+    if edges_to_pool == 0:
+        return True
+    # One particle suspicious.
+    if edges_to_pool == 1:
+        return CountNode(nickel_list, free_node + 1) == 0
+    return False
 
 
 def CountNode(nickel_list, node):
-    return nickel.flatten(nickel_list).count(node)
+    return sum([nodes.count(node) for nodes in nickel_list])
+
+
+def MaxNode(nickel_list):
+    in_nickel = len(nickel_list) - 1
+    from_pool = max(nickel.flatten(nickel_list) + [-1])
+    return max(in_nickel, from_pool)
 
 
 def CountInternalNodes(nickpool):
-     in_pool = sum(nickpool.pool.values()) - nickpool.pool.get(1, 0)
-     in_nickel = len(nickpool.nickel)
-     return in_pool + in_nickel
+     return len(nickpool.nickel) + CountNodesInPool(nickpool.pool)
 
 
-def RemoveFakeEdge(nickpool):
-    fake_node = CountInternalNodes(nickpool)
-    x, y = IndexOfNode(nickpool, fake_node)
-    # Connect to external.
-    if nickpool.pool.get(1, 0) > 0 and (y == 0 or nickpool.nickel[x][y - 1] == -1):
-        new_nickel = list(nickpool.nickel)
-        new_nickel[x][y] = -1
-        new_pool = dict(nickpool.pool)
-        new_pool[1] -= 1
-        yield NickelPool(nickel=new_nickel, pool=new_pool)
-        # Do not waste time with first node not connected to an external edge.
-        if x == 0 and y == 0:
-            return
-
-    # Connect to internal.
-    begin = x if y == 0 else max(x, nickpool.nickel[x][y - 1])
-    end = min(fake_node, len(nickpool.nickel) + 1)
-    for node in range(begin, end):
-        new_nickel = list(nickpool.nickel)
-        new_nickel[x][y] = node
-        new_pool = dict(nickpool.pool)
-        yield NickelPool(nickel=new_nickel, pool=new_pool)
+def CountNodesInPool(pool):
+    return sum(pool.values()) - pool.get(1, 0)
 
 
-def IndexOfNode(nickpool, node):
-    for pos, nodes in enumerate(nickpool.nickel):
-        try:
-            index = nodes.index(node)
-        except ValueError:
+def CountAllNodesInPool(pool):
+    return sum(pool.values())
+
+
+def CanonicalString(nickel_list):
+    edges = nickel.Nickel(nickel=nickel_list).edges
+    return str(nickel.Canonicalize(edges=edges))
+
+
+def AddEdges(num_edges, start_node, free_node, end_node, num_legs):
+    '''Yields all sorted combinations of legs and available nodes.
+    '''
+    leg = [LEG] if num_legs > 0 else []
+    reachable_nodes = leg + range(start_node, min(free_node + num_edges, end_node))
+    for nodes in itertools.combinations_with_replacement(reachable_nodes, num_edges):
+        if nodes.count(LEG) > num_legs:
             continue
-        return pos, index
-    raise ValueError
+
+        pool_nodes = [node for node in nodes if node >= free_node]
+        if pool_nodes and not AreMinimalNodesFromPool(pool_nodes):
+            continue
+
+        # Avoid double accounting of self connected nodes.
+        self_count = nodes.count(start_node)
+        if self_count != 0:
+            if self_count % 2 == 1:
+                continue
+            self_index = nodes.index(start_node)
+            nodes = (nodes[:self_index + self_count/2] +
+                     nodes[self_index + self_count:])
+
+        yield nodes
+
+
+def NickelFitsPool(nickel_list, node_pool):
+    free_node = len(nickel_list)
+    pool_nodes = [node for node in nickel.flatten(nickel_list) if node >= free_node]
+    pool_nodes.sort()
+    wanted_pool = {}
+    for _, group_iter in itertools.groupby(pool_nodes):
+        group_len = len(tuple(group_iter))
+        wanted_pool[group_len] = wanted_pool.get(group_len, 0) + 1
+    if MaxValenceInPool(wanted_pool) > MaxValenceInPool(node_pool):
+        return False
+    if CountAllNodesInPool(wanted_pool) > CountNodesInPool(node_pool):
+        return False
+
+    return True
+
+
+def MaxValenceInPool(pool):
+    valences = [valence for valence in pool if valence != 1 and pool[valence] > 0]
+    if not valences:
+        return 0
+    return max(valences)
+
+
+def AreMinimalNodesFromPool(pool_nodes):
+    '''Optimization to find early non-minimal nickel list.'''
+    if not pool_nodes:
+        return True
+    unique_nodes = []
+    group_lengths = []
+    for node, group_iter in itertools.groupby(pool_nodes):
+        unique_nodes.append(node)
+        group_lengths.append(len(tuple(group_iter)))
+    # Detect gap.
+    if unique_nodes[-1] - unique_nodes[0] + 1 != len(unique_nodes):
+        return False
+    # Groups should be non-increasing.
+    if group_lengths != sorted(group_lengths, reverse=True):
+        return False
+
+    return True
 
 
 if __name__ == '__main__':

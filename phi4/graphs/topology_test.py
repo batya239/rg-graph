@@ -15,6 +15,11 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(0, topology.CountNode([[1]], 2))
         self.assertEqual(2, topology.CountNode([[1, 2, 2], [1]], 1))
 
+    def testMaxNode(self):
+        self.assertEqual(-1, topology.MaxNode([]))
+        self.assertEqual(0, topology.MaxNode([[]]))
+        self.assertEqual(2, topology.MaxNode([[2]]))
+
     def testCountInternalNodes(self):
         self.assertEqual(0, topology.CountInternalNodes(
             topology.NickelPool(nickel=[], pool={})))
@@ -25,27 +30,121 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(1, topology.CountInternalNodes(
             topology.NickelPool(nickel=[], pool={3: 1})))
 
+    def testAddEdges(self):
+        self.assertEqual([()], list(topology.AddEdges(0, 1, 2, 2, 0)))
+        # Impossible to add an edge.
+        self.assertEqual([],
+            list(topology.AddEdges(1, 1, 2, 2, 0)))
+        self.assertEqual([(topology.LEG,)],
+            list(topology.AddEdges(1, 1, 2, 2, 1)))
+        self.assertEqual([(2,)],
+            list(topology.AddEdges(1, 1, 2, 3, 0)))
+        self.assertEqual([(topology.LEG,), (2,)],
+            list(topology.AddEdges(1, 1, 2, 3, 1)))
+        # Self connected.
+        self.assertEqual([(8,)],
+            list(topology.AddEdges(2, 8, 9, 9, 0)))
+        self.assertEqual([(topology.LEG, topology.LEG), (8,)],
+            list(topology.AddEdges(2, 8, 9, 9, 2)))
+
+    def testAddEdgesValence3(self):
+        self.assertEqual([(0, 1), (1, 1, 1)],
+            list(topology.AddEdges(3, 0, 0, 2, 0)))
+
+    def testAddEdgesMinimalNodesFromPool(self):
+        nick_inc = list(topology.AddEdges(3, 6, 7, 9, 0))
+        self.assertTrue((7, 7, 8) in nick_inc)
+        self.assertTrue((7, 8, 8) not in nick_inc)
+
+    def testAreMinimalNodesFromPool(self):
+        self.assertTrue(topology.AreMinimalNodesFromPool([]))
+        self.assertFalse(topology.AreMinimalNodesFromPool([1, 3]))
+        self.assertTrue(topology.AreMinimalNodesFromPool([1, 1, 2]))
+        self.assertFalse(topology.AreMinimalNodesFromPool([1, 2, 2]))
+
     def testAddNodeFromPool(self):
         inp = topology.NickelPool(nickel=[], pool={3: 1})
-        out = topology.NickelPool(nickel=[[1] * 3], pool={3: 0})
+        self.assertEqual([], list(topology.AddNodeFromPool(inp)))
+
+        inp = topology.NickelPool(nickel=[], pool={2: 1})
+        out = topology.NickelPool(nickel=[[0]], pool={2: 0})
         self.assertEqual([out], list(topology.AddNodeFromPool(inp)))
 
-        inp = topology.NickelPool(nickel=[[1]], pool={3: 1})
-        out = topology.NickelPool(nickel=[[1], [2, 2]], pool={3: 0})
+        inp = topology.NickelPool(nickel=[[1, 1]], pool={3: 2})
+        out = topology.NickelPool(nickel=[[1, 1], [2]], pool={3: 1})
         self.assertEqual([out], list(topology.AddNodeFromPool(inp)))
 
-        inp = topology.NickelPool(nickel=[[1]], pool={3: 2})
-        out = topology.NickelPool(nickel=[[1], [3, 3]], pool={3: 1})
-        self.assertEqual([out], list(topology.AddNodeFromPool(inp)))
+        inp = topology.NickelPool(nickel=[[1, 2]], pool={3: 2})
+        out = []
+        out.append(topology.NickelPool(nickel=[[1, 2], [1]], pool={3: 1}))
+        out.append(topology.NickelPool(nickel=[[1, 2], [2, 2]], pool={3: 1}))
+        self.assertEqual(out, list(topology.AddNodeFromPool(inp)))
 
-        inp = topology.NickelPool(nickel=[[1]], pool={3: 2, 1: 3})
-        out = topology.NickelPool(nickel=[[1], [3, 3]], pool={3: 1, 1: 3})
-        self.assertEqual([out], list(topology.AddNodeFromPool(inp)))
+        inp = topology.NickelPool(nickel=[[1, 2]], pool={1: 3, 3: 2})
+        out = []
+        out.append(topology.NickelPool(nickel=[[1, 2], [-1, -1]], pool={3: 1, 1: 1}))
+        out.append(topology.NickelPool(nickel=[[1, 2], [-1, 2]], pool={3: 1, 1: 2}))
+        out.append(topology.NickelPool(nickel=[[1, 2], [1]], pool={3: 1, 1: 3}))
+        out.append(topology.NickelPool(nickel=[[1, 2], [2, 2]], pool={3: 1, 1: 3}))
+        self.assertEqual(out, list(topology.AddNodeFromPool(inp)))
 
         inp = topology.NickelPool(nickel=[], pool={3: 1, 4: 1})
-        out1 = topology.NickelPool(nickel=[[2] * 3], pool={3: 0, 4: 1})
-        out2 = topology.NickelPool(nickel=[[2] * 4], pool={3: 1, 4: 0})
-        self.assertEqual([out1, out2], list(topology.AddNodeFromPool(inp)))
+        out = []
+        out.append(topology.NickelPool(nickel=[[0, 1]], pool={3: 0, 4: 1}))
+        out.append(topology.NickelPool(nickel=[[1, 1, 1]], pool={3: 0, 4: 1}))
+        out.append(topology.NickelPool(nickel=[[0, 0]], pool={3: 1, 4: 0}))
+        out.append(topology.NickelPool(nickel=[[0, 1, 1]], pool={3: 1, 4: 0}))
+        self.assertEqual(out, list(topology.AddNodeFromPool(inp)))
+
+    def testAddNodeOneParticleReducible(self):
+        inp = topology.NickelPool(nickel=[[0]], pool={2: 1})
+        self.assertEqual([], list(topology.AddNodeFromPool(inp)))
+
+        inp = topology.NickelPool(nickel=[[0, 1]], pool={3: 1})
+        self.assertEqual([], list(topology.AddNodeFromPool(inp)))
+
+    def testIsOneParticleReducible(self):
+        self.assertFalse(topology.IsOneParticleReducible([]))
+        self.assertTrue(topology.IsOneParticleReducible([[0]]))
+        self.assertTrue(topology.IsOneParticleReducible([[0, 1]]))
+        self.assertFalse(topology.IsOneParticleReducible([[1, 1]]))
+        self.assertFalse(topology.IsOneParticleReducible([[1, 2]]))
+
+    def testCanonicalString(self):
+        self.assertEqual('0-', topology.CanonicalString([[0]]))
+        self.assertEqual('11--', topology.CanonicalString([[1, 1]]))
+        self.assertEqual('1-2--', topology.CanonicalString([[1, 2]]))
+        self.assertEqual('1-2--', topology.CanonicalString([[1], [2]]))
+
+    def testMaxValenceInPool(self):
+        self.assertEqual(0, topology.MaxValenceInPool({}))
+        self.assertEqual(0, topology.MaxValenceInPool({1: 1}))
+        self.assertEqual(0, topology.MaxValenceInPool({1: 1, 2: 0}))
+        self.assertEqual(2, topology.MaxValenceInPool({1: 1, 2: 1}))
+
+    def testCountNodesInPool(self):
+        self.assertEqual(0, topology.CountNodesInPool({}))
+        self.assertEqual(0, topology.CountNodesInPool({1: 1}))
+        self.assertEqual(0, topology.CountNodesInPool({1: 1, 2: 0}))
+        self.assertEqual(1, topology.CountNodesInPool({1: 1, 2: 1}))
+        self.assertEqual(6, topology.CountNodesInPool({1: 1, 2: 1, 3: 5}))
+
+    def testCountNodesInPool(self):
+        self.assertEqual(0, topology.CountAllNodesInPool({}))
+        self.assertEqual(1, topology.CountAllNodesInPool({1: 1}))
+        self.assertEqual(1, topology.CountAllNodesInPool({1: 1, 2: 0}))
+        self.assertEqual(2, topology.CountAllNodesInPool({1: 1, 2: 1}))
+        self.assertEqual(7, topology.CountAllNodesInPool({1: 1, 2: 1, 3: 5}))
+
+    def testNickelFitsPool(self):
+        self.assertFalse(topology.NickelFitsPool([[1]], {}))
+        # Big valence.
+        self.assertFalse(topology.NickelFitsPool([[1, 1, 1]], {2: 1}))
+        self.assertTrue(topology.NickelFitsPool([[1]], {2: 1}))
+        # Two nodes are needed.
+        self.assertFalse(topology.NickelFitsPool([[1, 2]], {2: 1}))
+        self.assertTrue(topology.NickelFitsPool([[1, 1]], {2: 1}))
+
 
 if __name__ == "__main__":
     unittest.main()
