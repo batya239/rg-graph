@@ -56,18 +56,12 @@ class DynGraph(graphs.Graph):
 
 gs = graph_state.GraphState.fromStr("e12-23-3-e-:0AaAaa-aAaa-aA-0a:")
 #gs = graph_state.GraphState.fromStr("e12-e3-45-45-5--:0AaAaA-0aaA-aAaa-aaaa-aA--:")
-#gs=graph_state.GraphState.fromStr("e12-23-3-e-::")
+#gs = graph_state.GraphState.fromStr("e12-e3-33--:0AaAaA-0aaa-aAaa--:")
 
 dG = DynGraph(gs)
-print dG
-print dG._nodes
 
 dG.FindSubgraphs(model)
 #subgraphs.RemoveTadpoles(dG)
-
-print
-for sub in dG._subgraphs:
-    print sub.Dim(model), sub
 
 def baseTRelations(graph):
     res = list()
@@ -80,7 +74,6 @@ def baseTRelations(graph):
             res.append(tuple([x.idx() for x in reversed(line.Nodes())]))
     return res
 
-print baseTRelations(dG)
 
 def TRelations(graph):
     base = baseTRelations(graph)
@@ -105,8 +98,6 @@ def TRelations(graph):
     return res_
 
 
-print TRelations(dG)
-
 def TVersions(graph):
     trelations = TRelations(graph)
     nodes = [x.idx() for x in graph.xInternalNodes()]
@@ -125,20 +116,32 @@ def TVersions(graph):
     return res
 
 
-print TVersions(dG)
-print len(TVersions(dG))
-
 def TCuts(graph, tversion):
-    res=list()
+    res = list()
     for i in range(len(tversion) - 1):
-        tcut=list()
+        tcut = list()
         left = set(tversion[:i + 1])
         right = set(tversion[i + 1:])
         for line in graph.xInternalLines():
-            node1,node2=map(lambda x: x.idx(), line.Nodes())
+            node1, node2 = map(lambda x: x.idx(), line.Nodes())
             if (node1 in left and node2 in right) or (node1 in right and node2 in left):
                 tcut.append(line.idx())
         res.append(tcut)
     return res
 
-print TCuts(dG,TVersions(dG)[0])
+
+def EffectiveSubgraphDim(subgraph, tCuts, model):
+    sub = set([x.idx() for x in subgraph.lines])
+    cnt = 0
+    for tCut in tCuts:
+        if len(sub & set(tCut)) <> 0:
+            cnt += 1
+    return subgraph.Dim(model) - model.freq_dim * (cnt - (len(subgraph.InternalNodes()) - 1) )
+
+for tVersion in TVersions(dG):
+    tCuts = TCuts(dG, tVersion)
+    print
+    print tVersion, tCuts
+    for sub in dG._subgraphs:
+        print sub.Dim(model), EffectiveSubgraphDim(sub, tCuts, model), sub
+
