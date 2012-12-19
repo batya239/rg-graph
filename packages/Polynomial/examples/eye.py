@@ -38,6 +38,7 @@ print pt.formatter.CPP, pt.formatter.format(PP_diff, pt.formatter.CPP)[0]
 
 print "\nvariables"
 print PP_diff[0].getVarsIndexes()
+print PP_diff[0].getFormattedVarsIndexes()
 
 print "\nsimplifying %s" % PP_diff[0]
 PP_diff[0] = PP_diff[0].simplify()

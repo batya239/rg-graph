@@ -53,6 +53,9 @@ class PolynomialProduct:
     def getVarsIndexes(self):
         return reduce(lambda indexes, p: indexes | p.getVarsIndexes(), self.polynomials, set())
 
+    def getFormattedVarsIndexes(self):
+        return formatter.formatVarIndexes(self.getVarsIndexes())
+
     def epsExpansion(self, toIndex):
         """
         toIndex includes,
@@ -132,7 +135,7 @@ class PolynomialProduct:
     __rmul__ = __mul__
 
     def __repr__(self):
-        return formatter.formatRepr(self)
+        return formatter.format(self)
 
 
 def poly_prod(polynomials):
@@ -151,6 +154,6 @@ class Logarithm:
         self.c = c
 
     def __repr__(self):
-        return formatter.formatRepr(self)
+        return formatter.format(self)
 
 
