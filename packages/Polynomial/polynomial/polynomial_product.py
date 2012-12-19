@@ -53,9 +53,6 @@ class PolynomialProduct:
     def getVarsIndexes(self):
         return reduce(lambda indexes, p: indexes | p.getVarsIndexes(), self.polynomials, set())
 
-    def getFormattedVarsIndexes(self):
-        return formatter.formatVarIndexes(self.getVarsIndexes())
-
     def epsExpansion(self, toIndex):
         """
         toIndex includes,

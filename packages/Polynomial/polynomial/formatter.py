@@ -20,9 +20,12 @@ def format(obj, exportType=HUMAN):
     else:
         return _format(obj, exportType)
 
-def formatVarIndexes(indexes, exportType=HUMAN):
+def formatVarIndexes(obj, exportType=HUMAN):
+    """
+    obj MUST have getVarsIndexes method
+    """
     formatter = _createFormatter(exportType)
-    return map(lambda i: formatter.formatVar(i), indexes)
+    return map(lambda i: formatter.formatVar(i), obj.getVarsIndexes())
 
 def _createFormatter(exportType=HUMAN):
     if exportType == PYTHON:
