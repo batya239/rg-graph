@@ -7,10 +7,6 @@ ex: (3, 0, 1) --> x_1^3 * x_3 -->  {1: 3, 3: 1}
 import copy
 from util import dict_hash1
 
-def formatVar(var):
-    return 'u%s' % var if isinstance(var, int) else str(var)
-
-
 def _prepareVars(vars):
     return dict((v, p) for v, p in vars.items() if p <> 0)
 
@@ -58,7 +54,7 @@ class MultiIndex:
 
     def getVarsIndexes(self):
         indexes = set()
-        map(lambda v: indexes.add(formatVar(v)), self.vars.keys())
+        map(lambda v: indexes.add(v), self.vars.keys())
         return indexes
 
     def split(self):

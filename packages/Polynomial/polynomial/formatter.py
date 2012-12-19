@@ -10,10 +10,8 @@ PYTHON = 'PYTHON'
 CPP = 'CPP'
 
 import polynomial_product
-import multiindex
 
-
-def format(obj, exportType):
+def format(obj, exportType=HUMAN):
     """
     return expression as string corresponds exportType. export type should one of (PYTHON, CPP, HUMAN)
     """
@@ -22,15 +20,14 @@ def format(obj, exportType):
     else:
         return _format(obj, exportType)
 
-
-def formatRepr(polynomialProduct):
+def formatVarIndexes(obj, exportType=HUMAN):
     """
-    view for __repr__ method
+    obj MUST have getVarsIndexes method
     """
-    return format(polynomialProduct, HUMAN)
+    formatter = _createFormatter(exportType)
+    return map(lambda i: formatter.formatVar(i), obj.getVarsIndexes())
 
-
-def _format(obj, exportType):
+def _createFormatter(exportType=HUMAN):
     if exportType == PYTHON:
         formatter = PythonFormatter()
     elif exportType == CPP:
@@ -39,7 +36,10 @@ def _format(obj, exportType):
         formatter = HumanReadableFormatter()
     else:
         raise ValueError, 'export type %s is unknown' % exportType
-    return formatter.format(obj)
+    return formatter
+
+def _format(obj, exportType):
+    return _createFormatter(exportType).format(obj)
 
 
 class AbstractFormatter:
@@ -55,6 +55,12 @@ class AbstractFormatter:
             return self.formatPolynomial(obj)
         else:
             raise ValueError, 'Unsupported type %s' % type(obj)
+
+    def formatVarIndex(self, varIndex):
+        """
+        if var is integer
+        """
+        pass
 
     def multiplicationSign(self):
         """
@@ -73,6 +79,9 @@ class AbstractFormatter:
         return valid log representation
         """
         pass
+
+    def formatVar(self, varIndex):
+        return self.formatVarIndex(varIndex) if isinstance(varIndex, int) else str(varIndex)
 
     def formatPolynomialProductLogarithm(self, log):
         if not log.c:
@@ -115,7 +124,7 @@ class AbstractFormatter:
             return '1'
         else:
             return self.multiplicationSign().join(
-                map(lambda v: self.degree(multiindex.formatVar(v[0]), v[1]) if v[1] <> 1 else multiindex.formatVar(v[0]),
+                map(lambda v: self.degree(self.formatVar(v[0]), v[1]) if v[1] <> 1 else self.formatVar(v[0]),
                     mi.vars.items()))
 
 
@@ -132,6 +141,9 @@ class AbstractFormatter:
 
 
 class CppFormatter(AbstractFormatter):
+    def formatVarIndex(self, varIndex):
+        return 'u%s' % varIndex
+
     def multiplicationSign(self):
         return '*'
 
@@ -147,6 +159,9 @@ class HumanReadableFormatter(AbstractFormatter):
     """
     this formatter we use for stdouting of results
     """
+    def formatVarIndex(self, varIndex):
+        return 'u%s' % varIndex
+
     def multiplicationSign(self):
         return '*'
 
@@ -159,6 +174,9 @@ class HumanReadableFormatter(AbstractFormatter):
 
 
 class PythonFormatter(AbstractFormatter):
+    def formatVarIndex(self, varIndex):
+        return 'u%s' % varIndex
+
     def multiplicationSign(self):
         return '*'
 

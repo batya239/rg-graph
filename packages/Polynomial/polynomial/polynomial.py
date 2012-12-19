@@ -204,7 +204,7 @@ class Polynomial:
         return hashCode
 
     def __repr__(self):
-        return formatter.formatRepr(self)
+        return formatter.format(self)
 
 
 def poly(p, degree=1, c=1):

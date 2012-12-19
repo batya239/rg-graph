@@ -132,7 +132,7 @@ class PolynomialProduct:
     __rmul__ = __mul__
 
     def __repr__(self):
-        return formatter.formatRepr(self)
+        return formatter.format(self)
 
 
 def poly_prod(polynomials):
@@ -151,6 +151,6 @@ class Logarithm:
         self.c = c
 
     def __repr__(self):
-        return formatter.formatRepr(self)
+        return formatter.format(self)
 
 
