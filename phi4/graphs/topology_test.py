@@ -5,9 +5,64 @@ import unittest
 
 class TestGetTopologies(unittest.TestCase):
     def testTopologies(self):
-        #topologies = topology.GetTopologies({3: 2})
-        #self.assertEqual(['111--'], topologies)
-        pass
+        topologies = set(topology.GetTopologies({3: 1}))
+        self.assertEqual(set(), topologies)
+
+        topologies = set(topology.GetTopologies({3: 2}))
+        self.assertEqual(set(['111--']), topologies)
+
+        topologies = set(topology.GetTopologies({1: 2, 3: 2}))
+        self.assertEqual(set(['e11-e-']), topologies)
+
+        topologies = set(topology.GetTopologies({2: 3}))
+        self.assertEqual(set(['12-2--']), topologies)
+
+    def test_2_1_4_1(self):
+        topologies = set(topology.GetTopologies({2: 1, 4: 1}))
+        self.assertEqual(set(['011--']), topologies)
+
+    def test_2_2_4_1(self):
+        topologies = set(topology.GetTopologies({2: 2, 4: 1}))
+        self.assertEqual(set(['012-2--', '11-22--']), topologies)
+
+
+class TestGetTopologiesPhi4(unittest.TestCase):
+    def test0legs1loop(self):
+        topologies = set(topology.GetTopologies({4: 1}))
+        self.assertEqual(set(['00-']), topologies)
+
+    def test2legs2loops(self):
+        topologies = set(topology.GetTopologies({1: 2, 4: 2}))
+        self.assertEqual(set(['ee11-1-', 'e111-e-']), topologies)
+
+    def test2legs3loops(self):
+        topologies = set(topology.GetTopologies({1: 2, 4: 3}))
+        self.assertEqual(set(['e112-22-e-', 'e112-e2-2-',
+                              'ee12-222--', 'ee12-12-2-', 'ee11-22-2-']),
+                         topologies)
+
+
+class TestAddAllNodesFromPool(unittest.TestCase):
+    def testAddAllNodesFromPool(self):
+        inp = topology.NickelPool(nickel=[], pool={3: 2})
+        out = list(topology.AddAllNodesFromPool(inp))
+        self.assertEqual(
+            [topology.NickelPool(nickel=[[1, 1, 1], []], pool={3: 0})],
+            out)
+
+        inp = topology.NickelPool(nickel=[], pool={2: 3})
+        out = list(topology.AddAllNodesFromPool(inp))
+        self.assertEqual(
+            [topology.NickelPool(nickel=[[1, 2], [2], []], pool={2: 0})],
+            out)
+
+    def testAddAllNodesFromPoolWithEdges(self):
+        inp = topology.NickelPool(nickel=[], pool={1: 2, 3: 2})
+        out = list(topology.AddAllNodesFromPool(inp))
+        self.assertEqual(
+            [topology.NickelPool(nickel=[[-1, 1, 1], [-1]], pool={1: 0, 3: 0})],
+            out)
+
 
 class TestUtil(unittest.TestCase):
     def testCountNode(self):
@@ -51,16 +106,46 @@ class TestUtil(unittest.TestCase):
         self.assertEqual([(0, 1), (1, 1, 1)],
             list(topology.AddEdges(3, 0, 0, 2, 0)))
 
+    def testAddEdges2EdgesBegin(self):
+        self.assertEqual([(0,), (1, 1), (1, 2)],
+            list(topology.AddEdges(2, 0, 0, 3, 0)))
+
     def testAddEdgesMinimalNodesFromPool(self):
         nick_inc = list(topology.AddEdges(3, 6, 7, 9, 0))
         self.assertTrue((7, 7, 8) in nick_inc)
         self.assertTrue((7, 8, 8) not in nick_inc)
 
     def testAreMinimalNodesFromPool(self):
-        self.assertTrue(topology.AreMinimalNodesFromPool([]))
-        self.assertFalse(topology.AreMinimalNodesFromPool([1, 3]))
-        self.assertTrue(topology.AreMinimalNodesFromPool([1, 1, 2]))
-        self.assertFalse(topology.AreMinimalNodesFromPool([1, 2, 2]))
+        self.assertTrue(topology.AreMinimalNodesFromPool(3, []))
+        self.assertFalse(topology.AreMinimalNodesFromPool(0, [1, 1]))
+        self.assertFalse(topology.AreMinimalNodesFromPool(1, [1, 3]))
+        self.assertTrue(topology.AreMinimalNodesFromPool(1, [1, 1, 2]))
+        self.assertFalse(topology.AreMinimalNodesFromPool(1, [1, 2, 2]))
+
+class TestAddNodeFromPool(unittest.TestCase):
+    def testAddTwoNodesFromPool(self):
+        inp = topology.NickelPool(nickel=[], pool={3: 2})
+        out = []
+        for one in topology.AddNodeFromPool(inp):
+            for two in topology.AddNodeFromPool(one):
+                out.append(two)
+        self.assertEqual(
+            [topology.NickelPool(nickel=[[1, 1, 1], []], pool={3: 0})],
+            out)
+
+    def test_2_1_4_1(self):
+        inp = topology.NickelPool(nickel=[], pool={2: 1, 4: 1})
+        out = []
+        out.append(topology.NickelPool(nickel=[[0]], pool={2: 0, 4: 1}))
+        out.append(topology.NickelPool(nickel=[[1, 1]], pool={2: 0, 4: 1}))
+        out.append(topology.NickelPool(nickel=[[0, 0]], pool={2: 1, 4: 0}))
+        out.append(topology.NickelPool(nickel=[[0, 1, 1]], pool={2: 1, 4: 0}))
+        self.assertEqual(out, list(topology.AddNodeFromPool(inp)))
+
+        self.assertEqual([], list(topology.AddNodeFromPool(out[0])))
+        self.assertEqual(
+                [topology.NickelPool(nickel=[[1, 1], [1]], pool={2: 0, 4: 0})],
+                list(topology.AddNodeFromPool(out[1])))
 
     def testAddNodeFromPool(self):
         inp = topology.NickelPool(nickel=[], pool={3: 1})
@@ -69,6 +154,13 @@ class TestUtil(unittest.TestCase):
         inp = topology.NickelPool(nickel=[], pool={2: 1})
         out = topology.NickelPool(nickel=[[0]], pool={2: 0})
         self.assertEqual([out], list(topology.AddNodeFromPool(inp)))
+
+        inp = topology.NickelPool(nickel=[], pool={2: 3})
+        out = []
+        out.append(topology.NickelPool(nickel=[[0]], pool={2: 2}))
+        out.append(topology.NickelPool(nickel=[[1, 1]], pool={2: 2}))
+        out.append(topology.NickelPool(nickel=[[1, 2]], pool={2: 2}))
+        self.assertEqual(out, list(topology.AddNodeFromPool(inp)))
 
         inp = topology.NickelPool(nickel=[[1, 1]], pool={3: 2})
         out = topology.NickelPool(nickel=[[1, 1], [2]], pool={3: 1})

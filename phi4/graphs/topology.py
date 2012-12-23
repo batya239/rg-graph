@@ -11,13 +11,38 @@ import nickel
 # The node denoting a leg of a graph.
 LEG = -1
 
-def GetTopologies(valences):
-    '''Generates one particle irreducible graphs for dict of valencies to num of nodes.
+def GetTopologies(valences_to_num_nodes):
+    '''Yields nickel strings of one particle irreducible graphs.
+
+    Arg:
+         dict mapping valencies to num of nodes.
     '''
-    pass
+    topologies = set()
+    initial_state = NickelPool(nickel=[], pool=valences_to_num_nodes)
+    for nickpool in AddAllNodesFromPool(initial_state):
+        topology = CanonicalString(nickpool.nickel)
+        if topology in topologies:
+            continue
+        topologies.add(topology)
+        yield topology
 
 
 NickelPool = collections.namedtuple('NickelPool', 'nickel pool')
+
+
+def AddAllNodesFromPool(nickpool):
+    '''Yields NickelPool objects all nodes from pool added to nickel.'''
+    nodes_left = CountNodesInPool(nickpool.pool)
+    if nodes_left > 1:
+        for deeper in AddNodeFromPool(nickpool):
+            for recursive in AddAllNodesFromPool(deeper):
+                yield recursive
+    elif nodes_left == 1:
+        for deepest in AddNodeFromPool(nickpool):
+            if deepest.pool.get(1, 0) == 0:
+                yield deepest
+    else:
+        yield nickpool
 
 
 def AddNodeFromPool(nickpool):
@@ -31,6 +56,8 @@ def AddNodeFromPool(nickpool):
     end_node = CountInternalNodes(nickpool)
     num_legs = nickpool.pool.get(1, 0)
     for valence in nickpool.pool:
+        if nickpool.pool[valence] <= 0:
+            continue
         if valence == 1:
             continue
         if valence < taken_valence:
@@ -98,15 +125,26 @@ def CanonicalString(nickel_list):
 
 def AddEdges(num_edges, start_node, free_node, end_node, num_legs):
     '''Yields all sorted combinations of legs and available nodes.
+
+    Args:
+        num_edges: number of edges to add
+        start_node: first internal node to connect edges to. The edges connected to
+             it are considered self-connected.
+        free_node: the first node in pool which is not referenced in nickel.
+        end_node: limit of the number of nodes.
+        num_legs: maximum number of legs.
     '''
+    # assert free_node > start_node
+    free_node = free_node if free_node > start_node else start_node + 1
     leg = [LEG] if num_legs > 0 else []
-    reachable_nodes = leg + range(start_node, min(free_node + num_edges, end_node))
+    reachable_end =  min(free_node + num_edges, end_node)
+    reachable_nodes = leg + range(start_node, reachable_end)
     for nodes in itertools.combinations_with_replacement(reachable_nodes, num_edges):
         if nodes.count(LEG) > num_legs:
             continue
 
         pool_nodes = [node for node in nodes if node >= free_node]
-        if pool_nodes and not AreMinimalNodesFromPool(pool_nodes):
+        if pool_nodes and not AreMinimalNodesFromPool(free_node, pool_nodes):
             continue
 
         # Avoid double accounting of self connected nodes.
@@ -144,7 +182,7 @@ def MaxValenceInPool(pool):
     return max(valences)
 
 
-def AreMinimalNodesFromPool(pool_nodes):
+def AreMinimalNodesFromPool(free_node, pool_nodes):
     '''Optimization to find early non-minimal nickel list.'''
     if not pool_nodes:
         return True
@@ -154,9 +192,11 @@ def AreMinimalNodesFromPool(pool_nodes):
         unique_nodes.append(node)
         group_lengths.append(len(tuple(group_iter)))
     # Detect gap.
+    if unique_nodes[0] > free_node:
+        return False
     if unique_nodes[-1] - unique_nodes[0] + 1 != len(unique_nodes):
         return False
-    # Groups should be non-increasing.
+    # Lengths of groups should be non-increasing.
     if group_lengths != sorted(group_lengths, reverse=True):
         return False
 
