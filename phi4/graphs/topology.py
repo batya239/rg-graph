@@ -2,9 +2,14 @@
 # -*- coding:utf8
 """Module for generating of topologies of feynman graphs.
 """
+import sys
 
 import collections
 import itertools
+
+if sys.version_info < (2, 7):
+    import comb
+    itertools.combinations_with_replacement = comb.combinations_with_replacement
 
 import nickel
 
