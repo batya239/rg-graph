@@ -57,6 +57,8 @@ class TestNickel(unittest.TestCase):
     def testVacuumBubble(self):
         n = nickel.Nickel(edges=[[0, 1], [0, 1]])
         self.assertEqual('11--', n.string)
+        n = nickel.Nickel(edges=[[0, 0]])
+        self.assertEqual('0-', n.string)
 
 
 class TestCanonicalize(unittest.TestCase):

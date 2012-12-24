@@ -117,7 +117,7 @@ class Nickel(object):
 
 
 class InputError(Exception):
-    """Rased when when Canonicalization is called with wrong input.
+    """Rased when Canonicalize is called with wrong input.
     """
     pass
 
