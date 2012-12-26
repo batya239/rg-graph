@@ -1,8 +1,0 @@
-LICENSE.txt
-README.txt
-setup.py
-nickel/__init__.py
-nickel/nickel.py
-graph_state/__init__.py
-graph_state/graph_state.py
-
