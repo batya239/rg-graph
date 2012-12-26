@@ -257,6 +257,11 @@ class TestConnectivity(unittest.TestCase):
                             [[1, 2, 3], [1], [3, 3], []]))
         self.assertTrue(topology.IsOneParticleReducible([[1, 2, 3], [1]]))
 
+        self.assertTrue(topology.IsOneParticleReducible(
+                            [[-1, 1, 2, 3], [-1, 1], [2, 3], [3]]))
+        self.assertTrue(topology.IsOneParticleReducible(
+                            [[-1, 1, 2, 3], [-1, 1]]))
+
     def testIsNCutDisconnectable(self):
         self.assertTrue(topology.IsNCutDisconnectable([], 0))
         self.assertTrue(topology.IsNCutDisconnectable([[0, 1], [2, 3]], 0))
@@ -268,6 +273,22 @@ class TestConnectivity(unittest.TestCase):
             topology.IsNCutDisconnectable([[0, 1], [1, 2], [2, 3], [3, 0]], 1))
         self.assertTrue(
             topology.IsNCutDisconnectable([[0, 1], [1, 2], [2, 3], [3, 0]], 2))
+
+        self.assertTrue(
+            topology.IsNCutDisconnectable(
+                [[-1, 0], [0, 1], [0, 2], [0, 3], [-1, 1], [1, 1]], 1))
+
+    def testIsConnected(self):
+        self.assertFalse(topology.IsConnected([]))
+        # Lists and tuples.
+        self.assertTrue(topology.IsConnected([[0, 1]]))
+        self.assertTrue(topology.IsConnected([(0, 1)]))
+        self.assertTrue(topology.IsConnected(((0, 1),)))
+
+        self.assertFalse(topology.IsConnected([[0, 1], [2, 3]]))
+        self.assertTrue(topology.IsConnected([[0, 1], [1, 2]]))
+        # Leg is amputated
+        self.assertFalse(topology.IsConnected([[-1, 1], [-1, 2]]))
 
 
 if __name__ == "__main__":

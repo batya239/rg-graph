@@ -124,9 +124,27 @@ def IsNCutDisconnectable(edges, num_to_cut):
     '''Returns true if cutting of num_to_cut edges disconnects the graph.'''
     # Brute force solution.
     for edges_part in itertools.combinations(edges, len(edges) - num_to_cut):
-        if not nickel.IsConnected(edges_part):
+        if not IsConnected(edges_part):
             return True
     return False
+
+def IsConnected(edges):
+    '''Returns true for connected graph. Legs are treated as amputated.'''
+    if not edges:
+        return False
+
+    old_len = 0
+    visited_nodes = set(edges[0])
+    visited_nodes.discard(LEG)
+    while old_len < len(visited_nodes):
+        old_len = len(visited_nodes)
+        for edge in edges:
+            if edge[0] in visited_nodes or edge[1] in visited_nodes:
+                visited_nodes.update(edge)
+                visited_nodes.discard(LEG)
+    all_nodes = set(nickel.flatten(edges))
+    all_nodes.discard(LEG)
+    return visited_nodes == all_nodes
 
 
 def MaxNode(nickel_list):
