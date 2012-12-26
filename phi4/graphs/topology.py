@@ -60,7 +60,7 @@ def AddNodeFromPool(nickpool):
     taken_valence = CountNode(nickpool.nickel, node)
     free_node = MaxNode(nickpool.nickel) + 1
     end_node = CountInternalNodes(nickpool)
-    num_legs = nickpool.pool.get(1, 0)
+    max_legs = nickpool.pool.get(1, 0)
     for valence in nickpool.pool:
         if nickpool.pool[valence] <= 0:
             continue
@@ -69,13 +69,21 @@ def AddNodeFromPool(nickpool):
         if valence < taken_valence:
             continue
         for add_nickel in AddEdges(valence - taken_valence,
-                                   node, free_node, end_node, num_legs):
+                                   node, free_node, end_node, max_legs):
+            # Filter by number of legs.
+            if max_legs:
+                num_legs = add_nickel.count(LEG)
+                if num_legs > max_legs:
+                    continue
+                if node == 0 and num_legs == 0:
+                    continue
+
             new_nickel = list(nickpool.nickel) + [list(add_nickel)]
             # Update pool.
             new_pool = dict(nickpool.pool)
             new_pool[valence] -= 1
-            if num_legs > 0:
-                new_pool[1] -= add_nickel.count(LEG)
+            if max_legs:
+                new_pool[1] -= num_legs
 
             if not NickelFitsPool(new_nickel, new_pool):
                 continue
@@ -144,7 +152,7 @@ def CanonicalString(nickel_list):
     return str(nickel.Canonicalize(edges=edges))
 
 
-def AddEdges(num_edges, start_node, free_node, end_node, num_legs):
+def AddEdges(num_edges, start_node, free_node, end_node, add_legs):
     '''Yields all sorted combinations of legs and available nodes.
 
     Args:
@@ -153,17 +161,14 @@ def AddEdges(num_edges, start_node, free_node, end_node, num_legs):
              it are considered self-connected.
         free_node: the first node in pool which is not referenced in nickel.
         end_node: limit of the number of nodes.
-        num_legs: maximum number of legs.
+        add_legs: whether to add legs.
     '''
     # assert free_node > start_node
     free_node = free_node if free_node > start_node else start_node + 1
-    leg = [LEG] if num_legs > 0 else []
+    leg = [LEG] if add_legs else []
     reachable_end =  min(free_node + num_edges, end_node)
     reachable_nodes = leg + range(start_node, reachable_end)
     for nodes in itertools.combinations_with_replacement(reachable_nodes, num_edges):
-        if nodes.count(LEG) > num_legs:
-            continue
-
         pool_nodes = [node for node in nodes if node >= free_node]
         if pool_nodes and not AreMinimalNodesFromPool(free_node, pool_nodes):
             continue

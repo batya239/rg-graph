@@ -195,6 +195,14 @@ class TestAddNodeFromPool(unittest.TestCase):
         out.append(topology.NickelPool(nickel=[[0, 1, 1]], pool={3: 1, 4: 0}))
         self.assertEqual(out, list(topology.AddNodeFromPool(inp)))
 
+    def testLegsOptimization(self):
+        inp = topology.NickelPool(nickel=[], pool={1: 2, 3: 2})
+        out = list(topology.AddNodeFromPool(inp))
+        self.assertTrue(
+            topology.NickelPool(nickel=[[-1, -1, 1]], pool={1: 0, 3: 1}) in out)
+        self.assertFalse(
+            topology.NickelPool(nickel=[[1, 1, 1]], pool={1: 2, 3: 1}) in out)
+
     def testAddNodeOneParticleReducible(self):
         inp = topology.NickelPool(nickel=[[0]], pool={2: 1})
         self.assertEqual([], list(topology.AddNodeFromPool(inp)))
