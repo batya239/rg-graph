@@ -96,7 +96,7 @@ def IsOneParticleReducible(nickel_list):
     # Disconnected.
     if edges_to_pool == 0:
         return True
-    # Single edge goues to pool.
+    # Single edge goes to pool.
     if edges_to_pool == 1:
         if CountNode(nickel_list, free_node + 1) == 0:
             return True
