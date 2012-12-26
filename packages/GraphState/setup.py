@@ -10,6 +10,6 @@ setup(
     packages=['nickel', 'graph_state'],
     url='http://pypi.python.org/pypi/GraphState/',
     license='LICENSE.txt',
-    description='Generalization of B.G.Nikel et al algorithm for identifying graphs',
+    description='Generalization of B.G.Nickel et al algorithm for identifying graphs',
     long_description=open('README.txt').read(),
 )
