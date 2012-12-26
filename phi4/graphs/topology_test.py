@@ -8,9 +8,6 @@ class TestGetTopologies(unittest.TestCase):
         topologies = set(topology.GetTopologies({3: 1}))
         self.assertEqual(set(), topologies)
 
-        topologies = set(topology.GetTopologies({3: 2}))
-        self.assertEqual(set(['111--']), topologies)
-
         topologies = set(topology.GetTopologies({1: 2, 3: 2}))
         self.assertEqual(set(['e11-e-']), topologies)
 
@@ -24,6 +21,16 @@ class TestGetTopologies(unittest.TestCase):
     def test_2_2_4_1(self):
         topologies = set(topology.GetTopologies({2: 2, 4: 1}))
         self.assertEqual(set(['012-2--', '11-22--']), topologies)
+
+
+class TestGetTopologiesPhi3(unittest.TestCase):
+    def test0legs2nodes(self):
+        topologies = set(topology.GetTopologies({3: 2}))
+        self.assertEqual(set(['111--']), topologies)
+
+    def test0legs4nodes(self):
+        topologies = set(topology.GetTopologies({3: 4}))
+        self.assertEqual(set(['123-23-3--','112-3-33--']), topologies)
 
 
 class TestGetTopologiesPhi4(unittest.TestCase):
@@ -195,13 +202,6 @@ class TestAddNodeFromPool(unittest.TestCase):
         inp = topology.NickelPool(nickel=[[0, 1]], pool={3: 1})
         self.assertEqual([], list(topology.AddNodeFromPool(inp)))
 
-    def testIsOneParticleReducible(self):
-        self.assertFalse(topology.IsOneParticleReducible([]))
-        self.assertTrue(topology.IsOneParticleReducible([[0]]))
-        self.assertTrue(topology.IsOneParticleReducible([[0, 1]]))
-        self.assertFalse(topology.IsOneParticleReducible([[1, 1]]))
-        self.assertFalse(topology.IsOneParticleReducible([[1, 2]]))
-
     def testCanonicalString(self):
         self.assertEqual('0-', topology.CanonicalString([[0]]))
         self.assertEqual('11--', topology.CanonicalString([[1, 1]]))
@@ -236,6 +236,30 @@ class TestAddNodeFromPool(unittest.TestCase):
         # Two nodes are needed.
         self.assertFalse(topology.NickelFitsPool([[1, 2]], {2: 1}))
         self.assertTrue(topology.NickelFitsPool([[1, 1]], {2: 1}))
+
+class TestConnectivity(unittest.TestCase):
+    def testIsOneParticleReducible(self):
+        self.assertFalse(topology.IsOneParticleReducible([]))
+        self.assertTrue(topology.IsOneParticleReducible([[0]]))
+        self.assertTrue(topology.IsOneParticleReducible([[0, 1]]))
+        self.assertFalse(topology.IsOneParticleReducible([[1, 1]]))
+        self.assertFalse(topology.IsOneParticleReducible([[1, 2]]))
+
+        self.assertTrue(topology.IsOneParticleReducible(
+                            [[1, 2, 3], [1], [3, 3], []]))
+        self.assertTrue(topology.IsOneParticleReducible([[1, 2, 3], [1]]))
+
+    def testIsNCutDisconnectable(self):
+        self.assertTrue(topology.IsNCutDisconnectable([], 0))
+        self.assertTrue(topology.IsNCutDisconnectable([[0, 1], [2, 3]], 0))
+
+        self.assertFalse(topology.IsNCutDisconnectable([[0, 1]], 0))
+        self.assertTrue(topology.IsNCutDisconnectable([[0, 1]], 1))
+
+        self.assertFalse(
+            topology.IsNCutDisconnectable([[0, 1], [1, 2], [2, 3], [3, 0]], 1))
+        self.assertTrue(
+            topology.IsNCutDisconnectable([[0, 1], [1, 2], [2, 3], [3, 0]], 2))
 
 
 if __name__ == "__main__":

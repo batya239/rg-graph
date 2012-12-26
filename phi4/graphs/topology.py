@@ -16,6 +16,7 @@ import nickel
 # The node denoting a leg of a graph.
 LEG = -1
 
+
 def GetTopologies(valences_to_num_nodes):
     '''Yields nickel strings of one particle irreducible graphs.
 
@@ -95,14 +96,29 @@ def IsOneParticleReducible(nickel_list):
     # Disconnected.
     if edges_to_pool == 0:
         return True
-    # One particle suspicious.
+    # Single edge goues to pool.
     if edges_to_pool == 1:
-        return CountNode(nickel_list, free_node + 1) == 0
+        if CountNode(nickel_list, free_node + 1) == 0:
+            return True
+    # Generated part is one particle reducible.
+    edges = nickel.Nickel(nickel=nickel_list).edges
+    if IsNCutDisconnectable(edges, 1):
+        return True
+
     return False
 
 
 def CountNode(nickel_list, node):
     return sum([nodes.count(node) for nodes in nickel_list])
+
+
+def IsNCutDisconnectable(edges, num_to_cut):
+    '''Returns true if cutting of num_to_cut edges disconnects the graph.'''
+    # Brute force solution.
+    for edges_part in itertools.combinations(edges, len(edges) - num_to_cut):
+        if not nickel.IsConnected(edges_part):
+            return True
+    return False
 
 
 def MaxNode(nickel_list):
