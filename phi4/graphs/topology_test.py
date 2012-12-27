@@ -32,6 +32,13 @@ class TestGetTopologiesPhi3(unittest.TestCase):
         topologies = set(topology.GetTopologies({3: 4}))
         self.assertEqual(set(['123-23-3--','112-3-33--']), topologies)
 
+    def test0legs4nodes(self):
+        topologies = set(topology.GetTopologies({3: 6}))
+        self.assertEqual(set(['112-3-44-55-5--', '112-3-45-45-5--',
+                              '112-3-34-5-55--', '123-24-5-45-5--',
+                              '123-45-45-45---']),
+                         topologies)
+
 
 class TestGetTopologiesPhi4(unittest.TestCase):
     def test0legs1loop(self):
@@ -140,6 +147,13 @@ class TestAddNodeFromPool(unittest.TestCase):
             [topology.NickelPool(nickel=[[1, 1, 1], []], pool={3: 0})],
             out)
 
+    def test_3_6(self):
+        in1 = topology.NickelPool(nickel=[[1, 2, 3]], pool={3: 5})
+        in2 = topology.NickelPool(nickel=[[1, 2, 3], [4, 5]], pool={3: 4})
+        self.assertTrue(in2 in list(topology.AddNodeFromPool(in1)))
+        in3 = topology.NickelPool(nickel=[[1, 2, 3], [4, 5], [4, 5]], pool={3: 3})
+        self.assertTrue(in3 in list(topology.AddNodeFromPool(in2)))
+
     def test_2_1_4_1(self):
         inp = topology.NickelPool(nickel=[], pool={2: 1, 4: 1})
         out = []
@@ -229,7 +243,7 @@ class TestAddNodeFromPool(unittest.TestCase):
         self.assertEqual(1, topology.CountNodesInPool({1: 1, 2: 1}))
         self.assertEqual(6, topology.CountNodesInPool({1: 1, 2: 1, 3: 5}))
 
-    def testCountNodesInPool(self):
+    def testCountAllNodesInPool(self):
         self.assertEqual(0, topology.CountAllNodesInPool({}))
         self.assertEqual(1, topology.CountAllNodesInPool({1: 1}))
         self.assertEqual(1, topology.CountAllNodesInPool({1: 1, 2: 0}))
@@ -262,6 +276,8 @@ class TestConnectivity(unittest.TestCase):
         self.assertTrue(topology.IsOneParticleReducible(
                             [[-1, 1, 2, 3], [-1, 1]]))
 
+        self.assertFalse(topology.IsOneParticleReducible([[1, 2, 3], [4, 5]]))
+
     def testIsNCutDisconnectable(self):
         self.assertTrue(topology.IsNCutDisconnectable([], 0))
         self.assertTrue(topology.IsNCutDisconnectable([[0, 1], [2, 3]], 0))
@@ -277,6 +293,9 @@ class TestConnectivity(unittest.TestCase):
         self.assertTrue(
             topology.IsNCutDisconnectable(
                 [[-1, 0], [0, 1], [0, 2], [0, 3], [-1, 1], [1, 1]], 1))
+
+        self.assertTrue(
+            topology.IsNCutDisconnectable([[0, 1], [0, 2], [1, 3]], 1))
 
     def testIsConnected(self):
         self.assertFalse(topology.IsConnected([]))

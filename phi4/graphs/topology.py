@@ -108,8 +108,10 @@ def IsOneParticleReducible(nickel_list):
     if edges_to_pool == 1:
         if CountNode(nickel_list, free_node + 1) == 0:
             return True
-    # Generated part is one particle reducible.
-    edges = nickel.Nickel(nickel=nickel_list).edges
+    # Merge all pool nodes into one and check reducibility.
+    merge = lambda node: min(node, free_node)
+    merged_nickel = [map(merge, nodes) for nodes in nickel_list]
+    edges = nickel.Nickel(nickel=merged_nickel).edges
     if IsNCutDisconnectable(edges, 1):
         return True
 
