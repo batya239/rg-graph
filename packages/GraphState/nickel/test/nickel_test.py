@@ -1,6 +1,8 @@
 #!/usr/bin/python
 
-import nickel
+# Hack to access non imported parts of package for unittesting.
+from nickel import *
+
 import unittest
 
 #TODO: Exclude generator tests from nickel tests

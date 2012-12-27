@@ -4,6 +4,8 @@
 import collections
 import itertools
 
+LEG = -1
+
 class Nickel(object):
     """Class to convert graph representations.
 
@@ -18,7 +20,7 @@ class Nickel(object):
     """
     SEP = '-'
     _SEP_ID = -600
-    NODE_TO_CHAR = {_SEP_ID: SEP, -1: 'e', 10: 'A', 11: 'B', 12: 'C',
+    NODE_TO_CHAR = {_SEP_ID: SEP, LEG: 'e', 10: 'A', 11: 'B', 12: 'C',
                     13: 'D', 14: 'E', 15: 'F'}
     def __init__(self, edges=None, nickel=None, string=None):
         num_args = len(filter(lambda x: x is not None, (edges, nickel, string)))
@@ -146,7 +148,7 @@ class Canonicalize(object):
         # Shift original nodes to free space for canonical numbers.
         offset = max(100, num_internal_nodes)
         def shift(n):
-            return n + offset if n >= 0 else -1
+            return n + offset if n >= 0 else LEG
         self.edges = [[shift(n), shift(m)] for [n, m] in edges]
 
         # Do the work.
@@ -176,8 +178,8 @@ class Canonicalize(object):
     def InitStates(self, edges):
         """Creates all possible initial states for node 0."""
         all_nodes = set(flatten(edges))
-        if -1 in all_nodes:
-            boundary_nodes = set(AdjacentNodes(-1, edges))
+        if LEG in all_nodes:
+            boundary_nodes = set(AdjacentNodes(LEG, edges))
         else:
             boundary_nodes = all_nodes
 
