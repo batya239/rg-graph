@@ -130,23 +130,89 @@ def IsNCutDisconnectable(edges, num_to_cut):
             return True
     return False
 
+def NodeConnectedComponent(edges, node):
+    '''
+     returns connected component which has this node
+     if connected component has LEG node, this indicates that component has
+     at least one external leg
+    '''
+    old_len = 0
+    visited_nodes = set([node])
+    #    visited_nodes.discard(LEG)
+    while old_len < len(visited_nodes):
+        old_len = len(visited_nodes)
+        for edge in edges:
+            for node in edge:
+                if node <> LEG:
+                    if node in visited_nodes:
+                        visited_nodes.update(edge)
+    return visited_nodes
+
+
+def ConnectedComponents(edges):
+    '''
+    returns list of connected components, each component is set of nodes
+    if connected component has LEG node, this indicates that component has
+     at least one external leg
+    '''
+    all_nodes = set(nickel.flatten(edges))
+    all_nodes.discard(LEG)
+    components = list()
+    while len(all_nodes) > 0:
+        connected_to_node = NodeConnectedComponent(edges, list(all_nodes)[0])
+        components.append(connected_to_node)
+        all_nodes = all_nodes - connected_to_node
+    return components
+
+
 def IsConnected(edges):
     '''Returns true for connected graph. Legs are treated as amputated.'''
     if not edges:
         return False
 
-    old_len = 0
-    visited_nodes = set(edges[0])
-    visited_nodes.discard(LEG)
-    while old_len < len(visited_nodes):
-        old_len = len(visited_nodes)
-        for edge in edges:
-            if edge[0] in visited_nodes or edge[1] in visited_nodes:
-                visited_nodes.update(edge)
-                visited_nodes.discard(LEG)
+    node = edges[0][0] if edges[0][0] <> LEG else edges[0][1]
+    connected_to_node = NodeConnectedComponent(edges, node)
     all_nodes = set(nickel.flatten(edges))
-    all_nodes.discard(LEG)
-    return visited_nodes == all_nodes
+    return connected_to_node == all_nodes
+
+
+def RemoveNode(edges, node_to_remove):
+    ''' selected node removed from graph, lines connected to this node will
+     be connected to separate nodes, e.g. if node 4 removed, then lines are
+     connected to nodes (with valence=1) 4A, 4B, 4C etc.
+
+     Here assumed that edges has only integer nodes and there is no nodes like '4A'
+    '''
+    new_edges = list()
+    node_label = ord('A')
+    for edge in edges:
+        new_edge = list()
+        for node in edge:
+            if node == node_to_remove:
+                new_edge.append('%s%s' % (node_to_remove, chr(node_label)))
+                node_label += 1
+            else:
+                new_edge.append(node)
+        new_edges.append(new_edge)
+    return new_edges
+
+
+def HasTadpole(edges):
+    '''
+     Returns True if graph has tadpole.
+    Graph has tadpolr if removing of one node produces connected
+    component without external legs
+    '''
+    all_nodes = list(set(nickel.flatten(edges)))
+    all_nodes.remove(LEG)
+
+    for node in all_nodes:
+        connected_components = ConnectedComponents(RemoveNode(edges, node))
+        has_tadpole = False in map(lambda x: LEG in x, connected_components)
+        if has_tadpole:
+            return True
+
+    return False
 
 
 def MaxNode(nickel_list):
