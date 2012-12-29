@@ -309,6 +309,8 @@ class TestConnectivity(unittest.TestCase):
         # Leg is amputated
         self.assertFalse(topology.IsConnected([[-1, 1], [-1, 2]]))
 
+        self.assertTrue(topology.IsConnected([[-1, 0], [-1, 0], [0, 1]]))
+
 
 if __name__ == "__main__":
     unittest.main()
