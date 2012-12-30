@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# -*- coding:ut_from_iterablesf8
+# -*- coding:utf8
 
 import collections
 import itertools
