@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# -*- coding:utf8
+# -*- coding:ut_from_iterablesf8
 
 import collections
 import itertools
@@ -84,7 +84,7 @@ class Nickel(object):
     @classmethod
     def StringFromNickel(self, nickel):
         temp = [nn + [self._SEP_ID] for nn in nickel]
-        temp = flatten(temp)
+        temp = tuple(iflatten(temp))
         temp = [str(Nickel.NODE_TO_CHAR.get(n, n)) for n in temp]
         return ''.join(temp)
 
@@ -141,7 +141,7 @@ class Canonicalize(object):
         self.orig = edges
 
         num_internal_nodes = 0
-        for n in set(flatten(edges)):
+        for n in set(iflatten(edges)):
             if n >= 0:
                 num_internal_nodes += 1
 
@@ -177,7 +177,7 @@ class Canonicalize(object):
 
     def InitStates(self, edges):
         """Creates all possible initial states for node 0."""
-        all_nodes = set(flatten(edges))
+        all_nodes = set(iflatten(edges))
         if LEG in all_nodes:
             boundary_nodes = set(AdjacentNodes(LEG, edges))
         else:
@@ -284,12 +284,17 @@ def IsConnected(edges):
         for edge in edges:
             if edge[0] in visited_nodes or edge[1] in visited_nodes:
                 visited_nodes.update(edge)
-    return visited_nodes == set(flatten(edges))
+    return visited_nodes == set(iflatten(edges))
 
 
 def flatten(edges):
-   '''Flattens shallow iterable of iterables.'''
-   return list(itertools.chain(*edges))
+   '''flattens shallow iterable of iterables.'''
+   return list(itertools.chain_from_iterables(edges))
+
+
+def iflatten(edges):
+   '''flattens shallow iterable of iterables.'''
+   return itertools.chain_from_iterables(edges)
 
 
 def MapNodes1(dic, list_of_nodes):
