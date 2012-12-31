@@ -55,6 +55,9 @@ class TestGetTopologiesPhi4(unittest.TestCase):
                               'ee12-222--', 'ee12-12-2-', 'ee11-22-2-']),
                          topologies)
 
+        topologies = set(topology.GetTopologies({1: 2, 4: 3}, with_tadpoles=False))
+        self.assertEqual(set(['e112-22-e-']), topologies)
+
 
 class TestAddAllNodesFromPool(unittest.TestCase):
     def testAddAllNodesFromPool(self):
@@ -310,6 +313,41 @@ class TestConnectivity(unittest.TestCase):
         self.assertFalse(topology.IsConnected([[-1, 1], [-1, 2]]))
 
         self.assertTrue(topology.IsConnected([[-1, 0], [-1, 0], [0, 1]]))
+
+    def testGetNodesConnectedToNode(self):
+        component = topology.GetNodesConnectedToNode([[-1, 0], [-1, 1]], 0)
+        self.assertEqual(set([-1, 0]), component)
+
+        component = topology.GetNodesConnectedToNode([[-1, 0], [-1, 1], [0, 2]], 0)
+        self.assertEqual(set([-1, 0, 2]), component)
+
+        component = topology.GetNodesConnectedToNode([[0, 3], [1, 1], [3, 2]], 0)
+        self.assertEqual(set([0, 2, 3]), component)
+
+    def testGetConnectedComponents(self):
+        components = list(topology.GetConnectedComponents(
+                [[-1, 0], [-1, 1]]))
+        self.assertEqual([set([-1, 0]), set([-1, 1])], components)
+
+        components = list(topology.GetConnectedComponents(
+                [[-1, 0], [-1, 1], [0, 2]]))
+        self.assertEqual([set([-1, 0, 2]), set([-1, 1])], components)
+
+        components = list(topology.GetConnectedComponents(
+                [[0, 3], [1, 1], [3, 2]]))
+        self.assertEqual([set([0, 2, 3]), set([1])], components)
+
+    def testRemoveNode(self):
+        nonode = topology.RemoveNode([[0, 1], [0, 2]], 0)
+        self.assertEqual([['0A', 1], ['0B', 2]], nonode)
+
+    def testHasTadpole(self):
+        self.assertFalse(topology.HasTadpole([[-1, 1]]))
+        self.assertTrue(topology.HasTadpole([[0, 1]]))
+        self.assertTrue(topology.HasTadpole([[-1, 0], [0, 0]]))
+        self.assertTrue(topology.HasTadpole([[-1, 0], [0, 1], [1, 2], [1, 2]]))
+        self.assertFalse(topology.HasTadpole(
+                [[-1, 0], [0, 1], [0, 1], [1, 2], [1, 2], [2, -1]]))
 
 
 if __name__ == "__main__":
