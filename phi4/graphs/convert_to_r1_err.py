@@ -129,7 +129,7 @@ def printKR1(key):
         print "   G ", G[key_].sympy_series()
 
 
-#    print "       ", KR1[key]
+        print "    KR1   ", KR1[key].sympy_series()
 #    print "       ", G[key]
     print
 
