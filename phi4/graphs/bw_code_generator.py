@@ -8,7 +8,7 @@ import conserv
 
 import polynomial
 
-def generate_code(graph_nickel_notation, strategyName='STRATEGY_C', order=0, fileName='bogner.cc'):
+def generate_code(graph_nickel_notation, strategyName='STRATEGY_C', startOrder=None, endOrder=-1, fileName='bogner.cc'):
     graph = Graph(graph_nickel_notation)
     name = str(graph.GenerateNickel())
     if name <> graph_nickel_notation:
@@ -68,7 +68,8 @@ def generate_code(graph_nickel_notation, strategyName='STRATEGY_C', order=0, fil
         vars=variablesCode,
         u=expressionU,
         f=expressionF,
-        order=order
+        startOrder=startOrder if startOrder else -nLoops,
+        endOrder=endOrder
     ))
     outFile.close()
 
@@ -123,7 +124,7 @@ integrand my_integrand(nu_minus_1, poly_list, c);
 monte_carlo_parameters mc_parameters( 5, 15, 10000, 100000 );
 
 std::cout << "\\n\\nvalues_strings=list()\\nsector_strings=list()\\neps=list()\\n\\n";
-for (int order=-{order}; order<=0; order++)
+for (int order={startOrder}; order<={endOrder}; order++)
     {{
       std::cout << "\\n\\n\\neps.append(" << order << ")\\n";
       integration_data global_data(parameters, eps, order);
