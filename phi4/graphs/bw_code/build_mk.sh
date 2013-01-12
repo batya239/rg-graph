@@ -1,7 +1,7 @@
 #!/bin/bash
 
 sd_dir="~/workspace/sector_decomposition-1.1.0/"
-sd_dir="$HOME/workspace/sector_decomposition-1.1.0/"
+sd_dir="$HOME/workspace/bogner-sector-decomposition/sector_decomposition-1.1.0/"
 
 export name=$1
 basename=`echo $name|sed 's/.cc$//'`

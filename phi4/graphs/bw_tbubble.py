@@ -2,4 +2,4 @@
 # -*- coding: utf8
 import bw_code_generator as bw
 
-bw.generate_code("e12-23-3-e-", "STRATEGY_A", 4, "bw_code/tbubble.cc")
+bw.generate_code("e12-23-3-e-", strategyName="STRATEGY_A", startOrder=0, endOrder=0, fileName="bw_code/tbubble.cc")
