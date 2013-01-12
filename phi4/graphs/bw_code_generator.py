@@ -47,7 +47,7 @@ def generate_code(graph_nickel_notation, strategyName='STRATEGY_C', startOrder=N
 
     U_ = [(1, x) for x in U]
     polyU = polynomial.poly(U_)
-    expressionU =  polynomial.formatter.format(polyU, polynomial.formatter.CPP)
+    expressionU = polynomial.formatter.format(polyU, polynomial.formatter.CPP)
 
     if F is None:
         F_ = polynomial.poly(U_) * polynomial.poly([(1, [x, ]) for x in graph._qi2l])
@@ -68,7 +68,7 @@ def generate_code(graph_nickel_notation, strategyName='STRATEGY_C', startOrder=N
         vars=variablesCode,
         u=expressionU,
         f=expressionF,
-        startOrder=startOrder if startOrder else -nLoops,
+        startOrder=startOrder if startOrder == None else -nLoops,
         endOrder=endOrder
     ))
     outFile.close()
