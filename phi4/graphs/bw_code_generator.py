@@ -68,7 +68,7 @@ def generate_code(graph_nickel_notation, strategyName='STRATEGY_C', startOrder=N
         vars=variablesCode,
         u=expressionU,
         f=expressionF,
-        startOrder=startOrder if startOrder == None else -nLoops,
+        startOrder=startOrder if startOrder != None else -nLoops,
         endOrder=endOrder
     ))
     outFile.close()
