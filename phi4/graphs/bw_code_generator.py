@@ -28,7 +28,7 @@ def generate_code(graph_nickel_notation, strategyName='STRATEGY_C', startOrder=N
         F = sd_tools.gendet(graph_, N=graph.NLoops() + 1)
 
         internalEdges = graph._internal_edges_dict()
-        conservation = conserv.Conservations(internalEdges)
+        conservations = conserv.Conservations(internalEdges)
         conservations = sd_tools.apply_eq(conservations, equations)
         graph._cons = conservations
 
