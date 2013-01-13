@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf8
 import sys
+import copy
 from graphs import Graph
 import nickel
 from methods import sd_tools
@@ -22,6 +23,7 @@ graph._eqsubgraphs = list()
 internalEdges = graph._internal_edges_dict()
 if len(graph.ExternalLines()) == 2:
     internalEdges[1000000] = [i.idx() for i in graph.ExternalNodes()] #Additional edge: suitable way to find F
+
     conservations = conserv.Conservations(internalEdges)
     equations = sd_tools.find_eq(conservations)
     conservations = sd_tools.apply_eq(conservations, equations)
@@ -31,7 +33,7 @@ if len(graph.ExternalLines()) == 2:
     F = sd_tools.gendet(graph_, N=graph.NLoops() + 1)
 
     internalEdges = graph._internal_edges_dict()
-    conservation = conserv.Conservations(internalEdges)
+    conservations = conserv.Conservations(internalEdges)
     conservations = sd_tools.apply_eq(conservations, equations)
     graph._cons = conservations
 
