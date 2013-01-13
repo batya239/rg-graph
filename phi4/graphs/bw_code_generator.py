@@ -58,7 +58,7 @@ def generate_code(graph_nickel_notation, strategyName='STRATEGY_C', startOrder=N
     variables = set(polynomial.formatter.formatVarIndexes(F_, polynomial.formatter.CPP))
     variables |= set(polynomial.formatter.formatVarIndexes(polyU, polynomial.formatter.CPP))
 
-    variablesCode = ''.join(map(lambda v: VARIABLE_TEMPLATE.format(v), sorted(variables)))
+    variablesCode = ''.join(map(lambda v: VARIABLE_TEMPLATE.format(v), variables))
 
     outFile = open(fileName, 'w+')
     outFile.write(BOGNER_CODE_TEMPLATE.format(
