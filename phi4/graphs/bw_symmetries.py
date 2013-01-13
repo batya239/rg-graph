@@ -18,21 +18,18 @@ else:
     print "wrong format: pwd/e12-23-3-e-_A.py"
     sys.exit(1)
 
-
-
-exec(open(bw_file).read())
+exec (open(bw_file).read())
 #indexes = {1:1, 4:2, 5:3, 3:4, 2:5}
 #indexes = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5}
-indexes = dict(zip(*(range(0,10),range(0,10))))
-
+indexes = dict(zip(*(range(0, 10), range(0, 10))))
 
 g = Graph(graph_nomenkl)
 
 
 def to_edges_dict(g):
     res = dict()
-#    lineIdxShift = min(g._internal_edges_dict().keys()) - 1
-    lineIdxShift=0
+    #    lineIdxShift = min(g._internal_edges_dict().keys()) - 1
+    lineIdxShift = 0
     vertexIdxShift = 1
     for lineIdx in g._edges_dict().keys():
         res[lineIdx - lineIdxShift] = map(lambda x: x - vertexIdxShift, g._edges_dict()[lineIdx])
@@ -67,7 +64,8 @@ def xTreeDepthFirst(tree, multiplier=1, parents=list()):
         yield (tree, multiplier * tree.cnt, parents)
     else:
         for branch in tree.branches:
-            for x in xTreeDepthFirst(branch, multiplier * tree.cnt, parents=parents+[(tree.idx, map(lambda x:x.idx, tree.branches))]):
+            for x in xTreeDepthFirst(branch, multiplier * tree.cnt,
+                                     parents=parents + [(tree.idx, map(lambda x: x.idx, tree.branches))]):
                 yield x
 
 
@@ -96,7 +94,7 @@ def removeBranches( tree, parentColors, edges_dict, depth=-1):
                 else:
                     tColors[line].append(0)
             gstate = getGraphState(edges_dict, tColors)
-#            print branch, tColors, parentColors, gstate
+            #            print branch, tColors, parentColors, gstate
             if not uniqueBranches.has_key(gstate):
                 uniqueBranches[gstate] = [branch, tColors, 1]
             else:
@@ -110,12 +108,11 @@ def removeBranches( tree, parentColors, edges_dict, depth=-1):
         return
 
 
-
 originalSectorTree = Tree(0)
 
 iii = 0
 for tSector in sector_strings[0].splitlines():
-    if len(tSector)==0:
+    if len(tSector) == 0:
         continue
     sector = eval(tSector)
     values = eval(values_strings[0].splitlines()[iii])
@@ -128,7 +125,7 @@ for tSector in sector_strings[0].splitlines():
         S = set([pvar] + list(svars))
         if len(currentBranch.branches) == 0:
             currentBranch.setBranches(S)
-#        print currentBranch.branches, len(currentBranch.branches), S
+            #        print currentBranch.branches, len(currentBranch.branches), S
         branch = currentBranch.hasBranch(pvar)
         if branch <> None:
             currentBranch = branch
@@ -138,20 +135,32 @@ for tSector in sector_strings[0].splitlines():
     currentBranch.sector = sector
     currentBranch.values = values
 
-print len([x for x in xTreeDepthFirst(originalSectorTree)])
+original = len([x for x in xTreeDepthFirst(originalSectorTree)])
 
 SectorTree = copy.deepcopy(originalSectorTree)
 edges_dict = to_edges_dict(g)
 decompositions = dict([(line, []) for line in edges_dict.keys()])
 removeBranches(SectorTree, decompositions, edges_dict, -1)
-print len([x for x in xTreeDepthFirst(SectorTree)])
+optimized = len([x for x in xTreeDepthFirst(SectorTree)])
+
+print original, optimized, original / float(optimized)
 sum = 0
+err2 = 0
 for (sector, multiplier, parents) in xTreeDepthFirst(originalSectorTree):
 #    print sector, multiplier, parents
     sum += multiplier * sector.values[0]
-print sum
+    err2 += (multiplier * sector.values[1]) ** 2
+print sum, err2 ** (0.5)
+errOriginal = err2 ** 0.5
 sum = 0
+err2 = 0
 for (sector, multiplier, parents) in xTreeDepthFirst(SectorTree):
 #    print sector, multiplier, parents
     sum += multiplier * sector.values[0]
-print sum
+    err2 += (multiplier * sector.values[1]) ** 2
+print sum, err2 ** (0.5)
+errOptimized = err2 ** (0.5)
+
+print "err optimized/ err original : %s\n total speedup: \n n**0.5 %s\n n**1  %s" % (
+errOptimized / errOriginal, original / float(optimized) * (errOriginal / errOptimized) ** 2,
+original / float(optimized) * (errOriginal / errOptimized) ** 1)
