@@ -63,3 +63,8 @@ def combinations_with_replacement(iterable, r):
             return
         indices[i:] = [indices[i] + 1] * (r - i)
         yield tuple(pool[i] for i in indices)
+
+def chain_from_iterable(iterables):
+    for it in iterables:
+        for element in it:
+            yield element
