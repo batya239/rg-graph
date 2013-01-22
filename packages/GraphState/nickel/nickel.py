@@ -3,6 +3,15 @@
 
 import collections
 import itertools
+import sys
+
+def chain_from_iterables(iterables):
+    for it in iterables:
+        for element in it:
+            yield element
+
+if sys.version_info < (2, 7):
+    itertools.chain_from_iterables = chain_from_iterables
 
 LEG = -1
 
