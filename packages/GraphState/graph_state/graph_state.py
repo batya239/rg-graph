@@ -5,12 +5,13 @@ import itertools
 import nickel
 import sys
 
+
 def chain_from_iterables(iterables):
     for it in iterables:
         for element in it:
             yield element
 
-if sys.version_info < (2, 7):
+if  'chain_from_iterable' in itertools.__dict__:
     itertools.chain_from_iterables = chain_from_iterables
 
 class Fields(object):
