@@ -11,7 +11,7 @@ def chain_from_iterables(iterables):
         for element in it:
             yield element
 
-if  'chain_from_iterable' in itertools.__dict__:
+if  'chain_from_iterables' not in itertools.__dict__:
     itertools.chain_from_iterables = chain_from_iterables
 
 
