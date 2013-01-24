@@ -9,7 +9,7 @@ __author__ = 'mkompan'
 import sys
 from graphs import Graph
 from dummy_model import _phi4
-
+from nickel.nickel import flatten  as nickel_flatten
 
 model=_phi4('dummy')
 
@@ -89,7 +89,7 @@ def ReducedGraph(graph,subs):
     ge=graph._edges()
     newge=list()
     snodes=[map(lambda y: y.idx(), x.InternalNodes()) for x in subs]
-    slines=nickel.flatten([sub_edges(x)  for x in subs])
+    slines=nickel_flatten([sub_edges(x)  for x in subs])
 
 #    print ge
 #    print snodes
