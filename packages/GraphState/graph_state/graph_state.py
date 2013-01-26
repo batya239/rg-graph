@@ -93,7 +93,7 @@ class Edge(object):
             fields: Fields object with fields corresponding to the nodes.
             colors: Rainbow object.
         '''
-        self.nodes = tuple(sorted(nodes))
+        self._nodes = tuple(sorted(nodes))
         self.internal_nodes = tuple(
                 [node for node in self.nodes if node != external_node])
 
@@ -113,6 +113,10 @@ class Edge(object):
         self.colors = colors
 
         self.edge_id = edge_id
+
+    @property
+    def nodes(self):
+        return self._nodes
 
     def key(self):
         return (self.internal_nodes, self.fields, self.colors)
@@ -170,6 +174,10 @@ class GraphState(object):
             self.sortings.append(tuple(mapped_edges))
         min_edges = min(self.sortings)
         self.sortings = [edges for edges in self.sortings if edges == min_edges]
+
+    @property
+    def edges(self):
+        return self.sortings[0]
 
     def __cmp__(self, other):
         return cmp(self.sortings[0], other.sortings[0])
