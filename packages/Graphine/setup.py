@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 setup(
-    name='PolynomialTools',
+    name='Graphine',
     version='0.0.1',
     author='D. Batkovich',
     author_email='batya239@gmail.com',
