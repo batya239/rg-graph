@@ -51,6 +51,9 @@ table['ee12-223-3-45-e55-e-'] = [[0, ], [minerr, ]]
 table['ee11-22-34-ee5-555--'] = [[0, ], [minerr, ]]
 table['ee11-23-444-455--ee-'] = [[0, ], [minerr, ]]
 table['ee12-333-345--e55-e-'] = [[0, ], [minerr, ]]
+table['ee11-23-e34-e5-555--'] = [[0, ], [minerr, ]]
+table['ee11-23-e44-555-e5--'] = [[0, ], [minerr, ]]
+table['ee11-23-ee4-455-55--'] = [[0, ], [minerr, ]]
 
 f_ = dict() #for graph summs
 
@@ -74,11 +77,15 @@ zeta = lambda x: sympy.special.zeta_functions.zeta(x).evalf()
 
 
 def f(nomenkl):
-    if not table.has_key(nomenkl):
-        if not f_.has_key(nomenkl):
-            raise ValueError, "no such graph in table: %s" % nomenkl
-        else:
-            return f_[nomenkl]
+    try:
+        if not table.has_key(nomenkl):
+            if not f_.has_key(nomenkl):
+                raise ValueError, "no such graph in table: %s" % nomenkl
+            else:
+                return f_[nomenkl]
+    except TypeError:
+        raise TypeError, "nomenkl = %s, type = %s"%(nomenkl,type(nomenkl))
+
     g = Graph(nomenkl)
     g.GenerateNickel()
     res = list()
@@ -192,7 +199,8 @@ def KR(gamma, R1op, nloops):
         for tadpole in tadpoles:
 #            print tadpole, G[tadpole].sympy_series()
             Tadpoles *= G[tadpole]
-#        print (coef * G[g] * Tadpoles * (kr1_term - kr1_ms_term)).sympy_series()
+#        print r1term
+#        print (coef * G[g] * Tadpoles * (kr1_term - kr1_ms_term)).sympy_series(n=1)
         kr1_ms += coef * G[g] * Tadpoles * (kr1_term - kr1_ms_term)
         #        print kr1_ms
         g_ += coef * G[g] * Tadpoles * (kr1_term)
@@ -287,6 +295,7 @@ G['ee11-ee-_'] = f('ee11-ee-')
 G['ee11-ee-_1k'] = G['ee11-ee-'] - G['ee11-ee-_1']
 G['ee11-ee-_k'] = 2 * G['ee11-ee-'] - G['ee11-ee-_']
 KR1['ee11-ee-_1k'] = G['ee11-ee-_1k']
+KR1['ee11-ee-_1'] = G['ee11-ee-_1']
 KR1['ee11-ee-_k'] = G['ee11-ee-_k']
 
 C0_ = Series([[Number(1, 0), 0], [Number(0.5, 0), 1], [Number(0.5**2, 0), 2], [Number(0.5**3, 0), 3], [Number(0.5**4, 0), 4], [Number(0.5**5, 0), 5], [Number(0.5**6, 0), 6]])
@@ -407,6 +416,7 @@ printKR1(gamma)
 
 G['ee11-22-ee-_1'] = K(G['ee11-ee-'] * G['ee11-ee-_1']) # K(G['ee11-22-ee-']-G['ee11-ee-']*G['ee11-ee-_1'])
 G['ee11-22-ee-_1k'] = K(G['ee11-ee-'] * G['ee11-ee-_1k']) # K(G['ee11-22-ee-']-G['ee11-ee-']*G['ee11-ee-_1'])
+KR1['ee11-22-ee-_1'] = K(G['ee11-22-ee-_1'] - G['ee11-ee-'] * KR1['ee11-ee-_1'] - G['ee11-ee-_1'] * KR1['ee11-ee-'])
 KR1['ee11-22-ee-_1k'] = K(G['ee11-22-ee-_1k'] - G['ee11-ee-'] * KR1['ee11-ee-_1k'] - G['ee11-ee-_1k'] * KR1['ee11-ee-'])
 
 #4x 4loop 5
@@ -839,6 +849,9 @@ G['ee11-ee-__'] = K(3*G['ee11-ee-_']-G['ee11-ee-_k_'])
 
 KR1['ee12-ee3-333--_']= K( f('ee12-ee3-333--') - 0.5 * G['ee11-ee-_k']*f('e111-e-'))
 KR1['ee12-ee3-333--_k'] = K(6*KR1['ee12-ee3-333--'] - KR1['ee12-ee3-333--_'])
+print KR1['ee12-ee3-333--_']
+KR1['ee12-ee3-333--_'] = K(Series([[Number(1.5,0),1],]) * KR1['ee12-ee3-333--'])
+print KR1['ee12-ee3-333--_']
 
 G['ee12-ee3-333--_'] = K(Series([[Number(1.5,0),1],]) * G['ee12-ee3-333--'])
 G['ee12-ee3-333--_k'] = K(C3 * G['ee12-ee3-333--'])
@@ -925,9 +938,7 @@ R1op=[
 KR(gamma, R1op, 5)
 printKR1(gamma)
 
-
-
-KR1['ee12-e33-e33--_']= K(f('ee12-e33-e33--') - 2 * G['ee12-e22-e-']*f('ee11-ee-') -  G['ee11-ee-']*f('ee11-22-ee-'))
+KR1['ee12-e33-e33--_'] = K(f('ee12-e33-e33--') - 2 * G['ee12-e22-e-'] * f('ee11-ee-') - G['ee11-ee-'] * 4 * KR1['ee11-22-ee-_1'])
 KR1['ee12-e33-e33--_k'] = K(6*KR1['ee12-e33-e33--'] - KR1['ee12-e33-e33--_'])
 print KR1['ee12-e33-e33--_']
 print KR1['ee12-e33-e33--_k']
@@ -937,7 +948,7 @@ print KR1['ee12-e33-e33--_']
 print KR1['ee12-e33-e33--_k']
 
 G['ee12-e33-e33--_'] = K(Series([[Number(1.5,0),1],]) * G['ee12-e33-e33--'])
-G['ee12-e33-e33--_k'] = K(C3 * G['ee12-e33-e33--'])
+G['ee12-e33-e33--_k'] = K(Series([[Number(6,0),0],[Number(-1.5,0),1],]) * G['ee12-e33-e33--'])
 
 print "4x 5loop 4*10 + 2*11"
 gamma = (
@@ -945,27 +956,114 @@ gamma = (
     (2, 'ee12-e33-444-55-5-e-'),
 )
 
-R1op=[
-    (2, "((2, 'ee12-e23-e4-444--'), (2, 'ee12-e33-444-e4--'))", ('ee11-ee-',)),
-    (4, 'ee12-e22-e-', ('ee12-ee3-333--',)),
-    (4, 'ee11-ee-', ('ee11-23-ee4-444--',)),
-    (2, 'ee12-ee3-333--', ('ee11-22-ee-',)),
-    (-1, 'ee11-ee-_k', ('ee11-22-ee-', 'e111-e-')),
-    (1, 'ee12-e33-e33--_k', ('e111-e-',)),
+R1op = [
+    (2, "((2, 'ee12-e23-e4-444--'), (2, 'ee12-e33-444-e4--'))", ('ee11-ee-',)),  #1 2
+    (4, 'ee12-e22-e-', ('ee12-ee3-333--',)),   # 0
+    (4, 'ee11-ee-', ('ee11-23-ee4-444--',)),   # 0
+    (-2, 'ee12-e22-e-_k', ('ee11-ee-','e111-e-')),  #0
+    (2, 'ee12-ee3-333--', ('ee11-22-ee-',)),   #0
+    (-1, 'ee11-ee-_k', ('ee11-22-ee-', 'e111-e-')), #0
+    (1, 'ee12-e33-e33--_k', ('e111-e-',)),    # 0
     ]
 KR(gamma, R1op, 5)
 printKR1(gamma)
 
-print "4x 5loop 11"
+G['e123-e23-e3-e-_'] = K(Series([[Number(1.5,0),1],]) * G['e123-e23-e3-e-'])
+G['e123-e23-e3-e-_k'] = K(Series([[Number(6,0),0],[Number(-1.5,0),1],]) * G['e123-e23-e3-e-'])
+KR1['e123-e23-e3-e-_'] = f('e123-e23-e3-e-')
+KR1['e123-e23-e3-e-_k'] = 6 * KR1['e123-e23-e3-e-'] - KR1['e123-e23-e3-e-_']
 
 print "4x 5loop 13"
+gamma = 'e123-e23-e4-e5-555--'
+R1op = [
+    (1./6, 'e123-e23-e3-e-_k', ('e111-e-',)),
+]
+KR(gamma, R1op, 5)
+printKR1(gamma)
 
-print "4x 5loop 17"
-print "4x 5loop 18"
-print "4x 5loop 19"
-print "4x 5loop 20"
-print "4x 5loop 21"
-print "4x 5loop 22"
+G['e112-e3-e33-e-_'] = K(Series([[Number(1.5,0),1],]) * G['e112-e3-e33-e-'])
+G['e112-e3-e33-e-_k'] = K(Series([[Number(6,0),0],[Number(-1.5,0),1],]) * G['e112-e3-e33-e-'])
+KR1['e112-e3-e33-e-_'] = K(Series([[Number(1.5,0),1],]) * KR1['e112-e3-e33-e-'])
+KR1['e112-e3-e33-e-_k'] = 6 * KR1['e112-e3-e33-e-'] - KR1['e112-e3-e33-e-_']
+
+print "4x 5loop 4*17 + 2*20"
+gamma = (
+    (4, 'e112-e3-e34-e5-555--'),
+    (2, 'e112-e3-e44-555-e5--'),
+)
+
+R1op = [
+    (2, "((2, 'ee12-e23-e4-444--'), (2, 'ee12-e33-444-e4--'))", ('ee11-ee-',)),  #1 2
+    (4, 'ee12-e22-e-', ('ee12-ee3-333--',)),  #0
+    (-4, 'ee11-ee-', ('ee11-ee-', 'ee12-ee3-333--')),  #0
+    (-2, 'ee12-e22-e-_k', ('ee11-ee-', 'e111-e-')),  #0
+    (-2, 'ee12-ee3-333--', ('ee11-ee-', 'ee11-ee-')), #0
+    (1, 'ee11-ee-_k', ('ee11-ee-', 'ee11-ee-', 'e111-e-')), #0
+    (1, 'e112-e3-e33-e-_k', ('e111-e-',)),
+]
+
+KR(gamma, R1op, 5)
+printKR1(gamma)
+
+G['ee11-23-e33-e-_gk'] = K(G['ee11-ee-'] * G['ee12-e22-e-_k'])  # K(G['ee11-22-ee-']-G['ee11-ee-']*G['ee11-ee-_1'])
+KR1['ee11-23-e33-e-_gk'] = K(G['ee11-23-e33-e-_gk']
+                             - G['ee12-e22-e-_k'] * KR1['ee11-ee-']
+                             - 2*G['ee11-22-ee-_1k'] * KR1['ee11-ee-']
+                             - G['ee11-22-ee-'] * KR1['ee11-ee-_k']
+                             - G['ee11-ee-'] * KR1['ee12-e22-e-_k']
+                             + G['ee11-ee-'] * KR1['ee11-ee-'] * KR1['ee11-ee-_k']
+                             + G['ee11-ee-_k'] * KR1['ee11-ee-'] * KR1['ee11-ee-'])
+
+print K(G['ee11-23-e33-e-_gk']+G['ee11-23-e33-e-_1k']*2)
+print K(Series([[Number(6,0),0],[Number(-1.5,0),1],]) *G['ee11-23-e33-e-'])
+
+
+
+print "4x 5loop 2*18 + 2*22"
+gamma = (
+    (2, 'ee11-23-e34-e5-555--'),
+    (2, 'ee11-23-e44-555-e5--'),
+)
+R1op = [
+    (1, "((2, 'ee12-e23-e4-444--'), (2, 'ee12-e33-444-e4--'))", ('ee11-ee-',)),
+    (2, 'ee11-23-ee4-444--', ('ee11-ee-',)),
+    (1, 'ee11-23-e33-e-_gk', ('e111-e-',)),
+    (2, 'ee11-22-ee-', ('ee12-ee3-333--',)),
+    (1, 'ee11-ee-', ("((2, 'ee12-e23-e4-444--'), (2, 'ee12-e33-444-e4--'))",)),   #1
+    (-1, 'ee12-e22-e-_k', ('ee11-ee-', 'e111-e-')),   #1
+    (-2, 'ee11-ee-', ('ee11-ee-', 'ee12-ee3-333--')),  #1
+    (-2, 'ee12-ee3-333--', ('ee11-ee-', 'ee11-ee-')),  #1
+    (-2, 'ee11-22-ee-_1k', ('e111-e-', 'ee11-ee-')),  #1
+    (1, 'ee11-ee-_k', ('e111-e-', 'ee11-ee-', 'ee11-ee-')),  #1
+]
+
+KR(gamma, R1op, 5)
+printKR1(gamma)
+
+G['ee12-223-3-ee-_k'] = K(Series([[Number(6,0),0],[Number(-1.5,0),1],]) *G['ee12-223-3-ee-'])
+KR1['ee12-223-3-ee-_k'] = K(Series([[Number(6,0),0],[Number(-1.5,0),1],]) *KR1['ee12-223-3-ee-'])
+
+print "4x 5loop 2*19+4*21"
+gamma = (
+    (2, 'ee12-234-35-ee-555--'),
+    (4, 'ee12-223-4-ee5-555--'),
+)
+
+R1op = [
+    (2, 'ee11-ee-', ("((2, 'ee12-e23-e4-444--'), (2, 'ee12-e33-444-e4--'))",)),
+    (1, 'ee12-223-3-ee-_k', ('e111-e-',)),
+    (2, 'ee11-22-ee-', ('ee12-ee3-333--',)),
+#
+    (-2, 'ee11-ee-_k', ('e111-e-', 'ee12-e22-e-')),
+####    (4, 'ee11-ee-', ('ee12-e33-444-e4--',)),
+    (-4, 'ee11-22-ee-_1k', ('ee11-ee-', 'e111-e-')),
+####    (4, 'ee12-223-4-ee4--', ('e111-e-',)),
+    (4, 'ee11-23-ee4-444--', ('ee11-ee-',)),
+    (4, 'ee12-ee3-333--', ('ee12-e22-e-',)),
+]
+KR(gamma, R1op, 5)
+printKR1(gamma)
+
 
 print "4x 5loop 24"
 
@@ -1437,6 +1535,20 @@ KR(gamma, R1op, 5)
 printKR1(gamma)
 
 print "4x 5loop 66  !!!!!!!!!!!---------------------!!!!!!!!!!!!!!!!!!!!---------------------!!!!!!!!!!!!1"
+gamma='e112-e3-344-55-e5-e-'
+R1op=[
+    (2, 'e112-e3-e34-44-e-', ('ee11-ee-',)),
+    (-1, 'ee11-ee-', ('ee11-ee-', 'e112-e3-e33-e-')),
+    (1, 'ee12-e22-e-', ('ee11-ee-', 'ee11-ee-', 'ee11-ee-')),
+    (-1, 'e112-e3-e33-e-', ('ee11-ee-', 'ee11-ee-')),
+    (-2, 'ee12-e23-33-e-', ('ee11-ee-', 'ee11-ee-')),
+    (1, 'ee12-e22-e-', ('e112-e3-e33-e-',)),
+    (1, 'ee12-233-44-e4-e-', ('ee11-ee-',)),
+    ]
+KR(gamma, R1op, 5)
+printKR1(gamma)
+
+
 
 print "4x 5loop 67"
 gamma = 'ee12-e34-334-5-55-e-'
@@ -1566,16 +1678,17 @@ KR(gamma, R1op, 5)
 printKR1(gamma)
 
 print "4x 5loop 77"
-gamma = 'e112-23-e4-e45-55-e-'
-R1op = [
+gamma='e112-23-e4-e45-55-e-'
+R1op=[
     (-1, 'e112-e3-e33-e-', ('ee11-ee-', 'ee11-ee-')),
     (-1, 'ee11-ee-', ('ee12-e22-e-', 'ee12-e22-e-')),
     (-2, 'ee12-e22-e-', ('ee11-ee-', 'ee12-e22-e-')),
     (2, 'e112-e3-e34-44-e-', ('ee11-ee-',)),
     (2, 'ee12-e23-33-e-', ('ee12-e22-e-',)),
-]
+    ]
 KR(gamma, R1op, 5)
 printKR1(gamma)
+
 
 print "4x 5loop 78"
 gamma = 'ee11-23-e44-e55-55--'
@@ -1700,16 +1813,18 @@ KR(gamma, R1op, 5)
 printKR1(gamma)
 
 print "4x 5loop 86"
-gamma = 'ee12-e23-44-e55-55--'
-R1op = [
-    (3, 'ee12-e23-44-e44--', ('ee11-ee-',)),
-    (-1, 'ee12-e23-33-e-', ('ee11-ee-', 'ee11-ee-')),
-    (2, 'ee12-e23-33-e-', ('ee11-22-ee-',)),
-    (1, 'ee12-e22-e-', ('ee11-22-33-ee-',)),
-    (1, 'ee11-ee-', ('ee12-e33-e44-44--',)),
-]
+gamma='ee12-233-44-e5-55-e-'
+R1op=[
+    (-1, 'ee12-e22-e-', ('ee11-ee-', 'ee11-22-ee-')),
+    (1, 'ee12-e23-33-e-', ('ee11-22-ee-',)),
+    (1, 'ee12-e23-44-e44--', ('ee11-ee-',)),
+    (1, 'ee11-ee-', ('e112-e3-e44-e44--',)),
+    (-2, 'ee12-e23-33-e-', ('ee11-ee-', 'ee11-ee-')),
+    (2, 'ee12-233-44-e4-e-', ('ee11-ee-',)),
+    ]
 KR(gamma, R1op, 5)
 printKR1(gamma)
+
 
 print "4x 5loop 87"
 gamma = 'ee11-23-344-55-e5-e-'
@@ -1852,21 +1967,64 @@ R1op = [
 KR(gamma, R1op, 5)
 printKR1(gamma)
 
-print "4x 5loop 97"
-#gamma='ee12-e23-e4-455-55--'
-#R1op=[
-#    (1, 'ee11-ee-', ('ee12-ee3-344-44--',)),
-#    (1, 'ee12-e23-e3--', ('e112-22-e-',)),
-#    (2, 'ee12-e23-e4-444--', ('ee11-ee-',)),
-#]
-#KR(gamma, R1op, 5)
-#printKR1(gamma)
+print "4x 5loop 2*97+2*115"
+gamma = (
+    (2,'ee12-e23-e4-455-55--'),
+    (2,'ee12-e33-445-e5-55--')
+)
+
+R1op = [
+    (2, 'ee11-ee-', ('ee12-ee3-344-44--',)),
+    (1, 'ee12-e22-e-_k', ('e112-22-e-',)),
+    (2, "((2, 'ee12-e23-e4-444--'), (2, 'ee12-e33-444-e4--'))", ('ee11-ee-',)),
+#
+    (-1, 'ee11-ee-_k', ('ee11-ee-', 'e112-22-e-')),
+    (-4, 'ee12-ee3-333--', ('ee11-ee-', 'ee11-ee-')),
+####    (1, 'ee12-e33-3-e-', ('e112-22-e-',)),
+    (2, 'ee12-ee3-344-44--', ('ee11-ee-',)),
+####    (4, 'ee12-e33-444-e4--', ('ee11-ee-',)),
+]
+KR(gamma, R1op, 5)
+printKR1(gamma)
+
 
 
 
 print "4x 5loop 98"
+gamma = 'ee12-ee3-345-45-55--'
+R1op = [
+    (2, 'ee12-ee3-333--', ('ee12-e22-e-',)),
+    (1, 'ee11-ee-_1k', ('e123-e23-33--',)),
+    (1, 'ee12-ee3-344-44--', ('ee11-ee-',)),
+    ]
+KR(gamma, R1op, 5)
+printKR1(gamma)
+
+
 print "4x 5loop 99"
+gamma='ee11-23-ee4-455-55--'
+R1op=[
+    (1, 'ee11-ee-', ('ee12-ee3-344-44--',)),
+    (-2, 'ee12-ee3-333--', ('ee11-ee-', 'ee11-ee-')),
+    (-1, 'ee11-ee-_1k', ('ee11-ee-', 'e112-22-e-')),
+    (1, 'ee11-22-ee-_1k', ('e112-22-e-',)),
+    (2, 'ee11-23-ee4-444--', ('ee11-ee-',)),
+    (1, 'ee12-ee3-344-44--', ('ee11-ee-',)),
+    ]
+KR(gamma, R1op, 5)
+printKR1(gamma)
+
 print "4x 5loop 100"
+gamma='ee12-ee3-344-55-55--'
+R1op=[
+    (1, 'ee11-ee-_1k', ('e112-33-e33--',)),
+    (-1, 'ee12-ee3-333--', ('ee11-ee-', 'ee11-ee-')),
+    (3, 'ee12-ee3-344-44--', ('ee11-ee-',)),
+    (2, 'ee12-ee3-333--', ('ee11-22-ee-',)),
+    ]
+KR(gamma, R1op, 5)
+printKR1(gamma)
+
 print "4x 5loop 101"
 gamma = 'ee12-e34-355-44-5-e-'
 R1op = [
@@ -1908,19 +2066,21 @@ KR(gamma, R1op, 5)
 printKR1(gamma)
 
 print "4x 5loop 104"
-gamma = 'e112-23-e4-e55-e55--'
-R1op = [
+gamma='ee12-e33-445-55-e5--'
+R1op=[
     (-1, 'ee12-e22-e-', ('ee11-ee-', 'ee11-22-ee-')),
+    (2, 'ee12-e33-344-4-e-', ('ee11-ee-',)),
     (1, 'ee12-e23-33-e-', ('ee11-22-ee-',)),
-    (-2, 'ee12-e22-e-', ('ee11-ee-', 'ee12-e22-e-')),
-    (2, 'e112-e3-e34-44-e-', ('ee11-ee-',)),
-    (-2, 'e112-e3-e33-e-', ('ee11-ee-', 'ee11-ee-')),
-    (1, 'e112-e3-e44-e44--', ('ee11-ee-',)),
+    (-1, 'ee12-e22-e-', ('ee11-ee-', 'ee12-e22-e-')),
+    (-2, 'ee12-e33-e33--', ('ee11-ee-', 'ee11-ee-')),
+    (1, 'ee12-e22-e-', ('ee11-23-e33-e-',)),
+    (1, 'ee11-ee-', ('ee11-22-34-e44-e-',)),
+    (1, 'ee12-e33-e44-44--', ('ee11-ee-',)),
     (1, 'ee12-e33-e33--', ('ee12-e22-e-',)),
-    (-1, 'ee11-ee-', ('ee12-e22-e-', 'ee11-22-ee-')),
-]
+    ]
 KR(gamma, R1op, 5)
 printKR1(gamma)
+
 
 print "4x 5loop 105"
 gamma = 'ee11-23-334-5-e55-e-'
@@ -2064,18 +2224,18 @@ R1op = [
 KR(gamma, R1op, 5)
 printKR1(gamma)
 
-print "4x 5loop 115"
 
 print "4x 5loop 116"
-#gamma='ee12-ee3-445-455-5--'
-#R1op=[
-#    (-1, 'ee12-ee3-333--', ('ee11-ee-', 'ee11-ee-')),
-#    (1, 'ee12-ee2--', ('e112-23-33-e-',)),
-#    (2, 'ee12-ee3-344-44--', ('ee11-ee-',)),
-#    (2, 'ee12-ee3-333--', ('ee12-e22-e-',)),
-#]
-#KR(gamma, R1op, 5)
-#printKR1(gamma)
+gamma='ee12-ee3-445-455-5--'
+R1op=[
+    (-1, 'ee12-ee3-333--', ('ee11-ee-', 'ee11-ee-')),
+    (1, 'ee11-ee-_1k', ('e112-23-33-e-',)),
+    (2, 'ee12-ee3-344-44--', ('ee11-ee-',)),
+    (2, 'ee12-ee3-333--', ('ee12-e22-e-',)),
+    ]
+KR(gamma, R1op, 5)
+printKR1(gamma)
+
 
 print "4x 5loop 117"
 gamma = 'ee11-22-33-44-55-ee-'
@@ -2094,17 +2254,21 @@ KR(gamma, R1op, 5)
 printKR1(gamma)
 
 print "4x 5loop 118"
-gamma = 'ee12-e33-e44-55-55--'
-R1op = [
+gamma='e112-e3-e44-e55-55--'
+R1op=[
     (-2, 'ee12-e22-e-', ('ee11-ee-', 'ee11-22-ee-')),
     (-3, 'ee12-e33-e33--', ('ee11-ee-', 'ee11-ee-')),
-    (3, 'ee12-e33-e33--', ('ee11-22-ee-',)),
-    (1, 'ee11-ee-', ('ee11-22-33-44-ee-',)),
-    (4, 'ee12-e33-e44-44--', ('ee11-ee-',)),
-    (2, 'ee12-e22-e-', ('ee11-22-33-ee-',)),
-]
+    (2, 'e112-e3-e33-e-', ('ee11-22-ee-',)),
+    (-1, 'e112-e3-e33-e-', ('ee11-ee-', 'ee11-ee-')),
+    (-1, 'ee11-ee-', ('ee11-ee-', 'ee11-22-33-ee-')),
+    (3, 'e112-e3-e44-e44--', ('ee11-ee-',)),
+    (1, 'ee12-e33-e44-44--', ('ee11-ee-',)),
+    (1, 'ee12-e22-e-', ('ee11-ee-', 'ee11-ee-', 'ee11-ee-')),
+    (1, 'ee12-e22-e-', ('ee11-22-33-ee-',)),
+    ]
 KR(gamma, R1op, 5)
 printKR1(gamma)
+
 
 print "4x 5loop 119"
 gamma = 'ee11-22-33-45-e55-e-'
@@ -2228,9 +2392,42 @@ R1op = [
 KR(gamma, R1op, 5)
 printKR1(gamma)
 
-print "2x 5loop 2"
-print "2x 5loop 3"
+G['e111-e-_k'] = K(Series([[Number(3,0),0],[Number(-1.,0),1],]) *G['e111-e-'])
+KR1['e111-e-_k'] = K(Series([[Number(3,0),0],[Number(-1.,0),1],]) *KR1['e111-e-'])
+
+G['e112-22-e-_k'] = K(Series([[Number(5,0),0],[Number(-1.5,0),1],]) *G['e112-22-e-'])
+KR1['e112-22-e-_k'] = K(Series([[Number(5,0),0],[Number(-1.5,0),1],]) *KR1['e112-22-e-'])
+
+
+print "2x 5loop 4*2+1*3"
+gamma = (
+    (4,'e112-23-e4-444--'),
+    (1,'e112-33-444-e4--')
+)
+R1op = [
+    (4, 'e112-e3-333--', ('ee11-ee-',)),
+    (1, 'e112-22-e-_k', ('e111-e-',)),
+    (4, 'e111-e-', ('ee12-ee3-333--',)),
+    (-2, 'e111-e-_k', ('ee11-ee-', 'e111-e-')),
+##
+    (2, 'e112-e3-333--', ('ee11-ee-',)),
+####    (1, 'e112-33-3-e-', ('e111-e-',)),
+#    (-2, 'e112-e2--', ('ee11-ee-', 'e111-e-')),
+
+    ]
+KR(gamma, R1op, 5)
+printKR1(gamma)
+
+
 print "2x 5loop 4"
+gamma = 'e112-e3-344-44--'
+R1op = [
+    (2, 'e112-e3-333--', ('ee11-ee-',)),
+    (1/3., 'e111-e-_k', ('e112-22-e-',)),
+    ]
+KR(gamma, R1op, 5)
+printKR1(gamma)
+
 
 print "2x 5loop 5"
 gamma = 'e112-34-e34-44--'
