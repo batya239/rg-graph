@@ -24,7 +24,7 @@ class Graph(object):
             self._edges = obj
         elif isinstance(obj, graph_state.GraphState):
             self._edges = Graph._parseEdges(obj.edges)
-        self._nextVertexIndex = max(self._edges) + 1
+        self._nextVertexIndex = max(self._edges.keys()) + 1
 
     def vertexes(self):
         return set(self._edges.keys())
