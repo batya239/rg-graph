@@ -26,6 +26,10 @@ class GraphTestCase(unittest.TestCase):
         self.assertEquals(graph.toGraphState(), graphState)
         self.assertSetEqual(set(graph.allEdges()), set(graphState.edges))
 
+    def testNextVertexIndex(self):
+        self.assertEquals(simpleGraph.createVertexIndex(), 3)
+        self.assertEquals(simpleGraph.createVertexIndex(), 4)
+
     def testGetVertexEdges(self):
         self.assertSetEqual(simpleGraph.vertexes(), set([-1, 0, 1, 2]))
         #
