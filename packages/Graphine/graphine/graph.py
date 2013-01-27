@@ -63,14 +63,13 @@ class Graph(object):
             Graph._deleteEdge(newEdges, v, edge)
         return Graph(newEdges)
 
-    def shrinkToPoint(self, obj):
+    def shrinkToPoint(self, edges):
         """
         obj -- list of edges or graph
         immutable operation
         """
         newRawEdges = copy.copy(self.allEdges())
         markedVertexes = set()
-        edges = obj if isinstance(obj, list) else obj.allEdges()
         for edge in edges:
             v1, v2 = edge.nodes
             newRawEdges.remove(edge)

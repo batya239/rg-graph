@@ -43,7 +43,5 @@ class GraphTestCase(unittest.TestCase):
     def doTestShrinkToPoint(self, edges, subEdges, expectedGraphState):
         graphState = gs.GraphState([gs.Edge(e) for e in edges])
         graph = gr.Graph(graphState)
-        subGraphState = gs.GraphState([gs.Edge(e) for e in subEdges])
-        subGraph = gr.Graph(subGraphState)
-        newGraph = graph.shrinkToPoint(subGraph)
+        newGraph = graph.shrinkToPoint([gs.Edge(e) for e in subEdges])
         self.assertEquals(str(newGraph.toGraphState()), expectedGraphState)
