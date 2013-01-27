@@ -4,6 +4,11 @@ import copy
 from graph_state import graph_state
 
 
+class RelevantGraphsAware(object):
+    def isRelevant(self, graph):
+        pass
+
+
 class Graph(object):
     """
     representation of graph
@@ -24,6 +29,11 @@ class Graph(object):
     def vertexes(self):
         return set(self._edges.keys())
 
+    def createVertexIndex(self):
+        toReturn = self._nextVertexIndex
+        self._nextVertexIndex += 1
+        return toReturn
+
     def edges(self, vertex):
         return self._edges.get(vertex, [])
 
@@ -42,6 +52,12 @@ class Graph(object):
             for i in xrange(0, o / 2):
                 result.append(e)
         return result
+
+    def change(self, oldEdges, newEdges):
+        for e in oldEdges:
+            self.deleteEdge(e)
+        for e in newEdges:
+            self.addEdge(e)
 
     def addEdge(self, edge):
         """
@@ -90,6 +106,12 @@ class Graph(object):
                 newEdges.append(edge)
 
         return Graph(newEdges)
+
+    def findRelevantSubGraphs(self, relevantGraphsAwareObj, checkFor1Irreducible):
+        pass
+
+    def find1IrreducibleSubGraphs(self):
+        pass
 
     def toGraphState(self):
         return graph_state.GraphState(self.allEdges())
