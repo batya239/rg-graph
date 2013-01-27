@@ -49,7 +49,7 @@ class Graph(object):
         """
         v1, v2 = edge.nodes
         newEdges = copy.copy(self._edges)
-        for v in {v1, v2}:
+        for v in set([v1, v2]):
             Graph._insertEdge(newEdges, v, edge)
         return Graph(newEdges)
 
