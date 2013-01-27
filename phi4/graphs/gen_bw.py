@@ -5,7 +5,9 @@ import sys
 import bw_code_generator as bw
 
 strategies = ("A", "B", "C", "X",)
-strategies = ("A",)
+#strategies = ("A", "B", "C")
+
+
 name = sys.argv[1]
 
 for strategy in strategies:
