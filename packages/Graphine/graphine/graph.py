@@ -2,10 +2,11 @@
 # -*- coding: utf8
 import copy
 from graph_state import graph_state
+import graph_operations
 
 
 class RelevantGraphsAware(object):
-    def isRelevant(self, graph):
+    def isRelevant(self, edgeList):
         pass
 
 
@@ -104,14 +105,17 @@ class Graph(object):
                 newEdges.append(edge.copy(copyMap))
             else:
                 newEdges.append(edge)
-
         return Graph(newEdges)
 
-    def findRelevantSubGraphs(self, relevantGraphsAwareObj, checkFor1Irreducible):
-        pass
-
-    def find1IrreducibleSubGraphs(self):
-        pass
+    def xRelevantSubGraphs(self, relevantGraphsAwareObj, checkFor1Irreducible=True):
+        if checkFor1Irreducible:
+            for subGraph in graph_operations.x1IrreducibleSubGraphs(self):
+                if relevantGraphsAwareObj.isRelevant(subGraph):
+                    yield subGraph
+        else:
+            for subGraph in graph_operations.xConnectedSubGraphs(self):
+                if relevantGraphsAwareObj.isRelevant(subGraph):
+                    yield subGraph
 
     def toGraphState(self):
         return graph_state.GraphState(self.allEdges())
