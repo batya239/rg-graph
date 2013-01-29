@@ -116,9 +116,9 @@ class Graph(object):
         """
         representsAsList -- only for tests for simple representation
         """
-        xSubGraphFilter = graph_operations.x1IrreducibleSubGraphs if checkFor1Irreducible else graph_operations.xConnectedSubGraphs
+        xSubGraphFilter = graph_operations.x1IrreducibleSubGraphs if checkFor1Irreducible else graph_operations.xConnectedSubGraphsTrue
         for subGraph in xSubGraphFilter(self):
-            graphRepresentation = subGraph if representAsList else Graph(subGraph, renumbering=False)
+            graphRepresentation = subGraph if representAsList else Graph(subGraph, renumbering=False, externalVertex=self.externalVertex)
             if relevantGraphsAwareObj.isRelevant(graphRepresentation):
                 yield graphRepresentation
 
