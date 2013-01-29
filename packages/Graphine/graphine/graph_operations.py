@@ -10,7 +10,7 @@ def x1IrreducibleSubGraphs(graph):
         subGraphAsTuple = tuple(subGraph)
         isIrreducible = cache.get(subGraphAsTuple, None)
         if isIrreducible is None:
-            isIrreducible = isGraph1Irreducible(subGraph)
+            isIrreducible = isGraph1Irreducible(subGraph, innerVertex=graph._innerVertex)
             cache[subGraphAsTuple] = isIrreducible
         if isIrreducible:
             yield subGraph
@@ -18,7 +18,7 @@ def x1IrreducibleSubGraphs(graph):
 
 def xConnectedSubGraphs(graph):
     for subGraph in xSubGraphs(graph.allEdges()):
-        if len(subGraph) == 1 or isGraphConnected(subGraph):
+        if len(subGraph) == 1 or isGraphConnected(subGraph, innerVertex=graph._innerVertex):
             yield subGraph
 
 
@@ -30,19 +30,19 @@ def xSubGraphs(edgesList, startSize=1):
                 yield list(comb)
 
 
-def isGraph1Irreducible(edgesList):
+def isGraph1Irreducible(edgesList, innerVertex):
     """
     stupid algorithm
     """
     for e in edgesList:
         copiedEdges = copy.copy(edgesList)
         copiedEdges.remove(e)
-        if not isGraphConnected(copiedEdges, set([v for v in e.nodes])):
+        if not isGraphConnected(copiedEdges, set([v for v in e.nodes]), innerVertex):
             return False
     return True
 
 
-def isGraphConnected(edgesList, additionalVertexes=set()):
+def isGraphConnected(edgesList, innerVertex, additionalVertexes=set()):
     """
     graph as edges list
     """
@@ -50,6 +50,8 @@ def isGraphConnected(edgesList, additionalVertexes=set()):
 
     for e in edgesList:
         v1, v2 = e.nodes
+        if v1 == innerVertex or v2 == innerVertex:
+            continue
         disjointSet.addKey(v1)
         disjointSet.addKey(v2)
         disjointSet.union(v1, v2)
