@@ -107,15 +107,12 @@ class Graph(object):
                 newEdges.append(edge)
         return Graph(newEdges)
 
-    def xRelevantSubGraphs(self, relevantGraphsAwareObj, checkFor1Irreducible=True):
-        if checkFor1Irreducible:
-            for subGraph in graph_operations.x1IrreducibleSubGraphs(self):
-                if relevantGraphsAwareObj.isRelevant(subGraph):
-                    yield subGraph
-        else:
-            for subGraph in graph_operations.xConnectedSubGraphs(self):
-                if relevantGraphsAwareObj.isRelevant(subGraph):
-                    yield subGraph
+    def xRelevantSubGraphs(self, relevantGraphsAwareObj, checkFor1Irreducible=True, representAsList=False):
+        xSubGraphFilter = graph_operations.x1IrreducibleSubGraphs if checkFor1Irreducible else graph_operations.xConnectedSubGraphs
+        for subGraph in xSubGraphFilter(self):
+            graphRepresentation = subGraph if representAsList else Graph(subGraph)
+            if relevantGraphsAwareObj.isRelevant(graphRepresentation):
+                yield graphRepresentation
 
     def toGraphState(self):
         return graph_state.GraphState(self.allEdges())
