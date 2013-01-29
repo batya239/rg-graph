@@ -15,12 +15,12 @@ class Graph(object):
     representation of graph
     """
 
-    def __init__(self, obj, externalVertex=-1):
+    def __init__(self, obj, externalVertex=-1, renumbering=True):
         """
         self.edges - dict where keys is one vertex of edge and value is list of second vertexes
         """
         if isinstance(obj, list):
-            self._edges = Graph._parseEdges(graph_state.GraphState(obj).edges)
+            self._edges = Graph._parseEdges(graph_state.GraphState(obj).edges if renumbering else obj)
         elif isinstance(obj, dict):
             self._edges = obj
         elif isinstance(obj, graph_state.GraphState):
@@ -112,10 +112,13 @@ class Graph(object):
                 newEdges.append(edge)
         return Graph(newEdges)
 
-    def xRelevantSubGraphs(self, relevantGraphsAwareObj, checkFor1Irreducible=True, representAsList=False):
+    def xRelevantSubGraphs(self, relevantGraphsAwareObj, checkFor1Irreducible=True, representAsList=True):
+        """
+        representsAsList -- only for tests for simple representation
+        """
         xSubGraphFilter = graph_operations.x1IrreducibleSubGraphs if checkFor1Irreducible else graph_operations.xConnectedSubGraphs
         for subGraph in xSubGraphFilter(self):
-            graphRepresentation = subGraph if representAsList else Graph(subGraph)
+            graphRepresentation = subGraph if representAsList else Graph(subGraph, renumbering=False)
             if relevantGraphsAwareObj.isRelevant(graphRepresentation):
                 yield graphRepresentation
 
