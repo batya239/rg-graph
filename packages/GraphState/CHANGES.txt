@@ -3,3 +3,5 @@ v 0.0.1,  - initial release
 v 0.0.2, 27/12/2012 - examples for nickel module
 
 v 0.0.3, 22/12/2012 - python 2.6 compatibility fix
+
+v 0.0.4, 29/01/2013 - accessors to Edge and GraphState classes added
