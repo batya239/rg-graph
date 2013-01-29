@@ -73,3 +73,6 @@ class GraphTestCase(unittest.TestCase):
         graph = gr.Graph(graphState)
         newGraph = graph.shrinkToPoint([gs.Edge(e) for e in subEdges])
         self.assertEquals(str(newGraph.toGraphState()), expectedGraphState)
+
+    def assertSetEqual(self, set1, set2):
+        assert set1 == set2
