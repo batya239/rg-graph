@@ -4,7 +4,6 @@ import unittest
 
 from graph_state import graph_state as gs
 import graph as gr
-import graph_operations
 
 simpleEdges = tuple([gs.Edge((0, 1)), gs.Edge((1, 2)), gs.Edge((0, 2)), gs.Edge((-1, 0)), gs.Edge((-1, 2))])
 simpleGraphState = gs.GraphState(simpleEdges)
@@ -36,11 +35,8 @@ class GraphTestCase(unittest.TestCase):
         self.assertSetEqual(set(graph.allEdges()), set(graphState.edges))
 
     def testGetRelevantSubGraphs(self):
-        self.doTestGetRelevantSubGraphs("e111-e-::", ['11--::', '11--::', '11--::', 'e1-e-::', 'e1-e-::', 'e1-e-::', '111--::'])
-        self.doTestGetRelevantSubGraphs("ee111-ee-::",
-                                        ['ee-::', 'ee-::', '11--::', '11--::', '11--::', '111--::', 'ee11--::',
-                                         'ee11--::', 'ee11--::', 'e1-e-::'])
-
+        self.doTestGetRelevantSubGraphs("e111-e-::", ['ee11-ee-::', 'ee11-ee-::', 'ee11-ee-::'])
+        self.doTestGetRelevantSubGraphs("ee18-233-334--ee5-667-78-88--::", 1387)
 
     def testNextVertexIndex(self):
         self.assertEquals(simpleGraph.createVertexIndex(), 3)
@@ -60,13 +56,16 @@ class GraphTestCase(unittest.TestCase):
                                  [(0, 1), (0, 1)],
                                  'ee0-::')
 
-    def doTestGetRelevantSubGraphs(self, nickelRepresentation, expectedSubGraphs,
+    def doTestGetRelevantSubGraphs(self, nickelRepresentation, expected,
                                    relevantGraphsAwareObj=STUB_RELEVANT_GRAPHS_AWARE_OBJ, checkFor1Irreducible=True):
         graph = gr.Graph(gs.GraphState.fromStr(nickelRepresentation))
         current = [str(g.toGraphState()) for g in
                    graph.xRelevantSubGraphs(relevantGraphsAwareObj, checkFor1Irreducible)]
-        self.assertEquals(len(expectedSubGraphs), len(current))
-        self.assertSetEqual(set(current), set(expectedSubGraphs))
+        if isinstance(expected, int):
+            self.assertEquals(expected, len(current))
+        elif isinstance(expected, list):
+            self.assertEquals(len(expected), len(current))
+            self.assertSetEqual(set(current), set(expected))
 
     def doTestShrinkToPoint(self, edges, subEdges, expectedGraphState):
         graphState = gs.GraphState([gs.Edge(e) for e in edges])

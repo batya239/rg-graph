@@ -15,7 +15,7 @@ class Graph(object):
     representation of graph
     """
 
-    def __init__(self, obj, innerVertex=-1):
+    def __init__(self, obj, externalVertex=-1):
         """
         self.edges - dict where keys is one vertex of edge and value is list of second vertexes
         """
@@ -26,7 +26,11 @@ class Graph(object):
         elif isinstance(obj, graph_state.GraphState):
             self._edges = Graph._parseEdges(obj.edges)
         self._nextVertexIndex = max(self._edges.keys()) + 1
-        self._innerVertex = innerVertex
+        self._externalVertex = externalVertex
+
+    @property
+    def externalVertex(self):
+        return self._externalVertex
 
     def vertexes(self):
         return set(self._edges.keys())
