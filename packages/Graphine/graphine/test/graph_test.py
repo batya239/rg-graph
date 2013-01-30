@@ -36,8 +36,8 @@ class GraphTestCase(unittest.TestCase):
 
     def testGetRelevantSubGraphs(self):
         self.doTestGetRelevantSubGraphs("e111-e-::", ['ee11-ee-::', 'ee11-ee-::', 'ee11-ee-::'])
-        self.doTestGetRelevantSubGraphs("ee18-233-334--ee5-667-78-88--::", 1387)
-        self.doTestGetRelevantSubGraphs("ee12-223-3-ee-::", 10)
+        #self.doTestGetRelevantSubGraphs("ee18-233-334--ee5-667-78-88--::", 1387)
+        #self.doTestGetRelevantSubGraphs("ee12-223-3-ee-::", 10)
 
     def testNextVertexIndex(self):
         self.assertEquals(simpleGraph.createVertexIndex(), 3)
@@ -61,7 +61,7 @@ class GraphTestCase(unittest.TestCase):
                                    relevantGraphsAwareObj=STUB_RELEVANT_GRAPHS_AWARE_OBJ, checkFor1Irreducible=True):
         graph = gr.Graph(gs.GraphState.fromStr(nickelRepresentation))
         current = [str(g.toGraphState()) for g in
-                   graph.xRelevantSubGraphs(relevantGraphsAwareObj, checkFor1Irreducible, False)]
+                   graph.xRelevantSubGraphs(relevantGraphsAwareObj)]
         if isinstance(expected, int):
             self.assertEquals(expected, len(current))
         elif isinstance(expected, list):

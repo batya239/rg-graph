@@ -5,9 +5,22 @@ from graph_state import graph_state
 import graph_operations
 
 
-class RelevantGraphsAware(object):
-    def isRelevant(self, edgeList):
-        pass
+class ResultRepresentator:
+    def __init__(self):
+        raise AssertionError
+
+    # noinspection PyUnusedLocal
+    @staticmethod
+    def asList(edgeList, externalVertex):
+        return edgeList
+
+    @staticmethod
+    def asGraph(edgeList, externalVertex):
+        return Graph(edgeList, externalVertex=externalVertex, renumbering=False)
+
+    @staticmethod
+    def asMinimalGraph(edgeList, externalVertex):
+        return Graph(edgeList, externalVertex=externalVertex, renumbering=True)
 
 
 class Graph(object):
@@ -112,13 +125,25 @@ class Graph(object):
                 newEdges.append(edge)
         return Graph(newEdges)
 
+    def xRelevantSubGraphs(self, filters=list(), resultRepresentator=ResultRepresentator.asGraph):
+        allEdges = self.allEdges
+        for subGraphAsList in graph_operations._xSubGraphs(allEdges, self.externalVertex):
+            isValid = True
+            for aFilter in filters:
+                if not aFilter(subGraphAsList, self, allEdges):
+                    isValid = False
+                    break
+            if isValid:
+                yield resultRepresentator(subGraphAsList)
+
+
     def xRelevantSubGraphs(self, relevantGraphsAwareObj, checkFor1Irreducible=True, representAsList=True):
         """
         representsAsList -- only for tests for simple representation
         """
-        xSubGraphFilter = graph_operations.x1IrreducibleSubGraphs if checkFor1Irreducible else graph_operations.xConnectedSubGraphsTrue
+        xSubGraphFilter = graph_operations.x1IrreducibleSubGraphs if checkFor1Irreducible else graph_operations.xConnectedSubGraphs
         for subGraph in xSubGraphFilter(self):
-            graphRepresentation = subGraph if representAsList else Graph(subGraph, renumbering=False, externalVertex=self.externalVertex)
+            graphRepresentation = subGraph if representAsList else Graph(subGraph, renumbering=False)
             if relevantGraphsAwareObj.isRelevant(graphRepresentation):
                 yield graphRepresentation
 

@@ -5,26 +5,63 @@ import itertools
 from graph_state import graph_state
 
 
-def x1IrreducibleSubGraphs(graph):
-    cache = dict()
-    for subGraph in xSubGraphs(graph.allEdges(), externalVertex=graph.externalVertex, startSize=2):
-        subGraphAsTuple = tuple(subGraph)
-        isIrreducible = cache.get(subGraphAsTuple, None)
-        if isIrreducible is None:
-            isIrreducible = isGraph1Irreducible(subGraph, externalVertex=graph.externalVertex)
-            cache[subGraphAsTuple] = isIrreducible
-        if isIrreducible:
-            yield subGraph
+class Filters:
+    def __init__(self):
+        raise AssertionError
+
+    @staticmethod
+    def oneIrreducible():
+        return [isGraph1Irreducible]
+
+    @staticmethod
+    def vertexIrreducible():
+        return [isGraphVertexIrreducible]
+
+    @staticmethod
+    def connected():
+        return [isGraphConnected]
 
 
-def xConnectedSubGraphs(graph):
-    for subGraph in xSubGraphs(graph.allEdges(), graph.externalVertex):
-        if len(subGraph) == 1 or isGraphConnected(subGraph, externalVertex=graph.externalVertex):
-            yield subGraph
+# noinspection PyUnusedLocal
+def isGraph1Irreducible(edgesList, superGraph, superGraphEdges):
+    """
+    stupid algorithm
+    """
+    for e in edgesList:
+        copiedEdges = copy.copy(edgesList)
+        copiedEdges.remove(e)
+        if not _isGraphConnected(copiedEdges, superGraph.externalVertex,
+                                 additionalVertexes=set([v for v in e.nodes]) - set([superGraph.externalVertex])):
+            return False
+    return True
 
 
-def xSubGraphs(edgesList, externalVertex, startSize=1):
-    external, inner = pickExternalEdges(edgesList, externalVertex)
+def isGraphVertexIrreducible(edgesList, superGraph, superGraphEdges):
+    edges = copy.copy(superGraphEdges)
+    singularVertexes = set()
+    for e in edgesList:
+        if e in edges:
+            edges.remove(e)
+        singularVertexes |= set(e.nodes)
+    connectedComponents = _getConnectedComponents(edges, superGraph.externalVertex, singularVertexes=singularVertexes)
+    for component in connectedComponents:
+        containsExternal = False
+        for v in component:
+            for e in superGraph.edges(v):
+                if superGraph.externalVertex in e.nodes:
+                    containsExternal = True
+        if not containsExternal:
+            return False
+    return True
+
+
+# noinspection PyUnusedLocal
+def isGraphConnected(edgesList, superGraph, superGraphEdges):
+    return _isGraphConnected(edgesList, superGraph.externalVertex)
+
+
+def _xSubGraphs(edgesList, externalVertex, startSize=2):
+    external, inner = _pickExternalEdges(edgesList, externalVertex)
 
     innerLength = len(inner)
 
@@ -35,13 +72,13 @@ def xSubGraphs(edgesList, externalVertex, startSize=1):
                 subGraphVertexes = set()
                 for e in subGraph:
                     subGraphVertexes |= set(e.nodes)
-                for e in supplement(inner, subGraph):
+                for e in _supplement(inner, subGraph):
                     vSet = set(e.nodes)
                     vSetCard = len(vSet)
                     factor = 2 if vSetCard == 1 else 1
                     for v in vSet:
                         if v in subGraphVertexes:
-                            subGraph += createExternalEdge(v, externalVertex, factor)
+                            subGraph += _createExternalEdge(v, externalVertex, factor)
                 for e in external:
                     v = [v for v in e.nodes if v != externalVertex][0]
                     if v in subGraphVertexes:
@@ -49,35 +86,36 @@ def xSubGraphs(edgesList, externalVertex, startSize=1):
                 yield subGraph
 
 
-def isGraph1Irreducible(edgesList, externalVertex):
-    """
-    stupid algorithm
-    """
-    for e in edgesList:
-        copiedEdges = copy.copy(edgesList)
-        copiedEdges.remove(e)
-        if not isGraphConnected(copiedEdges, externalVertex, set([v for v in e.nodes]) - set([externalVertex])):
-            return False
-    return True
-
-
-def isGraphConnected(edgesList, externalVertex, additionalVertexes=set()):
+def _isGraphConnected(edgesList, externalVertex, additionalVertexes=set()):
     """
     graph as edges list
     """
-    disjointSet = DisjointSet(additionalVertexes)
+    return len(_getConnectedComponents(edgesList, externalVertex, additionalVertexes)) == 1
+
+
+def _getConnectedComponents(edgesList, externalVertex, additionalVertexes=set(), singularVertexes=set()):
+    """
+    graph as edges list
+    """
+    disjointSet = _DisjointSet(additionalVertexes)
 
     for e in edgesList:
-        v1, v2 = e.nodes
-        if v1 == externalVertex or v2 == externalVertex:
+        pair = e.nodes
+        if externalVertex in pair:
             continue
-        disjointSet.addKey(v1)
-        disjointSet.addKey(v2)
-        disjointSet.union(v1, v2)
-    return disjointSet.isSimple()
+
+        v = pair(0)
+        if v in singularVertexes:
+            pair = (disjointSet.nextSingularKey(v)), pair(1)
+        v = pair(1)
+        if v in singularVertexes:
+            pair = pair(0), (disjointSet.nextSingularKey(v))
+
+        disjointSet.union(pair)
+    return disjointSet.getConnectedComponents()
 
 
-def pickExternalEdges(edgesList, externalVertex=-1):
+def _pickExternalEdges(edgesList, externalVertex=-1):
     inner = []
     external = []
     for e in edgesList:
@@ -89,23 +127,25 @@ def pickExternalEdges(edgesList, externalVertex=-1):
     return external, inner
 
 
-def createExternalEdge(innerVertex, externalVertex=-1, edgesCount=1):
+def _createExternalEdge(innerVertex, externalVertex=-1, edgesCount=1):
     e = graph_state.Edge((externalVertex, innerVertex), external_node=externalVertex)
     return [e] * edgesCount
 
 
-def supplement(aList, innerList):
+def _supplement(aList, innerList, check=False):
     result = copy.copy(aList)
     for element in innerList:
-        result.remove(element)
+        if not check or element in result:
+            result.remove(element)
     return result
 
 
-class DisjointSet(object):
+class _DisjointSet(object):
     def __init__(self, keys=set()):
         self.underlying = dict()
         for k in keys:
             self.underlying[k] = k
+        self.singularKeyPrefix = 1
 
     def addKey(self, key):
         if key not in self.underlying:
@@ -119,10 +159,13 @@ class DisjointSet(object):
             aNext = self.underlying[aRoot]
         return aRoot
 
-    def union(self, a, b):
+    def union(self, pair):
         """
         not fast implementation (no balancing)
         """
+        a, b = pair
+        self.addKey(a)
+        self.addKey(b)
         if a is b:
             return
         aRoot = self.root(a)
@@ -130,10 +173,16 @@ class DisjointSet(object):
         if aRoot is not bRoot:
             self.underlying[aRoot] = bRoot
 
-    def isSimple(self):
-        roots = set()
-        for key in self.underlying.keys():
-            roots.add(self.root(key))
-            if len(roots) != 1:
-                return False
-        return True
+    def getConnectedComponents(self):
+        invUnderlying = dict()
+        for k, v in self.underlying.items():
+            if v in invUnderlying:
+                invUnderlying[v] += k
+            else:
+                invUnderlying = [k]
+        return invUnderlying.values()
+
+    def nextSingularKey(self, key):
+        prefix = self.singularKeyPrefix
+        self.singularKeyPrefix += 1
+        return "__%s_%s" % (prefix, key)
