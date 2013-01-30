@@ -126,26 +126,19 @@ class Graph(object):
         return Graph(newEdges)
 
     def xRelevantSubGraphs(self, filters=list(), resultRepresentator=ResultRepresentator.asGraph):
-        allEdges = self.allEdges
+        allEdges = self.allEdges()
+        simpleCache = dict()
         for subGraphAsList in graph_operations._xSubGraphs(allEdges, self.externalVertex):
-            isValid = True
-            for aFilter in filters:
-                if not aFilter(subGraphAsList, self, allEdges):
-                    isValid = False
-                    break
+            subGraphAsTuple = tuple(subGraphAsList)
+            isValid = simpleCache.get(subGraphAsTuple, None)
+            if isValid is None:
+                isValid = True
+                for aFilter in filters:
+                    if not aFilter(subGraphAsList, self, allEdges):
+                        isValid = False
+                        break
             if isValid:
-                yield resultRepresentator(subGraphAsList)
-
-
-    def xRelevantSubGraphs(self, relevantGraphsAwareObj, checkFor1Irreducible=True, representAsList=True):
-        """
-        representsAsList -- only for tests for simple representation
-        """
-        xSubGraphFilter = graph_operations.x1IrreducibleSubGraphs if checkFor1Irreducible else graph_operations.xConnectedSubGraphs
-        for subGraph in xSubGraphFilter(self):
-            graphRepresentation = subGraph if representAsList else Graph(subGraph, renumbering=False)
-            if relevantGraphsAwareObj.isRelevant(graphRepresentation):
-                yield graphRepresentation
+                yield resultRepresentator(subGraphAsList, self.externalVertex)
 
     def toGraphState(self):
         return graph_state.GraphState(self.allEdges())

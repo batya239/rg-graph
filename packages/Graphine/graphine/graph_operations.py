@@ -45,6 +45,13 @@ def isGraphVertexIrreducible(edgesList, superGraph, superGraphEdges):
         singularVertexes |= set(e.nodes)
     connectedComponents = _getConnectedComponents(edges, superGraph.externalVertex, singularVertexes=singularVertexes)
     for component in connectedComponents:
+        allSingular = True
+        for v in component:
+            if not _DisjointSet.isSingular(v):
+                allSingular = False
+                break
+        if allSingular:
+            continue
         containsExternal = False
         for v in component:
             for e in superGraph.edges(v):
@@ -104,12 +111,12 @@ def _getConnectedComponents(edgesList, externalVertex, additionalVertexes=set(),
         if externalVertex in pair:
             continue
 
-        v = pair(0)
+        v = pair[0]
         if v in singularVertexes:
-            pair = (disjointSet.nextSingularKey(v)), pair(1)
-        v = pair(1)
+            pair = (disjointSet.nextSingularKey(v)), pair[1]
+        v = pair[1]
         if v in singularVertexes:
-            pair = pair(0), (disjointSet.nextSingularKey(v))
+            pair = pair[0], (disjointSet.nextSingularKey(v))
 
         disjointSet.union(pair)
     return disjointSet.getConnectedComponents()
@@ -177,12 +184,16 @@ class _DisjointSet(object):
         invUnderlying = dict()
         for k, v in self.underlying.items():
             if v in invUnderlying:
-                invUnderlying[v] += k
+                invUnderlying[v].append(k)
             else:
-                invUnderlying = [k]
+                invUnderlying[v] = [k]
         return invUnderlying.values()
 
     def nextSingularKey(self, key):
         prefix = self.singularKeyPrefix
         self.singularKeyPrefix += 1
         return "__%s_%s" % (prefix, key)
+
+    @staticmethod
+    def isSingular(key):
+        return str(key).startswith("__")

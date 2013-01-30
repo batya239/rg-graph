@@ -4,6 +4,7 @@ import unittest
 
 from graph_state import graph_state as gs
 import graph as gr
+import graph_operations
 
 simpleEdges = tuple([gs.Edge((0, 1)), gs.Edge((1, 2)), gs.Edge((0, 2)), gs.Edge((-1, 0)), gs.Edge((-1, 2))])
 simpleGraphState = gs.GraphState(simpleEdges)
@@ -18,14 +19,6 @@ subGraphState = gs.GraphState(subEdges)
 subGraph = gr.Graph(subGraphState)
 
 
-class StubRelevantGraphsAware(gr.RelevantGraphsAware):
-    def isRelevant(self, edgeList):
-        return True
-
-
-STUB_RELEVANT_GRAPHS_AWARE_OBJ = StubRelevantGraphsAware()
-
-
 class GraphTestCase(unittest.TestCase):
     def testCreationAndConvertingToGraphState(self):
         self.assertEquals(simpleGraph.toGraphState(), simpleGraphState)
@@ -37,7 +30,7 @@ class GraphTestCase(unittest.TestCase):
     def testGetRelevantSubGraphs(self):
         self.doTestGetRelevantSubGraphs("e111-e-::", ['ee11-ee-::', 'ee11-ee-::', 'ee11-ee-::'])
         #self.doTestGetRelevantSubGraphs("ee18-233-334--ee5-667-78-88--::", 1387)
-        #self.doTestGetRelevantSubGraphs("ee12-223-3-ee-::", 10)
+        self.doTestGetRelevantSubGraphs("ee12-223-3-ee-::", 10)
 
     def testNextVertexIndex(self):
         self.assertEquals(simpleGraph.createVertexIndex(), 3)
@@ -57,11 +50,11 @@ class GraphTestCase(unittest.TestCase):
                                  [(0, 1), (0, 1)],
                                  'ee0-::')
 
-    def doTestGetRelevantSubGraphs(self, nickelRepresentation, expected,
-                                   relevantGraphsAwareObj=STUB_RELEVANT_GRAPHS_AWARE_OBJ, checkFor1Irreducible=True):
+    def doTestGetRelevantSubGraphs(self, nickelRepresentation, expected):
         graph = gr.Graph(gs.GraphState.fromStr(nickelRepresentation))
+        filters = graph_operations.Filters.oneIrreducible() + graph_operations.Filters.vertexIrreducible()
         current = [str(g.toGraphState()) for g in
-                   graph.xRelevantSubGraphs(relevantGraphsAwareObj)]
+                   graph.xRelevantSubGraphs(filters, gr.ResultRepresentator.asMinimalGraph)]
         if isinstance(expected, int):
             self.assertEquals(expected, len(current))
         elif isinstance(expected, list):
@@ -74,5 +67,6 @@ class GraphTestCase(unittest.TestCase):
         newGraph = graph.shrinkToPoint([gs.Edge(e) for e in subEdges])
         self.assertEquals(str(newGraph.toGraphState()), expectedGraphState)
 
+    # noinspection PyMethodOverriding
     def assertSetEqual(self, set1, set2):
         assert set1 == set2
