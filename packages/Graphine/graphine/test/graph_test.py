@@ -29,8 +29,8 @@ class GraphTestCase(unittest.TestCase):
 
     def testGetRelevantSubGraphs(self):
         #self.doTestGetRelevantSubGraphs("e111-e-::", ['ee11-ee-::', 'ee11-ee-::', 'ee11-ee-::'])
-        self.doTestGetRelevantSubGraphs("ee18-233-334--ee5-667-78-88--::", 1387)
-        #self.doTestGetRelevantSubGraphs("ee12-223-3-ee-::", 2)
+        #self.doTestGetRelevantSubGraphs("ee18-233-334--ee5-667-78-88--::", 1387)
+        self.doTestGetRelevantSubGraphs("ee12-223-3-ee-::", 2)
 
     def testNextVertexIndex(self):
         self.assertEquals(simpleGraph.createVertexIndex(), 3)

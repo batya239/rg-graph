@@ -183,13 +183,14 @@ class _DisjointSet(object):
             self.underlying[aRoot] = bRoot
 
     def getConnectedComponents(self):
-        invUnderlying = dict()
-        for k, v in self.underlying.items():
-            if v in invUnderlying:
-                invUnderlying[v].append(k)
+        connectedComponents = dict()
+        for k in self.underlying.keys():
+            kRoot = self.root(k)
+            if kRoot in connectedComponents:
+                connectedComponents[kRoot].append(k)
             else:
-                invUnderlying[v] = [k]
-        return invUnderlying.values()
+                connectedComponents[kRoot] = [k]
+        return connectedComponents.values()
 
     def nextSingularKey(self, key):
         prefix = self.singularKeyPrefix
