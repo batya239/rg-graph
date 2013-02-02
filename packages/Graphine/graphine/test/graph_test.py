@@ -28,9 +28,9 @@ class GraphTestCase(unittest.TestCase):
         self.assertSetEqual(set(graph.allEdges()), set(graphState.edges))
 
     def testGetRelevantSubGraphs(self):
-        self.doTestGetRelevantSubGraphs("e111-e-::", ['ee11-ee-::', 'ee11-ee-::', 'ee11-ee-::'])
-        #self.doTestGetRelevantSubGraphs("ee18-233-334--ee5-667-78-88--::", 1387)
-        self.doTestGetRelevantSubGraphs("ee12-223-3-ee-::", 10)
+        #self.doTestGetRelevantSubGraphs("e111-e-::", ['ee11-ee-::', 'ee11-ee-::', 'ee11-ee-::'])
+        self.doTestGetRelevantSubGraphs("ee18-233-334--ee5-667-78-88--::", 1387)
+        #self.doTestGetRelevantSubGraphs("ee12-223-3-ee-::", 2)
 
     def testNextVertexIndex(self):
         self.assertEquals(simpleGraph.createVertexIndex(), 3)
@@ -53,13 +53,13 @@ class GraphTestCase(unittest.TestCase):
     def doTestGetRelevantSubGraphs(self, nickelRepresentation, expected):
         graph = gr.Graph(gs.GraphState.fromStr(nickelRepresentation))
         filters = graph_operations.Filters.oneIrreducible() + graph_operations.Filters.vertexIrreducible()
-        current = [str(g.toGraphState()) for g in
-                   graph.xRelevantSubGraphs(filters, gr.ResultRepresentator.asMinimalGraph)]
+        current = [g for g in
+                   graph.xRelevantSubGraphs(filters, gr.ResultRepresentator.asList)]
         if isinstance(expected, int):
             self.assertEquals(expected, len(current))
         elif isinstance(expected, list):
-            self.assertEquals(len(expected), len(current))
             self.assertSetEqual(set(current), set(expected))
+            self.assertEquals(len(expected), len(current))
 
     def doTestShrinkToPoint(self, edges, subEdges, expectedGraphState):
         graphState = gs.GraphState([gs.Edge(e) for e in edges])

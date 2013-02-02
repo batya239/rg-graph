@@ -37,6 +37,8 @@ def isGraph1Irreducible(edgesList, superGraph, superGraphEdges):
 
 
 def isGraphVertexIrreducible(edgesList, superGraph, superGraphEdges):
+    if not len(edgesList):
+        return False
     edges = copy.copy(superGraphEdges)
     singularVertexes = set()
     for e in edgesList:
