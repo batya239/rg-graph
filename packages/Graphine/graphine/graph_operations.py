@@ -53,7 +53,7 @@ def isGraphVertexIrreducible(edgesList, superGraph, superGraphEdges):
                 allSingular = False
                 break
         if allSingular:
-            continue
+            return False
         containsExternal = False
         for v in component:
             for e in superGraph.edges(v):
