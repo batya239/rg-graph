@@ -43,7 +43,7 @@ def Cluster(nomenkl):
         if nodes[node] == 'ext':
             cluster.add_node(pydot.Node(node, label="", fontsize=fontsize, width=width, color='white'))
         else:
-            cluster.add_node(pydot.Node(node, label=nodes[node], fontsize=fontsize, width=width))
+            cluster.add_node(pydot.Node(node, label='"%s"'%nodes[node], fontsize=fontsize, width=width))
 
     for line in lines:
         cluster.add_edge(pydot.Edge(line[0], line[1]))
