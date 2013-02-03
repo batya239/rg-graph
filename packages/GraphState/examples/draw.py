@@ -41,7 +41,7 @@ def Cluster(nomenkl):
     cluster = pydot.Cluster(nomenkl.replace('-', '_'), label=nomenkl)
     for node in nodes:
         if nodes[node] == 'ext':
-            cluster.add_node(pydot.Node(node, label="", fontsize=fontsize, width=width, color='white'))
+            cluster.add_node(pydot.Node(node, label='""', fontsize=fontsize, width=width, color='white'))
         else:
             cluster.add_node(pydot.Node(node, label='"%s"'%nodes[node], fontsize=fontsize, width=width))
 
