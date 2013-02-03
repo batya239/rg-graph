@@ -5,23 +5,6 @@ import itertools
 from graph_state import graph_state
 
 
-class Filters:
-    def __init__(self):
-        raise AssertionError
-
-    @staticmethod
-    def oneIrreducible():
-        return [isGraph1Irreducible]
-
-    @staticmethod
-    def vertexIrreducible():
-        return [isGraphVertexIrreducible]
-
-    @staticmethod
-    def connected():
-        return [isGraphConnected]
-
-
 # noinspection PyUnusedLocal
 def isGraph1Irreducible(edgesList, superGraph, superGraphEdges):
     """

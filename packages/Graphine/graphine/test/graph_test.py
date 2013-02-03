@@ -5,6 +5,7 @@ import unittest
 from graph_state import graph_state as gs
 import graph as gr
 import graph_operations
+import filters
 
 simpleEdges = tuple([gs.Edge((0, 1)), gs.Edge((1, 2)), gs.Edge((0, 2)), gs.Edge((-1, 0)), gs.Edge((-1, 2))])
 simpleGraphState = gs.GraphState(simpleEdges)
@@ -30,6 +31,7 @@ class GraphTestCase(unittest.TestCase):
     def testGetRelevantSubGraphs(self):
         self.doTestGetRelevantSubGraphs("e111-e-::", 0)
         self.doTestGetRelevantSubGraphs("ee12-223-3-ee-::", 3)
+        self.doTestGetRelevantSubGraphs("ee12-e3-445-455-5--::", 5)
 
     def testNextVertexIndex(self):
         self.assertEquals(simpleGraph.createVertexIndex(), 3)
@@ -51,9 +53,9 @@ class GraphTestCase(unittest.TestCase):
 
     def doTestGetRelevantSubGraphs(self, nickelRepresentation, expected):
         graph = gr.Graph(gs.GraphState.fromStr(nickelRepresentation))
-        filters = graph_operations.Filters.oneIrreducible() + graph_operations.Filters.vertexIrreducible()
+        testFilters = filters.noTadpoles + filters.vertexIrreducible
         current = [g for g in
-                   graph.xRelevantSubGraphs(filters, gr.ResultRepresentator.asList)]
+                   graph.xRelevantSubGraphs(testFilters, gr.ResultRepresentator.asList)]
         if isinstance(expected, int):
             self.assertEquals(expected, len(current))
         elif isinstance(expected, list):
