@@ -1,11 +1,10 @@
 #!/usr/bin/python
 
-# Hack to access non imported parts of package for unittesting.
-from nickel import *
+# NB nikel.py must be in the same directory.
+import nickel
 
 import unittest
 
-#TODO: Exclude generator tests from nickel tests
 
 class TestNickel(unittest.TestCase):
     def testRaisesOnManyArgs(self):
