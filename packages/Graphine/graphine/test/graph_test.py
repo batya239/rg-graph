@@ -53,7 +53,7 @@ class GraphTestCase(unittest.TestCase):
 
     def doTestGetRelevantSubGraphs(self, nickelRepresentation, expected):
         graph = gr.Graph(gs.GraphState.fromStr(nickelRepresentation))
-        testFilters = filters.noTadpoles + filters.vertexIrreducible
+        testFilters = filters.noTadpoles + filters.oneIrreducible
         current = [g for g in
                    graph.xRelevantSubGraphs(testFilters, gr.ResultRepresentator.asList)]
         if isinstance(expected, int):
