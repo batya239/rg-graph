@@ -164,5 +164,7 @@ class Graph(object):
     def _deleteEdge(edgesDict, vertex, edge):
         try:
             edgesDict[vertex].remove(edge)
+            if not len(edgesDict[vertex]):
+                del edgesDict[vertex]
         except KeyError as e:
             raise ValueError(e), "edge not exists in graph"

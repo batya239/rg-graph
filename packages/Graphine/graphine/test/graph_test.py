@@ -28,9 +28,8 @@ class GraphTestCase(unittest.TestCase):
         self.assertSetEqual(set(graph.allEdges()), set(graphState.edges))
 
     def testGetRelevantSubGraphs(self):
-        #self.doTestGetRelevantSubGraphs("e111-e-::", ['ee11-ee-::', 'ee11-ee-::', 'ee11-ee-::'])
-        #self.doTestGetRelevantSubGraphs("ee18-233-334--ee5-667-78-88--::", 1387)
-        self.doTestGetRelevantSubGraphs("ee12-223-3-ee-::", 10)
+        self.doTestGetRelevantSubGraphs("e111-e-::", 0)
+        self.doTestGetRelevantSubGraphs("ee12-223-3-ee-::", 3)
 
     def testNextVertexIndex(self):
         self.assertEquals(simpleGraph.createVertexIndex(), 3)

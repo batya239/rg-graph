@@ -111,6 +111,8 @@ def _getConnectedComponents(edgesList, externalVertex, additionalVertexes=set(),
     for e in edgesList:
         pair = e.nodes
         if externalVertex in pair:
+            for v in set(pair) - set([externalVertex]):
+                disjointSet.addKey(v)
             continue
 
         v = pair[0]
