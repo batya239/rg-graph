@@ -26,7 +26,7 @@ def prepare(nomenkl):
             if isInternal(node):
                 nodes__.append(("%s_%s" % (nomenkl, node), "%s" % node))
             else:
-                nodes__.append(("%s_%s_%s" % (nomenkl, node, ext_cnt), "ext"))
+                nodes__.append(("%s_E_%s" % (nomenkl, ext_cnt), "ext"))
                 ext_cnt += 1
             if nodes__[-1][0] not in nodes.keys():
                 nodes[nodes__[-1][0]] = nodes__[-1][1]
