@@ -35,8 +35,8 @@ def prepare(nomenkl):
 
 
 def Cluster(nomenkl):
-    fontsize = 12
-    width = 0.1
+    fontsize = "12"
+    width = "0.1"
     nodes, lines = prepare(nomenkl)
     cluster = pydot.Cluster(nomenkl.replace('-', '_'), label=nomenkl)
     for node in nodes:

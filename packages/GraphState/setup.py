@@ -4,12 +4,12 @@ from distutils.core import setup
 
 setup(
     name='GraphState',
-    version='0.0.4',
+    version='0.0.5',
     author='S. Novikov',
     author_email='dr.snov@gmail.com',
-    packages=['nickel', 'nickel.test', 'graph_state', 'graph_state.test'],
+    packages=['graph_state', 'nickel'],
     url='http://pypi.python.org/pypi/GraphState/',
     license='LICENSE.txt',
-    description='Generalization of B.G.Nickel et al algorithm for identifying graphs',
+    description='Generalization of B.G.Nickel et al. algorithm for identifying graphs.',
     long_description=open('README.txt').read(),
 )
