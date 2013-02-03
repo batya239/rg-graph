@@ -3,5 +3,5 @@
 
 __author__ = 'daddy-bear'
 
-from graph import Graph, ResultRepresentator
+from graph import Graph, Representator
 import filters

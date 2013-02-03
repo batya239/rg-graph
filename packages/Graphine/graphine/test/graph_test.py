@@ -55,7 +55,7 @@ class GraphTestCase(unittest.TestCase):
         graph = gr.Graph(gs.GraphState.fromStr(nickelRepresentation))
         testFilters = filters.noTadpoles + filters.oneIrreducible
         current = [g for g in
-                   graph.xRelevantSubGraphs(testFilters, gr.ResultRepresentator.asList)]
+                   graph.xRelevantSubGraphs(testFilters, gr.Representator.asList)]
         if isinstance(expected, int):
             self.assertEquals(expected, len(current))
         elif isinstance(expected, list):

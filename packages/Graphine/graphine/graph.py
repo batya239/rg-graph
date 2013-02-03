@@ -5,7 +5,7 @@ from graph_state import graph_state
 import graph_operations
 
 
-class ResultRepresentator:
+class Representator:
     def __init__(self):
         raise AssertionError
 
@@ -125,7 +125,7 @@ class Graph(object):
                 newEdges.append(edge)
         return Graph(newEdges)
 
-    def xRelevantSubGraphs(self, filters=list(), resultRepresentator=ResultRepresentator.asGraph):
+    def xRelevantSubGraphs(self, filters=list(), resultRepresentator=Representator.asGraph):
         allEdges = self.allEdges()
         simpleCache = dict()
         for subGraphAsList in graph_operations._xSubGraphs(allEdges, self.externalVertex):
