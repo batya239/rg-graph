@@ -1,0 +1,26 @@
+#!/bin/sh
+PROG=<PROG>
+cd /net/192.168.10.103/hpc_home/users/mkompan/workspace/rg-graph/phi4/graphs/bw_code/
+export PATH=$HOME/bin:$PATH
+export LD_LIBRARY_PATH=/net/192.168.10.103/hpc_home/users/mkompan/libs/ginac64
+if [ -n "" ];then cd ; fi
+
+
+if [ -n "" ]; then
+	NODEFILE=~/file.$$
+	rm -f $NODEFILE
+	touch $NODEFILE
+	for i in `cat $PBS_NODEFILE | uniq`; do echo "${i}:";  done  >> $NODEFILE
+else
+	NODEFILE=$PBS_NODEFILE
+fi
+
+for adrr in `cat $PBS_NODEFILE`;do
+	ssh $adrr /usr/local/sbin/cleanipcs;
+done
+./${PROG} |tee ${PROG}.py
+
+
+if [ -n "" ]; then
+        rm -f $NODEFILE
+fi
