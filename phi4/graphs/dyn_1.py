@@ -6,6 +6,7 @@ import itertools
 
 import nickel
 import graph_state
+import sys
 import graphs
 import nodes
 import conserv
@@ -60,7 +61,7 @@ class DynGraph(graphs.Graph):
         return res
 
 
-gs = graph_state.GraphState.fromStr("e12-23-3-e-:0AaAaa-aAaa-aA-0a-:")
+gs = graph_state.GraphState.fromStr(sys.argv[1])
 #gs = graph_state.GraphState.fromStr("e12-e3-45-45-5--:0AaAaA-0aaA-aAaa-aaaa-aA--:")
 #gs = graph_state.GraphState.fromStr("e12-e3-33--:0AaAaA-0aaa-aAaa--:")
 print str(gs)
@@ -166,7 +167,7 @@ def genStatic_D_C(graph):
 
 
     else:
-        C = None
+        C = [[],]
         conservations = conserv.Conservations(internalEdges)
         #        equations = sd_tools.find_eq(conservations)
         equations = dict()
@@ -204,6 +205,7 @@ def genStaticT(graph):
     return res
 
 rules = {1000: 'a0', 1001: 'a1', 1002: 'a2', 1003: 'a3', 1004: 'a4', 1005: 'a5', 1006: 'a6', 1007: 'a7'}
+
 
 D, C = map(lambda x: relabel(x, rules), genStatic_D_C(dG))
 E = [(x,) for x in dG._qi2l]
