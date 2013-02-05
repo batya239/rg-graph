@@ -19,7 +19,7 @@ from dummy_model import _phi3_dyn
 
 import polynomial
 
-model = _phi3_dyn("phi3_dyn_test")
+model = _phi4_dyn("phi4_dyn_test")
 
 class DynGraph(graphs.Graph):
     def __init__(self, arg):
