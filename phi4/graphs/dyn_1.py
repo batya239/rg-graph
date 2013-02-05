@@ -15,7 +15,7 @@ from methods import sd_tools
 from methods.feynman_tools import  conv_sub
 
 import subgraphs
-from dummy_model import _phi3_dyn
+from dummy_model import _phi3_dyn, _phi4_dyn
 
 import polynomial
 
