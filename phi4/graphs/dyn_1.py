@@ -69,7 +69,7 @@ print str(gs)
 dG = DynGraph(gs)
 
 dG.FindSubgraphs(model)
-#subgraphs.RemoveTadpoles(dG)
+subgraphs.RemoveTadpoles(dG)
 
 def baseTRelations(graph):
     res = list()
@@ -210,13 +210,13 @@ rules = {1000: 'a0', 1001: 'a1', 1002: 'a2', 1003: 'a3', 1004: 'a4', 1005: 'a5',
 D, C = map(lambda x: relabel(x, rules), genStatic_D_C(dG))
 E = [(x,) for x in dG._qi2l]
 T= genStaticT(dG)
-print D
-print C
-print E
-print T
+#print D
+#print C
+#print E
+#print T
 
-print dG._qi
-print dG._qi2l
+#print dG._qi
+#print dG._qi2l
 
 def dSubstitutions(graph, tCuts):
     """
@@ -258,13 +258,15 @@ def dSubstitutions(graph, tCuts):
 for tVersion in TVersions(dG):
     tCuts = TCuts(dG, tVersion)
     print
-    print tVersion, tCuts
+    print "tVersion = ",tVersion, "tCuts = ", tCuts
+    print "subgraphs :"
     for sub in dG._subgraphs:
         print sub.Dim(model), EffectiveSubgraphDim(sub, tCuts, model), sub
+    print
     Components=(D,C,E,T)
     Components_= map(lambda y:polynomial.poly([(1, x) for x in y]), Components)
     substitutions = dSubstitutions(dG, tCuts)
-    print substitutions
+    print "substitutions = ", substitutions
     for var in substitutions:
         subs = substitutions[var]
         subs_ = polynomial.poly([(1, x) for x in subs])
