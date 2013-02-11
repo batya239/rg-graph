@@ -132,12 +132,18 @@ class AbstractFormatter:
         if not epsNumber.a:
             if not epsNumber.b:
                 return '0'
-            else: return "eps%s%s" % (self.multiplicationSign(), epsNumber.b)
+            elif epsNumber.b<0:
+                return "-eps%s%s" % (self.multiplicationSign(), abs(epsNumber.b))
+            else:
+                return "eps%s%s" % (self.multiplicationSign(), epsNumber.b)
         elif not epsNumber.b:
             return str(epsNumber.a)
         elif epsNumber.b == 1:
             return '%s+eps' % epsNumber.a
-        else: return '%s+eps%s%s' % (epsNumber.a, self.multiplicationSign(), epsNumber.b)
+        elif epsNumber.b<0:
+            return '%s-eps%s%s' % (epsNumber.a, self.multiplicationSign(), abs(epsNumber.b))
+        else:
+            return '%s+eps%s%s' % (epsNumber.a, self.multiplicationSign(), epsNumber.b)
 
 
 class CppFormatter(AbstractFormatter):

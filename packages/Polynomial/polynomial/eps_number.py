@@ -51,11 +51,18 @@ class EpsNumber:
 
     def __repr__(self):
         if self.a == 0:
-            return "eps*%s" % self.b
+            if self.b==0:
+                return "0"
+            elif self.b<0:
+                return "-eps*%s" % abs(self.b)
+            else:
+                return "eps*%s" % self.b
         elif self.b == 0:
             return str(self.a)
         elif self.b == 1:
             return '%s+eps' % self.a
+        elif self.b <0:
+            return '%s-eps*%s' % (self.a, abs(self.b))
         else: return '%s+eps*%s' % (self.a, self.b)
 
     def __mul__(self, other):
