@@ -1,0 +1,7 @@
+v 0.0.1 - initial version
+
+v 0.0.2 11/02/2012 - __neg__ in EpsNumber
+                   - changes in formatter
+                   - changeVarToPolynomail
+                   - fix in Polynomial._merge (u2^0 -> 1)
+        -
