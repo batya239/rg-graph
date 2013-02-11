@@ -8,7 +8,7 @@ import sd_lib
 # ee12-ee3-333--
 D = map(lambda x: (1, x), [(1, 2, 3), (1, 2, 4), (1, 3, 4), (2, 3, 4, 'a0'), ])
 
-P1 = polynomial.poly(D, degree=(-1.5, 0))
+P1 = polynomial.poly(D, degree=(-2, 1))
 P2 = polynomial.poly([(1, [1, 1])])
 
 expr = P1 * P2
