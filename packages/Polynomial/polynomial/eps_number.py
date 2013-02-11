@@ -21,6 +21,10 @@ class EpsNumber:
         else:
             return EpsNumber(self.a - other.a, self.b - other.b)
 
+    def __neg__(self):
+        return EpsNumber(-self.a, -self.b)
+
+
     def __eq__(self, other):
         if isinstance(other, int):
             return self.a == other and self.b == 0
