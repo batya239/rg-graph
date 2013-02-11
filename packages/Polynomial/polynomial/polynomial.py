@@ -175,7 +175,12 @@ class Polynomial:
         if tuple(p1.monomials) <> tuple(p2.monomials):
             raise ValueError, 'can\'t merge polynomials: %s, %s' % (p1, p2)
         if p1.c.isInt() or p2.c.isInt():
-            return [Polynomial(p1.monomials, degree=p1.degree + p2.degree, c=p1.c * p2.c)]
+            degree=p1.degree + p2.degree
+            if degree.isInt() and degree.a == 0:
+            # (p1.c+p2.c)*(1)^1
+                return [Polynomial({(): 1}, c=p1.c * p2.c)]
+            else:
+                return [Polynomial(p1.monomials, degree=p1.degree + p2.degree, c=p1.c * p2.c)]
         else:
             return [Polynomial({multiindex.MultiIndex(): 1}, c=p1.c),
                     Polynomial(p1.monomials, degree=p1.degree + p2.degree, c=p2.c)]
