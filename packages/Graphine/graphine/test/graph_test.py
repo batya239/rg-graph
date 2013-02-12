@@ -71,3 +71,7 @@ class GraphTestCase(unittest.TestCase):
     # noinspection PyMethodOverriding
     def assertSetEqual(self, set1, set2):
         assert set1 == set2
+
+
+if __name__ == "__main__":
+    unittest.main()

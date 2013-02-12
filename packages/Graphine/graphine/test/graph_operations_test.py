@@ -56,3 +56,7 @@ class GraphOperationsTestCase(unittest.TestCase):
         graph = gr.Graph(gs.GraphState.fromStr(nickel))
         mockSuper = ExternalVertexAware(-1)
         self.assertEquals(go.isGraphConnected(graph.allEdges(), mockSuper, []), expectedResult)
+
+
+if __name__ == "__main__":
+    unittest.main()
