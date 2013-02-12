@@ -20,7 +20,7 @@ class MultiIndex:
         return self.vars.has_key(varIndex)
 
     def set1toVar(self, varIndex):
-        nVars = copy.copy(self.vars)
+        nVars = copy.deepcopy(self.vars)
         if nVars.has_key(varIndex):
             del nVars[varIndex]
         return MultiIndex(nVars)
@@ -31,7 +31,7 @@ class MultiIndex:
         """
         if self.vars.has_key(varIndex):
             deg = self.vars[varIndex]
-            nVars = copy.copy(self.vars)
+            nVars = copy.deepcopy(self.vars)
             if deg == 1:
                 del nVars[varIndex]
             else: nVars[varIndex] -= 1
@@ -41,7 +41,7 @@ class MultiIndex:
 
     def stretch(self, sVar, varList):
         deltaDegree = 0
-        nVars = copy.copy(self.vars)
+        nVars = copy.deepcopy(self.vars)
         for v in varList:
             if nVars.has_key(v):
                 deltaDegree += nVars[v]
@@ -68,7 +68,7 @@ class MultiIndex:
             vars[var] = power
 
     def __mul__(self, other):
-        nVars = copy.copy(self.vars)
+        nVars = copy.deepcopy(self.vars)
         for v, p in other.vars.items():
             MultiIndex._append(nVars, v, p)
         return MultiIndex(nVars)

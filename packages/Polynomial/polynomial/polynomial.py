@@ -68,9 +68,9 @@ class Polynomial:
         for mi, c in self.monomials.items():
             if mi.hasVar(varIndex):
                 power = mi.vars[varIndex]
-                nPolynomial = polynomial._inPowerOf(power)
+                nPolynomial = copy.deepcopy(polynomial)._inPowerOf(power)
                 factor = nPolynomial.c
-                nMi = copy.copy(mi)
+                nMi = copy.deepcopy(mi)
                 del nMi.vars[varIndex]
                 for pMi, pC in nPolynomial.monomials.items():
                     Polynomial._append(nMonomials, pMi * mi, c * pC * factor)
