@@ -26,9 +26,9 @@ class PolynomialTestCase(PolynomialToolsTestCase):
         self.assertEquals(f[0], p1)
         self.assertEquals(len(f), 1)
         f = p2.factorize()
-        self.assertEquals(f[0].monomials[MultiIndex({1: 1, 2: 2})], 1)
-        self.assertEquals(f[1].monomials[MultiIndex({5: 2})], 5)
-        self.assertEquals(len(f), 2)
+        self.assertEquals(f[0].monomials[MultiIndex({1: 1})], 1)
+        self.assertEquals(f[1].monomials[MultiIndex({2: 1})], 1)
+        self.assertEquals(len(f), 3)
 
     def testChangeVarToPolynomial(self):
         mi1 = MultiIndex({1: 1, 2: 1})

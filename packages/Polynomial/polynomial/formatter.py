@@ -54,7 +54,7 @@ class AbstractFormatter:
         elif isinstance(obj, polynomial.Polynomial):
             return self.formatPolynomial(obj)
         else:
-            raise ValueError, 'Unsupported type %s' % type(obj)
+            return self.formatVar(obj)
 
     def formatVarIndex(self, varIndex):
         """
