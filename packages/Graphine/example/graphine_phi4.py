@@ -11,6 +11,7 @@ import sys
 class Model:
     relevantGraphsLegsCard = set([2, 4])
 
+    # noinspection PyUnusedLocal
     def isRelevant(self, edgesList, superGraph, superGraphEdges):
         subgraph = graphine.Representator.asGraph(edgesList, superGraph.externalVertex)
         return len(subgraph.edges(subgraph.externalVertex)) in self.relevantGraphsLegsCard

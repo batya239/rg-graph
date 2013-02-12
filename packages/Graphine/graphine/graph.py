@@ -78,25 +78,29 @@ class Graph(object):
         for e in newEdges:
             self.addEdge(e)
 
-    def addEdge(self, edge):
+    def addEdges(self, edges):
         """
         immutable operation
         """
-        v1, v2 = edge.nodes
         newEdges = copy.copy(self._edges)
-        for v in set([v1, v2]):
-            Graph._insertEdge(newEdges, v, edge)
+        for edge in edges:
+            Graph._persInsertEdge(newEdges, edge)
+        return Graph(newEdges)
+
+    def addEdge(self, edge):
+        self.addEdges([edge])
+
+    def deleteEdges(self, edges):
+        """
+        immutable operation
+        """
+        newEdges = copy.copy(self._edges)
+        for edge in edges:
+            Graph._persDeleteEdge(newEdges, edge)
         return Graph(newEdges)
 
     def deleteEdge(self, edge):
-        """
-        immutable operation
-        """
-        v1, v2 = edge.nodes
-        newEdges = copy.copy(self._edges)
-        for v in set([v1, v2]):
-            Graph._deleteEdge(newEdges, v, edge)
-        return Graph(newEdges)
+        self.deleteEdges([edge])
 
     def shrinkToPoint(self, edges):
         """
@@ -152,6 +156,24 @@ class Graph(object):
             if v1 != v2:
                 Graph._insertEdge(edgesDict, v2, edge)
         return edgesDict
+
+    @staticmethod
+    def _persInsertEdge(edgesDict, edge):
+        """
+        persistent operation
+        """
+        vertexes = set(edge.nodes)
+        for v in vertexes:
+            Graph._insertEdge(edgesDict, v, edge)
+
+    @staticmethod
+    def _persDeleteEdge(edgesDict, edge):
+        """
+        persistent operation
+        """
+        vertexes = set(edge.nodes)
+        for v in vertexes:
+            Graph._deleteEdge(edgesDict, v, edge)
 
     @staticmethod
     def _insertEdge(edgesDict, vertex, edge):
