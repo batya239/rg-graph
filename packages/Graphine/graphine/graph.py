@@ -102,6 +102,9 @@ class Graph(object):
     def deleteEdge(self, edge):
         self.deleteEdges([edge])
 
+    def identifyVertexes(self, vertexesToIdentify):
+        pass
+
     def shrinkToPoint(self, edges):
         """
         obj -- list of edges or graph
