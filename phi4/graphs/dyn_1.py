@@ -6,6 +6,7 @@ import itertools
 
 import nickel
 import graph_state
+import sys
 import graphs
 import nodes
 import conserv
@@ -14,11 +15,11 @@ from methods import sd_tools
 from methods.feynman_tools import  conv_sub
 
 import subgraphs
-from dummy_model import _phi3_dyn
+from dummy_model import _phi3_dyn, _phi4_dyn
 
 import polynomial
 
-model = _phi3_dyn("phi3_dyn_test")
+model = _phi4_dyn("phi4_dyn_test")
 
 class DynGraph(graphs.Graph):
     def __init__(self, arg):
@@ -60,7 +61,7 @@ class DynGraph(graphs.Graph):
         return res
 
 
-gs = graph_state.GraphState.fromStr("e12-23-3-e-:0AaAaa-aAaa-aA-0a-:")
+gs = graph_state.GraphState.fromStr(sys.argv[1])
 #gs = graph_state.GraphState.fromStr("e12-e3-45-45-5--:0AaAaA-0aaA-aAaa-aaaa-aA--:")
 #gs = graph_state.GraphState.fromStr("e12-e3-33--:0AaAaA-0aaa-aAaa--:")
 print str(gs)
@@ -68,7 +69,7 @@ print str(gs)
 dG = DynGraph(gs)
 
 dG.FindSubgraphs(model)
-#subgraphs.RemoveTadpoles(dG)
+subgraphs.RemoveTadpoles(dG)
 
 def baseTRelations(graph):
     res = list()
@@ -166,7 +167,7 @@ def genStatic_D_C(graph):
 
 
     else:
-        C = None
+        C = [[],]
         conservations = conserv.Conservations(internalEdges)
         #        equations = sd_tools.find_eq(conservations)
         equations = dict()
@@ -205,16 +206,17 @@ def genStaticT(graph):
 
 rules = {1000: 'a0', 1001: 'a1', 1002: 'a2', 1003: 'a3', 1004: 'a4', 1005: 'a5', 1006: 'a6', 1007: 'a7'}
 
+
 D, C = map(lambda x: relabel(x, rules), genStatic_D_C(dG))
 E = [(x,) for x in dG._qi2l]
 T= genStaticT(dG)
-print D
-print C
-print E
-print T
+#print D
+#print C
+#print E
+#print T
 
-print dG._qi
-print dG._qi2l
+#print dG._qi
+#print dG._qi2l
 
 def dSubstitutions(graph, tCuts):
     """
@@ -256,13 +258,15 @@ def dSubstitutions(graph, tCuts):
 for tVersion in TVersions(dG):
     tCuts = TCuts(dG, tVersion)
     print
-    print tVersion, tCuts
+    print "tVersion = ",tVersion, "tCuts = ", tCuts
+    print "subgraphs :"
     for sub in dG._subgraphs:
         print sub.Dim(model), EffectiveSubgraphDim(sub, tCuts, model), sub
+    print
     Components=(D,C,E,T)
     Components_= map(lambda y:polynomial.poly([(1, x) for x in y]), Components)
     substitutions = dSubstitutions(dG, tCuts)
-    print substitutions
+    print "substitutions = ", substitutions
     for var in substitutions:
         subs = substitutions[var]
         subs_ = polynomial.poly([(1, x) for x in subs])
