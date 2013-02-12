@@ -25,7 +25,7 @@ def _prepareMonomials(monomials):
     return nMonomials if len(nMonomials) <> 0 else None
 
 
-class Polynomial:
+class Poly nomial:
     def __init__(self, monomials, degree=1, c=1):
         """
         monomials -- dictionary MultiIndex->int
