@@ -3,6 +3,8 @@
 import copy
 import graphine
 import itertools
+import graph_state
+from phi4.gfunctions import lambda_number
 
 
 def xPickPassingExternalMomentum(graph):
@@ -32,7 +34,18 @@ def createFilter():
 
 
 class Step(object):
-    pass
+    def __init__(self, isLineReducing, graph, obj):
+        self.isLineReducing = isLineReducing
+        self.graph = graph
+        self.obj = obj
+
+    @staticmethod
+    def lineReducing(graph, lines):
+        return Step(True, graph, tuple(lines))
+
+    @staticmethod
+    def graphReducing(graph, subGraph):
+        return Step(False, graph, subGraph)
 
 
 class GGraphReducer(object):
@@ -57,10 +70,13 @@ class GGraphReducer(object):
 
     def nextIteration(self):
         """
-        find maximal known subgraph and shrink it
+        find chain or maximal known subgraph and shrink it
         return True if has nextIteration or False if not
         """
-        lastIteration = self.getCurrentIteration()
+        if self.tryReduceChain():
+            return True
+
+        lastIteration = self.getCurrentIterationGraph()
         maximal = None
         for subGraphAsList in lastIteration.xRelevantSubGraphs(self.subGraphFilter, graphine.Representator.asList):
             if not maximal or len(subGraphAsList) > len(maximal):
@@ -69,12 +85,55 @@ class GGraphReducer(object):
                                           renumbering=False)
                 subGraphState = subGraph.toGraphState()
                 if self.graphStorage.has(subGraphState):
-                    maximal = (subGraphAsList, subGraph, subGraphState)
+                    maximal = (subGraphAsList, subGraphState)
         if not maximal:
             return False
 
+        subExternalVertexes = graphine.util.getSubExternalVertexes(lastIteration, maximal[1])
+        assert len(subExternalVertexes) == 2
+        newIteration = lastIteration.deleteEdges(maximal[1])
+        #TODO
+        newIteration.addEdge(graph_state.Edge(subExternalVertexes))
+
+    def tryReduceChain(self):
+        edgesAndVertex = self.searchForChains()
+        if not edgesAndVertex:
+            return False
+        else:
+            edges, v = edgesAndVertex
+            assert len(edges) == 2
+            boundaryVertexes = []
+            newLambdaNumber = None
+            for e in edges:
+                if not newLambdaNumber:
+                    newLambdaNumber = lambda_number.LambdaNumber.fromRainbow(e.colors)
+                else:
+                    newLambdaNumber += lambda_number.LambdaNumber.fromRainbow(e.colors)
+                for currentVertex in e.nodes:
+                    if currentVertex != v:
+                        boundaryVertexes.append(currentVertex)
+            assert newLambdaNumber
+            newEdge = graph_state.Edge(boundaryVertexes,
+                                       external_node=self._initGraph.externalVertex,
+                                       colors=newLambdaNumber.toRainbow())
+            currentGraph = self.getCurrentIteration()
+            currentGraph = currentGraph.deleteEdges(edges)
+            currentGraph = currentGraph.addEdge(newEdge)
+            self.iterations.append(Step.lineReducing(currentGraph, edges))
+
     def searchForChains(self):
-        externalEdges = self._initGraph.edges(self._initGraph.externalVertex)
+        currentGraph = self.getCurrentIterationGraph()
+        for v in currentGraph.vertexes():
+            edges = currentGraph.edges(v)
+            if len(edges) == 2:
+                return edges, v
+        return None
+
+    def getCurrentIterationGraph(self):
+        if not len(self.iterations):
+            return self._initGraph
+        else:
+            return self.iterations[-1].graph
 
     def getCurrentIteration(self):
         return self.iterations[-1] if len(self.iterations) else (self._initGraph, None)

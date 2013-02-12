@@ -6,7 +6,7 @@ IN_MEMORY_GRAPH_STORAGE_INSTANCE = None
 
 def getDefaultStorage(obj=IN_MEMORY_GRAPH_STORAGE_INSTANCE):
     if obj is not IN_MEMORY_GRAPH_STORAGE_INSTANCE:
-        raise RuntimeError, "you should no pass parameters to this function"
+        raise RuntimeError("you should no pass parameters to this function")
     if obj is None:
         obj = InMemoryGraphStorage()
         obj._read()
