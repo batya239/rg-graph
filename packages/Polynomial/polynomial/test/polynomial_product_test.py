@@ -25,6 +25,9 @@ pp = p1 * p2
 VARS = [1, 2, 3, 4, 5, 'eps']
 
 class PolynomialProductTestCase(PolynomialToolsTestCase):
+    def testNoneEq(self):
+        self.assertFalse(p1 is None)
+
     def testDiff(self):
         self.doTestDiff(pp, 1, VARS)
         self.doTestDiff(pp, 2, VARS)

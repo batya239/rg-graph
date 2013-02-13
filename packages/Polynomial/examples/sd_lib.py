@@ -33,10 +33,9 @@ def sector_diagram(poly, sec, delta_arg=None, remove_delta=True):
         sec[0] decomposition space must be equal to set of delta_args variables.
         delta_args must be == \sum_i u_i i=...
         """
-        if isinstance(delta_arg, type(None)):
+        if delta_arg is None:
             return True
         else:
-
             if delta_arg.degree <> (1, 0):
                 return False
             arg_set = set()
@@ -54,15 +53,12 @@ def sector_diagram(poly, sec, delta_arg=None, remove_delta=True):
                 arg_set = arg_set | set(monomial_vars)
             first_sector_set = set(sec[0][1]) | set([sec[0][0], ])
 
-            if first_sector_set == arg_set:
-                return True
-            else:
-                return False
+            return first_sector_set == arg_set
 
     if not check_delta(delta_arg, sec):
         raise ValueError, 'Invalid delta functions arguments'
 
-    result = [poly, delta_arg if not isinstance(delta_arg, type(None)) else polynomial.poly([])]
+    result = [poly, delta_arg if delta_arg is not None else polynomial.poly([])]
     """
     we can perform all sector transformations without removing delta function (if present),
     and remove delta only at last step (of course if primary decomposition in sector

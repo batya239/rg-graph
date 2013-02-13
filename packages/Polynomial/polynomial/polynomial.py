@@ -20,6 +20,7 @@ import polynomial_product
 import multiindex
 from util import dict_hash1
 
+
 def _prepareMonomials(monomials):
     nMonomials = dict((mi, c) for mi, c in monomials.items() if c <> 0)
     return nMonomials if len(nMonomials) <> 0 else None
@@ -175,9 +176,9 @@ class Polynomial:
         if tuple(p1.monomials) <> tuple(p2.monomials):
             raise ValueError, 'can\'t merge polynomials: %s, %s' % (p1, p2)
         if p1.c.isInt() or p2.c.isInt():
-            degree=p1.degree + p2.degree
+            degree = p1.degree + p2.degree
             if degree.isInt() and degree.a == 0:
-            # (p1.c+p2.c)*(1)^1
+                # (p1.c+p2.c)*(1)^1
                 return [Polynomial({(): 1}, c=p1.c * p2.c)]
             else:
                 return [Polynomial(p1.monomials, degree=p1.degree + p2.degree, c=p1.c * p2.c)]
@@ -197,6 +198,8 @@ class Polynomial:
     __rmul__ = __mul__
 
     def __eq__(self, other):
+        if not isinstance(other, Polynomial):
+            return False
         return self.monomials == other.monomials and self.degree == other.degree and self.c == other.c
 
     def __ne__(self, other):
