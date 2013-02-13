@@ -83,6 +83,8 @@ class MultiIndex:
         return len(self.vars)
 
     def __eq__(self, other):
+        if not isinstance(other, MultiIndex):
+            return False
         return self.vars == other.vars
 
     def __hash__(self):
