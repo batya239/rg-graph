@@ -7,4 +7,5 @@ v 0.0.2 11/02/2012 - __neg__ in EpsNumber
                    - EpsNumber formatter fixed for b<0
                    - sd_lib and new examples
 
-v 0.0.2 11/02/2012 - right __eq__ implementation in MultiIndex and Polynomial
+v 0.0.3 11/02/2012 - right __eq__ implementation in MultiIndex and Polynomial
+        14/02/2012 - comments and code refinement in sd_lib

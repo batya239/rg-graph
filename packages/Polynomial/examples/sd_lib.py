@@ -9,9 +9,8 @@ import polynomial
 
 def sector_poly(poly, sec):
     """
-    This functions performs sector decomposition of polynomial poly
-    according to sector nomenclature sec, i.e. returns polynomial after
-    variable transformations corresponding to sector sec.
+    This functions performs variable transformation of polynomial poly
+    according to sector nomenclature sec.
     """
     for (main_var, other_vars) in sec:
         poly = poly.stretch(main_var, other_vars)
@@ -20,11 +19,10 @@ def sector_poly(poly, sec):
 
 def sector_diagram(poly, sec, delta_arg=None, remove_delta=True):
     """
-    This functions performs sector decomposition of a whole diagram with
-    polynomial poly being an integration element without the delta-function
-    and d_arg being the delta-function argument according to sector nomenclature sec,
-    i.e. returns polynomials after variable transformations corresponding to sector sec.
-    If delta_arg<>None, first decomposition is considered primary.
+    This functions performs variable transformation of a whole diagram according to sector nomenclature sec.
+    Where polynomial poly being an integration element of diagram without the delta-function
+    and d_arg being the delta-function argument ,
+    If (delta_arg<>None and remove_delta) , first decomposition is considered primary.
     """
 
     def check_delta(delta_arg, sec):
@@ -59,50 +57,67 @@ def sector_diagram(poly, sec, delta_arg=None, remove_delta=True):
         raise ValueError, 'Invalid delta functions arguments'
 
     result = [poly, delta_arg if delta_arg is not None else polynomial.poly([])]
-    """
-    we can perform all sector transformations without removing delta function (if present),
-    and remove delta only at last step (of course if primary decomposition in sector
-    is consistent with delta function argument (d_arg))
-    """
+
+    #
+    #    we can perform all sector transformations without removing delta function (if present),
+    #    and remove delta only at last step (of course if primary decomposition in sector
+    #    is consistent with delta function argument (d_arg))
+    #
+
     result = map(lambda x: sector_poly(x, sec), result)
-    """
-    Now we should add Jacobian of performed variables transformations
-    """
+
+    #
+    #    Now we should add Jacobian of performed variables transformations
+    #
+
     for (main_var, other_vars) in sec:
         m = [main_var] * len(other_vars)
-        J = polynomial.poly([(1, m)], degree=(1, 0))
-        result[0] = result[0] * J.toPolyProd()
-
-    """
-    if delta_arg <> None (we have delta function)
-    """
+        Jacobian = polynomial.poly([(1, m)], degree=(1, 0))
+        result[0] = result[0] * Jacobian.toPolyProd()
 
     if remove_delta:
-        J = polynomial.poly([(1, [sec[0][0]])], degree=(1, 0))
-        result[0] = result[0] * J.toPolyProd()
+        if delta_arg is None:
+            raise ValueError, "Can't remove delta, because no delta_arg provided"
+
+        #
+        # substitution - transformed argument of delta function
+        #
         substitution = result[1]
+        deltaMultiplier = polynomial.poly([(1, [sec[0][0]])], degree=(1, 0))
+        #
+        # additional multiplier from delta function delta(Lx-1)=1/L delta(x-1/L) = x delta(x-1/L)
+        #
+        result[0] = result[0] * deltaMultiplier.toPolyProd()
         result[0] = result[0].simplify()
-        primary_var = sec[0][0]
+        primaryVar = sec[0][0]
+        #
+        # Now we remove delta function by replacing primaryVar to substitution.set1toVar(primaryVar)**(-1)
+        # after decomposition primaryVar must be factorized and result[0]~ primaryVar**a*f(doesn't depend
+        # on primaryVar)
+        # If we have nontrivial primaryVar dependence like (u1+u2)**a than smth goes wrong and we got exception
+        #
+        # Removal of delta function performed in two stages. At first one for each factorized primaryVar we add
+        # multiplier substitution.set1toVar(primaryVar)**(-1), on the second we set primaryVar = 1
+        #
         for p in result[0].polynomials:
             if len(p.monomials) == 1:
                 monomial = p.monomials.keys()[0]
-                if primary_var in monomial.vars.keys():
-                    multiplier = copy.deepcopy(substitution).set1toVar(primary_var)
-                    multiplier.degree = -p.degree * monomial.vars[primary_var]
+                if primaryVar in monomial.vars.keys():
+                    multiplier = substitution.set1toVar(primaryVar)
+                    multiplier.degree = -p.degree * monomial.vars[primaryVar]
                     result[0] = result[0] * multiplier.toPolyProd()
             else:
-                if primary_var in p.getVarsIndexes():
+                if primaryVar in p.getVarsIndexes():
                     raise ValueError, "Invalid decomposition: \nexpr: %s\n polynomial: %s\nprimary var %s" % (
-                        result[0], p, primary_var)
+                        result[0], p, primaryVar)
+        # (second stage)
+        result[0] = result[0].set1toVar(primaryVar)
 
-        result[0] = result[0].set1toVar(primary_var)
         result[0] = result[0].simplify()
         result[1] = None
-        return result[0]
     else:
         result[0] = result[0].simplify()
-        result[1] = result[1].toPolyProd()
 
-    return result
+    return result[0] if result[1] is None else result
 
 
