@@ -128,6 +128,10 @@ class PolynomialProduct:
             return PolynomialProduct(self.polynomials + other.polynomials)
         elif isinstance(other, eps_number.EpsNumber) or isinstance(other, int):
             return PolynomialProduct(self.polynomials + [polynomial.Polynomial({multiindex.MultiIndex(): 1}, c=eps_number.epsNumber(other))])
+        elif isinstance(other, polynomial.Polynomial):
+            return self * other.toPolyProd()
+        else:
+            raise NotImplementedError, "multiplication on type (%s) not implemented" % type(other)
 
     __rmul__ = __mul__
 
