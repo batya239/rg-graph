@@ -2,12 +2,10 @@
 # -*- coding: utf8
 __author__ = 'mkompan'
 
-import copy
-
 import polynomial
 
 
-def sector_poly(poly, sec):
+def sectorPoly(poly, sec):
     """
     This functions performs variable transformation of polynomial poly
     according to sector nomenclature sec.
@@ -17,7 +15,7 @@ def sector_poly(poly, sec):
     return poly
 
 
-def sector_diagram(poly, sec, delta_arg=None, remove_delta=True):
+def sectorDiagram(expr, sec, delta_arg=None, remove_delta=True):
     """
     This functions performs variable transformation of a whole diagram according to sector nomenclature sec.
     Where polynomial poly being an integration element of diagram without the delta-function
@@ -56,7 +54,7 @@ def sector_diagram(poly, sec, delta_arg=None, remove_delta=True):
     if not check_delta(delta_arg, sec):
         raise ValueError, 'Invalid delta functions arguments'
 
-    result = [poly, delta_arg if delta_arg is not None else polynomial.poly([])]
+    result = [expr, delta_arg if delta_arg is not None else polynomial.poly([])]
 
     #
     #    we can perform all sector transformations without removing delta function (if present),
@@ -64,7 +62,7 @@ def sector_diagram(poly, sec, delta_arg=None, remove_delta=True):
     #    is consistent with delta function argument (d_arg))
     #
 
-    result = map(lambda x: sector_poly(x, sec), result)
+    result = map(lambda x: sectorPoly(x, sec), result)
 
     #
     #    Now we should add Jacobian of performed variables transformations
@@ -77,7 +75,7 @@ def sector_diagram(poly, sec, delta_arg=None, remove_delta=True):
 
     if remove_delta:
         if delta_arg is None:
-            raise ValueError, "Can't remove delta, because no delta_arg provided"
+            raise ValueError, "Can't remove delta: no delta_arg provided"
 
         #
         # substitution - transformed argument of delta function
