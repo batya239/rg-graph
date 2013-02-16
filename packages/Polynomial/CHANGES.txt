@@ -9,3 +9,4 @@ v 0.0.2 11/02/2012 - __neg__ in EpsNumber
 
 v 0.0.3 11/02/2012 - right __eq__ implementation in MultiIndex and Polynomial
         14/02/2012 - comments and code refinement in sd_lib
+        17/02/2012 - sd_libs moved to package. unittests for sd_lib
