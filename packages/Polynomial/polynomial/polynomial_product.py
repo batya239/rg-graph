@@ -131,6 +131,18 @@ class PolynomialProduct:
 
     __rmul__ = __mul__
 
+    def __eq__(self, other):
+        if not isinstance(other, PolynomialProduct):
+            return False
+        copiedSelfPolynomials = copy.copy(self.polynomials)
+        for p in other.polynomials:
+            if p in copiedSelfPolynomials:
+                copiedSelfPolynomials.remove(p)
+        return len(copiedSelfPolynomials) == 0
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     def __repr__(self):
         return formatter.format(self)
 
