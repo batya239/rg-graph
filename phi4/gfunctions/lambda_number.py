@@ -35,9 +35,12 @@ class LambdaNumber(object):
         else:
             raise ValueError("parameter type unsupported")
 
+    def __str__(self):
+        return "LambdaNumber((" + self.a + "," + self.b + "))"
+
     @staticmethod
-    def fromRainbow(rainbow):
-        return LambdaNumber(rainbow.colors[0])
+    def fromRainbow(edge):
+        return LambdaNumber(edge.colors)
 
     @staticmethod
     def pureLambda(value):

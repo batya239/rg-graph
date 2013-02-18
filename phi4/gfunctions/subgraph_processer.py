@@ -4,7 +4,8 @@ import copy
 import graphine
 import itertools
 import graph_state
-from phi4.gfunctions import lambda_number
+import graph_storage
+import lambda_number
 
 
 def xPickPassingExternalMomentum(graph):
@@ -15,7 +16,7 @@ def xPickPassingExternalMomentum(graph):
     for edgesPair in itertools.combinations(externalEdges, 2):
         vertexes = set()
         for e in edgesPair:
-            vertexes += dict(e.nodes)
+            vertexes |= set(e.nodes)
         if len(vertexes) == 3:
             yield edgesPair
 
@@ -27,35 +28,20 @@ def createFilter():
             subGraph = graphine.Representator.asGraph(edgesList, superGraph.externalVertex)
             vertexes = set()
             for e in subGraph.edges(superGraph.externalVertex):
-                vertexes += set(e.nodes)
-            return len(vertexes) == 3
+                vertexes |= set(e.nodes)
+            return len(vertexes) == 3 # external node and 2 internals
 
     return graphine.filters.oneIrreducible + graphine.filters.noTadpoles + graphine.filters.isRelevant(Model())
 
 
-class Step(object):
-    def __init__(self, isLineReducing, graph, obj):
-        self.isLineReducing = isLineReducing
-        self.graph = graph
-        self.obj = obj
-
-    @staticmethod
-    def lineReducing(graph, lines):
-        return Step(True, graph, tuple(lines))
-
-    @staticmethod
-    def graphReducing(graph, subGraph):
-        return Step(False, graph, subGraph)
-
-
 class GGraphReducer(object):
-    def __init__(self, graph, momentumPassing, graphStorage):
+    def __init__(self, graph, momentumPassing):
         """
         momentumPassing -- two external edges of graph in which external momentum passing
         """
         if isinstance(graph, graphine.Graph):
             edgesToRemove = list()
-            copiedMomentumPassing = copy.copy(momentumPassing)
+            copiedMomentumPassing = list(momentumPassing)
             for e in graph.edges(graph.externalVertex):
                 if e in copiedMomentumPassing:
                     copiedMomentumPassing.remove(e)
@@ -64,8 +50,8 @@ class GGraphReducer(object):
             self._initGraph = graph.deleteEdges(edgesToRemove)
         else:
             raise TypeError('unsupported type of initial graph')
-        self.iterations = []
-        self.graphStorage = graphStorage
+        self.iterationsGraph = [self._initGraph]
+        self.iterationsValue = []
         self.subGraphFilter = createFilter()
 
     def nextIteration(self):
@@ -84,7 +70,7 @@ class GGraphReducer(object):
                                           externalVertex=self._initGraph.externalVertex,
                                           renumbering=False)
                 subGraphState = subGraph.toGraphState()
-                if self.graphStorage.has(subGraphState):
+                if graph_storage.has(subGraphState):
                     maximal = (subGraphAsList, subGraphState)
         if not maximal:
             return False
@@ -92,8 +78,16 @@ class GGraphReducer(object):
         subExternalVertexes = graphine.util.getSubExternalVertexes(lastIteration, maximal[1])
         assert len(subExternalVertexes) == 2
         newIteration = lastIteration.deleteEdges(maximal[1])
-        #TODO
-        newIteration.addEdge(graph_state.Edge(subExternalVertexes))
+
+        maximalSubGraphValue = graph_storage.get(maximal[2])
+
+        newIteration.addEdge(graph_state.Edge(subExternalVertexes, self._initGraph.externalVertex,
+                                              colors=maximalSubGraphValue[0]))
+
+        self.iterationsGraph.append(newIteration)
+        self.iterationsValue.append(maximalSubGraphValue[1])
+
+        return True
 
     def tryReduceChain(self):
         edgesAndVertex = self.searchForChains()
@@ -106,37 +100,36 @@ class GGraphReducer(object):
             newLambdaNumber = None
             for e in edges:
                 if not newLambdaNumber:
-                    newLambdaNumber = lambda_number.LambdaNumber.fromRainbow(e.colors)
+                    newLambdaNumber = lambda_number.LambdaNumber.fromRainbow(e)
                 else:
-                    newLambdaNumber += lambda_number.LambdaNumber.fromRainbow(e.colors)
+                    newLambdaNumber += lambda_number.LambdaNumber.fromRainbow(e)
                 for currentVertex in e.nodes:
                     if currentVertex != v:
                         boundaryVertexes.append(currentVertex)
             assert newLambdaNumber
             newEdge = graph_state.Edge(boundaryVertexes,
                                        external_node=self._initGraph.externalVertex,
-                                       colors=newLambdaNumber.toRainbow())
-            currentGraph = self.getCurrentIteration()
+                                       colors=newLambdaNumber.asRainbow())
+            currentGraph = self.getCurrentIterationGraph()
             currentGraph = currentGraph.deleteEdges(edges)
             currentGraph = currentGraph.addEdge(newEdge)
-            self.iterations.append(Step.lineReducing(currentGraph, edges))
+            self.iterationsGraph.append(currentGraph)
+            return True
 
     def searchForChains(self):
         currentGraph = self.getCurrentIterationGraph()
         for v in currentGraph.vertexes():
-            edges = currentGraph.edges(v)
-            if len(edges) == 2:
-                return edges, v
+            if v is not currentGraph.externalVertex:
+                edges = currentGraph.edges(v)
+                if len(edges) == 2:
+                    return edges, v
         return None
 
     def getCurrentIterationGraph(self):
-        if not len(self.iterations):
-            return self._initGraph
-        else:
-            return self.iterations[-1].graph
+        return self.iterationsGraph[-1]
 
-    def getCurrentIteration(self):
-        return self.iterations[-1] if len(self.iterations) else (self._initGraph, None)
+    def getCurrentIterationValue(self):
+        return self.iterationsValue[-1]
 
     def getAllIterations(self):
         return self.iterations

@@ -31,7 +31,6 @@ class PolynomialTestCase(PolynomialToolsTestCase):
         self.assertEquals(len(f), 3)
 
     def testChangeVarToPolynomial(self):
-        pass
         mi1 = MultiIndex({1: 1, 2: 1})
         mi2 = MultiIndex({2: 1, 3: 1})
         simplePolynomial = Polynomial({mi1: 1, mi2: 1}, 1, 3)
