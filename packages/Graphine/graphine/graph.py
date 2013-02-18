@@ -78,29 +78,29 @@ class Graph(object):
         for e in newEdges:
             self.addEdge(e)
 
-    def addEdges(self, edges):
+    def addEdges(self, edgesToAdd):
         """
         immutable operation
         """
         newEdges = copy.copy(self._edges)
-        for edge in edges:
+        for edge in edgesToAdd:
             Graph._persInsertEdge(newEdges, edge)
         return Graph(newEdges)
 
     def addEdge(self, edge):
-        self.addEdges([edge])
+        return self.addEdges([edge])
 
-    def deleteEdges(self, edges):
+    def deleteEdges(self, edgesToRemove):
         """
         immutable operation
         """
         newEdges = copy.copy(self._edges)
-        for edge in edges:
+        for edge in edgesToRemove:
             Graph._persDeleteEdge(newEdges, edge)
         return Graph(newEdges)
 
     def deleteEdge(self, edge):
-        self.deleteEdges([edge])
+        return self.deleteEdges([edge])
 
     def identifyVertexes(self, vertexesToIdentify):
         pass

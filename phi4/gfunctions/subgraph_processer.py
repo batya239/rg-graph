@@ -21,7 +21,7 @@ def xPickPassingExternalMomentum(graph):
             yield edgesPair
 
 
-def createFilter():
+def _createFilter():
     class Model:
     # noinspection PyUnusedLocal
         def isRelevant(self, edgesList, superGraph, superGraphEdges):
@@ -32,6 +32,21 @@ def createFilter():
             return len(vertexes) == 3 # external node and 2 internals
 
     return graphine.filters.oneIrreducible + graphine.filters.noTadpoles + graphine.filters.isRelevant(Model())
+
+
+def _adjust(graphAsList, externalVertex):
+    adjustedEdges = []
+    boundaryVertexes = set()
+    for e in graphAsList:
+        if externalVertex in e.nodes:
+            boundaryVertexes |= set(e.nodes)
+        else:
+            adjustedEdges.append(e)
+    boundaryVertexes.remove(externalVertex)
+    adjustedExternalEdges = []
+    for v in boundaryVertexes:
+        adjustedExternalEdges.append(graph_state.Edge((externalVertex, v), external_node=externalVertex, colors=(0, 0)))
+    return adjustedEdges + adjustedExternalEdges, adjustedEdges, boundaryVertexes
 
 
 class GGraphReducer(object):
@@ -52,45 +67,46 @@ class GGraphReducer(object):
             raise TypeError('unsupported type of initial graph')
         self.iterationsGraph = [self._initGraph]
         self.iterationsValue = []
-        self.subGraphFilter = createFilter()
+        self.subGraphFilter = _createFilter()
 
     def nextIteration(self):
         """
         find chain or maximal known subgraph and shrink it
         return True if has nextIteration or False if not
         """
-        if self.tryReduceChain():
+        if self._tryReduceChain():
             return True
 
         lastIteration = self.getCurrentIterationGraph()
         maximal = None
-        for subGraphAsList in lastIteration.xRelevantSubGraphs(self.subGraphFilter, graphine.Representator.asList):
+        for subGraphAsList in [lastIteration.allEdges()] \
+                + [x for x in lastIteration.xRelevantSubGraphs(self.subGraphFilter, graphine.Representator.asList)]:
             if not maximal or len(subGraphAsList) > len(maximal):
-                subGraph = graphine.Graph(subGraphAsList,
+                adjustedSubGraph = _adjust(subGraphAsList, self._initGraph.externalVertex)
+                subGraph = graphine.Graph(adjustedSubGraph[0],
                                           externalVertex=self._initGraph.externalVertex,
                                           renumbering=False)
                 subGraphState = subGraph.toGraphState()
                 if graph_storage.has(subGraphState):
-                    maximal = (subGraphAsList, subGraphState)
+                    maximal = (adjustedSubGraph[1], subGraphState, adjustedSubGraph[2])
         if not maximal:
             return False
 
-        subExternalVertexes = graphine.util.getSubExternalVertexes(lastIteration, maximal[1])
-        assert len(subExternalVertexes) == 2
-        newIteration = lastIteration.deleteEdges(maximal[1])
+        assert len(maximal[2]) == 2
+        newIteration = lastIteration.deleteEdges(maximal[0])
 
-        maximalSubGraphValue = graph_storage.get(maximal[2])
+        maximalSubGraphValue = graph_storage.get(maximal[1])
 
-        newIteration.addEdge(graph_state.Edge(subExternalVertexes, self._initGraph.externalVertex,
-                                              colors=maximalSubGraphValue[0]))
+        newIteration.addEdge(graph_state.Edge(maximal[2], self._initGraph.externalVertex,
+                                              colors=maximalSubGraphValue[1]))
 
         self.iterationsGraph.append(newIteration)
-        self.iterationsValue.append(maximalSubGraphValue[1])
+        self.iterationsValue.append(maximalSubGraphValue[0])
 
         return True
 
-    def tryReduceChain(self):
-        edgesAndVertex = self.searchForChains()
+    def _tryReduceChain(self):
+        edgesAndVertex = self._searchForChains()
         if not edgesAndVertex:
             return False
         else:
@@ -116,20 +132,20 @@ class GGraphReducer(object):
             self.iterationsGraph.append(currentGraph)
             return True
 
-    def searchForChains(self):
+    def _searchForChains(self):
         currentGraph = self.getCurrentIterationGraph()
         for v in currentGraph.vertexes():
             if v is not currentGraph.externalVertex:
                 edges = currentGraph.edges(v)
                 if len(edges) == 2:
-                    return edges, v
+                    return copy.copy(edges), v
         return None
 
     def getCurrentIterationGraph(self):
         return self.iterationsGraph[-1]
 
     def getCurrentIterationValue(self):
-        return self.iterationsValue[-1]
+        return self.iterationsValue[-1] if len(self.iterationsValue) else None
 
-    def getAllIterations(self):
-        return self.iterations
+
+

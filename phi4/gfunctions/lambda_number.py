@@ -23,7 +23,7 @@ class LambdaNumber(object):
         return self._b
 
     def asRainbow(self):
-        return graph_state.Rainbow([(self.a, self.b)])
+        return self.a, self.b
 
     def __add__(self, other):
         if isinstance(other, int):
@@ -36,7 +36,7 @@ class LambdaNumber(object):
             raise ValueError("parameter type unsupported")
 
     def __str__(self):
-        return "LambdaNumber((" + self.a + "," + self.b + "))"
+        return "LambdaNumber((%s,%s))".format(self.a, self.b)
 
     @staticmethod
     def fromRainbow(edge):

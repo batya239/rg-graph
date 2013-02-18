@@ -10,15 +10,17 @@ class GraphStorage(object):
         return self.underlying.get(str(graphState), None)
 
     def has(self, graphState):
-        return self.underlying.has_key(str(graphState))
+        return str(graphState) in self.underlying
+
 
 STORAGE = GraphStorage()
-STORAGE.underlying["ee11-ee-::['None', 'None', '(1, 0)', '(1, 0)', 'None', 'None']"] = ("G(1, 1)", (2, -1))
+STORAGE.underlying["e11-e-::['(0, 0)', '(1, 0)', '(1, 0)', '(0, 0)']"] = ("G(1, 1)", (1, -1))
+STORAGE.underlying["e11-e-::['(0, 0)', '(1, 0)', '(2, -1)', '(0, 0)']"] = ("G(1, 2-lambda)", (2, -2))
 
 
 def get(graphState):
-    STORAGE.get(graphState)
+    return STORAGE.get(graphState)
 
 
 def has(graphState):
-    STORAGE.has(graphState)
+    return STORAGE.has(graphState)

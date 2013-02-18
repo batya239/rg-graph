@@ -12,6 +12,7 @@ def isGraph1Irreducible(edgesList, superGraph, superGraphEdges):
     """
     for e in edgesList:
         copiedEdges = copy.copy(edgesList)
+        copiedEdges = copy.copy(edgesList)
         copiedEdges.remove(e)
         if not _isGraphConnected(copiedEdges, superGraph.externalVertex,
                                  additionalVertexes=set([v for v in e.nodes]) - set([superGraph.externalVertex])):
