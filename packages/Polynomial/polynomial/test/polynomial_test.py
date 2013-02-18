@@ -36,7 +36,8 @@ class PolynomialTestCase(PolynomialToolsTestCase):
         mi2 = MultiIndex({2: 1, 3: 1})
         simplePolynomial = Polynomial({mi1: 1, mi2: 1}, 1, 3)
         _p1 = p2.changeVarToPolynomial(1, simplePolynomial)
-        self.assertEquals(_p1.monomials[MultiIndex({1: 1, 2: 3, 3: 1, 5: 2})], 15)
+        self.assertEquals(_p1.monomials[MultiIndex({2: 3, 3: 1, 5: 2})], 15)
+        self.assertEquals(_p1.monomials[MultiIndex({1: 1, 2: 3, 5: 2})], 15)
 
     def testPowering(self):
         simplePolynomial = Polynomial({mi1_2: c1_2, mi1_3: c1_3}, 2, 3)
