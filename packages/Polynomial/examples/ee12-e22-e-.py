@@ -2,7 +2,7 @@
 # -*- coding: utf8
 __author__ = 'mkompan'
 import polynomial
-import sd_lib
+import polynomial.sd_lib as sd_lib
 
 
 # ee12-e22-e-
@@ -27,7 +27,7 @@ sectors = [
 for sector in sectors:
 
 # perform variable transformations for given sector
-    res = sd_lib.sector_diagram(expr, sector, d_arg)
+    res = sd_lib.sectorDiagram(expr, sector, d_arg)
     print
     print res
     print map(lambda x: x.simplify(), res.diff('a0'))
