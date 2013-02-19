@@ -160,6 +160,9 @@ class Graph(object):
     def toGraphState(self):
         return graph_state.GraphState(self.allEdges())
 
+    def __repr__(self):
+        return str(self)
+
     def __str__(self):
         return str(self.toGraphState())
 
