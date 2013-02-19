@@ -23,13 +23,20 @@ def xPickPassingExternalMomentum(graph, filters=list()):
         for e in edgesPair:
             vertexes |= set(e.nodes)
         if len(vertexes) == 3:
-            yield edgesPair
+            graphWithMomentumPassing = graph.deleteEdges(copy.copy(edgesPair))
+            isValid = True
+            for f in filters:
+                if not f(graphWithMomentumPassing):
+                    isValid = False
+                    break
+            if isValid:
+                yield edgesPair
 
 
 def passMomentOnGraph(graph, momentumPassing):
     assert len(momentumPassing) == 2
     edgesToRemove = list()
-    copiedMomentumPassing = copy.copy(momentumPassing)
+    copiedMomentumPassing = list(momentumPassing)
     for e in graph.edges(graph.externalVertex):
         if e in copiedMomentumPassing:
             copiedMomentumPassing.remove(e)
@@ -46,7 +53,7 @@ def _createFilter():
             vertexes = set()
             for e in subGraph.edges(superGraph.externalVertex):
                 vertexes |= set(e.nodes)
-            # external node and 2 internals
+                # external node and 2 internals
             return len(vertexes) == 3
 
     return graphine.filters.oneIrreducible + graphine.filters.noTadpoles + graphine.filters.isRelevant(Model())
@@ -117,8 +124,8 @@ class GGraphReducer(object):
 
         maximalSubGraphValue = graph_storage.get(maximal[1])
 
-        newIteration.addEdge(graph_state.Edge(maximal[2], self._initGraph.externalVertex,
-                                              colors=maximalSubGraphValue[1]))
+        newIteration = newIteration.addEdge(graph_state.Edge(maximal[2], self._initGraph.externalVertex,
+                                                             colors=maximalSubGraphValue[1]))
 
         self.iterationsGraph.append(newIteration)
         self.iterationsValue.append(maximalSubGraphValue[0])

@@ -54,7 +54,7 @@ class Graph(object):
         return toReturn
 
     def edges(self, vertex):
-        return self._edges.get(vertex, [])
+        return copy.copy(self._edges.get(vertex, []))
 
     def allEdges(self):
         edgesOccurrence = dict()
@@ -82,7 +82,7 @@ class Graph(object):
         """
         immutable operation
         """
-        newEdges = copy.copy(self._edges)
+        newEdges = copy.deepcopy(self._edges)
         for edge in edgesToAdd:
             Graph._persInsertEdge(newEdges, edge)
         return Graph(newEdges)
@@ -94,7 +94,7 @@ class Graph(object):
         """
         immutable operation
         """
-        newEdges = copy.copy(self._edges)
+        newEdges = copy.deepcopy(self._edges)
         for edge in edgesToRemove:
             Graph._persDeleteEdge(newEdges, edge)
         return Graph(newEdges)
