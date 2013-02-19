@@ -2,10 +2,12 @@
 # -*- coding: utf8
 
 import unittest
+
 import graphine
-import momentum
-import subgraph_processer
 import graph_state
+
+import momentum
+from packages.GFunctions.gfunctions import subgraph_processer
 
 
 class SubGraphReducerTestCase(unittest.TestCase):
