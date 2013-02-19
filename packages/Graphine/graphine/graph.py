@@ -161,6 +161,15 @@ class Graph(object):
         return graph_state.GraphState(self.allEdges())
 
     @staticmethod
+    def initEdgesColors(graph, zeroColor=(0, 0), unitColor=(1, 0)):
+        edges = graph.allEdges()
+        initedEdges = list()
+        for e in edges:
+            color = zeroColor if graph.externalVertex in e.nodes else unitColor
+            initedEdges.append(graph_state.Edge(e.nodes, graph.externalVertex, colors=color))
+        return Graph(initedEdges, externalVertex=graph.externalVertex)
+
+    @staticmethod
     def _parseEdges(edgesIterable):
         edgesDict = dict()
         for edge in edgesIterable:
