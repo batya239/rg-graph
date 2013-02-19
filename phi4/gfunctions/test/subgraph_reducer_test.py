@@ -1,5 +1,6 @@
 import unittest
 import graphine
+import momentum
 import subgraph_processer
 
 __author__ = 'dima'
@@ -11,17 +12,17 @@ class SubGraphReducerTestCase(unittest.TestCase):
     def testPickPassingExternalMomentum(self):
         g = graphine.Graph(
             graph_state.GraphState.fromStr("ee11-ee-::['(0,0)', '(0,0)', '(1, 0)', '(1, 0)', '(0,0)', '(0,0)']"))
-        passings = [x for x in subgraph_processer.xPickPassingExternalMomentum(g)]
+        passings = [x for x in momentum.xPickPassingExternalMomentum(g)]
         self.assertEquals(len(passings), 4)
 
         g = graphine.Graph(
             graph_state.GraphState.fromStr("e111-e-::['(0,0)', '(0,0)', '(1, 0)', '(1, 0)', '(0,0)']"))
-        passings = [x for x in subgraph_processer.xPickPassingExternalMomentum(g)]
+        passings = [x for x in momentum.xPickPassingExternalMomentum(g)]
         self.assertEquals(len(passings), 1)
 
         g = graphine.Graph(
             graph_state.GraphState.fromStr("e111-e-::['(0,0)', '(0,0)', '(1, 0)', '(1, 0)', '(0,0)']"))
-        passings = [x for x in subgraph_processer.xPickPassingExternalMomentum(g)]
+        passings = [x for x in momentum.xPickPassingExternalMomentum(g)]
         self.assertEquals(len(passings), 1)
 
         edges = list()
@@ -35,7 +36,7 @@ class SubGraphReducerTestCase(unittest.TestCase):
         edges.append(graph_state.Edge((-1, 2)))
         g = graphine.Graph(
             graph_state.GraphState(edges))
-        passings = [x for x in subgraph_processer.xPickPassingExternalMomentum(g)]
+        passings = [x for x in momentum.xPickPassingExternalMomentum(g)]
         self.assertEquals(len(passings), 5)
 
     def testReducingEyeOfATiger(self):
