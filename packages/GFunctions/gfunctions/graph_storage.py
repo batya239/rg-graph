@@ -25,7 +25,7 @@ def put(graphState, value):
         return
     graphStateAsString = str(graphState)
     STORAGE.underlying[graphStateAsString] = value
-    storageFile = open(_getStoragePath(), "w")
+    storageFile = open(_getStoragePath(), "a")
     storageFile.write("\n")
     storageFile.write(str((graphStateAsString, value[0], value[1])))
     storageFile.close()
