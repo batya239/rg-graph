@@ -1,10 +1,10 @@
+#!/usr/bin/python
+# -*- coding: utf8
+
 import unittest
 import graphine
 import momentum
 import subgraph_processer
-
-__author__ = 'dima'
-
 import graph_state
 
 

@@ -2,7 +2,6 @@
 # -*- coding: utf8
 import copy
 import graphine
-import itertools
 import graph_state
 import graph_storage
 import lambda_number

@@ -1,6 +1,5 @@
 #!/usr/bin/python
 # -*- coding: utf8
-import graph_state
 
 
 class LambdaNumber(object):
