@@ -18,9 +18,11 @@ class Model:
 
 
 phi4 = Model()
-subgraphFilters = (  filters.oneIrreducible
-                     + filters.noTadpoles
-                     + filters.isRelevant(phi4))
+subgraphFilters = (filters.oneIrreducible
+                   + filters.noTadpoles
+                   + filters.vertexIrreducible
+                   + filters.isRelevant(phi4))
+
 g = graphine.Graph(graph_state.GraphState.fromStr(sys.argv[1]))
 
 current = [str(subg.toGraphState()) for subg in
