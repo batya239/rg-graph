@@ -3,6 +3,6 @@
 
 __author__ = 'dima'
 
-from packages.GFunctions.gfunctions.subgraph_processer import GGraphReducer
-from packages.GFunctions.gfunctions.momentum import graphFilter, oneIrreducible, connected, \
+from gfunctions.subgraph_processer import GGraphReducer
+from gfunctions.momentum import graphFilter, oneIrreducible, connected, \
     xPassExternalMomentum, xPickPassingExternalMomentum, passMomentOnGraph
