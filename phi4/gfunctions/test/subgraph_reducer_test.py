@@ -90,4 +90,7 @@ class SubGraphReducerTestCase(unittest.TestCase):
         self.assertEquals(str(reducer.getCurrentIterationGraph().toGraphState()),
                           "e112-2-e-::['(0, 0)', '(1, 0)', '(2, -1)', '(1, 0)', '(1, 0)', '(0, 0)']")
 
+if __name__ == "__main__":
+    unittest.main()
+
 
