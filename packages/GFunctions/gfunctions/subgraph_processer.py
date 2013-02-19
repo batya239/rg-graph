@@ -3,7 +3,7 @@
 import copy
 import graphine
 import graph_state
-from packages.GFunctions.gfunctions import graph_storage, lambda_number, momentum
+from gfunctions import graph_storage, lambda_number, momentum
 
 
 def _createFilter():
