@@ -81,8 +81,9 @@ class GGraphReducer(object):
             return True
 
         maximal = None
-        for subGraphAsList in [lastIteration.allEdges()] \
-                + [x for x in lastIteration.xRelevantSubGraphs(self._subGraphFilter, graphine.Representator.asList)]:
+        for subGraphAsList in \
+                    [x for x in lastIteration.xRelevantSubGraphs(self._subGraphFilter, graphine.Representator.asList)] \
+                    + [lastIteration.allEdges()]:
             if not maximal or len(subGraphAsList) > len(maximal):
                 adjustedSubGraph = _adjust(subGraphAsList, self._initGraph.externalVertex)
                 subGraph = graphine.Graph(adjustedSubGraph[0],
