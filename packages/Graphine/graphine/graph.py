@@ -99,11 +99,21 @@ class Graph(object):
             Graph._persDeleteEdge(newEdges, edge)
         return Graph(newEdges)
 
+    def deleteVertex(self, vertex):
+        assert vertex != self.externalVertex
+        return self.deleteEdges(self.edges(vertex))
+
     def deleteEdge(self, edge):
         return self.deleteEdges([edge])
 
     def identifyVertexes(self, vertexesToIdentify):
         pass
+
+    def hasTadpoles(self):
+        for edge in self.allEdges():
+            if len(set(edge.nodes)) == 1:
+                return True
+        return False
 
     def shrinkToPoint(self, edges):
         """

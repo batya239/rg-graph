@@ -3,6 +3,7 @@
 import copy
 import itertools
 from graph_state import graph_state
+import graph
 
 
 # noinspection PyUnusedLocal
@@ -12,7 +13,6 @@ def isGraph1Irreducible(edgesList, superGraph, superGraphEdges):
     """
     for e in edgesList:
         copiedEdges = copy.copy(edgesList)
-        copiedEdges = copy.copy(edgesList)
         copiedEdges.remove(e)
         if not _isGraphConnected(copiedEdges, superGraph.externalVertex,
                                  additionalVertexes=set([v for v in e.nodes]) - set([superGraph.externalVertex])):
@@ -20,7 +20,17 @@ def isGraph1Irreducible(edgesList, superGraph, superGraphEdges):
     return True
 
 
+# noinspection PyUnusedLocal
 def isGraphVertexIrreducible(edgesList, superGraph, superGraphEdges):
+    subGraph = graph.Representator.asGraph(edgesList, superGraph.externalVertex)
+    for v in subGraph.vertexes():
+        if v is not superGraph.externalVertex:
+            if not _isGraphConnected(subGraph.deleteVertex(v).allEdges(), superGraph.externalVertex):
+                return False
+    return True
+
+
+def hasNoTadpolesInCounterTerm(edgesList, superGraph, superGraphEdges):
     if not len(edgesList):
         return False
     edges = copy.copy(superGraphEdges)

@@ -17,6 +17,7 @@ def graphFilter(qualifier):
 
 
 oneIrreducible = graphFilter(graphine.graph_operations.isGraph1Irreducible)
+vertexIrreducible = graphFilter(graphine.graph_operations.isGraphVertexIrreducible)
 connected = graphFilter(graphine.graph_operations.isGraphConnected)
 
 

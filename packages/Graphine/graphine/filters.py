@@ -22,4 +22,5 @@ def isRelevant(model):
 
 oneIrreducible = graphFilter(graph_operations.isGraph1Irreducible)
 connected = graphFilter(graph_operations.isGraphConnected)
-noTadpoles = graphFilter(graph_operations.isGraphVertexIrreducible)
+noTadpoles = graphFilter(graph_operations.hasNoTadpolesInCounterTerm)
+vertexIrreducible = graphFilter(graph_operations.isGraphVertexIrreducible)

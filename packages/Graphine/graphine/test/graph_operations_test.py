@@ -45,7 +45,7 @@ class GraphOperationsTestCase(unittest.TestCase):
     def doTestVertexIrreducibility(self, nickel, subGraphEdges, expectedResult):
         subGraphEdges = [gs.Edge(e) for e in subGraphEdges]
         graph = gr.Graph(gs.GraphState.fromStr(nickel))
-        self.assertEquals(go.isGraphVertexIrreducible(subGraphEdges, graph, graph.allEdges()), expectedResult)
+        self.assertEquals(go.hasNoTadpolesInCounterTerm(subGraphEdges, graph, graph.allEdges()), expectedResult)
 
     def doTest1Irreducibility(self, nickel, expectedResult):
         graph = gr.Graph(gs.GraphState.fromStr(nickel))
