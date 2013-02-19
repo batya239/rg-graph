@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf8
+from os import path
 
 
 class GraphStorage(object):
@@ -13,14 +14,18 @@ class GraphStorage(object):
         return str(graphState) in self.underlying
 
 
-STORAGE = GraphStorage()
-STORAGE.underlying["e11-e-::['(0, 0)', '(1, 0)', '(1, 0)', '(0, 0)']"] = ("G(1, 1)", (1, -1))
-STORAGE.underlying["e11-e-::['(0, 0)', '(1, 0)', '(2, -1)', '(0, 0)']"] = ("G(1, 2-lambda)", (2, -2))
-
-
 def get(graphState):
     return STORAGE.get(graphState)
 
 
 def has(graphState):
     return STORAGE.has(graphState)
+
+
+def _initStorage():
+    for line in open(path.join(path.dirname(path.realpath(__file__)), "graph_storage.txt"), "r"):
+        k, v1, v2 = eval(line)
+        STORAGE.underlying[k] = (v1, v2)
+
+STORAGE = GraphStorage()
+_initStorage()
