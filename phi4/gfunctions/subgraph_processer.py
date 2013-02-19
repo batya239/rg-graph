@@ -49,15 +49,23 @@ class GGraphReducer(object):
                 self._initGraph = graph
         else:
             raise TypeError('unsupported type of initial graph')
-        self.iterationsGraph = [self._initGraph]
-        self.iterationsValue = []
-        self.subGraphFilter = _createFilter()
+        self._iterationGraphs = [self._initGraph]
+        self._iterationValues = []
+        self._subGraphFilter = _createFilter()
+
+    @property
+    def iterationValues(self):
+        return self._iterationValues
+
+    @property
+    def iterationGraphs(self):
+        return self._iterationGraphs
 
     def getCurrentIterationGraph(self):
-        return self.iterationsGraph[-1]
+        return self._iterationGraphs[-1]
 
     def getCurrentIterationValue(self):
-        return self.iterationsValue[-1] if len(self.iterationsValue) else None
+        return self._iterationValues[-1] if len(self._iterationValues) else None
 
     def nextIteration(self):
         """
@@ -66,6 +74,7 @@ class GGraphReducer(object):
         """
         lastIteration = self.getCurrentIterationGraph()
         if len(lastIteration.allEdges()) == 3:
+            self._putFinalValueToGraphStorage()
             return False
 
         if self._tryReduceChain():
@@ -73,7 +82,7 @@ class GGraphReducer(object):
 
         maximal = None
         for subGraphAsList in [lastIteration.allEdges()] \
-                + [x for x in lastIteration.xRelevantSubGraphs(self.subGraphFilter, graphine.Representator.asList)]:
+                + [x for x in lastIteration.xRelevantSubGraphs(self._subGraphFilter, graphine.Representator.asList)]:
             if not maximal or len(subGraphAsList) > len(maximal):
                 adjustedSubGraph = _adjust(subGraphAsList, self._initGraph.externalVertex)
                 subGraph = graphine.Graph(adjustedSubGraph[0],
@@ -93,8 +102,8 @@ class GGraphReducer(object):
         newIteration = newIteration.addEdge(graph_state.Edge(maximal[2], self._initGraph.externalVertex,
                                                              colors=maximalSubGraphValue[1]))
 
-        self.iterationsGraph.append(newIteration)
-        self.iterationsValue.append(maximalSubGraphValue[0])
+        self._iterationGraphs.append(newIteration)
+        self._iterationValues.append(maximalSubGraphValue[0])
 
         return True
 
@@ -122,7 +131,7 @@ class GGraphReducer(object):
             currentGraph = self.getCurrentIterationGraph()
             currentGraph = currentGraph.deleteEdges(edges)
             currentGraph = currentGraph.addEdge(newEdge)
-            self.iterationsGraph.append(currentGraph)
+            self._iterationGraphs.append(currentGraph)
             return True
 
     def _searchForChains(self):
@@ -133,6 +142,20 @@ class GGraphReducer(object):
                 if len(edges) == 2:
                     return copy.copy(edges), v
         return None
+
+    def _putFinalValueToGraphStorage(self):
+        gValue = "*".join(self._iterationValues)
+
+        innerEdge = None
+        for e in self.getCurrentIterationGraph().allEdges():
+            if self._initGraph.externalVertex not in e.nodes:
+                innerEdge = e
+                break
+        assert innerEdge
+
+        wValue = innerEdge.colors
+
+        graph_storage.put(self._initGraph.toGraphState(), (gValue, wValue))
 
 
 
