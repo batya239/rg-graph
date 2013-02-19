@@ -8,7 +8,12 @@ import graph_storage
 import lambda_number
 
 
-def xPickPassingExternalMomentum(graph):
+def xPassExternalMomentum(graph, filters=list()):
+    for momentumPassing in xPickPassingExternalMomentum(graph, filters):
+        yield passMomentOnGraph(graph, momentumPassing)
+
+
+def xPickPassingExternalMomentum(graph, filters=list()):
     """
     find all cases for passing external momentum
     """
@@ -21,6 +26,18 @@ def xPickPassingExternalMomentum(graph):
             yield edgesPair
 
 
+def passMomentOnGraph(graph, momentumPassing):
+    assert len(momentumPassing) == 2
+    edgesToRemove = list()
+    copiedMomentumPassing = copy.copy(momentumPassing)
+    for e in graph.edges(graph.externalVertex):
+        if e in copiedMomentumPassing:
+            copiedMomentumPassing.remove(e)
+        else:
+            edgesToRemove.append(e)
+    return graph.deleteEdges(edgesToRemove)
+
+
 def _createFilter():
     class Model:
     # noinspection PyUnusedLocal
@@ -29,7 +46,8 @@ def _createFilter():
             vertexes = set()
             for e in subGraph.edges(superGraph.externalVertex):
                 vertexes |= set(e.nodes)
-            return len(vertexes) == 3 # external node and 2 internals
+            # external node and 2 internals
+            return len(vertexes) == 3
 
     return graphine.filters.oneIrreducible + graphine.filters.noTadpoles + graphine.filters.isRelevant(Model())
 
@@ -50,34 +68,36 @@ def _adjust(graphAsList, externalVertex):
 
 
 class GGraphReducer(object):
-    def __init__(self, graph, momentumPassing):
+    def __init__(self, graph, momentumPassing=list()):
         """
         momentumPassing -- two external edges of graph in which external momentum passing
         """
         if isinstance(graph, graphine.Graph):
-            edgesToRemove = list()
-            copiedMomentumPassing = list(momentumPassing)
-            for e in graph.edges(graph.externalVertex):
-                if e in copiedMomentumPassing:
-                    copiedMomentumPassing.remove(e)
-                else:
-                    edgesToRemove.append(e)
-            self._initGraph = graph.deleteEdges(edgesToRemove)
+            self._initGraph = passMomentOnGraph(graph, momentumPassing)
         else:
             raise TypeError('unsupported type of initial graph')
         self.iterationsGraph = [self._initGraph]
         self.iterationsValue = []
         self.subGraphFilter = _createFilter()
 
+    def getCurrentIterationGraph(self):
+        return self.iterationsGraph[-1]
+
+    def getCurrentIterationValue(self):
+        return self.iterationsValue[-1] if len(self.iterationsValue) else None
+
     def nextIteration(self):
         """
         find chain or maximal known subgraph and shrink it
         return True if has nextIteration or False if not
         """
+        lastIteration = self.getCurrentIterationGraph()
+        if len(lastIteration.allEdges()) == 3:
+            return False
+
         if self._tryReduceChain():
             return True
 
-        lastIteration = self.getCurrentIterationGraph()
         maximal = None
         for subGraphAsList in [lastIteration.allEdges()] \
                 + [x for x in lastIteration.xRelevantSubGraphs(self.subGraphFilter, graphine.Representator.asList)]:
@@ -125,7 +145,7 @@ class GGraphReducer(object):
             assert newLambdaNumber
             newEdge = graph_state.Edge(boundaryVertexes,
                                        external_node=self._initGraph.externalVertex,
-                                       colors=newLambdaNumber.asRainbow())
+                                       colors=newLambdaNumber.toRainbow())
             currentGraph = self.getCurrentIterationGraph()
             currentGraph = currentGraph.deleteEdges(edges)
             currentGraph = currentGraph.addEdge(newEdge)
@@ -141,11 +161,6 @@ class GGraphReducer(object):
                     return copy.copy(edges), v
         return None
 
-    def getCurrentIterationGraph(self):
-        return self.iterationsGraph[-1]
-
-    def getCurrentIterationValue(self):
-        return self.iterationsValue[-1] if len(self.iterationsValue) else None
 
 
 

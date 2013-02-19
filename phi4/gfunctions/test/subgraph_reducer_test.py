@@ -64,6 +64,8 @@ class SubGraphReducerTestCase(unittest.TestCase):
         self.assertTrue(hasIteration)
         self.assertEquals(str(reducer.getCurrentIterationGraph().toGraphState()),
                           "e1-e-::['(0, 0)', '(2, -2)', '(0, 0)']")
+        hasIteration = reducer.nextIteration()
+        self.assertFalse(hasIteration)
 
     def testReducingAnotherDiagram(self):
         edges = list()

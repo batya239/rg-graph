@@ -22,7 +22,7 @@ class LambdaNumber(object):
     def b(self):
         return self._b
 
-    def asRainbow(self):
+    def toRainbow(self):
         return self.a, self.b
 
     def __add__(self, other):
