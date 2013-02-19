@@ -6,43 +6,7 @@ import itertools
 import graph_state
 import graph_storage
 import lambda_number
-
-
-def xPassExternalMomentum(graph, filters=list()):
-    for momentumPassing in xPickPassingExternalMomentum(graph, filters):
-        yield passMomentOnGraph(graph, momentumPassing)
-
-
-def xPickPassingExternalMomentum(graph, filters=list()):
-    """
-    find all cases for passing external momentum
-    """
-    externalEdges = graph.edges(graph.externalVertex)
-    for edgesPair in itertools.combinations(externalEdges, 2):
-        vertexes = set()
-        for e in edgesPair:
-            vertexes |= set(e.nodes)
-        if len(vertexes) == 3:
-            graphWithMomentumPassing = graph.deleteEdges(copy.copy(edgesPair))
-            isValid = True
-            for f in filters:
-                if not f(graphWithMomentumPassing):
-                    isValid = False
-                    break
-            if isValid:
-                yield edgesPair
-
-
-def passMomentOnGraph(graph, momentumPassing):
-    assert len(momentumPassing) == 2
-    edgesToRemove = list()
-    copiedMomentumPassing = list(momentumPassing)
-    for e in graph.edges(graph.externalVertex):
-        if e in copiedMomentumPassing:
-            copiedMomentumPassing.remove(e)
-        else:
-            edgesToRemove.append(e)
-    return graph.deleteEdges(edgesToRemove)
+import momentum
 
 
 def _createFilter():
@@ -75,12 +39,15 @@ def _adjust(graphAsList, externalVertex):
 
 
 class GGraphReducer(object):
-    def __init__(self, graph, momentumPassing=list()):
+    def __init__(self, graph, momentumPassing=list(), subGraphFilters=list()):
         """
         momentumPassing -- two external edges of graph in which external momentum passing
         """
         if isinstance(graph, graphine.Graph):
-            self._initGraph = passMomentOnGraph(graph, momentumPassing)
+            if len(momentumPassing):
+                self._initGraph = momentum.passMomentOnGraph(graph, momentumPassing)
+            else:
+                self._initGraph = graph
         else:
             raise TypeError('unsupported type of initial graph')
         self.iterationsGraph = [self._initGraph]
