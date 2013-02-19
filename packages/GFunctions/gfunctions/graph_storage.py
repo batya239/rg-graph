@@ -42,6 +42,7 @@ def has(graphState):
 def _getStoragePath():
     return path.join(path.dirname(path.realpath(__file__)), "graph_storage.txt")
 
+
 def _initStorage():
     for line in open(_getStoragePath(), "r"):
         k, v1, v2 = eval(line)

@@ -160,6 +160,9 @@ class Graph(object):
     def toGraphState(self):
         return graph_state.GraphState(self.allEdges())
 
+    def __str__(self):
+        return str(self.toGraphState())
+
     @staticmethod
     def initEdgesColors(graph, zeroColor=(0, 0), unitColor=(1, 0)):
         edges = graph.allEdges()
