@@ -245,3 +245,77 @@ def generateCDET(dG, tVersion, staticCDET=None):
         subs_ = polynomial.poly([(1, x) for x in subs])
         Components_ = map(lambda x: x.changeVarToPolynomial(var, subs_), Components_)
     return tuple(Components_)
+
+
+def to1(a):
+    def wrapper(expr):
+        expr_ = expr
+        if not isinstance(expr, list):
+            expr_ = [expr, ]
+        return map(lambda x: x.set1toVar(a), expr)
+
+    #        if isinstance(expr, list):
+    #            return map(lambda x: x.set1toVar(a), expr)
+    #        else:
+    #            return expr.set1toVar(a)
+
+    return wrapper
+
+
+def mK_(exprList, a, n):
+    res = list()
+    currList = exprList
+
+    if n >= 0:
+        currList = map(lambda x: -x, currList)
+        res += map(lambda x: x.set0toVar(a), currList)
+    else:
+        raise ValueError, "negative n: n=%s" % n
+    aMultiplier = polynomial.poly([(1, [])])
+    for i in xrange(1, n + 1):
+        print  "start ", currList
+        currList_ = list()
+        aMultiplier *= polynomial.poly([(1. / i, (a,))])
+        for expr in currList:
+            currList_ += expr.diff(a)
+        currList = currList_
+        print "end ", currList
+        P1 = map(lambda x: x.set0toVar(a), currList)[0]
+        print P1.polynomials
+        print  type(map(lambda x: x.set0toVar(a), currList)[0]), map(lambda x: x.set0toVar(a), currList)[0] * aMultiplier
+        print  aMultiplier * map(lambda x: x.set0toVar(a), currList)[0]
+        res += map(lambda x: x.set0toVar(a) * aMultiplier, currList)
+    return res
+
+
+def mK0(a):
+    def wrapper(exprList):
+        expr_ = exprList
+        if not isinstance(exprList, list):
+            expr_ = [exprList, ]
+
+        return mK_(expr_, a, 0)
+
+    return wrapper
+
+
+def mK1(a):
+    def wrapper(exprList):
+        expr_ = exprList
+        if not isinstance(exprList, list):
+            expr_ = [exprList, ]
+
+        return mK_(expr_, a, 1)
+
+    return wrapper
+
+
+def mK2(a):
+    def wrapper(exprList):
+        expr_ = exprList
+        if not isinstance(exprList, list):
+            expr_ = [exprList, ]
+
+        return mK_(expr_, a, 2)
+
+    return wrapper

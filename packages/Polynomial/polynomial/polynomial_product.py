@@ -118,6 +118,8 @@ class PolynomialProduct(object):
                     nPolynomials.append(mergeResult[0])
                 else: raise ValueError, 'invalid merge length %s' % mergeResult
             nPolynomials.append(mainPolynomial)
+
+
         return nPolynomials
 
     def isZero(self):

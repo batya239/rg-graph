@@ -3,7 +3,7 @@
 from string import find
 import unittest
 from multiindex import MultiIndex
-from polynomial import Polynomial
+from polynomial import Polynomial, poly
 from framework.framework import PolynomialToolsTestCase
 
 mi1_1 = MultiIndex({1: 3, 2: 4, 4: 4, 3: 1})
@@ -65,6 +65,9 @@ class PolynomialProductTestCase(PolynomialToolsTestCase):
         self.assertEquals(npp.polynomials[2].degree, (2, 3))
         self.assertEquals(npp.polynomials[2].c, 3)
 
+    def testMull(self):
+        pp0 = poly([(1, ('a0',))]).toPolyProd().set0toVar('a0')
+        self.assertEquals(pp0 * pp, pp0)
 
 if __name__ == "__main__":
     unittest.main()
