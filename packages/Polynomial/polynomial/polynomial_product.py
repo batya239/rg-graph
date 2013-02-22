@@ -131,6 +131,8 @@ class PolynomialProduct(object):
 
     def __mul__(self, other):
         if isinstance(other, PolynomialProduct):
+            if self.isZero() or other.isZero():
+                return PolynomialProduct([])
             return PolynomialProduct(self.polynomials + other.polynomials)
         elif isinstance(other, eps_number.EpsNumber) or isinstance(other, int):
             return PolynomialProduct(self.polynomials + [polynomial.Polynomial({multiindex.MultiIndex(): 1}, c=eps_number.epsNumber(other))])
@@ -149,10 +151,10 @@ class PolynomialProduct(object):
                 return self.polynomials[1] == other
         elif not isinstance(other, PolynomialProduct):
             return False
-        copiedSelfPolynomials = []
+        copiedSelfPolynomials = copy.copy(self.polynomials)
         for p in other.polynomials:
-            if p in self.polynomials:
-                copiedSelfPolynomials.append(p)
+            if p in copiedSelfPolynomials:
+                copiedSelfPolynomials.remove(p)
         return len(copiedSelfPolynomials) == 0
 
     def __ne__(self, other):
