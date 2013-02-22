@@ -186,6 +186,9 @@ class Polynomial:
             return [Polynomial({multiindex.MultiIndex(): 1}, c=p1.c),
                     Polynomial(p1.monomials, degree=p1.degree + p2.degree, c=p2.c)]
 
+    def __neg__(self):
+        return Polynomial(self.monomials, degree=self.degree, c=-self.c)
+
     def __mul__(self, other):
         if isinstance(other, Polynomial):
             return polynomial_product.PolynomialProduct([self, other])

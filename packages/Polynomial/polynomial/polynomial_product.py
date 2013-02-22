@@ -8,6 +8,7 @@ import polynomial
 import multiindex
 from math import factorial
 
+
 def _preparePolynomials(polynomials):
     for p in polynomials:
         if p.isZero():
@@ -15,7 +16,8 @@ def _preparePolynomials(polynomials):
 
     return filter(lambda p: not p.isOne(), polynomials)
 
-class PolynomialProduct:
+
+class PolynomialProduct(object):
     """
     immutable PolynomialProduct
 
@@ -116,12 +118,14 @@ class PolynomialProduct:
                     nPolynomials.append(mergeResult[0])
                 else: raise ValueError, 'invalid merge length %s' % mergeResult
             nPolynomials.append(mainPolynomial)
-
-
         return nPolynomials
 
     def isZero(self):
         return len(self.polynomials) == 0
+
+    def __neg__(self):
+        polynomials = [-self.polynomials[0]] + self.polynomials[1:]
+        return PolynomialProduct(polynomials)
 
     def __mul__(self, other):
         if isinstance(other, PolynomialProduct):
