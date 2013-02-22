@@ -140,12 +140,17 @@ class PolynomialProduct(object):
     __rmul__ = __mul__
 
     def __eq__(self, other):
-        if not isinstance(other, PolynomialProduct):
+        if isinstance(other, polynomial.Polynomial):
+            if other.isZero() and self.isZero():
+                return True
+            elif len(self.polynomials) == 1:
+                return self.polynomials[1] == other
+        elif not isinstance(other, PolynomialProduct):
             return False
-        copiedSelfPolynomials = copy.copy(self.polynomials)
+        copiedSelfPolynomials = []
         for p in other.polynomials:
-            if p in copiedSelfPolynomials:
-                copiedSelfPolynomials.remove(p)
+            if p in self.polynomials:
+                copiedSelfPolynomials.append(p)
         return len(copiedSelfPolynomials) == 0
 
     def __ne__(self, other):
