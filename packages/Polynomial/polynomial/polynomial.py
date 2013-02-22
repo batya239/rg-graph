@@ -193,6 +193,8 @@ class Polynomial:
         if isinstance(other, Polynomial):
             return polynomial_product.PolynomialProduct([self, other])
         elif isinstance(other, polynomial_product.PolynomialProduct):
+            if other.isZero():
+                return polynomial_product.PolynomialProduct([])
             return polynomial_product.PolynomialProduct(other.polynomials + [self])
         elif isinstance(other, eps_number.EpsNumber) or isinstance(other, int):
             return polynomial_product.PolynomialProduct(
