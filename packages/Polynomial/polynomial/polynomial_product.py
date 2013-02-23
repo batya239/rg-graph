@@ -150,6 +150,8 @@ class PolynomialProduct(object):
         elif isinstance(other, eps_number.EpsNumber) or isinstance(other, int):
             if self.isZero() or other == 0:
                 return PolynomialProduct([])
+            if (isinstance(other, int) or other.isRealNumber()) and len(self.polynomials):
+                self.polynomials[0] *= other
             return PolynomialProduct(self.polynomials + [polynomial.Polynomial({multiindex.MultiIndex(): 1}, c=eps_number.epsNumber(other))])
         elif isinstance(other, polynomial.Polynomial):
             return self * other.toPolyProd()

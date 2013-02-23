@@ -210,7 +210,7 @@ class Polynomial:
             return polynomial_product.PolynomialProduct(
                 [self, Polynomial({multiindex.MultiIndex(): 1}, c=eps_number.epsNumber(_other))])
         elif isinstance(_other, int):
-            return Polynomial(self.monomials, degree=self.degree, c=-self.c * _other)
+            return Polynomial(self.monomials, degree=self.degree, c=self.c * _other)
 
     __rmul__ = __mul__
 
