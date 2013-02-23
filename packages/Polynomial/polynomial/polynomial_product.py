@@ -7,6 +7,7 @@ import formatter
 import polynomial
 import multiindex
 from math import factorial
+import util
 
 
 def _preparePolynomials(polynomials):
@@ -100,7 +101,7 @@ class PolynomialProduct(object):
         """
         factorDict = dict()
         for p in polynomials:
-            key = tuple(p.monomials)
+            key = util.unordered_hashable(tuple(p.monomials))
             if factorDict.has_key(key):
                 factorDict[key].append(p)
             else:
@@ -119,6 +120,18 @@ class PolynomialProduct(object):
                 else: raise ValueError, 'invalid merge length %s' % mergeResult
             nPolynomials.append(mainPolynomial)
 
+        if len(nPolynomials) > 1:
+            constPolynomial = None
+            for p in nPolynomials:
+                if p.isConst():
+                    constPolynomial = p
+                    break
+
+            if constPolynomial:
+                const = constPolynomial.c
+                if const.isRealNumber():
+                    nonConstPolynomial = nPolynomials[0] if nPolynomials[0] != constPolynomial else nPolynomials[1]
+                    nonConstPolynomial.c *= const
 
         return nPolynomials
 
@@ -135,6 +148,8 @@ class PolynomialProduct(object):
                 return PolynomialProduct([])
             return PolynomialProduct(self.polynomials + other.polynomials)
         elif isinstance(other, eps_number.EpsNumber) or isinstance(other, int):
+            if self.isZero() or other == 0:
+                return PolynomialProduct([])
             return PolynomialProduct(self.polynomials + [polynomial.Polynomial({multiindex.MultiIndex(): 1}, c=eps_number.epsNumber(other))])
         elif isinstance(other, polynomial.Polynomial):
             return self * other.toPolyProd()

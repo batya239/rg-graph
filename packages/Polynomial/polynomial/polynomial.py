@@ -131,7 +131,7 @@ class Polynomial:
 
         result = list()
         result.append(Polynomial(nMonomials))
-        if self.c.isInt():
+        if self.c.isRealNumber():
             result.append(Polynomial(cMonomials, self.degree - 1, self.degree * self.c.a))
         else:
             result.append(Polynomial(cMonomials, self.degree - 1, self.c))
@@ -142,9 +142,12 @@ class Polynomial:
     def isZero(self):
         return self.c == 0
 
+    def isConst(self):
+        return len(self.monomials) == 1 and self.monomials.has_key(multiindex.CONST) and self.monomials[
+            multiindex.CONST] == 1
+
     def isOne(self):
-        return self.c == 1 and len(self.monomials) == 1 and self.monomials.has_key(multiindex.CONST) and self.monomials[
-                                                                                                         multiindex.CONST] == 1
+        return self.c == 1 and self.isConst()
 
     def getVarsIndexes(self):
         return reduce(lambda indexes, mi: indexes | mi.getVarsIndexes(), self.monomials.keys(), set())
@@ -175,9 +178,9 @@ class Polynomial:
     def _merge(p1, p2):
         if tuple(p1.monomials) <> tuple(p2.monomials):
             raise ValueError, 'can\'t merge polynomials: %s, %s' % (p1, p2)
-        if p1.c.isInt() or p2.c.isInt():
+        if p1.c.isRealNumber() or p2.c.isRealNumber():
             degree = p1.degree + p2.degree
-            if degree.isInt() and degree.a == 0:
+            if degree.isRealNumber() and degree.a == 0:
                 # (p1.c+p2.c)*(1)^1
                 return [Polynomial({(): 1}, c=p1.c * p2.c)]
             else:
@@ -190,17 +193,24 @@ class Polynomial:
         return Polynomial(self.monomials, degree=self.degree, c=-self.c)
 
     def __mul__(self, other):
-        if isinstance(other, Polynomial):
-            if other.isZero() or self.isZero():
+        if isinstance(other, eps_number.EpsNumber) and other.isRealNumber():
+            _other = other.a
+        else:
+            _other = other
+
+        if isinstance(_other, Polynomial):
+            if _other.isZero() or self.isZero():
                 return polynomial_product.PolynomialProduct([])
-            return polynomial_product.PolynomialProduct([self, other])
-        elif isinstance(other, polynomial_product.PolynomialProduct):
-            if other.isZero() or self.isZero():
+            return polynomial_product.PolynomialProduct([self, _other])
+        elif isinstance(_other, polynomial_product.PolynomialProduct):
+            if _other.isZero() or self.isZero():
                 return polynomial_product.PolynomialProduct([])
-            return polynomial_product.PolynomialProduct(other.polynomials + [self])
-        elif isinstance(other, eps_number.EpsNumber) or isinstance(other, int):
+            return polynomial_product.PolynomialProduct(_other.polynomials + [self])
+        elif isinstance(_other, eps_number.EpsNumber):
             return polynomial_product.PolynomialProduct(
-                [self, Polynomial({multiindex.MultiIndex(): 1}, c=eps_number.epsNumber(other))])
+                [self, Polynomial({multiindex.MultiIndex(): 1}, c=eps_number.epsNumber(_other))])
+        elif isinstance(_other, int):
+            return Polynomial(self.monomials, degree=self.degree, c=-self.c * _other)
 
     __rmul__ = __mul__
 

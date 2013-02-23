@@ -43,7 +43,7 @@ class EpsNumber:
     def isZero(self):
         return self.a == 0 and self.b == 0
 
-    def isInt(self):
+    def isRealNumber(self):
         return self.b == 0
 
     def __hash__(self):
@@ -67,9 +67,9 @@ class EpsNumber:
 
     def __mul__(self, other):
         otherEpsPower = epsNumber(other)
-        if otherEpsPower.isInt():
+        if otherEpsPower.isRealNumber():
             return EpsNumber(self.a * otherEpsPower.a, self.b * otherEpsPower.a)
-        elif self.isInt():
+        elif self.isRealNumber():
             return EpsNumber(self.a * otherEpsPower.a, self.a * otherEpsPower.b)
         else:
             raise ValueError, "couldn't multiply %s on %s" % (self, other)
@@ -110,7 +110,7 @@ def _reduceIntegers(epsNumberList):
         return result
     currEpsNumber = epsNumberList[0]
     for epsNumber in epsNumberList[1:]:
-        if epsNumber.isInt():
+        if epsNumber.isRealNumber():
             currEpsNumber = currEpsNumber * epsNumber
         else:
             result.append(currEpsNumber)

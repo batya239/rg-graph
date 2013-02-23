@@ -9,6 +9,7 @@ import sd_lib
 
 
 class SectorPolyTestCase(unittest.TestCase):
+
     def testIt(self):
         sector = [(1, (2, 3)), (2, (3,))]
         poly1 = polynomial.poly([(1, [1, ]), (1, [2, ]), (1, [3, ])])

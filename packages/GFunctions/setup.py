@@ -12,5 +12,5 @@ setup(
     license='LICENSE.txt',
     description='Manipulating on graphs',
     long_description=open('README.txt').read(),
-    requires=['GraphState (>= 0.0.3)']
+    requires=['GraphState (>= 0.0.3), ']
 )
