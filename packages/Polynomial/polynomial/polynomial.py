@@ -191,9 +191,11 @@ class Polynomial:
 
     def __mul__(self, other):
         if isinstance(other, Polynomial):
+            if other.isZero() or self.isZero():
+                return polynomial_product.PolynomialProduct([])
             return polynomial_product.PolynomialProduct([self, other])
         elif isinstance(other, polynomial_product.PolynomialProduct):
-            if other.isZero():
+            if other.isZero() or self.isZero():
                 return polynomial_product.PolynomialProduct([])
             return polynomial_product.PolynomialProduct(other.polynomials + [self])
         elif isinstance(other, eps_number.EpsNumber) or isinstance(other, int):
