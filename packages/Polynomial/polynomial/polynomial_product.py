@@ -120,18 +120,20 @@ class PolynomialProduct(object):
                 else: raise ValueError, 'invalid merge length %s' % mergeResult
             nPolynomials.append(mainPolynomial)
 
-        if len(nPolynomials) > 1:
+        while len(nPolynomials) > 1:
             constPolynomial = None
             for p in nPolynomials:
-                if p.isConst():
+                if p.isConst() and p.c.isRealNumber():
                     constPolynomial = p
                     break
 
             if constPolynomial:
                 const = constPolynomial.c
-                if const.isRealNumber():
-                    nonConstPolynomial = nPolynomials[0] if nPolynomials[0] != constPolynomial else nPolynomials[1]
-                    nonConstPolynomial.c *= const
+                nonConstPolynomial = nPolynomials[0] if nPolynomials[0] != constPolynomial else nPolynomials[1]
+                nonConstPolynomial.c *= const
+                nPolynomials.remove(constPolynomial)
+            else:
+                break
 
         return nPolynomials
 
@@ -159,6 +161,9 @@ class PolynomialProduct(object):
             raise NotImplementedError, "multiplication on type (%s) not implemented" % type(other)
 
     __rmul__ = __mul__
+
+    def __len__(self):
+        return len(self.polynomials)
 
     def __eq__(self, other):
         if isinstance(other, polynomial.Polynomial):

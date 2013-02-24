@@ -65,6 +65,10 @@ class PolynomialProductTestCase(PolynomialToolsTestCase):
         self.assertEquals(npp.polynomials[1].degree, (2, 3))
         self.assertEquals(npp.polynomials[1].c, 3)
 
+        pp1 = poly([(1, (2, 3)), (1, (1, 2, 'a0', 'a0')), (1, (1, 3, 'a1'))]).toPolyProd()
+        pps = pp1.diff('a1')[0].simplify()
+        self.assertEquals(len(pps), 2)
+
     def testMull(self):
         pp0 = poly([(1, ('a0',))]).toPolyProd().set0toVar('a0')
         self.assertEquals(pp0 * pp, pp0)

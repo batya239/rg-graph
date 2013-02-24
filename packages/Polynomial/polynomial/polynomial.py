@@ -143,8 +143,8 @@ class Polynomial:
         return self.c == 0
 
     def isConst(self):
-        return len(self.monomials) == 1 and self.monomials.has_key(multiindex.CONST) and self.monomials[
-            multiindex.CONST] == 1
+        return (len(self.monomials) == 1 and self.monomials.has_key(multiindex.CONST) and self.monomials[
+            multiindex.CONST] == 1) or self.degree == 0
 
     def isOne(self):
         return self.c == 1 and self.isConst()
