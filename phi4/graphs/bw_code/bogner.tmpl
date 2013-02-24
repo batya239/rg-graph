@@ -1,8 +1,11 @@
 #!/bin/sh
+set -x
 PROG=<PROG>
-cd /net/192.168.10.103/hpc_home/users/mkompan/workspace/rg-graph/phi4/graphs/bw_code/
+#cd /net/192.168.10.103/hpc_home/users/mkompan/workspace/rg-graph/phi4/graphs/bw_code/
+cd /net/192.168.127.105/home/mkompan/workspace/rg-graph/phi4/graphs/bw_code
 export PATH=$HOME/bin:$PATH
-export LD_LIBRARY_PATH=/net/192.168.10.103/hpc_home/users/mkompan/libs/ginac64
+export LD_LIBRARY_PATH=/net/192.168.127.105/home/mkompan/libs/ginac64
+ldd .libs/$PROG
 if [ -n "" ];then cd ; fi
 
 

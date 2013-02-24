@@ -2,6 +2,7 @@
 
 sd_dir="$HOME/workspace/bogner-sector-decomposition/sector_decomposition-1.1.0/"
 sd_dir="/net/192.168.10.103/hpc_home/users/mkompan/workspace/bogner-sector-decomposition/sector_decomposition-1.1.0/"
+sd_dir="/net/192.168.127.105/home/mkompan/workspace/bogner-sector-decomposition/sector_decomposition-1.1.0/"
 
 export name=$1
 basename=`echo $name|sed 's/.cc$//'`
