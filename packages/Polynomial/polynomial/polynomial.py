@@ -176,8 +176,6 @@ class Polynomial:
 
     @staticmethod
     def _merge(p1, p2):
-        if tuple(p1.monomials) <> tuple(p2.monomials):
-            raise ValueError, 'can\'t merge polynomials: %s, %s' % (p1, p2)
         if p1.c.isRealNumber() or p2.c.isRealNumber():
             degree = p1.degree + p2.degree
             if degree.isRealNumber() and degree.a == 0:
