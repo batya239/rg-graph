@@ -23,6 +23,36 @@ class Representator:
         return Graph(edgeList, externalVertex=externalVertex, renumbering=True)
 
 
+class IndexableEdge:
+    def __init__(self, underlyingEdge, index):
+        self._underlyingEdge = underlyingEdge
+        self._index = index
+
+    @property
+    def underlying(self):
+        return self._underlyingEdge
+
+    @property
+    def index(self):
+        return self._index
+
+    def __eq__(self, other):
+        return other.index - self.index == 0 and self.underlying == other.underlying
+
+    def __hash__(self):
+        return hash(self.index) * 37 + hash(self.underlying)
+
+    @staticmethod
+    def toIndexless(obj):
+        """
+        return graph_state.Edge's
+        """
+        if isinstance(obj, IndexableEdge):
+            return obj.underlying
+        else:
+            return map(lambda ie: ie.underlying, obj)
+
+
 class Graph(object):
     """
     representation of graph
@@ -53,14 +83,15 @@ class Graph(object):
         self._nextVertexIndex += 1
         return toReturn
 
-    def edges(self, vertex):
-        return copy.copy(self._edges.get(vertex, []))
+    def edges(self, vertex, withIndex=False):
+        vertexEdges = copy.copy(self._edges.get(vertex, []))
+        return vertexEdges if withIndex else IndexableEdge.toIndexless(vertexEdges)
 
-    def allEdges(self):
+    def allEdges(self, withIndex=False):
         edgesOccurrence = dict()
         for edges in self._edges.values():
             for edge in edges:
-                v1, v2 = edge.nodes
+                v1, v2 = edge.underlying.nodes
                 occurrenceRate = 2 if v1 == v2 else 1
                 if edge in edgesOccurrence:
                     edgesOccurrence[edge] += occurrenceRate
@@ -70,7 +101,7 @@ class Graph(object):
         for e, o in edgesOccurrence.items():
             for i in xrange(0, o / 2):
                 result.append(e)
-        return result
+        return result if withIndex else IndexableEdge.toIndexless(result)
 
     def change(self, oldEdges, newEdges):
         for e in oldEdges:
@@ -178,11 +209,14 @@ class Graph(object):
     @staticmethod
     def _parseEdges(edgesIterable):
         edgesDict = dict()
+        indexGenerator = 0
         for edge in edgesIterable:
             v1, v2 = edge.nodes
-            Graph._insertEdge(edgesDict, v1, edge)
+            iEdge = IndexableEdge(edge, indexGenerator)
+            indexGenerator += 1
+            Graph._insertEdge(edgesDict, v1, iEdge)
             if v1 != v2:
-                Graph._insertEdge(edgesDict, v2, edge)
+                Graph._insertEdge(edgesDict, v2, iEdge)
         return edgesDict
 
     @staticmethod
@@ -213,8 +247,14 @@ class Graph(object):
     @staticmethod
     def _deleteEdge(edgesDict, vertex, edge):
         try:
-            edgesDict[vertex].remove(edge)
+            edgeList = edgesDict[vertex]
+            ieToRemove = None
+            for ie in edgeList:
+                if IndexableEdge.toIndexless(ie) == edge:
+                    ieToRemove = ie
+                    break
+            edgeList.remove(ieToRemove)
             if not len(edgesDict[vertex]):
                 del edgesDict[vertex]
-        except KeyError as e:
+        except AttributeError as e:
             raise ValueError(e), "edge not exists in graph"

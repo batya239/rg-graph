@@ -21,6 +21,25 @@ subGraph = gr.Graph(subGraphState)
 
 
 class GraphTestCase(unittest.TestCase):
+    def testIndexableEdges(self):
+        graph = gr.Graph(gs.GraphState.fromStr("e11-e-::"))
+        indexableEdges = graph.allEdges(withIndex=True)
+        indexes = set()
+        for ie in indexableEdges:
+            indexes.add(ie.index)
+        self.assertSetEqual(indexes, set([0, 1, 2, 3]))
+
+        i = 100
+        for ie in indexableEdges:
+            ie.myBestEdgeProperty = i
+            i += 1
+
+        myBestProperties = set()
+        for ie in indexableEdges:
+            myBestProperties.add(ie.myBestEdgeProperty)
+
+        self.assertSetEqual(myBestProperties, set([100, 101, 102, 103]))
+
     def testCreationAndConvertingToGraphState(self):
         self.assertEquals(simpleGraph.toGraphState(), simpleGraphState)
         self.assertSetEqual(set(simpleGraph.allEdges()), set(simpleGraphState.edges))
@@ -71,7 +90,7 @@ class GraphTestCase(unittest.TestCase):
 
     # noinspection PyMethodOverriding
     def assertSetEqual(self, set1, set2):
-        assert set1 == set2
+        assert set1 == set2, str(set1) + " != " + str(set2)
 
 
 if __name__ == "__main__":
