@@ -334,7 +334,7 @@ def diff_(exprList, a, n):
     return res
 
 
-def diff1(a):
+def D1(a):
     def wrapper(exprList):
         expr_ = exprList
         if not isinstance(exprList, list):
@@ -344,7 +344,7 @@ def diff1(a):
     return wrapper
 
 
-def diff2(a):
+def D2(a):
     def wrapper(exprList):
         expr_ = exprList
         if not isinstance(exprList, list):
@@ -354,6 +354,14 @@ def diff2(a):
     return wrapper
 
 
+def D3(a):
+    def wrapper(exprList):
+        expr_ = exprList
+        if not isinstance(exprList, list):
+            expr_ = [exprList, ]
+
+        return diff_(expr_, a, 3)
+    return wrapper
 #############################################
 # sectors
 #############################################
@@ -573,8 +581,10 @@ def checkDecomposition_(expr):
                         exprStatus = polyStatus
                     else:
                         exprStatus = exprStatus + " " + polyStatus
-            else:
+            elif not poly.isConst():
                 exprStatus = 'pole'
+#                print expr
+#                print poly
 
     return exprStatus
 

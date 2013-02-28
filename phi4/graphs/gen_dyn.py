@@ -47,14 +47,22 @@ for tVersion in dynamics.TVersions(dG):
     print "tVersion = ", tVersion
     fileName = Replace("%s_%s.py" % (gs, tVersion))
     print fileName
+    tCuts = dynamics.TCuts(dG, tVersion)
+    subgraphDims = map(lambda x: dynamics.EffectiveSubgraphDim(x, tCuts, model), dG._subgraphs)
+    subgraphOps = ''
+    for i in range(len(subgraphDims)):
+        subgraphOps += 'to1(\'a%s\'),' % i if subgraphDims[i] < 0 else 'D%s(\'a%s\'),' % (subgraphDims[i] / 2 + 1, i)
+
+    print subgraphOps
 
     sectorTree = dynamics.generateDynamicSpeerTree(dG, tVersion, model)
     sectorString = ""
     for sector in dynamics.xTreeElement2(sectorTree):
-        sectorString += "    (%s, ()),\n" % sector
+        sectorString += "    (%s, (%s)),\n" % (sector, subgraphOps)
     f = open(fileName, 'w')
     f.write("""#!/usr/bin/python
 # -*- coding:utf8
+from dynamics import D1, D2, to1, mK0, mK1
 graphName = \"%s\"
 
 tVersion = %s
