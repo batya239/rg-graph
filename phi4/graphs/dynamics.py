@@ -313,6 +313,47 @@ def mK2(a):
         return mK_(expr_, a, 2)
 
     return wrapper
+
+
+def diff_(exprList, a, n):
+    aMultiplier = polynomial.poly([(1, []), (-1, [a, ])], degree=(n - 1, 0)).toPolyProd()
+    res = exprList
+#    print " 1 ", res
+
+    for i in range(n):
+        res_ = list()
+        for expr in res:
+            res_ += expr.diff(a)
+        res = res_
+#    print " ", res
+
+    if n > 1:
+        res = map(lambda x: x*aMultiplier, res)
+
+#    print " ", res
+    return res
+
+
+def diff1(a):
+    def wrapper(exprList):
+        expr_ = exprList
+        if not isinstance(exprList, list):
+            expr_ = [exprList, ]
+
+        return diff_(expr_, a, 1)
+    return wrapper
+
+
+def diff2(a):
+    def wrapper(exprList):
+        expr_ = exprList
+        if not isinstance(exprList, list):
+            expr_ = [exprList, ]
+
+        return diff_(expr_, a, 2)
+    return wrapper
+
+
 #############################################
 # sectors
 #############################################
@@ -507,28 +548,41 @@ def generateDynamicSpeerTree(dG, tVersion, model):
     return speerTree
 
 
-def checkDecomposition(expr):
+def checkDecomposition_(expr):
     exprStatus = "bad"
     for poly in expr.polynomials:
+
         if poly.degree.a < 0:
-            polyStatus = "bad"
-            for monomial in poly.monomials.keys():
-                if len(monomial) == 0:
-                    polyStatus = "1"
+            if len(poly.monomials) > 1:
+                polyStatus = "bad"
+                for monomial in poly.monomials.keys():
+                    if len(monomial) == 0:
+                        polyStatus = "1"
+                        break
+                    else:
+                        if reduce(lambda x, y: x & y, [isinstance(x, str) for x in monomial.vars]):
+                            polyStatus = "%s" % monomial
+                if polyStatus == "bad":
+                    exprStatus = "bad"
                     break
+                elif polyStatus == "1":
+                    if exprStatus == "1" or exprStatus == "bad":
+                        exprStatus = "1"
                 else:
-                    if reduce(lambda x,y: x & y, [isinstance(x,str) for x in monomial.vars]):
-                        polyStatus = "%s"%monomial
-            if polyStatus == "bad":
-                exprStatus = "bad"
-                break
-            elif polyStatus == "1":
-                if exprStatus == "1" or exprStatus == "bad":
-                    exprStatus = "1"
+                    if exprStatus == "1" or exprStatus == "bad":
+                        exprStatus = polyStatus
+                    else:
+                        exprStatus = exprStatus + " " + polyStatus
             else:
-                if exprStatus == "1" or exprStatus == "bad":
-                    exprStatus = polyStatus
-                else:
-                    exprStatus = exprStatus + " " + polyStatus
+                exprStatus = 'pole'
 
     return exprStatus
+
+
+def checkDecomposition(exprList):
+    exprList_ = exprList
+    if not isinstance(exprList, list):
+        exprList_ = [exprList,]
+
+    checks = map(checkDecomposition_, exprList_)
+    return checks

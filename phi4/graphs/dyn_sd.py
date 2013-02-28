@@ -68,19 +68,33 @@ delta_arg = deltaArg(uVars)
 
 print
 print "-------------------"
-for sector in data.sectors:
+for sector, aOps in data.sectors:
 
-    sectorExpr = sd_lib.sectorDiagram(expr, sector, delta_arg=delta_arg)
+    sectorExpr = [sd_lib.sectorDiagram(expr, sector, delta_arg=delta_arg)]
     #some manipulations with sectorExpr
+#    print sectorExpr
+#    print " - ", sectorExpr[0].diff('a0')
+    d1 = dynamics.diff1('a0')
+#    print d1
+#    print d1(sectorExpr)
+    for aOp in aOps:
+        sectorExpr = aOp(sectorExpr)
+    print sectorExpr
+    for x in sectorExpr:
+        print x
+        print x.simplify()
+    sectorExpr = map(lambda x: x.simplify(), sectorExpr)
     check = dynamics.checkDecomposition(sectorExpr)
     print sector,  check
-    if check == "bad":
+    if "bad" in check:
         print
-    sectorVariables = set(polynomial.formatter.formatVarIndexes(sectorExpr, polynomial.formatter.CPP))
+        print polynomial.formatter.format(sectorExpr, polynomial.formatter.CPP)
+        print
+#    sectorVariables = set(polynomial.formatter.formatVarIndexes(sectorExpr, polynomial.formatter.CPP))
 #    print sectorVariables
 
 
-#    print polynomial.formatter.format(sectorExpr, polynomial.formatter.CPP)
+#
 
 
 

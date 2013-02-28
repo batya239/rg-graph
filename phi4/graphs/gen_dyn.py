@@ -39,8 +39,8 @@ def Replace(fileName):
     res = res.replace(' ', "")
     return res
 
-print dir(dG)
-print dG.Lines()
+#print dir(dG)
+#print dG.Lines()
 
 for tVersion in dynamics.TVersions(dG):
     print
@@ -51,7 +51,7 @@ for tVersion in dynamics.TVersions(dG):
     sectorTree = dynamics.generateDynamicSpeerTree(dG, tVersion, model)
     sectorString = ""
     for sector in dynamics.xTreeElement2(sectorTree):
-        sectorString += "    %s,\n" % sector
+        sectorString += "    (%s, ()),\n" % sector
     f = open(fileName, 'w')
     f.write("""#!/usr/bin/python
 # -*- coding:utf8
