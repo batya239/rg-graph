@@ -191,6 +191,9 @@ class Graph(object):
     def toGraphState(self):
         return graph_state.GraphState(self.allEdges())
 
+    def calculateLoopsCount(self):
+        return len(self.allEdges()) - len(self.edges(self.externalVertex)) - len(self.vertexes()) + 1
+
     def __repr__(self):
         return str(self)
 

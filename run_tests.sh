@@ -6,6 +6,11 @@ cd packages/GraphState
 ./setup.py install --user || exit 1
 cd $PWD_
 
+cd packages/RgGraphUtil
+./run_tests.sh || exit 1
+./setup.py install --user || exit 1
+cd $PWD_
+
 cd packages/Polynomial
 ./run_tests.sh || exit 1
 ./setup.py install --user || exit 1

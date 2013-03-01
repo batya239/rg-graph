@@ -1,16 +1,21 @@
 #!/usr/bin/python
 # -*- coding: utf8
-
+import os
 import unittest
-
 import graphine
 import graph_state
-
 import momentum
-from packages.GFunctions.gfunctions import subgraph_processer
+import subgraph_processer
+import graph_storage
 
 
 class SubGraphReducerTestCase(unittest.TestCase):
+    def setUp(self):
+        self.deleteStorageFile()
+
+    def tearDown(self):
+        self.deleteStorageFile()
+
     def testPickPassingExternalMomentum(self):
         g = graphine.Graph(
             graph_state.GraphState.fromStr("ee11-ee-::['(0,0)', '(0,0)', '(1, 0)', '(1, 0)', '(0,0)', '(0,0)']"))
@@ -92,6 +97,11 @@ class SubGraphReducerTestCase(unittest.TestCase):
         self.assertTrue(hasIteration)
         self.assertEquals(str(reducer.getCurrentIterationGraph().toGraphState()),
                           "e112-2-e-::['(0, 0)', '(1, 0)', '(2, -1)', '(1, 0)', '(1, 0)', '(0, 0)']")
+
+    def deleteStorageFile(self):
+        if os.path.exists(graph_storage._STORAGE_FILE_NAME):
+            os.remove(graph_storage._STORAGE_FILE_NAME)
+
 
 if __name__ == "__main__":
     unittest.main()

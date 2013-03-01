@@ -6,6 +6,7 @@ import eps_number
 import formatter
 import polynomial
 import multiindex
+import rggraphutil.variable_aware_number as v_number
 from math import factorial
 import util
 
@@ -65,12 +66,12 @@ class PolynomialProduct(object):
             return None
 
         aPart = PolynomialProduct(map(lambda p: polynomial.Polynomial(p.monomials, degree=p.degree.a),
-                                      filter(lambda p: p.degree.a <> 0, self.polynomials)))
+                                      filter(lambda p: p.degree.a != 0, self.polynomials)))
 
         bPart = PolynomialProduct(map(lambda p: polynomial.Polynomial(p.monomials, degree=p.degree.b),
-                                      filter(lambda p: p.degree.b <> 0, self.polynomials)))
+                                      filter(lambda p: p.degree.b != 0, self.polynomials)))
 
-        epsPolynomial = eps_number.getCoefficients(map(lambda p: p.c, self.polynomials))
+        epsPolynomial = v_number.VariableAwareNumber.getPolynomialCoefficients(map(lambda p: p.c, self.polynomials))
 
         mainEpsExpansion = dict()
         for i in xrange(0, toIndex + 1):
@@ -149,7 +150,7 @@ class PolynomialProduct(object):
             if self.isZero() or other.isZero():
                 return PolynomialProduct([])
             return PolynomialProduct(self.polynomials + other.polynomials)
-        elif isinstance(other, eps_number.EpsNumber) or isinstance(other, int):
+        elif isinstance(other, v_number.VariableAwareNumber) or isinstance(other, int):
             if self.isZero() or other == 0:
                 return PolynomialProduct([])
             if (isinstance(other, int) or other.isRealNumber()) and len(self.polynomials):

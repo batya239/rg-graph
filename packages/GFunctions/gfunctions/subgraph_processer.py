@@ -119,16 +119,16 @@ class GGraphReducer(object):
             newLambdaNumber = None
             for e in edges:
                 if not newLambdaNumber:
-                    newLambdaNumber = lambda_number.LambdaNumber.fromRainbow(e)
+                    newLambdaNumber = lambda_number.fromRainbow(e)
                 else:
-                    newLambdaNumber += lambda_number.LambdaNumber.fromRainbow(e)
+                    newLambdaNumber += lambda_number.fromRainbow(e)
                 for currentVertex in e.nodes:
                     if currentVertex != v:
                         boundaryVertexes.append(currentVertex)
             assert newLambdaNumber
             newEdge = graph_state.Edge(boundaryVertexes,
                                        external_node=self._initGraph.externalVertex,
-                                       colors=newLambdaNumber.toRainbow())
+                                       colors=lambda_number.toRainbow(newLambdaNumber))
             currentGraph = self.getCurrentIterationGraph()
             currentGraph = currentGraph.deleteEdges(edges)
             currentGraph = currentGraph.addEdge(newEdge)

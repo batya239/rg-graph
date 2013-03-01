@@ -18,6 +18,7 @@ import eps_number
 import formatter
 import polynomial_product
 import multiindex
+import rggraphutil.variable_aware_number as v_number
 from util import dict_hash1
 
 
@@ -191,7 +192,7 @@ class Polynomial:
         return Polynomial(self.monomials, degree=self.degree, c=-self.c)
 
     def __mul__(self, other):
-        if isinstance(other, eps_number.EpsNumber) and other.isRealNumber():
+        if isinstance(other, v_number.VariableAwareNumber) and other.isRealNumber():
             _other = other.a
         else:
             _other = other
@@ -204,7 +205,7 @@ class Polynomial:
             if _other.isZero() or self.isZero():
                 return polynomial_product.PolynomialProduct([])
             return polynomial_product.PolynomialProduct(_other.polynomials + [self])
-        elif isinstance(_other, eps_number.EpsNumber):
+        elif isinstance(_other, v_number.VariableAwareNumber):
             return polynomial_product.PolynomialProduct(
                 [self, Polynomial({multiindex.MultiIndex(): 1}, c=eps_number.epsNumber(_other))])
         elif isinstance(_other, int):

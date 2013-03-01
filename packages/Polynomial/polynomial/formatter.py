@@ -11,6 +11,7 @@ CPP = 'CPP'
 
 import polynomial_product
 
+
 def format(obj, exportType=HUMAN):
     """
     return expression as string corresponds exportType. export type should one of (PYTHON, CPP, HUMAN)
@@ -20,12 +21,14 @@ def format(obj, exportType=HUMAN):
     else:
         return _format(obj, exportType)
 
+
 def formatVarIndexes(obj, exportType=HUMAN):
     """
     obj MUST have getVarsIndexes method
     """
     formatter = _createFormatter(exportType)
     return map(lambda i: formatter.formatVar(i), obj.getVarsIndexes())
+
 
 def _createFormatter(exportType=HUMAN):
     if exportType == PYTHON:
@@ -37,6 +40,7 @@ def _createFormatter(exportType=HUMAN):
     else:
         raise ValueError, 'export type %s is unknown' % exportType
     return formatter
+
 
 def _format(obj, exportType):
     return _createFormatter(exportType).format(obj)

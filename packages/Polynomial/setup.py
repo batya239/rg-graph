@@ -12,4 +12,5 @@ setup(
     license='LICENSE.txt',
     description='Polynomial stuff for SD',
     long_description=open('README.txt').read(),
+    requires=['RgGraphUtil (>= 0.0.1)']
 )
