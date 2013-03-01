@@ -38,6 +38,8 @@ filename = sys.argv[1]
 
 exec ('import %s as data' % filename[:-3])
 
+print data.graphName
+
 gs = graph_state.GraphState.fromStr(data.graphName)
 tVersion = data.tVersion
 
@@ -47,7 +49,7 @@ subgraphs.RemoveTadpoles(dG)
 Components = dynamics.generateCDET(dG, tVersion)
 print str(gs)
 print tVersion
-print "C = %s\nD = %s\nE = %s\nT = %s\n" % tuple(Components)
+#print "C = %s\nD = %s\nE = %s\nT = %s\n" % tuple(Components)
 C, D, E, T = Components
 #d=4-2*e
 D.degree.a, D.degree.b = (-model.space_dim / 2., 1)
@@ -57,28 +59,33 @@ alpha = len([x for x in dG.xInternalLines()])
 E.degree.a, E.degree.b = (-alpha + model.space_dim * nLoops / 2. - 1, nLoops)
 
 expr = C * D * E * T
-print expr
+#print expr
 
-variables = C.getVarsIndexes()
-variables |= D.getVarsIndexes()
-variables |= E.getVarsIndexes()
-variables |= T.getVarsIndexes()
+variables = expr.getVarsIndexes()
 print "variables: ", variables
 uVars, aVars = splitUA(variables)
 delta_arg = deltaArg(uVars)
 
+print
+print "-------------------"
+for sector, aOps in data.sectors:
 
-for sector in data.sectors:
-    print
-    print "-------------------"
-    print
-    print sector
-    sectorExpr = sd_lib.sectorDiagram(expr, sector, delta_arg=delta_arg)
-    #some manipulations with sectorExpr
+    sectorExpr = [sd_lib.sectorDiagram(expr, sector, delta_arg=delta_arg)]
 
-    sectorVariables = set(polynomial.formatter.formatVarIndexes(sectorExpr, polynomial.formatter.CPP))
-    print sectorVariables
-    print polynomial.formatter.format(sectorExpr, polynomial.formatter.CPP)
+    for aOp in aOps:
+        sectorExpr = aOp(sectorExpr)
+    sectorExpr = map(lambda x: x.simplify(), sectorExpr)
+    check = dynamics.checkDecomposition(sectorExpr)
+    print sector,  check
+    if "bad" in check:
+        print
+        print polynomial.formatter.format(sectorExpr, polynomial.formatter.CPP)
+        print
+#    sectorVariables = set(polynomial.formatter.formatVarIndexes(sectorExpr, polynomial.formatter.CPP))
+#    print sectorVariables
+
+
+#
 
 
 

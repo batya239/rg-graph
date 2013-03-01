@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf8
-
+import copy
 
 import itertools
 
@@ -13,6 +13,7 @@ from methods import sd_tools
 
 from methods.feynman_tools import conv_sub
 import polynomial
+import subgraphs
 
 
 class DynGraph(graphs.Graph):
@@ -98,7 +99,7 @@ def TVersions(graph):
         good = True
         for i in range(nnodes):
             node = nodes_[i]
-            if trelations.has_key(node) and len(set(nodes_[i:]) & set(trelations[node])) <> 0:
+            if node in trelations and len(set(nodes_[i:]) & set(trelations[node])) != 0:
                 good = False
                 break
         if good:
@@ -148,7 +149,6 @@ def genStatic_D_C(graph):
         #        conservations = sd_tools.apply_eq(conservations, equations)
         graph._cons = conservations
 
-
     else:
         C = [[], ]
         conservations = conserv.Conservations(internalEdges)
@@ -160,7 +160,7 @@ def genStatic_D_C(graph):
         graph._cons = conservations
 
     D = sd_tools.gendet(graph, N=graph.NLoops())
-    return (D, C)
+    return D, C
 
 
 def relabel(lst, rules):
@@ -228,11 +228,16 @@ def dSubstitutions(graph, tCuts):
     return res
 
 
+def generateStaticCDET(dG):
+    D, C = map(lambda x: relabel(x, rules), genStatic_D_C(dG))
+    E = [(x,) for x in dG._qi2l]
+    T = genStaticT(dG)
+    return C, D, E, T
+
+
 def generateCDET(dG, tVersion, staticCDET=None):
     if staticCDET is None:
-        D, C = map(lambda x: relabel(x, rules), genStatic_D_C(dG))
-        E = [(x,) for x in dG._qi2l]
-        T = genStaticT(dG)
+        (C, D, E, T) = generateStaticCDET(dG)
     else:
         (C, D, E, T) = staticCDET
 
@@ -252,12 +257,7 @@ def to1(a):
         expr_ = expr
         if not isinstance(expr, list):
             expr_ = [expr, ]
-        return map(lambda x: x.set1toVar(a), expr)
-
-    #        if isinstance(expr, list):
-    #            return map(lambda x: x.set1toVar(a), expr)
-    #        else:
-    #            return expr.set1toVar(a)
+        return map(lambda x: x.set1toVar(a), expr_)
 
     return wrapper
 
@@ -273,17 +273,11 @@ def mK_(exprList, a, n):
         raise ValueError, "negative n: n=%s" % n
     aMultiplier = polynomial.poly([(1, [])])
     for i in xrange(1, n + 1):
-        print  "start ", currList
         currList_ = list()
         aMultiplier *= polynomial.poly([(1. / i, (a,))])
         for expr in currList:
             currList_ += expr.diff(a)
         currList = currList_
-        print "end ", currList
-        P1 = map(lambda x: x.set0toVar(a), currList)[0]
-        print P1.polynomials
-        print  type(map(lambda x: x.set0toVar(a), currList)[0]), map(lambda x: x.set0toVar(a), currList)[0] * aMultiplier
-        print  aMultiplier * map(lambda x: x.set0toVar(a), currList)[0]
         res += map(lambda x: x.set0toVar(a) * aMultiplier, currList)
     return res
 
@@ -319,3 +313,286 @@ def mK2(a):
         return mK_(expr_, a, 2)
 
     return wrapper
+
+
+def diff_(exprList, a, n):
+    aMultiplier = polynomial.poly([(1, []), (-1, [a, ])], degree=(n - 1, 0)).toPolyProd()
+    res = exprList
+#    print " 1 ", res
+
+    for i in range(n):
+        res_ = list()
+        for expr in res:
+            res_ += expr.diff(a)
+        res = res_
+#    print " ", res
+
+    if n > 1:
+        res = map(lambda x: x*aMultiplier, res)
+
+#    print " ", res
+    return res
+
+
+def D1(a):
+    def wrapper(exprList):
+        expr_ = exprList
+        if not isinstance(exprList, list):
+            expr_ = [exprList, ]
+
+        return diff_(expr_, a, 1)
+    return wrapper
+
+
+def D2(a):
+    def wrapper(exprList):
+        expr_ = exprList
+        if not isinstance(exprList, list):
+            expr_ = [exprList, ]
+
+        return diff_(expr_, a, 2)
+    return wrapper
+
+
+def D3(a):
+    def wrapper(exprList):
+        expr_ = exprList
+        if not isinstance(exprList, list):
+            expr_ = [exprList, ]
+
+        return diff_(expr_, a, 3)
+    return wrapper
+#############################################
+# sectors
+#############################################
+
+
+class Tree(object):
+    def __init__(self, node):
+        self.node = node
+        self.branches = list()
+
+    def setBranches(self, branches):
+        self.branches = list()
+        for branch in branches:
+            if isinstance(branch, Tree):
+                self.branches.append(branch)
+            else:
+                self.branches.append(Tree(branch))
+
+
+def xTreeElement(tree, parents=list()):
+    parents_ = copy.copy(parents)
+    if tree.node is not None:
+        parents_.append(tree.node)
+    if len(tree.branches) == 0:
+        yield parents_
+    else:
+        for branch in tree.branches:
+            for elem in xTreeElement(branch, parents_):
+                yield elem
+
+
+def xTreeElement2(tree, parents=list(), varMap=dict(), debug=False):
+    if len(tree.branches) == 0:
+        yield parents
+    else:
+        branchIds = [x if x not in varMap else varMap[x] for x in map(lambda x: x.node, tree.branches)]
+        for branch in tree.branches:
+            branchIds_ = copy.copy(branchIds)
+            branchIds_.remove(branch.node)
+            parents_ = copy.copy(parents) + [(branch.node if branch.node not in varMap else varMap[branch.node],
+                                              branchIds_)]
+            for elem in xTreeElement2(branch, parents_, varMap):
+                yield elem
+            if tree.node is None and debug:
+                print
+        if debug:
+            print
+
+
+def validVar(var, parentsSet, conservations):
+    if var in parentsSet:
+        return False
+    else:
+        primaryVars = parentsSet | set([var])
+        for cons in conservations:
+            if cons.issubset(primaryVars):
+                return False
+        return True
+
+
+def addBranches(tree, variables, conservations, parents=list(), depth=0):
+    if depth == 0:
+        return
+    else:
+        if len(tree.branches) == 0:
+            parentsSet = set(parents) | set([tree.node])
+            branches = list()
+            for var in variables:
+                if validVar(var, parentsSet, conservations):
+                    branches.append(var)
+            if len(branches) == 1:
+                raise ValueError, branches
+            elif len(branches) != 0:
+                tree.setBranches(branches)
+            for branch in tree.branches:
+                if tree.node is None:
+                    parents_ = parents
+                else:
+                    parents_ = parents + [tree.node]
+                addBranches(branch, variables, conservations, parents=parents_, depth=depth - 1)
+
+
+def det2treeSubstitutions(substitutions):
+    res = dict()
+    for var in substitutions:
+        subs = substitutions[var]
+        newSubs = list()
+        for term in subs:
+            newTerm = list()
+            for item in term:
+                if isinstance(item, int):
+                    newTerm.append(item)
+            if len(newTerm) == 1:
+                newSubs += newTerm
+            else:
+                raise ValueError, newTerm
+
+        res[var] = newSubs
+    return res
+
+
+def transformTree(tree, treeSubstitutions):
+    if len(tree.branches) == 0:
+        return
+    else:
+        newBranches = list()
+        for branch in tree.branches:
+            for var in treeSubstitutions[branch.node]:
+                branch_ = copy.deepcopy(branch)
+                branch_.node = var
+                transformTree(branch_, treeSubstitutions)
+                newBranches.append(branch_)
+        tree.setBranches(newBranches)
+
+
+def removeBranchesWithParents(tree, parents=set()):
+    if len(tree.branches) == 0:
+        return
+    else:
+        newBranches = list()
+        for branch in tree.branches:
+            if branch.node not in parents:
+                newBranches.append(branch)
+                parents_ = copy.copy(parents) | set([branch.node])
+                removeBranchesWithParents(branch, parents_)
+                tree.setBranches(newBranches)
+
+
+def findShortBranches(tree, parents=set(), depth=None):
+    if len(tree.branches) == 0:
+        return
+    else:
+        branchIds = map(lambda x: x.node, tree.branches)
+        parents_ = copy.copy(parents)
+        if tree.node is not None:
+            parents_ = parents_ | set([tree.node])
+        for parent in parents_:
+            if branchIds.count(parent) > depth:
+                tree.branches = list()
+                break
+
+        for branch in tree.branches:
+            findShortBranches(branch, parents_, depth=depth - 1)
+
+
+def joinDuplicates(tree):
+    if len(tree.branches) == 0:
+        return
+    else:
+        branchMap = dict()
+        for branch in tree.branches:
+            if branch.node not in branchMap:
+                branchMap[branch.node] = branch
+            else:
+                if len(branchMap[branch.node].branches) == 0 or len(branch.branches) == 0:
+                    branchMap[branch.node].branches = list()
+                else:
+                    branchMap[branch.node].branches += branch.branches
+        tree.setBranches(branchMap.values())
+        for branch in tree.branches:
+            joinDuplicates(branch)
+
+
+def generateStaticSpeerTree(variables, conservations, nLoops):
+    staticSpeerTree = Tree(None)
+    addBranches(staticSpeerTree, variables, conservations, depth=nLoops)
+    return staticSpeerTree
+
+
+def generateDynamicSpeerTree(dG, tVersion, model):
+    if "_subgraphs" not in dG.__dict__:
+        dG.FindSubgraphs(model)
+        subgraphs.RemoveTadpoles(dG)
+
+    if '_cons' not in dG.__dict__:
+        genStatic_D_C(dG)
+
+    tCuts = TCuts(dG, tVersion)
+    substitutions = dSubstitutions(dG, tCuts)
+    treeSubstitutions = det2treeSubstitutions(substitutions)
+
+    variables = dG._qi.keys()
+    conservations = dG._cons
+    nLoops = dG.NLoops()
+    speerTree = generateStaticSpeerTree(variables, conservations, nLoops)
+
+    transformTree(speerTree, treeSubstitutions)
+
+    findShortBranches(speerTree, depth=nLoops)
+    removeBranchesWithParents(speerTree)
+    joinDuplicates(speerTree)
+    return speerTree
+
+
+def checkDecomposition_(expr):
+    exprStatus = "bad"
+    for poly in expr.polynomials:
+
+        if poly.degree.a < 0:
+            if len(poly.monomials) > 1:
+                polyStatus = "bad"
+                for monomial in poly.monomials.keys():
+                    if len(monomial) == 0:
+                        polyStatus = "1"
+                        break
+                    else:
+                        if reduce(lambda x, y: x & y, [isinstance(x, str) for x in monomial.vars]):
+                            polyStatus = "%s" % monomial
+                if polyStatus == "bad":
+                    exprStatus = "bad"
+                    break
+                elif polyStatus == "1":
+                    if exprStatus == "1" or exprStatus == "bad":
+                        exprStatus = "1"
+                else:
+                    if exprStatus == "1" or exprStatus == "bad":
+                        exprStatus = polyStatus
+                    else:
+                        exprStatus = exprStatus + " " + polyStatus
+            elif not poly.isConst():
+                exprStatus = 'pole'
+#                print expr
+#                print poly
+
+    return exprStatus
+
+
+def checkDecomposition(exprList):
+    exprList_ = exprList
+    if not isinstance(exprList, list):
+        exprList_ = [exprList,]
+
+    checks = map(checkDecomposition_, exprList_)
+    return checks
