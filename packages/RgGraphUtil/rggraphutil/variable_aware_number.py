@@ -17,12 +17,12 @@ class VariableAwareNumber:
     def create(varName, number):
         if isinstance(number, tuple):
             return VariableAwareNumber(varName, number[0], number[1])
-        elif isinstance(number, int):
+        elif isinstance(number, (int, float)):
             return VariableAwareNumber(varName, number)
         elif isinstance(number, VariableAwareNumber):
             return number
         else:
-            raise AssertionError('number should be correct type')
+            raise AssertionError('number should be correct type: %s, value:%s' % (type(number),number))
 
     @staticmethod
     def getPolynomialCoefficients(varAwareNumberList):
@@ -144,6 +144,8 @@ def _normalize(varAwareNumberList):
     removes all varAwareNumbers where VariableAwareNumber.a == 0 or VariableAwareNumber.b == 0
     and write corresponds coefficient to resultCoefficient
     """
+    if not len(varAwareNumberList):
+        return 0, [], 0
     resultList = []
     resultShift = 0
     resultCoefficient = 1
@@ -155,7 +157,8 @@ def _normalize(varAwareNumberList):
             resultCoefficient *= _varAwareNumber.a
         else:
             resultList.append(VariableAwareNumber.create(_varAwareNumber.varName, (_varAwareNumber.a, _varAwareNumber.b)))
-
+    if not len(resultList):
+        return resultCoefficient, [VariableAwareNumber.create('dummy_varname', 1)], resultShift
     return resultCoefficient, (resultList if resultList[0] != 1 else resultList[1:]), resultShift
 
 
