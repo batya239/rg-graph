@@ -30,8 +30,6 @@ def deltaArg(varSet):
     return polynomial.poly(map(lambda x: (1, [x]), varSet))
 
 
-
-
 model = _phi4_dyn("phi4_dyn_test")
 
 filename = sys.argv[1]
@@ -59,7 +57,7 @@ alpha = len([x for x in dG.xInternalLines()])
 E.degree.a, E.degree.b = (-alpha + model.space_dim * nLoops / 2. - 1, nLoops)
 
 expr = C * D * E * T
-#print expr
+print "C = %s\nD = %s\nE = %s\nT = %s\n" % (C, D, E, T)
 
 variables = expr.getVarsIndexes()
 print "variables: ", variables
@@ -76,7 +74,7 @@ for sector, aOps in data.sectors:
         sectorExpr = aOp(sectorExpr)
     sectorExpr = map(lambda x: x.simplify(), sectorExpr)
     check = dynamics.checkDecomposition(sectorExpr)
-    print sector,  check
+    print sector, check
     if "bad" in check:
         print
         print polynomial.formatter.format(sectorExpr, polynomial.formatter.CPP)
