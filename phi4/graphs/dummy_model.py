@@ -5,7 +5,7 @@ from nodes import Node
 import moments
 import subgraphs
 
-class _generic_model: 
+class _generic_model:
     def __init__( self, name):
         self.name=name
         """ add model specific definitons here        
@@ -19,7 +19,7 @@ class _generic_model:
         """ using generic _setType
         """
         _SetTypes(graph)
-    
+
     def GenerateMoment(self,graph):
         """ at present time GenerateMoment uses moments.Generic function
         """
@@ -59,7 +59,7 @@ class _generic_model:
                 return modifier in self.nodes_modifiers[obj.type]
             else:
                 return modifier in self.nodes_modifiers['default']
-                
+
         else:
             raise TypeError,  "Unsuppoerted object %s"%obj
 
@@ -77,35 +77,36 @@ class _phi3(_generic_model):
         self.target=4
         self.workdir='/home/mkompan/work/rg-graph/phi_4/'
 
-class _phi3_dyn(_generic_model):
-    def __init__( self , name):
-        self.name=name
-        self.space_dim=6
-        self.freq_dim=2
-        self.space_dim_eff=self.space_dim+self.freq_dim
 
-        self.lines_dim={('a','A'):-2,('A','a'):-2, ('a','a'):-4}
-        self.modifiers_dim={'tau':-2,'p':-1}
-        self.lines_modifiers={'default':['tau','p']}
-        self.nodes_modifiers={None:[], 'default':['tau','p']}
-        self.nodes_dim={1:0}
-        self.checktadpoles=False
-        self.target=3
-        self.workdir='/home/mkompan/work/rg-graph/phi3_dyn/'
+class _phi3_dyn(_generic_model):
+    def __init__(self, name):
+        self.name = name
+        self.space_dim = 6
+        self.freq_dim = 2
+        self.space_dim_eff = self.space_dim + self.freq_dim
+
+        self.lines_dim = {('a', 'A'): -2, ('A', 'a'): -2, ('a', 'a'): -4}
+        self.modifiers_dim = {'tau': -2, 'p': -1}
+        self.lines_modifiers = {'default': ['tau', 'p']}
+        self.nodes_modifiers = {None: [], 'default': ['tau', 'p']}
+        self.nodes_dim = {1: 0}
+        self.checktadpoles = False
+        self.target = 3
+        self.workdir = '/home/mkompan/work/rg-graph/phi3_dyn/'
 
 
 class _phi4_dyn(_generic_model):
-    def __init__( self , name):
+    def __init__(self, name):
         self.name = name
         self.space_dim = 4
         self.freq_dim = 2
         self.space_dim_eff = self.space_dim + self.freq_dim
 
-        self.lines_dim = {('a','A'):-2,('A','a'):-2, ('a','a'):-4}
-        self.modifiers_dim = {'tau':-2,'p':-1}
-        self.lines_modifiers = {'default':['tau','p']}
-        self.nodes_modifiers = {None:[], 'default':['tau','p']}
-        self.nodes_dim = {1:0}
+        self.lines_dim = {('a', 'A'): -2, ('A', 'a'): -2, ('a', 'a'): -4}
+        self.modifiers_dim = {'tau': -2, 'p': -1}
+        self.lines_modifiers = {'default': ['tau', 'p']}
+        self.nodes_modifiers = {None: [], 'default': ['tau', 'p']}
+        self.nodes_dim = {1: 0}
         self.checktadpoles = True
         self.target = 3
         self.workdir = '/home/mkompan/work/rg-graph/phi4_dyn/'
@@ -124,7 +125,7 @@ class _phi4(_generic_model):
         self.reduce=True
         self.subgraphs2reduce=['e111-e-','ee11-ee-']
         self.use_analitic_sub=False
-#        self.subgraphs2reduce=['e111-e-', ]        
+#        self.subgraphs2reduce=['e111-e-', ]
 #        self.target=5
 #        self.workdir='/home/mkompan/work/rg-graph/phi_4/'
         self.target=6
@@ -133,31 +134,31 @@ class _phi4(_generic_model):
     def propagator(self, line, neps=None):
         def helper1(k2,B,e):
 #            return B*k2-(1.+B*k2)*sympy.ln(1.+B*k2)+1./2.*e*(1.+B*k2)*sympy.ln(1.+B*k2)**2
-            return ( -1.0*sympy.ln(1.0 + B*k2) + B*k2 + 0.0505142257898985*e**3*sympy.ln(1.0 + B*k2) + 0.081871938683557*e**5*sympy.ln(1.0 + B*k2) - 
-                        1.48370055013617*e**2*sympy.ln(1.0 + B*k2) - 1.62383707071844*e**4*sympy.ln(1.0 + B*k2) - 1.0*B*k2*sympy.ln(1.0 + B*k2) + 
-                        0.0505142257898986*B*k2*e**3*sympy.ln(1.0 + B*k2) + 0.0818719386835572*B*k2*e**5*sympy.ln(1.0 + B*k2) - 
+            return ( -1.0*sympy.ln(1.0 + B*k2) + B*k2 + 0.0505142257898985*e**3*sympy.ln(1.0 + B*k2) + 0.081871938683557*e**5*sympy.ln(1.0 + B*k2) -
+                        1.48370055013617*e**2*sympy.ln(1.0 + B*k2) - 1.62383707071844*e**4*sympy.ln(1.0 + B*k2) - 1.0*B*k2*sympy.ln(1.0 + B*k2) +
+                        0.0505142257898986*B*k2*e**3*sympy.ln(1.0 + B*k2) + 0.0818719386835572*B*k2*e**5*sympy.ln(1.0 + B*k2) -
                         1.48370055013617*B*k2*e**2*sympy.ln(1.0 + B*k2) - 1.62383707071844*B*k2*e**4*sympy.ln(1.0 + B*k2) + 0.5*e*sympy.ln(1.0 + B*k2)**2 +
                         0.741850275068085*e**3*sympy.ln(1.0 + B*k2)**2 + 0.811918535359222*e**5*sympy.ln(1.0 + B*k2)**2 -
-                        0.0252571128949494*e**4*sympy.ln(1.0 + B*k2)**2 + 1.48370055013617*B*k2*e**2 + 0.5*B*e*k2*sympy.ln(1.0 + B*k2)**2 + 
-                        0.811918535359222*B*k2*e**5*sympy.ln(1.0 + B*k2)**2 + 0.741850275068085*B*k2*e**3*sympy.ln(1.0 + B*k2)**2 - 
-                        0.0252571128949494*B*k2*e**4*sympy.ln(1.0 + B*k2)**2 + 0.00841903763164975*e**5*sympy.ln(1.0 + B*k2)**3 - 
-                        0.247283425022695*e**4*sympy.ln(1.0 + B*k2)**3 - 0.166666666666667*e**2*sympy.ln(1.0 + B*k2)**3 - 0.0505142257898986*B*k2*e**3 + 
-                        0.00841903763164974*B*k2*e**5*sympy.ln(1.0 + B*k2)**3 - 0.247283425022695*B*k2*e**4*sympy.ln(1.0 + B*k2)**3 - 
-                        0.166666666666667*B*k2*e**2*sympy.ln(1.0 + B*k2)**3 + 0.0416666666666667*e**3*sympy.ln(1.0 + B*k2)**4 + 
-                        0.0618208562556737*e**5*sympy.ln(1.0 + B*k2)**4 + 1.62383707071844*B*k2*e**4 + 0.0618208562556737*B*k2*e**5*sympy.ln(1.0 + B*k2)**4 + 
-                        0.0416666666666667*B*k2*e**3*sympy.ln(1.0 + B*k2)**4 - 4.33680868994202e-19*e**5*sympy.ln(1.0 + B*k2)**5 - 
-                        0.00833333333333333*e**4*sympy.ln(1.0 + B*k2)**5 - 0.0818719386835573*B*k2*e**5 - 4.33680868994202e-19*B*k2*e**5*sympy.ln(1.0 + B*k2)**5 - 
-                        0.00833333333333333*B*k2*e**4*sympy.ln(1.0 + B*k2)**5 +0.00138888888888889*e**5*sympy.ln(1.0 + B*k2)**6 + 
+                        0.0252571128949494*e**4*sympy.ln(1.0 + B*k2)**2 + 1.48370055013617*B*k2*e**2 + 0.5*B*e*k2*sympy.ln(1.0 + B*k2)**2 +
+                        0.811918535359222*B*k2*e**5*sympy.ln(1.0 + B*k2)**2 + 0.741850275068085*B*k2*e**3*sympy.ln(1.0 + B*k2)**2 -
+                        0.0252571128949494*B*k2*e**4*sympy.ln(1.0 + B*k2)**2 + 0.00841903763164975*e**5*sympy.ln(1.0 + B*k2)**3 -
+                        0.247283425022695*e**4*sympy.ln(1.0 + B*k2)**3 - 0.166666666666667*e**2*sympy.ln(1.0 + B*k2)**3 - 0.0505142257898986*B*k2*e**3 +
+                        0.00841903763164974*B*k2*e**5*sympy.ln(1.0 + B*k2)**3 - 0.247283425022695*B*k2*e**4*sympy.ln(1.0 + B*k2)**3 -
+                        0.166666666666667*B*k2*e**2*sympy.ln(1.0 + B*k2)**3 + 0.0416666666666667*e**3*sympy.ln(1.0 + B*k2)**4 +
+                        0.0618208562556737*e**5*sympy.ln(1.0 + B*k2)**4 + 1.62383707071844*B*k2*e**4 + 0.0618208562556737*B*k2*e**5*sympy.ln(1.0 + B*k2)**4 +
+                        0.0416666666666667*B*k2*e**3*sympy.ln(1.0 + B*k2)**4 - 4.33680868994202e-19*e**5*sympy.ln(1.0 + B*k2)**5 -
+                        0.00833333333333333*e**4*sympy.ln(1.0 + B*k2)**5 - 0.0818719386835573*B*k2*e**5 - 4.33680868994202e-19*B*k2*e**5*sympy.ln(1.0 + B*k2)**5 -
+                        0.00833333333333333*B*k2*e**4*sympy.ln(1.0 + B*k2)**5 +0.00138888888888889*e**5*sympy.ln(1.0 + B*k2)**6 +
                         0.00138888888888889*B*k2*e**5*sympy.ln(1.0 + B*k2)**6)
 
         def helper2(k2,B,e):
 #            return -sympy.ln(1.+k2*B)
-            return (-1.0*sympy.ln(1.0 + B*k2) + 1.0*e*sympy.ln(1.0 + B*k2) + 1.705709009402*e**5*sympy.ln(1.0 + B*k2) + 1.53421477592607*e**3*sympy.ln(1.0 + B*k2) - 
+            return (-1.0*sympy.ln(1.0 + B*k2) + 1.0*e*sympy.ln(1.0 + B*k2) + 1.705709009402*e**5*sympy.ln(1.0 + B*k2) + 1.53421477592607*e**3*sympy.ln(1.0 + B*k2) -
                         1.48370055013617*e**2*sympy.ln(1.0 + B*k2) - 1.67435129650834*e**4*sympy.ln(1.0 + B*k2) + 0.5*e*sympy.ln(1.0 + B*k2)**2 +
-                        0.741850275068085*e**3*sympy.ln(1.0 + B*k2)**2 + 0.837175648254171*e**5*sympy.ln(1.0 + B*k2)**2 - 0.5*e**2*sympy.ln(1.0 + B*k2)**2 - 
-                        0.767107387963034*e**4*sympy.ln(1.0 + B*k2)**2 + 0.255702462654345*e**5*sympy.ln(1.0 + B*k2)**3 + 0.166666666666667*e**3*sympy.ln(1.0 + B*k2)**3 - 
-                        0.247283425022695*e**4*sympy.ln(1.0 + B*k2)**3 - 0.166666666666667*e**2*sympy.ln(1.0 + B*k2)**3 + 0.0618208562556737*e**5*sympy.ln(1.0 + B*k2)**4 + 
-                        0.0416666666666667*e**3*sympy.ln(1.0 + B*k2)**4 - 0.0416666666666667*e**4*sympy.ln(1.0 + B*k2)**4 + 0.00833333333333333*e**5*sympy.ln(1.0 + B*k2)**5 - 
+                        0.741850275068085*e**3*sympy.ln(1.0 + B*k2)**2 + 0.837175648254171*e**5*sympy.ln(1.0 + B*k2)**2 - 0.5*e**2*sympy.ln(1.0 + B*k2)**2 -
+                        0.767107387963034*e**4*sympy.ln(1.0 + B*k2)**2 + 0.255702462654345*e**5*sympy.ln(1.0 + B*k2)**3 + 0.166666666666667*e**3*sympy.ln(1.0 + B*k2)**3 -
+                        0.247283425022695*e**4*sympy.ln(1.0 + B*k2)**3 - 0.166666666666667*e**2*sympy.ln(1.0 + B*k2)**3 + 0.0618208562556737*e**5*sympy.ln(1.0 + B*k2)**4 +
+                        0.0416666666666667*e**3*sympy.ln(1.0 + B*k2)**4 - 0.0416666666666667*e**4*sympy.ln(1.0 + B*k2)**4 + 0.00833333333333333*e**5*sympy.ln(1.0 + B*k2)**5 -
                         0.00833333333333333*e**4*sympy.ln(1.0 + B*k2)**5 + 0.00138888888888889*e**5*sympy.ln(1.0 + B*k2)**6)
 
         if line.type=='e111-e-':
@@ -170,7 +171,7 @@ class _phi4(_generic_model):
 
             if 'tau' not in line.modifiers:
                 res=(-1./(4.)*u**(e/2.-1.)*
-                        (1./(1.-u)**(1.-e/2.)*( helper1(k2,B1,e))/(1.+t/2.*(1.-u)*(1.-u*t/2.))**(2.-e/2.) + 
+                        (1./(1.-u)**(1.-e/2.)*( helper1(k2,B1,e))/(1.+t/2.*(1.-u)*(1.-u*t/2.))**(2.-e/2.) +
                         1./(1.-u*t)**(1.-e/2.)*( helper1(k2,B2,e))/(t+1./2.*(1.-u*t)*(1.-u/2.))**(2.-e/2.) ))
 #                print "NOT TAU"
             else:

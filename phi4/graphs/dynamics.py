@@ -235,7 +235,7 @@ def generateStaticCDET(dG):
     return C, D, E, T
 
 
-def generateCDET(dG, tVersion, staticCDET=None):
+def generateCDET(dG, tVersion, staticCDET=None, model=None):
     if staticCDET is None:
         (C, D, E, T) = generateStaticCDET(dG)
     else:
@@ -244,11 +244,25 @@ def generateCDET(dG, tVersion, staticCDET=None):
     tCuts = TCuts(dG, tVersion)
     Components = (C, D, E, T)
     Components_ = map(lambda y: polynomial.poly([(1, x) for x in y]), Components)
+
     substitutions = dSubstitutions(dG, tCuts)
     for var in substitutions:
         subs = substitutions[var]
         subs_ = polynomial.poly([(1, x) for x in subs])
         Components_ = map(lambda x: x.changeVarToPolynomial(var, subs_), Components_)
+
+    #d=4-2*e
+    nLoops = dG.NLoops()
+    alpha = len([x for x in dG.xInternalLines()])
+
+    if dG.Dim(model) == 0:
+        Components_[0] = polynomial.poly([(1, [])])  # C
+        Components_[1].degree.a, Components_[1].degree.b = (-model.space_dim / 2., 1)  # D
+        Components_[2].degree.a, Components_[2].degree.b = (-alpha + model.space_dim * nLoops / 2., nLoops)  # E
+    elif dG.Dim(model) == 2:
+        Components_[1].degree.a, Components_[1].degree.b = (-model.space_dim / 2 - 1., 1)  # D
+        Components_[2].degree.a, Components_[2].degree.b = (-alpha + model.space_dim * nLoops / 2. - 1, nLoops)  # E
+
     return tuple(Components_)
 
 
@@ -318,19 +332,19 @@ def mK2(a):
 def diff_(exprList, a, n):
     aMultiplier = polynomial.poly([(1, []), (-1, [a, ])], degree=(n - 1, 0)).toPolyProd()
     res = exprList
-#    print " 1 ", res
+    #    print " 1 ", res
 
     for i in range(n):
         res_ = list()
         for expr in res:
             res_ += expr.diff(a)
         res = res_
-#    print " ", res
+    #    print " ", res
 
     if n > 1:
-        res = map(lambda x: x*aMultiplier, res)
+        res = map(lambda x: x * aMultiplier, res)
 
-#    print " ", res
+    #    print " ", res
     return res
 
 
@@ -341,6 +355,7 @@ def D1(a):
             expr_ = [exprList, ]
 
         return diff_(expr_, a, 1)
+
     return wrapper
 
 
@@ -351,6 +366,7 @@ def D2(a):
             expr_ = [exprList, ]
 
         return diff_(expr_, a, 2)
+
     return wrapper
 
 
@@ -361,7 +377,9 @@ def D3(a):
             expr_ = [exprList, ]
 
         return diff_(expr_, a, 3)
+
     return wrapper
+
 #############################################
 # sectors
 #############################################
@@ -583,8 +601,8 @@ def checkDecomposition_(expr):
                         exprStatus = exprStatus + " " + polyStatus
             elif not poly.isConst():
                 exprStatus = 'pole'
-#                print expr
-#                print poly
+            #                print expr
+            #                print poly
 
     return exprStatus
 
@@ -592,7 +610,7 @@ def checkDecomposition_(expr):
 def checkDecomposition(exprList):
     exprList_ = exprList
     if not isinstance(exprList, list):
-        exprList_ = [exprList,]
+        exprList_ = [exprList, ]
 
     checks = map(checkDecomposition_, exprList_)
     return checks

@@ -44,20 +44,17 @@ tVersion = data.tVersion
 dG = dynamics.DynGraph(gs)
 dG.FindSubgraphs(model)
 subgraphs.RemoveTadpoles(dG)
-Components = dynamics.generateCDET(dG, tVersion)
+Components = dynamics.generateCDET(dG, tVersion, model=model)
 print str(gs)
 print tVersion
 #print "C = %s\nD = %s\nE = %s\nT = %s\n" % tuple(Components)
 C, D, E, T = Components
 #d=4-2*e
-D.degree.a, D.degree.b = (-model.space_dim / 2., 1)
 
-nLoops = dG.NLoops()
-alpha = len([x for x in dG.xInternalLines()])
-E.degree.a, E.degree.b = (-alpha + model.space_dim * nLoops / 2. - 1, nLoops)
 
 expr = C * D * E * T
 print "C = %s\nD = %s\nE = %s\nT = %s\n" % (C, D, E, T)
+#print expr
 
 variables = expr.getVarsIndexes()
 print "variables: ", variables

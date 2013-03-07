@@ -179,7 +179,12 @@ class Graph:
 
     def Dim(self, model):
 
-        dim = self.NLoops()*model.space_dim
+        if model.__dict__.has_key('space_dim_eff'):
+            space_dim = model.space_dim_eff
+        else:
+            space_dim = model.space_dim
+
+        dim = self.NLoops() * space_dim
 
         for line in self.xInternalLines():
             dim = dim + line.Dim(model)
