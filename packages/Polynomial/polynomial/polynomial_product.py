@@ -102,7 +102,7 @@ class PolynomialProduct(object):
         """
         factorDict = dict()
         for p in polynomials:
-            key = util.unordered_hashable(zip(p.monomials.values(), p.monomials.keys()))
+            key = util.unordered_hashable(tuple(p.monomials))
             if factorDict.has_key(key):
                 factorDict[key].append(p)
             else:

@@ -58,9 +58,9 @@ class PolynomialProductTestCase(PolynomialToolsTestCase):
     def testSimplifying(self):
         npp = pp.simplify()
         self.assertEquals(len(npp.polynomials), 4)
-        self.assertEquals(npp.polynomials[0].monomials[MultiIndex({1: 1})], 1)
-        self.assertEquals(npp.polynomials[0].degree, (2, 3))
-        self.assertEquals(npp.polynomials[0].c, 1)
+        self.assertEquals(npp.polynomials[2].monomials[MultiIndex({1: 1})], 1)
+        self.assertEquals(npp.polynomials[2].degree, (2, 3))
+        self.assertEquals(npp.polynomials[2].c, 1)
         self.assertEquals(npp.polynomials[1].monomials[MultiIndex({2: 4, 3: 1})], 4)
         self.assertEquals(npp.polynomials[1].degree, (2, 3))
         self.assertEquals(npp.polynomials[1].c, 3)
