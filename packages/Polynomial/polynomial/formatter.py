@@ -96,12 +96,13 @@ class AbstractFormatter:
             elif log.power == 1:
                 return self.log(self.formatPolynomialProduct(log.polynomialProduct))
             else:
-                return self.degree(self.log(log.polynomialProduct), log.power)
+                return self.degree(self.log(self.formatPolynomialProduct(log.polynomialProduct)), log.power)
         elif not log.power:
             return str(log.c)
         else:
-            return '%s%s%s' % (
-            log.c, self.multiplicationSign(), self.degree(self.log(log.polynomialProduct), log.power))
+            return '%s%s%s' % (log.c,
+                               self.multiplicationSign(),
+                               self.degree(self.log(self.formatPolynomialProduct(log.polynomialProduct)), log.power))
 
     def formatPolynomialProduct(self, pp):
         return '0' if pp.isZero() else self.multiplicationSign().join(
