@@ -1,10 +1,16 @@
 #!/usr/bin/python
 # -*- coding: utf8
 import copy
+import fnmatch
 
 import itertools
+import os
+import re
+import subprocess
 
 import graph_state
+import sys
+import calculate
 
 import graphs
 import nodes
@@ -14,6 +20,8 @@ from methods import sd_tools
 from methods.feynman_tools import conv_sub
 import polynomial
 import subgraphs
+
+import polynomial.sd_lib as sd_lib
 
 
 class DynGraph(graphs.Graph):
@@ -614,3 +622,416 @@ def checkDecomposition(exprList):
 
     checks = map(checkDecomposition_, exprList_)
     return checks
+
+
+#####################################
+# save expr
+#####################################
+
+def splitUA(varSet):
+    u = list()
+    a = list()
+    for var in varSet:
+        if isinstance(var, str) and re.match('^a.*', var):
+            a.append(var)
+        else:
+            u.append(var)
+    return set(u), set(a)
+
+
+def deltaArg(varSet):
+    return polynomial.poly(map(lambda x: (1, [x]), varSet))
+
+resultingFunctionPvTemplate = """
+double func_t_{fileIdx}(double k[DIMENSION])
+{{
+double f=0;
+{resultingFunctions}
+return f;
+}}
+"""
+
+functionPvTemplate = """
+double func{idx}_t_{fileIdx}(double k[DIMENSION])
+{{
+// sector {sector}
+{vars}
+double coreExpr;
+double f=0;
+{expr}
+return f;
+}}
+"""
+
+functionsPvCodeTeplate = """
+#include <math.h>
+#define DIMENSION {nDimensions}
+
+{functions}
+
+{resultingFunction}
+"""
+
+headerPvCodeTeplate = """
+#include <math.h>
+#define DIMENSION {nDimensions}
+
+double func_t_{idx}(double k[DIMENSION]);
+"""
+
+
+def saveSectors(sectorTerms, name, dirname, fileIdx, neps, nDimensions):
+    sectorFunctionsByEps = [""] * (neps + 1)
+    resultingFunctions = ""
+    for idx in sectorTerms:
+        sectorExpr = sectorTerms[idx]
+        sectorVariables = set()
+        for expr_ in sectorExpr:
+            sectorVariables = sectorVariables | set(polynomial.formatter.formatVarIndexes(expr_, polynomial.formatter.CPP))
+
+        strVars = ""
+        varIdx = 0
+        for var in sectorVariables:
+            strVars += "   double %s = k[%s];\n" % (var, varIdx)
+            varIdx += 1
+
+        strExpr = [""] * (neps + 1)
+        for expr_ in sectorExpr:
+            coreExpr, epsDict = expr_.epsExpansion(neps)
+            for i in range(neps + 1):
+                epsTerms = epsDict[i]
+                strExpr[i] += "   coreExpr = %s;\n" % polynomial.formatter.format(coreExpr, polynomial.formatter.CPP)
+                for epsTerm in epsTerms:
+                    strExpr[i] += "   f += coreExpr * %s;\n" % (polynomial.formatter.format(epsTerm, polynomial.formatter.CPP))
+        for i in range(neps + 1):
+            sectorFunctionsByEps[i] += functionPvTemplate.format(idx=idx, fileIdx=fileIdx,
+                                                                 sector=idx, vars=strVars,
+                                                                 expr=strExpr[i])
+        resultingFunctions += "f+=func{idx}_t_{fileIdx}(k);\n".format(idx=idx, fileIdx=fileIdx)
+    resultingFunction = resultingFunctionPvTemplate.format(fileIdx=fileIdx,
+                                                           resultingFunctions=resultingFunctions)
+    for i in range(neps + 1):
+        f = open("%s/%s_func_%s_E%s.c" % (dirname, name, fileIdx, i), 'w')
+        f.write(functionsPvCodeTeplate.format(nDimensions=nDimensions,
+                                              resultingFunction=resultingFunction,
+                                              functions=sectorFunctionsByEps[i]))
+        f.close()
+        f = open("%s/%s_func_%s_E%s.h" % (dirname, name, fileIdx, i), 'w')
+        f.write(headerPvCodeTeplate.format(nDimensions=nDimensions,
+                                           idx=fileIdx))
+        f.close()
+
+corePvCodeTemplate = """
+#include <math.h>
+#include <stdio.h>
+#include <vegas.h>
+#include <stdlib.h>
+#include <time.h>
+#define gamma tgamma
+#define DIMENSION {dim}
+#define FUNCTIONS 1
+#define ITERATIONS 5
+#define NTHREADS 2
+#define NEPS 0
+#define NITER 2
+
+{includes}
+
+double reg_initial[2*DIMENSION]={hypercube};
+
+void func (double k[DIMENSION], double f[FUNCTIONS])
+ {{
+  f[0]=0.;
+  {functions}
+ }}
+
+
+
+int t_gfsr_k;
+unsigned int t_gfsr_m[SR_P];
+double gfsr_norm;
+
+
+int main(int argc, char **argv)
+{{
+  int i;
+  long long npoints;
+  int nthreads;
+  int niter;
+  double region_delta;
+  double reg[2*DIMENSION];
+  int idx;
+  if(argc >= 2)
+    {{
+      npoints = atoll(argv[1]);
+
+    }}
+  else
+    {{
+      npoints = ITERATIONS;
+    }}
+
+  if(argc >= 3)
+    {{
+      nthreads = atoi(argv[2]);
+
+    }}
+  else
+    {{
+      nthreads = NTHREADS;
+    }}
+
+   if(argc >= 5)
+    {{
+      region_delta = atof(argv[4]);
+
+    }}
+  else
+    {{
+      region_delta = 0.;
+    }}
+
+  if(argc >= 4)
+    {{
+      niter = atoi(argv[3]);
+
+    }}
+  else
+    {{
+      niter = NITER;
+    }}
+
+    for(idx=0; idx<2*DIMENSION; idx++)
+      {{
+         if(idx<DIMENSION)
+           {{
+             reg[idx] = reg_initial[idx]+region_delta;
+           }}
+         else
+           {{
+             reg[idx] = reg_initial[idx]-region_delta;
+           }}
+      }}
+
+  double estim[FUNCTIONS];   /* estimators for integrals                     */
+  double std_dev[FUNCTIONS]; /* standard deviations                          */
+  double chi2a[FUNCTIONS];   /* chi^2/n                                      */
+    clock_t start, end;
+    double elapsed;
+    start = clock();
+
+{mpiInit}
+
+  vegas(reg, DIMENSION, func,
+        0, npoints/10, 5, NPRN_INPUT | NPRN_RESULT,
+        FUNCTIONS, 0, nthreads,
+        estim, std_dev, chi2a);
+  vegas(reg, DIMENSION, func,
+        2, npoints , niter, NPRN_INPUT | NPRN_RESULT,
+        FUNCTIONS, 0, nthreads,
+        estim, std_dev, chi2a);
+    int rank=0;
+
+{mpiFinalize}
+
+    if(rank==0) {{
+        end = clock();
+        elapsed = ((double) (end - start)) / CLOCKS_PER_SEC;
+        double delta= std_dev[0]/estim[0];
+        printf ("result = %20.18g\\nstd_dev = %20.18g\\ndelta = %20.18g\\ntime = %20.10g\\n", estim[0], std_dev[0], delta, elapsed);
+    }}
+    return(0);
+}}
+"""
+
+
+def core_pv_code(nFunctionFiles, sectorVariablesCount, functionName, neps, mpi=False):
+    includes = ""
+    functions = ""
+    for i in range(nFunctionFiles):
+        functions += "\n f[0] += func_t_%s(k);\n" % i
+        includes += "#include \"%s_%s_E%s.h\"\n" % (functionName, i, neps)
+
+    if mpi:
+        includes += "#include <mpi.h>\n"
+
+    if mpi:
+        mpiInit = "\nMPI_Init(&argv, &argc);\n"
+        mpiFinalize = "\nMPI_Comm_rank(MPI_COMM_WORLD,&rank);\nMPI_Finalize();\n"
+    else:
+        mpiInit = ""
+        mpiFinalize = ""
+    hyperCube = '{' + ",".join(['0', ] * sectorVariablesCount) + "," + ",".join(['1', ] * sectorVariablesCount) + "}"
+
+    return corePvCodeTemplate.format(
+        includes=includes,
+        mpiInit=mpiInit,
+        mpiFinalize=mpiFinalize,
+        hypercube=hyperCube,
+        dim=sectorVariablesCount,
+        functions=functions)
+
+code_ = core_pv_code
+
+
+def save(model, expr, sectors, name, neps):
+    method_name = "simpleSD"
+    dirname = '%s/%s/%s/' % (model.workdir, method_name, name)
+    try:
+        os.mkdir('%s/%s' % (model.workdir, method_name))
+    except:
+        pass
+    try:
+            os.mkdir(dirname)
+    except:
+        pass
+
+    variables = expr.getVarsIndexes()
+    uVars, aVars = splitUA(variables)
+    delta_arg = deltaArg(uVars)
+
+    maxSize = 30000
+    sectorCount = -1
+    size = 0
+    nSaved = 0
+    fileIdx = 0
+
+    sectorTerms = dict()
+    sectorVariablesCount = 0
+
+    for sector, aOps in sectors:
+        sectorCount += 1
+        if (sectorCount + 1) % 100 == 0:
+            print "%s " % (sectorCount + 1)
+
+        sectorExpr = [sd_lib.sectorDiagram(expr, sector, delta_arg=delta_arg)]
+
+        for aOp in aOps:
+            sectorExpr = aOp(sectorExpr)
+        sectorExpr = map(lambda x: x.simplify(), sectorExpr)
+        check = checkDecomposition(sectorExpr)
+#        print sector, check
+        if "bad" in check:
+            print
+            print polynomial.formatter.format(sectorExpr, polynomial.formatter.CPP)
+            print
+
+        sectorVariables = set()
+        for expr_ in sectorExpr:
+            sectorVariables = sectorVariables | set(polynomial.formatter.formatVarIndexes(expr_,
+                                                                                          polynomial.formatter.CPP))
+        if len(sectorVariables) > sectorVariablesCount:
+            sectorVariablesCount = len(sectorVariables)
+
+        sectorTerms[sectorCount] = sectorExpr
+    toSave = dict()
+    for sectorId in sectorTerms:
+        toSave[sectorId] = sectorTerms[sectorId]
+        size += sectorTerms[sectorId].__sizeof__()
+
+        if size >= maxSize:
+            saveSectors(toSave, name, fileIdx, neps, sectorVariablesCount)
+            fileIdx += 1
+            nSaved += len(toSave)
+            print "saved to file  %s sectors (%s) size=%s..." % (nSaved, fileIdx, size)
+            sys.stdout.flush()
+            sectorTerms = dict()
+            size = 0
+    if size > 0:
+        saveSectors(toSave, name, dirname, fileIdx, neps, sectorVariablesCount)
+        fileIdx += 1
+        nSaved += len(toSave)
+        print "saved to file  %s sectors (%s) size=%s..." % (nSaved, fileIdx, size)
+        sys.stdout.flush()
+
+    for i in range(neps + 1):
+        f = open("%s/%s_E%s.c" % (dirname,name, i), 'w')
+        f.write(code_(fileIdx, sectorVariablesCount, "%s_func" % name, neps=i))
+        f.close()
+
+
+def compileCode(model, name, options=list(), cc="gcc"):
+#TODO: rewrite
+    method_name = "simpleSD"
+    dirname = '%s/%s/%s/' % (model.workdir, method_name, name)
+    os.chdir(dirname)
+    obj_list = dict()
+    failed = False
+    for file in os.listdir("."):
+        if fnmatch.fnmatch(file, "*__func_*.c"):
+            regex = re.match('.*_func_\d+_E(\d+)\.c', file)
+            if regex:
+                eps_num = int(regex.groups()[0])
+                if eps_num not in obj_list.keys():
+                    obj_list[eps_num] = list()
+                obj_list[eps_num].append(file)
+            print "Compiling objects %s ..." % file,
+            sys.stdout.flush()
+            obj_name = file[:-2] + ".o"
+            try:
+                os.remove(obj_name)
+            except:
+                pass
+            process = subprocess.Popen([cc, file] + options + ["-c"] + ["-o", obj_name], shell=False,
+                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            exit_code = process.wait()
+            (std_out, std_err) = process.communicate()
+            if exit_code <> 0:
+                print "FAILED"
+                print std_err
+                failed = True
+            else:
+                if len(std_err) == 0:
+                    print "OK"
+                else:
+                    print "CHECK"
+                    print std_err
+            sys.stdout.flush()
+    print
+
+    for file in os.listdir("."):
+        if fnmatch.fnmatch(file, "*.c") and not fnmatch.fnmatch(file, "*__func_*.c"):
+            regex = re.match('(.*)_E(\d+)\.c', file)
+            if regex:
+                code_name=regex.groups()[0]
+                eps_num = int(regex.groups()[1])
+            #            print code_name
+
+            print "Compiling %s ..." % file,
+            sys.stdout.flush()
+            prog_name = file[:-2] + "_.run"
+            try:
+                os.remove(prog_name)
+            except:
+                pass
+            obj_=list()
+            #            print
+            for obj__ in obj_list[eps_num]:
+                if re.match('^%s.*'%code_name, obj__):
+                #                    print code_name,  obj__[:-2]+".o"
+                    obj_.append(obj__[:-2]+".o")
+                #            print
+                #            print obj_
+                #            print [cc, file] + options + ["-I", ".", "-L", "."] + obj_ + ["-o", prog_name]
+            process = subprocess.Popen(
+                [cc, file] + options + ["-I", ".", "-L", "."] + obj_ + ["-o", prog_name], shell=False,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            exit_code = process.wait()
+            (std_out, std_err) = process.communicate()
+            if exit_code <> 0:
+                print "FAILED"
+                print std_err
+                failed = True
+            else:
+                if len(std_err) == 0:
+                    print "OK"
+                else:
+                    print "CHECK"
+                    print std_err
+            sys.stdout.flush()
+    return not failed
+
+
+def execute(name, model, points=10000, threads=4, calc_delta=0., neps=0):
+    method_name = "simpleSD"
+    return calculate.execute("%s/%s/" % (method_name, name), model, points=points, threads=threads, calc_delta=calc_delta, neps=neps)

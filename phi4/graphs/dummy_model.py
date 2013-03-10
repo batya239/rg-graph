@@ -108,8 +108,8 @@ class _phi4_dyn(_generic_model):
         self.nodes_modifiers = {None: [], 'default': ['tau', 'p']}
         self.nodes_dim = {1: 0}
         self.checktadpoles = True
-        self.target = 3
-        self.workdir = '/home/mkompan/work/rg-graph/phi4_dyn/'
+        self.target = 4
+        self.workdir = 'phi4_dyn/'
 
 
 class _phi4(_generic_model):

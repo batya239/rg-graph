@@ -53,6 +53,7 @@ C, D, E, T = Components
 
 
 expr = C * D * E * T
+print "C = %s\nD = %s\nE = %s\nT = %s\n" % (C, D, E, T)
 #print expr
 
 variables = expr.getVarsIndexes()
