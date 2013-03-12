@@ -261,15 +261,15 @@ def generateCDET(dG, tVersion, staticCDET=None, model=None):
 
     #d=4-2*e
     nLoops = dG.NLoops()
-    alpha = len([x for x in dG.xInternalLines()]) + len(tCuts)
+    alpha = len([x for x in dG.xInternalLines()]) + 1 + len(tCuts)
 
     if dG.Dim(model) == 0:
         Components_[0] = polynomial.poly([(1, [])])  # C
         Components_[1].degree.a, Components_[1].degree.b = (-model.space_dim / 2., 1)  # D
-        Components_[2].degree.a, Components_[2].degree.b = (-alpha + model.space_dim * nLoops / 2., nLoops)  # E
+        Components_[2].degree.a, Components_[2].degree.b = (-alpha + model.space_dim * nLoops / 2., -nLoops)  # E
     elif dG.Dim(model) == 2:
         Components_[1].degree.a, Components_[1].degree.b = (-model.space_dim / 2 - 1., 1)  # D
-        Components_[2].degree.a, Components_[2].degree.b = (-alpha + model.space_dim * nLoops / 2. - 1, nLoops)  # E
+        Components_[2].degree.a, Components_[2].degree.b = (-alpha + model.space_dim * nLoops / 2., -nLoops)  # E
 
     return tuple(Components_)
 
