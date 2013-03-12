@@ -261,7 +261,7 @@ def generateCDET(dG, tVersion, staticCDET=None, model=None):
 
     #d=4-2*e
     nLoops = dG.NLoops()
-    alpha = len([x for x in dG.xInternalLines()])
+    alpha = len([x for x in dG.xInternalLines()]) + len(tCuts)
 
     if dG.Dim(model) == 0:
         Components_[0] = polynomial.poly([(1, [])])  # C
