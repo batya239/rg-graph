@@ -5,6 +5,7 @@ import unittest
 from multiindex import MultiIndex
 from polynomial import Polynomial, poly
 from framework.framework import PolynomialToolsTestCase
+from polynomial_product import PolynomialProduct
 
 mi1_1 = MultiIndex({1: 3, 2: 4, 4: 4, 3: 1})
 c1_1 = 3
@@ -24,9 +25,14 @@ pp = p1 * p2
 
 VARS = [1, 2, 3, 4, 5, 'eps']
 
+
 class PolynomialProductTestCase(PolynomialToolsTestCase):
     def testNoneEq(self):
         self.assertFalse(p1 is None)
+
+    def testInit(self):
+        p3 = poly([(1, [])])
+        self.assertEquals(map(lambda x: x.isOne(), PolynomialProduct([p3]).polynomials), [True])
 
     def testDiff(self):
         self.doTestDiff(pp, 1, VARS)
@@ -72,10 +78,11 @@ class PolynomialProductTestCase(PolynomialToolsTestCase):
         self.assertEquals((pp1 * pp2).simplify(), pp1 * pp2)
 
         pp3 = (poly([(1, [1])]) * poly([(1, [1])], degree=-1)).simplify()
+
 # must be at least a product of a unit polynomials
         self.assertTrue(reduce(lambda x, y: x & y, map(lambda x: x.isOne(), pp3.polynomials)))
 # in fact it should be equal to 1, not 1*1
-#        self.assertEqual(map(lambda x: x.isOne(), pp3.polynomials), [True])
+        self.assertEqual(map(lambda x: x.isOne(), pp3.polynomials), [True])
 
     def testMull(self):
         pp0 = poly([(1, ('a0',))]).toPolyProd().set0toVar('a0')

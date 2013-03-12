@@ -12,11 +12,19 @@ import util
 
 
 def _preparePolynomials(polynomials):
+    pOne = None
     for p in polynomials:
         if p.isZero():
             return list()
+        elif p.isOne():
+            pOne = p
 
-    return filter(lambda p: not p.isOne(), polynomials)
+    filteredPolynomials = filter(lambda p: not p.isOne(), polynomials)
+
+    if pOne is not None and len(filteredPolynomials) == 0:
+        return [pOne]
+    else:
+        return filteredPolynomials
 
 
 class PolynomialProduct(object):
