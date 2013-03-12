@@ -71,6 +71,12 @@ class PolynomialProductTestCase(PolynomialToolsTestCase):
         pp2 = poly([(3, []), (1, [2, 3]), (3, [3]), (2, [2])], degree=(-3, 1))
         self.assertEquals((pp1 * pp2).simplify(), pp1 * pp2)
 
+        pp3 = (poly([(1, [1])]) * poly([(1, [1])], degree=-1)).simplify()
+# must be at least a product of a unit polynomials
+        self.assertTrue(reduce(lambda x, y: x & y, map(lambda x: x.isOne(), pp3.polynomials)))
+# in fact it should be equal to 1, not 1*1
+#        self.assertEqual(map(lambda x: x.isOne(), pp3.polynomials), [True])
+
     def testMull(self):
         pp0 = poly([(1, ('a0',))]).toPolyProd().set0toVar('a0')
         self.assertEquals(pp0 * pp, pp0)
