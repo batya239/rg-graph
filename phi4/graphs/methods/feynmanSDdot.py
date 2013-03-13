@@ -11,29 +11,32 @@ from methods.feynman_tools import strech_indexes
 from methods.poly_tools import poly_exp
 from methods.sd_tools import _cnomenkl, debug, xTreeElement, decompose_expr, diff_subtraction, save_sectors
 
-method_name= "feynmanSDdot"
-sd_tools.method_name=method_name
+method_name = "feynmanSDdot"
+sd_tools.method_name = method_name
 Prepare = sd_tools.Prepare
 save = sd_tools.save
 compile = sd_tools.compile
-sd_tools.code_=sd_tools.core_pv_code
-code_=sd_tools.core_pv_code
+sd_tools.code_ = sd_tools.core_pv_code
+code_ = sd_tools.core_pv_code
 
 #mpi
 #compile = sd_tools.compile_mpi
 #sd_tools.code_=sd_tools.core_pvmpi_code
 
 
-#sd_tools.debug=True
+sd_tools.debug = True
 
-
-sd_tools.MaxSDLevel=-1
-sd_tools.MaxABranches=-1
-sd_tools._CheckBadDecomposition=True
-sd_tools._CheckBadDecomposition=False
+sd_tools.MaxSDLevel = -1
+sd_tools.MaxABranches = -1
+#sd_tools.MaxABranches=0
+sd_tools._CheckBadDecomposition = True
+#sd_tools._CheckBadDecomposition = False
 
 #sd_tools._ASym2=False
 #sd_tools._SSym=False
+
+sd_tools._ASectorsDots = True
+
 
 def save_sd(name, graph, model):
     name_ = "%s_%s_" % (name, "O")
@@ -56,9 +59,9 @@ def save_sd(name, graph, model):
 #NOTE: assumed that m^2\partial_{m^2} for diagramm is already done (there must be one double legged vertex)
     A3 = poly_exp([[]], (1, 0))
 #    print
-#    print "A1 ", A1
-#    print "A2 ", A2
-#    print "A3 ", A3
+    print "A1 ", A1
+    print "A2 ", A2
+    print "A3 ", A3
 
     if graph._cdet <> None:
         A4 = poly_exp(graph._cdet, (1, 0), coef=(-1, 0))
@@ -165,6 +168,7 @@ def save_sd(name, graph, model):
         f.close()
 
 sd_tools.save_sd=save_sd
+
 
 def execute(name, model, points=10000, threads=4, calc_delta=0., neps=0):
     return calculate.execute("%s/%s/"%(method_name,name), model, points=points, threads=threads, calc_delta=calc_delta, neps=neps)
