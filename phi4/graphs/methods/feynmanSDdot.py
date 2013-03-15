@@ -24,7 +24,7 @@ code_ = sd_tools.core_pv_code
 #sd_tools.code_=sd_tools.core_pvmpi_code
 
 
-sd_tools.debug = True
+#sd_tools.debug = True
 
 sd_tools.MaxSDLevel = -1
 sd_tools.MaxABranches = -1
