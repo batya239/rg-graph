@@ -28,7 +28,7 @@ dG = dynamics.DynGraph(gs)
 dG.FindSubgraphs(model)
 subgraphs.RemoveTadpoles(dG)
 
-staticCDET = dynamics.generateStaticCDET(dG)
+staticCDET = dynamics.generateStaticCDET(dG, model)
 
 
 def Replace(fileName):

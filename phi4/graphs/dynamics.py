@@ -139,9 +139,9 @@ def EffectiveSubgraphDim(subgraph, tCuts, model):
     return subgraph.Dim(model) - model.freq_dim * (cnt - (len(subgraph.InternalNodes()) - 1) )
 
 
-def genStatic_D_C(graph):
+def genStatic_D_C(graph, model):
     internalEdges = graph._internal_edges_dict()
-    if len(graph.ExternalLines()) == 2:
+    if graph.Dim(model) == 2:
         internalEdges[1000000] = [i.idx() for i in graph.ExternalNodes()] #Additional edge: suitable way to find F
         conservations = conserv.Conservations(internalEdges)
         #        equations = sd_tools.find_eq(conservations)
@@ -153,7 +153,7 @@ def genStatic_D_C(graph):
         graph_._cons = conservations
         C = sd_tools.gendet(graph_, N=graph.NLoops() + 1)
         internalEdges = graph._internal_edges_dict()
-        conservation = conserv.Conservations(internalEdges)
+        conservations = conserv.Conservations(internalEdges)
         #        conservations = sd_tools.apply_eq(conservations, equations)
         graph._cons = conservations
 
@@ -236,8 +236,8 @@ def dSubstitutions(graph, tCuts):
     return res
 
 
-def generateStaticCDET(dG):
-    D, C = map(lambda x: relabel(x, rules), genStatic_D_C(dG))
+def generateStaticCDET(dG, model):
+    D, C = map(lambda x: relabel(x, rules), genStatic_D_C(dG, model))
     E = [(x,) for x in dG._qi2l]
     T = genStaticT(dG)
     return C, D, E, T
@@ -245,7 +245,7 @@ def generateStaticCDET(dG):
 
 def generateCDET(dG, tVersion, staticCDET=None, model=None):
     if staticCDET is None:
-        (C, D, E, T) = generateStaticCDET(dG)
+        (C, D, E, T) = generateStaticCDET(dG, model)
     else:
         (C, D, E, T) = staticCDET
 
@@ -254,6 +254,7 @@ def generateCDET(dG, tVersion, staticCDET=None, model=None):
     Components_ = map(lambda y: polynomial.poly([(1, x) for x in y]), Components)
 
     substitutions = dSubstitutions(dG, tCuts)
+
     for var in substitutions:
         subs = substitutions[var]
         subs_ = polynomial.poly([(1, x) for x in subs])
