@@ -864,7 +864,9 @@ def checkRequiredDecompositions(graph, subgraphIdx, intersect):
         if subDims[subgraphIdx] == 2:
             return len(intersect) >= RequiredDecompositions(subDims[subgraphIdx])
         elif subDims[subgraphIdx] == 0:
-            if len(subgraph._tadpoles) == 1:
+            if len(subgraph._tadpoles) == 0:
+                return len(intersect) >= RequiredDecompositions(subDims[subgraphIdx]) ## достаточно ли одной декомпозиции? для подграфа с точкой но без
+            elif len(subgraph._tadpoles) == 1:
                 subgraphTadpoleLinesIdx = set([x.idx() for x in subgraph._tadpoles[0].lines])
                 return (len(intersect) >= RequiredDecompositions(subDims[subgraphIdx])) and len(intersect & subgraphTadpoleLinesIdx) > 0
             else:
@@ -921,7 +923,7 @@ def FindStrechsForDS(sectortree, graph):
             if not _ASectorsDots:
                 performDS = (len(intersect) >= RequiredDecompositions(sub_dims[idx])) and sectortree.pvar in intersect
             else:
-                print idx, intersect, subs[idx],  checkRequiredDecompositions(graph, idx, intersect)
+#                print idx, intersect, subs[idx],  checkRequiredDecompositions(graph, idx, intersect)
                 performDS = checkRequiredDecompositions(graph, idx, intersect) and sectortree.pvar in intersect
 
             if performDS:
