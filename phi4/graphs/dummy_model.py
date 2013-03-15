@@ -120,7 +120,7 @@ class _phi4(_generic_model):
         self.modifiers_dim={'tau':-2,'p':-1}
         self.lines_modifiers={'default':['tau','p']}
         self.nodes_modifiers={None:[], 1:[], 'default':['tau','p']}
-        self.nodes_dim={1:0}
+        self.nodes_dim = {1: 0, 2: 0}
         self.checktadpoles=True
         self.reduce=True
         self.subgraphs2reduce=['e111-e-','ee11-ee-']
@@ -232,7 +232,20 @@ class _phi4(_generic_model):
                 if good:
                     res.append(sub)
         return res
-                        
+
+    def SetTypes(self, graph):
+        """ set types for graph nodes and lines ( this implementation may be used only for models with 1 type of lines and 1 type of nodes)
+        """
+        for line in graph.xInternalLines():
+            if line.type is None:
+                line.type = 1
+        for node in graph.xInternalNodes():
+            if node.type is None:
+                if len(node.Lines()) == 2:
+                    node.type = 2
+                else:
+                    node.type = 1
+
 
 
 
