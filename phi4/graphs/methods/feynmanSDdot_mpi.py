@@ -11,7 +11,7 @@ from methods.feynman_tools import strech_indexes
 from methods.poly_tools import poly_exp
 from methods.sd_tools import _cnomenkl, debug, xTreeElement, decompose_expr, diff_subtraction, save_sectors
 
-from methods.feynmanSDdot import save_sd
+import methods.feynmanSDdot
 
 method_name = "feynmanSDdot_mpi"
 sd_tools.method_name = method_name
@@ -20,6 +20,8 @@ save = sd_tools.save
 compile = sd_tools.compile
 sd_tools.code_ = sd_tools.core_pvmpi_code
 code_ = sd_tools.core_pvmpi_code
+methods.feynmanSDdot.code_ = code_
+sd_tools.save_sd = methods.feynmanSDdot.save_sd
 
 #mpi
 #compile = sd_tools.compile_mpi
@@ -40,7 +42,7 @@ sd_tools._CheckBadDecomposition = True
 sd_tools._ASectorsDots = True
 
 
-sd_tools.save_sd = save_sd
+
 
 
 def execute(name, model, points=10000, threads=4, calc_delta=0., neps=0):
