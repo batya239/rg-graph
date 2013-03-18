@@ -33,7 +33,7 @@ def deltaArg(varSet):
 model = _phi4("dummy")
 model.workdir = "./"
 
-graphData = "sectors.py"
+graphData = sys.argv[1]
 method = "methods.feynmanSDdot"
 
 exec('import %s as methodModule' % method)
