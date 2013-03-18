@@ -101,6 +101,16 @@ class Sector:
     def __str__(self):
         return "coef=%s,%s" % (self.coef, self.subsectors)
 
+    def simpleRepresentation(self, aOps=None):
+        res = list()
+        if aOps is None:
+            aOps = list()
+        for subsector in self.subsectors:
+            res.append((subsector.pvar, subsector.svars))
+        return str(res), "(%s,)" % ",".join(aOps), str(self.coef)
+
+
+
     def append(self, subsector):
         """
         remove?
@@ -1225,7 +1235,8 @@ def decompose_expr(sector, poly_lst, strechs, jakob=True):
                     terms_n.append(set1_poly_lst(term, strech))
                 sector.excluded_vars.append(strech)
             else:
-                terms = []
+                terms = []  # ??????
+                raise ValueError, "invalid strech %s : strechs = %s, sector.ds = %s " % (sidx, strechs, sector.ds)
                 break
         elif  strechs[strech] == 1 and sidx in sector.ds.keys():
             if sector.ds[sidx] == 0:

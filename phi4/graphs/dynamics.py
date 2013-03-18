@@ -196,7 +196,9 @@ def genStaticT(graph):
     return res
 
 
-rules = {1000: 'a0', 1001: 'a1', 1002: 'a2', 1003: 'a3', 1004: 'a4', 1005: 'a5', 1006: 'a6', 1007: 'a7'}
+rules = {1000: 'a0', 1001: 'a1', 1002: 'a2', 1003: 'a3',
+         1004: 'a4', 1005: 'a5', 1006: 'a6', 1007: 'a7',
+         1008: 'a8', 1009: 'a9', 1010: 'a10'}
 
 
 def dSubstitutions(graph, tCuts):
@@ -699,12 +701,13 @@ def saveSectors(sectorTerms, name, dirname, fileIdx, neps, nDimensions):
 
         strExpr = [""] * (neps + 1)
         for expr_ in sectorExpr:
-            coreExpr, epsDict = expr_.epsExpansion(neps)
-            for i in range(neps + 1):
-                epsTerms = epsDict[i]
-                strExpr[i] += "   coreExpr = %s;\n" % polynomial.formatter.format(coreExpr, polynomial.formatter.CPP)
-                for epsTerm in epsTerms:
-                    strExpr[i] += "   f += coreExpr * %s;\n" % (polynomial.formatter.format(epsTerm, polynomial.formatter.CPP))
+            if not expr_.isZero():
+                coreExpr, epsDict = expr_.epsExpansion(neps)
+                for i in range(neps + 1):
+                    epsTerms = epsDict[i]
+                    strExpr[i] += "   coreExpr = %s;\n" % polynomial.formatter.format(coreExpr, polynomial.formatter.CPP)
+                    for epsTerm in epsTerms:
+                        strExpr[i] += "   f += coreExpr * %s;\n" % (polynomial.formatter.format(epsTerm, polynomial.formatter.CPP))
         for i in range(neps + 1):
             sectorFunctionsByEps[i] += functionPvTemplate.format(idx=idx, fileIdx=fileIdx,
                                                                  sector=idx, vars=strVars,
@@ -875,9 +878,10 @@ def core_pv_code(nFunctionFiles, sectorVariablesCount, functionName, neps, mpi=F
 
 code_ = core_pv_code
 
+method_name = "simpleSD"
 
-def save(model, expr, sectors, name, neps):
-    method_name = "simpleSD"
+
+def save(model, expr, sectors, name, neps, statics=False):
     dirname = '%s/%s/%s/' % (model.workdir, method_name, name)
     try:
         os.mkdir('%s/%s' % (model.workdir, method_name))
@@ -887,6 +891,11 @@ def save(model, expr, sectors, name, neps):
             os.mkdir(dirname)
     except:
         pass
+
+    if statics:
+        name_ = name + "_O_"
+    else:
+        name_ = name
 
     variables = expr.getVarsIndexes()
     uVars, aVars = splitUA(variables)
@@ -901,12 +910,23 @@ def save(model, expr, sectors, name, neps):
     sectorTerms = dict()
     sectorVariablesCount = 0
 
-    for sector, aOps in sectors:
+    for item in sectors:
+        if len(item) == 2:
+            sector, aOps = item
+            coef = 1.
+        elif len(item) == 3:
+            sector, aOps, coef = item
+        else:
+            raise NotImplementedError, "len(sector)>3"
+        coef_ = polynomial.poly([(1, [])], c=coef)
         sectorCount += 1
         if (sectorCount + 1) % 100 == 0:
             print "%s " % (sectorCount + 1)
 
-        sectorExpr = [sd_lib.sectorDiagram(expr, sector, delta_arg=delta_arg)]
+#        print delta_arg, sector
+
+
+        sectorExpr = [sd_lib.sectorDiagram(expr * coef_, sector, delta_arg=delta_arg)]
 
         for aOp in aOps:
             sectorExpr = aOp(sectorExpr)
@@ -932,31 +952,35 @@ def save(model, expr, sectors, name, neps):
         size += sectorTerms[sectorId].__sizeof__()
 
         if size >= maxSize:
-            saveSectors(toSave, name, fileIdx, neps, sectorVariablesCount)
+            saveSectors(toSave, name_, dirname, fileIdx, neps, sectorVariablesCount)
             fileIdx += 1
             nSaved += len(toSave)
             print "saved to file  %s sectors (%s) size=%s..." % (nSaved, fileIdx, size)
             sys.stdout.flush()
-            sectorTerms = dict()
+            toSave = dict()
             size = 0
     if size > 0:
-        saveSectors(toSave, name, dirname, fileIdx, neps, sectorVariablesCount)
+        saveSectors(toSave, name_, dirname, fileIdx, neps, sectorVariablesCount)
         fileIdx += 1
         nSaved += len(toSave)
         print "saved to file  %s sectors (%s) size=%s..." % (nSaved, fileIdx, size)
         sys.stdout.flush()
 
     for i in range(neps + 1):
-        f = open("%s/%s_E%s.c" % (dirname,name, i), 'w')
-        f.write(code_(fileIdx, sectorVariablesCount, "%s_func" % name, neps=i))
+        f = open("%s/%s_E%s.c" % (dirname, name_, i), 'w')
+        f.write(code_(fileIdx, sectorVariablesCount, "%s_func" % name_, neps=i))
         f.close()
 
 
-def compileCode(model, name, options=list(), cc="gcc"):
+def compileCode(model, name, options=list(), cc="gcc", statics=False):
 #TODO: rewrite
-    method_name = "simpleSD"
     dirname = '%s/%s/%s/' % (model.workdir, method_name, name)
     os.chdir(dirname)
+    if statics:
+        name_ = name + "_O_"
+    else:
+        name_ = name
+
     obj_list = dict()
     failed = False
     for file in os.listdir("."):
