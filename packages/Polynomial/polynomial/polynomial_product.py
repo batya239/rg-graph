@@ -55,7 +55,7 @@ class PolynomialProduct(object):
         """
         result = list()
         for p in self.polynomials:
-            polyList = copy.deepcopy(filter(lambda _p: _p <> p, self.polynomials))
+            polyList = filter(lambda _p: _p != p, self.polynomials)
             polyList += p.diff(varIndex)
             pp = PolynomialProduct(polyList)
             if not pp.isZero(): result.append(pp)

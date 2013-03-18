@@ -72,8 +72,7 @@ class Polynomial:
                 power = mi.vars[varIndex]
                 nPolynomial = polynomial._inPowerOf(power)
                 factor = nPolynomial.c
-                nMi = copy.deepcopy(mi)
-                del nMi.vars[varIndex]
+                nMi = mi.set1toVar(varIndex)
                 for pMi, pC in nPolynomial.monomials.items():
                     Polynomial._append(nMonomials, pMi * nMi, c * pC * factor)
             else:
@@ -128,7 +127,7 @@ class Polynomial:
         if not len(nMonomials):
             return [Polynomial(dict(), c=0)]
 
-        cMonomials = copy.deepcopy(self.monomials)
+        cMonomials = copy.copy(self.monomials)
 
         result = list()
         result.append(Polynomial(nMonomials))
