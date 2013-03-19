@@ -1,6 +1,14 @@
 #!/usr/bin/python
 # -*- coding: utf8
-import copy
+import collections
+
+
+_zeroFactory = lambda: 0
+
+
+def zeroDict():
+    return collections.defaultdict(_zeroFactory)
+
 
 class UnorderedHashable(object):
     def __init__(self, anIterable):

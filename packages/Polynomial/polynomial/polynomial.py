@@ -19,12 +19,17 @@ import formatter
 import polynomial_product
 import multiindex
 import rggraphutil.variable_aware_number as v_number
-from util import dict_hash1
+from util import dict_hash1, zeroDict
 
 
 def _prepareMonomials(monomials):
-    nMonomials = dict((mi, c) for mi, c in monomials.items() if c <> 0)
-    return nMonomials if len(nMonomials) <> 0 else None
+    emptyKeys = set()
+    for mi, c in monomials.iteritems():
+        if c == 0:
+            emptyKeys.add(mi)
+    for mi in emptyKeys:
+        del monomials[mi]
+    return monomials if len(monomials) != 0 else None
 
 
 class Polynomial:
@@ -38,7 +43,7 @@ class Polynomial:
             self.degree = eps_number.epsNumber(degree)
             self.c = eps_number.epsNumber(c)
         else:
-            self.monomials = dict()
+            self.monomials = zeroDict()
             self.degree = eps_number.epsNumber(1)
             self.c = eps_number.epsNumber(0)
 
@@ -46,20 +51,20 @@ class Polynomial:
         return Polynomial(self.monomials, newDegree, self.c)
 
     def set1toVar(self, varIndex):
-        nMonomials = dict()
+        nMonomials = zeroDict()
         for mi, c in self.monomials.items():
             nmi = mi.set1toVar(varIndex)
-            if nMonomials.has_key(nmi):
-                nMonomials[nmi] += c
-            else:
-                nMonomials[nmi] = c
+            nMonomials[nmi] += c
         return Polynomial(nMonomials, self.degree, self.c)
 
     def set0toVar(self, varIndex):
         """
         remove all monomials contains this var
         """
-        nMonomials = dict(filter(lambda m: not m[0].hasVar(varIndex), self.monomials.items()))
+        nMonomials = zeroDict()
+        for m in self.monomials.iteritems():
+            if not m[0].hasVar(varIndex):
+                nMonomials[m[0]] = m[1]
         return Polynomial(nMonomials, self.degree, self.c)
 
     def changeVarToPolynomial(self, varIndex, polynomial):
@@ -69,7 +74,7 @@ class Polynomial:
         if polynomial.degree.b <> 0 or polynomial.c.b <> 0 or not isinstance(self.degree.a, int) or self.degree.a < 0:
             raise ValueError, "Complex polynomial not supported now"
 
-        nMonomials = dict()
+        nMonomials = zeroDict()
         for mi, c in self.monomials.items():
             if mi.hasVar(varIndex):
                 power = mi.vars[varIndex]
@@ -85,17 +90,19 @@ class Polynomial:
 
     @staticmethod
     def _append(monomials, mi, c):
-        if monomials.has_key(mi):
+        try:
             monomials[mi] += c
-        else:
-            monomials[mi] = c
+        except TypeError as e:
+            print c, type(c), isinstance(c, int)
+            raise e
+
 
     def _inPowerOf(self, power):
         if self.degree.b <> 0 or self.c.b <> 0 or not isinstance(self.degree.a, int) or self.degree.a < 0:
             raise ValueError, "Complex polynomial not supported"
         nC = self.c.a ** power
         rawMonomials = self.monomials.items()
-        nMonomials = dict()
+        nMonomials = zeroDict()
         for product in itertools.product(rawMonomials, repeat=power * self.degree.a):
             mi = multiindex.MultiIndex()
             c = 1
@@ -106,29 +113,26 @@ class Polynomial:
         return Polynomial(nMonomials, c=nC)
 
     def stretch(self, sVar, varList):
-        nMonomials = {}
+        nMonomials = zeroDict()
         for mi, c in self.monomials.items():
             nmi = mi.stretch(sVar, varList)
-            if nMonomials.has_key(nmi):
-                nMonomials[nmi] += c
-            else:
-                nMonomials[nmi] = c
+            nMonomials[nmi] += c
         return Polynomial(nMonomials, self.degree, self.c)
 
     def diff(self, varIndex):
         """
         return list of polynomials
         """
-        nMonomials = dict()
-        for mi in self.monomials.keys():
+        nMonomials = zeroDict()
+        for mi, c in self.monomials.iteritems():
             if not len(mi):
                 continue
             deg, nmi = mi.diff(varIndex)
-            if deg <> 0:
-                nMonomials[nmi] = self.monomials[mi] * deg
+            if deg != 0:
+                nMonomials[nmi] = c * deg
 
         if not len(nMonomials):
-            return [Polynomial(dict(), c=0)]
+            return [Polynomial(zeroDict(), c=0)]
 
         cMonomials = copy.copy(self.monomials)
 
@@ -138,7 +142,9 @@ class Polynomial:
             result.append(Polynomial(cMonomials, self.degree - 1, self.degree * self.c.a))
         else:
             result.append(Polynomial(cMonomials, self.degree - 1, self.c))
-            result.append(Polynomial(dict({multiindex.MultiIndex(): 1}), c=self.degree))
+            const = zeroDict()
+            const[multiindex.CONST] = 1
+            result.append(Polynomial(const, c=self.degree))
 
         return result
 
@@ -184,7 +190,10 @@ class Polynomial:
 
         result = map(lambda i: Polynomial({i[0]: 1}, degree=self.degree * i[1]), factorMultiIndex.split())
 
-        nMonomials = dict(map(lambda i: (i[0] - factorMultiIndex, i[1]), self.monomials.items()))
+        nMonomials = zeroDict()
+        for i in self.monomials.iteritems():
+            nMonomials[i[0] - factorMultiIndex] = i[1]
+
         nPolynomial = Polynomial(nMonomials, degree=self.degree, c=self.c)
 
         result.append(nPolynomial)
@@ -250,19 +259,13 @@ class Polynomial:
 
 
 def poly(p, degree=1, c=1):
-    monomials = dict()
+    monomials = zeroDict()
     for tMonomial in p:
-        dMonomial = dict()
+        dMonomial = zeroDict()
         coefficient = tMonomial[0]
         for varIndex in tMonomial[1]:
-            if dMonomial.has_key(varIndex):
-                dMonomial[varIndex] += 1
-            else:
-                dMonomial[varIndex] = 1
+            dMonomial[varIndex] += 1
         mi = multiindex.MultiIndex(dMonomial)
-        if monomials.has_key(mi):
-            monomials[mi] += coefficient
-        else:
-            monomials[mi] = coefficient
+        monomials[mi] += coefficient
     return Polynomial(monomials, degree, c)
 

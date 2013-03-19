@@ -5,24 +5,33 @@ immutable MultiIndex, represent by dictionary
 ex: (3, 0, 1) --> x_1^3 * x_3 -->  {1: 3, 3: 1}
 """
 import copy
-from util import dict_hash1
+from util import dict_hash1, zeroDict
 
-def _prepareVars(vars):
-    return dict((v, p) for v, p in vars.items() if p <> 0)
+
+def _prepareVars(_vars):
+    emptyKeys = set()
+    for k, v in _vars.iteritems():
+        if v == 0:
+            emptyKeys.add(k)
+    for k in emptyKeys:
+        del _vars[k]
+
+    return _vars
 
 class MultiIndex:
-    def __init__(self, vars=dict()):
+    def __init__(self, _vars=zeroDict()):
         """self.vars -- dictionary {variable index --> variable power}
         """
-        self.vars = _prepareVars(vars)
+        self.vars = _prepareVars(_vars)
 
     def hasVar(self, varIndex):
         return self.vars.has_key(varIndex)
 
     def set1toVar(self, varIndex):
-        nVars = copy.copy(self.vars)
-        if nVars.has_key(varIndex):
-            del nVars[varIndex]
+        nVars = zeroDict()
+        for k, v in self.vars.iteritems():
+            if k != varIndex:
+                nVars[k] = v
         return MultiIndex(nVars)
 
     def diff(self, varIndex):
@@ -34,7 +43,8 @@ class MultiIndex:
             nVars = copy.copy(self.vars)
             if deg == 1:
                 del nVars[varIndex]
-            else: nVars[varIndex] -= 1
+            else:
+                nVars[varIndex] -= 1
             return deg, MultiIndex(nVars)
         else:
             return 0, MultiIndex()
@@ -46,13 +56,8 @@ class MultiIndex:
         deltaDegree = 0
         nVars = copy.copy(self.vars)
         for v in varList:
-            if nVars.has_key(v):
-                deltaDegree += nVars[v]
-        if nVars.has_key(sVar):
-            deg = nVars[sVar]
-            nVars[sVar] = deg + deltaDegree
-        elif deltaDegree:
-            nVars[sVar] = deltaDegree
+            deltaDegree += nVars.get(v, 0)
+        nVars[sVar] += deltaDegree
         return MultiIndex(nVars)
 
     def getVarsIndexes(self):
@@ -61,14 +66,11 @@ class MultiIndex:
         return indexes
 
     def split(self):
-        return map(lambda i: (MultiIndex({i[0]:1}), i[1]), self.vars.items())
+        return map(lambda i: (MultiIndex({i[0]: 1}), i[1]), self.vars.items())
 
     @staticmethod
     def _append(vars, var, power):
-        if vars.has_key(var):
-            vars[var] += power
-        else:
-            vars[var] = power
+        vars[var] += power
 
     def __mul__(self, other):
         nVars = copy.copy(self.vars)
@@ -77,7 +79,7 @@ class MultiIndex:
         return MultiIndex(nVars)
 
     def __sub__(self, other):
-        result = dict()
+        result = zeroDict()
         for k, v in self.vars.items():
             result[k] = v - (other.vars[k] if other.vars.has_key(k) else 0)
         return MultiIndex(result)
@@ -102,11 +104,12 @@ class MultiIndex:
 
 CONST = MultiIndex()
 
+
 def intersection(mi1, mi2):
     """
     finding intersection two dictionaries where values is numbers
     """
-    result = dict()
+    result = zeroDict()
     for k, v in mi1.vars.items():
         if mi2.vars.has_key(k):
             result[k] = min(v, mi2.vars[k])
