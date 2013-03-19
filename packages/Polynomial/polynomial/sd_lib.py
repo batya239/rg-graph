@@ -65,13 +65,13 @@ def sectorDiagram(expr, sec, delta_arg=None, remove_delta=True):
     result = map(lambda x: sectorPoly(x, sec), result)
 
     #
-    #    Now we should add Jacobian of performed variables transformations
+    #    Now we should add jacobian of performed variables transformations
     #
 
     for (main_var, other_vars) in sec:
         m = [main_var] * len(other_vars)
-        Jacobian = polynomial.poly([(1, m)], degree=(1, 0))
-        result[0] = result[0] * Jacobian.toPolyProd()
+        jacobian = polynomial.poly([(1, m)], degree=(1, 0))
+        result[0] = result[0] * jacobian.toPolyProd()
 
     if remove_delta:
         if delta_arg is None:
@@ -86,8 +86,9 @@ def sectorDiagram(expr, sec, delta_arg=None, remove_delta=True):
         # additional multiplier from delta function delta(Lx-1)=1/L delta(x-1/L) = x delta(x-1/L)
         #
         result[0] = result[0] * deltaMultiplier.toPolyProd()
-        result[0] = result[0].simplify()
         primaryVar = sec[0][0]
+        result[0] = result[0].simplify()
+
         #
         # Now we remove delta function by replacing primaryVar to substitution.set1toVar(primaryVar)**(-1)
         # after decomposition primaryVar must be factorized and result[0]~ primaryVar**a*f(doesn't depend
@@ -102,19 +103,16 @@ def sectorDiagram(expr, sec, delta_arg=None, remove_delta=True):
                 monomial = p.monomials.keys()[0]
                 if primaryVar in monomial.vars.keys():
                     multiplier = substitution.set1toVar(primaryVar)
-                    multiplier.degree = -p.degree * monomial.vars[primaryVar]
+                    multiplier = multiplier.changeDegree(-p.degree * monomial.vars[primaryVar])
                     result[0] = result[0] * multiplier.toPolyProd()
-            else:
-                if primaryVar in p.getVarsIndexes():
-                    raise ValueError, "Invalid decomposition: \nexpr: %s\n polynomial: %s\nprimary var %s" % (
-                        result[0], p, primaryVar)
+
         # (second stage)
         result[0] = result[0].set1toVar(primaryVar)
 
-        result[0] = result[0].simplify()
+#        result[0] = result[0].simplify()
         result[1] = None
     else:
-        result[0] = result[0].simplify()
+#        result[0] = result[0].simplify()
         if delta_arg is None:
             result[1] = None
     return result[0] if result[1] is None else result

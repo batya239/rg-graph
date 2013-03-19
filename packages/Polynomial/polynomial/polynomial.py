@@ -174,6 +174,9 @@ class Polynomial:
         result.append(nPolynomial)
         return result
 
+    def changeDegree(self, newDegree):
+        return Polynomial(self.monomials, newDegree, self.c)
+
     @staticmethod
     def _merge(p1, p2):
         if p1.c.isRealNumber() or p2.c.isRealNumber():
