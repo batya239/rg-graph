@@ -29,11 +29,14 @@ class MultiIndex:
         return self.vars.has_key(varIndex)
 
     def set1toVar(self, varIndex):
-        nVars = zeroDict()
-        for k, v in self.vars.iteritems():
-            if k != varIndex:
-                nVars[k] = v
-        return MultiIndex(nVars, doPrepare=False)
+        if varIndex in self.vars:
+            nVars = zeroDict()
+            for k, v in self.vars.iteritems():
+                if k != varIndex:
+                    nVars[k] = v
+            return MultiIndex(nVars, doPrepare=False)
+        else:
+            return self
 
     def diff(self, varIndex):
         """
