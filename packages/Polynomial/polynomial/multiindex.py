@@ -58,8 +58,10 @@ class MultiIndex:
         nVars = self.vars.copy()
         for v in varList:
             deltaDegree += nVars.get(v, 0)
-        nVars[sVar] += deltaDegree
-        return MultiIndex(nVars)
+        if deltaDegree != 0:
+            nVars[sVar] += deltaDegree
+            return MultiIndex(nVars)
+        return self
 
     def getVarsIndexes(self):
         indexes = set()
