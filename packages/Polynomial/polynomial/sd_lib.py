@@ -15,6 +15,35 @@ def sectorPoly(poly, sec):
     return poly
 
 
+def check_delta(delta_arg, sec):
+    """
+    Checks if delta_args consistent with sec[0]
+    sec[0] decomposition space must be equal to set of delta_args variables.
+    delta_args must be == \sum_i u_i i=...
+    """
+    if delta_arg is None:
+        return True
+    else:
+        if delta_arg.degree <> (1, 0):
+            return False
+        arg_set = set()
+        for monomial in delta_arg.monomials:
+            if delta_arg.monomials[monomial] <> 1:
+                return False
+
+            monomial_vars = list(monomial.getVarsIndexes())
+            if len(monomial_vars) <> 1:
+                return False
+            if monomial.vars[monomial_vars[0]] <> 1:
+                return False
+            if monomial_vars[0] in arg_set:
+                return False
+            arg_set = arg_set | set(monomial_vars)
+        first_sector_set = set(sec[0][1]) | set([sec[0][0], ])
+
+        return first_sector_set == arg_set
+
+
 def sectorDiagram(expr, sec, delta_arg=None, remove_delta=True):
     """
     This functions performs variable transformation of a whole diagram according to sector nomenclature sec.
@@ -22,34 +51,6 @@ def sectorDiagram(expr, sec, delta_arg=None, remove_delta=True):
     and d_arg being the delta-function argument ,
     If (delta_arg<>None and remove_delta) , first decomposition is considered primary.
     """
-
-    def check_delta(delta_arg, sec):
-        """
-        Checks if delta_args consistent with sec[0]
-        sec[0] decomposition space must be equal to set of delta_args variables.
-        delta_args must be == \sum_i u_i i=...
-        """
-        if delta_arg is None:
-            return True
-        else:
-            if delta_arg.degree <> (1, 0):
-                return False
-            arg_set = set()
-            for monomial in delta_arg.monomials:
-                if delta_arg.monomials[monomial] <> 1:
-                    return False
-
-                monomial_vars = list(monomial.getVarsIndexes())
-                if len(monomial_vars) <> 1:
-                    return False
-                if monomial.vars[monomial_vars[0]] <> 1:
-                    return False
-                if monomial_vars[0] in arg_set:
-                    return False
-                arg_set = arg_set | set(monomial_vars)
-            first_sector_set = set(sec[0][1]) | set([sec[0][0], ])
-
-            return first_sector_set == arg_set
 
     if not check_delta(delta_arg, sec):
         raise ValueError, 'Invalid delta functions arguments'

@@ -703,9 +703,10 @@ def saveSectors(sectorTerms, name, dirname, fileIdx, neps, nDimensions):
         for expr_ in sectorExpr:
             if not expr_.isZero():
                 coreExpr, epsDict = expr_.epsExpansion(neps)
-                for i in range(neps + 1):
+                coreExprString = polynomial.formatter.format(coreExpr, polynomial.formatter.CPP)
+                for i in xrange(neps + 1):
                     epsTerms = epsDict[i]
-                    strExpr[i] += "   coreExpr = %s;\n" % polynomial.formatter.format(coreExpr, polynomial.formatter.CPP)
+                    strExpr[i] += "   coreExpr = %s;\n" % coreExprString
                     for epsTerm in epsTerms:
                         strExpr[i] += "   f += coreExpr * %s;\n" % (polynomial.formatter.format(epsTerm, polynomial.formatter.CPP))
         for i in range(neps + 1):
