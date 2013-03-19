@@ -87,7 +87,6 @@ def sectorDiagram(expr, sec, delta_arg=None, remove_delta=True):
         #
         result[0] = result[0] * deltaMultiplier.toPolyProd()
         primaryVar = sec[0][0]
-        result[0] = result[0].simplify()
 
         #
         # Now we remove delta function by replacing primaryVar to substitution.set1toVar(primaryVar)**(-1)
@@ -98,13 +97,12 @@ def sectorDiagram(expr, sec, delta_arg=None, remove_delta=True):
         # Removal of delta function performed in two stages. At first one for each factorized primaryVar we add
         # multiplier substitution.set1toVar(primaryVar)**(-1), on the second we set primaryVar = 1
         #
-        for p in result[0].polynomials:
-            if len(p.monomials) == 1:
-                monomial = p.monomials.keys()[0]
-                if primaryVar in monomial.vars.keys():
-                    multiplier = substitution.set1toVar(primaryVar)
-                    multiplier = multiplier.changeDegree(-p.degree * monomial.vars[primaryVar])
-                    result[0] = result[0] * multiplier.toPolyProd()
+        multiplier = substitution.set1toVar(primaryVar)
+        primaryVarDegree = result[0].calcPower(primaryVar)
+        multiplier = multiplier.changeDegree(-primaryVarDegree)
+        result[0] = result[0] * \
+                    multiplier.toPolyProd() * \
+                    polynomial.poly([(1, [primaryVar])], degree=-primaryVarDegree).toPolyProd()
 
         # (second stage)
         result[0] = result[0].set1toVar(primaryVar)
