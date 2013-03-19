@@ -95,7 +95,9 @@ class PolynomialProduct(object):
         return PolynomialProduct(map(lambda p: p.changeVarToPolynomial(varIndex, polynomial), self.polynomials))
 
     def calcPower(self, varIndex):
-        return reduce(lambda a, p: p.calcPower(varIndex) + a, filter(lambda p: not p.isConst(), self.polynomials), 0)
+        return reduce(lambda a, p: eps_number.epsNumber(p.calcPower(varIndex)) + a, filter(lambda p: not p.isConst(),
+                                                                                           self.polynomials),
+                      eps_number.epsNumber(0))
 
     def simplify(self):
         """
@@ -167,7 +169,8 @@ class PolynomialProduct(object):
                 return PolynomialProduct([])
             if (isinstance(other, int) or other.isRealNumber()) and len(self.polynomials):
                 self.polynomials[0] *= other
-            return PolynomialProduct(self.polynomials + [polynomial.Polynomial({multiindex.MultiIndex(): 1}, c=eps_number.epsNumber(other))])
+            return PolynomialProduct(
+                self.polynomials + [polynomial.Polynomial({multiindex.MultiIndex(): 1}, c=eps_number.epsNumber(other))])
         elif isinstance(other, polynomial.Polynomial):
             return self * other.toPolyProd()
         else:

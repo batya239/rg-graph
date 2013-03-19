@@ -14,7 +14,6 @@ c * (polynomial)^degree
 """
 import copy
 import itertools
-import math
 import eps_number
 import formatter
 import polynomial_product
