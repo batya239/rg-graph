@@ -12,7 +12,6 @@ self.c -- coefficient in front of polynomial
 c * (polynomial)^degree
 
 """
-import copy
 import itertools
 import eps_number
 import formatter
@@ -46,6 +45,7 @@ class Polynomial:
             self.monomials = zeroDict()
             self.degree = eps_number.epsNumber(1)
             self.c = eps_number.epsNumber(0)
+        self.hash = None
 
     def changeDegree(self, newDegree):
         return Polynomial(self.monomials, newDegree, self.c, doPrepare=False)
@@ -134,7 +134,7 @@ class Polynomial:
         if not len(nMonomials):
             return [Polynomial(zeroDict(), c=0, doPrepare=False)]
 
-        cMonomials = copy.copy(self.monomials)
+        cMonomials = self.monomials.copy()
 
         result = list()
         result.append(Polynomial(nMonomials))
@@ -249,10 +249,12 @@ class Polynomial:
         return not self.__eq__(other)
 
     def __hash__(self):
-        hashCode = dict_hash1(self.monomials)
-        hashCode = 31 * hashCode + hash(self.c)
-        hashCode = 31 * hashCode + hash(self.degree)
-        return hashCode
+        if self.hash is None:
+            hashCode = dict_hash1(self.monomials)
+            hashCode = 31 * hashCode + hash(self.c)
+            hashCode = 31 * hashCode + hash(self.degree)
+            self.hash = hashCode
+        return self.hash
 
     def __repr__(self):
         return formatter.format(self)

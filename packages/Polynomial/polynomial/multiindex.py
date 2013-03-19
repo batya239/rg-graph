@@ -23,6 +23,7 @@ class MultiIndex:
         """self.vars -- dictionary {variable index --> variable power}
         """
         self.vars = _prepareVars(_vars) if doPrepare else _vars
+        self.hash = None
 
     def hasVar(self, varIndex):
         return self.vars.has_key(varIndex)
@@ -68,14 +69,10 @@ class MultiIndex:
     def split(self):
         return map(lambda i: (MultiIndex({i[0]: 1}), i[1]), self.vars.items())
 
-    @staticmethod
-    def _append(vars, var, power):
-        vars[var] += power
-
     def __mul__(self, other):
         nVars = self.vars.copy()
         for v, p in other.vars.items():
-            MultiIndex._append(nVars, v, p)
+            nVars[v] += p
         return MultiIndex(nVars, doPrepare=False)
 
     def __sub__(self, other):
@@ -93,7 +90,9 @@ class MultiIndex:
         return self.vars == other.vars
 
     def __hash__(self):
-        return dict_hash1(self.vars)
+        if self.hash is None:
+            self.hash = dict_hash1(self.vars)
+        return self.hash
 
     def __repr__(self):
         if len(self.vars) == 0:
