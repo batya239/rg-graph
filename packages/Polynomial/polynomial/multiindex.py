@@ -60,7 +60,7 @@ class MultiIndex:
             deltaDegree += nVars.get(v, 0)
         if deltaDegree != 0:
             nVars[sVar] += deltaDegree
-            return MultiIndex(nVars)
+            return MultiIndex(nVars, doPrepare=False)
         return self
 
     def getVarsIndexes(self):
