@@ -14,6 +14,7 @@ c * (polynomial)^degree
 """
 import copy
 import itertools
+import math
 import eps_number
 import formatter
 import polynomial_product
@@ -41,6 +42,9 @@ class Polynomial:
             self.monomials = dict()
             self.degree = eps_number.epsNumber(1)
             self.c = eps_number.epsNumber(0)
+
+    def changeDegree(self, newDegree):
+        return Polynomial(self.monomials, newDegree, self.c)
 
     def set1toVar(self, varIndex):
         nMonomials = dict()
@@ -138,6 +142,19 @@ class Polynomial:
             result.append(Polynomial(dict({multiindex.MultiIndex(): 1}), c=self.degree))
 
         return result
+
+    def calcPower(self, varIndex):
+        power = None
+        for m in self.monomials:
+            curPower = m.getVarPower(varIndex)
+            if curPower is None or curPower == 0:
+                return 0
+            else:
+                if power is None:
+                    power = curPower
+                else:
+                    power = min(power, curPower)
+        return 0 if power is None else power * self.degree
 
     def isZero(self):
         return self.c == 0

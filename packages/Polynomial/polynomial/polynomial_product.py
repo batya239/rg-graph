@@ -94,6 +94,9 @@ class PolynomialProduct(object):
     def changeVarToPolynomial(self, varIndex, polynomial):
         return PolynomialProduct(map(lambda p: p.changeVarToPolynomial(varIndex, polynomial), self.polynomials))
 
+    def calcPower(self, varIndex):
+        return reduce(lambda a, p: p.calcPower(varIndex) + a, filter(lambda p: not p.isConst(), self.polynomials), 0)
+
     def simplify(self):
         """
         trying to simplifying product by polynomials factorization
@@ -126,7 +129,8 @@ class PolynomialProduct(object):
                 elif len(mergeResult) == 2:
                     mainPolynomial = mergeResult[1]
                     nPolynomials.append(mergeResult[0])
-                else: raise ValueError, 'invalid merge length %s' % mergeResult
+                else:
+                    raise ValueError('invalid merge length %s' % mergeResult)
             nPolynomials.append(mainPolynomial)
 
         while len(nPolynomials) > 1:

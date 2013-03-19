@@ -39,6 +39,9 @@ class MultiIndex:
         else:
             return 0, MultiIndex()
 
+    def getVarPower(self, varIndex):
+        return self.vars.get(varIndex, None)
+
     def stretch(self, sVar, varList):
         deltaDegree = 0
         nVars = copy.copy(self.vars)
