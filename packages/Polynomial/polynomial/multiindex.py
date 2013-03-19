@@ -39,8 +39,8 @@ class MultiIndex:
         """
         decrease power of varIndex if exist and returns old power
         """
-        if self.vars.has_key(varIndex):
-            deg = self.vars[varIndex]
+        deg = self.vars.get(varIndex, None)
+        if deg:
             nVars = self.vars.copy()
             if deg == 1:
                 del nVars[varIndex]
