@@ -55,10 +55,10 @@ class MultiIndex:
 
     def stretch(self, sVar, varList):
         deltaDegree = 0
-        nVars = self.vars.copy()
         for v in varList:
-            deltaDegree += nVars.get(v, 0)
+            deltaDegree += self.vars.get(v, 0)
         if deltaDegree != 0:
+            nVars = self.vars.copy()
             nVars[sVar] += deltaDegree
             return MultiIndex(nVars, doPrepare=False)
         return self
