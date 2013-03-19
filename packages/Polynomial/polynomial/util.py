@@ -58,7 +58,7 @@ def dict_hash1(aDict):
     hash from dictionary where key is hashable
     """
     h = 0
-    for p in aDict.items():
+    for p in aDict.iteritems():
         h += hash(p)
     return h
 

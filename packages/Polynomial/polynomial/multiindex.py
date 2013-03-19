@@ -19,10 +19,10 @@ def _prepareVars(_vars):
     return _vars
 
 class MultiIndex:
-    def __init__(self, _vars=zeroDict()):
+    def __init__(self, _vars=zeroDict(), doPrepare=True):
         """self.vars -- dictionary {variable index --> variable power}
         """
-        self.vars = _prepareVars(_vars)
+        self.vars = _prepareVars(_vars) if doPrepare else _vars
 
     def hasVar(self, varIndex):
         return self.vars.has_key(varIndex)
@@ -32,7 +32,7 @@ class MultiIndex:
         for k, v in self.vars.iteritems():
             if k != varIndex:
                 nVars[k] = v
-        return MultiIndex(nVars)
+        return MultiIndex(nVars, doPrepare=False)
 
     def diff(self, varIndex):
         """
@@ -40,21 +40,21 @@ class MultiIndex:
         """
         if self.vars.has_key(varIndex):
             deg = self.vars[varIndex]
-            nVars = copy.copy(self.vars)
+            nVars = self.vars.copy()
             if deg == 1:
                 del nVars[varIndex]
             else:
                 nVars[varIndex] -= 1
-            return deg, MultiIndex(nVars)
+            return deg, MultiIndex(nVars, doPrepare=False)
         else:
-            return 0, MultiIndex()
+            return 0, CONST
 
     def getVarPower(self, varIndex):
         return self.vars.get(varIndex, None)
 
     def stretch(self, sVar, varList):
         deltaDegree = 0
-        nVars = copy.copy(self.vars)
+        nVars = self.vars.copy()
         for v in varList:
             deltaDegree += nVars.get(v, 0)
         nVars[sVar] += deltaDegree
@@ -73,10 +73,10 @@ class MultiIndex:
         vars[var] += power
 
     def __mul__(self, other):
-        nVars = copy.copy(self.vars)
+        nVars = self.vars.copy()
         for v, p in other.vars.items():
             MultiIndex._append(nVars, v, p)
-        return MultiIndex(nVars)
+        return MultiIndex(nVars, doPrepare=False)
 
     def __sub__(self, other):
         result = zeroDict()
