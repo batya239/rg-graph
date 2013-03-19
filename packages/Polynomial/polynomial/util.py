@@ -10,6 +10,13 @@ def zeroDict():
     return collections.defaultdict(_zeroFactory)
 
 
+_emptyListFactory = lambda: []
+
+
+def emptyListDict():
+    return collections.defaultdict(_emptyListFactory)
+
+
 class UnorderedHashable(object):
     def __init__(self, anIterable):
         self.anIterable = anIterable

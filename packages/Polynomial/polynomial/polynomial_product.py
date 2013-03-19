@@ -113,13 +113,10 @@ class PolynomialProduct(object):
         """
         collecting polynomials by monomial part
         """
-        factorDict = dict()
+        factorDict = util.emptyListDict()
         for p in polynomials:
             key = util.unordered_hashable(tuple(p.monomials.items()))
-            if factorDict.has_key(key):
-                factorDict[key].append(p)
-            else:
-                factorDict[key] = [p]
+            factorDict[key].append(p)
 
         nPolynomials = []
         for polyList in factorDict.values():

@@ -33,11 +33,11 @@ def _prepareMonomials(monomials):
 
 
 class Polynomial:
-    def __init__(self, monomials, degree=1, c=1):
+    def __init__(self, monomials, degree=1, c=1, doPrepare=True):
         """
         monomials -- dictionary MultiIndex->int
         """
-        nMonomials = _prepareMonomials(monomials)
+        nMonomials = _prepareMonomials(monomials) if doPrepare else monomials
         if nMonomials:
             self.monomials = nMonomials
             self.degree = eps_number.epsNumber(degree)
@@ -48,14 +48,14 @@ class Polynomial:
             self.c = eps_number.epsNumber(0)
 
     def changeDegree(self, newDegree):
-        return Polynomial(self.monomials, newDegree, self.c)
+        return Polynomial(self.monomials, newDegree, self.c, doPrepare=False)
 
     def set1toVar(self, varIndex):
         nMonomials = zeroDict()
         for mi, c in self.monomials.items():
             nmi = mi.set1toVar(varIndex)
             nMonomials[nmi] += c
-        return Polynomial(nMonomials, self.degree, self.c)
+        return Polynomial(nMonomials, self.degree, self.c, doPrepare=False)
 
     def set0toVar(self, varIndex):
         """
@@ -65,7 +65,7 @@ class Polynomial:
         for m in self.monomials.iteritems():
             if not m[0].hasVar(varIndex):
                 nMonomials[m[0]] = m[1]
-        return Polynomial(nMonomials, self.degree, self.c)
+        return Polynomial(nMonomials, self.degree, self.c, doPrepare=False)
 
     def changeVarToPolynomial(self, varIndex, polynomial):
         """
@@ -86,7 +86,7 @@ class Polynomial:
             else:
                 Polynomial._append(nMonomials, mi, c)
 
-        return Polynomial(nMonomials, self.degree, self.c)
+        return Polynomial(nMonomials, self.degree, self.c, doPrepare=False)
 
     @staticmethod
     def _append(monomials, mi, c):
@@ -110,14 +110,14 @@ class Polynomial:
                 mi *= pMi
                 c *= pC
             Polynomial._append(nMonomials, mi, c)
-        return Polynomial(nMonomials, c=nC)
+        return Polynomial(nMonomials, c=nC, doPrepare=False)
 
     def stretch(self, sVar, varList):
         nMonomials = zeroDict()
         for mi, c in self.monomials.items():
             nmi = mi.stretch(sVar, varList)
             nMonomials[nmi] += c
-        return Polynomial(nMonomials, self.degree, self.c)
+        return Polynomial(nMonomials, self.degree, self.c, doPrepare=False)
 
     def diff(self, varIndex):
         """
@@ -132,19 +132,19 @@ class Polynomial:
                 nMonomials[nmi] = c * deg
 
         if not len(nMonomials):
-            return [Polynomial(zeroDict(), c=0)]
+            return [Polynomial(zeroDict(), c=0, doPrepare=False)]
 
         cMonomials = copy.copy(self.monomials)
 
         result = list()
         result.append(Polynomial(nMonomials))
         if self.c.isRealNumber():
-            result.append(Polynomial(cMonomials, self.degree - 1, self.degree * self.c.a))
+            result.append(Polynomial(cMonomials, self.degree - 1, self.degree * self.c.a, doPrepare=False))
         else:
-            result.append(Polynomial(cMonomials, self.degree - 1, self.c))
+            result.append(Polynomial(cMonomials, self.degree - 1, self.c, doPrepare=False))
             const = zeroDict()
             const[multiindex.CONST] = 1
-            result.append(Polynomial(const, c=self.degree))
+            result.append(Polynomial(const, c=self.degree, doPrepare=False))
 
         return result
 
@@ -194,13 +194,13 @@ class Polynomial:
         for i in self.monomials.iteritems():
             nMonomials[i[0] - factorMultiIndex] = i[1]
 
-        nPolynomial = Polynomial(nMonomials, degree=self.degree, c=self.c)
+        nPolynomial = Polynomial(nMonomials, degree=self.degree, c=self.c, doPrepare=False)
 
         result.append(nPolynomial)
         return result
 
     def changeDegree(self, newDegree):
-        return Polynomial(self.monomials, newDegree, self.c)
+        return Polynomial(self.monomials, newDegree, self.c, doPrepare=False)
 
     @staticmethod
     def _merge(p1, p2):
@@ -216,7 +216,7 @@ class Polynomial:
                     Polynomial(p1.monomials, degree=p1.degree + p2.degree, c=p2.c)]
 
     def __neg__(self):
-        return Polynomial(self.monomials, degree=self.degree, c=-self.c)
+        return Polynomial(self.monomials, degree=self.degree, c=-self.c, doPrepare=False)
 
     def __mul__(self, other):
         if isinstance(other, v_number.VariableAwareNumber) and other.isRealNumber():
@@ -236,7 +236,7 @@ class Polynomial:
             return polynomial_product.PolynomialProduct(
                 [self, Polynomial({multiindex.MultiIndex(): 1}, c=eps_number.epsNumber(_other))])
         elif isinstance(_other, int):
-            return Polynomial(self.monomials, degree=self.degree, c=self.c * _other)
+            return Polynomial(self.monomials, degree=self.degree, c=self.c * _other, doPrepare=False)
 
     __rmul__ = __mul__
 
