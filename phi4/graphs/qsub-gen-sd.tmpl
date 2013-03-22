@@ -26,7 +26,7 @@ done
 
 
 cd $WORKDIR
-$PYTHON gen_sd.py $GRAPH $METHOD
+time $PYTHON gen_sd_mpi.py $GRAPH $METHOD 2>&1
 
 #if [ -f "$TMPDIR/" ]; then
 #	mv $TMPDIR/ $PWD/
