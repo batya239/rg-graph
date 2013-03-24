@@ -880,6 +880,18 @@ code_ = core_pv_code
 method_name = "simpleSD"
 
 
+def removeRoots(expr):
+    res = list()
+    for expr_ in expr:
+        uVars, aVars = splitUA(expr_.getVarsIndexes())
+        tExpr = expr_
+        for var in uVars:
+            tExpr = tExpr.changeVarToPolynomial(var, polynomial.poly([(1, [var, var])], c=1, degree=1)) * polynomial.poly([(1, [var])], c=2.)
+        res.append(tExpr.simplify())
+    return res
+
+
+
 def save(model, expr, sectors, name, neps, statics=False):
     dirname = '%s/%s/%s/' % (model.workdir, method_name, name)
     try:
@@ -909,7 +921,6 @@ def save(model, expr, sectors, name, neps, statics=False):
     sectorTerms = dict()
     sectorVariablesCount = 0
 
-
     for item in sectors:
         if len(item) == 2:
             sector, aOps = item
@@ -931,6 +942,10 @@ def save(model, expr, sectors, name, neps, statics=False):
         for aOp in aOps:
             sectorExpr = aOp(sectorExpr)
         sectorExpr = map(lambda x: x.simplify(), sectorExpr)
+
+        if 'removeRoots' in model.__dict__ and model.removeRoots:
+            sectorExpr = removeRoots(sectorExpr)
+
         check = checkDecomposition(sectorExpr)
 #        print sector, check
         if "bad" in check:

@@ -296,6 +296,7 @@ class _phi4_d3(_generic_model):
         self.subgraphDim = True
         self.target = 6
         self.workdir = '/home/mkompan/work/rg-graph/phi_4_d3/'
+        self.removeRoots = False
 
     def Dim(self, obj):
         if isinstance(obj, Graph):
