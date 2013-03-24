@@ -71,7 +71,7 @@ class Polynomial:
         """
         polynomial should be Polynomial type
         """
-        if polynomial.degree.b <> 0 or polynomial.c.b <> 0 or not isinstance(self.degree.a, int) or self.degree.a < 0:
+        if polynomial.degree.b <> 0 or polynomial.c.b <> 0 or not isinstance(polynomial.degree.a, int) or polynomial.degree.a < 0:
             raise ValueError, "Complex polynomial not supported now"
 
         nMonomials = zeroDict()
