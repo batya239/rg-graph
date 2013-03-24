@@ -1,0 +1,22 @@
+import os, re
+
+listdir = os.listdir('.')
+
+pat = re.compile('.*func.*c$')
+obj_src = [i for i in listdir if pat.match(i)]
+
+# compile object files
+for src in obj_src:
+    Object(src)
+
+# list of *.o-files
+objs = [ s[:-1]+'o' for s in obj_src]
+    
+env = Environment(LIBS=['m','pvegas']) 
+pat1 = re.compile('.*_O__E[0-9]\.c$')
+execs = [i for i in listdir if pat1.match(i)]
+print execs
+
+for e in execs:
+    print "Compiling", e
+    env.Program('test', [e]+objs)
