@@ -199,8 +199,8 @@ class Polynomial:
         result.append(nPolynomial)
         return result
 
-    def changeDegree(self, newDegree):
-        return Polynomial(self.monomials, newDegree, self.c, doPrepare=False)
+    def changeConst(self, newConst):
+        return Polynomial(self.monomials, self.degree, newConst, doPrepare=False)
 
     @staticmethod
     def _merge(p1, p2):
