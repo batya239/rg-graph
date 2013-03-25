@@ -312,3 +312,45 @@ class _phi4_d3(_generic_model):
         else:
             raise NotImplementedError("Dim not defined for %s" % obj)
 
+    @staticmethod
+    def normalizeN(graph, result):
+        import sympy
+        G = sympy.special.gamma_functions.gamma
+        (res_, err_) = result
+        n = graph.NLoops()
+    #    return map(lambda x: (x[0] / graph.sym_coef(),), result)
+        return map(lambda x: (x[0] / graph.sym_coef() * (G(n / 2.) / sympy.pi ** (n / 2.)).evalf(),), result)
+
+
+
+class _phi4_d2(_generic_model):
+    def __init__(self, name):
+        self.name = name
+        self.space_dim = 2.
+        self.subgraphDim = True
+        self.target = 6
+        self.workdir = '/home/mkompan/work/rg-graph/phi_4_d2/'
+        self.removeRoots = False
+
+    def Dim(self, obj):
+        if isinstance(obj, Graph):
+            if obj.ExternalLines() == 2:
+                return 0
+            else:
+                return -1
+        elif isinstance(obj, subgraphs.Subgraph):
+            if obj.CountExtLegs() == 2:
+                return 0
+            else:
+                return -1
+        else:
+            raise NotImplementedError("Dim not defined for %s" % obj)
+
+    @staticmethod
+    def normalizeN(graph, result):
+        import sympy
+        G = sympy.special.gamma_functions.gamma
+        (res_, err_) = result
+        n = graph.NLoops()
+        #    return map(lambda x: (x[0] / graph.sym_coef(),), result)
+        return map(lambda x: (x[0] / graph.sym_coef() * (G(n)).evalf(),), result)

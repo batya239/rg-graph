@@ -10,7 +10,7 @@ from graphs import Graph
 from methods import sd_tools
 
 import subgraphs
-from dummy_model import _phi4_d3
+import dummy_model
 
 import dynamics
 
@@ -29,11 +29,16 @@ def splitUA(varSet):
 def deltaArg(varSet):
     return polynomial.poly(map(lambda x: (1, [x]), varSet))
 
+if len(sys.argv) == 4:
+    modelName = sys.argv[3]
+    model = eval('dummy_model.%s("dummy")' % modelName)
+    graphName = sys.argv[1]
+    method = sys.argv[2]
+else:
+    print "provide method and model"
+    sys.exit(1)
 
-model = _phi4_d3("dummy")
 
-graphName = sys.argv[1]
-method = sys.argv[2]
 exec('import %s as methodModule' % method)
 
 method_name = methodModule.method_name

@@ -1,17 +1,17 @@
 #!/usr/bin/python
 # -*- coding: utf8
 import sys
-from dummy_model import _phi3, _phi4_d3
+import dummy_model
 
 from graphs import Graph
 
 
-phi4 = _phi4_d3('dummy')
-
-if len(sys.argv) == 3:
+if len(sys.argv) == 4:
+    modelName = sys.argv[3]
+    model = eval('dummy_model.%s("dummy")' % modelName)
     exec ('from %s import save, compile, execute' % sys.argv[2])
 else:
-    print "provide method"
+    print "provide method and model"
     sys.exit(1)
 
 g1 = Graph(sys.argv[1])
@@ -20,7 +20,7 @@ print name
 
 #phi4.reduce=False
 
-save(name, g1, phi4)
+save(name, g1, model)
 
 #   compile(name,phi4)
 
