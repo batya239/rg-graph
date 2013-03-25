@@ -98,7 +98,12 @@ class PolynomialProductTestCase(PolynomialToolsTestCase):
 # in fact it should be equal to 1, not 1*1
         self.assertEqual(map(lambda x: x.isOne(), pp3.polynomials), [True])
 
-    def testMull(self):
+        pp3 = (poly([(1, [1])], degree=-1) * poly([(1, [1])]) * poly([(1, [1])])).simplify()
+
+        self.assertEquals(pp3, poly([(1, [1])]).toPolyProd())
+
+
+def testMull(self):
         pp0 = poly([(1, ('a0',))]).toPolyProd().set0toVar('a0')
         self.assertEquals(pp0 * pp, pp0)
 
