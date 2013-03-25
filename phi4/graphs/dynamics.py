@@ -875,6 +875,10 @@ def core_pv_code(nFunctionFiles, sectorVariablesCount, functionName, neps, mpi=F
         hypercube=hyperCube,
         functions=functions)
 
+
+def core_pvmpi_code(nFunctionFiles, sectorVariablesCount, functionName, neps):
+    return core_pv_code(nFunctionFiles, sectorVariablesCount, functionName, neps, mpi=True)
+
 code_ = core_pv_code
 
 method_name = "simpleSD"

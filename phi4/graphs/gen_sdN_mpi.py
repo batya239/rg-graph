@@ -52,6 +52,7 @@ fileNameC = "%s" % (graphName)
 exec(open(fileName).read())
 
 dynamics.method_name = method_name
+dynamics.code_ = dynamics.core_pvmpi_code
 
 G = Graph(graphName)
 
