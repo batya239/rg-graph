@@ -24,6 +24,7 @@ for dir in os.listdir('.'):
     print dir
     if re.match('^e.*-$', dir):
         g = Graph(dir)
+        g.GenerateNickel()
         try:
             res__, err__, time__ = cluster.tools.collect_result(cluster.tools.find_bestresult(dir))
             print res__, err__
