@@ -669,7 +669,7 @@ return f;
 
 functionsPvCodeTeplate = """
 #include <math.h>
-#define DIMENSION {nDimensions}
+#include "dim.h"
 
 {functions}
 
@@ -678,20 +678,21 @@ functionsPvCodeTeplate = """
 
 headerPvCodeTeplate = """
 #include <math.h>
-#define DIMENSION {nDimensions}
+#include "dim.h"
 
 double func_t_{idx}(double k[DIMENSION]);
 """
 
+dimPvCodeTemplate = """
+#define DIMENSION {dims}
+"""
 
-def saveSectors(sectorTerms, name, dirname, fileIdx, neps, nDimensions):
+
+def saveSectors(sectorTerms, name, dirname, fileIdx, neps):
     sectorFunctionsByEps = [""] * (neps + 1)
     resultingFunctions = ""
     for idx in sectorTerms:
-        sectorExpr = sectorTerms[idx]
-        sectorVariables = set()
-        for expr_ in sectorExpr:
-            sectorVariables = sectorVariables | set(polynomial.formatter.formatVarIndexes(expr_, polynomial.formatter.CPP))
+        sectorExpr, sectorVariables = sectorTerms[idx]
 
         strVars = ""
         varIdx = 0
@@ -718,13 +719,11 @@ def saveSectors(sectorTerms, name, dirname, fileIdx, neps, nDimensions):
                                                            resultingFunctions=resultingFunctions)
     for i in range(neps + 1):
         f = open("%s/%s_func_%s_E%s.c" % (dirname, name, fileIdx, i), 'w')
-        f.write(functionsPvCodeTeplate.format(nDimensions=nDimensions,
-                                              resultingFunction=resultingFunction,
+        f.write(functionsPvCodeTeplate.format(resultingFunction=resultingFunction,
                                               functions=sectorFunctionsByEps[i]))
         f.close()
         f = open("%s/%s_func_%s_E%s.h" % (dirname, name, fileIdx, i), 'w')
-        f.write(headerPvCodeTeplate.format(nDimensions=nDimensions,
-                                           idx=fileIdx))
+        f.write(headerPvCodeTeplate.format(idx=fileIdx))
         f.close()
 
 corePvCodeTemplate = """
@@ -733,8 +732,8 @@ corePvCodeTemplate = """
 #include <vegas.h>
 #include <stdlib.h>
 #include <time.h>
+#include "dim.h"
 #define gamma tgamma
-#define DIMENSION {dim}
 #define FUNCTIONS 1
 #define ITERATIONS 5
 #define NTHREADS 2
@@ -874,12 +873,27 @@ def core_pv_code(nFunctionFiles, sectorVariablesCount, functionName, neps, mpi=F
         mpiInit=mpiInit,
         mpiFinalize=mpiFinalize,
         hypercube=hyperCube,
-        dim=sectorVariablesCount,
         functions=functions)
+
+
+def core_pvmpi_code(nFunctionFiles, sectorVariablesCount, functionName, neps):
+    return core_pv_code(nFunctionFiles, sectorVariablesCount, functionName, neps, mpi=True)
 
 code_ = core_pv_code
 
 method_name = "simpleSD"
+
+
+def removeRoots(expr):
+    res = list()
+    for expr_ in expr:
+        uVars, aVars = splitUA(expr_.getVarsIndexes())
+        tExpr = expr_
+        for var in uVars:
+            tExpr = tExpr.changeVarToPolynomial(var, polynomial.poly([(1, [var, var])], c=1, degree=1)) * polynomial.poly([(1, [var])], c=2.)
+        res.append(tExpr.simplify())
+    return res
+
 
 
 def save(model, expr, sectors, name, neps, statics=False):
@@ -926,12 +940,15 @@ def save(model, expr, sectors, name, neps, statics=False):
 
 #        print delta_arg, sector
 
-
         sectorExpr = [sd_lib.sectorDiagram(expr * coef_, sector, delta_arg=delta_arg)]
 
         for aOp in aOps:
             sectorExpr = aOp(sectorExpr)
         sectorExpr = map(lambda x: x.simplify(), sectorExpr)
+
+        if 'removeRoots' in model.__dict__ and model.removeRoots:
+            sectorExpr = removeRoots(sectorExpr)
+
         check = checkDecomposition(sectorExpr)
 #        print sector, check
         if "bad" in check:
@@ -946,30 +963,33 @@ def save(model, expr, sectors, name, neps, statics=False):
         if len(sectorVariables) > sectorVariablesCount:
             sectorVariablesCount = len(sectorVariables)
 
-        sectorTerms[sectorCount] = sectorExpr
-    toSave = dict()
-    for sectorId in sectorTerms:
-        toSave[sectorId] = sectorTerms[sectorId]
-        size += sectorTerms[sectorId].__sizeof__()
+        sectorTerms[sectorCount] = (sectorExpr, sectorVariables)
+#    toSave = dict()
+#    for sectorId in sectorTerms:
+#        toSave[sectorId] = sectorTerms[sectorId]
+        size += sectorTerms[sectorCount].__sizeof__()
 
         if size >= maxSize:
-            saveSectors(toSave, name_, dirname, fileIdx, neps, sectorVariablesCount)
+            saveSectors(sectorTerms, name_, dirname, fileIdx, neps)
             fileIdx += 1
-            nSaved += len(toSave)
+            nSaved += len(sectorTerms)
             print "saved to file  %s sectors (%s) size=%s..." % (nSaved, fileIdx, size)
             sys.stdout.flush()
-            toSave = dict()
+            sectorTerms = dict()
             size = 0
     if size > 0:
-        saveSectors(toSave, name_, dirname, fileIdx, neps, sectorVariablesCount)
+        saveSectors(sectorTerms, name_, dirname, fileIdx, neps)
         fileIdx += 1
-        nSaved += len(toSave)
+        nSaved += len(sectorTerms)
         print "saved to file  %s sectors (%s) size=%s..." % (nSaved, fileIdx, size)
         sys.stdout.flush()
 
     for i in range(neps + 1):
         f = open("%s/%s_E%s.c" % (dirname, name_, i), 'w')
         f.write(code_(fileIdx, sectorVariablesCount, "%s_func" % name_, neps=i))
+        f.close()
+        f = open("%s/dim.h" % dirname, 'w')
+        f.write(dimPvCodeTemplate.format(dims=sectorVariablesCount))
         f.close()
 
 

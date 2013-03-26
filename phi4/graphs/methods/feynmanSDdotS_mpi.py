@@ -13,7 +13,7 @@ from methods.sd_tools import _cnomenkl, debug, xTreeElement, decompose_expr, dif
 
 import methods.feynmanSDdot
 
-method_name = "feynmanSDdot_mpi"
+method_name = "feynmanSDdotS_mpi"
 sd_tools.method_name = method_name
 Prepare = sd_tools.Prepare
 save = sd_tools.save
@@ -40,6 +40,8 @@ sd_tools._CheckBadDecomposition = True
 #sd_tools._SSym=False
 
 sd_tools._ASectorsDots = True
+
+sd_tools.save_sd = methods.feynmanSDdot.saveSectorFile
 
 
 def execute(name, model, points=10000, threads=4, calc_delta=0., neps=0):

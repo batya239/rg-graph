@@ -34,19 +34,22 @@ class Subgraph:
         """ Calculate dimension of subgraph
              subgraph is list of its internal lines
         """
-        dim=0
-        nodes_set=set()
-        for line in self._lines:
-            dim+=line.Dim(model)
-            nodes_set=nodes_set|set(line.Nodes())
-        for node in nodes_set:
-            dim+=node.Dim(model)
-        if model.__dict__.has_key('space_dim_eff'):
-            space_dim = model.space_dim_eff
+        if "subgraphDim" in model.__dict__ and model.subgraphDim:
+            return model.Dim(self)
         else:
-            space_dim = model.space_dim
-        dim+=space_dim*self.NLoopSub()
-        return dim
+            dim=0
+            nodes_set=set()
+            for line in self._lines:
+                dim+=line.Dim(model)
+                nodes_set=nodes_set|set(line.Nodes())
+            for node in nodes_set:
+                dim+=node.Dim(model)
+            if model.__dict__.has_key('space_dim_eff'):
+                space_dim = model.space_dim_eff
+            else:
+                space_dim = model.space_dim
+            dim+=space_dim*self.NLoopSub()
+            return dim
 
     def NLoopSub(self):
         return len(self._lines)-len(self.InternalNodes())+1

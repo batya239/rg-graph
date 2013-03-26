@@ -107,7 +107,10 @@ class Sector:
             aOps = list()
         for subsector in self.subsectors:
             res.append((subsector.pvar, subsector.svars))
-        return str(res), "(%s,)" % ",".join(aOps), str(self.coef)
+        if len(aOps)==0:
+            return str(res), "()", str(self.coef)
+        else:
+            return str(res), "(%s,)" % ",".join(aOps), str(self.coef)
 
 
 

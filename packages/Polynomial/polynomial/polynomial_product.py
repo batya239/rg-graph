@@ -146,8 +146,10 @@ class PolynomialProduct(object):
             if constPolynomial:
                 const = constPolynomial.c
                 nonConstPolynomial = nPolynomials[0] if nPolynomials[0] != constPolynomial else nPolynomials[1]
-                nonConstPolynomial.c *= const
+                newNonConstPolynomial = nonConstPolynomial.changeConst(nonConstPolynomial.c * const)
                 nPolynomials.remove(constPolynomial)
+                nPolynomials.remove(nonConstPolynomial)
+                nPolynomials.append(newNonConstPolynomial)
             else:
                 break
 
