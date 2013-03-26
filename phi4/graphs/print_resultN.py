@@ -21,13 +21,12 @@ print "{"
 os.chdir("%s/%s" % (model.workdir, methodName))
 
 for dir in os.listdir('.'):
-    print dir
     if re.match('^e.*-$', dir):
         g = Graph(dir)
         g.GenerateNickel()
         try:
             res__, err__, time__ = cluster.tools.collect_result(cluster.tools.find_bestresult(dir))
-            print res__, err__
+#            print res__, err__
             res, err = normalize(g, (res__, err__))
         except ValueError:
             res = []
