@@ -260,6 +260,11 @@ class Polynomial:
         return formatter.format(self)
 
 
+P_ONE = Polynomial({multiindex.CONST: 1}, 1, 1)
+
+PP_ONE = P_ONE.toPolyProd()
+
+
 def poly(p, degree=1, c=1):
     monomials = zeroDict()
     for tMonomial in p:

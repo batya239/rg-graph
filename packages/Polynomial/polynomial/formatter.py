@@ -88,7 +88,7 @@ class AbstractFormatter:
         return self.formatVarIndex(varIndex) if isinstance(varIndex, int) else str(varIndex)
 
     def formatPolynomialProductLogarithm(self, log):
-        if not log.c:
+        if log.isZero():
             return '0'
         elif log.c == 1:
             if not log.power:

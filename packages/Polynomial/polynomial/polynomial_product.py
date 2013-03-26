@@ -73,12 +73,13 @@ class PolynomialProduct(object):
         if self.isZero():
             return None
 
-        aPart = PolynomialProduct(map(lambda p: polynomial.Polynomial(p.monomials, degree=p.degree.a),
-                                      filter(lambda p: p.degree.a != 0, self.polynomials)))
+        rawAMap = map(lambda p: polynomial.Polynomial(p.monomials, degree=p.degree.a),
+                      filter(lambda p: p.degree.a != 0, self.polynomials))
+        aPart = PolynomialProduct(rawAMap) if len(rawAMap) else polynomial.PP_ONE
 
-        bPart = PolynomialProduct(map(lambda p: polynomial.Polynomial(p.monomials, degree=p.degree.b),
-                                      filter(lambda p: p.degree.b != 0, self.polynomials)))
-
+        rawBMap = map(lambda p: polynomial.Polynomial(p.monomials, degree=p.degree.b),
+                      filter(lambda p: p.degree.b != 0, self.polynomials))
+        bPart = PolynomialProduct(rawBMap) if len(rawBMap) else polynomial.PP_ONE
         epsPolynomial = v_number.VariableAwareNumber.getPolynomialCoefficients(map(lambda p: p.c, self.polynomials))
 
         mainEpsExpansion = dict()
@@ -88,6 +89,9 @@ class PolynomialProduct(object):
                 if i - j < 0:
                     continue
                 coefficient.append(Logarithm(bPart, float(epsPolynomial[j]) / float(factorial(i - j)), i - j))
+
+            while coefficient[-1].isZero() and len(coefficient) > 1:
+                del coefficient[-1]
             mainEpsExpansion[i] = coefficient
         return aPart, mainEpsExpansion
 
@@ -148,6 +152,9 @@ class PolynomialProduct(object):
                 break
 
         return nPolynomials
+
+    def isOne(self):
+        return len(self.polynomials) == 1 and self.polynomials[0].isOne()
 
     def isZero(self):
         return len(self.polynomials) == 0
@@ -216,5 +223,8 @@ class Logarithm:
 
     def __repr__(self):
         return formatter.format(self)
+
+    def isZero(self):
+        return not self.c or (self.polynomialProduct.isOne() and self.power != 0)
 
 

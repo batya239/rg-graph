@@ -75,6 +75,10 @@ class PolynomialProductTestCase(PolynomialToolsTestCase):
         self.assertEquals(p1.toPolyProd().epsExpansion(3)[1][3][0].c, 0.5)
         self.assertEquals(p1.toPolyProd().epsExpansion(3)[1][3][0].power, 3)
 
+    def testEpsExpansion2(self):
+        a = poly([(1, [1, 2])]).toPolyProd()
+        self.assertEquals(repr(a.epsExpansion(2)), "(((u1*u2)), {0: [1], 1: [0], 2: [0]})")
+
     def testSimplifying(self):
         npp = pp.simplify()
         self.assertEquals(len(npp.polynomials), 4)
@@ -93,14 +97,15 @@ class PolynomialProductTestCase(PolynomialToolsTestCase):
 
         pp3 = (poly([(1, [1])]) * poly([(1, [1])], degree=-1)).simplify()
 
-# must be at least a product of a unit polynomials
+        # must be at least a product of a unit polynomials
         self.assertTrue(reduce(lambda x, y: x & y, map(lambda x: x.isOne(), pp3.polynomials)))
-# in fact it should be equal to 1, not 1*1
+        # in fact it should be equal to 1, not 1*1
         self.assertEqual(map(lambda x: x.isOne(), pp3.polynomials), [True])
 
     def testMull(self):
         pp0 = poly([(1, ('a0',))]).toPolyProd().set0toVar('a0')
         self.assertEquals(pp0 * pp, pp0)
+
 
 if __name__ == "__main__":
     unittest.main()
