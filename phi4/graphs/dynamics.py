@@ -300,7 +300,7 @@ def mK_(exprList, a, n):
     aMultiplier = polynomial.poly([(1, [])])
     for i in xrange(1, n + 1):
         currList_ = list()
-        aMultiplier *= polynomial.poly([(1. / i, (a,))])
+        aMultiplier *= polynomial.poly([(1. / i, ())])
         for expr in currList:
             currList_ += expr.diff(a)
         currList = currList_
@@ -378,6 +378,18 @@ def D2(a):
             expr_ = [exprList, ]
 
         return diff_(expr_, a, 2)
+
+    return wrapper
+
+
+def D2s(a):
+    def wrapper(exprList):
+        expr_ = exprList
+        if not isinstance(exprList, list):
+            expr_ = [exprList, ]
+
+        diffA = diff_(expr_, a, 1)
+        return diffA + map(lambda x: -x.set0toVar(a), diffA)
 
     return wrapper
 

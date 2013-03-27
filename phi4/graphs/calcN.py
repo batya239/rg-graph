@@ -30,5 +30,5 @@ name = str(g1.GenerateNickel())
 (res, err) = execute(name, model, points=points, neps=0, threads=4, calc_delta=0.0)
 for i in range(len(res)):
     print i, (res[i], err[i])
-if 'normalizeN' in model.__dict__:
-    print model.normalizeN(g1, (res, err))
+
+print model.normalizeN(g1, (res, err))

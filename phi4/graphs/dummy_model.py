@@ -322,7 +322,6 @@ class _phi4_d3(_generic_model):
         return map(lambda x: (x[0] / graph.sym_coef() * (G(n / 2.) / sympy.pi ** (n / 2.)).evalf(),), result)
 
 
-
 class _phi4_d2(_generic_model):
     def __init__(self, name):
         self.name = name
@@ -331,6 +330,7 @@ class _phi4_d2(_generic_model):
         self.target = 6
         self.workdir = '/home/mkompan/work/rg-graph/phi_4_d2/'
         self.removeRoots = False
+#        self.subtractionOperators = "from dynamics import to1, D1, mK0\n"
 
     def Dim(self, obj):
         if isinstance(obj, Graph):
@@ -354,3 +354,14 @@ class _phi4_d2(_generic_model):
         n = graph.NLoops()
         #    return map(lambda x: (x[0] / graph.sym_coef(),), result)
         return map(lambda x: (x[0] / graph.sym_coef() * (G(n)).evalf(),), result)
+
+
+class _phi4_d2_s2(_phi4_d2):
+    def __init__(self, name):
+        self.name = name
+        self.space_dim = 2.
+        self.subgraphDim = True
+        self.target = 6
+        self.workdir = '/home/mkompan/work/rg-graph/phi_4_d2_s2/'
+        self.removeRoots = False
+        self.subtractionOperators = "from dynamics import to1\nfrom dynamics import mK1 as mK0\nfrom dynamics import D2s as D1\n"
