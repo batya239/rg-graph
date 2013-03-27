@@ -47,7 +47,7 @@ folder = "%s/%s/%s" % (model.workdir, method_name, graphName)
 
 fileName = folder + "/sectors.py"
 
-fileNameC = "%s" % (graphName)
+fileNameC = "%s" % graphName
 
 sectorsFileContent = open(fileName).readlines()
 if "subtractionOperators" in model.__dict__:
