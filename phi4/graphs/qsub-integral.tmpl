@@ -1,0 +1,58 @@
+#!/bin/sh
+#TMPDIR=`mktemp -d`
+export LD_LIBRARY_PATH=:/home/mkompan/libs/pvegas/
+export PATH=/usr/lib64/openmpi/1.4-gcc/bin:$PATH
+export LD_LIBRARY_PATH=/usr/lib64/openmpi/1.4-gcc/lib64:$LD_LIBRARY_PATH:/usr/lib/mpich2/lib:/usr/lib64/mpich2/lib/:/usr/lib64/openmpi/1.4-gcc/../lib/
+PREFIX=/usr/lib64/openmpi/1.4-gcc
+
+DIR=<DIR>
+PROG=<PROG>
+POINTS=<POINTS>
+NODES=<NODES>
+ITER=<ITER>
+DELTA=<DELTA>
+
+ echo $PROG $POINTS $NODES $ITER
+if [ -n "" ];then cd ; fi
+
+
+if [ -n "" ]; then
+	NODEFILE=~/file.$$
+	rm -f $NODEFILE
+	touch $NODEFILE
+	for i in `cat $PBS_NODEFILE | uniq`; do echo "${i}:";  done  >> $NODEFILE
+else
+	NODEFILE=$PBS_NODEFILE
+fi
+
+
+for adrr in `cat $PBS_NODEFILE`;do
+	ssh $adrr /usr/local/sbin/cleanipcs;
+done
+cd $DIR
+echo "$PREFIX/bin/mpirun  -machinefile $NODEFILE  -x LD_LIBRARY_PATH  -np $NODES $PROG $POINTS $NODES $ITER -t $TMPDIR"
+#echo $LD_LIBRARY_PATH
+#ldd $PROG
+#ls -la /usr/lib64/openmpi/1.4-gcc/
+#echo "asdasdasd"
+#ls -la /usr/lib64/openmpi/bin
+#echo "asdasdasd"
+#ls -la /usr/lib64/openmpi/lib
+#echo "asdasdasd"
+$PREFIX/bin/mpirun  -machinefile $NODEFILE  -x LD_LIBRARY_PATH  -np $NODES $PROG $POINTS $NODES $ITER $DELTA |tee ${PROG}-curr.log
+#cd -
+
+#if [ -f "$TMPDIR/" ]; then
+#	mv $TMPDIR/ $PWD/
+#else
+#	echo "no outputfile";
+#fi
+
+#if [ -n "$TMPDIR" ]; then 
+#	rm -rf $TMPDIR;
+#fi
+
+if [ -n "" ]; then
+        rm -f $NODEFILE
+fi
+
