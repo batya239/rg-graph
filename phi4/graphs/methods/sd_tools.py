@@ -42,6 +42,9 @@ _ASym2=True
 _SSym=True
 #_SSym=False
 
+_ASectorsDots = False
+
+
 import subgraphs
 
 class SubSector:
@@ -97,6 +100,19 @@ class Sector:
 
     def __str__(self):
         return "coef=%s,%s" % (self.coef, self.subsectors)
+
+    def simpleRepresentation(self, aOps=None):
+        res = list()
+        if aOps is None:
+            aOps = list()
+        for subsector in self.subsectors:
+            res.append((subsector.pvar, subsector.svars))
+        if len(aOps)==0:
+            return str(res), "()", str(self.coef)
+        else:
+            return str(res), "(%s,)" % ",".join(aOps), str(self.coef)
+
+
 
     def append(self, subsector):
         """
@@ -557,6 +573,7 @@ def FeynmanSubgraphs(graph, model):
     graph.RemoveSubgaphs(subs_toremove)
 
     subgraphs.RemoveTadpoles(graph)
+#    print map(lambda x: (x,x._tadpoles), graph._subgraphs)
 
 
 def apply_eq_onsub(qi2l, subgraphs_as_set):
@@ -847,6 +864,33 @@ def RequiredDecompositionSum(graph, ds, idx):
     return res
 
 
+def checkRequiredDecompositions(graph, subgraphIdx, intersect):
+    eqSubs = graph._eqsubgraphs
+    subDims = graph._subgraph_dims
+
+    subgraph = graph._subgraphs[subgraphIdx]
+    extLegs = subgraph.CountExtLegs()
+
+    if extLegs > 2:
+        return len(intersect) >= RequiredDecompositions(subDims[subgraphIdx])
+    elif extLegs == 2:
+        if subDims[subgraphIdx] == 2:
+            return len(intersect) >= RequiredDecompositions(subDims[subgraphIdx])
+        elif subDims[subgraphIdx] == 0:
+            if len(subgraph._tadpoles) == 0:
+                return len(intersect) >= RequiredDecompositions(subDims[subgraphIdx]) ## достаточно ли одной декомпозиции? для подграфа с точкой но без
+            elif len(subgraph._tadpoles) == 1:
+                subgraphTadpoleLinesIdx = set([x.idx() for x in subgraph._tadpoles[0].lines])
+                return (len(intersect) >= RequiredDecompositions(subDims[subgraphIdx])) and len(intersect & subgraphTadpoleLinesIdx) > 0
+            else:
+                raise ValueError, "more than one tadpole subgraph = %s, tadpoles = %s" % (subgraph, subgraph._tadpoles)
+        else:
+            raise NotImplementedError, "Don't know wat to do with subgraph with ExtLegs = %s, Dim = %s" % (extLegs, subDims[subgraphIdx])
+    else:
+        raise NotImplementedError, "Don't know wat to do with subgraph with ExtLegs = %s " % extLegs
+
+
+
 def FindStrechsForDS(sectortree, graph):
     res = list()
     subs = graph._eqsubgraphs
@@ -857,6 +901,9 @@ def FindStrechsForDS(sectortree, graph):
     if debug:
         print
         print "FindStrechsForDS", sector, sectortree.ds, "a_strechs ",strechs, "ds_vars", sectortree.ds_vars, subs
+        for idx in range(len(subs)):
+            print graph._subgraphs[idx], graph._subgraphs[idx]._tadpoles
+        print "-----"
     MinNloop = None
     DS_Vars = None
     decomposed=False
@@ -886,7 +933,13 @@ def FindStrechsForDS(sectortree, graph):
             print strech, sector_set, intersect, MinNloop,  graph._subgraphs[idx].NLoopSub(), sectortree.pvar
         if (MinNloop == graph._subgraphs[idx].NLoopSub()):
 #            print "---"
-            if (len(intersect) >= RequiredDecompositions(sub_dims[idx])) and sectortree.pvar in intersect:
+            if not _ASectorsDots:
+                performDS = (len(intersect) >= RequiredDecompositions(sub_dims[idx])) and sectortree.pvar in intersect
+            else:
+#                print idx, intersect, subs[idx],  checkRequiredDecompositions(graph, idx, intersect)
+                performDS = checkRequiredDecompositions(graph, idx, intersect) and sectortree.pvar in intersect
+
+            if performDS:
                 sub = set(subs[idx])
                 bad = False
                 for strech2 in res:
@@ -1185,7 +1238,8 @@ def decompose_expr(sector, poly_lst, strechs, jakob=True):
                     terms_n.append(set1_poly_lst(term, strech))
                 sector.excluded_vars.append(strech)
             else:
-                terms = []
+                terms = []  # ??????
+                raise ValueError, "invalid strech %s : strechs = %s, sector.ds = %s " % (sidx, strechs, sector.ds)
                 break
         elif  strechs[strech] == 1 and sidx in sector.ds.keys():
             if sector.ds[sidx] == 0:

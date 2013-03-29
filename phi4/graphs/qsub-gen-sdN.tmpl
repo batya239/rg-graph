@@ -1,0 +1,45 @@
+#!/bin/sh
+#TMPDIR=`mktemp -d`
+export PYTHON=~/soft/Python-2.7.3/python
+
+WORKDIR=~/workspace/rg-graph/phi4/graphs/
+GRAPH=<GRAPH>
+METHOD="methods.feynmanSDdotS_mpi"
+MODEL=<MODEL>
+echo $GRAPH
+
+if [ -n "" ];then cd ; fi
+
+
+if [ -n "" ]; then
+	NODEFILE=~/file.$$
+	rm -f $NODEFILE
+	touch $NODEFILE
+	for i in `cat $PBS_NODEFILE | uniq`; do echo "${i}:";  done  >> $NODEFILE
+else
+	NODEFILE=$PBS_NODEFILE
+fi
+
+
+for adrr in `cat $PBS_NODEFILE`;do
+	ssh $adrr /usr/local/sbin/cleanipcs;
+done
+
+
+cd $WORKDIR
+time $PYTHON gen_sdN_mpi.py $GRAPH $METHOD $MODEL 2>&1
+
+#if [ -f "$TMPDIR/" ]; then
+#	mv $TMPDIR/ $PWD/
+#else
+#	echo "no outputfile";
+#fi
+
+#if [ -n "$TMPDIR" ]; then 
+#	rm -rf $TMPDIR;
+#fi
+
+if [ -n "" ]; then
+        rm -f $NODEFILE
+fi
+

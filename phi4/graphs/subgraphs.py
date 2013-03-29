@@ -34,19 +34,22 @@ class Subgraph:
         """ Calculate dimension of subgraph
              subgraph is list of its internal lines
         """
-        dim=0
-        nodes_set=set()
-        for line in self._lines:
-            dim+=line.Dim(model)
-            nodes_set=nodes_set|set(line.Nodes())
-        for node in nodes_set:
-            dim+=node.Dim(model)
-        if model.__dict__.has_key('space_dim_eff'):
-            space_dim = model.space_dim_eff
+        if "subgraphDim" in model.__dict__ and model.subgraphDim:
+            return model.Dim(self)
         else:
-            space_dim = model.space_dim
-        dim+=space_dim*self.NLoopSub()
-        return dim
+            dim=0
+            nodes_set=set()
+            for line in self._lines:
+                dim+=line.Dim(model)
+                nodes_set=nodes_set|set(line.Nodes())
+            for node in nodes_set:
+                dim+=node.Dim(model)
+            if model.__dict__.has_key('space_dim_eff'):
+                space_dim = model.space_dim_eff
+            else:
+                space_dim = model.space_dim
+            dim+=space_dim*self.NLoopSub()
+            return dim
 
     def NLoopSub(self):
         return len(self._lines)-len(self.InternalNodes())+1
@@ -243,21 +246,21 @@ def DetectSauseges(_subgraphs):
 
 
 def RemoveTadpoles(graph):
-    graph_as_sub=graph.asSubgraph()
-    res =  copy(graph._subgraphs)
+    graph_as_sub = graph.asSubgraph()
+    res = copy(graph._subgraphs)
     res.append(graph_as_sub) #Durty trick
-    if graph_as_sub.CountExtLegs()==2:
-        lst=[graph_as_sub]
+    if graph_as_sub.CountExtLegs() == 2:
+        lst = [graph_as_sub]
     else:
-        lst=[]
-    for sub in lst + sorted(graph._subgraphs,key=len,reverse=True):
+        lst = []
+    for sub in lst + sorted(graph._subgraphs, key=len, reverse=True):
         if sub not in res:
             continue
         else:
-            tadpoles=sub.FindTadpoles(res)
+            tadpoles = sub.FindTadpoles(res)
             for tadsub in tadpoles:
                 if tadsub in res:
                     res.remove(tadsub)
     res.remove(graph_as_sub)
-    graph._subgraphs=res
+    graph._subgraphs = res
 

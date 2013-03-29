@@ -15,6 +15,35 @@ def sectorPoly(poly, sec):
     return poly
 
 
+def check_delta(delta_arg, sec):
+    """
+    Checks if delta_args consistent with sec[0]
+    sec[0] decomposition space must be equal to set of delta_args variables.
+    delta_args must be == \sum_i u_i i=...
+    """
+    if delta_arg is None:
+        return True
+    else:
+        if delta_arg.degree <> (1, 0):
+            return False
+        arg_set = set()
+        for monomial in delta_arg.monomials:
+            if delta_arg.monomials[monomial] <> 1:
+                return False
+
+            monomial_vars = list(monomial.getVarsIndexes())
+            if len(monomial_vars) <> 1:
+                return False
+            if monomial.vars[monomial_vars[0]] <> 1:
+                return False
+            if monomial_vars[0] in arg_set:
+                return False
+            arg_set = arg_set | set(monomial_vars)
+        first_sector_set = set(sec[0][1]) | set([sec[0][0], ])
+
+        return first_sector_set == arg_set
+
+
 def sectorDiagram(expr, sec, delta_arg=None, remove_delta=True):
     """
     This functions performs variable transformation of a whole diagram according to sector nomenclature sec.
@@ -22,34 +51,6 @@ def sectorDiagram(expr, sec, delta_arg=None, remove_delta=True):
     and d_arg being the delta-function argument ,
     If (delta_arg<>None and remove_delta) , first decomposition is considered primary.
     """
-
-    def check_delta(delta_arg, sec):
-        """
-        Checks if delta_args consistent with sec[0]
-        sec[0] decomposition space must be equal to set of delta_args variables.
-        delta_args must be == \sum_i u_i i=...
-        """
-        if delta_arg is None:
-            return True
-        else:
-            if delta_arg.degree <> (1, 0):
-                return False
-            arg_set = set()
-            for monomial in delta_arg.monomials:
-                if delta_arg.monomials[monomial] <> 1:
-                    return False
-
-                monomial_vars = list(monomial.getVarsIndexes())
-                if len(monomial_vars) <> 1:
-                    return False
-                if monomial.vars[monomial_vars[0]] <> 1:
-                    return False
-                if monomial_vars[0] in arg_set:
-                    return False
-                arg_set = arg_set | set(monomial_vars)
-            first_sector_set = set(sec[0][1]) | set([sec[0][0], ])
-
-            return first_sector_set == arg_set
 
     if not check_delta(delta_arg, sec):
         raise ValueError, 'Invalid delta functions arguments'
@@ -65,13 +66,13 @@ def sectorDiagram(expr, sec, delta_arg=None, remove_delta=True):
     result = map(lambda x: sectorPoly(x, sec), result)
 
     #
-    #    Now we should add Jacobian of performed variables transformations
+    #    Now we should add jacobian of performed variables transformations
     #
 
     for (main_var, other_vars) in sec:
         m = [main_var] * len(other_vars)
-        Jacobian = polynomial.poly([(1, m)], degree=(1, 0))
-        result[0] = result[0] * Jacobian.toPolyProd()
+        jacobian = polynomial.poly([(1, m)], degree=(1, 0))
+        result[0] = result[0] * jacobian.toPolyProd()
 
     if remove_delta:
         if delta_arg is None:
@@ -86,8 +87,8 @@ def sectorDiagram(expr, sec, delta_arg=None, remove_delta=True):
         # additional multiplier from delta function delta(Lx-1)=1/L delta(x-1/L) = x delta(x-1/L)
         #
         result[0] = result[0] * deltaMultiplier.toPolyProd()
-        result[0] = result[0].simplify()
         primaryVar = sec[0][0]
+
         #
         # Now we remove delta function by replacing primaryVar to substitution.set1toVar(primaryVar)**(-1)
         # after decomposition primaryVar must be factorized and result[0]~ primaryVar**a*f(doesn't depend
@@ -97,24 +98,20 @@ def sectorDiagram(expr, sec, delta_arg=None, remove_delta=True):
         # Removal of delta function performed in two stages. At first one for each factorized primaryVar we add
         # multiplier substitution.set1toVar(primaryVar)**(-1), on the second we set primaryVar = 1
         #
-        for p in result[0].polynomials:
-            if len(p.monomials) == 1:
-                monomial = p.monomials.keys()[0]
-                if primaryVar in monomial.vars.keys():
-                    multiplier = substitution.set1toVar(primaryVar)
-                    multiplier.degree = -p.degree * monomial.vars[primaryVar]
-                    result[0] = result[0] * multiplier.toPolyProd()
-            else:
-                if primaryVar in p.getVarsIndexes():
-                    raise ValueError, "Invalid decomposition: \nexpr: %s\n polynomial: %s\nprimary var %s" % (
-                        result[0], p, primaryVar)
+        multiplier = substitution.set1toVar(primaryVar)
+        primaryVarDegree = result[0].calcPower(primaryVar)
+        multiplier = multiplier.changeDegree(-primaryVarDegree)
+        result[0] = result[0] * \
+                    multiplier.toPolyProd() * \
+                    polynomial.poly([(1, [primaryVar])], degree=-primaryVarDegree).toPolyProd()
+
         # (second stage)
         result[0] = result[0].set1toVar(primaryVar)
 
-        result[0] = result[0].simplify()
+#        result[0] = result[0].simplify()
         result[1] = None
     else:
-        result[0] = result[0].simplify()
+#        result[0] = result[0].simplify()
         if delta_arg is None:
             result[1] = None
     return result[0] if result[1] is None else result

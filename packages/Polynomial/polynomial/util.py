@@ -1,6 +1,21 @@
 #!/usr/bin/python
 # -*- coding: utf8
-import copy
+import collections
+
+
+_zeroFactory = lambda: 0
+
+
+def zeroDict():
+    return collections.defaultdict(_zeroFactory)
+
+
+_emptyListFactory = lambda: []
+
+
+def emptyListDict():
+    return collections.defaultdict(_emptyListFactory)
+
 
 class UnorderedHashable(object):
     def __init__(self, anIterable):
@@ -43,7 +58,7 @@ def dict_hash1(aDict):
     hash from dictionary where key is hashable
     """
     h = 0
-    for p in aDict.items():
+    for p in aDict.iteritems():
         h += hash(p)
     return h
 

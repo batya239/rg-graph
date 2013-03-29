@@ -15,13 +15,9 @@ if len(sys.argv) > 2:
     else:
         check_tadpoles = False
 
-topologies = [t for t in topology.GetTopologies(valence, with_tadpoles=False)]
+topologies = [t for t in topology.GetTopologies(valence, with_tadpoles=check_tadpoles)]
 
 for t in topologies:
-    if check_tadpoles:
-        if not topology.HasTadpole(nickel.Nickel(string=t).edges):
-            print t
-    else:
-        print t
+    print t,
 
 

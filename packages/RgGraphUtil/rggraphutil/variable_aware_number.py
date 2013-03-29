@@ -67,6 +67,8 @@ class VariableAwareNumber:
         else:
             return VariableAwareNumber(self.varName, self.a + other.a, self.b + other.b)
 
+    __radd__ = __add__
+
     def __sub__(self, other):
         if isinstance(other, int):
             return VariableAwareNumber(self.varName, self.a - other, self.b)

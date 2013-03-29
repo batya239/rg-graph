@@ -29,7 +29,7 @@ class SectorDiagramTestCase(unittest.TestCase):
         res = (polynomial.poly([(1, [1, 1, 2]), (1, [1, 1, 2, 2, 3]), (1, [1, 1, 2, 3])], degree=(-2, 1)).set1toVar(1)
                * polynomial.poly([(1, []), (1, [2, ]), (1, [2, 3, ])], degree=(1, -2))
                * polynomial.poly([(1, [2, ]), ])).simplify()
-        self.assertEquals(sd_lib.sectorDiagram(expr, sector, delta_arg), res)
+        self.assertEquals(sd_lib.sectorDiagram(expr, sector, delta_arg).simplify(), res)
 
     def testInvalidDeltaArg(self):
         sector = [(1, (2, 3)), (2, (3,))]
@@ -45,11 +45,13 @@ class SectorDiagramTestCase(unittest.TestCase):
         res = [(polynomial.poly([(1, [1, 1, 2]), (1, [1, 1, 2, 2, 3]), (1, [1, 1, 2, 3])], degree=(-2, 1))
                * polynomial.poly([(1, [1, 1, 2, ]), ])).simplify(),
                polynomial.poly([(1, [1, ]), (1, [1, 2, ]), (1, [1, 2, 3, ])])]
-        self.assertEquals(sd_lib.sectorDiagram(expr, sector, delta_arg, remove_delta=False), res)
+        ans = sd_lib.sectorDiagram(expr, sector, delta_arg, remove_delta=False)
+        self.assertEquals(ans[0].simplify(), res[0])
+        self.assertEquals(ans[1], res[1])
 
         res = (polynomial.poly([(1, [1, 1, 2]), (1, [1, 1, 2, 2, 3]), (1, [1, 1, 2, 3])], degree=(-2, 1))
                * polynomial.poly([(1, [1, 1, 2, ]), ])).simplify()
-        self.assertEquals(sd_lib.sectorDiagram(expr, sector, remove_delta=False), res)
+        self.assertEquals(sd_lib.sectorDiagram(expr, sector, remove_delta=False).simplify(), res)
 
 
 

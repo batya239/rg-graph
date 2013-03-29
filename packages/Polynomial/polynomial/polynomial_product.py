@@ -12,11 +12,19 @@ import util
 
 
 def _preparePolynomials(polynomials):
+    pOne = None
     for p in polynomials:
         if p.isZero():
             return list()
+        elif p.isOne():
+            pOne = p
 
-    return filter(lambda p: not p.isOne(), polynomials)
+    filteredPolynomials = filter(lambda p: not p.isOne(), polynomials)
+
+    if pOne is not None and len(filteredPolynomials) == 0:
+        return [pOne]
+    else:
+        return filteredPolynomials
 
 
 class PolynomialProduct(object):
@@ -47,7 +55,7 @@ class PolynomialProduct(object):
         """
         result = list()
         for p in self.polynomials:
-            polyList = copy.deepcopy(filter(lambda _p: _p <> p, self.polynomials))
+            polyList = filter(lambda _p: _p != p, self.polynomials)
             polyList += p.diff(varIndex)
             pp = PolynomialProduct(polyList)
             if not pp.isZero(): result.append(pp)
@@ -65,12 +73,13 @@ class PolynomialProduct(object):
         if self.isZero():
             return None
 
-        aPart = PolynomialProduct(map(lambda p: polynomial.Polynomial(p.monomials, degree=p.degree.a),
-                                      filter(lambda p: p.degree.a != 0, self.polynomials)))
+        rawAMap = map(lambda p: polynomial.Polynomial(p.monomials, degree=p.degree.a),
+                      filter(lambda p: p.degree.a != 0, self.polynomials))
+        aPart = PolynomialProduct(rawAMap) if len(rawAMap) else polynomial.PP_ONE
 
-        bPart = PolynomialProduct(map(lambda p: polynomial.Polynomial(p.monomials, degree=p.degree.b),
-                                      filter(lambda p: p.degree.b != 0, self.polynomials)))
-
+        rawBMap = map(lambda p: polynomial.Polynomial(p.monomials, degree=p.degree.b),
+                      filter(lambda p: p.degree.b != 0, self.polynomials))
+        bPart = PolynomialProduct(rawBMap) if len(rawBMap) else polynomial.PP_ONE
         epsPolynomial = v_number.VariableAwareNumber.getPolynomialCoefficients(map(lambda p: p.c, self.polynomials))
 
         mainEpsExpansion = dict()
@@ -80,11 +89,19 @@ class PolynomialProduct(object):
                 if i - j < 0:
                     continue
                 coefficient.append(Logarithm(bPart, float(epsPolynomial[j]) / float(factorial(i - j)), i - j))
+
+            while coefficient[-1].isZero() and len(coefficient) > 1:
+                del coefficient[-1]
             mainEpsExpansion[i] = coefficient
         return aPart, mainEpsExpansion
 
     def changeVarToPolynomial(self, varIndex, polynomial):
         return PolynomialProduct(map(lambda p: p.changeVarToPolynomial(varIndex, polynomial), self.polynomials))
+
+    def calcPower(self, varIndex):
+        return reduce(lambda a, p: eps_number.epsNumber(p.calcPower(varIndex)) + a, filter(lambda p: not p.isConst(),
+                                                                                           self.polynomials),
+                      eps_number.epsNumber(0))
 
     def simplify(self):
         """
@@ -100,13 +117,10 @@ class PolynomialProduct(object):
         """
         collecting polynomials by monomial part
         """
-        factorDict = dict()
+        factorDict = util.emptyListDict()
         for p in polynomials:
-            key = util.unordered_hashable(tuple(p.monomials))
-            if factorDict.has_key(key):
-                factorDict[key].append(p)
-            else:
-                factorDict[key] = [p]
+            key = util.unordered_hashable(tuple(p.monomials.items()))
+            factorDict[key].append(p)
 
         nPolynomials = []
         for polyList in factorDict.values():
@@ -118,7 +132,8 @@ class PolynomialProduct(object):
                 elif len(mergeResult) == 2:
                     mainPolynomial = mergeResult[1]
                     nPolynomials.append(mergeResult[0])
-                else: raise ValueError, 'invalid merge length %s' % mergeResult
+                else:
+                    raise ValueError('invalid merge length %s' % mergeResult)
             nPolynomials.append(mainPolynomial)
 
         while len(nPolynomials) > 1:
@@ -131,12 +146,17 @@ class PolynomialProduct(object):
             if constPolynomial:
                 const = constPolynomial.c
                 nonConstPolynomial = nPolynomials[0] if nPolynomials[0] != constPolynomial else nPolynomials[1]
-                nonConstPolynomial.c *= const
+                newNonConstPolynomial = nonConstPolynomial.changeConst(nonConstPolynomial.c * const)
                 nPolynomials.remove(constPolynomial)
+                nPolynomials.remove(nonConstPolynomial)
+                nPolynomials.append(newNonConstPolynomial)
             else:
                 break
 
         return nPolynomials
+
+    def isOne(self):
+        return len(self.polynomials) == 1 and self.polynomials[0].isOne()
 
     def isZero(self):
         return len(self.polynomials) == 0
@@ -155,7 +175,8 @@ class PolynomialProduct(object):
                 return PolynomialProduct([])
             if (isinstance(other, int) or other.isRealNumber()) and len(self.polynomials):
                 self.polynomials[0] *= other
-            return PolynomialProduct(self.polynomials + [polynomial.Polynomial({multiindex.MultiIndex(): 1}, c=eps_number.epsNumber(other))])
+            return PolynomialProduct(
+                self.polynomials + [polynomial.Polynomial({multiindex.MultiIndex(): 1}, c=eps_number.epsNumber(other))])
         elif isinstance(other, polynomial.Polynomial):
             return self * other.toPolyProd()
         else:
@@ -204,5 +225,8 @@ class Logarithm:
 
     def __repr__(self):
         return formatter.format(self)
+
+    def isZero(self):
+        return not self.c or (self.polynomialProduct.isOne() and self.power != 0)
 
 

@@ -15,21 +15,6 @@ from dummy_model import _phi3_dyn, _phi4_dyn
 import dynamics
 
 
-def splitUA(varSet):
-    u = list()
-    a = list()
-    for var in varSet:
-        if isinstance(var, str) and re.match('^a.*', var):
-            a.append(var)
-        else:
-            u.append(var)
-    return set(u), set(a)
-
-
-def deltaArg(varSet):
-    return polynomial.poly(map(lambda x: (1, [x]), varSet))
-
-
 model = _phi4_dyn("phi4_dyn_test")
 
 filename = sys.argv[1]
@@ -37,36 +22,23 @@ filename = sys.argv[1]
 exec ('import %s as data' % filename[:-3])
 
 print data.graphName
-
 gs = graph_state.GraphState.fromStr(data.graphName)
 tVersion = data.tVersion
 
 dG = dynamics.DynGraph(gs)
-dG.FindSubgraphs(model)
-subgraphs.RemoveTadpoles(dG)
-Components = dynamics.generateCDET(dG, tVersion, model=model)
-print str(gs)
-print tVersion
-#print "C = %s\nD = %s\nE = %s\nT = %s\n" % tuple(Components)
-C, D, E, T = Components
-#d=4-2*e
 
-
-expr = C * D * E * T
-print "C = %s\nD = %s\nE = %s\nT = %s\n" % (C, D, E, T)
-#print expr
-
-
-variables = expr.getVarsIndexes()
-print "variables: ", variables
-uVars, aVars = splitUA(variables)
-delta_arg = deltaArg(uVars)
 
 neps = model.target - dG.NLoops()
 
-dynamics.save(model, expr, data.sectors, filename[:-3], neps)
-dynamics.compileCode(model, filename[:-3], options=["-lm", "-lpthread", "-lpvegas", "-O2"])
+(res, err) = dynamics.execute(filename[:-3], model,
+                              neps=neps,
+                              points=int(sys.argv[2]),
+                              threads=4)
+                              #calc_delta=0.0000000001))
 
+
+for i in range(len(res)):
+    print i, (res[i], err[i])
 
 # print
 # print "-------------------"

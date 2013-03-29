@@ -5,52 +5,66 @@ immutable MultiIndex, represent by dictionary
 ex: (3, 0, 1) --> x_1^3 * x_3 -->  {1: 3, 3: 1}
 """
 import copy
-from util import dict_hash1
+from util import dict_hash1, zeroDict
 
-def _prepareVars(vars):
-    return dict((v, p) for v, p in vars.items() if p <> 0)
+
+def _prepareVars(_vars):
+    emptyKeys = set()
+    for k, v in _vars.iteritems():
+        if v == 0:
+            emptyKeys.add(k)
+    for k in emptyKeys:
+        del _vars[k]
+
+    return _vars
 
 class MultiIndex:
-    def __init__(self, vars=dict()):
+    def __init__(self, _vars=zeroDict(), doPrepare=True):
         """self.vars -- dictionary {variable index --> variable power}
         """
-        self.vars = _prepareVars(vars)
+        self.vars = _prepareVars(_vars) if doPrepare else _vars
+        self.hash = None
 
     def hasVar(self, varIndex):
         return self.vars.has_key(varIndex)
 
     def set1toVar(self, varIndex):
-        nVars = copy.deepcopy(self.vars)
-        if nVars.has_key(varIndex):
-            del nVars[varIndex]
-        return MultiIndex(nVars)
+        if varIndex in self.vars:
+            nVars = zeroDict()
+            for k, v in self.vars.iteritems():
+                if k != varIndex:
+                    nVars[k] = v
+            return MultiIndex(nVars, doPrepare=False)
+        else:
+            return self
 
     def diff(self, varIndex):
         """
         decrease power of varIndex if exist and returns old power
         """
-        if self.vars.has_key(varIndex):
-            deg = self.vars[varIndex]
-            nVars = copy.deepcopy(self.vars)
+        deg = self.vars.get(varIndex, None)
+        if deg:
+            nVars = self.vars.copy()
             if deg == 1:
                 del nVars[varIndex]
-            else: nVars[varIndex] -= 1
-            return deg, MultiIndex(nVars)
+            else:
+                nVars[varIndex] -= 1
+            return deg, MultiIndex(nVars, doPrepare=False)
         else:
-            return 0, MultiIndex()
+            return 0, CONST
+
+    def getVarPower(self, varIndex):
+        return self.vars.get(varIndex, None)
 
     def stretch(self, sVar, varList):
         deltaDegree = 0
-        nVars = copy.deepcopy(self.vars)
         for v in varList:
-            if nVars.has_key(v):
-                deltaDegree += nVars[v]
-        if nVars.has_key(sVar):
-            deg = nVars[sVar]
-            nVars[sVar] = deg + deltaDegree
-        elif deltaDegree:
-            nVars[sVar] = deltaDegree
-        return MultiIndex(nVars)
+            deltaDegree += self.vars.get(v, 0)
+        if deltaDegree != 0:
+            nVars = self.vars.copy()
+            nVars[sVar] += deltaDegree
+            return MultiIndex(nVars, doPrepare=False)
+        return self
 
     def getVarsIndexes(self):
         indexes = set()
@@ -58,23 +72,16 @@ class MultiIndex:
         return indexes
 
     def split(self):
-        return map(lambda i: (MultiIndex({i[0]:1}), i[1]), self.vars.items())
-
-    @staticmethod
-    def _append(vars, var, power):
-        if vars.has_key(var):
-            vars[var] += power
-        else:
-            vars[var] = power
+        return map(lambda i: (MultiIndex({i[0]: 1}), i[1]), self.vars.items())
 
     def __mul__(self, other):
-        nVars = copy.deepcopy(self.vars)
+        nVars = self.vars.copy()
         for v, p in other.vars.items():
-            MultiIndex._append(nVars, v, p)
-        return MultiIndex(nVars)
+            nVars[v] += p
+        return MultiIndex(nVars, doPrepare=False)
 
     def __sub__(self, other):
-        result = dict()
+        result = zeroDict()
         for k, v in self.vars.items():
             result[k] = v - (other.vars[k] if other.vars.has_key(k) else 0)
         return MultiIndex(result)
@@ -88,7 +95,9 @@ class MultiIndex:
         return self.vars == other.vars
 
     def __hash__(self):
-        return dict_hash1(self.vars)
+        if self.hash is None:
+            self.hash = dict_hash1(self.vars)
+        return self.hash
 
     def __repr__(self):
         if len(self.vars) == 0:
@@ -99,11 +108,12 @@ class MultiIndex:
 
 CONST = MultiIndex()
 
+
 def intersection(mi1, mi2):
     """
     finding intersection two dictionaries where values is numbers
     """
-    result = dict()
+    result = zeroDict()
     for k, v in mi1.vars.items():
         if mi2.vars.has_key(k):
             result[k] = min(v, mi2.vars[k])

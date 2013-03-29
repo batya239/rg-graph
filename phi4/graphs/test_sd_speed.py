@@ -1,16 +1,16 @@
 #!/usr/bin/python
 # -*- coding: utf8
-
+import os
 
 import sys
 import re
 
-import graph_state
-import polynomial.sd_lib as sd_lib
 import polynomial
+from graphs import Graph
+from methods import sd_tools
 
 import subgraphs
-from dummy_model import _phi3_dyn, _phi4_dyn
+from dummy_model import _phi4
 
 import dynamics
 
@@ -30,30 +30,35 @@ def deltaArg(varSet):
     return polynomial.poly(map(lambda x: (1, [x]), varSet))
 
 
-model = _phi4_dyn("phi4_dyn_test")
+model = _phi4("dummy")
+model.workdir = "./"
 
-filename = sys.argv[1]
+graphData = sys.argv[1]
+method = "methods.feynmanSDdot"
 
-exec ('import %s as data' % filename[:-3])
+exec('import %s as methodModule' % method)
 
-print data.graphName
+method_name = methodModule.method_name
 
-gs = graph_state.GraphState.fromStr(data.graphName)
-tVersion = data.tVersion
+exec(open(graphData).read())
 
-dG = dynamics.DynGraph(gs)
-dG.FindSubgraphs(model)
-subgraphs.RemoveTadpoles(dG)
-Components = dynamics.generateCDET(dG, tVersion, model=model)
-print str(gs)
-print tVersion
-#print "C = %s\nD = %s\nE = %s\nT = %s\n" % tuple(Components)
-C, D, E, T = Components
-#d=4-2*e
+folder = "%s/%s/%s" % (model.workdir, method_name, graphName)
 
+fileNameC = "%s" % graphName
 
-expr = C * D * E * T
-print "C = %s\nD = %s\nE = %s\nT = %s\n" % (C, D, E, T)
+dynamics.method_name = method_name
+
+G = Graph(graphName)
+
+C_ = polynomial.poly(map(lambda x: (1, x), C), c=(-1., 0))
+U_ = polynomial.poly(map(lambda x: (1, x), U))
+if len(G.ExternalLines()) == 2:
+    D_ = polynomial.poly(map(lambda x: (1, x), D), degree=(-model.space_dim / 2 - 1., 0.5), c=Coef)
+else:
+    D_ = polynomial.poly(map(lambda x: (1, x), D), degree=(-model.space_dim / 2., 0.5), c=Coef)
+
+expr = C_ * D_ * U_
+print "C = %s\nD = %s\nU = %s\n" % (C_, D_, U_)
 #print expr
 
 
@@ -62,10 +67,10 @@ print "variables: ", variables
 uVars, aVars = splitUA(variables)
 delta_arg = deltaArg(uVars)
 
-neps = model.target - dG.NLoops()
+neps = model.target - G.NLoops()
 
-dynamics.save(model, expr, data.sectors, filename[:-3], neps)
-dynamics.compileCode(model, filename[:-3], options=["-lm", "-lpthread", "-lpvegas", "-O2"])
+dynamics.save(model, expr, sectors, fileNameC, neps, statics=True)
+#dynamics.compileCode(model, fileNameC, options=["-lm", "-lpthread", "-lpvegas", "-O2"])
 
 
 # print
