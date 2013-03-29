@@ -245,6 +245,33 @@ def DetectSauseges(_subgraphs):
     return to_remove
 
 
+def DetectSauseges_(_subgraphs):
+#    print _subgraphs
+    disjoint_subs = []
+    for sub in _subgraphs:
+        for d_subs in disjoint_subs:
+            if reduce(lambda x, y: x & y, [disjoint(sub, x) for x in d_subs]):
+                d_subs2 = d_subs + [sub]
+                disjoint_subs.append(d_subs2)
+
+        disjoint_subs.append([sub])
+    to_remove = dict()
+
+    for d_subs in disjoint_subs:
+    #        print
+    #        print d_subs
+        for n in range(2, len(d_subs) + 1):
+            for subs in xUniqueCombinations(d_subs, n):
+                sub = Subgraph(reduce(lambda x, y: x + y, [x._lines for x in subs]))
+                #                print "sub:", sub
+                for sub1 in _subgraphs:
+                #                    print sub1, sub.eq(sub1)
+                    if sub.eq(sub1):
+                        to_remove[sub1] = subs
+                        break
+    return to_remove
+
+
 def RemoveTadpoles(graph):
     graph_as_sub = graph.asSubgraph()
     res = copy(graph._subgraphs)
