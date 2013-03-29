@@ -91,6 +91,9 @@ class PolynomialProductTestCase(PolynomialToolsTestCase):
         pp1 = poly([(1, (2, 3)), (1, (1, 2, 'a0', 'a0')), (1, (1, 3, 'a1'))]).toPolyProd()
         pps = pp1.diff('a1')[0].simplify()
         self.assertEquals(len(pps), 2)
+        pp1 = poly([(1, []), (1, [2, 3]), (1, [3]), (1, [2])])
+        pp2 = poly([(3, []), (1, [2, 3]), (3, [3]), (2, [2])], degree=(-3, 1))
+        self.assertEquals((pp1 * pp2).simplify(), pp1 * pp2)
 
         pp3 = (poly([(1, [1])]) * poly([(1, [1])], degree=-1)).simplify()
 
