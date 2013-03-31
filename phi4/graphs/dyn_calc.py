@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf8
-
+import os
 
 import sys
 import re
@@ -16,51 +16,43 @@ import dynamics
 
 
 model = _phi4_dyn("phi4_dyn_test")
+methodName = dynamics.method_name
 
-filename = sys.argv[1]
-
-exec ('import %s as data' % filename[:-3])
-
-print data.graphName
-gs = graph_state.GraphState.fromStr(data.graphName)
-tVersion = data.tVersion
-
+points = int(sys.argv[1])
+graphName = sys.argv[2]
+gs = graph_state.GraphState.fromStr(graphName)
+print str(gs)
 dG = dynamics.DynGraph(gs)
 
+if len(sys.argv) == 4:
+    tVersions = [eval(sys.argv[3])]
+else:
+    tVersions = dynamics.TVersions(dG)
+pwd = os.environ['PWD']
 
-neps = model.target - dG.NLoops()
+for tVersion_ in tVersions:
+    print
+    print "tVersion = ", tVersion_
+    os.chdir(pwd)
+    name = dynamics.Replace("%s_%s" % (gs, tVersion_))
+    dirName = '%s/%s/%s/' % (model.workdir, methodName, name)
+    fileName = "%s/dyn_sectors.py" % dirName
+    exec (open(fileName).read())
 
-(res, err) = dynamics.execute(filename[:-3], model,
-                              neps=neps,
-                              points=int(sys.argv[2]),
-                              threads=4)
-                              #calc_delta=0.0000000001))
+    gs = graph_state.GraphState.fromStr(graphName)
+    tVersion = tVersion
 
+    dG = dynamics.DynGraph(gs)
 
-for i in range(len(res)):
-    print i, (res[i], err[i])
+    neps = model.target - dG.NLoops()
 
-# print
-# print "-------------------"
-# for sector, aOps in data.sectors:
-#
-#     sectorExpr = [sd_lib.sectorDiagram(expr, sector, delta_arg=delta_arg)]
-#
-#     for aOp in aOps:
-#         sectorExpr = aOp(sectorExpr)
-#     sectorExpr = map(lambda x: x.simplify(), sectorExpr)
-#     check = dynamics.checkDecomposition(sectorExpr)
-#     print sector, check
-#     if "bad" in check:
-#         print
-#         print polynomial.formatter.format(sectorExpr, polynomial.formatter.CPP)
-#         print
-#
-# #    sectorVariables = set(polynomial.formatter.formatVarIndexes(sectorExpr, polynomial.formatter.CPP))
-# #    print sectorVariables
-#
-#
-# #
+    (res, err) = dynamics.execute(name, model,
+                                  neps=neps,
+                                  points=points,
+                                  threads=4)
+    #calc_delta=0.0000000001))
 
+    for i in range(len(res)):
+        print i, (res[i], err[i])
 
 

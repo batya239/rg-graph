@@ -269,11 +269,11 @@ def generateCDET(dG, tVersion, staticCDET=None, model=None):
 
     if dG.Dim(model) == 0:
         Components_[0] = polynomial.poly([(1, [])])  # C
-        Components_[1].degree.a, Components_[1].degree.b = (-model.space_dim / 2., 1)  # D
-        Components_[2].degree.a, Components_[2].degree.b = (-alpha + model.space_dim * nLoops / 2., -nLoops)  # E
+        Components_[1] = Components_[1].changeDegree((-model.space_dim / 2., 1))  # D
+        Components_[2] = Components_[2].changeDegree((-alpha + model.space_dim * nLoops / 2., -nLoops))  # E
     elif dG.Dim(model) == 2:
-        Components_[1].degree.a, Components_[1].degree.b = (-model.space_dim / 2 - 1., 1)  # D
-        Components_[2].degree.a, Components_[2].degree.b = (-alpha + model.space_dim * nLoops / 2. - 1, -nLoops)  # E
+        Components_[1] = Components_[1].changeDegree((-model.space_dim / 2 - 1., 1))  # D
+        Components_[2] = Components_[2].changeDegree((-alpha + model.space_dim * nLoops / 2. - 1, -nLoops))  # E
 
     return tuple(Components_)
 
@@ -1094,3 +1094,12 @@ def compileCode(model, name, options=list(), cc="gcc", statics=False):
 def execute(name, model, points=10000, threads=4, calc_delta=0., neps=0):
     method_name = "simpleSD"
     return calculate.execute("%s/%s/" % (method_name, name), model, points=points, threads=threads, calc_delta=calc_delta, neps=neps)
+
+
+def Replace(fileName):
+    symbolsToReplace = '-:(),'
+    res = fileName
+    for symbol in symbolsToReplace:
+        res = res.replace(symbol, "_")
+    res = res.replace(' ', "")
+    return res

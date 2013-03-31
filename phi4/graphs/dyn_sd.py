@@ -1,12 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf8
-
+import os
 
 import sys
 import re
 
 import graph_state
-import polynomial.sd_lib as sd_lib
 import polynomial
 
 import subgraphs
@@ -31,64 +30,50 @@ def deltaArg(varSet):
 
 
 model = _phi4_dyn("phi4_dyn_test")
+methodName = dynamics.method_name
 
-filename = sys.argv[1]
-
-exec ('import %s as data' % filename[:-3])
-
-print data.graphName
-
-gs = graph_state.GraphState.fromStr(data.graphName)
-tVersion = data.tVersion
-
-dG = dynamics.DynGraph(gs)
-dG.FindSubgraphs(model)
-subgraphs.RemoveTadpoles(dG)
-Components = dynamics.generateCDET(dG, tVersion, model=model)
+graphName_ = sys.argv[1]
+gs = graph_state.GraphState.fromStr(graphName_)
 print str(gs)
-print tVersion
-#print "C = %s\nD = %s\nE = %s\nT = %s\n" % tuple(Components)
-C, D, E, T = Components
-#d=4-2*e
+dG = dynamics.DynGraph(gs)
 
+if len(sys.argv) == 3:
+    tVersions = [eval(sys.argv[2])]
+else:
+    tVersions = dynamics.TVersions(dG)
+pwd = os.environ['PWD']
 
-expr = C * D * E * T
-print "C = %s\nD = %s\nE = %s\nT = %s\n" % (C, D, E, T)
-#print expr
+for tVersion_ in tVersions:
+    print
+    print "tVersion = ", tVersion_
+    name = dynamics.Replace("%s_%s" % (gs, tVersion_))
+    dirName = '%s/%s/%s/' % (model.workdir, methodName, name)
+    os.chdir(pwd)
+    fileName = "%s/dyn_sectors.py" % dirName
+    exec (open(fileName).read())
 
+    gs = graph_state.GraphState.fromStr(graphName)
 
-variables = expr.getVarsIndexes()
-print "variables: ", variables
-uVars, aVars = splitUA(variables)
-delta_arg = deltaArg(uVars)
+    dG = dynamics.DynGraph(gs)
+    dG.FindSubgraphs(model)
+    subgraphs.RemoveTadpoles(dG)
+    Components = dynamics.generateCDET(dG, tVersion, model=model)
+    print str(gs), tVersion
+    #print "C = %s\nD = %s\nE = %s\nT = %s\n" % tuple(Components)
+    C, D, E, T = Components
+    #d=4-2*e
 
-neps = model.target - dG.NLoops()
+    expr = C * D * E * T
+    print "C = %s\nD = %s\nE = %s\nT = %s\n" % (C, D, E, T)
+    #print expr
 
-dynamics.save(model, expr, data.sectors, filename[:-3], neps)
-dynamics.compileCode(model, filename[:-3], options=["-lm", "-lpthread", "-lpvegas", "-O2"])
+    variables = expr.getVarsIndexes()
+    print "variables: ", variables
+    uVars, aVars = splitUA(variables)
+    delta_arg = deltaArg(uVars)
 
-
-# print
-# print "-------------------"
-# for sector, aOps in data.sectors:
-#
-#     sectorExpr = [sd_lib.sectorDiagram(expr, sector, delta_arg=delta_arg)]
-#
-#     for aOp in aOps:
-#         sectorExpr = aOp(sectorExpr)
-#     sectorExpr = map(lambda x: x.simplify(), sectorExpr)
-#     check = dynamics.checkDecomposition(sectorExpr)
-#     print sector, check
-#     if "bad" in check:
-#         print
-#         print polynomial.formatter.format(sectorExpr, polynomial.formatter.CPP)
-#         print
-#
-# #    sectorVariables = set(polynomial.formatter.formatVarIndexes(sectorExpr, polynomial.formatter.CPP))
-# #    print sectorVariables
-#
-#
-# #
-
-
+    neps = model.target - dG.NLoops()
+    os.chdir(pwd)
+    dynamics.save(model, expr, sectors, name, neps)
+    dynamics.compileCode(model, name, options=["-lm", "-lpthread", "-lpvegas", "-O2"])
 
