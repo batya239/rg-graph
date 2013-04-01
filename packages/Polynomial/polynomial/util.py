@@ -6,9 +6,11 @@ import collections
 _zeroFactory = lambda: 0
 
 
-def zeroDict():
-    return collections.defaultdict(_zeroFactory)
-
+def zeroDict(dictionary=None):
+    if dictionary is None:
+        return collections.defaultdict(_zeroFactory)
+    else:
+        return collections.defaultdict(_zeroFactory, dictionary)
 
 _emptyListFactory = lambda: []
 
