@@ -208,7 +208,7 @@ class Polynomial:
             degree = p1.degree + p2.degree
             if degree.isRealNumber() and degree.a == 0:
                 # (p1.c+p2.c)*(1)^1
-                return [Polynomial({multiindex.MultiIndex(): 1}, c=p1.c * p2.c)]
+                return [Polynomial(zeroDict({multiindex.MultiIndex(): 1}), c=p1.c * p2.c)]
             else:
                 if p1.isConst():
                     return [Polynomial(p2.monomials, degree=p2.degree, c=p1.c * p2.c)]
@@ -216,10 +216,10 @@ class Polynomial:
                     return [Polynomial(p1.monomials, degree=p1.degree + p2.degree, c=p1.c * p2.c)]
         else:
             if p1.isConst():
-                return [Polynomial({multiindex.MultiIndex(): 1}, c=p1.c),
+                return [Polynomial(zeroDict({multiindex.MultiIndex(): 1}), c=p1.c),
                         Polynomial(p2.monomials, degree=p2.degree, c=p2.c)]
             else:
-                return [Polynomial({multiindex.MultiIndex(): 1}, c=p1.c),
+                return [Polynomial(zeroDict({multiindex.MultiIndex(): 1}), c=p1.c),
                         Polynomial(p1.monomials, degree=p1.degree + p2.degree, c=p2.c)]
 
     def __neg__(self):
@@ -241,7 +241,7 @@ class Polynomial:
             return polynomial_product.PolynomialProduct(_other.polynomials + [self])
         elif isinstance(_other, v_number.VariableAwareNumber):
             return polynomial_product.PolynomialProduct(
-                [self, Polynomial({multiindex.MultiIndex(): 1}, c=eps_number.epsNumber(_other))])
+                [self, Polynomial(zeroDict({multiindex.MultiIndex(): 1}), c=eps_number.epsNumber(_other))])
         elif isinstance(_other, int):
             return Polynomial(self.monomials, degree=self.degree, c=self.c * _other, doPrepare=False)
 
@@ -267,7 +267,7 @@ class Polynomial:
         return formatter.format(self)
 
 
-P_ONE = Polynomial({multiindex.CONST: 1}, 1, 1)
+P_ONE = Polynomial(zeroDict({multiindex.CONST: 1}), 1, 1)
 
 PP_ONE = P_ONE.toPolyProd()
 

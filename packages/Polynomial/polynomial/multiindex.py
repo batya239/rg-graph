@@ -9,18 +9,18 @@ from util import dict_hash1, zeroDict
 
 
 def _prepareVars(_vars):
-    if isinstance(_vars, dict):
-        __vars = zeroDict(_vars)
-    else:
-        __vars = _vars
+    #if isinstance(_vars, dict):
+    #    __vars = zeroDict(_vars)
+    #else:
+    #    __vars = _vars
     emptyKeys = set()
-    for k, v in __vars.iteritems():
+    for k, v in _vars.iteritems():
         if v == 0:
             emptyKeys.add(k)
     for k in emptyKeys:
-        del __vars[k]
+        del _vars[k]
 
-    return __vars
+    return _vars
 
 class MultiIndex:
     def __init__(self, _vars=zeroDict(), doPrepare=True):
@@ -76,7 +76,7 @@ class MultiIndex:
         return indexes
 
     def split(self):
-        return map(lambda i: (MultiIndex({i[0]: 1}), i[1]), self.vars.items())
+        return map(lambda i: (MultiIndex(zeroDict({i[0]: 1})), i[1]), self.vars.items())
 
     def __mul__(self, other):
         nVars = self.vars.copy()

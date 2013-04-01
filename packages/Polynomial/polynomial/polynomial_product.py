@@ -176,7 +176,7 @@ class PolynomialProduct(object):
             if (isinstance(other, int) or other.isRealNumber()) and len(self.polynomials):
                 self.polynomials[0] *= other
             return PolynomialProduct(
-                self.polynomials + [polynomial.Polynomial({multiindex.MultiIndex(): 1}, c=eps_number.epsNumber(other))])
+                self.polynomials + [polynomial.Polynomial(util.zeroDict({multiindex.MultiIndex(): 1}), c=eps_number.epsNumber(other))])
         elif isinstance(other, polynomial.Polynomial):
             return self * other.toPolyProd()
         else:
