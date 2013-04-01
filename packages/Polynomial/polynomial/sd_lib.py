@@ -131,6 +131,6 @@ def sectorDiagram(expr_, sec, delta_arg=None, remove_delta=True):
 #        result[0] = result[0].simplify()
         if delta_arg is None:
             result[1] = None
-    return result[0] if result[1] is None else result
+    return result
 
 
