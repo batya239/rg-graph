@@ -1003,7 +1003,7 @@ def save(model, expr, sectors, name, neps, statics=False):
 
         #        print delta_arg, sector
 
-        sectorExpr = [sd_lib.sectorDiagram(expr * coef_, sector, delta_arg=delta_arg)]
+        sectorExpr = sd_lib.sectorDiagram(expr * coef_, sector, delta_arg=delta_arg)[0]
 
         for aOp in aOps:
             sectorExpr = aOp(sectorExpr)
