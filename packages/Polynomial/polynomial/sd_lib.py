@@ -6,6 +6,13 @@ import polynomial
 
 
 def sectorPoly(poly, sec):
+    if isinstance(poly, list):
+        return map(lambda x: sectorPoly_(x, sec), poly)
+    else:
+        return sectorPoly_(poly, sec)
+
+
+def sectorPoly_(poly, sec):
     """
     This functions performs variable transformation of polynomial poly
     according to sector nomenclature sec.
@@ -44,13 +51,19 @@ def check_delta(delta_arg, sec):
         return first_sector_set == arg_set
 
 
-def sectorDiagram(expr, sec, delta_arg=None, remove_delta=True):
+def sectorDiagram(expr_, sec, delta_arg=None, remove_delta=True):
     """
     This functions performs variable transformation of a whole diagram according to sector nomenclature sec.
     Where polynomial poly being an integration element of diagram without the delta-function
     and d_arg being the delta-function argument ,
     If (delta_arg<>None and remove_delta) , first decomposition is considered primary.
     """
+
+    if not isinstance(expr_, list):
+        expr = [expr_]
+    else:
+        expr = expr_
+
 
     if remove_delta and not check_delta(delta_arg, sec):
         raise ValueError, 'Invalid delta functions arguments'
@@ -72,7 +85,7 @@ def sectorDiagram(expr, sec, delta_arg=None, remove_delta=True):
     for (main_var, other_vars) in sec:
         m = [main_var] * len(other_vars)
         jacobian = polynomial.poly([(1, m)], degree=(1, 0))
-        result[0] = result[0] * jacobian.toPolyProd()
+        result[0] = map(lambda x: x * jacobian.toPolyProd(), result[0])
 
     if remove_delta:
         if delta_arg is None:
@@ -86,7 +99,7 @@ def sectorDiagram(expr, sec, delta_arg=None, remove_delta=True):
         #
         # additional multiplier from delta function delta(Lx-1)=1/L delta(x-1/L) = x delta(x-1/L)
         #
-        result[0] = result[0] * deltaMultiplier.toPolyProd()
+        result[0] = map(lambda x: x * deltaMultiplier.toPolyProd(), result[0])
         primaryVar = sec[0][0]
 
         #
@@ -98,15 +111,19 @@ def sectorDiagram(expr, sec, delta_arg=None, remove_delta=True):
         # Removal of delta function performed in two stages. At first one for each factorized primaryVar we add
         # multiplier substitution.set1toVar(primaryVar)**(-1), on the second we set primaryVar = 1
         #
-        multiplier = substitution.set1toVar(primaryVar)
-        primaryVarDegree = result[0].calcPower(primaryVar)
-        multiplier = multiplier.changeDegree(-primaryVarDegree)
-        result[0] = result[0] * \
-                    multiplier.toPolyProd() * \
-                    polynomial.poly([(1, [primaryVar])], degree=-primaryVarDegree).toPolyProd()
+        result0_ = list()
+        for expr in result[0]:
+            multiplier = substitution.set1toVar(primaryVar)
+            primaryVarDegree = expr.calcPower(primaryVar)
+            multiplier = multiplier.changeDegree(-primaryVarDegree)
+            expr = expr * multiplier.toPolyProd() * polynomial.poly([(1, [primaryVar])],
+                                                                    degree=-primaryVarDegree).toPolyProd()
 
-        # (second stage)
-        result[0] = result[0].set1toVar(primaryVar)
+            # (second stage)
+            expr = expr.set1toVar(primaryVar)
+            result0_.append(expr)
+
+        result[0] = result0_
 
 #        result[0] = result[0].simplify()
         result[1] = None
