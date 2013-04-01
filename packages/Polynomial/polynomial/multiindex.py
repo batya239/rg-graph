@@ -9,14 +9,18 @@ from util import dict_hash1, zeroDict
 
 
 def _prepareVars(_vars):
+    if isinstance(_vars, dict):
+        __vars = zeroDict(_vars)
+    else:
+        __vars = _vars
     emptyKeys = set()
-    for k, v in _vars.iteritems():
+    for k, v in __vars.iteritems():
         if v == 0:
             emptyKeys.add(k)
     for k in emptyKeys:
-        del _vars[k]
+        del __vars[k]
 
-    return _vars
+    return __vars
 
 class MultiIndex:
     def __init__(self, _vars=zeroDict(), doPrepare=True):
