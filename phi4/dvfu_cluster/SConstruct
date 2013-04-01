@@ -21,6 +21,7 @@ coreCubaCodeTemplate = """
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
 #include "/home/kirienko/cuba/Cuba-3.0/cuba.h"
 
 {includes}
@@ -36,7 +37,7 @@ static int Integrand(const int *ndim, const double xx[],
 
 /*********************************************************************/
 
-#define NDIM 5
+#define NDIM 13
 #define NCOMP 1
 #define USERDATA NULL
 #define EPSREL 1e-3
@@ -44,7 +45,7 @@ static int Integrand(const int *ndim, const double xx[],
 #define LAST 4
 #define SEED 0
 #define MINEVAL 0
-#define MAXEVAL 5000000
+#define MAXEVAL 1000
 
 #define NSTART 1000
 #define NINCREASE 500
@@ -77,7 +78,10 @@ int main()
   verbose = 2;
   if( env ) verbose = atoi(env);
 
-  printf("-------------------- Vegas test --------------------\n");
+  printf("-------------------- Vegas test --------------------\\n");
+
+  clock_t start_vegas, end_vegas;
+  start_vegas = clock();
 
   Vegas(NDIM, NCOMP, Integrand, USERDATA,
     EPSREL, EPSABS, verbose, SEED,
@@ -85,26 +89,41 @@ int main()
     GRIDNO, STATEFILE,
     &neval, &fail, integral, error, prob);
 
-  printf("VEGAS RESULT:\tneval %d\tfail %d\n",
+  end_vegas = clock();
+
+  printf("VEGAS RESULT:\tneval %d\tfail %d\\n",
     neval, fail);
   for( comp = 0; comp < NCOMP; ++comp )
-    printf("VEGAS RESULT:\t%.8f +- %.8f\tp = %.3f\n",
+    printf("VEGAS RESULT:\t%.8f +- %.8f\tp = %.3f\\n",
       integral[comp], error[comp], prob[comp]);
+  
+  printf("\\nTime for VEGAS test: %f secs\\n",
+        ((double)(end_vegas - start_vegas)/CLOCKS_PER_SEC));
 
-  printf("\n-------------------- Suave test --------------------\n");
+  printf("\\n-------------------- Suave test --------------------\\n");
+
+  clock_t start_suave, end_suave;
+  start_suave = clock();
 
   Suave(NDIM, NCOMP, Integrand, USERDATA,
     EPSREL, EPSABS, verbose | LAST, SEED,
     MINEVAL, MAXEVAL, NNEW, FLATNESS,
     &nregions, &neval, &fail, integral, error, prob);
+  end_suave = clock();
 
-  printf("SUAVE RESULT:\tnregions %d\tneval %d\tfail %d\n",
+  printf("SUAVE RESULT:\tnregions %d\tneval %d\tfail %d\\n",
     nregions, neval, fail);
   for( comp = 0; comp < NCOMP; ++comp )
-    printf("SUAVE RESULT:\t%.8f +- %.8f\tp = %.3f\n",
+    printf("SUAVE RESULT:\t%.8f +- %.8f\tp = %.3f\\n",
       integral[comp], error[comp], prob[comp]);
 
-  printf("\n------------------- Divonne test -------------------\n");
+  printf("\\nTime for Suave test: %f secs\\n",
+        ((double)(end_suave - start_suave)/CLOCKS_PER_SEC));
+
+  printf("\\n------------------- Divonne test -------------------\\n");
+
+  clock_t start_divonne, end_divonne;
+  start_divonne = clock();
 
   Divonne(NDIM, NCOMP, Integrand, USERDATA,
     EPSREL, EPSABS, verbose, SEED,
@@ -113,24 +132,37 @@ int main()
     NGIVEN, LDXGIVEN, NULL, NEXTRA, NULL,
     &nregions, &neval, &fail, integral, error, prob);
 
-  printf("DIVONNE RESULT:\tnregions %d\tneval %d\tfail %d\n",
+  end_divonne = clock();
+
+  printf("DIVONNE RESULT:\tnregions %d\tneval %d\tfail %d\\n",
     nregions, neval, fail);
   for( comp = 0; comp < NCOMP; ++comp )
-    printf("DIVONNE RESULT:\t%.8f +- %.8f\tp = %.3f\n",
+    printf("DIVONNE RESULT:\t%.8f +- %.8f\tp = %.3f\\n",
       integral[comp], error[comp], prob[comp]);
 
-  printf("\n-------------------- Cuhre test --------------------\n");
+  printf("\\nTime for Divonne test: %f secs\\n",
+        ((double)(end_divonne - start_divonne)/CLOCKS_PER_SEC));
+
+  printf("\\n-------------------- Cuhre test --------------------\\n");
+
+  clock_t start_cuhre, end_cuhre;
+  start_cuhre = clock();
 
   Cuhre(NDIM, NCOMP, Integrand, USERDATA,
     EPSREL, EPSABS, verbose | LAST,
     MINEVAL, MAXEVAL, KEY,
     &nregions, &neval, &fail, integral, error, prob);
 
-  printf("CUHRE RESULT:\tnregions %d\tneval %d\tfail %d\n",
+  end_cuhre = clock();
+
+  printf("CUHRE RESULT:\tnregions %d\tneval %d\tfail %d\\n",
     nregions, neval, fail);
   for( comp = 0; comp < NCOMP; ++comp )
-    printf("CUHRE RESULT:\t%.8f +- %.8f\tp = %.3f\n",
+    printf("CUHRE RESULT:\t%.8f +- %.8f\tp = %.3f\\n",
       integral[comp], error[comp], prob[comp]);
+
+  printf("\\nTime for Cuhre test: %f secs\\n",
+        ((double)(end_cuhre - start_cuhre)/CLOCKS_PER_SEC));
 
   return 0;
 }}
