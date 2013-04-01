@@ -566,8 +566,7 @@ int main()
   verbose = 2;
   if( env ) verbose = atoi(env);
 
-  printf("-------------------- Vegas test --------------------
-");
+  printf("-------------------- Vegas test --------------------");
 
   Vegas(NDIM, NCOMP, Integrand, USERDATA,
     EPSREL, EPSABS, verbose, SEED,
