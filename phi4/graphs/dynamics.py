@@ -264,7 +264,7 @@ def generateCDET(dG, tVersion, staticCDET=None, model=None):
 
     #d=4-2*e
     nLoops = dG.NLoops()
-#reduce(lambda x, y: x + y, [(-x.Dim(model) - 2) / 2 for x in dG.xInternalLines()]) - number of (a,a) edges (dim(a,a) = -4, dim(a,A)=-2)
+    #reduce(lambda x, y: x + y, [(-x.Dim(model) - 2) / 2 for x in dG.xInternalLines()]) - number of (a,a) edges (dim(a,a) = -4, dim(a,A)=-2)
     alpha = reduce(lambda x, y: x + y, [(-x.Dim(model) - 2) / 2 for x in dG.xInternalLines()]) + 1 + len(tCuts)
 
     if dG.Dim(model) == 0:
@@ -351,7 +351,7 @@ def diff_(exprList, a, n):
         for expr in res:
             res_ += expr.diff(a)
         res = res_
-    #    print " ", res
+        #    print " ", res
 
     if n > 1:
         res = map(lambda x: x * aMultiplier, res)
@@ -600,6 +600,8 @@ def generateDynamicSpeerTree(dG, tVersion, model):
 
 def checkDecomposition_(expr):
     exprStatus = "bad"
+    if len(expr.polynomials) == 0:
+        return "0"
     for poly in expr.polynomials:
 
         if poly.degree.a < 0:
@@ -625,9 +627,6 @@ def checkDecomposition_(expr):
                         exprStatus = exprStatus + " " + polyStatus
             elif not poly.isConst():
                 exprStatus = 'pole'
-            #                print expr
-            #                print poly
-
     return exprStatus
 
 
@@ -657,6 +656,7 @@ def splitUA(varSet):
 
 def deltaArg(varSet):
     return polynomial.poly(map(lambda x: (1, [x]), varSet))
+
 
 resultingFunctionPvTemplate = """
 double func_t_{fileIdx}(double k[DIMENSION])
@@ -721,7 +721,8 @@ def saveSectors(sectorTerms, name, dirname, fileIdx, neps):
                     epsTerms = epsDict[i]
                     strExpr[i] += "   coreExpr = %s;\n" % coreExprString
                     for epsTerm in epsTerms:
-                        strExpr[i] += "   f += coreExpr * %s;\n" % (polynomial.formatter.format(epsTerm, polynomial.formatter.CPP))
+                        strExpr[i] += "   f += coreExpr * %s;\n" % (
+                            polynomial.formatter.format(epsTerm, polynomial.formatter.CPP))
         for i in range(neps + 1):
             sectorFunctionsByEps[i] += functionPvTemplate.format(idx=idx, fileIdx=fileIdx,
                                                                  sector=idx, vars=strVars,
@@ -737,6 +738,54 @@ def saveSectors(sectorTerms, name, dirname, fileIdx, neps):
         f = open("%s/%s_func_%s_E%s.h" % (dirname, name, fileIdx, i), 'w')
         f.write(headerPvCodeTeplate.format(idx=fileIdx))
         f.close()
+
+
+def saveSectorsSDT(sectorTerms, name, dirname, fileIdx, neps):
+    print "sectorTerms"
+    sectorFunctionsByEps = [""] * (neps + 1)
+    resultingFunctions = ""
+    for idx in sectorTerms:
+        sectorExpr, sectorVariables, primaryVar, delta_subst = sectorTerms[idx]
+
+        strVars = ""
+        varIdx = 0
+        for var in sectorVariables:
+            strVars += "   double %s = k[%s];\n" % (var, varIdx)
+            varIdx += 1
+        delta_subst_string = polynomial.formatter.format(delta_subst, polynomial.formatter.CPP)
+        strVars += "   if( %s < 1) { return 0.; } \n" % delta_subst_string
+
+        strVars += "   double %s = 1./(%s);\n" % (polynomial.formatter.formatVarIndexes(primaryVar,
+                                                                                       polynomial.formatter.CPP)[0],
+                                                 delta_subst_string)
+
+        strExpr = [""] * (neps + 1)
+        for expr_ in sectorExpr:
+            if not expr_.isZero():
+                coreExpr, epsDict = expr_.epsExpansion(neps)
+                coreExprString = polynomial.formatter.format(coreExpr * primaryVar, polynomial.formatter.CPP)
+                for i in xrange(neps + 1):
+                    epsTerms = epsDict[i]
+                    strExpr[i] += "   coreExpr = %s;\n" % coreExprString
+                    for epsTerm in epsTerms:
+                        strExpr[i] += "   f += coreExpr * %s;\n" % (
+                            polynomial.formatter.format(epsTerm, polynomial.formatter.CPP))
+        for i in range(neps + 1):
+            sectorFunctionsByEps[i] += functionPvTemplate.format(idx=idx, fileIdx=fileIdx,
+                                                                 sector=idx, vars=strVars,
+                                                                 expr=strExpr[i])
+        resultingFunctions += "f+=func{idx}_t_{fileIdx}(k);\n".format(idx=idx, fileIdx=fileIdx)
+    resultingFunction = resultingFunctionPvTemplate.format(fileIdx=fileIdx,
+                                                           resultingFunctions=resultingFunctions)
+    for i in range(neps + 1):
+        f = open("%s/%s_func_%s_E%s.c" % (dirname, name, fileIdx, i), 'w')
+        f.write(functionsPvCodeTeplate.format(resultingFunction=resultingFunction,
+                                              functions=sectorFunctionsByEps[i]))
+        f.close()
+        f = open("%s/%s_func_%s_E%s.h" % (dirname, name, fileIdx, i), 'w')
+        f.write(headerPvCodeTeplate.format(idx=fileIdx))
+        f.close()
+
 
 corePvCodeTemplate = """
 #include <math.h>
@@ -891,6 +940,7 @@ def core_pv_code(nFunctionFiles, sectorVariablesCount, functionName, neps, mpi=F
 def core_pvmpi_code(nFunctionFiles, sectorVariablesCount, functionName, neps):
     return core_pv_code(nFunctionFiles, sectorVariablesCount, functionName, neps, mpi=True)
 
+
 code_ = core_pv_code
 
 method_name = "simpleSD"
@@ -902,10 +952,11 @@ def removeRoots(expr):
         uVars, aVars = splitUA(expr_.getVarsIndexes())
         tExpr = expr_
         for var in uVars:
-            tExpr = tExpr.changeVarToPolynomial(var, polynomial.poly([(1, [var, var])], c=1, degree=1)) * polynomial.poly([(1, [var])], c=2.)
+            tExpr = tExpr.changeVarToPolynomial(var,
+                                                polynomial.poly([(1, [var, var])], c=1, degree=1)) * polynomial.poly(
+                [(1, [var])], c=2.)
         res.append(tExpr.simplify())
     return res
-
 
 
 def save(model, expr, sectors, name, neps, statics=False):
@@ -915,7 +966,7 @@ def save(model, expr, sectors, name, neps, statics=False):
     except:
         pass
     try:
-            os.mkdir(dirname)
+        os.mkdir(dirname)
     except:
         pass
 
@@ -950,7 +1001,7 @@ def save(model, expr, sectors, name, neps, statics=False):
         if (sectorCount + 1) % 100 == 0:
             print "%s " % (sectorCount + 1)
 
-#        print delta_arg, sector
+        #        print delta_arg, sector
 
         sectorExpr = [sd_lib.sectorDiagram(expr * coef_, sector, delta_arg=delta_arg)]
 
@@ -962,7 +1013,7 @@ def save(model, expr, sectors, name, neps, statics=False):
             sectorExpr = removeRoots(sectorExpr)
 
         check = checkDecomposition(sectorExpr)
-#        print sector, check
+        #        print sector, check
         if "bad" in check:
             print
             print polynomial.formatter.format(sectorExpr, polynomial.formatter.CPP)
@@ -976,9 +1027,9 @@ def save(model, expr, sectors, name, neps, statics=False):
             sectorVariablesCount = len(sectorVariables)
 
         sectorTerms[sectorCount] = (sectorExpr, sectorVariables)
-#    toSave = dict()
-#    for sectorId in sectorTerms:
-#        toSave[sectorId] = sectorTerms[sectorId]
+        #    toSave = dict()
+        #    for sectorId in sectorTerms:
+        #        toSave[sectorId] = sectorTerms[sectorId]
         size += sectorTerms[sectorCount].__sizeof__()
 
         if size >= maxSize:
@@ -991,6 +1042,129 @@ def save(model, expr, sectors, name, neps, statics=False):
             size = 0
     if size > 0:
         saveSectors(sectorTerms, name_, dirname, fileIdx, neps)
+        fileIdx += 1
+        nSaved += len(sectorTerms)
+        print "saved to file  %s sectors (%s) size=%s..." % (nSaved, fileIdx, size)
+        sys.stdout.flush()
+
+    for i in range(neps + 1):
+        f = open("%s/%s_E%s.c" % (dirname, name_, i), 'w')
+        f.write(code_(fileIdx, sectorVariablesCount, "%s_func" % name_, neps=i))
+        f.close()
+        f = open("%s/dim.h" % dirname, 'w')
+        f.write(dimPvCodeTemplate.format(dims=sectorVariablesCount))
+        f.close()
+
+
+def splitDeltaArg(delta_arg):
+    if len(delta_arg.polynomials) != 2:
+        raise ValueError("invalid delta_arg decomposition: %s" % delta_arg)
+    if len(delta_arg.polynomials[0].monomials) == 1:
+        return delta_arg.polynomials[0], delta_arg.polynomials[1]
+    elif len(delta_arg.polynomials[1].monomials) == 1:
+        return delta_arg.polynomials[1], delta_arg.polynomials[0]
+
+
+def saveSDT(model, expr, sectors, name, neps, statics=False):
+    dirname = '%s/%s/%s/' % (model.workdir, method_name, name)
+    try:
+        os.mkdir('%s/%s' % (model.workdir, method_name))
+    except:
+        pass
+    try:
+        os.mkdir(dirname)
+    except:
+        pass
+
+    if statics:
+        name_ = name + "_O_"
+    else:
+        name_ = name
+
+    variables = expr.getVarsIndexes()
+    uVars, aVars = splitUA(variables)
+    delta_arg = deltaArg(uVars)
+
+    maxSize = 30000
+    sectorCount = -1
+    size = 0
+    nSaved = 0
+    fileIdx = 0
+
+    sectorTerms = dict()
+    sectorVariablesCount = 0
+
+    for item in sectors:
+        if len(item) == 2:
+            sector, aOps = item
+            coef = 1.
+        elif len(item) == 3:
+            sector, aOps, coef = item
+        else:
+            raise NotImplementedError, "len(sector)>3"
+        coef_ = polynomial.poly([(1, [])], c=coef)
+        sectorCount += 1
+        if (sectorCount + 1) % 100 == 0:
+            print "%s " % (sectorCount + 1)
+
+        #        print delta_arg, sector
+        sectorExpr = [expr * coef_, ]
+
+        for aOp in aOps:
+            sectorExpr = aOp(sectorExpr)
+        sectorExpr = map(lambda x: x.simplify(), sectorExpr)
+        print sectorExpr
+        print sector
+
+        sectorExpr, delta_arg_sd = sd_lib.sectorDiagram(sectorExpr, sector, delta_arg=delta_arg, remove_delta=False)
+        # sectorExpr_ = list()
+        # for expr_ in sectorExpr:
+        #     sectorExpr_.append(sd_lib.sectorDiagram(expr_, sector, remove_delta=False))
+        # #        sectorExpr = reduce(lambda x, y: x + y, map(
+        # #            lambda x: sd_lib.sectorDiagram(x, sector, remove_delta=False), sectorExpr))
+        # delta_arg_sd = sd_lib.sectorDiagram(delta_arg.toPolyProd(), sector, remove_delta=False)
+        # sectorExpr = sectorExpr_
+        print "delta ", delta_arg
+        primaryVar, subst = splitDeltaArg(delta_arg_sd.toPolyProd().simplify())
+        print "delta ",
+
+        if 'removeRoots' in model.__dict__ and model.removeRoots:
+            sectorExpr = removeRoots(sectorExpr)
+
+        check = checkDecomposition(sectorExpr)
+        #        print sector, check
+        if "bad" in check:
+            print
+            print sector
+            print polynomial.formatter.format(sectorExpr, polynomial.formatter.CPP)
+            print
+
+        sectorVariables = set()
+        for expr_ in sectorExpr:
+            sectorVariables = sectorVariables | set(polynomial.formatter.formatVarIndexes(expr_,
+                                                                                          polynomial.formatter.CPP))
+        sectorVariables = sectorVariables - set(polynomial.formatter.formatVarIndexes(primaryVar,
+                                                                                      polynomial.formatter.CPP))
+
+        if len(sectorVariables) > sectorVariablesCount:
+            sectorVariablesCount = len(sectorVariables)
+
+        sectorTerms[sectorCount] = (sectorExpr, sectorVariables, primaryVar, subst)
+        #    toSave = dict()
+        #    for sectorId in sectorTerms:
+        #        toSave[sectorId] = sectorTerms[sectorId]
+        size += sectorTerms[sectorCount].__sizeof__()
+
+        if size >= maxSize:
+            saveSectorsSDT(sectorTerms, name_, dirname, fileIdx, neps)
+            fileIdx += 1
+            nSaved += len(sectorTerms)
+            print "saved to file  %s sectors (%s) size=%s..." % (nSaved, fileIdx, size)
+            sys.stdout.flush()
+            sectorTerms = dict()
+            size = 0
+    if size > 0:
+        saveSectorsSDT(sectorTerms, name_, dirname, fileIdx, neps)
         fileIdx += 1
         nSaved += len(sectorTerms)
         print "saved to file  %s sectors (%s) size=%s..." % (nSaved, fileIdx, size)
@@ -1052,9 +1226,9 @@ def compileCode(model, name, options=list(), cc="gcc", statics=False):
         if fnmatch.fnmatch(file, "*.c") and not fnmatch.fnmatch(file, "*__func_*.c"):
             regex = re.match('(.*)_E(\d+)\.c', file)
             if regex:
-                code_name=regex.groups()[0]
+                code_name = regex.groups()[0]
                 eps_num = int(regex.groups()[1])
-            #            print code_name
+                #            print code_name
 
             print "Compiling %s ..." % file,
             sys.stdout.flush()
@@ -1063,15 +1237,15 @@ def compileCode(model, name, options=list(), cc="gcc", statics=False):
                 os.remove(prog_name)
             except:
                 pass
-            obj_=list()
+            obj_ = list()
             #            print
             for obj__ in obj_list[eps_num]:
-                if re.match('^%s.*'%code_name, obj__):
+                if re.match('^%s.*' % code_name, obj__):
                 #                    print code_name,  obj__[:-2]+".o"
-                    obj_.append(obj__[:-2]+".o")
-                #            print
-                #            print obj_
-                #            print [cc, file] + options + ["-I", ".", "-L", "."] + obj_ + ["-o", prog_name]
+                    obj_.append(obj__[:-2] + ".o")
+                    #            print
+                    #            print obj_
+                    #            print [cc, file] + options + ["-I", ".", "-L", "."] + obj_ + ["-o", prog_name]
             process = subprocess.Popen(
                 [cc, file] + options + ["-I", ".", "-L", "."] + obj_ + ["-o", prog_name], shell=False,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -1093,7 +1267,8 @@ def compileCode(model, name, options=list(), cc="gcc", statics=False):
 
 def execute(name, model, points=10000, threads=4, calc_delta=0., neps=0):
     method_name = "simpleSD"
-    return calculate.execute("%s/%s/" % (method_name, name), model, points=points, threads=threads, calc_delta=calc_delta, neps=neps)
+    return calculate.execute("%s/%s/" % (method_name, name), model, points=points, threads=threads,
+                             calc_delta=calc_delta, neps=neps)
 
 
 def Replace(fileName):
