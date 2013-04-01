@@ -52,7 +52,7 @@ def sectorDiagram(expr, sec, delta_arg=None, remove_delta=True):
     If (delta_arg<>None and remove_delta) , first decomposition is considered primary.
     """
 
-    if not check_delta(delta_arg, sec):
+    if remove_delta and not check_delta(delta_arg, sec):
         raise ValueError, 'Invalid delta functions arguments'
 
     result = [expr, delta_arg if delta_arg is not None else polynomial.poly([])]
