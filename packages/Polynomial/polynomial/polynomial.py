@@ -188,7 +188,7 @@ class Polynomial:
         if not len(factorMultiIndex.vars):
             return [self]
 
-        result = map(lambda i: Polynomial({i[0]: 1}, degree=self.degree * i[1]), factorMultiIndex.split())
+        result = map(lambda i: Polynomial(zeroDict({i[0]: 1}), degree=self.degree * i[1]), factorMultiIndex.split())
 
         nMonomials = zeroDict()
         for i in self.monomials.iteritems():
