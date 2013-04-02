@@ -44,7 +44,7 @@ for tVersion_ in tVersions:
 
     dG = dynamics.DynGraph(gs)
 
-    neps = model.target - dG.NLoops()
+    neps = model.target - dG.NLoops() + 1
 
     (res, err) = dynamics.execute(name, model,
                                   neps=neps,
