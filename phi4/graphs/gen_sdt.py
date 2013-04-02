@@ -50,11 +50,13 @@ dynamics.method_name = method_name
 
 G = Graph(graphName)
 
-C_ = polynomial.poly(map(lambda x: (1, x), C), c=(-1., 0))
+
 U_ = polynomial.poly(map(lambda x: (1, x), U))
 if len(G.ExternalLines()) == 2:
+    C_ = polynomial.poly(map(lambda x: (1, x), C), c=(-1., 0))
     D_ = polynomial.poly(map(lambda x: (1, x), D), degree=(-model.space_dim / 2 - 1., 0.5), c=Coef)
 else:
+    C_ = polynomial.poly(map(lambda x: (1, x), C), c=(1., 0))
     D_ = polynomial.poly(map(lambda x: (1, x), D), degree=(-model.space_dim / 2., 0.5), c=Coef)
 
 expr = C_ * D_ * U_
