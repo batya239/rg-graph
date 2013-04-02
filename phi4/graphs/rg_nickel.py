@@ -71,3 +71,26 @@ print "beta/2 = ", beta / 2
 eta = (beta * sympy.ln(Z2).diff(g)).series(g, 0, nLoops + 1).removeO()
 
 print "eta =", eta
+
+tau = sympy.var('tau')
+
+beta1 = (beta / g / 2 + 1).expand()
+
+print beta1
+
+gStar = 0
+for i in range(1, nLoops):
+    gStar = (tau - (beta1 - g).series(g, 0, i + 1).removeO().subs(g, gStar)).series(tau, 0, i + 1).removeO()
+
+print "gStar = ", gStar
+gStarS = tau + 0.716173621 * tau**2 + 0.095042867 * tau**3 + 0.086080396 * tau ** 4 - 0.204139 * tau ** 5
+print "gStarS = ", gStarS
+
+etaStar = eta.subs(g, gStar).series(tau, 0, nLoops + 1)
+
+print "etaStar = ", etaStar
+
+etaStarGS = eta.subs(g, gStarS).series(tau, 0, nLoops + 1)
+
+print "etaStarGS = ", etaStarGS
+
