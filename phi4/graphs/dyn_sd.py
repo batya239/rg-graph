@@ -72,7 +72,7 @@ for tVersion_ in tVersions:
     uVars, aVars = splitUA(variables)
     delta_arg = deltaArg(uVars)
 
-    neps = model.target - dG.NLoops()
+    neps = model.target - dG.NLoops() + 1
     os.chdir(pwd)
     dynamics.save(model, expr, sectors, name, neps)
     dynamics.compileCode(model, name, options=["-lm", "-lpthread", "-lpvegas", "-O2"])
