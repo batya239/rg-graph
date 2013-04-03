@@ -1112,10 +1112,8 @@ def saveSDT(model, expr, sectors, name, neps, statics=False):
 
         for aOp in aOps:
             sectorExpr = aOp(sectorExpr)
-        print sector
-        print "after diff\n %s \n\n" % sectorExpr
 
-
+        sectorExpr_, delta_arg_sd_ = sd_lib.sectorDiagram(sectorExpr, sector[:1], delta_arg=delta_arg, remove_delta=False)
 
         sectorExpr, delta_arg_sd = sd_lib.sectorDiagram(sectorExpr, sector, delta_arg=delta_arg, remove_delta=False)
         # sectorExpr_ = list()
@@ -1126,10 +1124,7 @@ def saveSDT(model, expr, sectors, name, neps, statics=False):
         # delta_arg_sd = sd_lib.sectorDiagram(delta_arg.toPolyProd(), sector, remove_delta=False)
         # sectorExpr = sectorExpr_
         sectorExpr = map(lambda x: x.simplify(), sectorExpr)
-        print sectorExpr
-        print "delta ", delta_arg
         primaryVar, subst = splitDeltaArg(delta_arg_sd.toPolyProd().simplify())
-        print "delta ", primaryVar, subst
 
         if 'removeRoots' in model.__dict__ and model.removeRoots:
             sectorExpr = removeRoots(sectorExpr)

@@ -15,9 +15,9 @@ if len(sys.argv) > 2:
     else:
         check_tadpoles = False
 
-topologies = [t for t in topology.GetTopologies(valence, with_tadpoles=check_tadpoles)]
+topologies = [t for t in topology.GetTopologies(valence, with_tadpoles=not check_tadpoles)]
 
 for t in topologies:
-    print t,
+    print t
 
 

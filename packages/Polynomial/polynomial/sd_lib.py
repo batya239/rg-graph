@@ -76,13 +76,11 @@ def sectorDiagram(expr_, sec, delta_arg=None, remove_delta=True):
     #    is consistent with delta function argument (d_arg))
     #
 
-    result = map(lambda x: sectorPoly(x, sec), result)
-
     #
     #    Now we should add jacobian of performed variables transformations
     #
-
     for (main_var, other_vars) in sec:
+        result = map(lambda x: sectorPoly(x, [(main_var, other_vars)]), result)
         m = [main_var] * len(other_vars)
         jacobian = polynomial.poly([(1, m)], degree=(1, 0))
         result[0] = map(lambda x: x * jacobian.toPolyProd(), result[0])
