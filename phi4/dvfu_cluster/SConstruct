@@ -1,4 +1,5 @@
 import os, re
+from cubaCodeTemplate import *
 
 listdir = os.listdir('.')
 
@@ -13,182 +14,38 @@ for src in obj_src:
 objs = [ s[:-1]+'o' for s in obj_src]
 
 
-localPath ="/home/kirienko/loops/e112-23-e4-5-566-66--"
-headers = [ localPath+'/'+s[:-1]+'h' for s in obj_src]
+localPath = "/home/kirienko/loops/e112-23-e4-5-566-66--"
+cubaPath  = "/home/kirienko/cuba/Cuba-3.0"
+headers   = [ os.path.join(localPath,s[:-1]+'h') for s in obj_src]
 
+method  = 'cuhre' # one of: vegas, suave, cuhre, divonne
+methodNum = ('vegas', 'suave', 'divonne', 'cuhre').index(method)
+maxEval = 50000
+chunks  = 3
 
-coreCubaCodeTemplate = """
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <time.h>
-#include "/home/kirienko/cuba/Cuba-3.0/cuba.h"
-
-{includes}
-
-static int Integrand(const int *ndim, const double xx[],
-  const int *ncomp, double ff[], void *userdata)
-{{
-#define f ff[0]       // FIXME?
-  f = 0.;   // FIXME?
-  {functions}
-  return 0;
-}}
-
-/*********************************************************************/
-
-#define NDIM 13
-#define NCOMP 1
-#define USERDATA NULL
-#define EPSREL 1e-3
-#define EPSABS 1e-12
-#define LAST 4
-#define SEED 0
-#define MINEVAL 0
-#define MAXEVAL 1000
-
-#define NSTART 1000
-#define NINCREASE 500
-#define NBATCH 1000
-#define GRIDNO 0
-#define STATEFILE NULL
-
-#define NNEW 1000
-#define FLATNESS 25.
-
-#define KEY1 47
-#define KEY2 1
-#define KEY3 1
-#define MAXPASS 5
-#define BORDER 0.
-#define MAXCHISQ 10.
-#define MINDEVIATION .25
-#define NGIVEN 0
-#define LDXGIVEN NDIM
-#define NEXTRA 0
-
-#define KEY 0
-
-int main()
-{{
-  int verbose, comp, nregions, neval, fail;
-  double integral[NCOMP], error[NCOMP], prob[NCOMP];
-
-  const char *env = getenv("CUBAVERBOSE");
-  verbose = 2;
-  if( env ) verbose = atoi(env);
-
-  printf("-------------------- Vegas test --------------------\\n");
-
-  clock_t start_vegas, end_vegas;
-  start_vegas = clock();
-
-  Vegas(NDIM, NCOMP, Integrand, USERDATA,
-    EPSREL, EPSABS, verbose, SEED,
-    MINEVAL, MAXEVAL, NSTART, NINCREASE, NBATCH,
-    GRIDNO, STATEFILE,
-    &neval, &fail, integral, error, prob);
-
-  end_vegas = clock();
-
-  printf("VEGAS RESULT:\tneval %d\tfail %d\\n",
-    neval, fail);
-  for( comp = 0; comp < NCOMP; ++comp )
-    printf("VEGAS RESULT:\t%.8f +- %.8f\tp = %.3f\\n",
-      integral[comp], error[comp], prob[comp]);
-  
-  printf("\\nTime for VEGAS test: %f secs\\n",
-        ((double)(end_vegas - start_vegas)/CLOCKS_PER_SEC));
-
-  printf("\\n-------------------- Suave test --------------------\\n");
-
-  clock_t start_suave, end_suave;
-  start_suave = clock();
-
-  Suave(NDIM, NCOMP, Integrand, USERDATA,
-    EPSREL, EPSABS, verbose | LAST, SEED,
-    MINEVAL, MAXEVAL, NNEW, FLATNESS,
-    &nregions, &neval, &fail, integral, error, prob);
-  end_suave = clock();
-
-  printf("SUAVE RESULT:\tnregions %d\tneval %d\tfail %d\\n",
-    nregions, neval, fail);
-  for( comp = 0; comp < NCOMP; ++comp )
-    printf("SUAVE RESULT:\t%.8f +- %.8f\tp = %.3f\\n",
-      integral[comp], error[comp], prob[comp]);
-
-  printf("\\nTime for Suave test: %f secs\\n",
-        ((double)(end_suave - start_suave)/CLOCKS_PER_SEC));
-
-  printf("\\n------------------- Divonne test -------------------\\n");
-
-  clock_t start_divonne, end_divonne;
-  start_divonne = clock();
-
-  Divonne(NDIM, NCOMP, Integrand, USERDATA,
-    EPSREL, EPSABS, verbose, SEED,
-    MINEVAL, MAXEVAL, KEY1, KEY2, KEY3, MAXPASS,
-    BORDER, MAXCHISQ, MINDEVIATION,
-    NGIVEN, LDXGIVEN, NULL, NEXTRA, NULL,
-    &nregions, &neval, &fail, integral, error, prob);
-
-  end_divonne = clock();
-
-  printf("DIVONNE RESULT:\tnregions %d\tneval %d\tfail %d\\n",
-    nregions, neval, fail);
-  for( comp = 0; comp < NCOMP; ++comp )
-    printf("DIVONNE RESULT:\t%.8f +- %.8f\tp = %.3f\\n",
-      integral[comp], error[comp], prob[comp]);
-
-  printf("\\nTime for Divonne test: %f secs\\n",
-        ((double)(end_divonne - start_divonne)/CLOCKS_PER_SEC));
-
-  printf("\\n-------------------- Cuhre test --------------------\\n");
-
-  clock_t start_cuhre, end_cuhre;
-  start_cuhre = clock();
-
-  Cuhre(NDIM, NCOMP, Integrand, USERDATA,
-    EPSREL, EPSABS, verbose | LAST,
-    MINEVAL, MAXEVAL, KEY,
-    &nregions, &neval, &fail, integral, error, prob);
-
-  end_cuhre = clock();
-
-  printf("CUHRE RESULT:\tnregions %d\tneval %d\tfail %d\\n",
-    nregions, neval, fail);
-  for( comp = 0; comp < NCOMP; ++comp )
-    printf("CUHRE RESULT:\t%.8f +- %.8f\tp = %.3f\\n",
-      integral[comp], error[comp], prob[comp]);
-
-  printf("\\nTime for Cuhre test: %f secs\\n",
-        ((double)(end_cuhre - start_cuhre)/CLOCKS_PER_SEC));
-
-  return 0;
-}}
-"""
-
-includes = ""
-functions = ""
+includes,functions = "",""
 
 for i, fileName in enumerate(headers):
     functions += "\n f += func_t_%d(xx);\n" % i
     includes += "#include \"%s\"\n"%(fileName)
 
 
-cubaFile = localPath+"_cuba__E0.c"
+cubaFile = os.path.join(localPath,localPath.split('/')[-1]+"_cuba__E0.c")
 f = open(cubaFile,'w')
 f.write(coreCubaCodeTemplate.format(
         includes = includes,
+        cuba_path= os.path.join(cubaPath,'cuba.h'),
+        maxeval  = maxEval,
+        method   = methodNum,
         functions= functions))
 f.close()
 print cubaFile+" created\n"
     
 env = Environment(  LIBS=['m','cuba'], 
-                    LIBPATH='/home/kirienko/cuba/Cuba-3.0/', 
-                    platform='posix',ENV=os.environ,
-                    CPPPATH=['/home/kirienko/cuba/Cuba-3.0']) 
-
+                    LIBPATH=cubaPath, CPPPATH=[cubaPath],
+                    platform='posix',ENV=os.environ) 
 
 print "Compiling", cubaFile
-env.Program(target = 'test', source = [cubaFile]+objs)
+print "Method = %s, maxPoints = %d" %(method, maxEval)
+targetName = '_'.join(('cuba', str(method), str(maxEval)[:-3], 'K.run'))
+env.Program(target = targetName, source = [cubaFile]+objs)
