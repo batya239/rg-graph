@@ -1,0 +1,130 @@
+coreCubaCodeTemplate = """
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <time.h>
+#include "{cuba_path}"
+
+{includes}
+
+static int Integrand(const int *ndim, const double xx[],
+  const int *ncomp, double ff[], void *userdata)
+{{
+#define f ff[0]       // FIXME?
+  f = 0.;   // FIXME?
+  {functions}
+  return 0;
+}}
+
+/*********************************************************************/
+
+#define NDIM 13
+#define NCOMP 1
+#define USERDATA NULL
+#define EPSREL 1e-3
+#define EPSABS 1e-12
+#define LAST 4
+#define SEED 0
+#define MINEVAL 0
+
+#define NSTART 1000
+#define NINCREASE 500
+#define NBATCH 1000
+#define GRIDNO 0
+#define STATEFILE NULL
+
+#define NNEW 1000
+#define FLATNESS 25.
+
+#define KEY1 47
+#define KEY2 1
+#define KEY3 1
+#define MAXPASS 5
+#define BORDER 0.
+#define MAXCHISQ 10.
+#define MINDEVIATION .25
+#define NGIVEN 0
+#define LDXGIVEN NDIM
+#define NEXTRA 0
+
+#define KEY 0
+#define METHOD {method}
+
+int main(int argc, char* argv[])
+{{
+  if (argc < 2) {{
+      printf("Usage: %s <maxPoints> ", argv[0]);
+      return 1;
+  }}
+    
+  #define MAXEVAL atoi(argv[1])
+  
+  int verbose, comp, nregions, neval, fail;
+  double integral[NCOMP], error[NCOMP], prob[NCOMP];
+
+  const char *env = getenv("CUBAVERBOSE");
+  verbose = 2;
+  if( env ) verbose = atoi(env);
+
+#if METHOD == 0
+  printf("-------------------- Vegas test --------------------\\n");
+  Vegas(NDIM, NCOMP, Integrand, USERDATA,
+    EPSREL, EPSABS, verbose, SEED,
+    MINEVAL, MAXEVAL, NSTART, NINCREASE, NBATCH,
+    GRIDNO, STATEFILE,
+    &neval, &fail, integral, error, prob);
+
+  printf("VEGAS RESULT:\tneval %d\tfail %d\\n",
+    neval, fail);
+  for( comp = 0; comp < NCOMP; ++comp )
+    printf("VEGAS RESULT:\t%.8f +- %.8f\tp = %.3f\\n",
+      integral[comp], error[comp], prob[comp]);
+
+#elif METHOD == 1  
+  printf("\\n-------------------- Suave test --------------------\\n");
+
+  Suave(NDIM, NCOMP, Integrand, USERDATA,
+    EPSREL, EPSABS, verbose | LAST, SEED,
+    MINEVAL, MAXEVAL, NNEW, FLATNESS,
+    &nregions, &neval, &fail, integral, error, prob);
+
+  printf("SUAVE RESULT:\tnregions %d\tneval %d\tfail %d\\n",
+    nregions, neval, fail);
+  for( comp = 0; comp < NCOMP; ++comp )
+    printf("SUAVE RESULT:\t%.8f +- %.8f\tp = %.3f\\n",
+      integral[comp], error[comp], prob[comp]);
+
+#elif METHOD == 2
+  printf("\\n------------------- Divonne test -------------------\\n");
+
+  Divonne(NDIM, NCOMP, Integrand, USERDATA,
+    EPSREL, EPSABS, verbose, SEED,
+    MINEVAL, MAXEVAL, KEY1, KEY2, KEY3, MAXPASS,
+    BORDER, MAXCHISQ, MINDEVIATION,
+    NGIVEN, LDXGIVEN, NULL, NEXTRA, NULL,
+    &nregions, &neval, &fail, integral, error, prob);
+
+  printf("DIVONNE RESULT:\tnregions %d\tneval %d\tfail %d\\n",
+    nregions, neval, fail);
+  for( comp = 0; comp < NCOMP; ++comp )
+    printf("DIVONNE RESULT:\t%.8f +- %.8f\tp = %.3f\\n",
+      integral[comp], error[comp], prob[comp]);
+
+#elif METHOD == 3
+  printf("\\n-------------------- Cuhre test --------------------\\n");
+
+  Cuhre(NDIM, NCOMP, Integrand, USERDATA,
+    EPSREL, EPSABS, verbose | LAST,
+    MINEVAL, MAXEVAL, KEY,
+    &nregions, &neval, &fail, integral, error, prob);
+
+  printf("CUHRE RESULT:\tnregions %d\tneval %d\tfail %d\\n",
+    nregions, neval, fail);
+  for( comp = 0; comp < NCOMP; ++comp )
+    printf("CUHRE RESULT:\t%.8f +- %.8f\tp = %.3f\\n",
+      integral[comp], error[comp], prob[comp]);
+#endif
+  return 0;
+}}
+"""
+

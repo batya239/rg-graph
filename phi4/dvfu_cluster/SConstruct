@@ -18,9 +18,8 @@ localPath = "/home/kirienko/loops/e112-23-e4-5-566-66--"
 cubaPath  = "/home/kirienko/cuba/Cuba-3.0"
 headers   = [ os.path.join(localPath,s[:-1]+'h') for s in obj_src]
 
-method  = 'cuhre' # one of: vegas, suave, cuhre, divonne
+method  = 'vegas' # one of: vegas, suave, cuhre, divonne
 methodNum = ('vegas', 'suave', 'divonne', 'cuhre').index(method)
-maxEval = 50000
 chunks  = 3
 
 includes,functions = "",""
@@ -35,7 +34,6 @@ f = open(cubaFile,'w')
 f.write(coreCubaCodeTemplate.format(
         includes = includes,
         cuba_path= os.path.join(cubaPath,'cuba.h'),
-        maxeval  = maxEval,
         method   = methodNum,
         functions= functions))
 f.close()
@@ -46,6 +44,5 @@ env = Environment(  LIBS=['m','cuba'],
                     platform='posix',ENV=os.environ) 
 
 print "Compiling", cubaFile
-print "Method = %s, maxPoints = %d" %(method, maxEval)
-targetName = '_'.join(('cuba', str(method), str(maxEval)[:-3], 'K.run'))
+targetName = ''.join(('cuba_', str(method), '.run'))
 env.Program(target = targetName, source = [cubaFile]+objs)
