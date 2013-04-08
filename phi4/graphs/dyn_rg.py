@@ -3,6 +3,7 @@
 import os
 import re
 import utils
+import sys
 
 __author__ = 'mkompan'
 
@@ -49,23 +50,27 @@ def normalize(graph, result):
     return ([float(i) for i in utils.series_lst(res, e, len(res_) - 1)],
             [float(i) for i in utils.series_lst(err, e, len(res_) - 1)])
 
+fString = "AA"
+if len(sys.argv) > 1:
+    fString = sys.argv[1]
+fList = map(lambda x: '0%s' % x, fString)
 
 os.chdir("%s/%s" % (model.workdir, methodName))
 f1 = 0
 e, g = sympy.var('e g')
 for dirName in os.listdir('.'):
-    print dirName
     if re.match('^e.*_$', dirName):
         fileName = "%s/dyn_sectors.py" % dirName
         exec (open(fileName).read())
 
         graph = graphine.Graph(graph_state.GraphState.fromStr(graphName))
         nLoops = graph.calculateLoopsCount()
-        if map(lambda x: str(x.fields), graph.edges(graph.externalVertex)) == ['0A', '0A']:
+        if map(lambda x: str(x.fields), graph.edges(graph.externalVertex)) == fList:
             sc = symmetryCoefficient(graph)
             res_, err_ = eval(open("%s/result" % dirName).read())
             res, err = normalize(graph, (res_, err_))
-            print dirName, res
+            print dirName, map(lambda x: x * sc / 2, res)
+            print dirName, map(lambda x: x * sc / 2, err)
             for i in range(model.target - nLoops + 1):
                 f1 += (-g) ** nLoops * res[i] * e ** i / 2 * sc
 

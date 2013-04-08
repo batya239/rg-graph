@@ -116,17 +116,17 @@ def TVersions(graph):
     return res
 
 
-def TCuts(graph, tversion):
+def TCuts(graph, tVersion):
     res = list()
-    for i in range(len(tversion) - 1):
-        tcut = list()
-        left = set(tversion[:i + 1])
-        right = set(tversion[i + 1:])
+    for i in range(len(tVersion) - 1):
+        tCut = list()
+        left = set(tVersion[:i + 1])
+        right = set(tVersion[i + 1:])
         for line in graph.xInternalLines():
             node1, node2 = map(lambda x: x.idx(), line.Nodes())
             if (node1 in left and node2 in right) or (node1 in right and node2 in left):
-                tcut.append(line.idx())
-        res.append(tcut)
+                tCut.append(line.idx())
+        res.append(tCut)
     return res
 
 
@@ -200,6 +200,7 @@ rules = {1000: 'a0', 1001: 'a1', 1002: 'a2', 1003: 'a3',
          1004: 'a4', 1005: 'a5', 1006: 'a6', 1007: 'a7',
          1008: 'a8', 1009: 'a9', 1010: 'a10'}
 
+tCutShift = 100
 
 def dSubstitutions(graph, tCuts):
     """
@@ -211,8 +212,6 @@ def dSubstitutions(graph, tCuts):
 
     def isPhi1Phi(line):
         return line.type == ('A', 'a') or line.type == ('a', 'A')
-
-    tCutShift = 100
 
     res = dict()
     for var in graph._qi2l:
@@ -245,6 +244,39 @@ def generateStaticCDET(dG, model):
     return C, D, E, T
 
 
+def tCutsInRange(tVersion, externalNodesIdx):
+    res = list()
+    inRange = False
+    for idx in range(len(tVersion)):
+        node = tVersion[idx]
+        if not inRange:
+            if node in externalNodesIdx:
+                inRange = True
+        else:
+            res.append(idx - 1)
+            if node in externalNodesIdx:
+                inRange = False
+                break
+    return res
+
+
+def dOmega(graph, tCuts, tCutsOmega):
+    res = list()
+    for idx in tCutsOmega:
+        term = list()
+        tCut = tCuts[idx]
+        term.append(idx + tCutShift)
+        for i in range(len(graph._subgraphs)):
+            sub = graph._subgraphs[i]
+            sub_ = set(map(lambda x: x.idx(), sub.lines))
+            if len(set(tCut) & sub_) != 0:
+                term.append('a%s' % i)
+        res.append(term)
+    return res
+
+
+
+
 def generateCDET(dG, tVersion, staticCDET=None, model=None):
     if staticCDET is None:
         (C, D, E, T) = generateStaticCDET(dG, model)
@@ -257,6 +289,17 @@ def generateCDET(dG, tVersion, staticCDET=None, model=None):
 
     substitutions = dSubstitutions(dG, tCuts)
 
+    externalLinesType = map(lambda x: x.type, dG.ExternalLines())
+    if externalLinesType == [('0', 'A'), ('0', 'a')] or externalLinesType == [('0', 'a'), ('0', 'A')]:
+        externalNodes = dG.ExternalNodes()
+        externalNodesIdx = map(lambda x: x.idx(), externalNodes)
+        print tVersion, tCuts, externalNodes
+        tCutsOmega = tCutsInRange(tVersion, externalNodesIdx)
+        print tCutsOmega
+
+        Components_[3] = Components_[3] * polynomial.poly([(1, x) for x in dOmega(dG, tCuts, tCutsOmega)])
+
+
     for var in substitutions:
         subs = substitutions[var]
         subs_ = polynomial.poly([(1, x) for x in subs])
@@ -266,14 +309,20 @@ def generateCDET(dG, tVersion, staticCDET=None, model=None):
     nLoops = dG.NLoops()
     #reduce(lambda x, y: x + y, [(-x.Dim(model) - 2) / 2 for x in dG.xInternalLines()]) - number of (a,a) edges (dim(a,a) = -4, dim(a,A)=-2)
     alpha = reduce(lambda x, y: x + y, [(-x.Dim(model) - 2) / 2 for x in dG.xInternalLines()]) + 1 + len(tCuts)
+    print alpha
 
     if dG.Dim(model) == 0:
         Components_[0] = polynomial.poly([(1, [])])  # C
         Components_[1] = Components_[1].changeDegree((-model.space_dim / 2., 1))  # D
         Components_[2] = Components_[2].changeDegree((-alpha + model.space_dim * nLoops / 2., -nLoops))  # E
     elif dG.Dim(model) == 2:
-        Components_[1] = Components_[1].changeDegree((-model.space_dim / 2 - 1., 1))  # D
-        Components_[2] = Components_[2].changeDegree((-alpha + model.space_dim * nLoops / 2. - 1, -nLoops))  # E
+        if externalLinesType == [('0', 'A'), ('0', 'a')] or externalLinesType == [('0', 'a'), ('0', 'A')]:
+            Components_[0] = polynomial.poly([(1, [])])  # C
+            Components_[1] = Components_[1].changeDegree((-model.space_dim / 2., 1))  # D
+            Components_[2] = Components_[2].changeDegree((-alpha + model.space_dim * nLoops / 2. - 1, -nLoops))  # E
+        else:
+            Components_[1] = Components_[1].changeDegree((-model.space_dim / 2 - 1., 1))  # D
+            Components_[2] = Components_[2].changeDegree((-alpha + model.space_dim * nLoops / 2. - 1, -nLoops))  # E
 
     return tuple(Components_)
 
@@ -477,6 +526,7 @@ def addBranches(tree, variables, conservations, parents=list(), depth=0):
             if len(branches) == 1:
                 raise ValueError, branches
             elif len(branches) != 0:
+
                 tree.setBranches(branches)
             for branch in tree.branches:
                 if tree.node is None:
@@ -745,30 +795,31 @@ def saveSectorsSDT(sectorTerms, name, dirname, fileIdx, neps):
     sectorFunctionsByEps = [""] * (neps + 1)
     resultingFunctions = ""
     for idx in sectorTerms:
-        sectorExpr, sectorVariables, primaryVar, delta_subst = sectorTerms[idx]
+        sectorExpr, sectorVariables, primaryVar, substNumerator, substDenominator = sectorTerms[idx]
 
         strVars = ""
         varIdx = 0
         for var in sectorVariables:
             strVars += "   double %s = k[%s];\n" % (var, varIdx)
             varIdx += 1
-        delta_subst_string = polynomial.formatter.format(delta_subst, polynomial.formatter.CPP)
-        strVars += "   if( %s < 1) { return 0.; } \n" % delta_subst_string
+        substNumeratorString = polynomial.formatter.format(substNumerator, polynomial.formatter.CPP)
+        substDenominatorString = polynomial.formatter.format(substDenominator, polynomial.formatter.CPP)
+        strVars += "   if( 1 - (%s) -(%s) > 0) { return 0.; } \n" % (substNumeratorString, substDenominatorString)
+        strVars += "   if( 1 - (%s)  < 0) { return 0.; } \n" % (substNumeratorString)
+        primaryVarStr = polynomial.formatter.format(primaryVar, polynomial.formatter.CPP)
 
-        strVars += "   double %s = 1./(%s);\n" % (polynomial.formatter.formatVarIndexes(primaryVar,
-                                                                                       polynomial.formatter.CPP)[0],
-                                                 delta_subst_string)
+        strVars += "   double %s = (1. - (%s))/(%s);\n" % (primaryVarStr, substNumeratorString, substDenominatorString)
 
         strExpr = [""] * (neps + 1)
         for expr_ in sectorExpr:
             if not expr_.isZero():
                 coreExpr, epsDict = expr_.epsExpansion(neps)
-                coreExprString = polynomial.formatter.format(coreExpr * primaryVar, polynomial.formatter.CPP)
+                coreExprString = polynomial.formatter.format(coreExpr, polynomial.formatter.CPP)
                 for i in xrange(neps + 1):
                     epsTerms = epsDict[i]
-                    strExpr[i] += "   coreExpr = %s;\n" % coreExprString
+                    strExpr[i] += "   coreExpr = (%s) / (%s);\n" % (coreExprString, substDenominatorString)
                     for epsTerm in epsTerms:
-                        strExpr[i] += "   f += coreExpr * %s;\n" % (
+                        strExpr[i] += "   f += coreExpr * (%s);\n" % (
                             polynomial.formatter.format(epsTerm, polynomial.formatter.CPP))
         for i in range(neps + 1):
             sectorFunctionsByEps[i] += functionPvTemplate.format(idx=idx, fileIdx=fileIdx,
@@ -1013,9 +1064,9 @@ def save(model, expr, sectors, name, neps, statics=False):
             sectorExpr = removeRoots(sectorExpr)
 
         check = checkDecomposition(sectorExpr)
-        #        print sector, check
-        if "bad" in check:
+        if not reduce(lambda x, y: x & y, map(lambda x: "0" == x or "1" == x, check)):
             print
+            print sector, check
             print polynomial.formatter.format(sectorExpr, polynomial.formatter.CPP)
             print
 
@@ -1056,13 +1107,42 @@ def save(model, expr, sectors, name, neps, statics=False):
         f.close()
 
 
-def splitDeltaArg(delta_arg):
-    if len(delta_arg.polynomials) != 2:
-        raise ValueError("invalid delta_arg decomposition: %s" % delta_arg)
-    if len(delta_arg.polynomials[0].monomials) == 1:
-        return delta_arg.polynomials[0], delta_arg.polynomials[1]
-    elif len(delta_arg.polynomials[1].monomials) == 1:
-        return delta_arg.polynomials[1], delta_arg.polynomials[0]
+# def splitDeltaArg(delta_arg_):
+#     delta_arg = delta_arg_.toPolyProd().simplify()
+#     if len(delta_arg.polynomials) != 2:
+#         raise ValueError("invalid delta_arg decomposition: %s" % delta_arg)
+#     if len(delta_arg.polynomials[0].monomials) == 1:
+#         return delta_arg.polynomials[0], 1, delta_arg.polynomials[1]
+#     elif len(delta_arg.polynomials[1].monomials) == 1:
+#         return delta_arg.polynomials[1], 1, delta_arg.polynomials[0]
+
+def hasConst(polynomial):
+    for mi in polynomial.monomials:
+        if len(mi) == 0:
+            return True
+    return False
+
+def splitDeltaArg(delta_arg_):
+    variables = delta_arg_.getVarsIndexes()
+    nTerms = len(delta_arg_.monomials)
+#    print "delta_arg", delta_arg_
+    for var in variables:
+        numerator = delta_arg_.set0toVar(var)
+#        print "numerator", numerator, nTerms - len(numerator.monomials) >1, "var ", var
+        if nTerms - len(numerator.monomials) > 1:
+            denominator = delta_arg_.toPolyProd().diff(var)
+#            print "denominator", denominator
+            if len(denominator) > 1:
+                continue
+            if len(denominator[0].polynomials) > 1:
+                continue
+            if len(denominator[0].polynomials[0].monomials) != len(denominator[0].polynomials[0].set0toVar(var).monomials):
+                continue
+
+            if hasConst(denominator[0].polynomials[0]):
+#                print "res", var, numerator.toPolyProd(), denominator[0]
+                return var, numerator.toPolyProd(), denominator[0]
+    raise ValueError("can't remove delta function %s" % delta_arg_)
 
 
 def saveSDT(model, expr, sectors, name, neps, statics=False):
@@ -1124,7 +1204,7 @@ def saveSDT(model, expr, sectors, name, neps, statics=False):
         # delta_arg_sd = sd_lib.sectorDiagram(delta_arg.toPolyProd(), sector, remove_delta=False)
         # sectorExpr = sectorExpr_
         sectorExpr = map(lambda x: x.simplify(), sectorExpr)
-        primaryVar, subst = splitDeltaArg(delta_arg_sd.toPolyProd().simplify())
+        primaryVar, substNumerator, substDenominator = splitDeltaArg(delta_arg_sd)
 
         if 'removeRoots' in model.__dict__ and model.removeRoots:
             sectorExpr = removeRoots(sectorExpr)
@@ -1141,13 +1221,12 @@ def saveSDT(model, expr, sectors, name, neps, statics=False):
         for expr_ in sectorExpr:
             sectorVariables = sectorVariables | set(polynomial.formatter.formatVarIndexes(expr_,
                                                                                           polynomial.formatter.CPP))
-        sectorVariables = sectorVariables - set(polynomial.formatter.formatVarIndexes(primaryVar,
-                                                                                      polynomial.formatter.CPP))
+        sectorVariables = sectorVariables - set([polynomial.formatter.format(primaryVar, polynomial.formatter.CPP)])
 
         if len(sectorVariables) > sectorVariablesCount:
             sectorVariablesCount = len(sectorVariables)
 
-        sectorTerms[sectorCount] = (sectorExpr, sectorVariables, primaryVar, subst)
+        sectorTerms[sectorCount] = (sectorExpr, sectorVariables, primaryVar, substNumerator, substDenominator)
         #    toSave = dict()
         #    for sectorId in sectorTerms:
         #        toSave[sectorId] = sectorTerms[sectorId]

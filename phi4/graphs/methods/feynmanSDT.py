@@ -27,7 +27,7 @@ code_ = sd_tools.core_pv_code
 #sd_tools.debug = True
 
 sd_tools.MaxSDLevel = -1
-sd_tools.MaxSDLevel = 1
+#sd_tools.MaxSDLevel = 1
 sd_tools.MaxABranches = -1
 sd_tools.MaxABranches = 0
 sd_tools._CheckBadDecomposition = True

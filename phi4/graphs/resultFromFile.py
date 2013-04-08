@@ -156,6 +156,7 @@ for i in range(1, N + 1):
 for sub in subs_:
     gZ = gZ.subs(sub, subs_[sub])
 
+
 eta = g2s.subs(g, gZ)
 for var in subs:
     eta = eta.subs(var, subs[var])
@@ -165,11 +166,13 @@ print eta_e
 print
 
 gGs__ = gGs_
+gZ_ = gZ
 for i in range(2, N + 1):
     bi = utils.series_lst(resG[2][i], e, N - i)
     bi_e = utils.series_lst(err[2][i], e, N - i)
     for j in range(N + 1 - i):
         eta = eta.subs(sympy.var('B%s_%s' % (i, j)), sympy.var('B%s_%s_' % (i, j)))
+        gZ_ = gZ_.subs(sympy.var('B%s_%s' % (i, j)), sympy.var('B%s_%s_' % (i, j)))
         exec ('B%s_%s_=Number(%s,%s)' % (i, j, (-1) ** (i + 1) * bi[j], bi_e[j]))
 #        eta=eta.subs(sympy.var('B%s_%s'%(i, j)), (-1)**(i+1)*bi[j])
 #        gGs__=gGs__.subs(sympy.var('B%s_%s'%(i, j)), (-1)**(i+1)*bi[j])
@@ -188,6 +191,7 @@ for i in range(1, N + 1):
     #    print ai
     for j in range(N + 1 - i):
         eta = eta.subs(sympy.var('A%s_%s' % (i, j)), sympy.var('A%s_%s_' % (i, j)))
+        gZ_ = gZ_.subs(sympy.var('A%s_%s' % (i, j)), sympy.var('A%s_%s_' % (i, j)))
         exec ('A%s_%s_=Number(%s,%s)' % (i, j, (-1) ** (i) * ai[j], ai_e[j]))
 #        eta=eta.subs(sympy.var('A%s_%s'%(i, j)), (-1)**(i)*ai[j])
 #        gGs__=gGs__.subs(sympy.var('A%s_%s'%(i, j)), (-1)**(i)*ai[j])
@@ -196,7 +200,7 @@ for i in range(1, N + 1):
 
 print
 eta = eval(str(sympyseries_to_list(utils.series_f(eta, e, N + 1), e, 0, N + 1)))
-
+gZ_ = eval(str(sympyseries_to_list(utils.series_f(gZ_, e, N + 1), e, 0, N + 1)))
 #print 'gGs__=',utils.series_f(gGs__.subs(g__, g), e, N)
 print
 print "eta=", eta
@@ -214,6 +218,20 @@ print
 print "eta=", eta_series.sympy_series(N + 1)
 print "eta_err=", eta_series.sympy_err_series(N + 1)
 #print "eta n=0 ==", eta_series.subs(n, 0)
+
+gZ_series = list()
+for term in gZ_:
+    number, pow = term
+    if isinstance(number, (float, int)):
+        gZ_series.append((Number(number, 0), pow))
+    else:
+        gZ_series.append((number, pow))
+gZ_series = Series(gZ_series)
+print
+print "gZ =", gZ_series.sympy_series(N + 1)
+print "gZ_err=", gZ_series.sympy_err_series(N + 1)
+
+
 
 beta = -g * (e + g4s - 2 * g2s)
 w = -g * (g4s - 2 * g2s).diff(g)
