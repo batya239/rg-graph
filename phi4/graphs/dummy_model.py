@@ -6,6 +6,8 @@ import moments
 import subgraphs
 from graphs import Graph
 
+import os
+
 
 class _generic_model(object):
     def __init__( self, name):
@@ -78,7 +80,8 @@ class _phi3(_generic_model):
         self.nodes_dim = {1: 0}
         self.checktadpoles = False
         self.target = 4
-        self.workdir = '/home/mkompan/work/rg-graph/phi_4/'
+        home = os.environ['HOME']
+        self.workdir = '%s/work/rg-graph/phi_3/' % home
 
 
 class _phi3_dyn(_generic_model):
@@ -95,7 +98,8 @@ class _phi3_dyn(_generic_model):
         self.nodes_dim = {1: 0}
         self.checktadpoles = False
         self.target = 3
-        self.workdir = '/home/mkompan/work/rg-graph/phi3_dyn/'
+        home = os.environ['HOME']
+        self.workdir = '%s/work/rg-graph/phi3_dyn/' % home
 
 
 class _phi4_dyn(_generic_model):
@@ -132,7 +136,8 @@ class _phi4(_generic_model):
         #        self.target=5
         #        self.workdir='/home/mkompan/work/rg-graph/phi_4/'
         self.target = 6
-        self.workdir = '/home/mkompan/work/rg-graph/phi_4_6/'
+        home = os.environ['HOME']
+        self.workdir = '%s/work/rg-graph/phi_4_6/' % home
 
     def propagator(self, line, neps=None):
         def helper1(k2,B,e):
@@ -295,7 +300,8 @@ class _phi4_d3(_generic_model):
         #        self.workdir='/home/mkompan/work/rg-graph/phi_4/'
         self.subgraphDim = True
         self.target = 6
-        self.workdir = '/home/mkompan/work/rg-graph/phi_4_d3/'
+        home = os.environ['HOME']
+        self.workdir = '%s/work/rg-graph/phi_4_d3/' % home
         self.removeRoots = False
 
     def Dim(self, obj):
@@ -328,7 +334,8 @@ class _phi4_d2(_generic_model):
         self.space_dim = 2.
         self.subgraphDim = True
         self.target = 6
-        self.workdir = '/home/mkompan/work/rg-graph/phi_4_d2/'
+        home = os.environ['HOME']
+        self.workdir = '%s/work/rg-graph/phi_4_d2/' % home
         self.removeRoots = False
 #        self.subtractionOperators = "from dynamics import to1, D1, mK0\n"
 
@@ -362,6 +369,7 @@ class _phi4_d2_s2(_phi4_d2):
         self.space_dim = 2.
         self.subgraphDim = True
         self.target = 6
-        self.workdir = '/home/mkompan/work/rg-graph/phi_4_d2_s2/'
+        home = os.environ['HOME']
+        self.workdir = '%s/work/rg-graph/phi_4_d2_s2/' % home
         self.removeRoots = False
         self.subtractionOperators = "from dynamics import to1\nfrom dynamics import mK1 as mK0\nfrom dynamics import D2s as D1\n"
