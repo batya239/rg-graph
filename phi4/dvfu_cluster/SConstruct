@@ -14,13 +14,10 @@ for src in obj_src:
 objs = [ s[:-1]+'o' for s in obj_src]
 
 
-localPath = "/home/kirienko/loops/e112-23-e4-5-566-66--"
+localPath = os.getcwd() 
 cubaPath  = "/home/kirienko/cuba/Cuba-3.0"
 headers   = [ os.path.join(localPath,s[:-1]+'h') for s in obj_src]
 
-method  = 'vegas' # one of: vegas, suave, cuhre, divonne
-methodNum = ('vegas', 'suave', 'divonne', 'cuhre').index(method)
-chunks  = 3
 
 includes,functions = "",""
 
@@ -34,7 +31,6 @@ f = open(cubaFile,'w')
 f.write(coreCubaCodeTemplate.format(
         includes = includes,
         cuba_path= os.path.join(cubaPath,'cuba.h'),
-        method   = methodNum,
         functions= functions))
 f.close()
 print cubaFile+" created\n"
@@ -44,5 +40,5 @@ env = Environment(  LIBS=['m','cuba'],
                     platform='posix',ENV=os.environ) 
 
 print "Compiling", cubaFile
-targetName = ''.join(('cuba_', str(method), '.run'))
+targetName = 'cuba.run'
 env.Program(target = targetName, source = [cubaFile]+objs)
