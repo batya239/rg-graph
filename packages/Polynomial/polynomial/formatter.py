@@ -36,7 +36,7 @@ def formatWithExtractingNewVariables(obj, variableBasement="_A", exportType=HUMA
         formatResult = map(lambda l: Lookup.asString(l, formatter), rawResult)
     else:
         formatResult = Lookup.asString(_format(obj, formatter, polynomialLookupBuilder), formatter)
-    return formatResult, inlineService.polynomial2VariableName
+    return formatResult, inlineService.createReverseVariableMap(formatter)
 
 
 def formatVarIndexes(obj, exportType=HUMAN):
@@ -152,6 +152,9 @@ class PolynomialInlineService(object):
     @property
     def polynomial2VariableName(self):
         return self._polynomial2VariableName
+
+    def createReverseVariableMap(self, formatter):
+        return dict(map(lambda (p, v): (v, formatter.format(p)), self._polynomial2VariableName.iteritems()))
 
 
 class SimplePolynomialLookup(PolynomialLookup):
