@@ -62,6 +62,9 @@ class GraphTestCase(unittest.TestCase):
         #
         self.assertSetEqual(graph.vertexes(), set([-1, 0, 1, 2, 3]))
 
+    def testShrinkToPointInBatch(self):
+        pass
+
     def testShrinkToPoint(self):
         self.doTestShrinkToPoint([(-1, 0), (0, 1), (0, 2), (1, 2), (2, 3), (1, 3), (3, -1)],
                                  [(0, 1), (0, 2), (1, 2)],
