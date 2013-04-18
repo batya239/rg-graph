@@ -132,9 +132,7 @@ def KR1(graph, results, resultsKR1):
         for subGraphs in itertools.combinations(subGraphMap.keys(), i + 1):
             if checkIntersection(map(lambda x: subGraphMap[x], subGraphs)):
 
-                shrinkedGraph = graph
-                for subGraph in subGraphs:
-                    shrinkedGraph = shrinkedGraph.shrinkToPoint(subGraphMap[subGraph], renumbering=False)
+                shrinkedGraph = graph.batchShrinkToPoint([subGraphMap[x] for x in subGraphs])
                 term = calculateKR1term(subGraphs, shrinkedGraph, results, resultsKR1)
 #                print graph, subGraphs, shrinkedGraph, term
                 res += term
