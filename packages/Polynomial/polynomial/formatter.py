@@ -139,7 +139,7 @@ class PolynomialInlineService(object):
 
     def addPolynomial(self, polynomial):
         if polynomial.isConst():
-            return 
+            return
         self._polynomialOccurrences[polynomial] += 1
         if self._polynomialOccurrences[polynomial] > 1 and polynomial not in self._polynomial2VariableName:
             self._polynomial2VariableName[polynomial] = self._newVariablePrefix + str(self._lastVarIndex)
