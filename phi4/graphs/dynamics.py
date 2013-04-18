@@ -299,11 +299,13 @@ def generateCDET(dG, tVersion, staticCDET=None, model=None):
 
         Components_[3] = Components_[3] * polynomial.poly([(1, x) for x in dOmega(dG, tCuts, tCutsOmega)])
 
-
+    print "Substitutions:"
     for var in substitutions:
         subs = substitutions[var]
+        print var, subs
         subs_ = polynomial.poly([(1, x) for x in subs])
         Components_ = map(lambda x: x.changeVarToPolynomial(var, subs_), Components_)
+    print
 
     #d=4-2*e
     nLoops = dG.NLoops()
