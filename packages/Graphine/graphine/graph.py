@@ -152,10 +152,11 @@ class Graph(object):
         """
         if not len(subGraphs):
             return self
+
         vertexTransformation = ID_VERTEX_TRANSFORMATION
-        g = None
+        g = self
         for subGraph in subGraphs:
-            g, vertexTransformation = self._shrinkToPoint(subGraph, vertexTransformation)
+            g, vertexTransformation = g._shrinkToPoint(subGraph, vertexTransformation)
         assert g
         return g
 
@@ -192,7 +193,8 @@ class Graph(object):
                 newEdges.append(edge.copy(copyMap))
             else:
                 newEdges.append(edge)
-        return Graph(newEdges), vertexTransformation.add(VertexTransformation(currVertexTransformationMap))
+        return Graph(newEdges, externalVertex=self.externalVertex, renumbering=False), \
+               vertexTransformation.add(VertexTransformation(currVertexTransformationMap))
 
     def shrinkToPoint(self, edges):
         return self._shrinkToPoint(edges)[0]
@@ -304,7 +306,7 @@ class VertexTransformation(object):
         """
         composedMapping = dict()
         usedKeys = set()
-        for k, v in self._mapping:
+        for k, v in self._mapping.items():
             av = anotherVertexTransformation._mapping.get(v, None)
             if av:
                 composedMapping[k] = anotherVertexTransformation._mapping[v]
