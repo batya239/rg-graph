@@ -67,6 +67,14 @@ class GraphTestCase(unittest.TestCase):
                                         [[(0, 1), (0, 2), (1, 2)], [(1, 3)]],
                                         'ee0-::')
 
+        self.doTestShrinkToPointInBatch([(-1, 0), (0, 1), (0, 2), (1, 2), (1, 2), (2, 3), (1, 3), (3, -1)],
+                                        [[(0, 1), (0, 2), (1, 2)], [(1, 3)]],
+                                        'ee00-::')
+
+        self.doTestShrinkToPointInBatch([(-1, 0), (0, 1), (0, 2), (1, 2), (1, 2), (0, 3), (1, 3), (2, -1)],
+                                        [[(2, 1), (3, 2), (1, 3)], [(0, 1), (0, 2)]],
+                                        'ee0-::')
+
     def testShrinkToPoint(self):
         self.doTestShrinkToPoint([(-1, 0), (0, 1), (0, 2), (1, 2), (2, 3), (1, 3), (3, -1)],
                                  [(0, 1), (0, 2), (1, 2)],
