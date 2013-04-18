@@ -25,6 +25,8 @@ pp = p1 * p2
 
 pp1 = p1 * p2 * p3
 
+pp2 = p2 * p3 * p3
+
 
 class PolynomialProductTestCase(unittest.TestCase):
     def testVarExtracting(self):
@@ -32,3 +34,10 @@ class PolynomialProductTestCase(unittest.TestCase):
         self.assertEquals(len(p[1]), 2)
         self.assertEquals(p[1]["_B0"], formatter.format(p1))
         self.assertEquals(p[1]["_B1"], formatter.format(p2))
+
+        p = formatter.formatWithExtractingNewVariables([pp2, pp1], "_B")
+        self.assertEquals('(_B1)*(_B0)*(_B0)', p[0][0])
+        self.assertEquals(len(p[1]), 2)
+        self.assertEquals(p[1]["_B0"], formatter.format(p3))
+        self.assertEquals(p[1]["_B1"], formatter.format(p2))
+
