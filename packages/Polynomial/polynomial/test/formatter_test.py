@@ -27,6 +27,9 @@ pp1 = p1 * p2 * p3
 
 pp2 = p2 * p3 * p3
 
+p4 = polynomial.Polynomial({multiindex.MultiIndex({1: 1}): 1}, (1, 0), (2, 2))
+
+pp3 = p4 * p4
 
 class PolynomialProductTestCase(unittest.TestCase):
     def testVarExtracting(self):
@@ -36,7 +39,7 @@ class PolynomialProductTestCase(unittest.TestCase):
         self.assertEquals(p[1]["_B1"], formatter.format(p2.getMonomialsWithHash().asPolynomial()))
 
         p = formatter.formatWithExtractingNewVariables([pp2, pp1], variableBasement="_B")
-        self.assertEquals('(3*(_B1)^(2+eps*3))*(3*(_B0)^(2+eps*3))*(3*(_B0)^(2+eps*3))', p[0][0])
+        self.assertEquals('((3)*(_B1)^(2+eps*3))*((3)*(_B0)^(2+eps*3))*((3)*(_B0)^(2+eps*3))', p[0][0])
         self.assertEquals(len(p[1]), 2)
         self.assertEquals(p[1]["_B0"], formatter.format(p3.getMonomialsWithHash().asPolynomial()))
         self.assertEquals(p[1]["_B1"], formatter.format(p2.getMonomialsWithHash().asPolynomial()))
@@ -47,6 +50,8 @@ class PolynomialProductTestCase(unittest.TestCase):
         self.assertTrue(isinstance(p[0][0][1], list))
         self.assertEquals(2, len(p[0][0][1]))
 
+        p = formatter.formatPairsWithExtractingNewVariables([(pp3, pp3)], variableBasement="_B")
+        self.assertEquals(len(p[1]), 0)
 
 if __name__ == "__main__":
     unittest.main()

@@ -171,7 +171,7 @@ class PolynomialInlineService(object):
         return polynomial.getMonomialsWithHash() not in self._monomial2VariableName
 
     def getVariableFor(self, polynomial, formatter):
-        return "%s%s%s" % (polynomial.c, formatter.multiplicationSign(),
+        return "(%s)%s%s" % (polynomial.c, formatter.multiplicationSign(),
                            formatter.degree(self._monomial2VariableName[polynomial.getMonomialsWithHash()],
                                             polynomial.degree))
 

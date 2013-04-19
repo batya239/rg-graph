@@ -54,7 +54,7 @@ class Polynomial:
         return self._monomialsWithHash
 
     def hasOnlyOneSimpleMonomial(self):
-        return len(self.monomials) == 1 and len(self.monomials.items()[0]) == 1
+        return len(self.monomials) == 1 and len(self.monomials.items()[0][0]) == 1
 
     def changeDegree(self, newDegree):
         return Polynomial(self.monomials, newDegree, self.c, doPrepare=False)
