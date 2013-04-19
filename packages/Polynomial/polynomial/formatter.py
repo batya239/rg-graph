@@ -24,6 +24,17 @@ def format(obj, exportType=HUMAN):
         return Lookup.asString(_format(obj, formatter), formatter)
 
 
+def formatTuplesWuthExtractingNewVariables(tuples, variableBasement="_A", exportType=HUMAN):
+    tuplesAsList = list()
+    for t in tuples:
+        tuplesAsList.append(t[0])
+        tuplesAsList.append(t[1])
+    rawResult = formatWithExtractingNewVariables(tuplesAsList, variableBasement, exportType)
+    result = list()
+    for i in xrange(0, len(tuples)):
+        result.append((rawResult[0][2 * i], rawResult[0][2 * i + 1]))
+    return result, rawResult[1]
+
 def formatWithExtractingNewVariables(listOrObject, variableBasement="_A", exportType=HUMAN):
     """
     if some polynomial occurrences > 1, then it will be replaced by some variable
