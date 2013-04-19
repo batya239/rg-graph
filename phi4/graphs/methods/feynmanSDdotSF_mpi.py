@@ -13,7 +13,7 @@ from methods.sd_tools import _cnomenkl, debug, xTreeElement, decompose_expr, dif
 
 import methods.feynmanSDdot
 
-method_name = "feynmanSDdotS_mpi"
+method_name = "feynmanSDdotSF_mpi"
 sd_tools.method_name = method_name
 Prepare = sd_tools.Prepare
 save = sd_tools.save
@@ -23,6 +23,8 @@ sd_tools.code_ = sd_tools.core_pvmpi_code
 code_ = sd_tools.core_pvmpi_code
 methods.feynmanSDdot.code_ = code_
 sd_tools.save_sd = methods.feynmanSDdot.save_sd
+
+introduce = True
 
 
 #mpi

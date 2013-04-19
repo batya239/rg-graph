@@ -752,7 +752,7 @@ dimPvCodeTemplate = """
 """
 
 
-def saveSectors(sectorTerms, name, dirname, fileIdx, neps):
+def saveSectors(sectorTerms, name, dirname, fileIdx, neps, introduce=False):
     sectorFunctionsByEps = [""] * (neps + 1)
     resultingFunctions = ""
     for idx in sectorTerms:
@@ -765,16 +765,37 @@ def saveSectors(sectorTerms, name, dirname, fileIdx, neps):
             varIdx += 1
 
         strExpr = [""] * (neps + 1)
-        for expr_ in sectorExpr:
-            if not expr_.isZero():
+        if not introduce:
+            for expr_ in sectorExpr:
+                if not expr_.isZero():
+                    coreExpr, epsDict = expr_.epsExpansion(neps)
+                    coreExprString = polynomial.formatter.format(coreExpr, polynomial.formatter.CPP)
+                    for i in xrange(neps + 1):
+                        epsTerms = epsDict[i]
+                        strExpr[i] += "   coreExpr = %s;\n" % coreExprString
+                        for epsTerm in epsTerms:
+                            strExpr[i] += "   f += coreExpr * %s;\n" % (
+                                polynomial.formatter.format(epsTerm, polynomial.formatter.CPP))
+        else:
+            epsExp = dict([(i, []) for i in range(neps + 1)])
+            for expr_ in sectorExpr:
                 coreExpr, epsDict = expr_.epsExpansion(neps)
-                coreExprString = polynomial.formatter.format(coreExpr, polynomial.formatter.CPP)
-                for i in xrange(neps + 1):
-                    epsTerms = epsDict[i]
-                    strExpr[i] += "   coreExpr = %s;\n" % coreExprString
+                for i in range(neps+1):
+                    epsExp[i].append((coreExpr, epsDict[i]))
+            for i in range(neps+1):
+                exprTuples, substDict = polynomial.formatter.formatTuplesWithExtractingNewVariables(epsExp[i], exportType=polynomial.formatter.CPP)
+                for var in substDict:
+                    strExpr[i] += "   double %s = %s;\n" % (var, substDict[var])
+                for coreExpr, epsTerms in exprTuples:
+                    epsTermsSting = ""
                     for epsTerm in epsTerms:
-                        strExpr[i] += "   f += coreExpr * %s;\n" % (
-                            polynomial.formatter.format(epsTerm, polynomial.formatter.CPP))
+                        epsTermsSting += "+ (%s)" % epsTerm
+                    if len(epsTermsSting)>0:
+                        epsTermsSting = epsTermsSting[1:]
+                    strExpr[i] += "   f += (%s)*(%s)" % (coreExpr, epsTermsSting)
+
+
+
         for i in range(neps + 1):
             sectorFunctionsByEps[i] += functionPvTemplate.format(idx=idx, fileIdx=fileIdx,
                                                                  sector=idx, vars=strVars,
@@ -1012,7 +1033,7 @@ def removeRoots(expr):
     return res
 
 
-def save(model, expr, sectors, name, neps, statics=False):
+def save(model, expr, sectors, name, neps, statics=False, introduce=False):
     dirname = '%s/%s/%s/' % (model.workdir, method_name, name)
     try:
         os.mkdir('%s/%s' % (model.workdir, method_name))
@@ -1086,7 +1107,7 @@ def save(model, expr, sectors, name, neps, statics=False):
         size += sectorTerms[sectorCount].__sizeof__()
 
         if size >= maxSize:
-            saveSectors(sectorTerms, name_, dirname, fileIdx, neps)
+            saveSectors(sectorTerms, name_, dirname, fileIdx, neps, introduce=introduce)
             fileIdx += 1
             nSaved += len(sectorTerms)
             print "saved to file  %s sectors (%s) size=%s..." % (nSaved, fileIdx, size)
@@ -1094,7 +1115,7 @@ def save(model, expr, sectors, name, neps, statics=False):
             sectorTerms = dict()
             size = 0
     if size > 0:
-        saveSectors(sectorTerms, name_, dirname, fileIdx, neps)
+        saveSectors(sectorTerms, name_, dirname, fileIdx, neps, introduce=introduce)
         fileIdx += 1
         nSaved += len(sectorTerms)
         print "saved to file  %s sectors (%s) size=%s..." % (nSaved, fileIdx, size)

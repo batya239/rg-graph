@@ -69,6 +69,11 @@ delta_arg = deltaArg(uVars)
 
 neps = model.target - G.NLoops()
 
-dynamics.save(model, expr, sectors, fileNameC, neps, statics=True)
+if 'introduce' in dir(methodModule):
+    introduce = methodModule.introduce
+else:
+    introduce = False
+
+dynamics.save(model, expr, sectors, fileNameC, neps, statics=True, introduce=introduce)
 #dynamics.compileCode(model, fileNameC, options=["-lm", "-lpthread", "-lpvegas", "-O2"])
 
