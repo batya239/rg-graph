@@ -73,6 +73,7 @@ if 'introduce' in dir(methodModule):
     introduce = methodModule.introduce
 else:
     introduce = False
+dynamics.code_ = dynamics.core_pvmpi_code
 
 dynamics.save(model, expr, sectors, fileNameC, neps, statics=True, introduce=introduce)
 #dynamics.compileCode(model, fileNameC, options=["-lm", "-lpthread", "-lpvegas", "-O2"])
