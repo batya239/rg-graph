@@ -59,6 +59,12 @@ else:
 
 expr = C_ * D_ * U_
 print "C = %s\nD = %s\nU = %s\n" % (C_, D_, U_)
+
+if 'T' in dir():
+    T_ = polynomial.poly(map(lambda x: (1, x), T))
+    print "T = %s" % T_
+    expr = expr * T_
+
 #print expr
 
 
