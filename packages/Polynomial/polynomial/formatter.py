@@ -25,14 +25,19 @@ def format(obj, exportType=HUMAN):
 
 
 def formatTuplesWithExtractingNewVariables(tuples, variableBasement="_A", exportType=HUMAN):
+    """
+     tuples - list of (obj, [obj,obj,obj...])
+    """
     tuplesAsList = list()
     for t in tuples:
         tuplesAsList.append(t[0])
-        tuplesAsList.append(t[1])
+        tuplesAsList += t[1]
     rawResult = formatWithExtractingNewVariables(tuplesAsList, variableBasement, exportType)
     result = list()
+    idx = 0
     for i in xrange(0, len(tuples)):
-        result.append((rawResult[0][2 * i], rawResult[0][2 * i + 1]))
+        result.append((rawResult[0][idx], rawResult[0][idx + 1: idx + 1 + len(tuples[i][1])]))
+        idx = idx + 1 + len(tuples[i][1])
     return result, rawResult[1]
 
 def formatWithExtractingNewVariables(listOrObject, variableBasement="_A", exportType=HUMAN):
