@@ -113,9 +113,7 @@ class Graph(object):
         """
         immutable operation
         """
-        newEdges = copy.deepcopy(self._edges)
-        for edge in edgesToAdd:
-            Graph._persInsertEdge(newEdges, edge)
+        newEdges = self.allEdges() + edgesToAdd
         return Graph(newEdges)
 
     def addEdge(self, edge):

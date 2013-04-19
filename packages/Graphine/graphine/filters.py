@@ -14,15 +14,9 @@ def graphFilter(qualifier):
     return [qualifier]
 
 
-def isUVRelevant(model):
+def isRelevant(relevanceCondition):
     def wrapper(edgesList, superGraph, superGraphEdges):
-        return model.isUVRelevant(edgesList, superGraph, superGraphEdges)
-    return [wrapper]
-
-
-def isIRRelevant(model):
-    def wrapper(edgesList, superGraph, superGraphEdges):
-        return model.isIRRelevant(edgesList, superGraph, superGraphEdges)
+        return relevanceCondition.isRelevant(edgesList, superGraph, superGraphEdges)
     return [wrapper]
 
 

@@ -9,8 +9,10 @@ import subgraph_processer
 import graph_storage
 
 
+
 class SubGraphReducerTestCase(unittest.TestCase):
     def setUp(self):
+        graph_storage.initStorage()
         self.deleteStorageFile()
 
     def tearDown(self):
