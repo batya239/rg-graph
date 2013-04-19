@@ -51,3 +51,6 @@ class PolynomialProductTestCase(unittest.TestCase):
         self.assertEquals(t[2]["_C0"], formatter.format(p1, exportType=formatter.CPP))
         self.assertEquals(t[2]["_C1"], formatter.format(p2, exportType=formatter.CPP))
         self.assertEquals(t[2]["_C2"], formatter.format(p3, exportType=formatter.CPP))
+
+if __name__ == "__main__":
+    unittest.main()
