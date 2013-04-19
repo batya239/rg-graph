@@ -24,7 +24,7 @@ def format(obj, exportType=HUMAN):
         return Lookup.asString(_format(obj, formatter), formatter)
 
 
-def formatTuplesWuthExtractingNewVariables(tuples, variableBasement="_A", exportType=HUMAN):
+def formatTuplesWithExtractingNewVariables(tuples, variableBasement="_A", exportType=HUMAN):
     tuplesAsList = list()
     for t in tuples:
         tuplesAsList.append(t[0])
