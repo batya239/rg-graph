@@ -1088,6 +1088,8 @@ def save(model, expr, sectors, name, neps, statics=False, introduce=False):
             sectorExpr = removeRoots(sectorExpr)
 
         check = checkDecomposition(sectorExpr)
+        if len(check) == 0:
+            continue
         if not reduce(lambda x, y: x & y, map(lambda x: "0" == x or "1" == x, check)):
             print
             print sector, check
