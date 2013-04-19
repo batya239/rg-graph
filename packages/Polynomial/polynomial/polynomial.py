@@ -53,6 +53,9 @@ class Polynomial:
             self._monomialsWithHash = MonomialsWithHash(self.monomials)
         return self._monomialsWithHash
 
+    def hasOnlyOneSimpleMonomial(self):
+        return len(self.monomials) == 1 and len(self.monomials.items()[0]) == 1
+
     def changeDegree(self, newDegree):
         return Polynomial(self.monomials, newDegree, self.c, doPrepare=False)
 
@@ -283,6 +286,9 @@ class MonomialsWithHash(object):
         if self._asPolynomial is None:
             self._asPolynomial = Polynomial(self._monomials, degree=1, c=1, doPrepare=False)
         return self._asPolynomial
+
+    def isSimple(self):
+        return len(self._monomials) == 1
 
     @property
     def monomials(self):

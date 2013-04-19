@@ -24,21 +24,17 @@ def format(obj, exportType=HUMAN):
         return Lookup.asString(_format(obj, formatter), formatter)
 
 
-def formatTuplesWithExtractingNewVariables(tuples, variableBasement="_A", exportType=HUMAN):
-    """
-     tuples - list of (obj, [obj,obj,obj...])
-    """
-    tuplesAsList = list()
-    for t in tuples:
-        tuplesAsList.append(t[0])
-        tuplesAsList += t[1]
-    rawResult = formatWithExtractingNewVariables(tuplesAsList, variableBasement, exportType)
+def formatPairsWithExtractingNewVariables(pairs, variableBasement="_A", exportType=HUMAN):
+    pairsAsPlainList = list()
+    for t in pairs:
+        pairsAsPlainList.append(t[0])
+        pairsAsPlainList.append(t[1])
+    rawResult = formatWithExtractingNewVariables(pairsAsPlainList, variableBasement, exportType)
     result = list()
-    idx = 0
-    for i in xrange(0, len(tuples)):
-        result.append((rawResult[0][idx], rawResult[0][idx + 1: idx + 1 + len(tuples[i][1])]))
-        idx = idx + 1 + len(tuples[i][1])
+    for i in xrange(0, 2 * len(pairs), 2):
+        result.append((rawResult[0][i], rawResult[0][i + 1]))
     return result, rawResult[1]
+
 
 def formatWithExtractingNewVariables(listOrObject, variableBasement="_A", exportType=HUMAN):
     """
@@ -72,7 +68,12 @@ class Lookup(object):
 
     @staticmethod
     def asString(maybeLookup, formatter):
-        return maybeLookup.getLookupString(formatter) if isinstance(maybeLookup, Lookup) else str(maybeLookup)
+        if isinstance(maybeLookup, Lookup):
+            return maybeLookup.getLookupString(formatter)
+        elif isinstance(maybeLookup, list):
+            return map(lambda l: Lookup.asString(l, formatter), maybeLookup)
+        else:
+            return str(maybeLookup)
 
 
 class ConstLookup(Lookup):
@@ -158,7 +159,7 @@ class PolynomialInlineService(object):
         self._lastVarIndex = 0
 
     def addPolynomial(self, polynomial):
-        if polynomial.isConst():
+        if polynomial.isConst() or polynomial.hasOnlyOneSimpleMonomial():
             return
         monomials = polynomial.getMonomialsWithHash()
         self._monomialOccurrences[monomials] += 1
@@ -170,14 +171,17 @@ class PolynomialInlineService(object):
         return polynomial.getMonomialsWithHash() not in self._monomial2VariableName
 
     def getVariableFor(self, polynomial, formatter):
-        return "%s%s%s" % (polynomial.c, formatter.multiplicationSign(), formatter.degree(self._monomial2VariableName[polynomial.getMonomialsWithHash()], polynomial.degree))
+        return "%s%s%s" % (polynomial.c, formatter.multiplicationSign(),
+                           formatter.degree(self._monomial2VariableName[polynomial.getMonomialsWithHash()],
+                                            polynomial.degree))
 
     @property
     def polynomial2VariableName(self):
         return self._monomial2VariableName
 
     def createReverseVariableMap(self, formatter):
-        return dict(map(lambda (m, v): (v, formatter.format(m.asPolynomial())), self._monomial2VariableName.iteritems()))
+        return dict(
+            map(lambda (m, v): (v, formatter.format(m.asPolynomial())), self._monomial2VariableName.iteritems()))
 
 
 class SimplePolynomialLookup(PolynomialLookup):
@@ -216,6 +220,8 @@ class AbstractFormatter:
             return self.formatPolynomialProduct(obj, polynomialLookupBuilder)
         elif isinstance(obj, polynomial.Polynomial):
             return self.formatPolynomial(obj)
+        elif isinstance(obj, list):
+            return map(lambda o: self.format(o, polynomialLookupBuilder), obj)
         else:
             return self.formatVar(obj)
 
@@ -348,7 +354,8 @@ class PythonFormatter(AbstractFormatter):
         return '*'
 
     def degree(self, a, b):
-        if b == 1: return a
+        if b == 1:
+            return a
         return '(%s)**(%s)' % (a, b)
 
     def log(self, a):

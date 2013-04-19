@@ -16,9 +16,6 @@ EPS = 1E-6
 seed(datetime.now())
 
 
-def rand(): return random()
-
-
 class PolynomialToolsTestCase(unittest.TestCase):
     def doTestDiff(self, expression, diffVar, vars, testPointsCount=20):
         for v in vars:
@@ -30,7 +27,7 @@ class PolynomialToolsTestCase(unittest.TestCase):
             subs = dict()
             for v in vars:
                 var = formatter.format(v, formatter.PYTHON)
-                exec ("subs[%s] = %s" % (var, rand()))
+                exec ("subs[%s] = %s" % (var, random()))
             testPoints.append(subs)
 
         sDiff = eval('diff(%s,%s)' % (formatter.format(expression, 'PYTHON'),  formatter.format(diffVar, formatter.PYTHON)))
@@ -53,7 +50,7 @@ class PolynomialToolsTestCase(unittest.TestCase):
             subs = dict()
             for v in vars:
                 var = formatter.format(v, formatter.PYTHON)
-                exec ("subs[%s] = %s" % (var, n if v == varToSet else rand()))
+                exec ("subs[%s] = %s" % (var, n if v == varToSet else random()))
             testPoints.append(subs)
 
         sResExpr = eval('%s' % (formatter.format(expression, 'PYTHON')))
