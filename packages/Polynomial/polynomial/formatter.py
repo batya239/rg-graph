@@ -138,7 +138,7 @@ class LazyGeneratedPolynomialLookup(PolynomialLookup):
         if self._polynomialInlineService.shouldInline(self._polynomial):
             return formatter.formatPolynomial(self._polynomial)
         else:
-            return self._polynomialInlineService.getVariableFor(self._polynomial)
+            return self._polynomialInlineService.getVariableFor(self._polynomial, formatter)
 
     @staticmethod
     def builder(polynomialInlineService):
@@ -147,31 +147,32 @@ class LazyGeneratedPolynomialLookup(PolynomialLookup):
 
 class PolynomialInlineService(object):
     def __init__(self, newVariablePrefix="_A"):
-        self._polynomialOccurrences = util.zeroDict()
-        self._polynomial2VariableName = dict()
+        self._monomialOccurrences = util.zeroDict()
+        self._monomial2VariableName = dict()
         self._newVariablePrefix = newVariablePrefix
         self._lastVarIndex = 0
 
     def addPolynomial(self, polynomial):
         if polynomial.isConst():
             return
-        self._polynomialOccurrences[polynomial] += 1
-        if self._polynomialOccurrences[polynomial] > 1 and polynomial not in self._polynomial2VariableName:
-            self._polynomial2VariableName[polynomial] = self._newVariablePrefix + str(self._lastVarIndex)
+        monomials = polynomial.getMonomialsWithHash()
+        self._monomialOccurrences[monomials] += 1
+        if self._monomialOccurrences[monomials] > 1 and monomials not in self._monomial2VariableName:
+            self._monomial2VariableName[monomials] = self._newVariablePrefix + str(self._lastVarIndex)
             self._lastVarIndex += 1
 
     def shouldInline(self, polynomial):
-        return polynomial not in self._polynomial2VariableName
+        return polynomial.getMonomialsWithHash() not in self._monomial2VariableName
 
-    def getVariableFor(self, polynomial):
-        return self._polynomial2VariableName[polynomial]
+    def getVariableFor(self, polynomial, formatter):
+        return "%s%s%s" % (polynomial.c, formatter.multiplicationSign(), formatter.degree(self._monomial2VariableName[polynomial.getMonomialsWithHash()], polynomial.degree))
 
     @property
     def polynomial2VariableName(self):
-        return self._polynomial2VariableName
+        return self._monomial2VariableName
 
     def createReverseVariableMap(self, formatter):
-        return dict(map(lambda (p, v): (v, formatter.format(p)), self._polynomial2VariableName.iteritems()))
+        return dict(map(lambda (m, v): (v, formatter.format(m.asPolynomial())), self._monomial2VariableName.iteritems()))
 
 
 class SimplePolynomialLookup(PolynomialLookup):

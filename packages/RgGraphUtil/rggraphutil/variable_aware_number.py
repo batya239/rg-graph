@@ -100,13 +100,13 @@ class VariableAwareNumber:
             if self.b == 0:
                 return "0"
             elif self.b < 0:
-                return "-%s*%s" % abs(self.b), self.varName
+                return "-%s*%s" % (abs(self.b), self.varName)
             else:
-                return "%s*%s" % self.b, self.varName
+                return "%s*%s" % (self.b, self.varName)
         elif self.b == 0:
             return str(self.a)
         elif self.b == 1:
-            return '%s+%s' % self.a, self.varName
+            return '%s+%s' % (self.a, self.varName)
         elif self.b < 0:
             return '%s-%s*%s' % (self.a, self.varName, abs(self.b))
         else:
