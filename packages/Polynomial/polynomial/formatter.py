@@ -24,7 +24,7 @@ def format(obj, exportType=HUMAN):
         return Lookup.asString(_format(obj, formatter), formatter)
 
 
-def formatTuplesWuthExtractingNewVariables(tuples, variableBasement="_A", exportType=HUMAN):
+def formatTuplesWithExtractingNewVariables(tuples, variableBasement="_A", exportType=HUMAN):
     tuplesAsList = list()
     for t in tuples:
         tuplesAsList.append(t[0])
@@ -34,6 +34,7 @@ def formatTuplesWuthExtractingNewVariables(tuples, variableBasement="_A", export
     for i in xrange(0, len(tuples)):
         result.append((rawResult[0][2 * i], rawResult[0][2 * i + 1]))
     return result, rawResult[1]
+
 
 def formatWithExtractingNewVariables(listOrObject, variableBasement="_A", exportType=HUMAN):
     """
@@ -67,7 +68,12 @@ class Lookup(object):
 
     @staticmethod
     def asString(maybeLookup, formatter):
-        return maybeLookup.getLookupString(formatter) if isinstance(maybeLookup, Lookup) else str(maybeLookup)
+        if isinstance(maybeLookup, Lookup):
+            return maybeLookup.getLookupString(formatter)
+        elif isinstance(maybeLookup, list):
+            return map(lambda l: Lookup.asString(l, formatter), maybeLookup)
+        else:
+            return str(maybeLookup)
 
 
 class ConstLookup(Lookup):
@@ -165,14 +171,17 @@ class PolynomialInlineService(object):
         return polynomial.getMonomialsWithHash() not in self._monomial2VariableName
 
     def getVariableFor(self, polynomial, formatter):
-        return "%s%s%s" % (polynomial.c, formatter.multiplicationSign(), formatter.degree(self._monomial2VariableName[polynomial.getMonomialsWithHash()], polynomial.degree))
+        return "%s%s%s" % (polynomial.c, formatter.multiplicationSign(),
+                           formatter.degree(self._monomial2VariableName[polynomial.getMonomialsWithHash()],
+                                            polynomial.degree))
 
     @property
     def polynomial2VariableName(self):
         return self._monomial2VariableName
 
     def createReverseVariableMap(self, formatter):
-        return dict(map(lambda (m, v): (v, formatter.format(m.asPolynomial())), self._monomial2VariableName.iteritems()))
+        return dict(
+            map(lambda (m, v): (v, formatter.format(m.asPolynomial())), self._monomial2VariableName.iteritems()))
 
 
 class SimplePolynomialLookup(PolynomialLookup):
@@ -211,6 +220,8 @@ class AbstractFormatter:
             return self.formatPolynomialProduct(obj, polynomialLookupBuilder)
         elif isinstance(obj, polynomial.Polynomial):
             return self.formatPolynomial(obj)
+        elif isinstance(obj, list):
+            return map(lambda o: self.format(o, polynomialLookupBuilder), obj)
         else:
             return self.formatVar(obj)
 

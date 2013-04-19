@@ -47,6 +47,12 @@ class PolynomialProductTestCase(unittest.TestCase):
         self.assertEquals(p[1]["_B0"], formatter.format(p3.getMonomialsWithHash().asPolynomial()))
         self.assertEquals(p[1]["_B1"], formatter.format(p2.getMonomialsWithHash().asPolynomial()))
 
+        p = formatter.formatTuplesWithExtractingNewVariables([(pp2, [pp1])], variableBasement="_B")
+        self.assertEquals('(3*(_B1)^(2+eps*3))*(3*(_B0)^(2+eps*3))*(3*(_B0)^(2+eps*3))', p[0][0][0])
+        self.assertEquals(len(p[1]), 2)
+        self.assertEquals(p[1]["_B0"], formatter.format(p3.getMonomialsWithHash().asPolynomial()))
+        self.assertEquals(p[1]["_B1"], formatter.format(p2.getMonomialsWithHash().asPolynomial()))
+
 
 if __name__ == "__main__":
     unittest.main()
