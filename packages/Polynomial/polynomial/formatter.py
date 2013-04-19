@@ -24,19 +24,44 @@ def format(obj, exportType=HUMAN):
         return Lookup.asString(_format(obj, formatter), formatter)
 
 
-def formatWithExtractingNewVariables(obj, variableBasement="_A", exportType=HUMAN):
+def formatWithExtractingNewVariables(listOrObject, someDict=None, variableBasement="_A", exportType=HUMAN):
     """
     if some polynomial occurrences > 1, then it will be replaced by some variable
+
+    listOrObject -- object that could be formatted or list of objects that could be formatted
+
+    someDict -- dictionary that values could be formatted
     """
+    if someDict is None:
+        dictWasNone = True
+        someDict = dict()
+    else:
+        dictWasNone = False
     inlineService = PolynomialInlineService(variableBasement)
     polynomialLookupBuilder = LazyGeneratedPolynomialLookup.builder(inlineService)
     formatter = availableFormatters[exportType]
-    if isinstance(obj, list):
-        rawResult = map(lambda o: _format(o, formatter, polynomialLookupBuilder), obj)
+    if isinstance(listOrObject, list):
+        rawResult = map(lambda o: _format(o, formatter, polynomialLookupBuilder), listOrObject)
+    else:
+        rawResult = _format(listOrObject, formatter, polynomialLookupBuilder)
+
+    rawDictResult = dict()
+    for k, v in someDict.iteritems():
+        rawDictResult[k] = _format(v, formatter, polynomialLookupBuilder)
+
+    if isinstance(listOrObject, list):
         formatResult = map(lambda l: Lookup.asString(l, formatter), rawResult)
     else:
-        formatResult = Lookup.asString(_format(obj, formatter, polynomialLookupBuilder), formatter)
-    return formatResult, inlineService.createReverseVariableMap(formatter)
+        formatResult = Lookup.asString(rawResult, formatter)
+
+    formatDictResult = dict()
+    for k, v in rawDictResult.iteritems():
+        formatDictResult[k] = Lookup.asString(v, formatter)
+
+    if dictWasNone:
+        return formatResult, inlineService.createReverseVariableMap(formatter)
+    else:
+        return formatResult, formatDictResult, inlineService.createReverseVariableMap(formatter)
 
 
 def formatVarIndexes(obj, exportType=HUMAN):
@@ -54,6 +79,7 @@ class Lookup(object):
     @staticmethod
     def asString(maybeLookup, formatter):
         return maybeLookup.getLookupString(formatter) if isinstance(maybeLookup, Lookup) else str(maybeLookup)
+
 
 class ConstLookup(Lookup):
     def __init__(self, const):
@@ -332,8 +358,6 @@ class PythonFormatter(AbstractFormatter):
 
     def log(self, a):
         return 'log(%s)' % a
-
-
 
 
 availableFormatters = dict()

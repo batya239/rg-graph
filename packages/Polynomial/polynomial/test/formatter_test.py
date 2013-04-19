@@ -30,14 +30,24 @@ pp2 = p2 * p3 * p3
 
 class PolynomialProductTestCase(unittest.TestCase):
     def testVarExtracting(self):
-        p = formatter.formatWithExtractingNewVariables([pp, pp1], "_B")
+        p = formatter.formatWithExtractingNewVariables([pp, pp1], variableBasement="_B")
         self.assertEquals(len(p[1]), 2)
         self.assertEquals(p[1]["_B0"], formatter.format(p1))
         self.assertEquals(p[1]["_B1"], formatter.format(p2))
 
-        p = formatter.formatWithExtractingNewVariables([pp2, pp1], "_B")
+        p = formatter.formatWithExtractingNewVariables([pp2, pp1], variableBasement="_B")
         self.assertEquals('(_B1)*(_B0)*(_B0)', p[0][0])
         self.assertEquals(len(p[1]), 2)
         self.assertEquals(p[1]["_B0"], formatter.format(p3))
         self.assertEquals(p[1]["_B1"], formatter.format(p2))
 
+    def testVarExtractingWithDict(self):
+        t = formatter.formatWithExtractingNewVariables([pp, pp1], {"1": pp2}, variableBasement="_C",
+                                                       exportType=formatter.CPP)
+        self.assertEquals('(_C0)*(_C1)', t[0][0])
+        self.assertEquals('(_C0)*(_C1)*(_C2)', t[0][1])
+        self.assertEquals(1, len(t[1]))
+        self.assertEquals('(_C1)*(_C2)*(_C2)', t[1]["1"])
+        self.assertEquals(t[2]["_C0"], formatter.format(p1, exportType=formatter.CPP))
+        self.assertEquals(t[2]["_C1"], formatter.format(p2, exportType=formatter.CPP))
+        self.assertEquals(t[2]["_C2"], formatter.format(p3, exportType=formatter.CPP))
