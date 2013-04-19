@@ -41,16 +41,5 @@ class PolynomialProductTestCase(unittest.TestCase):
         self.assertEquals(p[1]["_B0"], formatter.format(p3))
         self.assertEquals(p[1]["_B1"], formatter.format(p2))
 
-    def testVarExtractingWithDict(self):
-        t = formatter.formatWithExtractingNewVariables([pp, pp1], {"1": pp2}, variableBasement="_C",
-                                                       exportType=formatter.CPP)
-        self.assertEquals('(_C0)*(_C1)', t[0][0])
-        self.assertEquals('(_C0)*(_C1)*(_C2)', t[0][1])
-        self.assertEquals(1, len(t[1]))
-        self.assertEquals('(_C1)*(_C2)*(_C2)', t[1]["1"])
-        self.assertEquals(t[2]["_C0"], formatter.format(p1, exportType=formatter.CPP))
-        self.assertEquals(t[2]["_C1"], formatter.format(p2, exportType=formatter.CPP))
-        self.assertEquals(t[2]["_C2"], formatter.format(p3, exportType=formatter.CPP))
-
 if __name__ == "__main__":
     unittest.main()
