@@ -779,9 +779,10 @@ def saveSectors(sectorTerms, name, dirname, fileIdx, neps, introduce=False):
         else:
             epsExp = dict([(i, []) for i in range(neps + 1)])
             for expr_ in sectorExpr:
-                coreExpr, epsDict = expr_.epsExpansion(neps)
-                for i in range(neps+1):
-                    epsExp[i].append((coreExpr, epsDict[i]))
+                if not expr_.isZero():
+                    coreExpr, epsDict = expr_.epsExpansion(neps)
+                    for i in range(neps+1):
+                        epsExp[i].append((coreExpr, epsDict[i]))
             for i in range(neps+1):
                 exprTuples, substDict = polynomial.formatter.formatTuplesWithExtractingNewVariables(epsExp[i], exportType=polynomial.formatter.CPP)
                 for var in substDict:
