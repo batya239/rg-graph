@@ -792,7 +792,7 @@ def saveSectors(sectorTerms, name, dirname, fileIdx, neps, introduce=False):
                         epsTermsSting += "+ (%s)" % epsTerm
                     if len(epsTermsSting)>0:
                         epsTermsSting = epsTermsSting[1:]
-                    strExpr[i] += "   f += (%s)*(%s)" % (coreExpr, epsTermsSting)
+                    strExpr[i] += "   f += (%s)*(%s);\n" % (coreExpr, epsTermsSting)
 
 
 
