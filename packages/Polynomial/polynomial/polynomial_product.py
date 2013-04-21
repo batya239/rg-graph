@@ -55,7 +55,16 @@ class PolynomialProduct(object):
         """
         result = list()
         for p in self.polynomials:
-            polyList = filter(lambda _p: _p != p, self.polynomials)
+            removed = False
+            polyList = list()
+            for _p in self.polynomials:
+                if _p != p:
+                    polyList.append(_p)
+                else:
+                    if removed:
+                        polyList.append(_p)
+                    else:
+                        removed = True
             polyList += p.diff(varIndex)
             pp = PolynomialProduct(polyList)
             if not pp.isZero(): result.append(pp)
