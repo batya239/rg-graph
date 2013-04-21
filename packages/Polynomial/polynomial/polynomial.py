@@ -46,6 +46,15 @@ class Polynomial:
             self.degree = eps_number.epsNumber(1)
             self.c = eps_number.epsNumber(0)
         self.hash = None
+        self._monomialsWithHash = None
+
+    def getMonomialsWithHash(self):
+        if self._monomialsWithHash is None:
+            self._monomialsWithHash = MonomialsWithHash(self.monomials)
+        return self._monomialsWithHash
+
+    def hasOnlyOneSimpleMonomial(self):
+        return len(self.monomials) == 1 and len(self.monomials.items()[0][0]) == 1
 
     def changeDegree(self, newDegree):
         return Polynomial(self.monomials, newDegree, self.c, doPrepare=False)
@@ -71,7 +80,8 @@ class Polynomial:
         """
         polynomial should be Polynomial type
         """
-        if polynomial.degree.b <> 0 or polynomial.c.b <> 0 or not isinstance(polynomial.degree.a, int) or polynomial.degree.a < 0:
+        if polynomial.degree.b <> 0 or polynomial.c.b <> 0 or not isinstance(polynomial.degree.a,
+                                                                             int) or polynomial.degree.a < 0:
             raise ValueError, "Complex polynomial not supported now"
 
         nMonomials = zeroDict()
@@ -265,6 +275,32 @@ class Polynomial:
 
     def __repr__(self):
         return formatter.format(self)
+
+
+class MonomialsWithHash(object):
+    def __init__(self, monomials):
+        self._monomials = monomials
+        self._asPolynomial = None
+
+    def asPolynomial(self):
+        if self._asPolynomial is None:
+            self._asPolynomial = Polynomial(self._monomials, degree=1, c=1, doPrepare=False)
+        return self._asPolynomial
+
+    def isSimple(self):
+        return len(self._monomials) == 1
+
+    @property
+    def monomials(self):
+        return self._monomials
+
+    def __eq__(self, other):
+        if not isinstance(other, MonomialsWithHash):
+            return False
+        return self._monomials == other._monomials
+
+    def __hash__(self):
+        return dict_hash1(self.monomials)
 
 
 P_ONE = Polynomial(zeroDict({multiindex.CONST: 1}), 1, 1)

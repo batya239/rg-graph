@@ -4,7 +4,6 @@
 immutable MultiIndex, represent by dictionary
 ex: (3, 0, 1) --> x_1^3 * x_3 -->  {1: 3, 3: 1}
 """
-import copy
 from util import dict_hash1, zeroDict
 
 

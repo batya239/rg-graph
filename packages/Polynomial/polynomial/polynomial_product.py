@@ -162,8 +162,11 @@ class PolynomialProduct(object):
         return len(self.polynomials) == 0
 
     def __neg__(self):
-        polynomials = [-self.polynomials[0]] + self.polynomials[1:]
-        return PolynomialProduct(polynomials)
+        if self.isZero():
+            return self
+        else:
+            polynomials = [-self.polynomials[0]] + self.polynomials[1:]
+            return PolynomialProduct(polynomials)
 
     def __mul__(self, other):
         if isinstance(other, PolynomialProduct):

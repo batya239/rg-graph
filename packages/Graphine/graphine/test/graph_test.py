@@ -62,6 +62,19 @@ class GraphTestCase(unittest.TestCase):
         #
         self.assertSetEqual(graph.vertexes(), set([-1, 0, 1, 2, 3]))
 
+    def testShrinkToPointInBatch(self):
+        self.doTestShrinkToPointInBatch([(-1, 0), (0, 1), (0, 2), (1, 2), (2, 3), (1, 3), (3, -1)],
+                                        [[(0, 1), (0, 2), (1, 2)], [(1, 3)]],
+                                        'ee0-::')
+
+        self.doTestShrinkToPointInBatch([(-1, 0), (0, 1), (0, 2), (1, 2), (1, 2), (2, 3), (1, 3), (3, -1)],
+                                        [[(0, 1), (0, 2), (1, 2)], [(1, 3)]],
+                                        'ee00-::')
+
+        self.doTestShrinkToPointInBatch([(-1, 0), (0, 1), (0, 2), (1, 2), (1, 2), (0, 3), (1, 3), (2, -1)],
+                                        [[(2, 1), (3, 2), (1, 3)], [(0, 1), (0, 2)]],
+                                        'ee0-::')
+
     def testShrinkToPoint(self):
         self.doTestShrinkToPoint([(-1, 0), (0, 1), (0, 2), (1, 2), (2, 3), (1, 3), (3, -1)],
                                  [(0, 1), (0, 2), (1, 2)],
@@ -82,6 +95,12 @@ class GraphTestCase(unittest.TestCase):
             self.assertSetEqual(set(current), set(expected))
             self.assertEquals(len(expected), len(current))
 
+    def doTestShrinkToPointInBatch(self, edges, subGraphs, expectedGraphState):
+        graphState = gs.GraphState([gs.Edge(e) for e in edges])
+        graph = gr.Graph(graphState)
+        newGraph = graph.batchShrinkToPoint(self.prepareGraphs(subGraphs))
+        self.assertEquals(str(newGraph.toGraphState()), expectedGraphState)
+
     def doTestShrinkToPoint(self, edges, subEdges, expectedGraphState):
         graphState = gs.GraphState([gs.Edge(e) for e in edges])
         graph = gr.Graph(graphState)
@@ -91,6 +110,12 @@ class GraphTestCase(unittest.TestCase):
     # noinspection PyMethodOverriding
     def assertSetEqual(self, set1, set2):
         assert set1 == set2, str(set1) + " != " + str(set2)
+
+    def prepareEdges(self, edges):
+        return [gs.Edge(e) for e in edges]
+
+    def prepareGraphs(self, graphs):
+        return [self.prepareEdges(g) for g in graphs]
 
 
 if __name__ == "__main__":

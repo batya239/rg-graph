@@ -28,7 +28,9 @@ for dir in os.listdir('.'):
             res__, err__, time__ = cluster.tools.collect_result(cluster.tools.find_bestresult(dir))
 #            print res__, err__
             res, err = normalize(g, (res__, err__))
-        except ValueError:
+#        except ValueError:
+        except:
+            print "# WARN"
             res = []
             err = []
             time__ = []

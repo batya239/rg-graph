@@ -59,6 +59,11 @@ else:
 
 expr = C_ * D_ * U_
 print "C = %s\nD = %s\nU = %s\n" % (C_, D_, U_)
+
+if 'T' in dir():
+    T_ = polynomial.poly(map(lambda x: (1, x), T))
+    print "T = %s" % T_
+    expr = expr * T_
 #print expr
 
 
@@ -68,7 +73,11 @@ uVars, aVars = splitUA(variables)
 delta_arg = deltaArg(uVars)
 
 neps = model.target - G.NLoops()
+if 'introduce' in dir(methodModule):
+    introduce = methodModule.introduce
+else:
+    introduce = False
 
-dynamics.save(model, expr, sectors, fileNameC, neps, statics=True)
+dynamics.save(model, expr, sectors, fileNameC, neps, statics=True, introduce=introduce)
 dynamics.compileCode(model, fileNameC, options=["-lm", "-lpthread", "-lpvegas", "-O2"])
 

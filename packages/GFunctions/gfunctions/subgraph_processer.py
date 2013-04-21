@@ -9,7 +9,7 @@ import momentum
 
 
 def _createFilter():
-    class Model:
+    class RelevanceCondition:
     # noinspection PyUnusedLocal
         def isRelevant(self, edgesList, superGraph, superGraphEdges):
             subGraph = graphine.Representator.asGraph(edgesList, superGraph.externalVertex)
@@ -19,7 +19,7 @@ def _createFilter():
                 # external node and 2 internals
             return len(vertexes) == 3
 
-    return graphine.filters.oneIrreducible + graphine.filters.noTadpoles + graphine.filters.isRelevant(Model())
+    return graphine.filters.oneIrreducible + graphine.filters.noTadpoles + graphine.filters.isRelevant(RelevanceCondition())
 
 
 def _adjust(graphAsList, externalVertex):
@@ -84,14 +84,12 @@ class GGraphReducer(object):
         for subGraphAsList in \
                     [x for x in lastIteration.xRelevantSubGraphs(self._subGraphFilter, graphine.Representator.asList)] \
                     + [lastIteration.allEdges()]:
-            if not maximal or len(subGraphAsList) > len(maximal):
+            if not maximal or len(subGraphAsList) > len(maximal[1].allEdges()):
                 adjustedSubGraph = _adjust(subGraphAsList, self._initGraph.externalVertex)
                 subGraph = graphine.Graph(adjustedSubGraph[0],
-                                          externalVertex=self._initGraph.externalVertex,
-                                          renumbering=False)
-                subGraphState = subGraph.toGraphState()
-                if graph_storage.has(subGraphState):
-                    maximal = (adjustedSubGraph[1], subGraphState, adjustedSubGraph[2])
+                                          externalVertex=self._initGraph.externalVertex)
+                if graph_storage.has(subGraph):
+                    maximal = (adjustedSubGraph[1], subGraph, adjustedSubGraph[2])
         if not maximal:
             return False
 
@@ -156,7 +154,7 @@ class GGraphReducer(object):
 
         wValue = innerEdge.colors
 
-        graph_storage.put(self._initGraph.toGraphState(), (gValue, wValue))
+        graph_storage.put(self._initGraph, (gValue, wValue))
 
 
 

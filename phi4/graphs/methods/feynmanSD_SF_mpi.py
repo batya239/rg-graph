@@ -7,13 +7,10 @@ from methods import sd_tools
 import hashlib
 
 from feynman_tools import normalize
-from methods.feynman_tools import strech_indexes
-from methods.poly_tools import poly_exp
-from methods.sd_tools import _cnomenkl, debug, xTreeElement, decompose_expr, diff_subtraction, save_sectors
 
-import methods.feynmanSDdot
+import methods.feynmanSD_SF
 
-method_name = "feynmanSDdotS_mpi"
+method_name = "feynmanSD_SF_mpi"
 sd_tools.method_name = method_name
 Prepare = sd_tools.Prepare
 save = sd_tools.save
@@ -21,8 +18,9 @@ compile = lambda x, y: None
 #compile = sd_tools.compile
 sd_tools.code_ = sd_tools.core_pvmpi_code
 code_ = sd_tools.core_pvmpi_code
-methods.feynmanSDdot.code_ = code_
-sd_tools.save_sd = methods.feynmanSDdot.save_sd
+methods.feynmanSD_SF.code_ = code_
+
+introduce = True
 
 
 #mpi
@@ -43,7 +41,7 @@ sd_tools._CheckBadDecomposition = True
 
 sd_tools._ASectorsDots = True
 
-sd_tools.save_sd = methods.feynmanSDdot.saveSectorFile
+sd_tools.save_sd = methods.feynmanSD_SF.saveSectorFile
 
 
 def execute(name, model, points=10000, threads=4, calc_delta=0., neps=0):

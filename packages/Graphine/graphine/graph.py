@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf8
 import copy
-from graph_state import graph_state
+from graph_state import graph_state, Edge
 import graph_operations
 
 
@@ -113,9 +113,7 @@ class Graph(object):
         """
         immutable operation
         """
-        newEdges = copy.deepcopy(self._edges)
-        for edge in edgesToAdd:
-            Graph._persInsertEdge(newEdges, edge)
+        newEdges = self.allEdges() + edgesToAdd
         return Graph(newEdges)
 
     def addEdge(self, edge):
@@ -146,11 +144,30 @@ class Graph(object):
                 return True
         return False
 
-    def shrinkToPoint(self, edges):
+    def batchShrinkToPoint(self, subGraphs):
+        """
+        subGraphs -- list of graphs edges
+        """
+        if not len(subGraphs):
+            return self
+
+        vertexTransformation = ID_VERTEX_TRANSFORMATION
+        g = self
+        for subGraph in subGraphs:
+            g, vertexTransformation = g._shrinkToPoint(subGraph, vertexTransformation)
+        assert g
+        return g
+
+    def _shrinkToPoint(self, unTransformedEdges, vertexTransformation=None):
         """
         obj -- list of edges or graph
         immutable operation
         """
+        if not vertexTransformation:
+            vertexTransformation = ID_VERTEX_TRANSFORMATION
+
+        edges = map(lambda e: e.copy(vertexTransformation.mapping), unTransformedEdges)
+
         newRawEdges = copy.copy(self.allEdges())
         markedVertexes = set()
         for edge in edges:
@@ -160,18 +177,25 @@ class Graph(object):
             markedVertexes.add(v2)
 
         newEdges = []
+        currVertexTransformationMap = dict()
         for edge in newRawEdges:
             v1, v2 = edge.nodes
             copyMap = {}
             if v1 in markedVertexes:
+                currVertexTransformationMap[v1] = self._nextVertexIndex
                 copyMap[v1] = self._nextVertexIndex
             if v2 in markedVertexes:
+                currVertexTransformationMap[v2] = self._nextVertexIndex
                 copyMap[v2] = self._nextVertexIndex
             if len(copyMap):
                 newEdges.append(edge.copy(copyMap))
             else:
                 newEdges.append(edge)
-        return Graph(newEdges)
+        return Graph(newEdges, externalVertex=self.externalVertex, renumbering=False), \
+               vertexTransformation.add(VertexTransformation(currVertexTransformationMap))
+
+    def shrinkToPoint(self, edges):
+        return self._shrinkToPoint(edges)[0]
 
     def xRelevantSubGraphs(self, filters=list(), resultRepresentator=Representator.asGraph):
         allEdges = self.allEdges()
@@ -261,3 +285,42 @@ class Graph(object):
                 del edgesDict[vertex]
         except AttributeError as e:
             raise ValueError(e), "edge not exists in graph"
+
+
+class VertexTransformation(object):
+    def __init__(self, mapping=None):
+        """
+        self._mapping - only non-identical index mappings
+        """
+        self._mapping = mapping if mapping else dict()
+
+    @property
+    def mapping(self):
+        return self._mapping
+
+    def add(self, anotherVertexTransformation):
+        """
+        composition of 2 transformations
+        """
+        composedMapping = dict()
+        usedKeys = set()
+        for k, v in self._mapping.items():
+            av = anotherVertexTransformation._mapping.get(v, None)
+            if av:
+                composedMapping[k] = anotherVertexTransformation._mapping[v]
+                usedKeys.add(v)
+            else:
+                composedMapping[k] = v
+        for k, v in anotherVertexTransformation._mapping.items():
+            if k not in usedKeys:
+                composedMapping[k] = v
+        return VertexTransformation(composedMapping)
+
+    def map(self, vertexIndex):
+        indexMapping = self._mapping.get(vertexIndex, None)
+        if indexMapping:
+            return indexMapping
+        return vertexIndex
+
+
+ID_VERTEX_TRANSFORMATION = VertexTransformation()
