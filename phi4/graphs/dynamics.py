@@ -1081,7 +1081,8 @@ def save(model, expr, sectors, name, neps, statics=False, introduce=False):
         sectorExpr = sd_lib.sectorDiagram(expr * coef_, sector, delta_arg=delta_arg)[0]
 
         for aOp in aOps:
-            sectorExpr = aOp(sectorExpr)
+#            sectorExpr = aOp(sectorExpr)
+            sectorExpr = aOp(map(lambda x: x.simplify(), sectorExpr))
         sectorExpr = map(lambda x: x.simplify(), sectorExpr)
 
         if 'removeRoots' in model.__dict__ and model.removeRoots:
