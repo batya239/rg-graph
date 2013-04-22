@@ -53,6 +53,7 @@ class PolynomialProductTestCase(PolynomialToolsTestCase):
         self.doTestDiff(pp, 1, VARS)
         self.doTestDiff(pp, 2, VARS)
         self.doTestDiff(pp2, 2, VARS)
+        self.doTestDiff(p1 * p2 * p1, 2, VARS)
 
     def testSet1ToVar(self):
         self.doTestSet1toVar(pp, 1, VARS)

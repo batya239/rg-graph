@@ -53,8 +53,15 @@ class PolynomialProduct(object):
         """
         return set of PolynomialProduct
         """
-        result = list()
+        if not len(self.polynomials):
+            return
+        processedPolynomialToSummand = dict()
+        summandToOccurrences = util.zeroDict()
         for p in self.polynomials:
+            summand = processedPolynomialToSummand.get(p, None)
+            if summand is not None:
+                summandToOccurrences[summand] += 1
+                continue
             removed = False
             polyList = list()
             for _p in self.polynomials:
@@ -67,7 +74,14 @@ class PolynomialProduct(object):
                         removed = True
             polyList += p.diff(varIndex)
             pp = PolynomialProduct(polyList)
-            if not pp.isZero(): result.append(pp)
+            processedPolynomialToSummand[p] = pp
+            summandToOccurrences[pp] = 1
+            #if not pp.isZero(): result.append(pp)
+
+        result = list()
+        for pp, o in summandToOccurrences.iteritems():
+            if not pp.isZero():
+                result.append(pp * o)
 
         return result
 
@@ -186,7 +200,7 @@ class PolynomialProduct(object):
             if self.isZero() or other == 0:
                 return PolynomialProduct([])
             if (isinstance(other, int) or other.isRealNumber()) and len(self.polynomials):
-                self.polynomials[0] *= other
+                return PolynomialProduct([self.polynomials[0] * other] + self.polynomials[1:])
             return PolynomialProduct(
                 self.polynomials + [polynomial.Polynomial(util.zeroDict({multiindex.MultiIndex(): 1}), c=eps_number.epsNumber(other))])
         elif isinstance(other, polynomial.Polynomial):
