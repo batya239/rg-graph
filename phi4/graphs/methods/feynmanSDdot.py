@@ -248,17 +248,17 @@ def saveSectorFile(name, graph, model):
             varIdx = var - 1000
             if strechs[var] == 0:
                 if var not in sector.ds or sector.ds[var] == 1:
-                    aOps.append("to1('a%s')" % varIdx)
+                    aOps.append("\"to1('a%s')\"" % varIdx)
                 else:
                     raise ValueError, "invalid strech %s : strechs = %s, sector.ds = %s " % (var, strechs, sector.ds)
             else:
                 if var in sector.ds:
                     if sector.ds[var] == 1:
-                        aOps.append("to1('a%s')" % varIdx)
+                        aOps.append("\"to1('a%s')\"" % varIdx)
                     else:
-                        aOps.append("mK%s('a%s')" % (strechs[var] - 1, varIdx))
+                        aOps.append("\"mK%s('a%s')\"" % (strechs[var] - 1, varIdx))
                 else:
-                    aOps.append("D%s('a%s')" % (strechs[var], varIdx))
+                    aOps.append("\"D%s('a%s')\"" % (strechs[var], varIdx))
         f.write("    (%s, %s, %s),\n" % sector.simpleRepresentation(aOps))
     f.write("]\n")
 
