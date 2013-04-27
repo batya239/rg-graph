@@ -50,7 +50,7 @@ for tVersion in dynamics.TVersions(dG):
     subGraphDims = map(lambda x: dynamics.EffectiveSubgraphDim(x, tCuts, model), dG._subgraphs)
     subGraphOps = ''
     for i in range(len(subGraphDims)):
-        subGraphOps += 'to1(\'a%s\'),' % i if subGraphDims[i] < 0 else 'D%s(\'a%s\'),' % (subGraphDims[i] / 2 + 1, i)
+        subGraphOps += '\"to1(\'a%s\')\",' % i if subGraphDims[i] < 0 else '\"D%s(\'a%s\')\",' % (subGraphDims[i] / 2 + 1, i)
 
     print subGraphOps
 

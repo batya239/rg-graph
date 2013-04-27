@@ -6,12 +6,8 @@ import sys
 import re
 
 import polynomial
-from graphs import Graph
-from methods import sd_tools
-
-import subgraphs
 from dummy_model import _phi4
-
+from graphs import Graph
 import dynamics
 
 
@@ -36,6 +32,9 @@ graphName = sys.argv[1]
 method = sys.argv[2]
 exec('import %s as methodModule' % method)
 
+G = Graph(graphName)
+
+
 method_name = methodModule.method_name
 
 folder = "%s/%s/%s" % (model.workdir, method_name, graphName)
@@ -48,7 +47,6 @@ exec(open(fileName).read())
 
 dynamics.method_name = method_name
 
-G = Graph(graphName)
 
 C_ = polynomial.poly(map(lambda x: (1, x), C), c=(-1., 0))
 U_ = polynomial.poly(map(lambda x: (1, x), U))
@@ -65,7 +63,6 @@ if 'T' in dir():
     print "T = %s" % T_
     expr = expr * T_
 #print expr
-
 
 variables = expr.getVarsIndexes()
 print "variables: ", variables

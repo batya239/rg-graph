@@ -400,7 +400,8 @@ def diff_(exprList, a, n):
     for i in range(n):
         res_ = list()
         for expr in res:
-            res_ += expr.diff(a)
+            if not expr.isZero():
+                res_ += expr.diff(a)
         res = res_
         #    print " ", res
 
@@ -1079,10 +1080,11 @@ def save(model, expr, sectors, name, neps, statics=False, introduce=False):
         #        print delta_arg, sector
 
         sectorExpr = sd_lib.sectorDiagram(expr * coef_, sector, delta_arg=delta_arg)[0]
+        for aOp_ in aOps:
+            aOp = eval(aOp_)
+            sectorExpr = aOp(sectorExpr)
 
-        for aOp in aOps:
-#            sectorExpr = aOp(sectorExpr)
-            sectorExpr = aOp(map(lambda x: x.simplify(), sectorExpr))
+
         sectorExpr = map(lambda x: x.simplify(), sectorExpr)
 
         if 'removeRoots' in model.__dict__ and model.removeRoots:
