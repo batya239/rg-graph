@@ -474,6 +474,32 @@ class Tree(object):
             else:
                 self.branches.append(Tree(branch))
 
+    def addSector(self, sector):
+        currentDecomposition = sector[0]
+        tail = sector[1:]
+        primaryVar = currentDecomposition[0]
+        secondaryVars = currentDecomposition[1]
+        decompositionSpace = [primaryVar] + list(secondaryVars)
+        branchNodes = dict(map(lambda x: (x.node, x), self.branches))
+        branchesToAdd = list()
+        if primaryVar in branchNodes:
+            nextBranch = branchNodes[primaryVar]
+        for var in decompositionSpace:
+            if var in branchNodes:
+                continue
+            else:
+                if var == primaryVar:
+                    nextBranch = Tree(primaryVar)
+                    branchesToAdd.append(nextBranch)
+                else:
+                    branchesToAdd.append(var)
+        self.setBranches(self.branches + branchesToAdd)
+        if len(tail) > 0:
+            nextBranch.addSector(tail)
+
+
+
+
 
 def xTreeElement(tree, parents=list()):
     parents_ = copy.copy(parents)
@@ -536,20 +562,44 @@ def addBranches(tree, variables, conservations, parents=list(), depth=0):
                     parents_ = parents
                 else:
                     parents_ = parents + [tree.node]
-                addBranches(branch, variables, conservations, parents=parents_, depth=depth - 1)
+                if not isinstance(tree.node, int):
+                    depthDecrement = 0
+                else:
+                    depthDecrement = 1
+                addBranches(branch, variables, conservations, parents=parents_, depth=depth - depthDecrement)
+        else:
+            for branch in tree.branches:
+                if tree.node is None:
+                    parents_ = parents
+                else:
+                    parents_ = parents + [tree.node]
+                if not isinstance(tree.node, int):
+                    depthDecrement = 0
+                else:
+                    depthDecrement = 1
+                addBranches(branch, variables, conservations, parents=parents_, depth=depth - depthDecrement)
 
 
-def det2treeSubstitutions(substitutions):
+def det2treeSubstitutions(substitutions, branchVars):
     res = dict()
+#    print "det2treeSubstitutions", branchVars
     for var in substitutions:
         subs = substitutions[var]
         newSubs = list()
+#        print var, subs
         for term in subs:
             newTerm = list()
+#            print "term  ",     term
             for item in term:
+                skip = False
                 if isinstance(item, int):
-                    newTerm.append(item)
-            if len(newTerm) == 1:
+                    candidate = item
+                else:
+                    if item in branchVars:
+                        skip = True
+            if not skip:
+                newTerm.append(candidate)
+            if len(newTerm) <= 1:
                 newSubs += newTerm
             else:
                 raise ValueError, newTerm
@@ -558,17 +608,25 @@ def det2treeSubstitutions(substitutions):
     return res
 
 
-def transformTree(tree, treeSubstitutions):
+def transformTree(tree, substitutions):
     if len(tree.branches) == 0:
         return
     else:
         newBranches = list()
+        branchVars = map(lambda x: x.node, tree.branches)
+#        print "transformTree",  substitutions
+#        print
+        treeSubstitutions = det2treeSubstitutions(substitutions, branchVars)
         for branch in tree.branches:
-            for var in treeSubstitutions[branch.node]:
-                branch_ = copy.deepcopy(branch)
-                branch_.node = var
-                transformTree(branch_, treeSubstitutions)
-                newBranches.append(branch_)
+            if isinstance(branch.node, str):
+                transformTree(branch, substitutions)
+                newBranches.append(branch)
+            else:
+                for var in treeSubstitutions[branch.node]:
+                    branch_ = copy.deepcopy(branch)
+                    branch_.node = var
+                    transformTree(branch_, substitutions)
+                    newBranches.append(branch_)
         tree.setBranches(newBranches)
 
 
@@ -597,9 +655,12 @@ def findShortBranches(tree, parents=set(), depth=None):
             if branchIds.count(parent) > depth:
                 tree.branches = list()
                 break
-
+        if not isinstance(tree.node, int):
+            depthDecrement = 0
+        else:
+            depthDecrement = 1
         for branch in tree.branches:
-            findShortBranches(branch, parents_, depth=depth - 1)
+            findShortBranches(branch, parents_, depth=depth - depthDecrement)
 
 
 def joinDuplicates(tree):
@@ -620,13 +681,16 @@ def joinDuplicates(tree):
             joinDuplicates(branch)
 
 
-def generateStaticSpeerTree(variables, conservations, nLoops):
-    staticSpeerTree = Tree(None)
+def generateStaticSpeerTree(variables, conservations, nLoops, tree=None):
+    if tree is None:
+        staticSpeerTree = Tree(None)
+    else:
+        staticSpeerTree = tree
     addBranches(staticSpeerTree, variables, conservations, depth=nLoops)
     return staticSpeerTree
 
 
-def generateDynamicSpeerTree(dG, tVersion, model):
+def generateDynamicSpeerTree(dG, tVersion, model, tree=None):
     if "_subgraphs" not in dG.__dict__:
         dG.FindSubgraphs(model)
         subgraphs.RemoveTadpoles(dG)
@@ -636,14 +700,31 @@ def generateDynamicSpeerTree(dG, tVersion, model):
 
     tCuts = TCuts(dG, tVersion)
     substitutions = dSubstitutions(dG, tCuts)
-    treeSubstitutions = det2treeSubstitutions(substitutions)
+#    treeSubstitutions = det2treeSubstitutions(substitutions)
 
     variables = dG._qi.keys()
     conservations = dG._cons
     nLoops = dG.NLoops()
-    speerTree = generateStaticSpeerTree(variables, conservations, nLoops)
+    # for sector in xTreeElement2(tree):
+    #     print  "    (%s, (  ))," % (sector)
 
-    transformTree(speerTree, treeSubstitutions)
+    if tree is None:
+        speerTree = generateStaticSpeerTree(variables, conservations, nLoops)
+    else:
+        speerTree = generateStaticSpeerTree(variables, conservations, nLoops, tree=tree)
+
+    # for sector in xTreeElement2(speerTree):
+    #     print  "    (%s, (  ))," % (sector)
+    # print
+    #
+    # print substitutions
+    # print
+
+    transformTree(speerTree, substitutions)
+    # for sector in xTreeElement2(speerTree):
+    #     print  "    (%s, (  ))," % (sector)
+    # print
+
 
     findShortBranches(speerTree, depth=nLoops)
     removeBranchesWithParents(speerTree)
@@ -816,7 +897,7 @@ def saveSectors(sectorTerms, name, dirname, fileIdx, neps, introduce=False):
 
 
 def saveSectorsSDT(sectorTerms, name, dirname, fileIdx, neps):
-    print "sectorTerms"
+#    print "sectorTerms"
     sectorFunctionsByEps = [""] * (neps + 1)
     resultingFunctions = ""
     for idx in sectorTerms:
@@ -1151,6 +1232,7 @@ def hasConst(polynomial):
             return True
     return False
 
+
 def splitDeltaArg(delta_arg_):
     variables = delta_arg_.getVarsIndexes()
     nTerms = len(delta_arg_.monomials)
@@ -1168,9 +1250,10 @@ def splitDeltaArg(delta_arg_):
             if len(denominator[0].polynomials[0].monomials) != len(denominator[0].polynomials[0].set0toVar(var).monomials):
                 continue
 
-            if hasConst(denominator[0].polynomials[0]):
-#                print "res", var, numerator.toPolyProd(), denominator[0]
-                return var, numerator.toPolyProd(), denominator[0]
+#            if hasConst(denominator[0].polynomials[0]):
+##                print "res", var, numerator.toPolyProd(), denominator[0]
+#                return var, numerator.toPolyProd(), denominator[0]
+            return var, numerator.toPolyProd(), denominator[0]
     raise ValueError("can't remove delta function %s" % delta_arg_)
 
 
@@ -1219,7 +1302,8 @@ def saveSDT(model, expr, sectors, name, neps, statics=False):
         #        print delta_arg, sector
         sectorExpr = [expr * coef_, ]
 
-        for aOp in aOps:
+        for aOp_ in aOps:
+            aOp = eval(aOp_)
             sectorExpr = aOp(sectorExpr)
 
         sectorExpr_, delta_arg_sd_ = sd_lib.sectorDiagram(sectorExpr, sector[:1], delta_arg=delta_arg, remove_delta=False)
@@ -1233,18 +1317,21 @@ def saveSDT(model, expr, sectors, name, neps, statics=False):
         # delta_arg_sd = sd_lib.sectorDiagram(delta_arg.toPolyProd(), sector, remove_delta=False)
         # sectorExpr = sectorExpr_
         sectorExpr = map(lambda x: x.simplify(), sectorExpr)
+#        print sector
+#        print delta_arg_sd
         primaryVar, substNumerator, substDenominator = splitDeltaArg(delta_arg_sd)
 
         if 'removeRoots' in model.__dict__ and model.removeRoots:
             sectorExpr = removeRoots(sectorExpr)
 
-        check = checkDecomposition(sectorExpr)
-        #        print sector, check
-        if "bad" in check:
-            print
-            print sector
-            print polynomial.formatter.format(sectorExpr, polynomial.formatter.CPP)
-            print
+        # check = checkDecomposition(sectorExpr)
+        # #        print sector, check
+        # if "bad" in check:
+        #     print
+        #     print sector
+        #     print polynomial.formatter.format(sectorExpr, polynomial.formatter.CPP)
+        #     print check
+        #     print
 
         sectorVariables = set()
         for expr_ in sectorExpr:
@@ -1372,7 +1459,7 @@ def compileCode(model, name, options=list(), cc="gcc", statics=False):
 
 
 def execute(name, model, points=10000, threads=4, calc_delta=0., neps=0):
-    method_name = "simpleSD"
+    #method_name = "simpleSD"
     return calculate.execute("%s/%s/" % (method_name, name), model, points=points, threads=threads,
                              calc_delta=calc_delta, neps=neps)
 
