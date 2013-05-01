@@ -8,17 +8,20 @@ from graphine import filters
 import sys
 
 
-class Model(object):
+class UVRelevanceCondition(object):
     relevantGraphsLegsCard = set([2, 4])
-    edgeIRWeight = -2
-    spaceDim = 4
 
     # noinspection PyUnusedLocal
-    def isUVRelevant(self, edgesList, superGraph, superGraphEdges):
+    def isRelevant(self, edgesList, superGraph, superGraphEdges):
         subgraph = graphine.Representator.asGraph(edgesList, superGraph.externalVertex)
         return len(subgraph.edges(subgraph.externalVertex)) in self.relevantGraphsLegsCard
 
-    def isIRRelevant(self, edgesList, superGraph, superGraphEdges):
+
+class IRRelevanceCondition(object):
+    edgeIRWeight = -2
+    spaceDim = 4
+
+    def isRelevant(self, edgesList, superGraph, superGraphEdges):
         subgraph = graphine.Representator.asGraph(edgesList, superGraph.externalVertex)
         borderNodes = reduce(lambda x, y: x | y,
                              map(lambda x: set(x.nodes), subgraph.edges(subgraph.externalVertex))) - set([-1])
@@ -31,14 +34,16 @@ class Model(object):
         return subgraphIRIndex <= 0
 
 
-phi4 = Model()
+uv = UVRelevanceCondition()
+ir = IRRelevanceCondition()
+
 subgraphUVFilters = (filters.oneIrreducible
                      + filters.noTadpoles
                      + filters.vertexIrreducible
-                     + filters.isUVRelevant(phi4))
+                     + filters.isRelevant(uv))
 
 subgraphIRFilters = (filters.connected
-                     + filters.isIRRelevant(phi4))
+                     + filters.isRelevant(ir))
 
 g = graphine.Graph(graph_state.GraphState.fromStr(sys.argv[1]))
 
