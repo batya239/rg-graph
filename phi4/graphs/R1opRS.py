@@ -11,20 +11,21 @@ import graph_state
 import sys
 
 
-class Model(object):
+class RelevanceCondition(object):
     relevantGraphsLegsCard = set([4, ])
 
     # noinspection PyUnusedLocal
-    def isUVRelevant(self, edgesList, superGraph, superGraphEdges):
+    def isRelevant(self, edgesList, superGraph, superGraphEdges):
         subgraph = graphine.Representator.asGraph(edgesList, superGraph.externalVertex)
         return len(subgraph.edges(subgraph.externalVertex)) in self.relevantGraphsLegsCard
 
 
-phi4 = Model()
+phi4 = RelevanceCondition()
+
 subgraphUVFilters = (filters.oneIrreducible
                      + filters.noTadpoles
                      #                     + filters.vertexIrreducible
-                     + filters.isUVRelevant(phi4))
+                     + filters.isRelevant(phi4))
 
 fileName = sys.argv[1]
 
