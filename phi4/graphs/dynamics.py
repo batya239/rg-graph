@@ -1306,7 +1306,7 @@ def saveSDT(model, expr, sectors, name, neps, statics=False):
             aOp = eval(aOp_)
             sectorExpr = aOp(sectorExpr)
 
-        sectorExpr_, delta_arg_sd_ = sd_lib.sectorDiagram(sectorExpr, sector[:1], delta_arg=delta_arg, remove_delta=False)
+#        sectorExpr_, delta_arg_sd_ = sd_lib.sectorDiagram(sectorExpr, sector[:1], delta_arg=delta_arg, remove_delta=False)
 
         sectorExpr, delta_arg_sd = sd_lib.sectorDiagram(sectorExpr, sector, delta_arg=delta_arg, remove_delta=False)
         # sectorExpr_ = list()
