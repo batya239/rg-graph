@@ -1436,6 +1436,7 @@ def save_sd(name, graph, model):
 
     if graph._cdet <> None:
         A4 = poly_exp(graph._cdet, (1, 0), coef=(-1, 0))
+        print "A4 ", A4
 
     sub_idx = -1
     for sub in graph._subgraphs:

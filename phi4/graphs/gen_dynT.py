@@ -27,7 +27,12 @@ dG.FindSubgraphs(model)
 subgraphs.RemoveTadpoles(dG)
 
 staticCDET = dynamics.generateStaticCDET(dG, model)
-
+print "lines:"
+for line in dG._lines:
+    print line
+print "\nsubgraphs:"
+for i in range(len(dG._subgraphs)):
+    print "a%s "%i, dG._subgraphs
 
 for tVersion in dynamics.TVersions(dG):
     print
