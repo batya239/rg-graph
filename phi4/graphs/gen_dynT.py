@@ -6,6 +6,7 @@ import graph_state
 import sys
 
 import subgraphs
+from methods.sd_tools import FeynmanSubgraphs
 from dummy_model import _phi3_dyn, _phi4_dyn
 
 import dynamics
@@ -18,13 +19,9 @@ gs = graph_state.GraphState.fromStr(sys.argv[1])
 print str(gs)
 
 dG = dynamics.DynGraph(gs)
-
-dG.FindSubgraphs(model)
-subgraphs.RemoveTadpoles(dG)
-
-dG = dynamics.DynGraph(gs)
-dG.FindSubgraphs(model)
-subgraphs.RemoveTadpoles(dG)
+FeynmanSubgraphs(dG, model)
+#dG.FindSubgraphs(model)
+#subgraphs.RemoveTadpoles(dG)
 
 staticCDET = dynamics.generateStaticCDET(dG, model)
 print "lines:"
