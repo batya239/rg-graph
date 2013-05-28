@@ -55,7 +55,7 @@ def save_png(nomenkl, filename=None ):
         filename = "%s.png" % nomenkl
         G = pydot.Dot(graph_type="graph")
         G.add_subgraph(Cluster(nomenkl))
-        #        print G.to_string()
+#        print G.to_string()
         open(filename, 'w').write(G.create_png())
     return filename
 

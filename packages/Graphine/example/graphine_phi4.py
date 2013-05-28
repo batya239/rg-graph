@@ -9,13 +9,17 @@ import sys
 
 
 class UVRelevanceCondition(object):
-    relevantGraphsLegsCard = set([2, 4])
+    edgeUVWeight = -2
+    spaceDim = 4
 
     # noinspection PyUnusedLocal
     def isRelevant(self, edgesList, superGraph, superGraphEdges):
         subgraph = graphine.Representator.asGraph(edgesList, superGraph.externalVertex)
-        return len(subgraph.edges(subgraph.externalVertex)) in self.relevantGraphsLegsCard
-
+        nEdges = len(edgesList) - len(subgraph.edges(subgraph.externalVertex))
+        nVertexes = len(subgraph.vertexes()) - 1
+        nLoop = nEdges - nVertexes + 1
+        subgraphUVIndex = nEdges * self.edgeUVWeight + (nLoop + 1) * self.spaceDim
+        return subgraphUVIndex >= 0
 
 class IRRelevanceCondition(object):
     edgeIRWeight = -2
@@ -31,6 +35,7 @@ class IRRelevanceCondition(object):
         nVertexes = len(subgraph.vertexes()) - 1
         nLoop = nEdges - nVertexes + 1
         subgraphIRIndex = nEdges * self.edgeIRWeight + (nLoop + 1) * self.spaceDim
+        # invalid result for e12-e333-3-- (there is no IR subgraphs)
         return subgraphIRIndex <= 0
 
 
