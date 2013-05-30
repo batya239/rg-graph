@@ -4,15 +4,11 @@ import graph_state
 
 import graphine
 from graphine import filters
-import graphine.graph_operations
 
 import sys
 
 
 class UVRelevanceCondition(object):
-    """
-    supported only 2-tails graphs
-    """
     edgeUVWeight = -2
     spaceDim = 4
 

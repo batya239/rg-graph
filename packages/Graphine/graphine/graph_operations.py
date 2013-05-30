@@ -65,7 +65,7 @@ def isGraphConnected(edgesList, superGraph, superGraphEdges):
     return _isGraphConnected(edgesList, superGraph.externalVertex)
 
 
-def _xSubGraphs(edgesList, edgesMap, externalVertex, startSize=1):
+def _xSubGraphs(edgesList, edgesMap, externalVertex, startSize=2):
     external, inner = _pickExternalEdges(edgesList, externalVertex)
 
     innerLength = len(inner)
