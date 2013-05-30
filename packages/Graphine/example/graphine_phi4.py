@@ -33,14 +33,6 @@ class IRRelevanceCondition(object):
                              map(lambda x: set(x.nodes), subgraph.edges(subgraph.externalVertex))) - \
                       set([subgraph.externalVertex])
 
-        notBorderVertexes = reduce(lambda x, y: x | y,
-                                   map(lambda x: set(x.nodes), subgraph.allEdges())) \
-                            - set(borderNodes) - set([subgraph.externalVertex])
-
-        for v in notBorderVertexes:
-            if not len(subgraph.edges(v)) == len(superGraph.edges(v)):
-                return False
-
         if len(borderNodes) != 2:
             return False
         nEdges = len(edgesList) - len(subgraph.edges(subgraph.externalVertex))
