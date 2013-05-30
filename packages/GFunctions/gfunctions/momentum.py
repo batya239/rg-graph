@@ -29,9 +29,11 @@ class _StubExternalVertexAwareGraph(object):
     def externalVertex(self):
         return self._externalVertex
 
+
 def _graphineWrapper(graphineFilter):
     def wrapper(graph):
         return graphineFilter(graph.allEdges(), _StubExternalVertexAwareGraph(graph.externalVertex), None)
+
     return [wrapper]
 
 

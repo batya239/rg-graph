@@ -9,7 +9,6 @@ import subgraph_processer
 import graph_storage
 
 
-
 class SubGraphReducerTestCase(unittest.TestCase):
     def setUp(self):
         graph_storage.initStorage()
@@ -64,7 +63,7 @@ class SubGraphReducerTestCase(unittest.TestCase):
         reducer = subgraph_processer.GGraphReducer(graph, momentumPassing)
         hasIteration = reducer.nextIteration()
         self.assertTrue(hasIteration)
-        self.assertEquals(str(reducer.getCurrentIterationGraph().toGraphState()), 
+        self.assertEquals(str(reducer.getCurrentIterationGraph().toGraphState()),
                           "e12-e2--::['(0, 0)', '(1, 0)', '(1, -1)', '(0, 0)', '(1, 0)']")
         hasIteration = reducer.nextIteration()
         self.assertTrue(hasIteration)

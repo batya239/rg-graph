@@ -91,6 +91,7 @@ _STORAGE_FILE_NAME = "graph_storage.txt"
 
 _STORAGE = GraphStorage.__new__(GraphStorage)
 
+
 def initStorage(canCalculateGraphChecker=(lambda g: False)):
     _STORAGE.__init__(canCalculateGraphChecker)
     if path.exists(_STORAGE_FILE_NAME):

@@ -200,7 +200,7 @@ class Graph(object):
     def xRelevantSubGraphs(self, filters=list(), resultRepresentator=Representator.asGraph):
         allEdges = self.allEdges()
         simpleCache = dict()
-        for subGraphAsList in graph_operations._xSubGraphs(allEdges, self.externalVertex):
+        for subGraphAsList in graph_operations._xSubGraphs(allEdges, self._edges, self.externalVertex):
             subGraphAsTuple = tuple(subGraphAsList)
             isValid = simpleCache.get(subGraphAsTuple, None)
             if isValid is None:

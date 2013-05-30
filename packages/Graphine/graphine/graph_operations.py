@@ -23,6 +23,8 @@ def isGraph1Irreducible(edgesList, superGraph, superGraphEdges):
 # noinspection PyUnusedLocal
 def isGraphVertexIrreducible(edgesList, superGraph, superGraphEdges):
     subGraph = graph.Representator.asGraph(edgesList, superGraph.externalVertex)
+    if len(subGraph.vertexes() - set([superGraph.externalVertex])) == 1:
+        return True
     for v in subGraph.vertexes():
         if v is not superGraph.externalVertex:
             if not _isGraphConnected(subGraph.deleteVertex(v).allEdges(), superGraph.externalVertex):
@@ -63,13 +65,25 @@ def isGraphConnected(edgesList, superGraph, superGraphEdges):
     return _isGraphConnected(edgesList, superGraph.externalVertex)
 
 
-def _xSubGraphs(edgesList, externalVertex, startSize=2):
+def _xSubGraphs(edgesList, edgesMap, externalVertex, startSize=1):
     external, inner = _pickExternalEdges(edgesList, externalVertex)
 
     innerLength = len(inner)
 
+    #Are this shit?
+
+    if startSize == 1:
+        notExternalVertexes = set(edgesMap.keys()) - set([externalVertex])
+        for v in notExternalVertexes:
+            edges = edgesMap.get(v, None)
+            if edges:
+                subGraph = _createExternalEdge(v,  externalVertex=externalVertex, edgesCount=len(edges))
+                yield subGraph
+
+    _startSize = max(2, startSize)
+
     if innerLength:
-        for i in xrange(startSize, innerLength):
+        for i in xrange(_startSize, innerLength):
             for rawSubGraph in itertools.combinations(inner, i):
                 subGraph = list(rawSubGraph)
                 subGraphVertexes = set()

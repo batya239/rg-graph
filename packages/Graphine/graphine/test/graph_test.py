@@ -20,6 +20,16 @@ subGraphState = gs.GraphState(subEdges)
 subGraph = gr.Graph(subGraphState)
 
 
+@filters.graphFilter
+def twoEdgesFilter(edgesList, superGraph, superGraphEdges):
+    externalVertex = superGraph.externalVertex
+    notExternalEdges = list()
+    for e in edgesList:
+        if externalVertex not in set(e.nodes):
+            notExternalEdges.append(e)
+    return len(notExternalEdges) == 2
+
+
 class GraphTestCase(unittest.TestCase):
     def testIndexableEdges(self):
         graph = gr.Graph(gs.GraphState.fromStr("e11-e-::"))
@@ -52,6 +62,13 @@ class GraphTestCase(unittest.TestCase):
         self.doTestGetRelevantSubGraphs("ee12-223-3-ee-::", 3)
         self.doTestGetRelevantSubGraphs("ee12-e3-445-455-5--::", 5)
         self.doTestGetRelevantSubGraphs("ee12-e22-e-::", 1)
+
+        graph = gr.Graph(gs.GraphState.fromStr("e14-2-344-4-e-::"))
+        current = [g for g in
+                   graph.xRelevantSubGraphs(twoEdgesFilter, gr.Representator.asList)]
+        print current[17]
+        return graph_operations.isGraphConnected(current[1], graph, graph.allEdges())
+
 
     def testNextVertexIndex(self):
         self.assertEquals(simpleGraph.createVertexIndex(), 3)

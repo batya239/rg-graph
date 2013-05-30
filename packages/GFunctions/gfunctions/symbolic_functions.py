@@ -16,6 +16,6 @@ def evaluate(expressionAsString):
 
 def _g(alpha, beta):
     return str(gamma(_lambda + 1 - alpha) * gamma(_lambda + 1 - beta) \
-           * gamma(alpha + beta - _lambda - 1) \
-           / (4 * pi) ** (_lambda + 1) * gamma(alpha) * gamma(beta) \
-           * gamma(2 * _lambda + 2 - alpha - beta))
+               * gamma(alpha + beta - _lambda - 1) \
+               / (4 * pi) ** (_lambda + 1) * gamma(alpha) * gamma(beta) \
+               * gamma(2 * _lambda + 2 - alpha - beta))
