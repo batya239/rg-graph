@@ -22,7 +22,9 @@ class UVRelevanceCondition(object):
         nEdges = len(edgesList) - len(subgraph.edges(subgraph.externalVertex))
         nVertexes = len(subgraph.vertexes()) - 1
         nLoop = nEdges - nVertexes + 1
-        subgraphUVIndex = nEdges * self.edgeUVWeight + (nLoop + 1) * self.spaceDim
+        subgraphUVIndex = nEdges * self.edgeUVWeight + nLoop * self.spaceDim
+        if subgraphUVIndex >= 0:
+            print subgraphUVIndex, nEdges, nLoop
         return subgraphUVIndex >= 0
 
 
