@@ -2,6 +2,7 @@
 # -*- coding: utf8
 from os import path
 import os
+import shutil
 import graph_state
 import graphine
 
@@ -135,8 +136,15 @@ def initStorage(canCalculateGraphChecker=(lambda g: False), withFunctions=False)
     if not path.exists(funStoragePath):
         funStoragePath = path.join(path.join(path.dirname(path.realpath(__file__)), _FUNCTION_STORAGE_FOLDER_NAME))
     if withFunctions and path.exists(funStoragePath):
+        p = path.join(os.getcwd(), _FUNCTION_STORAGE_FOLDER_NAME)
+        if not path.exists(p):
+            os.mkdir(p)
+
         for fileName in os.listdir(funStoragePath):
             functionName = "__" + fileName[8:-3]
-            print fileName
-            _STORAGE._funUnderlying[functionName] = path.join(funStoragePath, fileName)
+            functionPath = path.join(funStoragePath, fileName)
+            if p != funStoragePath:
+                shutil.copyfile(functionPath,
+                                path.join(os.getcwd(), _FUNCTION_STORAGE_FOLDER_NAME + "/" + fileName))
+                _STORAGE._funUnderlying[functionName] = functionPath
 
