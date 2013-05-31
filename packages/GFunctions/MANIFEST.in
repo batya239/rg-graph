@@ -1,2 +1,2 @@
-include *.txt
-recursive-include examples *.py
+include gfunctions/storage/*.txt
+include examples/*
