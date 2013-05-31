@@ -36,6 +36,7 @@ class GraphStorage(object):
             return True
         return self._canCalculateGraphCheckerWrapper(graph, graphState)
 
+
     def createUnCalculatedValue(self, graphState):
         return "G(%s)" % str(graphState)
 
@@ -75,7 +76,7 @@ def put(graphState, value):
     _STORAGE._underlying[graphStateAsString] = value
     storageFile = open(_STORAGE_FILE_NAME, "a")
     storageFile.write("\n")
-    storageFile.write(str((graphStateAsString, value[0], value[1])))
+    storageFile.write(str((graphStateAsString, value[0], value[1], None)))
     storageFile.close()
 
 
@@ -96,16 +97,16 @@ def initStorage(canCalculateGraphChecker=(lambda g: False)):
     _STORAGE.__init__(canCalculateGraphChecker)
     if path.exists(_STORAGE_FILE_NAME):
         for line in open(_STORAGE_FILE_NAME, "r"):
-            k, v1, v2 = eval(line)
-            _STORAGE._underlying[k] = (v1, v2)
+            k, v1, v2, v3 = eval(line)
+            _STORAGE._underlying[k] = (v1, v2, v3)
     else:
         localStorageFile = open(_STORAGE_FILE_NAME, "a")
         for line in open(path.join(path.dirname(path.realpath(__file__)), _STORAGE_FILE_NAME), "r"):
             if not len(line):
                 continue
-            k, v1, v2 = eval(line)
-            _STORAGE._underlying[k] = (v1, v2)
-            localStorageFile.write(str((k, v1, v2)))
+            k, v1, v2, v3 = eval(line)
+            _STORAGE._underlying[k] = (v1, v2, v3)
+            localStorageFile.write(str((k, v1, v2, v3)))
             localStorageFile.write("\n")
         localStorageFile.close()
 

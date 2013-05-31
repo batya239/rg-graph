@@ -56,12 +56,14 @@ class _MergeResolver(object):
         self._connectedComponents = list()
         self._cutVertexes = set(cutVertexes)
         self._externalVertex = externalVertex
+        self._hasBorderJumpers = False
 
     def addEdge(self, e):
         vs = filter(lambda v: v not in self._cutVertexes and v is not self._externalVertex, e.nodes)
         length = len(vs)
         if length == 0:
-            return
+            if not self._hasBorderJumpers and len(filter(lambda v: v is not self._externalVertex, e.nodes)) == 2:
+                self._hasBorderJumpers = True
         elif length == 1:
             self._disjointSet.addKey(vs[0])
             border = filter(lambda v: v is not vs[0], e.nodes)[0]
@@ -85,7 +87,7 @@ class _MergeResolver(object):
             if len(borders) == 2:
                 countWith2Tails += 1
 
-        return countWith2Tails > 1
+        return countWith2Tails > 1 or self._hasBorderJumpers
 
 
 uv = UVRelevanceCondition()
