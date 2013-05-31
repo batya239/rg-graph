@@ -1,2 +1,2 @@
-include gfunctions/storage/*.txt
 include examples/*
+recursive-include gfunctions/storage *

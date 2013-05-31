@@ -11,7 +11,6 @@ setup(
     url='http://pypi.python.org/pypi/GFunctions/',
     license='LICENSE.txt',
     description='Calculationg FD using G-functions',
-    package_data={'': ['gfunctions/storage/*']},
     long_description=open('README.txt').read(),
 #    requires=['GraphState (>= 0.0.3), Graphine (>= 0.0.1), RgGraphUtil(>= 0.0.1)']
 )
