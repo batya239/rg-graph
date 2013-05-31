@@ -12,12 +12,20 @@ import graphine
 
 def calculateGraph(graph):
     x = 1
+    calculated = False
     for _g in gfunctions.xArbitrarilyPassMomentum(graph):
         reducer = gfunctions.GGraphReducer(_g)
         while reducer.nextIteration():
             pass
-        print str(x) + ". " + str(_g) + " : " + str(reducer.getCurrentIterationValue())
+        value = reducer.getCurrentIterationValue()
+        if value:
+            calculated = True
+        print str(x) + ". " + str(_g) + " : " + str(value)
         x += 1
+    if calculated:
+        print "OK", graph
+    else:
+        print "FAILED", graph
 
 
 def main():
