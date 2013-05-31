@@ -23,9 +23,9 @@ def calculateGraph(graph):
         print str(x) + ". " + str(_g) + " : " + str(value)
         x += 1
     if calculated:
-        print "OK", graph
+        print "\n\nOK", graph
     else:
-        print "FAILED", graph
+        print "\n\nFAILED", graph
 
 
 def main():
