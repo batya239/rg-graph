@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf8
 from os import path
+import os
 import graph_state
 import graphine
 
@@ -14,8 +15,9 @@ class GraphStorage(object):
                 cls, *args, **kwargs)
         return cls._instance
 
-    def __init__(self, canCalculateGraphChecker=(lambda g: False)):
+    def __init__(self, canCalculateGraphChecker=(lambda g: False), withFunctions=False):
         self._underlying = dict()
+        self._funUnderlying = dict() if withFunctions else None
         self._unCalculatedPos = set()
         self._unCalculatedNeg = set()
         self._canCalculateGraphCheckerWrapper = self.wrapChecker(canCalculateGraphChecker)
@@ -25,6 +27,13 @@ class GraphStorage(object):
         storageValue = self._underlying.get(str(graphState), None)
         if storageValue is not None:
             return storageValue
+        if self._funUnderlying:
+            for function in self._funUnderlying.items():
+                execfile(function[1])
+                result = eval(function[0] + "(graph)")
+                if result:
+                    #maybe we should save this result to file storage? Ohh Fuckin Yeahh!
+                    return result
         if self._canCalculateGraphCheckerWrapper(graph, graphState):
             return self.createUnCalculatedValue(graphState)
         return None
@@ -34,8 +43,12 @@ class GraphStorage(object):
         hasInStorage = str(graphState) in self._underlying
         if hasInStorage:
             return True
+        if self._funUnderlying:
+            for function in self._funUnderlying.items():
+                execfile(function[1])
+                if eval(function[0] + "(graph)"):
+                    return True
         return self._canCalculateGraphCheckerWrapper(graph, graphState)
-
 
     def createUnCalculatedValue(self, graphState):
         return "G(%s)" % str(graphState)
@@ -74,9 +87,9 @@ def put(graphState, value):
         return
     graphStateAsString = str(graphState)
     _STORAGE._underlying[graphStateAsString] = value
-    storageFile = open(_STORAGE_FILE_NAME, "a")
+    storageFile = open(path.join(os.getcwd(), _STORAGE_FILE_NAME), "a")
     storageFile.write("\n")
-    storageFile.write(str((graphStateAsString, value[0], value[1], None)))
+    storageFile.write(str((graphStateAsString, value[0], value[1])))
     storageFile.close()
 
 
@@ -88,25 +101,41 @@ def has(graph):
     return _STORAGE.has(graph)
 
 
-_STORAGE_FILE_NAME = "graph_storage.txt"
+_STORAGE_FOLDER = "storage"
+_STORAGE_FILE_NAME = _STORAGE_FOLDER + "/graph_storage.txt"
+_FUNCTION_STORAGE_FOLDER_NAME = _STORAGE_FOLDER + "/fun"
 
 _STORAGE = GraphStorage.__new__(GraphStorage)
 
 
-def initStorage(canCalculateGraphChecker=(lambda g: False)):
-    _STORAGE.__init__(canCalculateGraphChecker)
-    if path.exists(_STORAGE_FILE_NAME):
-        for line in open(_STORAGE_FILE_NAME, "r"):
-            k, v1, v2, v3 = eval(line)
-            _STORAGE._underlying[k] = (v1, v2, v3)
+def initStorage(canCalculateGraphChecker=(lambda g: False), withFunctions=False):
+    _STORAGE.__init__(canCalculateGraphChecker, withFunctions)
+    storageFolder = path.join(os.getcwd(), _STORAGE_FOLDER)
+
+    if not path.exists(storageFolder):
+        os.mkdir(storageFolder)
+
+    baseStoragePath = path.join(os.getcwd(), _STORAGE_FILE_NAME)
+    if path.exists(baseStoragePath):
+        for line in open(baseStoragePath, "r"):
+            k, v1, v2 = eval(line)
+            _STORAGE._underlying[k] = (v1, v2)
     else:
-        localStorageFile = open(_STORAGE_FILE_NAME, "a")
+        localStorageFile = open(baseStoragePath, "a")
         for line in open(path.join(path.dirname(path.realpath(__file__)), _STORAGE_FILE_NAME), "r"):
-            if not len(line):
+            if not len(line) or line.startswith("#"):
                 continue
-            k, v1, v2, v3 = eval(line)
-            _STORAGE._underlying[k] = (v1, v2, v3)
-            localStorageFile.write(str((k, v1, v2, v3)))
+            k, v1, v2 = eval(line)
+            _STORAGE._underlying[k] = (v1, v2)
+            localStorageFile.write(str((k, v1, v2)))
             localStorageFile.write("\n")
         localStorageFile.close()
+
+    funStoragePath = path.join(os.getcwd(), _FUNCTION_STORAGE_FOLDER_NAME)
+    if not path.exists(funStoragePath):
+        funStoragePath = path.join(path.join(path.dirname(path.realpath(__file__)), _FUNCTION_STORAGE_FOLDER_NAME))
+    if withFunctions and path.exists(funStoragePath):
+        for fileName in os.listdir(funStoragePath):
+            functionName = "__" + fileName[8:-3]
+            _STORAGE._funUnderlying[functionName] = path.join(funStoragePath, fileName)
 

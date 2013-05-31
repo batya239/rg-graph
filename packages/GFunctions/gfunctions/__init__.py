@@ -5,4 +5,4 @@ __author__ = 'dima'
 
 from gfunctions.subgraph_processer import GGraphReducer
 from gfunctions.momentum import graphFilter, oneIrreducible, connected, \
-    xPassExternalMomentum, xPickPassingExternalMomentum, passMomentOnGraph
+    xPassExternalMomentum, xPickPassingExternalMomentum, passMomentOnGraph, xArbitrarilyPassMomentum

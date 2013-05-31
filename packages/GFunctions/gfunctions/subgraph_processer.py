@@ -51,7 +51,7 @@ class GGraphReducer(object):
             raise TypeError('unsupported type of initial graph')
         self._iterationGraphs = [self._initGraph]
         self._iterationValues = []
-        self._subGraphFilter = _createFilter()
+        self._subGraphFilter = _createFilter() + subGraphFilters
 
     @property
     def iterationValues(self):

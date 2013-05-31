@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf8
 import os
+import sys
 import unittest
 import graphine
 import graph_state
@@ -11,11 +12,11 @@ import graph_storage
 
 class SubGraphReducerTestCase(unittest.TestCase):
     def setUp(self):
-        graph_storage.initStorage()
-        self.deleteStorageFile()
+        self.deleteStorageDir()
+        graph_storage.initStorage(withFunctions=True)
 
     def tearDown(self):
-        self.deleteStorageFile()
+        self.deleteStorageDir()
 
     def testPickPassingExternalMomentum(self):
         g = graphine.Graph(
@@ -99,9 +100,13 @@ class SubGraphReducerTestCase(unittest.TestCase):
         self.assertEquals(str(reducer.getCurrentIterationGraph().toGraphState()),
                           "e112-2-e-::['(0, 0)', '(1, 0)', '(2, -1)', '(1, 0)', '(1, 0)', '(0, 0)']")
 
-    def deleteStorageFile(self):
-        if os.path.exists(graph_storage._STORAGE_FILE_NAME):
-            os.remove(graph_storage._STORAGE_FILE_NAME)
+    def deleteStorageDir(self):
+        baseStoragePath = os.path.join(os.getcwd(), graph_storage._STORAGE_FILE_NAME)
+        if os.path.exists(baseStoragePath):
+            os.remove(baseStoragePath)
+        storageDirPath = os.path.join(os.getcwd(), graph_storage._STORAGE_FOLDER)
+        if os.path.exists(storageDirPath):
+            os.rmdir(storageDirPath)
 
 
 if __name__ == "__main__":
