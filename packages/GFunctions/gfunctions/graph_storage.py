@@ -137,5 +137,6 @@ def initStorage(canCalculateGraphChecker=(lambda g: False), withFunctions=False)
     if withFunctions and path.exists(funStoragePath):
         for fileName in os.listdir(funStoragePath):
             functionName = "__" + fileName[8:-3]
+            print fileName
             _STORAGE._funUnderlying[functionName] = path.join(funStoragePath, fileName)
 
