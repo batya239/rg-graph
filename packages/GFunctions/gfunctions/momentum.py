@@ -3,6 +3,7 @@
 import copy
 import itertools
 import graphine
+import graph_state
 
 
 def graphFilter(qualifier):
@@ -44,7 +45,7 @@ def xPassExternalMomentum(graph, filters=list()):
 
 def xPickPassingExternalMomentum(graph, filters=list()):
     """
-    find all cases for passing external momentum
+    chooses 2-combinations of external nodes
     """
     externalEdges = graph.edges(graph.externalVertex)
     for edgesPair in itertools.combinations(externalEdges, 2):
@@ -72,3 +73,40 @@ def passMomentOnGraph(graph, momentumPassing):
         else:
             edgesToRemove.append(e)
     return graph.deleteEdges(edgesToRemove)
+
+
+def xArbitrarilyPassMomentum(graph):
+    """
+    find ALL (NO CONDITIONS) cases for momentum passing.
+    """
+
+    #ex-ex
+    passing = set([x for x in xPickPassingExternalMomentum(graph)])
+    for momentumPassing in passing:
+        yield passMomentOnGraph(graph, momentumPassing)
+
+    #ex-in
+    externalVertex = graph.externalVertex
+    externalEdges = graph.edges(externalVertex)
+
+    borderVertexes = set(reduce(lambda x, y: x | y, map(lambda x: set(x.nodes), externalEdges)) - set([externalVertex]))
+
+    visitedVertexes = set()
+    for e in externalEdges:
+        v = filter(lambda v: v != externalVertex, e.nodes)
+
+        if v in visitedVertexes:
+            continue
+        visitedVertexes.add(v)
+
+        edgesToRemove = copy.copy(externalEdges)
+        edgesToRemove.remove(e)
+        _g = graph.deleteEdges(edgesToRemove)
+        for v in borderVertexes:
+            yield _g.addEdge(graph_state.Edge((v, externalVertex), external_node=externalVertex, colors=(0, 0)))
+
+    #in-in
+    _g = graph.deleteEdges(externalEdges)
+    for vs in itertools.combinations(borderVertexes, 2):
+        yield _g.addEdges([graph_state.Edge((vs[0], externalVertex), external_node=externalVertex, colors=(0, 0)),
+                          graph_state.Edge((vs[1], externalVertex), external_node=externalVertex, colors=(0, 0))])
