@@ -25,7 +25,8 @@ class SubGraphReducerTestCase(unittest.TestCase):
         while reducer.nextIteration():
             pass
         self.assertTrue(reducer.isSuccesfulDone())
-        self.assertEquals(str(reducer.getFinalValue()), "('G(1, 1)*G(1, 1)*G(1, 2)*G(1, 4-lambda*3)', (4, -4))")
+        actual = str(reducer.getFinalValue()[0])
+        self.assertEquals(set(actual.split("*")), set("G(1, 1)*G(1, 1)*G(1, 2)*G(1, 4-lambda*3)".split("*")))
 
     def testPickPassingExternalMomentum(self):
         g = graphine.Graph(
