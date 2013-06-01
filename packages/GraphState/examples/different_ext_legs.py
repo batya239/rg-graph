@@ -5,7 +5,7 @@ import graph_state
 
 def edges(adjlist):
     defaultField = 'a'
-    extNodeMap = {-2: 'A', -3: 'B'} #
+    extNodeMap = {-2: 'A', -3: 'B', -4: 'C'}
     edgeList = list()
     for edge in adjlist:
         nodes = list()
@@ -24,9 +24,7 @@ def edges(adjlist):
         edgeList.append(graph_state.Edge(nodes, fields=graph_state.Fields(fields)))
     return edgeList
 
-# [-1,x] denotes an external leg connected to vertex x
-# [-2,x] denotes an external leg connected to vertex x
-# [-3,x] denotes an external leg connected to vertex x
+# [-1,x], [-2,x], [-3,x], [-4,x] denotes an external leg connected to vertex x
 
 # different ext legs will be marked by different fields associated with ext leg
 # this works fine for simple models (like phi^4 model) and results in compact notation
@@ -42,19 +40,16 @@ print adjlist
 
 print str(graph_state.GraphState(edges(adjlist)))
 
+print "\nnew style notation : some ext legs marked as different"
+print "\n -1 -> a, -2 -> A, -3 -> B, -4 -> C\n"
 
 
-print "\nnew style notation: two ext legs marked as different"
-
-print "\n -1 -> a, -2 -> A"
-adjlist = [[-2, 0], [0, 1], [0, 2], [-1, 1], [1, 2], [1, 3], [-1, 2], [2, 3], [3, -2]]
+adjlist = [[-2, 0], [0, 1], [0, 2], [-3, 1], [1, 2], [1, 3], [-3, 2], [2, 3], [3, -2]]
 print adjlist
-
 
 print str(graph_state.GraphState(edges(adjlist)))
 
-print "\n -2 -> A, -3 -> B"
-adjlist = [[-2, 0], [0, 1], [0, 2], [-3, 1], [1, 2], [1, 3], [-3, 2], [2, 3], [3, -2]]
+adjlist = [[-4, 0], [0, 1], [0, 2], [-3, 1], [1, 2], [1, 3], [2, 3], [3, -2]]
 print adjlist
 
 print str(graph_state.GraphState(edges(adjlist)))
