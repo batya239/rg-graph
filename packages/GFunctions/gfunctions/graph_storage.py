@@ -146,5 +146,5 @@ def initStorage(canCalculateGraphChecker=(lambda g: False), withFunctions=False)
             if p != funStoragePath:
                 shutil.copyfile(functionPath,
                                 path.join(os.getcwd(), _FUNCTION_STORAGE_FOLDER_NAME + "/" + fileName))
-                _STORAGE._funUnderlying[functionName] = functionPath
+            _STORAGE._funUnderlying[functionName] = functionPath
 

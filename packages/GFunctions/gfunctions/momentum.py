@@ -89,7 +89,7 @@ def xArbitrarilyPassMomentum(graph):
     externalVertex = graph.externalVertex
     externalEdges = graph.edges(externalVertex)
 
-    borderVertexes = set(reduce(lambda x, y: x | y, map(lambda x: set(x.nodes), externalEdges)) - set([externalVertex]))
+    internalVertexes = graph.vertexes() - set(reduce(lambda x, y: x | y, map(lambda x: set(x.nodes), externalEdges)) - set([externalVertex])) - set([externalVertex])
 
     visitedVertexes = set()
     for e in externalEdges:
@@ -102,11 +102,11 @@ def xArbitrarilyPassMomentum(graph):
         edgesToRemove = copy.copy(externalEdges)
         edgesToRemove.remove(e)
         _g = graph.deleteEdges(edgesToRemove)
-        for v in borderVertexes:
+        for v in internalVertexes:
             yield _g.addEdge(graph_state.Edge((v, externalVertex), external_node=externalVertex, colors=(0, 0)))
 
     #in-in
     _g = graph.deleteEdges(externalEdges)
-    for vs in itertools.combinations(borderVertexes, 2):
+    for vs in itertools.combinations(internalVertexes, 2):
         yield _g.addEdges([graph_state.Edge((vs[0], externalVertex), external_node=externalVertex, colors=(0, 0)),
                           graph_state.Edge((vs[1], externalVertex), external_node=externalVertex, colors=(0, 0))])

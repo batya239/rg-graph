@@ -19,7 +19,8 @@ def _createFilter():
                 # external node and 2 internals
             return len(vertexes) == 3
 
-    return graphine.filters.oneIrreducible + graphine.filters.noTadpoles + graphine.filters.isRelevant(RelevanceCondition())
+    return graphine.filters.oneIrreducible + graphine.filters.noTadpoles + graphine.filters.isRelevant(
+        RelevanceCondition())
 
 
 def _adjust(graphAsList, externalVertex):
@@ -66,6 +67,9 @@ class GGraphReducer(object):
 
     def getCurrentIterationValue(self):
         return self._iterationValues[-1] if len(self._iterationValues) else None
+
+    def isSuccesfulDone(self):
+        return len(self.getCurrentIterationGraph().allEdges()) == 3
 
     def nextIteration(self):
         """
@@ -142,7 +146,8 @@ class GGraphReducer(object):
                     return copy.copy(edges), v
         return None
 
-    def _putFinalValueToGraphStorage(self):
+    def getFinalValue(self):
+        assert self.isSuccesfulDone()
         gValue = "*".join(self._iterationValues)
 
         innerEdge = None
@@ -154,7 +159,10 @@ class GGraphReducer(object):
 
         wValue = innerEdge.colors
 
-        graph_storage.put(self._initGraph, (gValue, wValue))
+        return gValue, wValue
+
+    def _putFinalValueToGraphStorage(self):
+        graph_storage.put(self._initGraph, self.getFinalValue())
 
 
 

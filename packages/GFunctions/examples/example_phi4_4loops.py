@@ -8,6 +8,7 @@ import gfunctions
 import gfunctions.graph_storage
 import graph_state
 import graphine
+import graphine.phi4
 
 
 def calculateGraph(graph):
@@ -17,15 +18,34 @@ def calculateGraph(graph):
         reducer = gfunctions.GGraphReducer(_g)
         while reducer.nextIteration():
             pass
-        value = reducer.getCurrentIterationValue()
-        if value:
+        if reducer.isSuccesfulDone():
             calculated = True
-        print str(x) + ". " + str(_g) + " : " + str(value)
+            value = reducer.getFinalValue()
+            _hasIRSubgraphs = hasIRSubGraphs(_g)
+            print str(x) + ". " + str(_g) + " : " + str(value) + " : IR = " + str(_hasIRSubgraphs)
+            if not _hasIRSubgraphs:
+                pass
+        else:
+            print str(x) + ". " + str(_g) + " : NO RESULT", reducer.getCurrentIterationGraph()
         x += 1
     if calculated:
-        print "\n\nOK", graph
+        print "\n\nOK", graph, '\n\n'
     else:
-        print "\n\nFAILED", graph
+        print "\n\nFAILED", graph, '\n\n'
+
+
+_SUBGRAPHS_IR_FILTER = (graphine.filters.connected + graphine.filters.isRelevant(graphine.phi4.IRRelevanceCondition()))
+
+
+def hasIRSubGraphs(g):
+    return len([x for x in g.xRelevantSubGraphs(_SUBGRAPHS_IR_FILTER, graphine.Representator.asMinimalGraph)]) != 0
+
+
+def calculateRPrime(g):
+    """
+    NOT checking that graph hasn't IR subgraphs
+    """
+    pass
 
 
 def main():

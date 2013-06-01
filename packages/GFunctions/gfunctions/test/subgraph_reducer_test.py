@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf8
 import os
+import shutil
 import sys
 import unittest
 import graphine
@@ -17,6 +18,14 @@ class SubGraphReducerTestCase(unittest.TestCase):
 
     def tearDown(self):
         self.deleteStorageDir()
+
+    def test4LoopDiagram(self):
+        g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr("e112-34-e33-4--::")))
+        reducer = subgraph_processer.GGraphReducer(g)
+        while reducer.nextIteration():
+            pass
+        self.assertTrue(reducer.isSuccesfulDone())
+        self.assertEquals(str(reducer.getFinalValue()), "('G(1, 1)*G(1, 1)*G(1, 2)*G(1, 4-lambda*3)', (4, -4))")
 
     def testPickPassingExternalMomentum(self):
         g = graphine.Graph(
@@ -106,7 +115,7 @@ class SubGraphReducerTestCase(unittest.TestCase):
             os.remove(baseStoragePath)
         storageDirPath = os.path.join(os.getcwd(), graph_storage._STORAGE_FOLDER)
         if os.path.exists(storageDirPath):
-            os.rmdir(storageDirPath)
+            shutil.rmtree(storageDirPath)
 
 
 if __name__ == "__main__":
