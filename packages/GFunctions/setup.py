@@ -12,5 +12,5 @@ setup(
     license='LICENSE.txt',
     description='Calculationg FD using G-functions',
     long_description=open('README.txt').read(),
-#    requires=['GraphState (>= 0.0.3), Graphine (>= 0.0.1), RgGraphUtil(>= 0.0.1)']
+#    requires=['GraphState (>= 0.0.3), Graphine (>= 0.0.1), RgGraphUtil(>= 0.0.1)', sympy]
 )
