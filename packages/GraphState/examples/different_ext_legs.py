@@ -28,6 +28,11 @@ def edges(adjlist):
 # [-2,x] denotes an external leg connected to vertex x
 # [-3,x] denotes an external leg connected to vertex x
 
+# different ext legs will be marked by different fields associated with ext leg
+# this works fine for simple models (like phi^4 model) and results in compact notation
+#
+# In general case colors (graph_state.Rainbow) must be used instead of fields
+
 
 print "old style notation all ext legs are equivalent"
 
