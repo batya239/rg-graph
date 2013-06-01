@@ -1,0 +1,55 @@
+#!/usr/bin/python
+
+import graph_state
+
+
+def edges(adjlist):
+    defaultField = 'a'
+    extNodeMap = {-2: 'A', -3: 'B'} #
+    edgeList = list()
+    for edge in adjlist:
+        nodes = list()
+        fields = list()
+
+        if edge[0] in extNodeMap:
+            nodes = [-1, edge[1]]
+            fields = ['0', extNodeMap[edge[0]]]
+        elif edge[1] in extNodeMap:
+            nodes = [edge[0], -1]
+            fields = [extNodeMap[edge[1]], '0']
+        else:
+            nodes = edge
+            fields = [defaultField, defaultField]
+
+        edgeList.append(graph_state.Edge(nodes, fields=graph_state.Fields(fields)))
+    return edgeList
+
+# [-1,x] denotes an external leg connected to vertex x
+# [-2,x] denotes an external leg connected to vertex x
+# [-3,x] denotes an external leg connected to vertex x
+
+
+print "old style notation all ext legs are equivalent"
+
+print "\n -1 -> a"
+adjlist = [[-1, 0], [0, 1], [0, 2], [-1, 1], [1, 2], [1, 3], [-1, 2], [2, 3], [3, -1]]
+print adjlist
+
+print str(graph_state.GraphState(edges(adjlist)))
+
+
+
+print "\nnew style notation: two ext legs marked as different"
+
+print "\n -1 -> a, -2 -> A"
+adjlist = [[-2, 0], [0, 1], [0, 2], [-1, 1], [1, 2], [1, 3], [-1, 2], [2, 3], [3, -2]]
+print adjlist
+
+
+print str(graph_state.GraphState(edges(adjlist)))
+
+print "\n -2 -> A, -3 -> B"
+adjlist = [[-2, 0], [0, 1], [0, 2], [-3, 1], [1, 2], [1, 3], [-3, 2], [2, 3], [3, -2]]
+print adjlist
+
+print str(graph_state.GraphState(edges(adjlist)))
