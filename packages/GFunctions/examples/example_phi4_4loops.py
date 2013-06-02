@@ -14,6 +14,7 @@ import graphine.phi4
 def calculateGraph(graph):
     x = 1
     calculated = False
+    calculatedWithRPrime = False
     for _g in gfunctions.xArbitrarilyPassMomentum(graph):
         reducer = gfunctions.GGraphReducer(_g)
         while reducer.nextIteration():
@@ -22,6 +23,8 @@ def calculateGraph(graph):
             calculated = True
             value = reducer.getFinalValue()
             _hasIRSubgraphs = hasIRSubGraphs(_g)
+            if not _hasIRSubgraphs:
+                calculatedWithRPrime = True
             print str(x) + ". " + str(_g) + " : " + str(value) + " : IR = " + str(_hasIRSubgraphs)
             if not _hasIRSubgraphs:
                 pass
@@ -29,7 +32,7 @@ def calculateGraph(graph):
             print str(x) + ". " + str(_g) + " : NO RESULT", reducer.getCurrentIterationGraph()
         x += 1
     if calculated:
-        print "\n\nOK", graph, '\n\n'
+        print "\n\nOK(" + ("R'" if calculatedWithRPrime else "R*") + ")", graph, '\n\n'
     else:
         print "\n\nFAILED", graph, '\n\n'
 
@@ -41,11 +44,11 @@ def hasIRSubGraphs(g):
     return len([x for x in g.xRelevantSubGraphs(_SUBGRAPHS_IR_FILTER, graphine.Representator.asMinimalGraph)]) != 0
 
 
-def calculateRPrime(g):
+def calculateRPrime(graphReducer):
     """
     NOT checking that graph hasn't IR subgraphs
     """
-    pass
+    assert graphReducer.isSuccesfulDone()
 
 
 def main():
