@@ -38,6 +38,9 @@ print "C = ", C_
 print "D = ", D_
 
 
+
+print "conservations = ", g._cons
+
 #print "E = ", E
 #print "T = ", T
 
