@@ -68,8 +68,9 @@ print "KR1['%s'] = " % gamma, K(R1[gamma])
 gamma = 'e112-e2--'
 g[gamma] = (G(1, 1) * G(e, 2))
 tempR1 = g[gamma] - R['e11-e-'] * IR['11--']
-IR['112-2--'] = 1 / e / e + 1 / e / 2
 print "KR1['%s'] = " % gamma, K(tempR1)
+IR['112-2--'] = K(R1['e112-2-e-'] +R1['e11-e-']*IR['11--'])
+print "IR['112-2--'] = ", IR['112-2--']
 
 
 # e112-22-e-

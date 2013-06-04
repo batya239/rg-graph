@@ -80,8 +80,12 @@ class _phi3(_generic_model):
         self.nodes_dim = {1: 0}
         self.checktadpoles = False
         self.target = 4
-        home = os.environ['HOME']
-        self.workdir = '%s/work/rg-graph/phi_3/' % home
+        try:
+            home = os.environ['HOME']
+        except:
+            self.workdir = 'phi_3/'
+        else:
+            self.workdir = '%s/work/rg-graph/phi_3/' % home
 
 
 class _phi3_dyn(_generic_model):
