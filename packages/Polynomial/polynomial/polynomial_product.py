@@ -2,6 +2,7 @@
 # -*- coding: utf8
 
 import copy
+import rggraphutil
 import eps_number
 import formatter
 import polynomial
@@ -140,7 +141,7 @@ class PolynomialProduct(object):
         """
         collecting polynomials by monomial part
         """
-        factorDict = util.emptyListDict()
+        factorDict = rggraphutil.emptyListDict()
         for p in polynomials:
             key = util.unordered_hashable(tuple(p.monomials.items()))
             factorDict[key].append(p)

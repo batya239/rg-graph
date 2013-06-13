@@ -17,11 +17,11 @@ class SubGraphReducerTestCase(unittest.TestCase):
         rprime_storage.closeStorage(False, True, "commit from test")
 
     def DO_NOT_TEST_testSome(self):
-        assert rprime_storage.getKR1(graphine.Graph(graph_state.GraphState.fromStr("e11-e-::")))
+        assert rprime_storage.getR1(graphine.Graph(graph_state.GraphState.fromStr("e11-e-::")))
         graph = graphine.Graph(graph_state.GraphState.fromStr("ee11-e-::"))
-        rprime_storage.putGraphKR1(graph, (
+        rprime_storage.putGraphR1(graph, (
             symbolic_functions.polePart(symbolic_functions.evaluate("G(1,1)", (1, -1)))), "test", "test")
-        assert rprime_storage.getKR1(graph)
+        assert rprime_storage.getR1(graph)
 
 
 if __name__ == "__main__":
