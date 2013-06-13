@@ -7,7 +7,8 @@ import symbolic_functions
 
 
 _STORAGE_PATH = "~/.rg-graph-storage/"
-_STORAGE_FILE_NAME = "krprime_storage.py"
+_R1_STORAGE_FILE_NAME = "rprime_storage.py"
+_KR1_STORAGE_FILE_NAME = "krprime_storage.py"
 
 
 class _AbstractKRPrimeGraphStorage(object):
@@ -38,8 +39,8 @@ class _FakeKRPrimeStorage(_AbstractKRPrimeGraphStorage):
         return self._underlying.get(graph, defaultValue)
 
 
-class _MercurialKRPrimeStorage(_AbstractKRPrimeGraphStorage):
-    def __init__(self, storagePath):
+class _MercurialRPrimeStorage(_AbstractKRPrimeGraphStorage):
+    def __init__(self, storagePath, storageFileName):
         storagePath = os.path.expanduser(storagePath)
         if not os.path.exists(storagePath):
             raise AssertionError(
@@ -51,21 +52,22 @@ class _MercurialKRPrimeStorage(_AbstractKRPrimeGraphStorage):
         storage = dict()
         # noinspection PyUnusedLocal
         _e = symbolic_functions._getE()
-        execfile(os.path.join(storagePath, _STORAGE_FILE_NAME))
+        storageQualifiedFileName = os.path.join(storagePath, storageFileName)
+        execfile(storageQualifiedFileName)
         self._underlying = storage
-        self._storageFile = open(os.path.join(storagePath, _STORAGE_FILE_NAME), "a")
+        self._storageFile = open(storageQualifiedFileName, "a")
         self._storagePath = storagePath
 
     def putGraph(self, graph, expression, methodName, description):
         value = (expression, methodName, description)
-        gs = _MercurialKRPrimeStorage._shortGraphState(graph)
+        gs = _MercurialRPrimeStorage._shortGraphState(graph)
         self._underlying[gs] = value
         self._storageFile.write("\nstorage[\"" + gs + "\"] = " +
                                 " (" + symbolic_functions.toSerializableCode(str(value[0])) + ", \"" + value[1]
                                 + "\", \"" + value[2] + "\")")
 
     def getValue(self, graph, defaultValue=None):
-        return self._underlying.get(_MercurialKRPrimeStorage._shortGraphState(graph), defaultValue)
+        return self._underlying.get(_MercurialRPrimeStorage._shortGraphState(graph), defaultValue)
 
     @staticmethod
     def _shortGraphState(graph):
@@ -80,29 +82,44 @@ class _MercurialKRPrimeStorage(_AbstractKRPrimeGraphStorage):
             #call("cd " + self._storagePath + "; hg push", shell=True)
 
 
-_STORAGE_REF = rggraphutil.Ref.create()
+_R1_STORAGE_REF = rggraphutil.Ref.create()
+_KR1_STORAGE_REF = rggraphutil.Ref.create()
 
 
 def initStorage(unitTestMode=False):
     if unitTestMode:
-        storage = _FakeKRPrimeStorage.__new__(_MercurialKRPrimeStorage)
-        storage.__init__()
+        kr1Storage = _FakeKRPrimeStorage.__new__(_MercurialRPrimeStorage)
+        kr1Storage.__init__()
+        r1Storage = _FakeKRPrimeStorage.__new__(_MercurialRPrimeStorage)
+        r1Storage.__init__()
     else:
-        storage = _MercurialKRPrimeStorage.__new__(_MercurialKRPrimeStorage)
-        storage.__init__(_STORAGE_PATH)
-    _STORAGE_REF.set(storage)
+        kr1Storage = _MercurialRPrimeStorage.__new__(_MercurialRPrimeStorage)
+        kr1Storage.__init__(_STORAGE_PATH, _KR1_STORAGE_FILE_NAME)
+        r1Storage = _MercurialRPrimeStorage.__new__(_MercurialRPrimeStorage)
+        r1Storage.__init__(_STORAGE_PATH, _R1_STORAGE_FILE_NAME)
+    _KR1_STORAGE_REF.set(kr1Storage)
+    _R1_STORAGE_REF.set(r1Storage)
 
 
-def putGraph(graph, expression, methodName, description):
-    _STORAGE_REF.get().putGraph(graph, expression, methodName, description)
+def putGraphR1(graph, expression, methodName, description):
+    _R1_STORAGE_REF.get().putGraph(graph, expression, methodName, description)
 
 
-def getValue(graph, defaultValue=None):
-    return _STORAGE_REF.get().getValue(graph, defaultValue)
+def getR1(graph, defaultValue=None):
+    return _R1_STORAGE_REF.get().getValue(graph, defaultValue)
+
+
+def putGraphKR1(graph, expression, methodName, description):
+    _KR1_STORAGE_REF.get().putGraph(graph, expression, methodName, description)
+
+
+def getKR1(graph, defaultValue=None):
+    return _KR1_STORAGE_REF.get().getValue(graph, defaultValue)
 
 
 def closeStorage(unitTestMode=False, doCommit=False, commitMessage=None):
     if not unitTestMode:
         if doCommit and commitMessage is None:
             raise ValueError("commit message must be specified")
-        _STORAGE_REF.get().close(doCommit, commitMessage)
+        _KR1_STORAGE_REF.get().close(doCommit, "kr1 storage: [" + commitMessage + "]")
+        _R1_STORAGE_REF.get().close(doCommit, "r1 storage [" + commitMessage + "]")
