@@ -42,6 +42,10 @@ def evaluate(expressionAsString, lineTuple=None):
     return (gammaPart * linePart) / _g11
 
 
+def toSerializableCode(expressionAsString):
+    return expressionAsString.replace("G", "_g").replace("lambda", "_lambda").replace("e", "_e")
+
+
 def polePart(expr):
     return (expr + sympy.O(1, _e)).series(_e, 0, 0).removeO()
 
