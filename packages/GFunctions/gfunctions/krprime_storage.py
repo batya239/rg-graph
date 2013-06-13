@@ -45,7 +45,8 @@ class _MercurialKRPrimeStorage(_AbstractKRPrimeGraphStorage):
             raise AssertionError(
                 "please checkout https://code.google.com/p/rg-graph-storage to ~/.rg-graph-storage/ firstly")
         else:
-            call("cd " + storagePath + "; hg pull -u", shell=True)
+            pass
+            #call("cd " + storagePath + "; hg pull -u", shell=True)
             # noinspection PyUnusedLocal
         storage = dict()
         # noinspection PyUnusedLocal
@@ -71,37 +72,37 @@ class _MercurialKRPrimeStorage(_AbstractKRPrimeGraphStorage):
         graphStateAsStr = str(graph.toGraphState())
         return graphStateAsStr[:graphStateAsStr.index("::")]
 
-    def close(self, doCommitAndPush, commitMessage):
+    def close(self, doCommit, commitMessage):
         self._storageFile.close()
-        if doCommitAndPush:
-            call("cd " + self._storagePath + "; hg pull -u", shell=True)
+        if doCommit:
+            #call("cd " + self._storagePath + "; hg pull -u", shell=True)
             call("cd " + self._storagePath + "; hg commit -m \"" + commitMessage + "\"", shell=True)
-            call("cd " + self._storagePath + "; hg push", shell=True)
+            #call("cd " + self._storagePath + "; hg push", shell=True)
 
 
-    _STORAGE_REF = rggraphutil.Ref.create()
+_STORAGE_REF = rggraphutil.Ref.create()
 
 
-    def initStorage(unitTestMode=False):
-        if unitTestMode:
-            storage = _FakeKRPrimeStorage.__new__(_MercurialKRPrimeStorage)
-            storage.__init__()
-        else:
-            storage = _MercurialKRPrimeStorage.__new__(_MercurialKRPrimeStorage)
-            storage.__init__(_STORAGE_PATH)
-        _STORAGE_REF.set(storage)
+def initStorage(unitTestMode=False):
+    if unitTestMode:
+        storage = _FakeKRPrimeStorage.__new__(_MercurialKRPrimeStorage)
+        storage.__init__()
+    else:
+        storage = _MercurialKRPrimeStorage.__new__(_MercurialKRPrimeStorage)
+        storage.__init__(_STORAGE_PATH)
+    _STORAGE_REF.set(storage)
 
 
-    def putGraph(graph, expression, methodName, description):
-        _STORAGE_REF.get().putGraph(graph, expression, methodName, description)
+def putGraph(graph, expression, methodName, description):
+    _STORAGE_REF.get().putGraph(graph, expression, methodName, description)
 
 
-    def getValue(graph, defaultValue=None):
-        return _STORAGE_REF.get().getValue(graph, defaultValue)
+def getValue(graph, defaultValue=None):
+    return _STORAGE_REF.get().getValue(graph, defaultValue)
 
 
-    def closeStorage(unitTestMode=False, doCommitAndPush=False, commitMessage=None):
-        if not unitTestMode:
-            if doCommitAndPush and commitMessage is None:
-                raise ValueError("commit message must be specified")
-            _STORAGE_REF.get().close(doCommitAndPush, commitMessage)
+def closeStorage(unitTestMode=False, doCommit=False, commitMessage=None):
+    if not unitTestMode:
+        if doCommit and commitMessage is None:
+            raise ValueError("commit message must be specified")
+        _STORAGE_REF.get().close(doCommit, commitMessage)
