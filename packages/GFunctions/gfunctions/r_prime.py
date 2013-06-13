@@ -23,7 +23,7 @@ _subgraphUVFilters = (graphine.filters.oneIrreducible
 
 
 class AbstractKOperation(object):
-    def calculateKOperation(self, graph):
+    def calculate(self, graph):
         raise NotImplementedError
 
 
@@ -31,7 +31,7 @@ class MSKOperation(AbstractKOperation):
     def __init__(self, description=""):
         self._description = description
 
-    def calculateKOperation(self, graph):
+    def calculate(self, graph):
         evaluated = rprime_storage.getK(graph)
         if evaluated:
             for e in evaluated:
@@ -63,7 +63,7 @@ def doRPrime(graph, kOperation, description=""):
         sign *= -1
         for comb in itertools.combinations(uvSubgraphs, i):
             if not _hasIntersectingSubGraphs(comb):
-                rawRPrime += sign * reduce(lambda g, e: kOperation.calculateKOperation(g) * e, comb, 1) * doRPrime(graph.batchShrinkToPoint(comb))
+                rawRPrime += sign * reduce(lambda g, e: kOperation.calculate(g) * e, comb, 1) * doRPrime(graph.batchShrinkToPoint(comb))
 
     result = symbolic_functions.polePart(rawRPrime)
     rprime_storage.putGraphR1(graph, result, GFUN_METHOD_NAME_MARKER, description)
