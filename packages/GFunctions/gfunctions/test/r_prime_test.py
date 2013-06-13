@@ -8,7 +8,6 @@ import test
 
 __author__ = 'daddy-bear'
 
-
 class SubGraphReducerTestCase(test.GraphStorageAwareTestCase):
     def test1LoopDiagramPRime(self):
         g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr("e11-e-::")))
