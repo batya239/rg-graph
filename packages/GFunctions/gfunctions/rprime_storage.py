@@ -74,9 +74,13 @@ class _MercurialRPrimeStorage(_AbstractKRPrimeGraphStorage):
         graphStateAsStr = str(graph.toGraphState())
         return graphStateAsStr[:graphStateAsStr.index("::")]
 
-    def close(self, doCommit, commitMessage):
+    def close(self, revert=False, doCommit=False, commitMessage=None):
         self._storageFile.close()
+        if revert:
+            call("cd " + self._storagePath + "; hg revert --all", shell=True)
         if doCommit:
+            if commitMessage is None:
+                raise ValueError("commit message must be specified")
             #call("cd " + self._storagePath + "; hg pull -u", shell=True)
             call("cd " + self._storagePath + "; hg commit -m \"" + commitMessage + "\"", shell=True)
             #call("cd " + self._storagePath + "; hg push", shell=True)
@@ -91,19 +95,9 @@ def checkInitialized():
         raise AssertionError
 
 
-def initStorage(unitTestMode=False):
-    if unitTestMode:
-        kStorage = _FakeKRPrimeStorage.__new__(_MercurialRPrimeStorage)
-        kStorage.__init__()
-        r1Storage = _FakeKRPrimeStorage.__new__(_MercurialRPrimeStorage)
-        r1Storage.__init__()
-    else:
-        kStorage = _MercurialRPrimeStorage.__new__(_MercurialRPrimeStorage)
-        kStorage.__init__(_STORAGE_PATH, _K_STORAGE_FILE_NAME)
-        r1Storage = _MercurialRPrimeStorage.__new__(_MercurialRPrimeStorage)
-        r1Storage.__init__(_STORAGE_PATH, _R1_STORAGE_FILE_NAME)
-    _K_STORAGE_REF.set(kStorage)
-    _R1_STORAGE_REF.set(r1Storage)
+def initStorage():
+    _K_STORAGE_REF.set(_MercurialRPrimeStorage(_STORAGE_PATH, _K_STORAGE_FILE_NAME))
+    _R1_STORAGE_REF.set(_MercurialRPrimeStorage(_STORAGE_PATH, _R1_STORAGE_FILE_NAME))
 
 
 def putGraphR1(graph, expression, methodName, description=""):
@@ -122,9 +116,8 @@ def getK(graph, defaultValue=None):
     return _K_STORAGE_REF.get().getValue(graph, defaultValue)
 
 
-def closeStorage(unitTestMode=False, doCommit=False, commitMessage=None):
-    if not unitTestMode:
-        if doCommit and commitMessage is None:
-            raise ValueError("commit message must be specified")
-        _K_STORAGE_REF.get().close(doCommit, "k storage: [" + commitMessage + "]")
-        _R1_STORAGE_REF.get().close(doCommit, "r1 storage [" + commitMessage + "]")
+def closeStorage(revert=False, doCommit=False, commitMessage=None):
+    if commitMessage is None:
+        commitMessage = "no commit message"
+    _K_STORAGE_REF.get().close(revert, doCommit, "k storage: [" + commitMessage + "]")
+    _R1_STORAGE_REF.get().close(revert, doCommit, "r1 storage [" + commitMessage + "]")

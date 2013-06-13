@@ -36,7 +36,7 @@ class MSKOperation(AbstractKOperation):
         if evaluated:
             for e in evaluated:
                 if e[1] == MS_SCHEME_NAME_MARKER:
-                    return e
+                    return e[0]
         else:
             value = _calculateGraphValue(graph, onlyPolePart=True)
             rprime_storage.putGraphK(graph, value, MS_SCHEME_NAME_MARKER, self._description)
@@ -49,7 +49,7 @@ def doRPrime(graph, kOperation, description=""):
     """
     evaluated = rprime_storage.getR1(graph)
     if evaluated is not None:
-        return evaluated
+        return evaluated[0]
 
     uvSubgraphs = graphine.Graph.batchInitEdgesColors([sg for sg in graph.xRelevantSubGraphs(_subgraphUVFilters)])
     if not len(uvSubgraphs):
