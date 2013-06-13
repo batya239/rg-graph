@@ -8,17 +8,10 @@ import graphine
 import graph_state
 import momentum
 import subgraph_processer
-import graph_storage
+import test
 
 
-class SubGraphReducerTestCase(unittest.TestCase):
-    def setUp(self):
-        self.deleteStorageDir()
-        graph_storage.initStorage(withFunctions=True)
-
-    def tearDown(self):
-        self.deleteStorageDir()
-
+class SubGraphReducerTestCase(test.GraphStorageAwareTestCase):
     def test4LoopDiagram(self):
         g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr("e112-34-e33-4--::")))
         reducer = subgraph_processer.GGraphReducer(g)
@@ -109,14 +102,6 @@ class SubGraphReducerTestCase(unittest.TestCase):
         self.assertTrue(hasIteration)
         self.assertEquals(str(reducer.getCurrentIterationGraph().toGraphState()),
                           "e112-2-e-::['(0, 0)', '(1, 0)', '(2, -1)', '(1, 0)', '(1, 0)', '(0, 0)']")
-
-    def deleteStorageDir(self):
-        baseStoragePath = os.path.join(os.getcwd(), graph_storage._STORAGE_FILE_NAME)
-        if os.path.exists(baseStoragePath):
-            os.remove(baseStoragePath)
-        storageDirPath = os.path.join(os.getcwd(), graph_storage._STORAGE_FOLDER)
-        if os.path.exists(storageDirPath):
-            shutil.rmtree(storageDirPath)
 
 
 if __name__ == "__main__":

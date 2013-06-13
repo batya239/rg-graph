@@ -62,6 +62,14 @@ class GGraphReducer(object):
     def iterationGraphs(self):
         return self._iterationGraphs
 
+    @property
+    def externalVertex(self):
+        return self._initGraph.externalVertex
+
+    @property
+    def iterationsCount(self):
+        return len(self._iterationValues)
+
     def getCurrentIterationGraph(self):
         return self._iterationGraphs[-1]
 
@@ -151,7 +159,7 @@ class GGraphReducer(object):
         gValue = "*".join(self._iterationValues)
 
         innerEdge = None
-        for e in self.getCurrentIterationGraph().allEdges():
+        for e in self._iterationGraphs[-1].allEdges():
             if self._initGraph.externalVertex not in e.nodes:
                 innerEdge = e
                 break

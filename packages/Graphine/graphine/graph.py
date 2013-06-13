@@ -70,6 +70,7 @@ class Graph(object):
             self._edges = Graph._parseEdges(obj.edges)
         self._nextVertexIndex = max(self._edges.keys()) + 1
         self._externalVertex = externalVertex
+        self._hash = 0
 
     @property
     def externalVertex(self):
@@ -154,7 +155,10 @@ class Graph(object):
         vertexTransformation = ID_VERTEX_TRANSFORMATION
         g = self
         for subGraph in subGraphs:
-            g, vertexTransformation = g._shrinkToPoint(subGraph, vertexTransformation)
+            if isinstance(subGraph, Graph):
+                g, vertexTransformation = g._shrinkToPoint(subGraph.allEdges(), vertexTransformation)
+            else:
+                g, vertexTransformation = g._shrinkToPoint(subGraph, vertexTransformation)
         assert g
         return g
 
@@ -172,9 +176,10 @@ class Graph(object):
         markedVertexes = set()
         for edge in edges:
             v1, v2 = edge.nodes
-            newRawEdges.remove(edge)
-            markedVertexes.add(v1)
-            markedVertexes.add(v2)
+            if v1 != self.externalVertex and v2 != self.externalVertex:
+                newRawEdges.remove(edge)
+                markedVertexes.add(v1)
+                markedVertexes.add(v2)
 
         newEdges = []
         currVertexTransformationMap = dict()
@@ -224,14 +229,31 @@ class Graph(object):
     def __str__(self):
         return str(self.toGraphState())
 
+    def __hash__(self):
+        if not self._hash:
+            self._hash = hash(self.toGraphState())
+        return self._hash
+
+    def __eq__(self, other):
+        if not isinstance(other, Graph):
+            return False
+        return self.toGraphState().__eq__(other.toGraphState())
+
     @staticmethod
     def initEdgesColors(graph, zeroColor=(0, 0), unitColor=(1, 0)):
         edges = graph.allEdges()
         initedEdges = list()
         for e in edges:
-            color = zeroColor if graph.externalVertex in e.nodes else unitColor
-            initedEdges.append(graph_state.Edge(e.nodes, graph.externalVertex, colors=color))
+            if e.colors is None:
+                color = zeroColor if graph.externalVertex in e.nodes else unitColor
+                initedEdges.append(graph_state.Edge(e.nodes, graph.externalVertex, colors=color))
+            else:
+                initedEdges.append(e)
         return Graph(initedEdges, externalVertex=graph.externalVertex)
+
+    @staticmethod
+    def batchInitEdgesColors(graphs, zeroColor=(0, 0), unitColor=(1, 0)):
+        return map(lambda g: Graph.initEdgesColors(g, zeroColor, unitColor), graphs)
 
     @staticmethod
     def _parseEdges(edgesIterable):
