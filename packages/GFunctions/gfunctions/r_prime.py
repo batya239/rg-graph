@@ -8,9 +8,10 @@ import symbolic_functions
 import graphine.phi4
 import subgraph_processer
 import rprime_storage
+import momentum
 
 
-class RPrimeCannotBeCalculatedError(AssertionError):
+class CannotBeCalculatedError(AssertionError):
     pass
 
 
@@ -32,15 +33,17 @@ class MSKOperation(AbstractKOperation):
         self._description = description
 
     def calculate(self, graph):
-        evaluated = rprime_storage.getK(graph)
-        if evaluated:
-            for e in evaluated:
-                if e[1] == MS_SCHEME_NAME_MARKER:
-                    return e[0]
-        else:
-            value = _calculateGraphValue(graph, onlyPolePart=True)
-            rprime_storage.putGraphK(graph, value, MS_SCHEME_NAME_MARKER, self._description)
-            return value
+        for gWithMomentum in momentum.xPassExternalMomentum(graph):
+            evaluated = rprime_storage.getK(gWithMomentum)
+            if evaluated:
+                for e in evaluated:
+                    if e[1] == MS_SCHEME_NAME_MARKER:
+                        return e[0]
+            value = _calculateGraphValue(gWithMomentum, onlyPolePart=True, suppressException=True)
+            if value is not None:
+                rprime_storage.putGraphK(gWithMomentum, value, MS_SCHEME_NAME_MARKER, self._description)
+                return value
+        raise CannotBeCalculatedError(graph)
 
 
 def doRPrime(graph, kOperation, description=""):
@@ -63,7 +66,7 @@ def doRPrime(graph, kOperation, description=""):
         sign *= -1
         for comb in itertools.combinations(uvSubgraphs, i):
             if not _hasIntersectingSubGraphs(comb):
-                rawRPrime += sign * reduce(lambda g, e: kOperation.calculate(g) * e, comb, 1) * doRPrime(graph.batchShrinkToPoint(comb))
+                rawRPrime += sign * reduce(lambda e, g: kOperation.calculate(g) * e, comb, 1) * doRPrime(graph.batchShrinkToPoint(comb), kOperation)
 
     result = symbolic_functions.polePart(rawRPrime)
     rprime_storage.putGraphR1(graph, result, GFUN_METHOD_NAME_MARKER, description)
@@ -77,12 +80,15 @@ def _calculateGraphsValues(graphs, onlyPolePart=False):
     return result
 
 
-def _calculateGraphValue(graph, onlyPolePart=False):
+def _calculateGraphValue(graph, onlyPolePart=False, suppressException=False):
     graphReducer = subgraph_processer.GGraphReducer(graph)
     while graphReducer.nextIteration():
         pass
     if not graphReducer.isSuccesfulDone():
-        raise RPrimeCannotBeCalculatedError
+        if suppressException:
+            return None
+        else:
+            raise CannotBeCalculatedError
     finalValue = graphReducer.getFinalValue()
     return symbolic_functions.evaluateSeries(finalValue[0], finalValue[1], onlyPolePart)
 
