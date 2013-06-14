@@ -70,7 +70,8 @@ class Graph(object):
             self._edges = Graph._parseEdges(obj.edges)
         self._nextVertexIndex = max(self._edges.keys()) + 1
         self._externalVertex = externalVertex
-        self._hash = 0
+        self._hash = None
+        self._loopsCount = None
 
     @property
     def externalVertex(self):
@@ -221,7 +222,9 @@ class Graph(object):
         return graph_state.GraphState(self.allEdges())
 
     def calculateLoopsCount(self):
-        return len(self.allEdges()) - len(self.edges(self.externalVertex)) - (len(self.vertexes()) - 1) + 1
+        if self._loopsCount is None:
+            self._loopsCount = len(self.allEdges()) - len(self.edges(self.externalVertex)) - (len(self.vertexes()) - 1) + 1
+        return self._loopsCount
 
     def __repr__(self):
         return str(self)
@@ -230,7 +233,7 @@ class Graph(object):
         return str(self.toGraphState())
 
     def __hash__(self):
-        if not self._hash:
+        if self._hash is None:
             self._hash = hash(self.toGraphState())
         return self._hash
 
