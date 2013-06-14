@@ -18,7 +18,7 @@ class CannotBeCalculatedError(AssertionError):
 GFUN_METHOD_NAME_MARKER = "g-functions"
 MS_SCHEME_NAME_MARKER = "ms-scheme"
 
-_subgraphUVFilters = (graphine.filters.oneIrreducible
+defaultSubgraphUVFilter = (graphine.filters.oneIrreducible
                       + graphine.filters.noTadpoles
                       + graphine.filters.isRelevant(graphine.phi4.UVRelevanceCondition()))
 
@@ -46,17 +46,17 @@ class MSKOperation(AbstractKOperation):
         raise CannotBeCalculatedError(graph)
 
 
-def doRPrime(graph, kOperation, description=""):
+def doRPrime(graph, kOperation, uvSubGraphFilter, description=""):
     rprime_storage.checkInitialized()
-    return _doRPrime(graph, kOperation, description)
+    return _doRPrime(graph, kOperation, uvSubGraphFilter, description)
 
 
-def _doRPrime(graph, kOperation, description=""):
+def _doRPrime(graph, kOperation, uvSubGraphFilter, description=""):
     evaluated = rprime_storage.getR1(graph)
     if evaluated is not None:
         return evaluated[0]
 
-    uvSubgraphs = graphine.Graph.batchInitEdgesColors([sg for sg in graph.xRelevantSubGraphs(_subgraphUVFilters)])
+    uvSubgraphs = graphine.Graph.batchInitEdgesColors([sg for sg in graph.xRelevantSubGraphs(uvSubGraphFilter)])
     if not len(uvSubgraphs):
         result = symbolic_functions.polePart(_calculateGraphValue(graph))
         rprime_storage.putGraphR1(graph, result, GFUN_METHOD_NAME_MARKER, description)

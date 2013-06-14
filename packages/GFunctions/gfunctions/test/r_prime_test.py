@@ -12,11 +12,11 @@ __author__ = 'daddy-bear'
 class SubGraphReducerTestCase(test.GraphStorageAwareTestCase):
     def test1LoopDiagramPRime(self):
         g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr("e11-e-::")))
-        self.assertEquals("1/e", str(r_prime.doRPrime(g, r_prime.MSKOperation())))
+        self.assertEquals("1/e", str(r_prime.doRPrime(g, r_prime.MSKOperation(), r_prime.defaultSubgraphUVFilter)))
 
     def testEyeRPrime(self):
         g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr("e12-e22--::")))
-        self.assertEquals("1/e", str(r_prime.doRPrime(g, r_prime.MSKOperation())))
+        self.assertEquals("1/e", str(r_prime.doRPrime(g, r_prime.MSKOperation(), r_prime.defaultSubgraphUVFilter)))
 
 
 if __name__ == "__main__":
