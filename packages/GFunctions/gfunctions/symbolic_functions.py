@@ -51,6 +51,8 @@ def polePart(expr):
 
 
 def _g(alpha, beta):
+    if alpha == 1 and beta == 1:
+        return 1 / _e
     return _rawG(alpha, beta) / _g11
 
 

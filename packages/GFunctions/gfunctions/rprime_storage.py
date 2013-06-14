@@ -8,7 +8,7 @@ import symbolic_functions
 
 _STORAGE_PATH = "~/.rg-graph-storage/"
 _R1_STORAGE_FILE_NAME = "rprime_storage.py"
-_K_STORAGE_FILE_NAME = "krprime_storage.py"
+_K_STORAGE_FILE_NAME = "k_storage.py"
 
 
 class _AbstractKRPrimeGraphStorage(object):

@@ -4,6 +4,7 @@ import unittest
 import graph_state
 import graphine
 import r_prime
+import symbolic_functions
 import test
 
 __author__ = 'daddy-bear'
@@ -16,7 +17,7 @@ class SubGraphReducerTestCase(test.GraphStorageAwareTestCase):
 
     def testEyeRPrime(self):
         g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr("e12-e22--::")))
-        self.assertEquals("1/e", str(r_prime.doRPrime(g, r_prime.MSKOperation(), r_prime.defaultSubgraphUVFilter)))
+        self.assertEquals("1/(2*e) - 1/(2*e**2)", str(r_prime.doRPrime(g, r_prime.MSKOperation(), r_prime.defaultSubgraphUVFilter)))
 
 
 if __name__ == "__main__":

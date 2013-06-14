@@ -32,18 +32,8 @@ class MSKOperation(AbstractKOperation):
     def __init__(self, description=""):
         self._description = description
 
-    def calculate(self, graph):
-        for gWithMomentum in momentum.xPassExternalMomentum(graph):
-            evaluated = rprime_storage.getK(gWithMomentum)
-            if evaluated:
-                for e in evaluated:
-                    if e[1] == MS_SCHEME_NAME_MARKER:
-                        return e[0]
-            value = _calculateGraphValue(gWithMomentum, onlyPolePart=True, suppressException=True)
-            if value is not None:
-                rprime_storage.putGraphK(gWithMomentum, value, MS_SCHEME_NAME_MARKER, self._description)
-                return value
-        raise CannotBeCalculatedError(graph)
+    def calculate(self, expression):
+        return symbolic_functions.polePart(expression)
 
 
 def doRPrime(graph, kOperation, uvSubGraphFilter, description=""):
@@ -54,7 +44,8 @@ def doRPrime(graph, kOperation, uvSubGraphFilter, description=""):
 def _doRPrime(graph, kOperation, uvSubGraphFilter, description=""):
     evaluated = rprime_storage.getR1(graph)
     if evaluated is not None:
-        return evaluated[0]
+        for e in evaluated:
+            return e[0]
 
     uvSubgraphs = graphine.Graph.batchInitEdgesColors([sg for sg in graph.xRelevantSubGraphs(uvSubGraphFilter)])
     if not len(uvSubgraphs):
@@ -68,24 +59,29 @@ def _doRPrime(graph, kOperation, uvSubGraphFilter, description=""):
         sign *= -1
         for comb in itertools.combinations(uvSubgraphs, i):
             if not _hasIntersectingSubGraphs(comb):
-                k = reduce(lambda e, g: kOperation.calculate(g) * e, comb, 1)
                 r1 = _doRPrime(graph.batchShrinkToPoint(comb), kOperation, uvSubGraphFilter)
-                rawRPrime += sign * k * r1
+                kr1 = kOperation.calculate(_calculateGraphsValues(comb) * r1)
+                rawRPrime += sign * kr1
 
     result = symbolic_functions.polePart(rawRPrime)
     rprime_storage.putGraphR1(graph, result, GFUN_METHOD_NAME_MARKER, description)
     return result
 
 
-def _calculateGraphsValues(graphs, onlyPolePart=False):
-    result = 0
-    for g in graphs:
-        result *= _calculateGraphValue(g, onlyPolePart)
-    return result
+def _calculateGraphsValues(graphs, suppressException=False):
+    return reduce(lambda e, g: e * _calculateGraphValue(g, suppressException), graphs, 1)
 
 
-def _calculateGraphValue(graph, onlyPolePart=False, suppressException=False):
-    graphReducer = subgraph_processer.GGraphReducer(graph)
+def _calculateGraphValue(graph, suppressException=False):
+    if len(graph.edges(graph.externalVertex)) == 2:
+        graphReducer = subgraph_processer.GGraphReducer(graph)
+    else:
+        graphReducer = None
+        for gWithMomentum in momentum.xPassExternalMomentum(graph):
+            graphReducer = subgraph_processer.GGraphReducer(gWithMomentum)
+            break
+        if graphReducer is None:
+            raise CannotBeCalculatedError
     while graphReducer.nextIteration():
         pass
     if not graphReducer.isSuccesfulDone():
@@ -94,7 +90,7 @@ def _calculateGraphValue(graph, onlyPolePart=False, suppressException=False):
         else:
             raise CannotBeCalculatedError
     finalValue = graphReducer.getFinalValue()
-    evaluated = symbolic_functions.evaluateSeries(finalValue[0], finalValue[1], onlyPolePart)
+    evaluated = symbolic_functions.evaluate(finalValue[0], finalValue[1])
     return evaluated
 
 
