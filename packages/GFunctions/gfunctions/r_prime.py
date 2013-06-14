@@ -47,9 +47,11 @@ class MSKOperation(AbstractKOperation):
 
 
 def doRPrime(graph, kOperation, description=""):
-    """
-    function NOT checks that incomplete R operation available for this graph
-    """
+    rprime_storage.checkInitialized()
+    return _doRPrime(graph, kOperation, description)
+
+
+def _doRPrime(graph, kOperation, description=""):
     evaluated = rprime_storage.getR1(graph)
     if evaluated is not None:
         return evaluated[0]
@@ -66,7 +68,8 @@ def doRPrime(graph, kOperation, description=""):
         sign *= -1
         for comb in itertools.combinations(uvSubgraphs, i):
             if not _hasIntersectingSubGraphs(comb):
-                rawRPrime += sign * reduce(lambda e, g: kOperation.calculate(g) * e, comb, 1) * doRPrime(graph.batchShrinkToPoint(comb), kOperation)
+                rawRPrime += sign * reduce(lambda e, g: kOperation.calculate(g) * e, comb, 1) * _doRPrime(
+                    graph.batchShrinkToPoint(comb), kOperation)
 
     result = symbolic_functions.polePart(rawRPrime)
     rprime_storage.putGraphR1(graph, result, GFUN_METHOD_NAME_MARKER, description)

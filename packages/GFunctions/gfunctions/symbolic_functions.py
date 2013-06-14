@@ -56,5 +56,4 @@ def _g(alpha, beta):
            / ((4 * sympy.pi) ** (_lambda + 1) * sympy.gamma(alpha) * sympy.gamma(beta)
               * sympy.gamma(2 * _lambda + 2 - alpha - beta))
 
-
 _g11 = _g(1, 1) * _e
