@@ -157,7 +157,6 @@ class GGraphReducer(object):
     def getFinalValue(self):
         assert self.isSuccesfulDone()
         gValue = "*".join(self._iterationValues)
-
         innerEdge = None
         for e in self._iterationGraphs[-1].allEdges():
             if self._initGraph.externalVertex not in e.nodes:

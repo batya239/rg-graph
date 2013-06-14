@@ -68,8 +68,9 @@ def _doRPrime(graph, kOperation, uvSubGraphFilter, description=""):
         sign *= -1
         for comb in itertools.combinations(uvSubgraphs, i):
             if not _hasIntersectingSubGraphs(comb):
-                rawRPrime += sign * reduce(lambda e, g: kOperation.calculate(g) * e, comb, 1) * _doRPrime(
-                    graph.batchShrinkToPoint(comb), kOperation)
+                k = reduce(lambda e, g: kOperation.calculate(g) * e, comb, 1)
+                r1 = _doRPrime(graph.batchShrinkToPoint(comb), kOperation, uvSubGraphFilter)
+                rawRPrime += sign * k * r1
 
     result = symbolic_functions.polePart(rawRPrime)
     rprime_storage.putGraphR1(graph, result, GFUN_METHOD_NAME_MARKER, description)
@@ -93,7 +94,8 @@ def _calculateGraphValue(graph, onlyPolePart=False, suppressException=False):
         else:
             raise CannotBeCalculatedError
     finalValue = graphReducer.getFinalValue()
-    return symbolic_functions.evaluateSeries(finalValue[0], finalValue[1], onlyPolePart)
+    evaluated = symbolic_functions.evaluateSeries(finalValue[0], finalValue[1], onlyPolePart)
+    return evaluated
 
 
 def _hasIntersectingSubGraphs(subGraphs):
