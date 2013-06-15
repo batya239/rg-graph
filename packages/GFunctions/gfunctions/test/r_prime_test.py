@@ -65,6 +65,29 @@ class SubGraphReducerTestCase(test.GraphStorageAwareTestCase):
     def testE112_E3_333__(self):
         self.doTestRPrime("e112-e3-333--::", "1")
 
+    def testE11_22_33_44_E_(self):
+        self.doTestRPrime("e11-22-33-44-e-::", "-1/(e**4)")
+
+    def testE123_E23_33__(self):
+        exceptionThrown = False
+        try:
+            self.doTestRPrime("e123-e23-33--::", "-1/(e**4)")
+        except r_prime.CannotBeCalculatedError:
+            exceptionThrown = True
+        self.assertTrue(exceptionThrown)
+
+    def testE11_22_34_E44_(self):
+        self.doTestRPrime("e11-22-34-e44-::", "1/(2*e**3) - 1/(2*e**4)")
+
+    def testE112_2_34_44_E_(self):
+        self.doTestRPrime("e112-2-34-44-e-::", "-1/(4*e**2) + 1/(2*e**3) - 1/(4*e**4)")
+
+    def testE11_24_E33_44__(self):
+        self.doTestRPrime("e11-24-e33-44--::", "1/(3*e**2) + 1/(3*e**3) - 1/(3*e**4)")
+
+    def testE11_23_E34_44__(self):
+        self.doTestRPrime("e11-23-e34-44--::", "-2/(3*e**2) + 1/(2*e**3) - 1/(6*e**4)")
+
     def doTestRPrime(self, graphStateAsString, expectedResultAsString):
         g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr(graphStateAsString)))
         self.assertEquals(symbolic_functions.evaluateForTests(expectedResultAsString), r_prime.doRPrime(g, r_prime.MSKOperation(), r_prime.defaultSubgraphUVFilter))
