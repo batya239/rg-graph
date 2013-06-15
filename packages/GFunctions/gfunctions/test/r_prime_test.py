@@ -61,6 +61,10 @@ class SubGraphReducerTestCase(test.GraphStorageAwareTestCase):
     def testE113_22_33_E_(self):
         self.doTestRPrime("e113-22-33-e-::", "5/(32*e*p**2) + 1/(16*e**2*p**2) - 1/(8*e**3*p**2)")
 
+    #TODO wrong result
+    def testE112_E3_333__(self):
+        self.doTestRPrime("e112-e3-333--::", "1")
+
     def doTestRPrime(self, graphStateAsString, expectedResultAsString):
         g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr(graphStateAsString)))
         self.assertEquals(symbolic_functions.evaluateForTests(expectedResultAsString), r_prime.doRPrime(g, r_prime.MSKOperation(), r_prime.defaultSubgraphUVFilter))
