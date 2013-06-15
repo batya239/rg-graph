@@ -61,7 +61,7 @@ class _MercurialRPrimeStorage(_AbstractKRPrimeGraphStorage):
     def putGraph(self, graph, expression, methodName, description=""):
         value = (expression, methodName, description)
         gs = _MercurialRPrimeStorage._shortGraphState(graph)
-        self._underlying[gs] = value
+        self._underlying[gs].append(value)
         self._storageFile.write("\nstorage[\"" + gs + "\"] += " +
                                 " (" + symbolic_functions.toSerializableCode(str(value[0])) + ", \"" + value[1]
                                 + "\", \"" + value[2] + "\")")

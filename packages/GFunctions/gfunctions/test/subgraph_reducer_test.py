@@ -80,6 +80,23 @@ class SubGraphReducerTestCase(test.GraphStorageAwareTestCase):
         hasIteration = reducer.nextIteration()
         self.assertFalse(hasIteration)
 
+    def testReducingE111_E_(self):
+        graph = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr("e111-e-::")))
+        reducer = subgraph_processer.GGraphReducer(graph)
+        self.assertTrue(reducer.nextIteration())
+        self.assertTrue(reducer.nextIteration())
+        self.assertTrue(reducer.isSuccesfulDone())
+
+    def testReducingE11_22_E_(self):
+        graph = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr("e11-22-e-::")))
+        reducer = subgraph_processer.GGraphReducer(graph)
+        self.assertTrue(reducer.nextIteration())
+        self.assertTrue(reducer.nextIteration())
+        self.assertTrue(reducer.nextIteration())
+        self.assertTrue(reducer.isSuccesfulDone())
+        self.assertEquals("('G(1, 1)*G(1, 1)', (2, -2))", str(reducer.getFinalValue()))
+
+
     def testReducingAnotherDiagram(self):
         edges = list()
         edges.append(graph_state.Edge((-1, 0), colors=(0, 0)))

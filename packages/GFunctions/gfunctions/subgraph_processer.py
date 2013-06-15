@@ -19,7 +19,8 @@ def _createFilter():
                 # external node and 2 internals
             return len(vertexes) == 3
 
-    return graphine.filters.oneIrreducible + graphine.filters.noTadpoles + graphine.filters.isRelevant(
+    #return graphine.filters.oneIrreducible + graphine.filters.noTadpoles + graphine.filters.isRelevant(
+    return graphine.filters.oneIrreducible + graphine.filters.isRelevant(
         RelevanceCondition())
 
 
@@ -151,6 +152,9 @@ class GGraphReducer(object):
             if v is not currentGraph.externalVertex:
                 edges = currentGraph.edges(v)
                 if len(edges) == 2:
+                    #checks no external edge
+                    if currentGraph.externalVertex in edges[0].nodes or currentGraph.externalVertex in edges[1].nodes:
+                        continue
                     return copy.copy(edges), v
         return None
 

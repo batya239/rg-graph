@@ -252,7 +252,7 @@ class Graph(object):
                 initedEdges.append(graph_state.Edge(e.nodes, graph.externalVertex, colors=color))
             else:
                 initedEdges.append(e)
-        return Graph(initedEdges, externalVertex=graph.externalVertex)
+        return Graph(initedEdges, externalVertex=graph.externalVertex, renumbering=False)
 
     @staticmethod
     def batchInitEdgesColors(graphs, zeroColor=(0, 0), unitColor=(1, 0)):

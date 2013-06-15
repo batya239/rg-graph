@@ -29,6 +29,10 @@ def evaluateSeries(expressionAsString, lineTuple, onlyPolePart=False):
         return evaluate(expressionAsString, lineTuple).series(_e, 0, 0).collect(_e)
 
 
+def evaluateForTests(expressionAsString):
+    return eval(expressionAsString.replace("e", "_e").replace("p", "_p").replace("log", "sympy.log"))
+
+
 # noinspection PyUnusedLocal
 def evaluate(expressionAsString, lineTuple=None):
     """

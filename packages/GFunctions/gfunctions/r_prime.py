@@ -59,9 +59,8 @@ def _doRPrime(graph, kOperation, uvSubGraphFilter, description=""):
         sign *= -1
         for comb in itertools.combinations(uvSubgraphs, i):
             if not _hasIntersectingSubGraphs(comb):
-                r1 = _doRPrime(graph.batchShrinkToPoint(comb), kOperation, uvSubGraphFilter)
-                kr1 = kOperation.calculate(_calculateGraphsValues(comb) * r1)
-                rawRPrime += sign * kr1
+                r1 = reduce(lambda e, g: e * _doRPrime(g, kOperation, uvSubGraphFilter), comb, 1)
+                rawRPrime += sign * kOperation.calculate(r1 * _calculateGraphValue(graph.batchShrinkToPoint(comb)))
 
     result = symbolic_functions.polePart(rawRPrime)
     rprime_storage.putGraphR1(graph, result, GFUN_METHOD_NAME_MARKER, description)
@@ -88,7 +87,7 @@ def _calculateGraphValue(graph, suppressException=False):
         if suppressException:
             return None
         else:
-            raise CannotBeCalculatedError
+            raise CannotBeCalculatedError(graph)
     finalValue = graphReducer.getFinalValue()
     evaluated = symbolic_functions.evaluate(finalValue[0], finalValue[1])
     return evaluated
@@ -97,11 +96,11 @@ def _calculateGraphValue(graph, suppressException=False):
 def _hasIntersectingSubGraphs(subGraphs):
     if not len(subGraphs):
         return False
-    uniqueEdges = set()
+    uniqueVertexes = set()
     for g in subGraphs:
-        currentEdges = set(g.allEdges(withIndex=True))
-        currentUniqueEdgesLength = len(uniqueEdges)
-        uniqueEdges |= currentEdges
-        if currentUniqueEdgesLength + len(currentEdges) != len(uniqueEdges):
+        internalVertexes = g.vertexes() - set([g.externalVertex])
+        currentUniqueVertexesSize = len(uniqueVertexes)
+        uniqueVertexes |= internalVertexes
+        if len(uniqueVertexes) != currentUniqueVertexesSize + len(internalVertexes):
             return True
     return False
