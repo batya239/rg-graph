@@ -95,9 +95,8 @@ class SubGraphReducerTestCase(test.GraphStorageAwareTestCase):
     def testE144_223_3_4_E_(self):
         self.doTestRPrime("e144-223-3-e4--::", "1")
 
-    #WTF
     def testE112_E4_33_44__(self):
-        self.doTestRPrime("e112-4-e33-44--::", "1")
+        self.doTestRPrime("e112-4-e33-44--::", "-1/(4*e**4) + 1/(4*e**3) + 1/(4*e**2) + 1/(4*e) - zeta(3)/(2*e)")
 
     def testE12_E4_334_44__(self):
         self.doTestRPrime("e12-e4-334-44--::", "-7/(24*e) + 1/(4*e**2) - 1/(12*e**3)")
