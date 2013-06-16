@@ -3,7 +3,6 @@
 import unittest
 import graph_state
 import graphine
-import math
 import r_prime
 import symbolic_functions
 import test
