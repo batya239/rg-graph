@@ -33,8 +33,8 @@ class IRRelevanceCondition(object):
         subgraph = graph.Representator.asGraph(edgesList, superGraph.externalVertex)
 
         borderNodes = reduce(lambda x, y: x | y,
-                             map(lambda x: set(x.nodes), subgraph.edges(subgraph.externalVertex))) - \
-                      set([subgraph.externalVertex])
+                            map(lambda x: set(x.nodes), subgraph.edges(subgraph.externalVertex))) - \
+                            set([subgraph.externalVertex])
 
         if len(borderNodes) != 2:
             return False

@@ -3,6 +3,7 @@
 import unittest
 import graph_state
 import graphine
+import math
 import r_prime
 import symbolic_functions
 import test
@@ -13,38 +14,41 @@ __author__ = 'daddy-bear'
 class SubGraphReducerTestCase(test.GraphStorageAwareTestCase):
     def test1LoopDiagramPRime(self):
         g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr("e11-e-::")))
-        self.assertEquals(symbolic_functions.evaluateForTests("1/e"), r_prime.doRPrime(g, r_prime.MSKOperation(), r_prime.defaultSubgraphUVFilter))
+        self.assertEquals(symbolic_functions.evaluateForTests("1/e"),
+                          r_prime.doRPrime(g, r_prime.MSKOperation(), r_prime.defaultSubgraphUVFilter))
 
     def testEyeRPrime(self):
         g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr("e12-e22--::")))
-        self.assertEquals(symbolic_functions.evaluateForTests("1/(2*e) - 1/(2*e**2)"), r_prime.doRPrime(g, r_prime.MSKOperation(), r_prime.defaultSubgraphUVFilter))
+        self.assertEquals(symbolic_functions.evaluateForTests("1/(2*e) - 1/(2*e**2)"),
+                          r_prime.doRPrime(g, r_prime.MSKOperation(), r_prime.defaultSubgraphUVFilter))
 
     def testSomeDiagram(self):
         g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr("e13-23-33-e-::")))
-        self.assertEquals(symbolic_functions.evaluateForTests("2/(3*e) - 1/(2*e**2) + 1/(6*e**3)"), r_prime.doRPrime(g, r_prime.MSKOperation(), r_prime.defaultSubgraphUVFilter))
+        self.assertEquals(symbolic_functions.evaluateForTests("2/(3*e) - 1/(2*e**2) + 1/(6*e**3)"),
+                          r_prime.doRPrime(g, r_prime.MSKOperation(), r_prime.defaultSubgraphUVFilter))
 
     def testE111_E_(self):
         g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr("e111-e-::")))
-        self.assertEquals(symbolic_functions.evaluateForTests("-1/(4*e*p**2)"), r_prime.doRPrime(g, r_prime.MSKOperation(), r_prime.defaultSubgraphUVFilter))
+        self.assertEquals(symbolic_functions.evaluateForTests("-1/(4*e*p**2)"),
+                          r_prime.doRPrime(g, r_prime.MSKOperation(), r_prime.defaultSubgraphUVFilter))
 
     def testE11_22_E_(self):
         g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr("e11-22-e-::")))
-        self.assertEquals(symbolic_functions.evaluateForTests("-1/e**2"), r_prime.doRPrime(g, r_prime.MSKOperation(), r_prime.defaultSubgraphUVFilter))
+        self.assertEquals(symbolic_functions.evaluateForTests("-1/e**2"),
+                          r_prime.doRPrime(g, r_prime.MSKOperation(), r_prime.defaultSubgraphUVFilter))
 
     def testE112_22_E_(self):
         g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr("e112-22-e-::")))
-        self.assertEquals(symbolic_functions.evaluateForTests("-1/(12*e*p**2) + 1/(6*e**2*p**2)"), r_prime.doRPrime(g, r_prime.MSKOperation(), r_prime.defaultSubgraphUVFilter))
+        self.assertEquals(symbolic_functions.evaluateForTests("-1/(12*e*p**2) + 1/(6*e**2*p**2)"),
+                          r_prime.doRPrime(g, r_prime.MSKOperation(), r_prime.defaultSubgraphUVFilter))
 
     def testE11_22_33_E_(self):
         g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr("e11-22-33-e-::")))
-        self.assertEquals(symbolic_functions.evaluateForTests("1/e**3"), r_prime.doRPrime(g, r_prime.MSKOperation(), r_prime.defaultSubgraphUVFilter))
+        self.assertEquals(symbolic_functions.evaluateForTests("1/e**3"),
+                          r_prime.doRPrime(g, r_prime.MSKOperation(), r_prime.defaultSubgraphUVFilter))
 
     def testE11_23_E33__(self):
         self.doTestRPrime("e11-23-e33--::", "-1/(2*e**2) + 1/(2*e**3)")
-
-    #TODO
-    def testE12_E3_333__(self):
-        self.doTestRPrime("e12-e3-333--::", "1")
 
     def testE13_E22_33__(self):
         self.doTestRPrime("e13-e22-33--::", "-1/(3*e) - 1/(3*e**2) + 1/(3*e**3)")
@@ -61,9 +65,8 @@ class SubGraphReducerTestCase(test.GraphStorageAwareTestCase):
     def testE113_22_33_E_(self):
         self.doTestRPrime("e113-22-33-e-::", "5/(32*e*p**2) + 1/(16*e**2*p**2) - 1/(8*e**3*p**2)")
 
-    #TODO wrong result
-    def testE112_E3_333__(self):
-        self.doTestRPrime("e112-e3-333--::", "1")
+    def testE12_E3_333__(self):
+        self.doTestRPrime("e12-e3-333--::", "-3/(8*e) + 1/(6*e**2)")
 
     def testE11_22_33_44_E_(self):
         self.doTestRPrime("e11-22-33-44-e-::", "-1/(e**4)")
@@ -88,9 +91,43 @@ class SubGraphReducerTestCase(test.GraphStorageAwareTestCase):
     def testE11_23_E34_44__(self):
         self.doTestRPrime("e11-23-e34-44--::", "-2/(3*e**2) + 1/(2*e**3) - 1/(6*e**4)")
 
+    #WTF
+    def testE144_223_3_4_E_(self):
+        self.doTestRPrime("e144-223-3-e4--::", "1")
+
+    #WTF
+    def testE112_E4_33_44__(self):
+        self.doTestRPrime("e112-4-e33-44--::", "1")
+
+    def testE12_E4_334_44__(self):
+        self.doTestRPrime("e12-e4-334-44--::", "-7/(24*e) + 1/(4*e**2) - 1/(12*e**3)")
+
+    def testE14_E24_333_4__(self):
+        self.doTestRPrime("e14-e24-333-4--::", "-121/(192*e) + 11/(32*e**2) - 1/(16*e**3)")
+
+    def testE14_E22_33_44__(self):
+        self.doTestRPrime("e14-e22-33-44--::", "(-1/(4*e**4))*(1 - e - e**2 - e**3 + 2*zeta(3)*e**3)")
+
+    #WTF(maybe its not my mistake)
+    def testE14_E22_3_444__(self):
+        self.doTestRPrime("e14-e22-3-444--::", "37/(192*e) + 5/(72*e**2) - 5/(48*e**3)")
+
+    #WTF
+    def testE13_E22_34_44__(self):
+        self.doTestRPrime("e13-e22-34-44--::", "-1/(8*e**4) + 1/(3*e**3)-5/(24*e**2)-1/(3*e**3)")
+
+    def testE12_E24_33_44__(self):
+        self.doTestRPrime("e12-e24-33-44--::", "(-1/(12*e**4))*(1 - 3*e + e**2 + 5*e**3 - 6*zeta(3)*e**3)")
+
     def doTestRPrime(self, graphStateAsString, expectedResultAsString):
         g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr(graphStateAsString)))
-        self.assertEquals(symbolic_functions.evaluateForTests(expectedResultAsString), r_prime.doRPrime(g, r_prime.MSKOperation(), r_prime.defaultSubgraphUVFilter))
+        expected = symbolic_functions.evaluateForTests(expectedResultAsString)
+        actual = r_prime.doRPrime(g, r_prime.MSKOperation(), r_prime.defaultSubgraphUVFilter)
+        sub = (expected - actual).simplify()
+        self.assertTrue(expected == actual or abs(
+            (sub * symbolic_functions._e ** 5).evalf(subs={symbolic_functions._e: 1})) < 1e-100,
+                        "\nactual = " + str(actual) + "\nexpected = " + str(expected) + "\nsub = " + str(sub))
+
 
 if __name__ == "__main__":
     unittest.main()

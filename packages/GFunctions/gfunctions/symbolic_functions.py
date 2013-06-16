@@ -11,6 +11,8 @@ _lambda = 1 - _e
 _p = sympy.var("p")
 
 
+p2 = _p ** 2
+
 def _getE():
     return _e
 
@@ -30,7 +32,7 @@ def evaluateSeries(expressionAsString, lineTuple, onlyPolePart=False):
 
 
 def evaluateForTests(expressionAsString):
-    return eval(expressionAsString.replace("e", "_e").replace("p", "_p").replace("log", "sympy.log"))
+    return eval(expressionAsString.replace("p", "_p").replace("e", "_e").replace("_polygamma", "sympy.polygamma").replace("log", "sympy.log").replace("z_eta", "sympy.zeta"))
 
 
 # noinspection PyUnusedLocal
@@ -68,3 +70,5 @@ def _rawG(alpha, beta):
 
 
 _g11 = _rawG(1, 1) * _e
+
+
