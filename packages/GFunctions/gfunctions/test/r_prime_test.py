@@ -52,9 +52,8 @@ class SubGraphReducerTestCase(test.GraphStorageAwareTestCase):
     def testE13_E22_33__(self):
         self.doTestRPrime("e13-e22-33--::", "-1/(3*e) - 1/(3*e**2) + 1/(3*e**3)")
 
-    #TODO sympy, bad resolving of equals
     def testE112_E3_33__(self):
-        self.doTestRPrime("e112-e3-33--::", "(log(p)**2 - log(p))/e - 1/(3*e) + log(p)/e**2 - 1/(3*e**2) + 1/(3*e**3)")
+        self.doTestRPrime("e112-3-e33--::", "-1/(3*e) - 1/(3*e**2) + 1/(3*e**3)")
 
     def testE13_E23_33__(self):
         self.doTestRPrime("e13-e23-33--::", "2/(3*e) - 1/(2*e**2) + 1/(6*e**3)")
