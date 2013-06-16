@@ -11,7 +11,7 @@ __author__ = 'daddy-bear'
 
 class SubGraphReducerTestCase(unittest.TestCase):
     def setUp(self):
-        rprime_storage.initStorage(False)
+        rprime_storage.initStorage()
 
     def tearDown(self):
         rprime_storage.closeStorage(False, True, "commit from test")

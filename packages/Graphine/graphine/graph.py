@@ -240,7 +240,7 @@ class Graph(object):
     def __eq__(self, other):
         if not isinstance(other, Graph):
             return False
-        return self.toGraphState().__eq__(other.toGraphState())
+        return str(self.toGraphState()).__eq__(str(other.toGraphState()))
 
     @staticmethod
     def initEdgesColors(graph, zeroColor=(0, 0), unitColor=(1, 0)):

@@ -4,6 +4,7 @@ import unittest
 import graphine
 import graph_state
 import momentum
+import r_prime
 
 __author__ = 'daddy-bear'
 
@@ -17,6 +18,13 @@ class SubGraphReducerTestCase(unittest.TestCase):
         g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr("ee12-e23-44-e44--::")))
         for x in momentum.xArbitrarilyPassMomentum(g):
             self.assertFalse(str(x).startswith("ee"))
+
+    def testEye(self):
+        g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr("ee112-2-e-::")))
+        gWithMomentum = list(set([x for x in momentum.xPassExternalMomentum(g)]))
+        self.assertTrue(r_prime.graphHasNotIRDivergence(gWithMomentum[0]))
+        gWithMomentum = list(set([x for x in momentum.xPassExternalMomentum(g, [r_prime.graphHasNotIRDivergence])]))
+        self.assertEqual(len(gWithMomentum), 1)
 
     def doTestArbitrarilyPassMomentum(self, graphStateStr, graphsNumber):
         g = graphine.Graph(graph_state.GraphState.fromStr(graphStateStr))

@@ -53,7 +53,7 @@ def xPickPassingExternalMomentum(graph, filters=list()):
         for e in edgesPair:
             vertexes |= set(e.nodes)
         if len(vertexes) == 3:
-            graphWithMomentumPassing = graph.deleteEdges(copy.copy(edgesPair))
+            graphWithMomentumPassing = graph.deleteEdges(externalEdges).addEdges(list(edgesPair))
             isValid = True
             for f in filters:
                 if not f(graphWithMomentumPassing):

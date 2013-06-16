@@ -140,7 +140,7 @@ def _calculateGraphValue(graph, suppressException=False):
             graphReducer = subgraph_processer.GGraphReducer(gWithMomentum)
             break
         if graphReducer is None:
-            raise CannotBeCalculatedError
+            raise CannotBeCalculatedError(graph)
     while graphReducer.nextIteration():
         pass
     if not graphReducer.isSuccesfulDone():
