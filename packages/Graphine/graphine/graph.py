@@ -42,6 +42,12 @@ class IndexableEdge:
     def __hash__(self):
         return hash(self.index) * 37 + hash(self.underlying)
 
+    def __str__(self):
+        return str(self._underlyingEdge)
+
+    def __repr__(self):
+        return str(self._underlyingEdge)
+
     @staticmethod
     def toIndexless(obj):
         """
