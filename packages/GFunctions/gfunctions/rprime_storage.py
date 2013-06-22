@@ -40,6 +40,7 @@ class _FakeKRPrimeStorage(_AbstractKRPrimeGraphStorage):
 
 
 class _MercurialRPrimeStorage(_AbstractKRPrimeGraphStorage):
+    # noinspection PyPackageRequirements
     def __init__(self, storagePath, storageFileName):
         storagePath = os.path.expanduser(storagePath)
         if not os.path.exists(storagePath):
@@ -52,6 +53,10 @@ class _MercurialRPrimeStorage(_AbstractKRPrimeGraphStorage):
         storage = rggraphutil.emptyListDict()
         # noinspection PyUnusedLocal
         _e = symbolic_functions._getE()
+        # noinspection PyUnusedLocal
+        _p = symbolic_functions._getP()
+        # noinspection PyUnresolvedReferences
+        import sympy
         storageQualifiedFileName = os.path.join(storagePath, storageFileName)
         execfile(storageQualifiedFileName)
         self._underlying = storage
@@ -62,9 +67,8 @@ class _MercurialRPrimeStorage(_AbstractKRPrimeGraphStorage):
         value = (expression, methodName, description)
         gs = _MercurialRPrimeStorage._shortGraphState(graph)
         self._underlying[gs].append(value)
-        self._storageFile.write("\nstorage[\"" + gs + "\"] += " +
-                                " (" + symbolic_functions.toSerializableCode(str(value[0])) + ", \"" + value[1]
-                                + "\", \"" + value[2] + "\")")
+        self._storageFile.write("\nstorage[\"" + gs + "\"].append((" + symbolic_functions.toSerializableCode(str(value[0])) + ", \"" + value[1]
+                                + "\", \"" + value[2] + "\"))")
 
     def getValue(self, graph, defaultValue=None):
         return self._underlying.get(_MercurialRPrimeStorage._shortGraphState(graph), defaultValue)

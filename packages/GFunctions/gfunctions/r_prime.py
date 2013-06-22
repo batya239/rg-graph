@@ -58,32 +58,34 @@ def doRPrime(graph, kOperation, uvSubGraphFilter, description=""):
     return _doRPrime(graph, kOperation, uvSubGraphFilter, description)
 
 
-def _doRPrime(graph, kOperation, uvSubGraphFilter, description=""):
-    evaluated = rprime_storage.getR1(graph)
-    if evaluated is not None:
-        for e in evaluated:
-            return e[0]
+def _doRPrime(rawGraph, kOperation, uvSubGraphFilter, description=""):
+    for graph in momentum.xPassExternalMomentum(rawGraph, defaultGraphHasNotIRDivergenceFilter):
 
-    uvSubgraphs = graphine.Graph.batchInitEdgesColors([sg for sg in graph.xRelevantSubGraphs(uvSubGraphFilter)])
-    if not len(uvSubgraphs):
-        result = symbolic_functions.polePart(_calculateGraphValue(graph))
+        evaluated = rprime_storage.getR1(graph)
+        if evaluated is not None:
+            for e in evaluated:
+                return e[0]
+
+        uvSubgraphs = graphine.Graph.batchInitEdgesColors([sg for sg in graph.xRelevantSubGraphs(uvSubGraphFilter)])
+        if not len(uvSubgraphs):
+            expression, twoTailsGraph = _calculateGraphValue(graph)
+            rprime_storage.putGraphR1(twoTailsGraph, symbolic_functions.polePart(expression), GFUN_METHOD_NAME_MARKER, description)
+            return expression
+
+        rawRPrime = _calculateGraphValue(graph)[0]
+        sign = 1
+        for i in xrange(1, len(uvSubgraphs) + 1):
+            sign *= -1
+            for comb in itertools.combinations(uvSubgraphs, i):
+                if not _hasIntersectingSubGraphs(comb):
+                    r1 = reduce(lambda e, g: e * _doRPrime(g, kOperation, uvSubGraphFilter), comb, 1)
+                    shrinked, p2Counts = _doShrinkToPoint(graph, comb)
+                    rawRPrime += sign * kOperation.calculate(r1 * _calculateGraphValue(shrinked)[0]) * (symbolic_functions.p2 ** p2Counts)
+
+        result = symbolic_functions.polePart(rawRPrime)
         rprime_storage.putGraphR1(graph, result, GFUN_METHOD_NAME_MARKER, description)
         return result
-
-    rawRPrime = _calculateGraphValue(graph)
-    sign = 1
-    for i in xrange(1, len(uvSubgraphs) + 1):
-        sign *= -1
-        for comb in itertools.combinations(uvSubgraphs, i):
-            if not _hasIntersectingSubGraphs(comb):
-                r1 = reduce(lambda e, g: e * _doRPrime(g, kOperation, uvSubGraphFilter), comb, 1)
-                shrinked, p2Counts = _doShrinkToPoint(graph, comb)
-                rawRPrime += sign * kOperation.calculate(r1 * _calculateGraphValue(shrinked)) * (symbolic_functions.p2 ** p2Counts)
-
-    result = symbolic_functions.polePart(rawRPrime)
-    rprime_storage.putGraphR1(graph, result, GFUN_METHOD_NAME_MARKER, description)
-    return result
-
+    raise CannotBeCalculatedError(rawGraph)
 
 def _doShrinkToPoint(graph, subGraphs):
     toShrink = list()
@@ -129,7 +131,7 @@ def _hasMomentumQuadraticDivergence(subGraph, graph, excludedEdges):
 
 
 def _calculateGraphsValues(graphs, suppressException=False):
-    return reduce(lambda e, g: e * _calculateGraphValue(g, suppressException), graphs, 1)
+    return reduce(lambda e, g: e * _calculateGraphValue(g, suppressException)[0], graphs, 1)
 
 
 def _calculateGraphValue(graph, suppressException=False):
@@ -151,7 +153,7 @@ def _calculateGraphValue(graph, suppressException=False):
             raise CannotBeCalculatedError(graph)
     finalValue = graphReducer.getFinalValue()
     evaluated = symbolic_functions.evaluate(finalValue[0], finalValue[1])
-    return evaluated
+    return evaluated, graphReducer.iterationGraphs[0]
 
 
 def _hasIntersectingSubGraphs(subGraphs):

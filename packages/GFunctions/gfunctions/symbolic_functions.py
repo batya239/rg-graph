@@ -10,11 +10,12 @@ _e = sympy.var("e")
 _lambda = 1 - _e
 _p = sympy.var("p")
 
-
 p2 = _p ** 2
+
 
 def _getE():
     return _e
+
 
 def _getP():
     return _p
@@ -34,7 +35,10 @@ def evaluateSeries(expressionAsString, lineTuple, onlyPolePart=False):
 
 
 def evaluateForTests(expressionAsString):
-    return eval(expressionAsString.replace("p", "_p").replace("e", "_e").replace("_polygamma", "sympy.polygamma").replace("log", "sympy.log").replace("z_eta", "sympy.zeta"))
+    """
+    use this only for tests please
+    """
+    return eval(toSerializableCode(expressionAsString))
 
 
 # noinspection PyUnusedLocal
@@ -51,7 +55,13 @@ def evaluate(expressionAsString, lineTuple=None):
 
 
 def toSerializableCode(expressionAsString):
-    return expressionAsString.replace("G", "_g").replace("lambda", "_lambda").replace("e", "_e").replace("p", "_p")
+    return expressionAsString.replace("G", "_g")\
+        .replace("lambda", "_lambda")\
+        .replace("e", "_e")\
+        .replace("p", "_p")\
+        .replace("_polygamma", "sympy.polygamma")\
+        .replace("log", "sympy.log")\
+        .replace("z_eta", "sympy.zeta")
 
 
 def polePart(expr):

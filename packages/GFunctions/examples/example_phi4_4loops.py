@@ -24,7 +24,7 @@ def calculateGraphRPrime(graph):
             gfunctions.doRPrime(_g, gfunctions.MSKOperation(), gfunctions.defaultSubgraphUVFilter, description)
             calculated = True
         except gfunctions.CannotBeCalculatedError as e:
-            print e.message
+            print "\tcan't calculate:", e.message
     if calculated:
         print "OK", graph
     else:
@@ -51,7 +51,7 @@ def main():
 
     graphs4Loops = list()
     for l in open(os.path.join(os.getcwd(), "../../../phi4/graphs/e4-6loop.lst")):
-        loopsCount = -1
+        loopsCount = 0
         for c in l:
             if c == "-":
                 loopsCount += 1
