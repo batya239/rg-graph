@@ -31,6 +31,7 @@ def twoEdgesFilter(edgesList, superGraph, superGraphEdges):
 
 
 class GraphTestCase(unittest.TestCase):
+
     def testIndexableEdges(self):
         graph = gr.Graph(gs.GraphState.fromStr("e11-e-::"))
         indexableEdges = graph.allEdges(withIndex=True)

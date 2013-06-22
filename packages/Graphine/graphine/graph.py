@@ -2,6 +2,7 @@
 # -*- coding: utf8
 import copy
 from graph_state import graph_state, Edge
+import filters
 import graph_operations
 
 
@@ -43,10 +44,10 @@ class IndexableEdge:
         return hash(self.index) * 37 + hash(self.underlying)
 
     def __str__(self):
-        return str(self._underlyingEdge)
+        return "index = " + str(self.index) + ", edge = " + str(self.underlying)
 
     def __repr__(self):
-        return str(self._underlyingEdge)
+        return self.__str__()
 
     @staticmethod
     def toIndexless(obj):
@@ -145,12 +146,6 @@ class Graph(object):
 
     def identifyVertexes(self, vertexesToIdentify):
         pass
-
-    def hasTadpoles(self):
-        for edge in self.allEdges():
-            if len(set(edge.nodes)) == 1:
-                return True
-        return False
 
     def batchShrinkToPoint(self, subGraphs):
         """
