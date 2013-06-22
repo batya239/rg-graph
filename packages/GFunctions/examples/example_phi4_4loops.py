@@ -1,40 +1,34 @@
 #!/usr/bin/python
 # -*- coding: utf8
 import os
+import sys
 
 __author__ = 'daddy-bear'
 
 import gfunctions
 import gfunctions.graph_storage
+import gfunctions.rprime_storage
 import graph_state
 import graphine
 import graphine.phi4
 
 
-def calculateGraph(graph):
-    x = 1
+def calculateGraphRPrime(graph):
     calculated = False
-    calculatedWithRPrime = False
-    for _g in gfunctions.xArbitrarilyPassMomentum(graph):
-        reducer = gfunctions.GGraphReducer(_g)
-        while reducer.nextIteration():
-            pass
-        if reducer.isSuccesfulDone():
+    description = ""
+    if len(graph.edges(graph.externalEdge)) == 4:
+        description += "4tails_graph: " + graph.getPresentableStr()
+
+    for _g in gfunctions.xPassExternalMomentum(graph, gfunctions.defaultGraphHasNotIRDivergenceFilter):
+        try:
+            gfunctions.doRPrime(_g, gfunctions.MSKOperation(), gfunctions.defaultSubgraphUVFilter, description)
             calculated = True
-            value = reducer.getFinalValue()
-            _hasIRSubgraphs = hasIRSubGraphs(_g)
-            if not _hasIRSubgraphs:
-                calculatedWithRPrime = True
-            print str(x) + ". " + str(_g) + " : " + str(value) + " : IR = " + str(_hasIRSubgraphs)
-            if not _hasIRSubgraphs:
-                pass
-        else:
-            print str(x) + ". " + str(_g) + " : NO RESULT", reducer.getCurrentIterationGraph()
-        x += 1
+        except gfunctions.CannotBeCalculatedError as e:
+            print e.message
     if calculated:
-        print "\n\nOK(" + ("R'" if calculatedWithRPrime else "R*") + ")", graph, '\n\n'
+        print "OK", graph
     else:
-        print "\n\nFAILED", graph, '\n\n'
+        print "FAILED", graph
 
 
 _SUBGRAPHS_IR_FILTER = (graphine.filters.connected + graphine.filters.isRelevant(graphine.phi4.IRRelevanceCondition()))
@@ -53,6 +47,7 @@ def calculateRPrime(graphReducer):
 
 def main():
     gfunctions.graph_storage.initStorage(withFunctions=True)
+    gfunctions.rprime_storage.initStorage()
 
     graphs4Loops = list()
     for l in open(os.path.join(os.getcwd(), "../../../phi4/graphs/e4-6loop.lst")):
@@ -65,7 +60,9 @@ def main():
                 graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr(l[:-1] + "::"))))
 
     for g in graphs4Loops:
-        calculateGraph(g)
+        calculateGraphRPrime(g)
+
+    gfunctions.rprime_storage.closeStorage(revert=False, doCommit=True, commitMessage=sys.argv[3])
 
 
 if __name__ == "__main__":

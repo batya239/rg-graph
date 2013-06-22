@@ -38,7 +38,7 @@ class MSKOperation(AbstractKOperation):
 _irRelevanceCondition = graphine.phi4.IRRelevanceCondition()
 
 
-def graphHasNotIRDivergence(graph):
+def _defaultGraphHasNotIRDivergence(graph):
     allEdges = graph.allEdges()
     for sg in graph.xRelevantSubGraphs(graphine.filters.connected, resultRepresentator=graphine.Representator.asGraph):
         if _irRelevanceCondition.isRelevant(sg.allEdges(withIndex=False), superGraph=graph, superGraphEdges=allEdges):
@@ -46,11 +46,12 @@ def graphHasNotIRDivergence(graph):
 
     return True
 
+defaultGraphHasNotIRDivergenceFilter = [_defaultGraphHasNotIRDivergence]
 
 def doRPrime(graph, kOperation, uvSubGraphFilter, description=""):
     assert len(graph.edges(graph.externalVertex)) == 2
 
-    if not graphHasNotIRDivergence(graph):
+    if not _defaultGraphHasNotIRDivergence(graph):
         raise AssertionError(str(graph) + " - IR divergence")
 
     rprime_storage.checkInitialized()
@@ -136,7 +137,7 @@ def _calculateGraphValue(graph, suppressException=False):
         graphReducer = subgraph_processer.GGraphReducer(graph)
     else:
         graphReducer = None
-        for gWithMomentum in momentum.xPassExternalMomentum(graph, [graphHasNotIRDivergence]):
+        for gWithMomentum in momentum.xPassExternalMomentum(graph, defaultGraphHasNotIRDivergenceFilter):
             graphReducer = subgraph_processer.GGraphReducer(gWithMomentum)
             break
         if graphReducer is None:

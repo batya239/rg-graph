@@ -16,6 +16,8 @@ p2 = _p ** 2
 def _getE():
     return _e
 
+def _getP():
+    return _p
 
 # noinspection PyUnusedLocal
 def evaluateSeries(expressionAsString, lineTuple, onlyPolePart=False):
@@ -49,7 +51,7 @@ def evaluate(expressionAsString, lineTuple=None):
 
 
 def toSerializableCode(expressionAsString):
-    return expressionAsString.replace("G", "_g").replace("lambda", "_lambda").replace("e", "_e")
+    return expressionAsString.replace("G", "_g").replace("lambda", "_lambda").replace("e", "_e").replace("p", "_p")
 
 
 def polePart(expr):

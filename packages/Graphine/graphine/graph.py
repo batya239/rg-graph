@@ -79,10 +79,16 @@ class Graph(object):
         self._externalVertex = externalVertex
         self._hash = None
         self._loopsCount = None
+        self._externalEdges = None
 
     @property
     def externalVertex(self):
         return self._externalVertex
+
+    def externalEdges(self):
+        if self._externalEdges is None:
+            self._externalEdges = self.edges(self.externalVertex)
+        return self._externalEdges
 
     def vertexes(self):
         return set(self._edges.keys())
@@ -226,6 +232,10 @@ class Graph(object):
         if self._loopsCount is None:
             self._loopsCount = len(self.allEdges()) - len(self.edges(self.externalVertex)) - (len(self.vertexes()) - 1) + 1
         return self._loopsCount
+
+    def getPresentableStr(self):
+        asStr = str(self)
+        return asStr[:asStr.index("::")]
 
     def __repr__(self):
         return str(self)

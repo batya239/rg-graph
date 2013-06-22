@@ -119,6 +119,8 @@ def initStorage(canCalculateGraphChecker=(lambda g: False), withFunctions=False)
     baseStoragePath = path.join(os.getcwd(), _STORAGE_FILE_NAME)
     if path.exists(baseStoragePath):
         for line in open(baseStoragePath, "r"):
+            if not len(line) or line.startswith("#"):
+                continue
             k, v1, v2 = eval(line)
             _STORAGE._underlying[k] = (v1, v2)
     else:
