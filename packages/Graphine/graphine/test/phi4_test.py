@@ -4,7 +4,7 @@ import unittest
 import graph_state
 import filters
 import graph
-import graphine.phi4 as phi4
+import phi4
 
 __author__ = 'daddy-bear'
 
