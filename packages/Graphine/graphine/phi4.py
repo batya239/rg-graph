@@ -46,26 +46,33 @@ class IRRelevanceCondition(object):
         if subgraphIRIndex > 0:
             return False
 
-        connectionEquivalence = _MergeResolver(superGraph.externalVertex, borderNodes)
+        superBorderNodes = reduce(lambda x, y: x | y,
+                            map(lambda x: set(x.nodes), superGraph.edges(superGraph.externalVertex))) - \
+                            set([superGraph.externalVertex])
+
+        connectionEquivalence = _MergeResolver(superGraph.externalVertex, borderNodes, superBorderNodes)
         for e in superGraphEdges:
             connectionEquivalence.addEdge(e)
         return connectionEquivalence.isRelevant()
 
 
 class _MergeResolver(object):
-    def __init__(self, externalVertex, cutVertexes):
+    def __init__(self, externalVertex, cutVertexes, superBorderNodes):
         self._disjointSet = graph.graph_operations._DisjointSet()
         self._borders = dict()
         self._connectedComponents = list()
         self._cutVertexes = set(cutVertexes)
         self._externalVertex = externalVertex
         self._hasBorderJumpers = False
+        self._superBorderVertexes = superBorderNodes
 
     def addEdge(self, e):
+        if self._hasBorderJumpers:
+            return
         vs = filter(lambda v: v not in self._cutVertexes and v is not self._externalVertex, e.nodes)
         length = len(vs)
         if length == 0:
-            if not self._hasBorderJumpers and len(filter(lambda v: v is not self._externalVertex, e.nodes)) == 2:
+            if not self._hasBorderJumpers and len(filter(lambda  v: v is not self._externalVertex, e.nodes)) == 2:
                 self._hasBorderJumpers = True
         elif length == 1:
             self._disjointSet.addKey(vs[0])
@@ -79,18 +86,24 @@ class _MergeResolver(object):
             self._disjointSet.union((vs[0], vs[1]))
 
     def isRelevant(self):
+        if self._hasBorderJumpers:
+            return True
         components = self._disjointSet.getConnectedComponents()
         if len(components) == 1:
             return True
         countWith2Tails = 0
         for component in components:
             borders = list()
+            superBorderNodesCount = 0
             for v in component:
-                borders += self._borders[v]
-            if len(borders) == 2:
+                if v in self._superBorderVertexes:
+                    superBorderNodesCount += 1
+                else:
+                    borders += self._borders[v]
+            if len(borders) == 2 or (len(borders) == 1 and superBorderNodesCount > 0):
                 countWith2Tails += 1
 
-        return countWith2Tails > 1 or self._hasBorderJumpers
+        return countWith2Tails > 1
 
 
 def main():
