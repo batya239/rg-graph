@@ -53,3 +53,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+    # gfunctions.graph_storage.initStorage(withFunctions=True)
+    # gfunctions.rprime_storage.initStorage()
+    # calculateGraphRPrime(graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr("e12-233-34-4-e-::"))))
+    # gfunctions.rprime_storage.closeStorage(revert=False, doCommit=False, commitMessage="")

@@ -90,6 +90,13 @@ class Graph(object):
             self._externalEdges = self.edges(self.externalVertex)
         return self._externalEdges
 
+    def internalEdges(self):
+        res = list()
+        for edge in self.allEdges():
+            if self.externalVertex not in edge.nodes:
+                res.append(edge)
+        return res
+
     def vertexes(self):
         return set(self._edges.keys())
 
