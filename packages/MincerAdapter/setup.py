@@ -4,7 +4,7 @@ from distutils.core import setup
 
 setup(
     name='MincerAdapter',
-    version='0.0.6',
+    version='0.0.1',
     author='D. Batkovich',
     author_email='batya239@gmail.com',
     packages=['mincer_adapter'],

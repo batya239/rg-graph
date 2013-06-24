@@ -92,10 +92,10 @@ def writeFormFile(graphStateAsString, directory="form_files"):
 
 def main():
     res = writeFormFile(sys.argv[1])
-    if res is not None:
-        print res
-    else:
+    if res is None:
         print "topology not found!"
+    else:
+        print res
 
 
 if __name__ == "__main__":
