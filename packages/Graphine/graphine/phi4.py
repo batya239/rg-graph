@@ -77,10 +77,11 @@ class _MergeResolver(object):
         elif length == 1:
             self._disjointSet.addKey(vs[0])
             border = filter(lambda v: v is not vs[0], e.nodes)[0]
-            if vs[0] in self._borders:
-                self._borders[vs[0]].append(border)
-            else:
-                self._borders[vs[0]] = [border]
+            if border is not self._externalVertex:
+                if vs[0] in self._borders:
+                    self._borders[vs[0]].append(border)
+                else:
+                    self._borders[vs[0]] = [border]
         else:
             #lenght = 2
             self._disjointSet.union((vs[0], vs[1]))
@@ -98,8 +99,7 @@ class _MergeResolver(object):
             for v in component:
                 if v in self._superBorderVertexes:
                     superBorderNodesCount += 1
-                else:
-                    borders += self._borders[v]
+                borders += self._borders[v]
             if len(borders) == 2 or (len(borders) == 1 and superBorderNodesCount > 0):
                 countWith2Tails += 1
 

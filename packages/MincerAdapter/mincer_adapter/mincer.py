@@ -23,38 +23,43 @@ topologies = {
     'e12-34-34-5-5-e-': ('no', ['Q', 'p1', 'p6', 'p2', 'p7', 'p8', 'p5', 'p3', 'p4', 'Q']),
 }
 
+graphs = dict((k, v) for (k, v) in map(lambda gs: (gs, graphine.Graph(graph_state.GraphState.fromStr("%s::" % gs))), topologies.keys()))
 
-def setMomenta(graphName, momentaList):
+graphsInternalEdgesCache = dict((k, v) for (k, v) in map(lambda g: len(g.internalEdges()), graphs.keys()))
+
+def _setMomenta(graphName, momentaList):
     graph = graphine.Graph(graph_state.GraphState.fromStr("%s::" % graphName))
     edgesList = list()
     for edge in graph.allEdges(withIndex=True):
         edge_ = copy.copy(edge.underlying)
         idx = edge.index
-        edge_.colors = (momentaList[idx],)
+        power = 1 if edge.underlying.color is None else edge.underlying.color[1]
+        edge_.colors = (momentaList[idx], power)
         edgesList.append(edge_)
     return graphine.Graph(graph_state.GraphState(edgesList))
 
 
-def findTopology(graphName, topologies):
+def _findTopology(targetGraph, topologies):
+    targetGraphName = targetGraph.getPresentableStr()
     for topology in topologies:
-        print "topology : ", topologies[topology][0]
+        #print "topology : ", topologies[topology][0]
 
-        graph = setMomenta(topology, topologies[topology][1])
+        graph = _setMomenta(topology, topologies[topology][1])
 
         internalEdges = graph.internalEdges()
 
-        graph_ = graphine.Graph(graph_state.GraphState.fromStr("%s::" % graphName))
-        n = len(internalEdges) - len(graph_.internalEdges())
+        #graph_ = graphine.Graph(graph_state.GraphState.fromStr("%s::" % graphName))
+        n = len(internalEdges) - len(targetGraph.internalEdges())
         if n < 0:
             continue
         elif n == 0:
-            if topology == graphName:
+            if topology == targetGraphName:
                 return topologies[topology][0], graph
 
         for lines in itertools.combinations(internalEdges, n):
             shrinked = graph.batchShrinkToPoint([[x] for x in lines])
             gsString = str(shrinked)
-            if graphName == gsString[:gsString.find(":")]:
+            if targetGraphName == gsString[:gsString.find(":")]:
                 return topologies[topology][0], shrinked
     return None
 
@@ -74,20 +79,28 @@ Print +f;
 def generateFormFile(topologyType, graphWithMomenta):
     denom = ""
     for line in graphWithMomenta.internalEdges():
-        denom += "/%s.%s" % (line.colors[0], line.colors[0])
+        denom += "/%s.%s" % (line.colors[0], line.colors[0]) * line.colors[1]
     return formTemplate.format(denom=denom, topology=topologyType)
 
 
-def writeFormFile(graphStateAsString, directory="form_files"):
-    ans = findTopology(graphStateAsString, topologies)
+def writeFormFile(graph, directory="form_files"):
+    ans = _findTopology(graphStateAsString, topologies)
     if ans is not None:
         topologyType, graphWithMomenta = ans
-        f = open(os.path.join(directory, '%s.frm' % graphStateAsString), 'w')
+        f = open(os.path.join(directory, '%s.frm' % graph.getPresentableStr()), 'w')
         f.write(generateFormFile(topologyType, graphWithMomenta))
         f.close()
         return topologyType, graphWithMomenta
     else:
         return None
+
+
+def canCalculateGraphWithMincer(graph):
+    for e in graph.allEdges(withIndex=False):
+        colors = e.colors
+        if colors is not None and colors[0] != 0:
+            return False
+    return True
 
 
 def main():

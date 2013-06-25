@@ -3,7 +3,6 @@
 
 __author__ = 'daddy-bear'
 
-
 class AbstractGraphCalculator(object):
     def getLabel(self):
         raise NotImplementedError
@@ -16,7 +15,8 @@ class AbstractGraphCalculator(object):
 
 
 class MincerGraphCalculator(AbstractGraphCalculator):
-    pass
+    def getLabel(self):
+        return "mincer graph calculator"
 
 
 _calculators = list()
@@ -27,7 +27,6 @@ def addCalculator(graphCalculator):
         _calculators.append(graphCalculator)
     else:
         raise ValueError("unsupported calculator")
-
 
 def tryCalculate(graph):
     for c in _calculators:
