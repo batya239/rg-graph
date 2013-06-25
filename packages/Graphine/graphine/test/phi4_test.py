@@ -30,3 +30,7 @@ class Phi4Test(unittest.TestCase):
         self.assertEquals(set([str(subg.toGraphState()) for subg in
                                g.xRelevantSubGraphs(subgraphIRFilters, graph.Representator.asMinimalGraph)]),
                                set(expectedGraphGraphs))
+
+if __name__ == "__main__":
+    unittest.main()
+
