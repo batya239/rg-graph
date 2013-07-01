@@ -13,6 +13,7 @@ import sys
 import graphine
 import graph_state
 import re
+# noinspection PyUnresolvedReferences
 import sympy
 
 
@@ -38,7 +39,10 @@ def disposeMincer():
 
 
 def calculateGraph(graph):
-    fileName = writeFormFile(graph, _MINCER_DIR)[2]
+    t = writeFormFile(graph, _MINCER_DIR)
+    if t is None:
+        return None
+    fileName = t[2]
     stdout = subprocess.check_output("cd " + _MINCER_DIR + ";" + "form " + fileName, shell=True).replace("\n", '')
     rawResult = _RESULT_REGEXP.findall(stdout)[0]
     rawResult = rawResult.replace("Q.Q", "(p**2)").replace("^", "**").replace("ep", "e")

@@ -20,12 +20,6 @@ class AbstractGraphCalculator(object):
     def isApplicable(self, graph):
         raise NotImplementedError
 
-
-class MincerGraphCalculator(AbstractGraphCalculator):
-    def getLabel(self):
-        return "mincer graph calculator"
-
-
 _calculators = list()
 
 
