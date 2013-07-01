@@ -1,8 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf8
 import copy
-from graph_state import graph_state, Edge
-import filters
+import graph_state
 import graph_operations
 
 
@@ -80,6 +79,7 @@ class Graph(object):
         self._hash = None
         self._loopsCount = None
         self._externalEdges = None
+        self._graphState = None
 
     @property
     def externalVertex(self):
@@ -232,8 +232,13 @@ class Graph(object):
             if isValid:
                 yield resultRepresentator(subGraphAsList, self.externalVertex)
 
+    def graphStateSortedEdges(self):
+        return self.toGraphState().edges
+
     def toGraphState(self):
-        return graph_state.GraphState(self.allEdges())
+        if self._graphState is None:
+            self._graphState = graph_state.GraphState(self.allEdges())
+        return self._graphState
 
     def calculateLoopsCount(self):
         if self._loopsCount is None:
@@ -259,6 +264,13 @@ class Graph(object):
         if not isinstance(other, Graph):
             return False
         return str(self.toGraphState()).__eq__(str(other.toGraphState()))
+
+    @staticmethod
+    def fromStr(string, initEdgesColor=False, zeroColor=(0, 0), unitColor=(1, 0)):
+        g = Graph(graph_state.GraphState.fromStr(string))
+        if initEdgesColor:
+            g = Graph.initEdgesColors(g, zeroColor, unitColor)
+        return g
 
     @staticmethod
     def initEdgesColors(graph, zeroColor=(0, 0), unitColor=(1, 0)):

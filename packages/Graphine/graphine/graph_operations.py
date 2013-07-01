@@ -2,7 +2,7 @@
 # -*- coding: utf8
 import copy
 import itertools
-from graph_state import graph_state
+import graph_state
 import graph
 
 
@@ -147,7 +147,7 @@ def _pickExternalEdges(edgesList, externalVertex=-1):
 
 
 def _createExternalEdge(innerVertex, externalVertex=-1, edgesCount=1):
-    e = graph_state.Edge((externalVertex, innerVertex), external_node=externalVertex)
+    e = graph_state.graph_state.Edge((externalVertex, innerVertex), external_node=externalVertex)
     return [e] * edgesCount
 
 

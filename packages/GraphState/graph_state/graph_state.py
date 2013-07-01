@@ -64,6 +64,9 @@ class Rainbow(object):
     def colors(self):
         return self._colors
 
+    def __getitem__(self, item):
+        return self._colors[item]
+
     def __cmp__(self, other):
         return cmp(self.colors, other.colors)
 

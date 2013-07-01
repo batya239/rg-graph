@@ -3,7 +3,14 @@
 
 __author__ = 'daddy-bear'
 
+
 class AbstractGraphCalculator(object):
+    def init(self):
+        pass
+
+    def dispose(self):
+        pass
+
     def getLabel(self):
         raise NotImplementedError
 
@@ -24,9 +31,11 @@ _calculators = list()
 
 def addCalculator(graphCalculator):
     if isinstance(graphCalculator, AbstractGraphCalculator):
+        graphCalculator.init()
         _calculators.append(graphCalculator)
     else:
         raise ValueError("unsupported calculator")
+
 
 def tryCalculate(graph):
     for c in _calculators:
@@ -35,6 +44,11 @@ def tryCalculate(graph):
             if res is not None:
                 return res, c.getLabel()
     return None
+
+
+def dispose():
+    for c in _calculators:
+        c.dispose()
 
 
 
