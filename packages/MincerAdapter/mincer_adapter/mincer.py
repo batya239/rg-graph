@@ -17,7 +17,7 @@ import re
 import sympy
 
 
-_MINCER_DEFAULT_TMP_DIR = "/tmp/__mincer1111__"
+_MINCER_DEFAULT_TMP_DIR = "/tmp/__mincer1111_O_D_bl_N__"
 _MINCER_DIR = _MINCER_DEFAULT_TMP_DIR
 _MINCER2_H = "mincer2.h"
 
