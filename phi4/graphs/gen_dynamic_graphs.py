@@ -77,7 +77,6 @@ def DynamicGraphs(edges, externalFields, lines, vertices):
                 for edge in internalEdges:
                     edge.fields = graph_state.Fields([x for x in xFields.next()])
                 edges_ = graph_state.GraphState(edges).edges
-
                 if len(set(extractVertices(edges_).values()) - vertices) == 0:
                     graphs.add(graph_state.GraphState(edges_))
         return graphs
@@ -152,15 +151,15 @@ def xChains(edges, forwardProp, backwardProp):
                     yield chain
 
 externalFields = [x for x in sys.argv[2]]
-lines = ['pP', 'Pp']
-vertices = set(map(sortString, ['pPp', 'PPp']))
+lines = ['aA', 'Aa']
+vertices = set(map(sortString, ['aAa', 'AAa']))
 
 edges = graph_state.GraphState.fromStr(sys.argv[1]).edges
 
 for graph in DynamicGraphs(edges, externalFields, lines, vertices):
     try:
         externalEdges, internalEdges = splitEdges(graph.edges)
-        graphTimeChains = set([tuple(x) for x in xChains(internalEdges, ['pP'], ['Pp'])])
+        graphTimeChains = set([tuple(x) for x in xChains(internalEdges, ['aA'], ['Aa'])])
     except TimeChainError:
         continue
 

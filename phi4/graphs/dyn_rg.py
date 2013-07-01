@@ -29,7 +29,7 @@ def symmetryCoefficient(graph):
 
 
 model = _phi4_dyn('dummy')
-model.target = 3
+model.target = 4
 
 methodName = 'simpleSD'
 

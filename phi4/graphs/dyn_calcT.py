@@ -17,7 +17,7 @@ import dynamics
 
 model = _phi4_dyn("phi4_dyn_test")
 methodName = "simpleSDT"
-
+dynamics.method_name = methodName
 
 points = int(sys.argv[1])
 graphName = sys.argv[2]
@@ -37,6 +37,7 @@ for tVersion_ in tVersions:
     os.chdir(pwd)
     name = dynamics.Replace("%s_%s" % (gs, tVersion_))
     dirName = '%s/%s/%s/' % (model.workdir, methodName, name)
+    print dirName
     fileName = "%s/dyn_sectors.py" % dirName
     exec (open(fileName).read())
 
