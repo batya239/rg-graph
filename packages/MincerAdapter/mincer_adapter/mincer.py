@@ -45,9 +45,11 @@ def calculateGraph(graph):
     fileName = t[2]
     stdout = subprocess.check_output("cd " + _MINCER_DIR + ";" + "form " + fileName, shell=True).replace("\n", '')
     rawResult = _RESULT_REGEXP.findall(stdout)[0]
-    rawResult = rawResult.replace("Q.Q", "(p**2)").replace("^", "**").replace("ep", "e")
+    rawResult = rawResult.replace("Q.Q", "(_p**2)").replace("^", "**").replace("ep", "_e")
     rawResult = _replaceZetas(rawResult)
+    # noinspection PyUnusedLocal
     e = gfunctions.symbolic_functions._getE()
+    # noinspection PyUnusedLocal
     p = gfunctions.symbolic_functions._getP()
     return eval(rawResult)
 
