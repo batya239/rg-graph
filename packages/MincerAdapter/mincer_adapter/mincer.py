@@ -48,9 +48,9 @@ def calculateGraph(graph):
     rawResult = rawResult.replace("Q.Q", "(_p**2)").replace("^", "**").replace("ep", "_e")
     rawResult = _replaceZetas(rawResult)
     # noinspection PyUnusedLocal
-    e = gfunctions.symbolic_functions._getE()
+    _e = gfunctions.symbolic_functions._getE()
     # noinspection PyUnusedLocal
-    p = gfunctions.symbolic_functions._getP()
+    _p = gfunctions.symbolic_functions._getP()
     return eval(rawResult)
 
 def _replaceZetas(rawResult):
