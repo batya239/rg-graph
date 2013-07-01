@@ -1,10 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf8
-import os
-import shutil
 import unittest
 import gfunctions
-import graph_state
 import graphine
 import mincer
 
