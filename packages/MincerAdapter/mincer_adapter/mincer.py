@@ -43,7 +43,14 @@ def calculateGraph(graph):
     if t is None:
         return None
     fileName = t[2]
-    stdout = subprocess.check_output("cd " + _MINCER_DIR + ";" + "form " + fileName, shell=True).replace("\n", '')
+
+    #stdout = subprocess.check_output("cd " + _MINCER_DIR + ";" + "form " + fileName, shell=True).replace("\n", '')
+    proc = subprocess.Popen("cd " + _MINCER_DIR + ";" + "form " + fileName, shell=True, stdout=subprocess.PIPE)
+    proc.wait()
+    stdout = ""
+    for l in proc.stdout:
+        stdout += l[:-1]
+
     rawResult = _RESULT_REGEXP.findall(stdout)[0]
     rawResult = rawResult.replace("Q.Q", "(_p**2)").replace("^", "**").replace("ep", "_e")
     rawResult = _replaceZetas(rawResult)
