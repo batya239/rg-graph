@@ -20,11 +20,13 @@ import sympy
 _MINCER_DEFAULT_TMP_DIR = "/tmp/__mincer1111_O_D_bl_N__"
 _MINCER_DIR = _MINCER_DEFAULT_TMP_DIR
 _MINCER2_H = "mincer2.h"
+_FORM_VERSION = "tform"
 
 _RESULT_REGEXP = re.compile("F\s=(.*);")
 
 
-def initMincer(mincerDir=_MINCER_DEFAULT_TMP_DIR):
+def initMincer(mincerDir=_MINCER_DEFAULT_TMP_DIR, useMultiThreading=True):
+    _FORM_VERSION = "tform" if useMultiThreading else "form"
     try:
         _MINCER_DIR = mincerDir
         os.makedirs(_MINCER_DIR)
@@ -45,7 +47,7 @@ def calculateGraph(graph):
     fileName = t[2]
 
     #stdout = subprocess.check_output("cd " + _MINCER_DIR + ";" + "form " + fileName, shell=True).replace("\n", '')
-    proc = subprocess.Popen("cd " + _MINCER_DIR + ";" + "form " + fileName, shell=True, stdout=subprocess.PIPE)
+    proc = subprocess.Popen("cd " + _MINCER_DIR + ";" + _FORM_VERSION + " " + fileName, shell=True, stdout=subprocess.PIPE)
     proc.wait()
     stdout = proc.stdout.read().replace("\n", "")
 
