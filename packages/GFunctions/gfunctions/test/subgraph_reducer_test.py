@@ -129,6 +129,7 @@ class SubGraphReducerTestCase(test.GraphStorageAwareTestCase):
             reducer = subgraph_processer.GGraphReducer(g, useGraphCalculator=True)
             while reducer.nextIteration():
                 pass
+            self.assertTrue("", reducer.getFinalValue())
             self.assertTrue(reducer.isSuccesfulDone())
         finally:
             graph_calculator.dispose()

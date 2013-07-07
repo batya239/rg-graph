@@ -39,6 +39,9 @@ class MincerTest(unittest.TestCase):
             (sub * gfunctions.symbolic_functions._e ** 5).evalf(subs={gfunctions.symbolic_functions._e: 1})) < 1e-100,
                         "\nactual = " + str(actual) + "\nexpected = " + str(expected) + "\nsub = " + str(sub))
 
+    def assertIsNone(self, arg):
+        self.assertEquals(None, arg)
+
     def tearDown(self):
         mincer.disposeMincer()
 

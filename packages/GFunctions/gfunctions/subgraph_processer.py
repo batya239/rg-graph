@@ -93,9 +93,6 @@ class GGraphReducer(object):
             self._putFinalValueToGraphStorage()
             return False
 
-        if self._tryReduceChain():
-            return True
-
         maximal = None
         relevantSubGraphs = [x for x in lastIteration.xRelevantSubGraphs(self._subGraphFilter, graphine.Representator.asList)] + [
             lastIteration.allEdges()]
@@ -122,7 +119,7 @@ class GGraphReducer(object):
                         maximal = preprocessed
                         break
             if maximal is None:
-                return False
+                return self._tryReduceChain()
 
         assert len(maximal[2]) == 2
         newIteration = lastIteration.deleteEdges(maximal[0])
@@ -192,6 +189,9 @@ class GGraphReducer(object):
 
     def _putFinalValueToGraphStorage(self):
         graph_storage.put(self._initGraph, self.getFinalValue())
+
+
+class TwoChoicesStrategy(object):
 
 
 

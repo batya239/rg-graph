@@ -116,8 +116,8 @@ class SubGraphReducerTestCase(test.GraphStorageAwareTestCase):
         self.doTestRPrime("e12-e24-33-44--::", "(-1/(12*e**4))*(1 - 3*e + e**2 + 5*e**3 - 6*zeta(3)*e**3)")
 
     #WITH GRAPH CALCULATOR
-    def _testE12_223_3_E_(self):
-        self.doTestRPrime("e12-223-3-e-::", "(-6*log(p)**2 - 2*log(p) + 6*zeta(3)/p**2)/e + (-2*log(p) - 1)/e**2", useGraphCalculator=True)
+    def testE12_223_3_E_(self):
+        self.doTestRPrime("e12-223-3-e-::", "0", useGraphCalculator=True)
 
     def doTestRPrime(self, graphStateAsString, expectedResultAsString, useGraphCalculator=False):
         try:
