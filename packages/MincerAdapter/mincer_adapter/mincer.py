@@ -54,32 +54,20 @@ def calculateGraph(graph):
     rawResult = _RESULT_REGEXP.findall(stdout)[0]
     rawResult = rawResult.replace("Q.Q", "(_p**2)").replace("^", "**").replace("ep", "_e")
     rawResult = _replaceZetas(rawResult)
+    rawResult = gfunctions.symbolic_functions._safeIntegerNumerators(rawResult)
     # noinspection PyUnusedLocal
     _e = gfunctions.symbolic_functions._getE()
     # noinspection PyUnusedLocal
     _p = gfunctions.symbolic_functions._getP()
     return eval(rawResult)
 
+
 def _replaceZetas(rawResult):
-    res = ""
-    _inZeta = False
-    _arg = None
-    for c in rawResult:
-        if c == "z":
-            _inZeta = True
-            _arg = 0
-        else:
-            if _inZeta:
-                order = ord(c)
-                if 48 <= order <= 57:
-                    _arg *= 10
-                    _arg += int(c)
-                else:
-                    _inZeta = False
-                    res += "sympy.zeta(%s)" % _arg
-            else:
-                res += c
-    return res
+    return re.sub('z(\d+)', 'sympy.zeta(\\1)', rawResult)
+
+
+def _replaceIntegerNumerators(rawResult):
+    return re.sub('(\d+)/(\d+)', 'sympy.Number(\\1)/\\2', rawResult)
 
 
 

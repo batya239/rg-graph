@@ -3,6 +3,7 @@
 """
 wrapper on sympy library for working with symbolic evaluations
 """
+import re
 import sympy
 
 
@@ -54,14 +55,19 @@ def evaluate(expressionAsString, lineTuple=None):
     return gammaPart * linePart
 
 
+def _safeIntegerNumerators(expressionAsString):
+    return re.sub('(\d+)/', 'sympy.Number(\\1)/', expressionAsString)
+
+
 def toSerializableCode(expressionAsString):
-    return expressionAsString.replace("G", "_g")\
-        .replace("lambda", "_lambda")\
-        .replace("e", "_e")\
-        .replace("p", "_p")\
-        .replace("_polygamma", "sympy.polygamma")\
-        .replace("log", "sympy.log")\
-        .replace("z_eta", "sympy.zeta")
+    return _safeIntegerNumerators(expressionAsString.replace("G", "_g")
+                                  .replace("lambda", "_lambda")
+                                  .replace("e", "_e")
+                                  .replace("p", "_p")
+                                  .replace("_pi", "sympy.pi")
+                                  .replace("_polygamma", "sympy.polygamma")
+                                  .replace("log", "sympy.log")
+                                  .replace("z_eta", "sympy.zeta"))
 
 
 def polePart(expr):
