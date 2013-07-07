@@ -48,17 +48,17 @@ def _defaultGraphHasNotIRDivergence(graph):
 
 defaultGraphHasNotIRDivergenceFilter = [_defaultGraphHasNotIRDivergence]
 
-def doRPrime(graph, kOperation, uvSubGraphFilter, description=""):
+def doRPrime(graph, kOperation, uvSubGraphFilter, description="", useGraphCalculator=True):
     assert len(graph.edges(graph.externalVertex)) == 2
 
     if not _defaultGraphHasNotIRDivergence(graph):
         raise AssertionError(str(graph) + " - IR divergence")
 
     rprime_storage.checkInitialized()
-    return _doRPrime(graph, kOperation, uvSubGraphFilter, description)
+    return _doRPrime(graph, kOperation, uvSubGraphFilter, description=description, useGraphCalculator=useGraphCalculator)
 
 
-def _doRPrime(rawGraph, kOperation, uvSubGraphFilter, description=""):
+def _doRPrime(rawGraph, kOperation, uvSubGraphFilter, description="", useGraphCalculator=True):
     for graph in momentum.xPassExternalMomentum(rawGraph, defaultGraphHasNotIRDivergenceFilter):
 
         evaluated = rprime_storage.getR1(graph)
@@ -68,19 +68,19 @@ def _doRPrime(rawGraph, kOperation, uvSubGraphFilter, description=""):
 
         uvSubgraphs = graphine.Graph.batchInitEdgesColors([sg for sg in graph.xRelevantSubGraphs(uvSubGraphFilter)])
         if not len(uvSubgraphs):
-            expression, twoTailsGraph = _calculateGraphValue(graph)
+            expression, twoTailsGraph = _calculateGraphValue(graph, useGraphCalculator=useGraphCalculator)
             rprime_storage.putGraphR1(twoTailsGraph, symbolic_functions.polePart(expression), GFUN_METHOD_NAME_MARKER, description)
             return expression
 
-        rawRPrime = _calculateGraphValue(graph)[0]
+        rawRPrime = _calculateGraphValue(graph, useGraphCalculator=useGraphCalculator)[0]
         sign = 1
         for i in xrange(1, len(uvSubgraphs) + 1):
             sign *= -1
             for comb in itertools.combinations(uvSubgraphs, i):
                 if not _hasIntersectingSubGraphs(comb):
-                    r1 = reduce(lambda e, g: e * _doRPrime(g, kOperation, uvSubGraphFilter), comb, 1)
+                    r1 = reduce(lambda e, g: e * _doRPrime(g, kOperation, uvSubGraphFilter, useGraphCalculator=useGraphCalculator), comb, 1)
                     shrinked, p2Counts = _doShrinkToPoint(graph, comb)
-                    rawRPrime += sign * kOperation.calculate(r1 * _calculateGraphValue(shrinked)[0]) * (symbolic_functions.p2 ** p2Counts)
+                    rawRPrime += sign * kOperation.calculate(r1 * _calculateGraphValue(shrinked, useGraphCalculator=useGraphCalculator)[0]) * (symbolic_functions.p2 ** p2Counts)
 
         result = symbolic_functions.polePart(rawRPrime)
         rprime_storage.putGraphR1(graph, result, GFUN_METHOD_NAME_MARKER, description)
@@ -130,17 +130,17 @@ def _hasMomentumQuadraticDivergence(subGraph, graph, excludedEdges):
     assert False
 
 
-def _calculateGraphsValues(graphs, suppressException=False):
-    return reduce(lambda e, g: e * _calculateGraphValue(g, suppressException)[0], graphs, 1)
+def _calculateGraphsValues(graphs, suppressException=False, useGraphCalculator=False):
+    return reduce(lambda e, g: e * _calculateGraphValue(g, suppressException, useGraphCalculator=useGraphCalculator)[0], graphs, 1)
 
 
-def _calculateGraphValue(graph, suppressException=False):
+def _calculateGraphValue(graph, suppressException=False, useGraphCalculator=False):
     if len(graph.edges(graph.externalVertex)) == 2:
-        graphReducer = subgraph_processer.GGraphReducer(graph)
+        graphReducer = subgraph_processer.GGraphReducer(graph, useGraphCalculator=useGraphCalculator)
     else:
         graphReducer = None
         for gWithMomentum in momentum.xPassExternalMomentum(graph, defaultGraphHasNotIRDivergenceFilter):
-            graphReducer = subgraph_processer.GGraphReducer(gWithMomentum)
+            graphReducer = subgraph_processer.GGraphReducer(gWithMomentum, useGraphCalculator=useGraphCalculator)
             break
         if graphReducer is None:
             raise CannotBeCalculatedError(graph)

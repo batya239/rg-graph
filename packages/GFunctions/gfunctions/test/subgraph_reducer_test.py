@@ -6,6 +6,8 @@ import sys
 import unittest
 import graphine
 import graph_state
+import mincer_adapter
+import graph_calculator
 import momentum
 import subgraph_processer
 import test
@@ -120,6 +122,16 @@ class SubGraphReducerTestCase(test.GraphStorageAwareTestCase):
         self.assertEquals(str(reducer.getCurrentIterationGraph().toGraphState()),
                           "e112-2-e-::['(0, 0)', '(1, 0)', '(2, -1)', '(1, 0)', '(1, 0)', '(0, 0)']")
 
+    def testDiagramWithTBubbleLikeStructure(self):
+        try:
+            graph_calculator.addCalculator(mincer_adapter.MincerGraphCalculator())
+            g = graphine.Graph.fromStr("e12-223-3-e-::", initEdgesColor=True)
+            reducer = subgraph_processer.GGraphReducer(g, useGraphCalculator=True)
+            while reducer.nextIteration():
+                pass
+            self.assertTrue(reducer.isSuccesfulDone())
+        finally:
+            graph_calculator.dispose()
 
 if __name__ == "__main__":
     unittest.main()

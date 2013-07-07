@@ -40,6 +40,21 @@ def disposeMincer():
     shutil.rmtree(_MINCER_DIR)
 
 
+# noinspection PyUnboundLocalVariable
+def isApplicable(graph):
+    if graph.calculateLoopsCount() > 3:
+        return False
+    edges = graph.allEdges()
+    if not len(edges):
+        return False
+    for e in edges:
+        c = e.colors
+        if c is None or len(c) != 2:
+            return False
+        if c[1] != 0 or c[0] != int(c[0]):
+            return False
+    return True
+
 def calculateGraph(graph):
     t = writeFormFile(graph, _MINCER_DIR)
     if t is None:
@@ -55,6 +70,8 @@ def calculateGraph(graph):
     rawResult = rawResult.replace("Q.Q", "(_p**2)").replace("^", "**").replace("ep", "_e")
     rawResult = _replaceZetas(rawResult)
     rawResult = gfunctions.symbolic_functions._safeIntegerNumerators(rawResult)
+    if rawResult.strip() == '0':
+        return None
     # noinspection PyUnusedLocal
     _e = gfunctions.symbolic_functions._getE()
     # noinspection PyUnusedLocal

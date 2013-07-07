@@ -39,7 +39,7 @@ def evaluateForTests(expressionAsString):
     """
     use this only for tests please
     """
-    return eval(toSerializableCode(expressionAsString))
+    return eval(toInternalCode(expressionAsString))
 
 
 # noinspection PyUnusedLocal
@@ -48,26 +48,34 @@ def evaluate(expressionAsString, lineTuple=None):
     expressionAsString like '('G(1, 1)*G(1, 1)*G(1, 3-lambda*2)*G(1, 4-lambda*3)'
     lineTuple like (4, -4) ~ 4 - 4 * lambda
     """
-    gammaPart = eval(expressionAsString.replace("G", "_g").replace("lambda", "_lambda"))
+    gammaPart = eval(toInternalCode(expressionAsString))
     if not lineTuple:
         return gammaPart
     linePart = _p ** (eval("2 * (lineTuple[0] + lineTuple[1] * _lambda)"))
     return gammaPart * linePart
 
 
+def toInternalCode(expressionAsString):
+    return _safeIntegerNumerators(expressionAsString.replace("G", "_g") \
+        .replace("lambda", "_lambda") \
+        .replace("e", "_e") \
+        .replace("p", "_p") \
+        .replace("_polygamma", "sympy.polygamma") \
+        .replace("log", "sympy.log") \
+        .replace("z_eta", "sympy.zeta") \
+        .replace("_pi", "sympy.pi"))
+
+
 def _safeIntegerNumerators(expressionAsString):
     return re.sub('(\d+)/', 'sympy.Number(\\1)/', expressionAsString)
 
 
-def toSerializableCode(expressionAsString):
-    return _safeIntegerNumerators(expressionAsString.replace("G", "_g")
-                                  .replace("lambda", "_lambda")
-                                  .replace("e", "_e")
-                                  .replace("p", "_p")
-                                  .replace("_pi", "sympy.pi")
-                                  .replace("_polygamma", "sympy.polygamma")
-                                  .replace("log", "sympy.log")
-                                  .replace("z_eta", "sympy.zeta"))
+def toExternalCode(expressionAsString):
+    return expressionAsString \
+        .replace("_e", "e") \
+        .replace("_p", "p") \
+        .replace("_g", "G") \
+        .replace("_lambda", "lambda")
 
 
 def polePart(expr):

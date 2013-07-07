@@ -24,11 +24,8 @@ _calculators = list()
 
 
 def addCalculator(graphCalculator):
-    if isinstance(graphCalculator, AbstractGraphCalculator):
-        graphCalculator.init()
-        _calculators.append(graphCalculator)
-    else:
-        raise ValueError("unsupported calculator")
+    graphCalculator.init()
+    _calculators.append(graphCalculator)
 
 
 def tryCalculate(graph):
