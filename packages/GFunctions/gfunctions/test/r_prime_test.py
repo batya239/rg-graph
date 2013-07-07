@@ -3,6 +3,8 @@
 import unittest
 import graph_state
 import graphine
+import mincer_adapter
+import graph_calculator
 import r_prime
 import symbolic_functions
 import test
@@ -113,14 +115,23 @@ class SubGraphReducerTestCase(test.GraphStorageAwareTestCase):
     def testE12_E24_33_44__(self):
         self.doTestRPrime("e12-e24-33-44--::", "(-1/(12*e**4))*(1 - 3*e + e**2 + 5*e**3 - 6*zeta(3)*e**3)")
 
-    def doTestRPrime(self, graphStateAsString, expectedResultAsString):
-        g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr(graphStateAsString)))
-        expected = symbolic_functions.evaluateForTests(expectedResultAsString)
-        actual = r_prime.doRPrime(g, r_prime.MSKOperation(), r_prime.defaultSubgraphUVFilter)
-        sub = (expected - actual).simplify()
-        self.assertTrue(expected == actual or abs(
-            (sub * symbolic_functions._e ** 5).evalf(subs={symbolic_functions._e: 1})) < 1e-100,
-                        "\nactual = " + str(actual) + "\nexpected = " + str(expected) + "\nsub = " + str(sub))
+    #WITH GRAPH CALCULATOR
+    def _testE12_223_3_E_(self):
+        self.doTestRPrime("e12-223-3-e-::", "(-6*log(p)**2 - 2*log(p) + 6*zeta(3)/p**2)/e + (-2*log(p) - 1)/e**2", useGraphCalculator=True)
+
+    def doTestRPrime(self, graphStateAsString, expectedResultAsString, useGraphCalculator=False):
+        try:
+            if useGraphCalculator:
+                graph_calculator.addCalculator(mincer_adapter.MincerGraphCalculator())
+            g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr(graphStateAsString)))
+            expected = symbolic_functions.evaluateForTests(expectedResultAsString)
+            actual = r_prime.doRPrime(g, r_prime.MSKOperation(), r_prime.defaultSubgraphUVFilter, useGraphCalculator=useGraphCalculator)
+            sub = (expected - actual).simplify()
+            self.assertTrue(expected == actual or abs(
+                (sub * symbolic_functions._e ** 5).evalf(subs={symbolic_functions._e: 1})) < 1e-100,
+                            "\nactual = " + str(actual) + "\nexpected = " + str(expected) + "\nsub = " + str(sub))
+        finally:
+            graph_calculator.dispose()
 
 
 if __name__ == "__main__":

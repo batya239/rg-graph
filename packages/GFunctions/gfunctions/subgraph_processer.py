@@ -3,9 +3,11 @@
 import copy
 import graphine
 import graph_state
+import graph_calculator
 import graph_storage
 import lambda_number
 import momentum
+import symbolic_functions
 
 
 def _createFilter():
@@ -40,7 +42,7 @@ def _adjust(graphAsList, externalVertex):
 
 
 class GGraphReducer(object):
-    def __init__(self, graph, momentumPassing=list(), subGraphFilters=list()):
+    def __init__(self, graph, momentumPassing=list(), subGraphFilters=list(), useGraphCalculator=False):
         """
         momentumPassing -- two external edges of graph in which external momentum passing
         """
@@ -54,6 +56,7 @@ class GGraphReducer(object):
         self._iterationGraphs = [self._initGraph]
         self._iterationValues = []
         self._subGraphFilter = _createFilter() + subGraphFilters
+        self._useGraphCalculator = useGraphCalculator
 
     @property
     def iterationValues(self):
@@ -94,17 +97,32 @@ class GGraphReducer(object):
             return True
 
         maximal = None
-        for subGraphAsList in \
-                    [x for x in lastIteration.xRelevantSubGraphs(self._subGraphFilter, graphine.Representator.asList)] \
-                    + [lastIteration.allEdges()]:
+        relevantSubGraphs = [x for x in lastIteration.xRelevantSubGraphs(self._subGraphFilter, graphine.Representator.asList)] + [
+            lastIteration.allEdges()]
+
+        preProcessedSubGraphs = list()
+        for subGraphAsList in relevantSubGraphs:
             if not maximal or len(subGraphAsList) > len(maximal[1].allEdges()):
                 adjustedSubGraph = _adjust(subGraphAsList, self._initGraph.externalVertex)
-                subGraph = graphine.Graph(adjustedSubGraph[0],
-                                          externalVertex=self._initGraph.externalVertex)
+                subGraph = graphine.Graph(adjustedSubGraph[0], externalVertex=self._initGraph.externalVertex)
+                preprocessed = (adjustedSubGraph[1], subGraph, adjustedSubGraph[2])
                 if graph_storage.has(subGraph):
-                    maximal = (adjustedSubGraph[1], subGraph, adjustedSubGraph[2])
+                    preProcessedSubGraphs = None
+                    maximal = preprocessed
+                elif preProcessedSubGraphs is not None:
+                    preProcessedSubGraphs.append(preprocessed)
+
         if not maximal:
-            return False
+            if self._useGraphCalculator:
+                for preprocessed in preProcessedSubGraphs:
+                    subGraph = preprocessed[1]
+                    result = graph_calculator.tryCalculate(subGraph)
+                    if result is not None:
+                        graph_storage.put(subGraph, (symbolic_functions.toExternalCode(str(result[0])), (0, 0)))
+                        maximal = preprocessed
+                        break
+            if maximal is None:
+                return False
 
         assert len(maximal[2]) == 2
         newIteration = lastIteration.deleteEdges(maximal[0])
@@ -160,7 +178,7 @@ class GGraphReducer(object):
 
     def getFinalValue(self):
         assert self.isSuccesfulDone()
-        gValue = "*".join(self._iterationValues)
+        gValue = "*".join(map(lambda v: v if v[0] == 'G' else "(%s)" % v, self._iterationValues))
         innerEdge = None
         for e in self._iterationGraphs[-1].allEdges():
             if self._initGraph.externalVertex not in e.nodes:

@@ -70,6 +70,9 @@ class Rainbow(object):
     def __cmp__(self, other):
         return cmp(self.colors, other.colors)
 
+    def __len__(self):
+        return len(self.colors)
+
     def __hash__(self):
         return hash(self.colors)
 
