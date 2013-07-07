@@ -66,8 +66,6 @@ def _replaceZetas(rawResult):
     return re.sub('z(\d+)', 'sympy.zeta(\\1)', rawResult)
 
 
-def _replaceIntegerNumerators(rawResult):
-    return re.sub('(\d+)/(\d+)', 'sympy.Number(\\1)/\\2', rawResult)
 
 
 
