@@ -25,7 +25,13 @@ class MincerTest(unittest.TestCase):
     def testTBubbleWithWeight(self):
         self.doTest("e12-23-3-e-::['(0, 0)', '(2, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(0, 0)']",
                     "-27*e**3*zeta(3)/p**4 - 3*pi**4*e**3/(20*p**4) - 9*e**3/(2*p**4) + 63*e**3*zeta(5)/p**4 - 9*e**2*zeta(3)/p**4 + 9*e**2/(2*p**4) + 3*pi**4*e**2/(20*p**4) - 9*e/(2*p**4) + 9*e*zeta(3)/p**4 + 9/(2*p**4) - 5/(2*e*p**4) + 1/(2*e**2*p**4)")
-        self.doTest("e12-23-3-e-::['(0, 0)', '(1, 0)', '(1, 0)', '(2, 0)', '(1, 0)', '(1, 0)', '(0, 0)']", None)
+        self.doTest("e12-23-3-e-::['(0, 0)', '(1, 0)', '(1, 0)', '(2, 0)', '(1, 0)', '(1, 0)', '(0, 0)']",
+                    "-126*e**3*zeta(5)/p**4 - 18*e**3*zeta(3)/p**4 + 57*e**3/p**4 + 9*pi**4*e**3/(10*p**4) - 39*e**2/p**4 - 3*pi**4*e**2/(10*p**4) + 54*e**2*zeta(3)/p**4 - 18*e*zeta(3)/p**4 + 21*e/p**4 - 3/p**4 - 3/(e*p**4) + 1/(e**2*p**4)")
+
+    def testE122233e(self):
+        self.doTest("e12-223-3-e-::['(0, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(0, 0)']",
+                    "0")
+
     def doTest(self, graphStr, expectedResultAsString):
         graph = graphine.Graph.fromStr(graphStr)
         if not mincer.isApplicable(graph):
