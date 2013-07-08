@@ -6,7 +6,7 @@ import mincer
 
 class MincerGraphCalculator(gfunctions.graph_calculator.AbstractGraphCalculator):
     def isApplicable(self, graph):
-        mincer.isApplicable(graph)
+        return mincer.isApplicable(graph)
 
     def getLabel(self):
         return "mincer graph calculator"

@@ -96,28 +96,24 @@ class GGraphReducer(object):
         maximal = None
         relevantSubGraphs = [x for x in lastIteration.xRelevantSubGraphs(self._subGraphFilter, graphine.Representator.asList)] + [
             lastIteration.allEdges()]
+        relevantSubGraphs = relevantSubGraphs[::-1]
 
-        preProcessedSubGraphs = list()
         for subGraphAsList in relevantSubGraphs:
             if not maximal or len(subGraphAsList) > len(maximal[1].allEdges()):
                 adjustedSubGraph = _adjust(subGraphAsList, self._initGraph.externalVertex)
                 subGraph = graphine.Graph(adjustedSubGraph[0], externalVertex=self._initGraph.externalVertex)
                 preprocessed = (adjustedSubGraph[1], subGraph, adjustedSubGraph[2])
                 if graph_storage.has(subGraph):
-                    preProcessedSubGraphs = None
                     maximal = preprocessed
-                elif preProcessedSubGraphs is not None:
-                    preProcessedSubGraphs.append(preprocessed)
-
-        if not maximal:
-            if self._useGraphCalculator:
-                for preprocessed in preProcessedSubGraphs:
-                    subGraph = preprocessed[1]
+                    break
+                if self._useGraphCalculator:
                     result = graph_calculator.tryCalculate(subGraph)
                     if result is not None:
                         graph_storage.put(subGraph, (symbolic_functions.toExternalCode(str(result[0])), (0, 0)))
                         maximal = preprocessed
                         break
+
+        if not maximal:
             if maximal is None:
                 return self._tryReduceChain()
 
@@ -189,10 +185,3 @@ class GGraphReducer(object):
 
     def _putFinalValueToGraphStorage(self):
         graph_storage.put(self._initGraph, self.getFinalValue())
-
-
-class TwoChoicesStrategy(object):
-
-
-
-
