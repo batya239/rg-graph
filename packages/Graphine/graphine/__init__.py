@@ -3,7 +3,7 @@
 
 __author__ = 'daddy-bear'
 
-from graph import Graph, Representator
+from graph import Graph, Representator, DimensionModel
 import filters
 import util
 import graph_operations

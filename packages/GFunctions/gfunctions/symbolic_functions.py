@@ -13,6 +13,8 @@ _p = sympy.var("p")
 
 p2 = _p ** 2
 
+pe = _p ** _e
+
 
 def _getE():
     return _e

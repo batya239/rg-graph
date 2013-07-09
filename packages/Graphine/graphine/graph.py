@@ -59,6 +59,17 @@ class IndexableEdge:
             return map(lambda ie: ie.underlying, obj)
 
 
+class DimensionModel(object):
+    def getSpaceDimension(self):
+        raise NotImplementedError
+
+    def getLineDimension(self, edge):
+        raise NotImplementedError
+
+    def getVertexDimension(self, vertex):
+        raise NotImplementedError
+
+
 class Graph(object):
     """
     representation of graph
@@ -157,8 +168,14 @@ class Graph(object):
     def deleteEdge(self, edge):
         return self.deleteEdges([edge])
 
-    def identifyVertexes(self, vertexesToIdentify):
-        pass
+    def calculateDimension(self, dimensionModel):
+        dim = dimensionModel.getSpaceDimension() * self.calculateLoopsCount()
+        for e in self.internalEdges():
+            dim += dimensionModel.getLineDimension(e)
+        for v in self.vertexes():
+            if v != self.externalVertex:
+                dim += dimensionModel.getVertexDimension(v)
+        return dim
 
     def batchShrinkToPoint(self, subGraphs):
         """
@@ -242,7 +259,8 @@ class Graph(object):
 
     def calculateLoopsCount(self):
         if self._loopsCount is None:
-            self._loopsCount = len(self.allEdges()) - len(self.edges(self.externalVertex)) - (len(self.vertexes()) - 1) + 1
+            self._loopsCount = len(self.allEdges()) - len(self.edges(self.externalVertex)) - (
+            len(self.vertexes()) - 1) + 1
         return self._loopsCount
 
     def getPresentableStr(self):

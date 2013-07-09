@@ -12,6 +12,17 @@ import test
 __author__ = 'daddy-bear'
 
 
+class _Phi4DimensionModel(graphine.DimensionModel):
+    def getLineDimension(self, edge):
+        return -2
+
+    def getSpaceDimension(self):
+        return 4
+
+    def getVertexDimension(self, vertex):
+        return 0
+
+
 class SubGraphReducerTestCase(test.GraphStorageAwareTestCase):
     def test1LoopDiagramPRime(self):
         g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr("e11-e-::")))
@@ -19,7 +30,7 @@ class SubGraphReducerTestCase(test.GraphStorageAwareTestCase):
                           r_prime.doRPrime(g, r_prime.MSKOperation(), r_prime.defaultSubgraphUVFilter))
 
     def testEyeRPrime(self):
-        g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr("e12-e22--::")))
+        g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr("e112-2-e-::")))
         self.assertEquals(symbolic_functions.evaluateForTests("1/(2*e) - 1/(2*e**2)"),
                           r_prime.doRPrime(g, r_prime.MSKOperation(), r_prime.defaultSubgraphUVFilter))
 
@@ -117,12 +128,12 @@ class SubGraphReducerTestCase(test.GraphStorageAwareTestCase):
 
     #WITH GRAPH CALCULATOR
     def testE12_223_3_E_(self):
-        self.doTestRPrime("e12-223-3-e-::", "0", useGraphCalculator=True)
+        self.doTestRPrime("e12-223-3-e-::", "1", useGraphCalculator=True)
 
     def doTestRPrime(self, graphStateAsString, expectedResultAsString, useGraphCalculator=False):
         try:
             if useGraphCalculator:
-                graph_calculator.addCalculator(mincer_adapter.MincerGraphCalculator())
+                graph_calculator.addCalculator(mincer_adapter.MincerGraphCalculator(_Phi4DimensionModel()))
             g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr(graphStateAsString)))
             expected = symbolic_functions.evaluateForTests(expectedResultAsString)
             actual = r_prime.doRPrime(g, r_prime.MSKOperation(), r_prime.defaultSubgraphUVFilter, useGraphCalculator=useGraphCalculator)
