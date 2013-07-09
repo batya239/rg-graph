@@ -59,17 +59,6 @@ class IndexableEdge:
             return map(lambda ie: ie.underlying, obj)
 
 
-class DimensionModel(object):
-    def getSpaceDimension(self):
-        raise NotImplementedError
-
-    def getLineDimension(self, edge):
-        raise NotImplementedError
-
-    def getVertexDimension(self, vertex):
-        raise NotImplementedError
-
-
 class Graph(object):
     """
     representation of graph
@@ -167,15 +156,6 @@ class Graph(object):
 
     def deleteEdge(self, edge):
         return self.deleteEdges([edge])
-
-    def calculateDimension(self, dimensionModel):
-        dim = dimensionModel.getSpaceDimension() * self.calculateLoopsCount()
-        for e in self.internalEdges():
-            dim += dimensionModel.getLineDimension(e)
-        for v in self.vertexes():
-            if v != self.externalVertex:
-                dim += dimensionModel.getVertexDimension(v)
-        return dim
 
     def batchShrinkToPoint(self, subGraphs):
         """

@@ -12,17 +12,6 @@ import test
 __author__ = 'daddy-bear'
 
 
-class _Phi4DimensionModel(graphine.DimensionModel):
-    def getLineDimension(self, edge):
-        return -2
-
-    def getSpaceDimension(self):
-        return 4
-
-    def getVertexDimension(self, vertex):
-        return 0
-
-
 class SubGraphReducerTestCase(test.GraphStorageAwareTestCase):
     def test1LoopDiagramPRime(self):
         g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr("e11-e-::")))
@@ -133,7 +122,7 @@ class SubGraphReducerTestCase(test.GraphStorageAwareTestCase):
     def doTestRPrime(self, graphStateAsString, expectedResultAsString, useGraphCalculator=False):
         try:
             if useGraphCalculator:
-                graph_calculator.addCalculator(mincer_adapter.MincerGraphCalculator(_Phi4DimensionModel()))
+                graph_calculator.addCalculator(mincer_adapter.MincerGraphCalculator())
             g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr(graphStateAsString)))
             expected = symbolic_functions.evaluateForTests(expectedResultAsString)
             actual = r_prime.doRPrime(g, r_prime.MSKOperation(), r_prime.defaultSubgraphUVFilter, useGraphCalculator=useGraphCalculator)

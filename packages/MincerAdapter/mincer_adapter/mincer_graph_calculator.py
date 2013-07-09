@@ -5,9 +5,6 @@ import mincer
 
 
 class MincerGraphCalculator(gfunctions.graph_calculator.AbstractGraphCalculator):
-    def __init__(self, dimensionModel):
-        self._dimensionModel = dimensionModel
-
     def isApplicable(self, graph):
         return mincer.isApplicable(graph)
 
@@ -15,7 +12,7 @@ class MincerGraphCalculator(gfunctions.graph_calculator.AbstractGraphCalculator)
         return "mincer graph calculator"
 
     def calculate(self, graph):
-        return mincer.calculateGraph(graph, self._dimensionModel)
+        return mincer.calculateGraph(graph)
 
     def init(self):
         mincer.initMincer()

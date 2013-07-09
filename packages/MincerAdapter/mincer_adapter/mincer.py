@@ -56,7 +56,7 @@ def isApplicable(graph):
     return True
 
 
-def calculateGraph(graph, dimensionModel=None):
+def calculateGraph(graph):
     t = writeFormFile(graph, _MINCER_DIR)
     if t is None:
         return None
@@ -78,9 +78,7 @@ def calculateGraph(graph, dimensionModel=None):
     # noinspection PyUnusedLocal
     _p = gfunctions.symbolic_functions._getP()
     res = eval(rawResult)
-    if dimensionModel is None:
-        return res
-    return res
+    return res * (gfunctions.symbolic_functions.pe ** graph.calculateLoopsCount())
 
 
 def _replaceZetas(rawResult):
