@@ -30,7 +30,8 @@ def initMincer(mincerDir=_MINCER_DEFAULT_TMP_DIR, useMultiThreading=True):
     try:
         _MINCER_DIR = mincerDir
         os.makedirs(_MINCER_DIR)
-        shutil.copyfile(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, "lib", _MINCER2_H), os.path.join(_MINCER_DIR, _MINCER2_H))
+        shutil.copyfile(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, "lib", _MINCER2_H),
+                        os.path.join(_MINCER_DIR, _MINCER2_H))
     except OSError as e:
         disposeMincer()
         raise e
@@ -63,17 +64,18 @@ def calculateGraph(graph):
     fileName = t[2]
 
     #stdout = subprocess.check_output("cd " + _MINCER_DIR + ";" + "form " + fileName, shell=True).replace("\n", '')
-    proc = subprocess.Popen("cd " + _MINCER_DIR + ";" + _FORM_VERSION + " " + fileName, shell=True, stdout=subprocess.PIPE)
+    proc = subprocess.Popen("cd " + _MINCER_DIR + ";" + _FORM_VERSION + " " + fileName, shell=True,
+                            stdout=subprocess.PIPE)
     proc.wait()
     stdout = proc.stdout.read().replace("\n", "")
 
     rawResult = _RESULT_REGEXP.findall(stdout)[0]
-    rawResult = rawResult.replace("Q.Q", "(_p**2)").replace("^", "**").replace("ep", "_e")
+    rawResult = rawResult.replace("Q.Q", "1").replace("^", "**").replace("ep", "_e")
     rawResult = _replaceZetas(rawResult)
     rawResult = gfunctions.symbolic_functions._safeIntegerNumerators(rawResult)
     if rawResult.strip() == '0':
         return None
-    # noinspection PyUnusedLocal
+        # noinspection PyUnusedLocal
     _e = gfunctions.symbolic_functions._getE()
     # noinspection PyUnusedLocal
     _p = gfunctions.symbolic_functions._getP()
@@ -101,7 +103,8 @@ topologies = {
     'e12-34-34-5-5-e-': ('no', ['Q', 'p1', 'p6', 'p2', 'p7', 'p8', 'p5', 'p3', 'p4', 'Q']),
 }
 
-graphs = dict((k, v) for (k, v) in map(lambda gs: (gs, graphine.Graph(graph_state.GraphState.fromStr("%s::" % gs))), topologies.keys()))
+graphs = dict((k, v) for (k, v) in
+              map(lambda gs: (gs, graphine.Graph(graph_state.GraphState.fromStr("%s::" % gs))), topologies.keys()))
 
 
 def _setMomenta(graphName, momentaList):
@@ -186,6 +189,7 @@ def main():
     initMincer()
     calculateGraph(g)
     disposeMincer()
+
 
 if __name__ == "__main__":
     main()
