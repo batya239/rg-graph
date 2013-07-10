@@ -17,7 +17,7 @@ class MincerTest(unittest.TestCase):
 
     def testEye(self):
         self.doTest("e112-2-e-::['(0, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(0, 0)']", 
-                    "-21*e**3*zeta(5) - 9*e**3*zeta(3) - pi**4*e**3/20 + 81*e**3/2 - pi**4*e**2/20 - 3*e**2*zeta(3) + 27*e**2/2 - 3*e*zeta(3) + 9*e/2 + 3/2 + 1/(2*e) + 1/(2*e**2)")
+                    ("-21*e**3*zeta(5) - 9*e**3*zeta(3) - pi**4*e**3/20 + 81*e**3/2 - pi**4*e**2/20 - 3*e**2*zeta(3) + 27*e**2/2 - 3*e*zeta(3) + 9*e/2 + 3/2 + 1/(2*e) + 1/(2*e**2)", (2, -2)))
 
     def testTBubble(self):
         self.doTest("e12-23-3-e-::['(0, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(0, 0)']", "-84*e**3*zeta(5)/p**2 - 18*e**3*zeta(3)**2/p**2 + 2*pi**6*e**3/(21*p**2) - pi**4*e**2/(5*p**2) + 42*e**2*zeta(5)/p**2 - 12*e*zeta(3)/p**2 + pi**4*e/(10*p**2) + 6*zeta(3)/p**2")
@@ -35,20 +35,22 @@ class MincerTest(unittest.TestCase):
         self.doTest("e12-223-3-e-::['(0, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(0, 0)']",
                     "0")
 
-    def doTest(self, graphStr, expectedResultAsString):
+    def doTest(self, graphStr, expectedResult):
+        epsPartAsString = expectedResult[0]
         graph = graphine.Graph.fromStr(graphStr)
         if not mincer.isApplicable(graph):
-            self.assertIsNone(expectedResultAsString)
+            self.assertIsNone(epsPartAsString)
             return
         actual = mincer.calculateGraph(graph)
-        if expectedResultAsString is None:
+        if expectedResult is None:
             self.assertIsNone(actual)
             return
-        expected = gfunctions.symbolic_functions.evaluateForTests(expectedResultAsString)
-        sub = (expected - actual).simplify()
-        self.assertTrue(expected == actual or abs(
+        expected = gfunctions.symbolic_functions.evaluateForTests(epsPartAsString)
+        sub = (expected - actual[0]).simplify()
+        self.assertTrue(expected == actual[0] or abs(
             (sub * gfunctions.symbolic_functions._e ** 5).evalf(subs={gfunctions.symbolic_functions._e: 1})) < 1e-100,
-                        "\nactual = " + str(actual) + "\nexpected = " + str(expected) + "\nsub = " + str(sub))
+                        "\nactual = " + str(actual[0]) + "\nexpected = " + str(expected) + "\nsub = " + str(sub))
+        self.assertEquals(expectedResult[1], actual[1])
 
     def assertIsNone(self, arg):
         self.assertEquals(None, arg)

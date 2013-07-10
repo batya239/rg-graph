@@ -237,10 +237,9 @@ class Graph(object):
             self._graphState = graph_state.GraphState(self.allEdges())
         return self._graphState
 
-    def calculateLoopsCount(self):
+    def getLoopsCount(self):
         if self._loopsCount is None:
-            self._loopsCount = len(self.allEdges()) - len(self.edges(self.externalVertex)) - (
-            len(self.vertexes()) - 1) + 1
+            self._loopsCount = len(self.allEdges()) - len(self.edges(self.externalVertex)) - (len(self.vertexes()) - 1) + 1
         return self._loopsCount
 
     def getPresentableStr(self):

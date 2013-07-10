@@ -42,7 +42,7 @@ def main():
     graphsToCalculate = list()
     for l in open(os.path.join(os.getcwd(), "../../../phi4/graphs/e" + str(tailsCount) + "-6loop.lst")):
         graph = graphine.Graph(graph_state.GraphState.fromStr(l[:-1] + "::"))
-        if graph.calculateLoopsCount() == loopsToFilter:
+        if graph.getLoopsCount() == loopsToFilter:
             graphsToCalculate.append(graphine.Graph.initEdgesColors(graph))
 
     for g in graphsToCalculate:

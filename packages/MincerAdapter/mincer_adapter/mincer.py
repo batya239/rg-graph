@@ -42,7 +42,7 @@ def disposeMincer():
 
 # noinspection PyUnboundLocalVariable
 def isApplicable(graph):
-    if graph.calculateLoopsCount() > 3:
+    if graph.getLoopsCount() > 3:
         return False
     edges = graph.allEdges()
     if not len(edges):
@@ -78,18 +78,15 @@ def calculateGraph(graph):
     # noinspection PyUnusedLocal
     _p = gfunctions.symbolic_functions._getP()
     res = eval(rawResult)
-    return res * (gfunctions.symbolic_functions.pe ** graph.calculateLoopsCount())
+    return res, _calculatePFactor(graph)
 
 
 def _replaceZetas(rawResult):
     return re.sub('z(\d+)', 'sympy.zeta(\\1)', rawResult)
 
 
-
-
-
-
-
+def _calculatePFactor(graph):
+    return len(graph.internalEdges()) - graph.getLoopsCount(), - graph.getLoopsCount()
 
 # no signs for momenta at this moment
 topologies = {
