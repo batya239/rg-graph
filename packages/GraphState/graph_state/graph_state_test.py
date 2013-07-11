@@ -92,7 +92,7 @@ class TestEdge(unittest.TestCase):
         self.assertTrue(hash(a) == hash(b))
 
 
-class testGraphState(unittest.TestCase):
+class TestGraphState(unittest.TestCase):
     def testInit(self):
         edges = tuple([graph_state.Edge(e)
                 for e in [(-1, 0), (0, 1), (1, -1)]])

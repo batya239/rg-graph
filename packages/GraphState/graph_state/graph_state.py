@@ -232,9 +232,9 @@ class GraphState(object):
             colors_list = itertools.imap(Rainbow.fromStr, eval(colors_str))
 
         edges = []
-        for nodes, fields, colors in itertools.izip(
-                nickel_edges, fields, colors_list):
+        for nodes, fields, colors in itertools.izip(nickel_edges, fields, colors_list):
             edges.append(Edge(nodes, fields=fields, colors=colors))
+        assert len(edges) == len(nickel_edges)
 
         return GraphState(edges)
 
