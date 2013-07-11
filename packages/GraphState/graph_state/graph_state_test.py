@@ -93,8 +93,14 @@ class TestEdge(unittest.TestCase):
 
 
 class TestGraphState(unittest.TestCase):
+    def testGraphStateObjectsEqual(self):
+        edges = tuple([graph_state.Edge(e, colors=(1, 2, 3))for e in [(-1, 0), (0, 1), (1, -1)]])
+        state1 = graph_state.GraphState(edges)
+        state2 = graph_state.GraphState.fromStr(str(state1))
+        self.assertEqual(state1, state2)
+
     def testInit(self):
-        edges = tuple([graph_state.Edge(e)
+        edges = tuple([graph_state.Edge(e, colors=(1, 2, 3))
                 for e in [(-1, 0), (0, 1), (1, -1)]])
         state = graph_state.GraphState(edges, node_maps=[{}])
         self.assertEqual(state.sortings, [edges])

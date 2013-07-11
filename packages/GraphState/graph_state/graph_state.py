@@ -116,7 +116,7 @@ class Edge(object):
 
             self.fields = Fields(pair)
 
-        self.colors = colors
+        self.colors = colors if isinstance(colors, Rainbow) else Rainbow(colors)
 
         self.edge_id = edge_id
 
