@@ -31,9 +31,8 @@ class MincerTest(unittest.TestCase):
         self.doTest("e12-23-3-e-::['(0, 0)', '(1, 0)', '(1, 0)', '(2, 0)', '(1, 0)', '(1, 0)', '(0, 0)']",
                     "-126*e**3*zeta(5)/p**4 - 18*e**3*zeta(3)/p**4 + 57*e**3/p**4 + 9*pi**4*e**3/(10*p**4) - 39*e**2/p**4 - 3*pi**4*e**2/(10*p**4) + 54*e**2*zeta(3)/p**4 - 18*e*zeta(3)/p**4 + 21*e/p**4 - 3/p**4 - 3/(e*p**4) + 1/(e**2*p**4)")
 
-    def testE122233e(self):
-        self.doTest("e12-223-3-e-::['(0, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(0, 0)']",
-                    "0")
+    def testE12_223_3_E(self):
+        self.doTest("e12-223-3-e-::['(0, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(0, 0)']", ("0", None))
 
     def doTest(self, graphStr, expectedResult):
         epsPartAsString = expectedResult[0]
@@ -45,6 +44,7 @@ class MincerTest(unittest.TestCase):
         if expectedResult is None:
             self.assertIsNone(actual)
             return
+        self.assertIsNotNone(actual)
         expected = gfunctions.symbolic_functions.evaluateForTests(epsPartAsString)
         sub = (expected - actual[0]).simplify()
         self.assertTrue(expected == actual[0] or abs(

@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf8
+import graph_storage
 
 __author__ = 'daddy-bear'
 
@@ -28,11 +29,13 @@ def addCalculator(graphCalculator):
     _calculators.append(graphCalculator)
 
 
-def tryCalculate(graph):
+def tryCalculate(graph, putValueToStorage=False):
     for c in _calculators:
         if c.isApplicable(graph):
             res = c.calculate(graph)
             if res is not None:
+                if putValueToStorage:
+                    graph_storage.put(graph, res)
                 return res, c.getLabel()
     return None
 

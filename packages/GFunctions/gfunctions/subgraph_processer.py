@@ -107,9 +107,8 @@ class GGraphReducer(object):
                     maximal = preprocessed
                     break
                 if self._useGraphCalculator:
-                    result = graph_calculator.tryCalculate(subGraph)
+                    result = graph_calculator.tryCalculate(subGraph, putValueToStorage=True)
                     if result is not None:
-                        graph_storage.put(subGraph, (symbolic_functions.toExternalCode(str(result[0])), (0, 0)))
                         maximal = preprocessed
                         break
 

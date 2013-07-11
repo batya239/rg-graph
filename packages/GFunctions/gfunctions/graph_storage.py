@@ -80,17 +80,17 @@ def writeUnCalculatedToFile(fileName):
 
 def put(graph, value):
     assert isinstance(graph, graphine.Graph)
-    assert len(value) == 2
-    assert isinstance(value[0], str)
-    assert isinstance(value[1], tuple)
-    assert len(value[1]) == 2
     if has(graph):
         return
+    assert len(value) == 2
+    assert isinstance(value[1], tuple)
+    assert len(value[1]) == 2
     graphStateAsString = str(graph)
-    _STORAGE._underlying[graphStateAsString] = value
+    firstAsString = str(value[0])
+    _STORAGE._underlying[graphStateAsString] = firstAsString, value[1]
     storageFile = open(path.join(os.getcwd(), _STORAGE_FILE_NAME), "a")
     storageFile.write("\n")
-    storageFile.write(str((graphStateAsString, value[0], value[1])))
+    storageFile.write(str((graphStateAsString, firstAsString, value[1])))
     storageFile.close()
 
 
