@@ -67,7 +67,6 @@ class GraphTestCase(unittest.TestCase):
         graph = gr.Graph(gs.GraphState.fromStr("e14-2-344-4-e-::"))
         current = [g for g in
                    graph.xRelevantSubGraphs(twoEdgesFilter, gr.Representator.asList)]
-        print current[17]
         return graph_operations.isGraphConnected(current[1], graph, graph.allEdges())
 
 
