@@ -51,7 +51,7 @@ for tVersion_ in tVersions:
     (res, err) = dynamics.execute(name, model,
                                   neps=neps,
                                   points=points,
-                                  threads=4)
+                                  threads=8)
     #calc_delta=0.0000000001))
 
     for i in range(len(res)):
