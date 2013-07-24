@@ -48,6 +48,18 @@ class Polynomial:
         self.hash = None
         self._monomialsWithHash = None
 
+    def integrate(self, varIndex):
+        """
+        integration of real polynomial (self.degree == 1)
+        """
+        assert self.degree == 1
+        nMonomials = zeroDict()
+        for m, c in self.monomials.iteritems():
+            nm, degree = m.integrate(varIndex)
+            nc = float(c) / degree
+            nMonomials[nm] += nc
+        return Polynomial(nMonomials, self.degree, self.c, doPrepare=False)
+
     def getMonomialsWithHash(self):
         if self._monomialsWithHash is None:
             self._monomialsWithHash = MonomialsWithHash(self.monomials)

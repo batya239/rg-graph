@@ -41,6 +41,12 @@ class MultiIndex:
         else:
             return self
 
+    def integrate(self, varIndex):
+        nVars = self.vars.copy()
+        lastDegree = nVars[varIndex]
+        nVars[varIndex] = lastDegree + 1
+        return MultiIndex(nVars, doPrepare=False), 1 if lastDegree is 0 else lastDegree
+
     def diff(self, varIndex):
         """
         decrease power of varIndex if exist and returns old power

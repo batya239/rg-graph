@@ -47,6 +47,13 @@ class PolynomialTestCase(PolynomialToolsTestCase):
         self.assertEquals(_p2.monomials[MultiIndex({1: 2, 5: 4})], 2400)
         self.assertEquals(_p2.c, 9)
 
+    def testIntegration(self):
+        p = Polynomial({mi1_2: c1_2, mi1_3: c1_3}, 1, 3)
+        i = p.integrate(5)
+        self.assertEquals(i.monomials[MultiIndex({5: 1})], 4)
+        self.assertEquals(i.monomials[MultiIndex({5: 3, 1: 1})], 2.5)
+
+
 
 if __name__ == "__main__":
     unittest.main()
