@@ -101,7 +101,8 @@ class Polynomial:
             if mi.hasVar(varIndex):
                 power = mi.vars[varIndex]
                 nPolynomial = polynomial._inPowerOf(power)
-                factor = nPolynomial.c
+                assert nPolynomial.c.isRealNumber()
+                factor = nPolynomial.c.a
                 nMi = mi.set1toVar(varIndex)
                 for pMi, pC in nPolynomial.monomials.items():
                     Polynomial._append(nMonomials, pMi * nMi, c * pC * factor)
