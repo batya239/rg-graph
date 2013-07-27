@@ -112,6 +112,10 @@ class VariableAwareNumber:
         else:
             return '%s+%s*%s' % (self.a, self.varName, self.b)
 
+    def __div__(self, other):
+        if isinstance(other, int) or isinstance(other, float):
+            return VariableAwareNumber(self.varName, self.a / other, self.b / other)
+
     def __mul__(self, other):
         otherEpsPower = VariableAwareNumber.create(self.varName, other)
         if otherEpsPower.isRealNumber():

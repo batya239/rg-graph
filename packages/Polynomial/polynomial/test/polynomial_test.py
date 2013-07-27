@@ -21,6 +21,22 @@ p2 = Polynomial({mi2_1: c2_1, mi2_2: c2_2}, (1, 2), (3, 1))
 
 
 class PolynomialTestCase(PolynomialToolsTestCase):
+    def testSub(self):
+        _p1 = Polynomial({mi2_1: c2_1, mi2_2: c2_2})
+        _p2 = Polynomial({mi1_1: c1_1, mi1_2: c1_2, mi2_2: c2_2})
+        sub = _p1 - _p2
+        self.assertEquals(c2_1, sub.monomials[mi2_1])
+        self.assertEquals(-c1_1, sub.monomials[mi1_1])
+        self.assertIsNone(sub.monomials.get(mi2_2, None))
+
+    def testAdd(self):
+        _p1 = Polynomial({mi2_1: c2_1, mi2_2: -13})
+        _p2 = Polynomial({mi1_1: c1_1, mi1_2: c1_2, mi2_2: 23})
+        add = _p1 + _p2
+        self.assertEquals(c2_1, add.monomials[mi2_1])
+        self.assertEquals(c1_1, add.monomials[mi1_1])
+        self.assertEquals(10, add.monomials[mi2_2])
+
     def testFactorize(self):
         f = p1.factorize()
         self.assertEquals(f[0], p1)

@@ -56,7 +56,7 @@ class Polynomial:
         nMonomials = zeroDict()
         for m, c in self.monomials.iteritems():
             nm, degree = m.integrate(varIndex)
-            nc = float(c) / degree
+            nc = c / float(degree)
             nMonomials[nm] += nc
         return Polynomial(nMonomials, self.degree, self.c, doPrepare=False)
 
@@ -247,6 +247,39 @@ class Polynomial:
 
     def __neg__(self):
         return Polynomial(self.monomials, degree=self.degree, c=-self.c, doPrepare=False)
+
+    def __add__(self, other):
+        return self._doAddOrSub(other, 1)
+
+    def __sub__(self, other):
+        return self._doAddOrSub(other, -1)
+
+    def _doAddOrSub(self, other, sign):
+        if isinstance(other, Polynomial):
+            assert self.degree == 1 and other.degree == 1
+            if self.c.isRealNumber() and other.c.isRealNumber():
+                return Polynomial._addOrSubCoefficientsIsRealNumber(self, other, sign)
+            elif self.c == other.c:
+                return Polynomial._addOrSubCoefficientsAreEqual(self, other, sign)
+        raise AssertionError
+
+    @staticmethod
+    def _addOrSubCoefficientsIsRealNumber(p1, p2, sign):
+        nMonomials = zeroDict()
+        for m, c in p1.monomials.iteritems():
+            nMonomials[m] += c * p1.c
+        for m, c in p2.monomials.iteritems():
+            nMonomials[m] += c * p2.c * sign
+        return Polynomial(nMonomials, degree=1, c=1, doPrepare=True)
+
+    @staticmethod
+    def _addOrSubCoefficientsAreEqual(p1, p2, sign):
+        nMonomials = zeroDict()
+        for m, c in p1.monomials.iteritems():
+            nMonomials[m] += c
+        for m, c in p2.monomials.iteritems():
+            nMonomials[m] += c * sign
+        return Polynomial(nMonomials, degree=1, c=p1.c, doPrepare=True)
 
     def __mul__(self, other):
         if isinstance(other, v_number.VariableAwareNumber) and other.isRealNumber():
