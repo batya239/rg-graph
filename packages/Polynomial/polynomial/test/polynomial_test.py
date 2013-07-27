@@ -80,6 +80,8 @@ class PolynomialTestCase(PolynomialToolsTestCase):
         self.assertEquals(i.monomials[MultiIndex({5: 3, 1: 1, 2: 1})], 7.5)
         self.assertEquals(i.monomials[MultiIndex({5: 3, 2: 1, 3: 1})], 7.5)
 
+    def assertIsNone(self, obj):
+        self.assertEquals(None, obj)
 
 if __name__ == "__main__":
     unittest.main()
