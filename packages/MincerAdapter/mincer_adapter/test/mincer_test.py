@@ -24,7 +24,7 @@ class MincerTest(unittest.TestCase):
     def testTBubble(self):
         self.doTest("e12-23-3-e-::['(0, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(0, 0)']", (
         "-84.0*e**3*zeta(5) - 18.0*e**3*zeta(3)**2 + 0.0952380952380952*pi**6*e**3 - 0.2*pi**4*e**2 + 42.0*e**2*zeta(5) - 12.0*e*zeta(3) + 0.1*pi**4*e + 6.0*zeta(3)",
-        (2, -2)))
+        (3, -2)))
 
     def testTBubble1(self):
         self.doTest("e12-223-3-e-::['(0, 0)', '(1, 0)', '(1, 0)','(1, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(0, 0)']",
@@ -58,7 +58,7 @@ class MincerTest(unittest.TestCase):
         expected = gfunctions.symbolic_functions.evaluateForTests(epsPartAsString)
         sub = (expected - actual[0]).simplify()
         self.assertTrue(expected == actual[0] or abs(
-            (sub * gfunctions.symbolic_functions._e ** 5).evalf(subs={gfunctions.symbolic_functions._e: 1})) < 1e-100,
+            sub.evalf(subs={gfunctions.symbolic_functions._e: 1})) < 1e-10,
                         "\nactual = " + str(actual[0]) + "\nexpected = " + str(expected) + "\nsub = " + str(sub))
         self.assertEquals(expectedResult[1], actual[1])
 
