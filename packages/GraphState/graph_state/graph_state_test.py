@@ -39,6 +39,9 @@ class TestRainbow(unittest.TestCase):
         self.assertEqual(str(r), '(0, 1)')
         self.assertEqual(r, graph_state.Rainbow.fromStr(str(r)))
 
+    def testFromStr2(self):
+        r = graph_state.Rainbow.fromStr("\"asd\"")
+        self.assertEqual(r.colors, ("asd",))
 
 class TestEdge(unittest.TestCase):
     def testCompare(self):

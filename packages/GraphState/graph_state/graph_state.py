@@ -58,7 +58,7 @@ class Fields(object):
 class Rainbow(object):
     '''Class of sequences assigned to the edge.'''
     def __init__(self, colors):
-        self._colors = tuple(colors)
+        self._colors = tuple(colors) if isinstance(colors, list) or isinstance(colors, set) or isinstance(colors, tuple) else (colors, )
 
     @property
     def colors(self):
@@ -81,6 +81,11 @@ class Rainbow(object):
 
     def __repr__(self):
         return str(self)
+
+    def __add__(self, other):
+        if isinstance(other, Rainbow):
+            return Rainbow(self.colors + other.colors)
+        raise AssertionError()
 
     @staticmethod
     def fromStr(string):

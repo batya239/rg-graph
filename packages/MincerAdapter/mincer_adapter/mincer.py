@@ -113,7 +113,7 @@ def _setMomenta(graphName, momentaList):
     for edge in graph.allEdges(withIndex=True):
         edge_ = copy.copy(edge.underlying)
         idx = edge.index
-        edge_.colors = momentaList[idx]
+        edge_.colors = graph_state.Rainbow((momentaList[idx],))
         edgesList.append(edge_)
     return graphine.Graph(graph_state.GraphState(edgesList))
 
@@ -159,7 +159,7 @@ def generateFormFile(topologyType, graphWithMomenta, graphWithWeights):
     denom = ""
     graphWithMomentaAndWeights = graphine.util.merge(graphWithMomenta, graphWithWeights)
     for line in graphWithMomentaAndWeights.internalEdges():
-        denom += ''.join(["/%s.%s" % (line.colors[0], line.colors[0])] * line.colors[1][0])
+        denom += ''.join(["/%s.%s" % (line.colors[0], line.colors[0])] * line.colors[1])
     return formTemplate.format(denom=denom, topology=topologyType)
 
 

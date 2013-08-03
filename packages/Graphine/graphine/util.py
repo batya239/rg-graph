@@ -24,7 +24,7 @@ def merge(graph1, graph2):
 
 def _mergeEdge(e1, e2, externalVertex):
     assert e1.nodes == e2.nodes
-    return graph_state.Edge(e1.nodes, external_node=externalVertex, colors=(e1.colors, e2.colors))
+    return graph_state.Edge(e1.nodes, external_node=externalVertex, colors=e1.colors + e2.colors)
 
 
 def getSubExternalVertexes(graph, subGraphAsList):
