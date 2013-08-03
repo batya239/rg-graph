@@ -65,6 +65,10 @@ class MincerTest(unittest.TestCase):
     def assertIsNone(self, arg):
         self.assertEquals(None, arg)
 
+    def assertIsNotNone(self, arg):
+        self.assertNotEquals(None, arg)
+
+
     def tearDown(self):
         mincer.disposeMincer()
 
