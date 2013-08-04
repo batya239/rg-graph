@@ -88,7 +88,10 @@ def _replaceZetas(rawResult):
 
 
 def _calculatePFactor(graph):
-    return len(graph.internalEdges()) - graph.getLoopsCount(), - graph.getLoopsCount()
+    factor0 = 0
+    for e in graph.internalEdges():
+        factor0 += e.colors[0]
+    return factor0 - graph.getLoopsCount(), - graph.getLoopsCount()
 
 # no signs for momenta at this moment
 topologies = {
