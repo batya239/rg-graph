@@ -298,8 +298,10 @@ class Polynomial:
         elif isinstance(_other, v_number.VariableAwareNumber):
             return polynomial_product.PolynomialProduct(
                 [self, Polynomial(zeroDict({multiindex.MultiIndex(): 1}), c=eps_number.epsNumber(_other))])
-        elif isinstance(_other, int):
+        elif isinstance(_other, (int, float)):
             return Polynomial(self.monomials, degree=self.degree, c=self.c * _other, doPrepare=False)
+        else:
+            raise NotImplementedError("multiplication of poly with %s not implemented" % type(other))
 
     __rmul__ = __mul__
 

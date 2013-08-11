@@ -37,6 +37,21 @@ class PolynomialTestCase(PolynomialToolsTestCase):
         self.assertEquals(c1_1, add.monomials[mi1_1])
         self.assertEquals(10, add.monomials[mi2_2])
 
+    def testMulByNumber(self):
+        _p1 = Polynomial({mi2_1: c2_1, mi2_2: c2_2})
+        mul = _p1 * 2
+        print mul
+        self.assertEquals(_p1.c * 2, mul.c)
+        self.assertEquals(c2_1, mul.monomials[mi2_1])
+        self.assertEquals(c2_2, mul.monomials[mi2_2])
+        _p1 = Polynomial({mi2_1: c2_1, mi2_2: c2_2})
+        mul = _p1 * 2.5
+        print mul
+        self.assertEquals(_p1.c * 2.5, mul.c)
+        self.assertEquals(c2_1, mul.monomials[mi2_1])
+        self.assertEquals(c2_2, mul.monomials[mi2_2])
+
+
     def testFactorize(self):
         f = p1.factorize()
         self.assertEquals(f[0], p1)
