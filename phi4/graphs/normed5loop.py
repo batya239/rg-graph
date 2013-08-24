@@ -1,9 +1,10 @@
 #!/usr/bin/python
 
 import sympy
-zeta = lambda x: sympy.special.zeta_functions.zeta(x).evalf()
+#zeta = lambda x: sympy.special.zeta_functions.zeta(x).evalf()
+zeta =sympy.special.zeta_functions.zeta
 e_=sympy.var('e')
-e=2*e
+e=2*e_
 MS={
     'e111-e-':(-0.5/e),
     'ee11-ee-':(2./e),
