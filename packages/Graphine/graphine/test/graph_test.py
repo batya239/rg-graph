@@ -101,6 +101,11 @@ class GraphTestCase(unittest.TestCase):
                                  [(0, 1), (0, 1)],
                                  'ee0-::')
 
+    def testGetLoopCount(self):
+        self.assertEqual(gr.Graph.fromStr('e111-e-::').getLoopsCount(), 2)
+        self.assertEqual(gr.Graph.fromStr('ee11-ee-::').getLoopsCount(), 1)
+        self.assertEqual(gr.Graph.fromStr('111--::').getLoopsCount(), 2)
+
     def doTestGetRelevantSubGraphs(self, nickelRepresentation, expected):
         graph = gr.Graph(gs.GraphState.fromStr(nickelRepresentation))
         testFilters = filters.noTadpoles + filters.oneIrreducible
