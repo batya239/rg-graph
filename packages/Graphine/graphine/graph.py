@@ -239,7 +239,9 @@ class Graph(object):
 
     def getLoopsCount(self):
         if self._loopsCount is None:
-            self._loopsCount = len(self.allEdges()) - len(self.edges(self.externalVertex)) - (len(self.vertexes()) - 1) + 1
+            externalLegsCount = len(self.edges(self.externalVertex))
+            self._loopsCount = len(self.allEdges()) - externalLegsCount - (len(self.vertexes()) -
+                                                                           (1 if externalLegsCount != 0 else 0)) + 1
         return self._loopsCount
 
     def getPresentableStr(self):
