@@ -68,9 +68,9 @@ else:
     sys.exit(1)
 
 
-if len(sys.argv) == 4:
-    struct = load_structures(sys.argv[2])
-    struct = load_structures(sys.argv[3], struct=struct)
+if len(sys.argv) == 5:
+    struct = load_structures(sys.argv[3])
+    struct = load_structures(sys.argv[4], struct=struct)
 else:
     struct = None
 
