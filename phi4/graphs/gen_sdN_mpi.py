@@ -43,9 +43,9 @@ exec('import %s as methodModule' % method)
 
 method_name = methodModule.method_name
 
-folder = "%s/%s/%s" % (model.workdir, method_name, graphName)
+folder = os.path.join(model.workdir, method_name, graphName)
 
-fileName = folder + "/sectors.py"
+fileName = os.path.join(folder,"sectors.py")
 
 fileNameC = "%s" % (graphName)
 

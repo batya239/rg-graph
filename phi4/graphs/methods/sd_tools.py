@@ -1740,7 +1740,7 @@ def save(name, graph, model, overwrite=True):
                 if fnmatch.fnmatch(file, "*.c") or fnmatch.fnmatch(file, "*.run") or fnmatch.fnmatch(file, "*.o"):
                     os.remove(dirname + file)
     Prepare(graph, model)
-    save_sd(dirname + name, graph, model)
+    save_sd(os.path.join(dirname,name), graph, model)
 
 
 def compile(name, model):
