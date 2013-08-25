@@ -1726,21 +1726,21 @@ def core_pvmpi_code(Nf, N, func_fname, neps=-1):
 
 
 def save(name, graph, model, overwrite=True):
-    dirname = '%s/%s/%s/' % (model.workdir, method_name, name)
+    dirname = os.path.join(model.workdir, method_name, name)
     try:
-        os.mkdir('%s/%s' % (model.workdir, method_name))
+        os.makedirs(os.path.join(model.workdir, method_name))
     except:
         pass
     try:
-        os.mkdir(dirname)
-    except:
+        os.makedirs(dirname)
+    except OSError:
         if overwrite:
             file_list = os.listdir(dirname)
             for file in file_list:
                 if fnmatch.fnmatch(file, "*.c") or fnmatch.fnmatch(file, "*.run") or fnmatch.fnmatch(file, "*.o"):
                     os.remove(dirname + file)
     Prepare(graph, model)
-    save_sd(dirname + name, graph, model)
+    save_sd(os.path.join(dirname,name), graph, model)
 
 
 def compile(name, model):
