@@ -106,6 +106,18 @@ class GraphTestCase(unittest.TestCase):
         self.assertEqual(gr.Graph.fromStr('ee11-ee-::').getLoopsCount(), 1)
         self.assertEqual(gr.Graph.fromStr('111--::').getLoopsCount(), 2)
 
+    def testDeleteVertex(self):
+        self.doTestDeleteVertex("e12-223-3-e-::", "e1-2-e-::", 2, False)
+        self.doTestDeleteVertex("e12-34-34--e-::", "e12-3-3-e-::", 3, False)
+        self.doTestDeleteVertex("e112-3-e3--::", "e112--e-::", 3, False)
+        self.doTestDeleteVertex("e12-223-3-e-::", "ee1-ee2-ee-::", 2, True)
+        self.doTestDeleteVertex("e12-34-34--e-::", "e12-e3-e3-e-::", 3, True)
+        self.doTestDeleteVertex("e112-3-e3--::", "e112-e-ee-::", 3, True)
+
+    def doTestDeleteVertex(self, rawToDelete, rawExpected, vertexToDelete, transformEdgesToInternal):
+        actual = gr.Graph.fromStr(rawToDelete).deleteVertex(vertexToDelete, transformEdgesToInternal)
+        self.assertEqual(actual, gr.Graph.fromStr(rawExpected))
+
     def doTestGetRelevantSubGraphs(self, nickelRepresentation, expected):
         graph = gr.Graph(gs.GraphState.fromStr(nickelRepresentation))
         testFilters = filters.noTadpoles + filters.oneIrreducible
