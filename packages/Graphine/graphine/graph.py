@@ -150,9 +150,9 @@ class Graph(object):
             Graph._persDeleteEdge(newEdges, edge)
         return Graph(newEdges)
 
-    def deleteVertex(self, vertex, transformEdgesToInternal=False):
+    def deleteVertex(self, vertex, transformEdgesToExternal=False):
         assert vertex != self.externalVertex
-        if transformEdgesToInternal:
+        if transformEdgesToExternal:
             edges = self.edges(vertex)
             for e in edges:
                 if self.externalVertex in e.nodes:

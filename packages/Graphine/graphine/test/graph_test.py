@@ -114,8 +114,8 @@ class GraphTestCase(unittest.TestCase):
         self.doTestDeleteVertex("e12-34-34--e-::", "e12-e3-e3-e-::", 3, True)
         self.doTestDeleteVertex("e112-3-e3--::", "e112-e-ee-::", 3, True)
 
-    def doTestDeleteVertex(self, rawToDelete, rawExpected, vertexToDelete, transformEdgesToInternal):
-        actual = gr.Graph.fromStr(rawToDelete).deleteVertex(vertexToDelete, transformEdgesToInternal)
+    def doTestDeleteVertex(self, rawToDelete, rawExpected, vertexToDelete, transformEdgesToExternal):
+        actual = gr.Graph.fromStr(rawToDelete).deleteVertex(vertexToDelete, transformEdgesToExternal)
         self.assertEqual(actual, gr.Graph.fromStr(rawExpected))
 
     def doTestGetRelevantSubGraphs(self, nickelRepresentation, expected):
