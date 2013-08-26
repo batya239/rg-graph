@@ -144,6 +144,15 @@ class TestGraphState(unittest.TestCase):
         decoded = graph_state.GraphState.fromStr(str(state))
         self.assertEqual(decoded.sortings[0], edges)
 
+    def testToFromStr1(self):
+        actual_state = graph_state.GraphState.fromStr("e1-e-")
+        self.assertEqual("e1-e-::", str(actual_state))
+        edges = (graph_state.Edge((-1, 0)),
+                 graph_state.Edge((0, 1)),
+                 graph_state.Edge((1, -1)))
+        expected_state = graph_state.GraphState(edges)
+        self.assertEqual(actual_state, expected_state)
+
     def testToFromStrWithFields(self):
         edges = (graph_state.Edge((-1, 0), fields=graph_state.Fields('aa')),
                  graph_state.Edge((0, 1), fields=graph_state.Fields('ab')),

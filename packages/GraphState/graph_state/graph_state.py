@@ -199,6 +199,9 @@ class GraphState(object):
     def __hash__(self):
         return hash(self.sortings[0])
 
+    def __repr__(self):
+        return str(self)
+
     def __str__(self):
         nickel_edges = [edge.nodes for edge in self.sortings[0]]
         edges_str = nickel.Nickel(edges=nickel_edges).string
@@ -225,7 +228,11 @@ class GraphState(object):
 
     @staticmethod
     def fromStr(string):
-        edges_str, fields_str, colors_str = string.split(GraphState.SEP, 2)
+        splitted_string = string.split(GraphState.SEP, 2)
+        splitted_len = len(splitted_string)
+        assert splitted_len == 1 or splitted_len == 3
+        edges_str, fields_str, colors_str = splitted_string if splitted_len == 3 \
+            else (splitted_string[0], None, None)
 
         nickel_edges = nickel.Nickel(string=edges_str).edges
         if not fields_str:
