@@ -26,6 +26,9 @@ def isGraphVertexIrreducible(edgesList, superGraph, superGraphEdges):
     if len(subGraph.vertexes() - set([superGraph.externalVertex])) == 1:
         return True
     for v in subGraph.vertexes():
+        for e in subGraph.edges(v):
+            if e.nodes[0] == e.nodes[1]:
+                return False
         if v is not superGraph.externalVertex:
             if not _isGraphConnected(subGraph.deleteVertex(v).allEdges(), superGraph.externalVertex):
                 return False

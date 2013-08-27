@@ -48,6 +48,10 @@ class GraphOperationsTestCase(unittest.TestCase):
     def testVertexIrreducibility(self):
         self.doTestVertexIrreducibility("ee11-22-ee-::", expectedResult=False)
         self.doTestVertexIrreducibility("ee12-ee2-ee-::", expectedResult=True)
+        self.doTestVertexIrreducibility("011-22-2-::", expectedResult=False)
+        self.doTestVertexIrreducibility("012-12-2-::", expectedResult=False)
+        self.doTestVertexIrreducibility("012-222--::", expectedResult=False)
+        self.doTestVertexIrreducibility("1122-22--::", expectedResult=True)
 
     def doTestHasNoTadPoles(self, nickel, subGraphEdges, expectedResult):
         subGraphEdges = [gs.Edge(e) for e in subGraphEdges]
