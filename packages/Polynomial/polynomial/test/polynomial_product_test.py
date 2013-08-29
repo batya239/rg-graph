@@ -6,6 +6,7 @@ from multiindex import MultiIndex
 from polynomial import Polynomial, poly
 from framework.framework import PolynomialToolsTestCase
 from polynomial_product import PolynomialProduct
+from checkers import exactMonomial, coefficientIs, degreeIs
 
 mi1_1 = MultiIndex({1: 3, 2: 4, 4: 4, 3: 1})
 c1_1 = 3
@@ -84,14 +85,12 @@ class PolynomialProductTestCase(PolynomialToolsTestCase):
 
     def testSimplifying(self):
         npp = pp.simplify()
-        sortedPolynomials = sorted(npp.polynomials)
+
         self.assertEquals(len(npp.polynomials), 4)
-        self.assertEquals(sortedPolynomials[1].monomials[MultiIndex({1: 1})], 1)
-        self.assertEquals(sortedPolynomials[1].degree, (2, 3))
-        self.assertEquals(sortedPolynomials[1].c, 1)
-        self.assertEquals(sortedPolynomials[3].monomials[MultiIndex({2: 4, 3: 1})], 4)
-        self.assertEquals(sortedPolynomials[3].degree, (2, 3))
-        self.assertEquals(sortedPolynomials[3].c, 3)
+        self.assertTrue(npp.hasPolynomialWith().monomial(exactMonomial({1: 1}, 1)))
+        self.assertTrue(npp.hasPolynomialWith(degreeIs((2, 3)).and_(coefficientIs(1))))
+        self.assertTrue(npp.hasPolynomialWith(degreeIs((2, 3)).and_(coefficientIs(3)))
+            .withMonomial(exactMonomial({2: 4, 3: 1}, 4)))
         pp1 = poly([(1, (2, 3)), (1, (1, 2, 'a0', 'a0')), (1, (1, 3, 'a1'))]).toPolyProd()
         pps = pp1.diff('a1')[0].simplify()
         self.assertEquals(len(pps), 2)
