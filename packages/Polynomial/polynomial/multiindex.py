@@ -47,8 +47,9 @@ class MultiIndex(object):
     def integrate(self, varIndex):
         nVars = self.vars.copy()
         lastDegree = nVars[varIndex]
-        nVars[varIndex] = lastDegree + 1
-        return MultiIndex(nVars, doPrepare=False), 1 if lastDegree is 0 else lastDegree
+        newDegree = lastDegree + 1
+        nVars[varIndex] = newDegree
+        return MultiIndex(nVars, doPrepare=False), newDegree
 
     def diff(self, varIndex):
         """
