@@ -48,6 +48,7 @@ def _defaultGraphHasNotIRDivergence(graph):
 
 defaultGraphHasNotIRDivergenceFilter = [_defaultGraphHasNotIRDivergence]
 
+
 def doRPrime(graph, kOperation, uvSubGraphFilter, description="", useGraphCalculator=True):
     assert len(graph.edges(graph.externalVertex)) == 2
 
@@ -69,8 +70,9 @@ def _doRPrime(rawGraph, kOperation, uvSubGraphFilter, description="", useGraphCa
         uvSubgraphs = graphine.Graph.batchInitEdgesColors([sg for sg in graph.xRelevantSubGraphs(uvSubGraphFilter)])
         if not len(uvSubgraphs):
             expression, twoTailsGraph = _calculateGraphValue(graph, useGraphCalculator=useGraphCalculator)
-            rprime_storage.putGraphR1(twoTailsGraph, symbolic_functions.polePart(expression), GFUN_METHOD_NAME_MARKER, description)
-            return expression
+            pole_part = symbolic_functions.polePart(expression)
+            rprime_storage.putGraphR1(twoTailsGraph, pole_part, GFUN_METHOD_NAME_MARKER, description)
+            return pole_part
 
         rawRPrime = _calculateGraphValue(graph, useGraphCalculator=useGraphCalculator)[0]
         sign = 1

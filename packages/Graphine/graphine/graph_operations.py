@@ -149,8 +149,8 @@ def _pickExternalEdges(edgesList, externalVertex=-1):
     return external, inner
 
 
-def _createExternalEdge(innerVertex, externalVertex=-1, edgesCount=1):
-    e = graph_state.graph_state.Edge((externalVertex, innerVertex), external_node=externalVertex)
+def _createExternalEdge(innerVertex, externalVertex=-1, edgesCount=1, colors=(0, 0)):
+    e = graph_state.graph_state.Edge((externalVertex, innerVertex), external_node=externalVertex, colors=colors)
     return [e] * edgesCount
 
 
