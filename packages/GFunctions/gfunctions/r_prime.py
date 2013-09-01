@@ -41,6 +41,7 @@ _irRelevanceCondition = graphine.phi4.IRRelevanceCondition()
 def _defaultGraphHasNotIRDivergence(graph):
     allEdges = graph.allEdges()
     for sg in graph.xRelevantSubGraphs(graphine.filters.connected, resultRepresentator=graphine.Representator.asGraph):
+        print sg, graph
         if _irRelevanceCondition.isRelevant(sg.allEdges(withIndex=False), superGraph=graph, superGraphEdges=allEdges):
             return False
 
