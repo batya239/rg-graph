@@ -12,7 +12,7 @@ import graph_state
 gfunctions.graph_storage.initStorage(withFunctions=True)
 gfunctions.rprime_storage.initStorage()
 
-gs = graph_state.GraphState.fromStr("e12-233-34-4-e-")
+gs = graph_state.GraphState.fromStr(sys.argv[1])
 graph = graphine.Graph.initEdgesColors(graphine.Graph(gs))
 
 reducer = gfunctions.GGraphReducer(graph)

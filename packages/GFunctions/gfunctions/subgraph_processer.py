@@ -57,6 +57,7 @@ class GGraphReducer(object):
         self._iterationValues = []
         self._subGraphFilter = _createFilter() + subGraphFilters
         self._useGraphCalculator = useGraphCalculator
+        self._availableBranches = None
 
     @property
     def iterationValues(self):
@@ -82,6 +83,11 @@ class GGraphReducer(object):
 
     def isSuccesfulDone(self):
         return len(self.getCurrentIterationGraph().allEdges()) == 3
+
+    def _tryStoreBranch(self, branches):
+        #TODO make in future this cool upgrade
+        if self._availableBranches is None:
+            self._availableBranches = (list(branches), list(self._iterationGraphs), list(self._iterationValues))
 
     def nextIteration(self):
         """
