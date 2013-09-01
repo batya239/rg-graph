@@ -73,37 +73,40 @@ def _xSubGraphs(edgesList, edgesMap, externalVertex, startSize=2):
 
     innerLength = len(inner)
 
-    #Are this shit?
+    if len(edgesList):
+        hasColors = edgesList[0].colors is not None
 
-    if startSize == 1:
-        notExternalVertexes = set(edgesMap.keys()) - set([externalVertex])
-        for v in notExternalVertexes:
-            edges = edgesMap.get(v, None)
-            if edges:
-                subGraph = _createExternalEdge(v,  externalVertex=externalVertex, edgesCount=len(edges))
-                yield subGraph
+        #Are this shit?
 
-    _startSize = max(2, startSize)
+        if startSize == 1:
+            notExternalVertexes = set(edgesMap.keys()) - set([externalVertex])
+            for v in notExternalVertexes:
+                edges = edgesMap.get(v, None)
+                if edges:
+                    subGraph = _createExternalEdge(v,  externalVertex=externalVertex, edgesCount=len(edges), hasColors=hasColors)
+                    yield subGraph
 
-    if innerLength:
-        for i in xrange(_startSize, innerLength):
-            for rawSubGraph in itertools.combinations(inner, i):
-                subGraph = list(rawSubGraph)
-                subGraphVertexes = set()
-                for e in subGraph:
-                    subGraphVertexes |= set(e.nodes)
-                for e in _supplement(inner, subGraph):
-                    vSet = set(e.nodes)
-                    vSetCard = len(vSet)
-                    factor = 2 if vSetCard == 1 else 1
-                    for v in vSet:
+        _startSize = max(2, startSize)
+
+        if innerLength:
+            for i in xrange(_startSize, innerLength):
+                for rawSubGraph in itertools.combinations(inner, i):
+                    subGraph = list(rawSubGraph)
+                    subGraphVertexes = set()
+                    for e in subGraph:
+                        subGraphVertexes |= set(e.nodes)
+                    for e in _supplement(inner, subGraph):
+                        vSet = set(e.nodes)
+                        vSetCard = len(vSet)
+                        factor = 2 if vSetCard == 1 else 1
+                        for v in vSet:
+                            if v in subGraphVertexes:
+                                subGraph += _createExternalEdge(v, externalVertex, factor, hasColors=hasColors)
+                    for e in external:
+                        v = [v for v in e.nodes if v != externalVertex][0]
                         if v in subGraphVertexes:
-                            subGraph += _createExternalEdge(v, externalVertex, factor)
-                for e in external:
-                    v = [v for v in e.nodes if v != externalVertex][0]
-                    if v in subGraphVertexes:
-                        subGraph.append(e)
-                yield subGraph
+                            subGraph.append(e)
+                    yield subGraph
 
 
 def _isGraphConnected(edgesList, externalVertex, additionalVertexes=set()):
@@ -149,7 +152,8 @@ def _pickExternalEdges(edgesList, externalVertex=-1):
     return external, inner
 
 
-def _createExternalEdge(innerVertex, externalVertex=-1, edgesCount=1, colors=(0, 0)):
+def _createExternalEdge(innerVertex, externalVertex=-1, edgesCount=1, hasColors=False):
+    colors = (0, 0) if hasColors else None
     e = graph_state.graph_state.Edge((externalVertex, innerVertex), external_node=externalVertex, colors=colors)
     return [e] * edgesCount
 
