@@ -146,15 +146,13 @@ def _calculateGraphValue(graph, suppressException=False, useGraphCalculator=Fals
             break
         if graphReducer is None:
             raise CannotBeCalculatedError(graph)
-    while graphReducer.nextIteration():
-        pass
-    if not graphReducer.isSuccesfulDone():
+    result = graphReducer.calculate()
+    if not result:
         if suppressException:
             return None
         else:
             raise CannotBeCalculatedError(graph)
-    finalValue = graphReducer.getFinalValue()
-    evaluated = symbolic_functions.evaluate(finalValue[0], finalValue[1])
+    evaluated = symbolic_functions.evaluate(result[0], result[1])
     return evaluated, graphReducer.iterationGraphs[0]
 
 
