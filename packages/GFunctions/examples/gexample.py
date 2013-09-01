@@ -9,7 +9,10 @@ import graphine
 import graph_state
 
 
-gs = graph_state.GraphState.fromStr(sys.argv[1])
+gfunctions.graph_storage.initStorage(withFunctions=True)
+gfunctions.rprime_storage.initStorage()
+
+gs = graph_state.GraphState.fromStr("e12-233-34-4-e-")
 graph = graphine.Graph.initEdgesColors(graphine.Graph(gs))
 
 reducer = gfunctions.GGraphReducer(graph)
@@ -19,5 +22,8 @@ while reducer.nextIteration():
 
 print reducer.iterationGraphs
 print reducer.iterationValues
+
+gfunctions.rprime_storage.closeStorage(revert=False, doCommit=True, commitMessage="example")
+gfunctions.graph_calculator.dispose()
 
 
