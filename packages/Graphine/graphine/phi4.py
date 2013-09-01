@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf8
+import rggraphutil
 
 __author__ = 'daddy-bear'
 
@@ -59,7 +60,7 @@ class IRRelevanceCondition(object):
 class _MergeResolver(object):
     def __init__(self, externalVertex, cutVertexes, superBorderNodes):
         self._disjointSet = graph.graph_operations._DisjointSet()
-        self._borders = dict()
+        self._borders = rggraphutil.emptyListDict()
         self._connectedComponents = list()
         self._cutVertexes = set(cutVertexes)
         self._externalVertex = externalVertex
@@ -78,10 +79,7 @@ class _MergeResolver(object):
             self._disjointSet.addKey(vs[0])
             border = filter(lambda v: v is not vs[0], e.nodes)[0]
             if border is not self._externalVertex:
-                if vs[0] in self._borders:
-                    self._borders[vs[0]].append(border)
-                else:
-                    self._borders[vs[0]] = [border]
+                self._borders[vs[0]].append(border)
         else:
             #lenght = 2
             self._disjointSet.union((vs[0], vs[1]))

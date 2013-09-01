@@ -22,8 +22,8 @@ subgraphIRFilters = (filters.connected + filters.isRelevant(ir))
 
 class Phi4Test(unittest.TestCase):
     def testIRCondition(self):
-        self.doTestIRCondition("e12-34-34--e-::", ["ee1-2-ee-::"])
-        self.doTestIRCondition("e112-e2--::", ["eee1-2-eee-::"])
+        self.doTestIRCondition("e12-34-34--e-", ["ee1-2-ee-::"])
+        self.doTestIRCondition("e112-e2--", ["eee1-2-eee-::"])
 
     def doTestIRCondition(self, graphState, expectedGraphGraphs=list()):
         g = graph.Graph(graph_state.GraphState.fromStr(graphState))

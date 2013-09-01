@@ -60,7 +60,7 @@ def xPickPassingExternalMomentum(graph, filters=list()):
                     isValid = False
                     break
             if isValid:
-                yield edgesPair
+                yield max(edgesPair), min(edgesPair)
 
 
 def passMomentOnGraph(graph, momentumPassing):
