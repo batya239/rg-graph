@@ -40,13 +40,11 @@ class PolynomialTestCase(PolynomialToolsTestCase):
     def testMulByNumber(self):
         _p1 = Polynomial({mi2_1: c2_1, mi2_2: c2_2})
         mul = _p1 * 2
-        print mul
         self.assertEquals(_p1.c * 2, mul.c)
         self.assertEquals(c2_1, mul.monomials[mi2_1])
         self.assertEquals(c2_2, mul.monomials[mi2_2])
         _p1 = Polynomial({mi2_1: c2_1, mi2_2: c2_2})
         mul = _p1 * 2.5
-        print mul
         self.assertEquals(_p1.c * 2.5, mul.c)
         self.assertEquals(c2_1, mul.monomials[mi2_1])
         self.assertEquals(c2_2, mul.monomials[mi2_2])
@@ -82,7 +80,7 @@ class PolynomialTestCase(PolynomialToolsTestCase):
         p = Polynomial({mi1_2: c1_2, mi1_3: c1_3}, 1, 3)
         i = p.integrate(5)
         self.assertEquals(i.monomials[MultiIndex({5: 1})], 4)
-        self.assertEquals(i.monomials[MultiIndex({5: 3, 1: 1})], 2.5)
+        self.assertEquals(i.monomials[MultiIndex({5: 3, 1: 1})], 5./3)
 
     def testIntegration2(self):
         p = Polynomial({mi1_2: c1_2, mi1_3: c1_3}, 1, 3)
@@ -92,8 +90,8 @@ class PolynomialTestCase(PolynomialToolsTestCase):
         _p = p.changeVarToPolynomial(1, simplePolynomial)
         i = _p.integrate(5)
         self.assertEquals(i.monomials[MultiIndex({5: 1})], 4)
-        self.assertEquals(i.monomials[MultiIndex({5: 3, 1: 1, 2: 1})], 7.5)
-        self.assertEquals(i.monomials[MultiIndex({5: 3, 2: 1, 3: 1})], 7.5)
+        self.assertEquals(i.monomials[MultiIndex({5: 3, 1: 1, 2: 1})], 5)
+        self.assertEquals(i.monomials[MultiIndex({5: 3, 2: 1, 3: 1})], 5)
 
     def assertIsNone(self, obj):
         self.assertEquals(None, obj)

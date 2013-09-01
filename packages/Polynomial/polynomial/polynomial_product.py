@@ -3,6 +3,7 @@
 
 import copy
 import rggraphutil
+import checkers
 import eps_number
 import formatter
 import polynomial
@@ -126,6 +127,15 @@ class PolynomialProduct(object):
         return reduce(lambda a, p: eps_number.epsNumber(p.calcPower(varIndex)) + a, filter(lambda p: not p.isConst(),
                                                                                            self.polynomials),
                       eps_number.epsNumber(0))
+
+    def hasPolynomialWith(self, condition=None):
+        if condition is None:
+            return checkers._PolynomialChecker(list(self.polynomials))
+        satisfying = list()
+        for p in self.polynomials:
+            if condition._check(p):
+                satisfying.append(p)
+        return checkers._PolynomialChecker(satisfying)
 
     def simplify(self):
         """
