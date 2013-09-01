@@ -104,6 +104,9 @@ class GGraphReducer(object):
         lastIteration = self.getCurrentIterationGraph()
         if len(lastIteration.allEdges()) == 3:
             self._putFinalValueToGraphStorage()
+            if GGraphReducer.DEBUG:
+                print self._iterationGraphs
+                print self._iterationValues
             return self.getFinalValue()
 
         relevantSubGraphs = [x for x in
@@ -115,8 +118,6 @@ class GGraphReducer(object):
         for subGraphAsList in relevantSubGraphs:
             adjustedSubGraph = _adjust(subGraphAsList, self._initGraph.externalVertex)
             subGraph = graphine.Graph(adjustedSubGraph[0], externalVertex=self._initGraph.externalVertex)
-            if GGraphReducer.DEBUG:
-                print "relevant subgraph:", subGraph
             preprocessed = (adjustedSubGraph[1], subGraph, adjustedSubGraph[2])
             if graph_storage.has(subGraph):
                 res = self._doIterate(preprocessed)
@@ -288,43 +289,3 @@ class GGraphReducer(object):
 
     def _putFinalValueToGraphStorage(self):
         graph_storage.put(self._initGraph, self.getFinalValue())
-
-
-class ReduceTreeNode(object):
-    @staticmethod
-    def root(values):
-        return ReduceTreeNode(values)
-
-    def __init__(self, values, parentNode=None, children=list()):
-        """
-        self._param -- any value
-        """
-        self.values = values
-        self._parentNode = parentNode
-        self._children = children
-
-    def addChildren(self, childrenParams):
-        for p in childrenParams:
-            self.addChild(p)
-
-    def addChild(self, childParam):
-        child = ReduceTreeNode(childParam, parentNode=self)
-        self._children.append(child)
-        return child
-
-    @property
-    def children(self):
-        return self._children
-
-    def isRoot(self):
-        return self._parentNode is None
-
-    def moveToNearestFork(self):
-        if self._parentNode is None:
-            return None
-        elif len(self._parentNode.children) > 1:
-            return self._parentNode
-        else:
-            return self._parentNode.moveToNearestFork()
-
-
