@@ -3,8 +3,12 @@
 
 ## Собираем и консервируем ответ
 
-import os
-dumpFile = 'res.txt'
+import os, sys
+try:
+    method = sys.argv[1]
+except IndexError:
+    method = ''
+dumpFile = 'res_'+method+'.txt'
 inPath = '/home/kirienko/work/rg-graph/phi_4_d2_s2/feynmanSDdotSF_mpi'
 
 result = {}
@@ -15,7 +19,7 @@ for dir in os.listdir(inPath):
         print "Diagram:",dir
         files = os.listdir(os.path.join(inPath,dir))
         for f in files:
-            if 'out' in f:
+            if 'out' in f and '50M' in f:
                 fd = open(os.path.join(inPath,dir,f))
                 data = fd.readlines()
                 fd.close()
