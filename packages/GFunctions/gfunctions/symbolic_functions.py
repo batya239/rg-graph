@@ -80,8 +80,8 @@ def toExternalCode(expressionAsString):
         .replace("_lambda", "lambda")
 
 
-def polePart(expr):
-    return (expr + sympy.O(1, _e)).collect(_e).series(_e, 0, 0).removeO()
+def polePart(expr, precision=10):
+    return (expr + sympy.O(1, _e)).collect(_e).series(_e, 0, 0).removeO().round(precision)
 
 
 def _g(alpha, beta):

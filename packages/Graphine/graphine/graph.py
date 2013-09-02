@@ -2,6 +2,7 @@
 # -*- coding: utf8
 import copy
 import graph_state
+import rggraphutil
 import graph_operations
 
 
@@ -80,6 +81,8 @@ class Graph(object):
         self._loopsCount = None
         self._externalEdges = None
         self._graphState = None
+        self._allEdgesWithIndex = None
+        self._allEdgesWithoutIndex = None
 
     @property
     def externalVertex(self):
@@ -110,20 +113,30 @@ class Graph(object):
         return vertexEdges if withIndex else IndexableEdge.toIndexless(vertexEdges)
 
     def allEdges(self, withIndex=False):
-        edgesOccurrence = dict()
-        for edges in self._edges.values():
-            for edge in edges:
-                v1, v2 = edge.underlying.nodes
-                occurrenceRate = 2 if v1 == v2 else 1
-                if edge in edgesOccurrence:
+        if withIndex:
+            return self._getAllEdgesWithIndex()
+        else:
+            return self._getAllEdgesWithoutIndex()
+
+    def _getAllEdgesWithoutIndex(self):
+        if self._allEdgesWithoutIndex is None:
+            self._allEdgesWithoutIndex = IndexableEdge.toIndexless(self._getAllEdgesWithIndex())
+        return self._allEdgesWithoutIndex
+
+    def _getAllEdgesWithIndex(self):
+        if self._allEdgesWithIndex is None:
+            edgesOccurrence = rggraphutil.zeroDict()
+            for edges in self._edges.values():
+                for edge in edges:
+                    v1, v2 = edge.underlying.nodes
+                    occurrenceRate = 2 if v1 == v2 else 1
                     edgesOccurrence[edge] += occurrenceRate
-                else:
-                    edgesOccurrence[edge] = occurrenceRate
-        result = []
-        for e, o in edgesOccurrence.items():
-            for i in xrange(0, o / 2):
-                result.append(e)
-        return result if withIndex else IndexableEdge.toIndexless(result)
+            result = []
+            for e, o in edgesOccurrence.items():
+                for i in xrange(0, o / 2):
+                    result.append(e)
+            self._allEdgesWithIndex = result
+        return self._allEdgesWithIndex
 
     def change(self, oldEdges, newEdges):
         for e in oldEdges:

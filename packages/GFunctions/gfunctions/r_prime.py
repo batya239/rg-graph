@@ -38,13 +38,20 @@ class MSKOperation(AbstractKOperation):
 _irRelevanceCondition = graphine.phi4.IRRelevanceCondition()
 
 
-def _defaultGraphHasNotIRDivergence(graph):
-    allEdges = graph.allEdges()
-    for sg in graph.xRelevantSubGraphs(graphine.filters.connected, resultRepresentator=graphine.Representator.asGraph):
-        if _irRelevanceCondition.isRelevant(sg.allEdges(withIndex=False), superGraph=graph, superGraphEdges=allEdges):
-            return False
+_DEFAULT_GRAPH_HAS_NOT_IR_DIVERGENCE_RESULT = dict()
 
-    return True
+
+def _defaultGraphHasNotIRDivergence(graph):
+    result = _DEFAULT_GRAPH_HAS_NOT_IR_DIVERGENCE_RESULT.get(graph, None)
+    if result is None:
+        allEdges = graph.allEdges()
+        for sg in graph.xRelevantSubGraphs(graphine.filters.connected, resultRepresentator=graphine.Representator.asGraph):
+            if _irRelevanceCondition.isRelevant(sg.allEdges(withIndex=False), superGraph=graph, superGraphEdges=allEdges):
+                _DEFAULT_GRAPH_HAS_NOT_IR_DIVERGENCE_RESULT[graph] = False
+                return False
+        _DEFAULT_GRAPH_HAS_NOT_IR_DIVERGENCE_RESULT[graph] = True
+        return True
+    return result
 
 defaultGraphHasNotIRDivergenceFilter = [_defaultGraphHasNotIRDivergence]
 

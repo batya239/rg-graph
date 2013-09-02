@@ -48,7 +48,7 @@ def xPickPassingExternalMomentum(graph, filters=list()):
     chooses 2-combinations of external nodes
     """
     externalEdges = graph.edges(graph.externalVertex)
-    for edgesPair in itertools.combinations(externalEdges, 2):
+    for edgesPair in itertools.combinations(_chooseExternalEdgesWithDifferentVertexes(externalEdges), 2):
         vertexes = set()
         for e in edgesPair:
             vertexes |= set(e.nodes)
@@ -61,6 +61,17 @@ def xPickPassingExternalMomentum(graph, filters=list()):
                     break
             if isValid:
                 yield max(edgesPair), min(edgesPair)
+
+
+def _chooseExternalEdgesWithDifferentVertexes(edges):
+    usedVertexes = set()
+    result = []
+    for e in edges:
+        v = e.internal_nodes[0]
+        if v not in usedVertexes:
+            usedVertexes.add(v)
+            result.append(e)
+    return result
 
 
 def passMomentOnGraph(graph, momentumPassing):

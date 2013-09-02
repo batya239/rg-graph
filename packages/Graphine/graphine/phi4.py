@@ -33,13 +33,14 @@ class IRRelevanceCondition(object):
     def isRelevant(self, edgesList, superGraph, superGraphEdges):
         subgraph = graph.Representator.asGraph(edgesList, superGraph.externalVertex)
 
+        externalEdges = subgraph.edges(subgraph.externalVertex)
         borderNodes = reduce(lambda x, y: x | y,
-                            map(lambda x: set(x.nodes), subgraph.edges(subgraph.externalVertex))) - \
-                            set([subgraph.externalVertex])
+                            map(lambda x: set(x.nodes), externalEdges)) - \
+                            set([superGraph.externalVertex])
 
         if len(borderNodes) != 2:
             return False
-        nEdges = len(edgesList) - len(subgraph.edges(subgraph.externalVertex))
+        nEdges = len(edgesList) - len(externalEdges)
         nVertexes = len(subgraph.vertexes()) - 1
         nLoop = nEdges - nVertexes + 1
         subgraphIRIndex = nEdges * self.edgeIRWeight + (nLoop + 1) * self.spaceDim

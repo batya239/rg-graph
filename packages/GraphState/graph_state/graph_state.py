@@ -127,6 +127,7 @@ class Edge(object):
             self.colors = colors if isinstance(colors, Rainbow) else Rainbow(colors)
 
         self.edge_id = edge_id
+        self._hash = None
 
     @property
     def nodes(self):
@@ -142,7 +143,9 @@ class Edge(object):
         return cmp(self.key(), other.key())
 
     def __hash__(self):
-        return hash(self.key())
+        if self._hash is None:
+            self._hash = hash(self.key())
+        return self._hash
 
     def copy(self, node_map=None):
         '''Creates a copy of the object with possible change of nodes.
