@@ -8,6 +8,8 @@ import graph_calculator
 import r_prime
 import symbolic_functions
 import test
+import subgraph_processer
+
 
 __author__ = 'daddy-bear'
 
@@ -71,14 +73,6 @@ class SubGraphReducerTestCase(test.GraphStorageAwareTestCase):
     def testE11_22_33_44_E_(self):
         self.doTestRPrime("e11-22-33-44-e-::", "-1/(e**4)")
 
-    def testE123_E23_33__(self):
-        exceptionThrown = False
-        try:
-            self.doTestRPrime("e123-e23-33--::", "-1/(e**4)")
-        except r_prime.CannotBeCalculatedError:
-            exceptionThrown = True
-        self.assertTrue(exceptionThrown)
-
     def testE11_22_34_E44_(self):
         self.doTestRPrime("e11-22-34-e44-::", "1/(2*e**3) - 1/(2*e**4)")
 
@@ -117,7 +111,7 @@ class SubGraphReducerTestCase(test.GraphStorageAwareTestCase):
 
     #WITH GRAPH CALCULATOR
     def testE12_223_3_E_(self):
-        self.doTestRPrime("e12-223-3-e-::", "1", useGraphCalculator=True)
+        self.doTestRPrime("e12-223-3-e-::", "1/(3*e) - 2/(3*e**2) + 1/(3*e**3)", useGraphCalculator=True)
 
     def doTestRPrime(self, graphStateAsString, expectedResultAsString, useGraphCalculator=False):
         try:

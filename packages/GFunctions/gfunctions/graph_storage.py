@@ -83,7 +83,7 @@ def put(graph, value):
     if has(graph):
         return
     assert len(value) == 2
-    assert isinstance(value[1], tuple)
+    assert isinstance(value[1], tuple) or isinstance(value[1], graph_state.Rainbow)
     assert len(value[1]) == 2
     graphStateAsString = str(graph)
     firstAsString = str(value[0])

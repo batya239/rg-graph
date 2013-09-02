@@ -21,4 +21,13 @@ cd packages/Graphine
 ./setup.py install --user || exit 1
 cd $PWD_
 
+cd packages/MincerAdapter
+./run_tests.sh || exit 1
+./setup.py install --user || exit 1
+cd $PWD_
+
+cd packages/GFunctions
+./run_tests.sh || exit 1
+./setup.py install --user || exit 1
+cd $PWD_
 

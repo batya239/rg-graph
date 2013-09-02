@@ -1,8 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf8
 import unittest
-import gfunctions
 import graphine
+import rggraphutil
 import mincer
 
 __author__ = 'daddy-bear'
@@ -55,10 +55,10 @@ class MincerTest(unittest.TestCase):
             self.assertIsNone(actual)
             return
         self.assertIsNotNone(actual)
-        expected = gfunctions.symbolic_functions.evaluateForTests(epsPartAsString)
+        expected = rggraphutil.symbolic_functions.evaluateForTests(epsPartAsString)
         sub = (expected - actual[0]).simplify()
         self.assertTrue(expected == actual[0] or abs(
-            sub.evalf(subs={gfunctions.symbolic_functions._e: 1})) < 1e-10,
+            sub.evalf(subs={rggraphutil.symbolic_functions._e: 1})) < 1e-10,
                         "\nactual = " + str(actual[0]) + "\nexpected = " + str(expected) + "\nsub = " + str(sub))
         self.assertEquals(expectedResult[1], actual[1])
 
@@ -74,5 +74,6 @@ class MincerTest(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    pass
+    #unittest.main()
 

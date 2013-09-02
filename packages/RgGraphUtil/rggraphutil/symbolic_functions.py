@@ -69,7 +69,7 @@ def toInternalCode(expressionAsString):
 
 
 def _safeIntegerNumerators(expressionAsString):
-    return re.sub('([\.\d]+)/', 'sympy.Number(\\1)/', expressionAsString)
+    return re.sub('(\d+)/', 'sympy.Number(\\1)/', expressionAsString)
 
 
 def toExternalCode(expressionAsString):
@@ -98,5 +98,3 @@ def _rawG(alpha, beta):
 
 
 _g11 = _rawG(1, 1) * _e
-
-

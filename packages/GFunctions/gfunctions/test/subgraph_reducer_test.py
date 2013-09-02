@@ -1,8 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf8
-import os
-import shutil
-import sys
+import copy
 import unittest
 import graphine
 import graph_state
@@ -17,10 +15,12 @@ class SubGraphReducerTestCase(test.GraphStorageAwareTestCase):
     def test4LoopDiagram(self):
         g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr("e112-34-e33-4--::")))
         reducer = subgraph_processer.GGraphReducer(g)
+        reducer2 = copy.copy(reducer)
         while reducer.nextIteration():
             pass
         self.assertTrue(reducer.isSuccesfulDone())
         actual = str(reducer.getFinalValue()[0])
+        self.assertEquals(reducer2.calculate(), reducer.getFinalValue())
         self.assertEquals(set(actual.split("*")), set("G(1, 1)*G(1, 1)*G(1, 2)*G(1, 4-lambda*3)".split("*")))
 
     def testPickPassingExternalMomentum(self):
@@ -67,6 +67,7 @@ class SubGraphReducerTestCase(test.GraphStorageAwareTestCase):
             graph_state.GraphState(edges))
         momentumPassing = (edges[-1], edges[0])
         reducer = subgraph_processer.GGraphReducer(graph, momentumPassing)
+        reducer2 = copy.copy(reducer)
         hasIteration = reducer.nextIteration()
         self.assertTrue(hasIteration)
         self.assertEquals(str(reducer.getCurrentIterationGraph().toGraphState()),
@@ -81,22 +82,28 @@ class SubGraphReducerTestCase(test.GraphStorageAwareTestCase):
                           "e1-e-::['(0, 0)', '(2, -2)', '(0, 0)']")
         hasIteration = reducer.nextIteration()
         self.assertFalse(hasIteration)
+        self.assertEquals(reducer2.calculate(), reducer.getFinalValue())
+
 
     def testReducingE111_E_(self):
         graph = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr("e111-e-::")))
         reducer = subgraph_processer.GGraphReducer(graph)
+        reducer2 = copy.copy(reducer)
         self.assertTrue(reducer.nextIteration())
         self.assertTrue(reducer.nextIteration())
         self.assertTrue(reducer.isSuccesfulDone())
+        self.assertEquals(reducer2.calculate(), reducer.getFinalValue())
 
     def testReducingE11_22_E_(self):
         graph = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr("e11-22-e-::")))
         reducer = subgraph_processer.GGraphReducer(graph)
+        reducer2 = copy.copy(reducer)
         self.assertTrue(reducer.nextIteration())
         self.assertTrue(reducer.nextIteration())
         self.assertTrue(reducer.nextIteration())
         self.assertTrue(reducer.isSuccesfulDone())
         self.assertEquals("('G(1, 1)*G(1, 1)', (2, -2))", str(reducer.getFinalValue()))
+        self.assertEquals(reducer2.calculate(), reducer.getFinalValue())
 
 
     def testReducingAnotherDiagram(self):
@@ -113,6 +120,7 @@ class SubGraphReducerTestCase(test.GraphStorageAwareTestCase):
             graph_state.GraphState(edges))
         momentumPassing = (edges[-1], edges[0])
         reducer = subgraph_processer.GGraphReducer(graph, momentumPassing)
+        reducer2 = copy.copy(reducer)
         hasIteration = reducer.nextIteration()
         self.assertTrue(hasIteration)
         self.assertEquals(str(reducer.getCurrentIterationGraph().toGraphState()),
@@ -121,15 +129,19 @@ class SubGraphReducerTestCase(test.GraphStorageAwareTestCase):
         self.assertTrue(hasIteration)
         self.assertEquals(str(reducer.getCurrentIterationGraph().toGraphState()),
                           "e112-2-e-::['(0, 0)', '(1, 0)', '(2, -1)', '(1, 0)', '(1, 0)', '(0, 0)']")
+        self.assertEquals(reducer2.calculate(), ('G(1, 1)*G(1, 2-lambda*1)*G(1, 3-lambda*2)', graph_state.Rainbow((3, -3))))
 
     def testDiagramWithTBubbleLikeStructure(self):
         try:
             graph_calculator.addCalculator(mincer_adapter.MincerGraphCalculator())
             g = graphine.Graph.fromStr("e12-223-3-e-::", initEdgesColor=True)
             reducer = subgraph_processer.GGraphReducer(g, useGraphCalculator=True)
+            reducer2 = copy.copy(reducer)
+
             while reducer.nextIteration():
                 pass
             self.assertTrue(reducer.isSuccesfulDone())
+            self.assertEquals(reducer2.calculate(), reducer.getFinalValue())
         finally:
             graph_calculator.dispose()
 

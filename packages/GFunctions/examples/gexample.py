@@ -9,15 +9,19 @@ import graphine
 import graph_state
 
 
-gs = graph_state.GraphState.fromStr(sys.argv[1])
+gfunctions.graph_storage.initStorage(withFunctions=True)
+gfunctions.rprime_storage.initStorage()
+
+gs = graph_state.GraphState.fromStr('e112-23-e4-e55-e55--')
 graph = graphine.Graph.initEdgesColors(graphine.Graph(gs))
 
+gfunctions.GGraphReducer.setDebug(True)
 reducer = gfunctions.GGraphReducer(graph)
 
-while reducer.nextIteration():
-    pass
+reducer.calculate()
+print "result =", reducer.calculate()
 
-print reducer.iterationGraphs
-print reducer.iterationValues
+gfunctions.rprime_storage.closeStorage(revert=False, doCommit=True, commitMessage="example")
+gfunctions.graph_calculator.dispose()
 
 
