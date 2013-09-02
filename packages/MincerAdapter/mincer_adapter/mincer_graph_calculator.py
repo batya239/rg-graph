@@ -1,10 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf8
-import gfunctions
+import rggraphutil
 import mincer
 
 
-class MincerGraphCalculator(gfunctions.graph_calculator.AbstractGraphCalculator):
+class MincerGraphCalculator(rggraphutil.AbstractGraphCalculator):
     def isApplicable(self, graph):
         return mincer.isApplicable(graph)
 
