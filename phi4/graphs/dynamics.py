@@ -1144,7 +1144,8 @@ def save(model, expr, sectors, name, neps, statics=False, introduce=False):
 
     sectorTerms = dict()
     sectorVariablesCount = 0
-
+    if "subtractionOperators" in model.__dict__:
+        exec model.subtractionOperators
     for item in sectors:
         if len(item) == 2:
             sector, aOps = item
@@ -1162,6 +1163,7 @@ def save(model, expr, sectors, name, neps, statics=False, introduce=False):
 
         sectorExpr = sd_lib.sectorDiagram(expr * coef_, sector, delta_arg=delta_arg)[0]
         for aOp_ in aOps:
+            print aOp_
             aOp = eval(aOp_)
             sectorExpr = aOp(sectorExpr)
 
