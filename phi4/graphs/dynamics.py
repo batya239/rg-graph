@@ -435,6 +435,9 @@ def D2(a):
 
 
 def D2s(a):
+    """
+    D2 analogue with one direct subtraction (use ibp one time)
+    """
     def wrapper(exprList):
         expr_ = exprList
         if not isinstance(exprList, list):

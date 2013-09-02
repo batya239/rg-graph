@@ -377,4 +377,4 @@ class _phi4_d2_s2(_phi4_d2):
         self.workdir = '%s/work/rg-graph/phi_4_d2_s2/' % home
         self.removeRoots = False
 #        self.subtractionOperators = "from dynamics import to1\nfrom dynamics import mK1 as mK0\nfrom dynamics import D2 as D1\n"
-        self.subtractionOperators = "to1=to1\nmK0=mK1\nD1=D2\n"
+        self.subtractionOperators = "to1=to1\nmK0=mK1\nD1=D2s\n"
