@@ -27,8 +27,9 @@ cd packages/Graphine
 cd $PWD_
 
 cd packages/MincerAdapter
-./run_tests.sh || exit 1
+#statements swapped for form lib
 ./setup.py install --user || exit 1
+./run_tests.sh || exit 1
 cd $PWD_
 
 cd packages/GFunctions
