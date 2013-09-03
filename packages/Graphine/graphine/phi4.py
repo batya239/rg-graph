@@ -99,7 +99,7 @@ class _MergeResolver(object):
                 if v in self._superBorderVertexes:
                     superBorderNodesCount += 1
                 borders += self._borders[v]
-            if len(borders) == 2 or (len(borders) == 1 and superBorderNodesCount > 0):
+            if len(set(borders)) == 2 or (len(borders) == 1 and superBorderNodesCount > 0):
                 countWith2Tails += 1
 
         return countWith2Tails > 1

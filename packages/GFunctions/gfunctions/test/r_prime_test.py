@@ -15,6 +15,10 @@ __author__ = 'daddy-bear'
 
 
 class SubGraphReducerTestCase(test.GraphStorageAwareTestCase):
+    def testIR(self):
+        print r_prime._defaultGraphHasNotIRDivergence(graphine.Graph.fromStr("ee12-e34-e34-44--"))
+        assert False
+
     def test1LoopDiagramPRime(self):
         g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr("e11-e-::")))
         self.assertEquals(symbolic_functions.evaluateForTests("1/e"),

@@ -127,7 +127,6 @@ class Edge(object):
             self.colors = colors if isinstance(colors, Rainbow) else Rainbow(colors)
 
         self.edge_id = edge_id
-        self._hash = None
 
     @property
     def nodes(self):
@@ -143,7 +142,7 @@ class Edge(object):
         return cmp(self.key(), other.key())
 
     def __hash__(self):
-        if self._hash is None:
+        if '_hash' not in self.__dict__:
             self._hash = hash(self.key())
         return self._hash
 
@@ -169,7 +168,6 @@ class Edge(object):
 
         edge = Edge(mapped_nodes, external_node=mapped_external_node, fields=self.fields, colors=self.colors,
                     edge_id=self.edge_id)
-        edge._hash = self._hash
         return edge
 
 

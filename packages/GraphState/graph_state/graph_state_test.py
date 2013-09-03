@@ -80,7 +80,6 @@ class TestEdge(unittest.TestCase):
                 colors=graph_state.Rainbow((0,)),
                 edge_id=333)
         missed_attrs = [attr for attr in edge.__dict__ if not edge.__dict__[attr]]
-        missed_attrs.remove('_hash')
         self.assertEqual(len(missed_attrs), 0,
                 'Attributes %s should be set.' % missed_attrs)
 

@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf8
 import itertools
+import graphine.filters
 
 __author__ = 'daddy-bear'
 
@@ -35,20 +36,17 @@ class MSKOperation(AbstractKOperation):
     def calculate(self, expression):
         return symbolic_functions.polePart(expression)
 
-_irRelevanceCondition = graphine.phi4.IRRelevanceCondition()
-
 
 _DEFAULT_GRAPH_HAS_NOT_IR_DIVERGENCE_RESULT = dict()
 
+_subgraphIRFilters = (graphine.filters.connected + graphine.filters.isRelevant(graphine.phi4.IRRelevanceCondition()))
 
 def _defaultGraphHasNotIRDivergence(graph):
     result = _DEFAULT_GRAPH_HAS_NOT_IR_DIVERGENCE_RESULT.get(graph, None)
     if result is None:
-        allEdges = graph.allEdges()
-        for sg in graph.xRelevantSubGraphs(graphine.filters.connected, resultRepresentator=graphine.Representator.asGraph):
-            if _irRelevanceCondition.isRelevant(sg.allEdges(withIndex=False), superGraph=graph, superGraphEdges=allEdges):
-                _DEFAULT_GRAPH_HAS_NOT_IR_DIVERGENCE_RESULT[graph] = False
-                return False
+        for sg in graph.xRelevantSubGraphs(_subgraphIRFilters):
+            _DEFAULT_GRAPH_HAS_NOT_IR_DIVERGENCE_RESULT[graph] = False
+            return False
         _DEFAULT_GRAPH_HAS_NOT_IR_DIVERGENCE_RESULT[graph] = True
         return True
     return result
