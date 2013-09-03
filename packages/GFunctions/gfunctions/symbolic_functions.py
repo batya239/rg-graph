@@ -81,7 +81,7 @@ def toExternalCode(expressionAsString):
 
 
 def polePart(expr, precision=10):
-    return (expr + sympy.O(1, _e)).collect(_e).series(_e, 0, 0).removeO().round(precision)
+    return (expr + sympy.O(1, _e)).collect(_e).series(_e, 0, 0).removeO()
 
 
 def _g(alpha, beta):
