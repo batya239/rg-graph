@@ -51,7 +51,7 @@ class SubGraphReducerTestCase(test.GraphStorageAwareTestCase):
         g = graphine.Graph(
             graph_state.GraphState(edges))
         passings = [x for x in momentum.xPickPassingExternalMomentum(g)]
-        self.assertEquals(len(passings), 5)
+        self.assertEquals(len(passings), 3)
 
     def testReducingEyeOfATiger(self):
         edges = list()
