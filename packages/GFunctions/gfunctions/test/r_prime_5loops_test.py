@@ -15,7 +15,7 @@ import test
 __author__ = 'daddy-bear'
 
 
-class RPrime5LoopsTestCase(gfunctions.test.GraphStorageAwareTestCase):
+class RPrime5LoopsTestCase(test.GraphStorageAwareTestCase):
     def test5Loops(self):
         graph_calculator.addCalculator(mincer_adapter.MincerGraphCalculator())
         for gs, res in MS.items():
