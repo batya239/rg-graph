@@ -8,6 +8,7 @@ setup(
     author='D. Batkovich',
     author_email='batya239@gmail.com',
     packages=['mincer_adapter'],
+    package_data={'mincer_adapter': ['lib/*.h']},
     url='http://pypi.python.org/pypi/MincerAdapter/',
     license='LICENSE.txt',
     description='Mincer adapter for Python',
