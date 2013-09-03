@@ -32,7 +32,7 @@ def initMincer(mincerDir=_MINCER_DEFAULT_TMP_DIR, useMultiThreading=True):
         try:
             _MINCER_DIR = mincerDir
             os.makedirs(_MINCER_DIR)
-            shutil.copyfile(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, "lib", _MINCER2_H),
+            shutil.copyfile(os.path.join(os.path.dirname(os.path.realpath(__file__)), "lib", _MINCER2_H),
                             os.path.join(_MINCER_DIR, _MINCER2_H))
             return
         except OSError as e:
