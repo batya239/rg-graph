@@ -6,27 +6,20 @@ import mincer_adapter
 import sympy
 import gfunctions.graph_calculator as graph_calculator
 import gfunctions.r_prime as r_prime
-import gfunctions.rprime_storage as rprime_storage
-import gfunctions.graph_storage as graph_storage
 import rggraphutil.symbolic_functions as symbolic_functions
 import gfunctions.momentum as momentum
 import graphine
+import test
 
 
 __author__ = 'daddy-bear'
 
 
-class RPrime5LoopsTestCase(unittest.TestCase):
+class RPrime5LoopsTestCase(gfunctions.test.GraphStorageAwareTestCase):
     def test5Loops(self):
-        try:
-            graph_storage.initStorage(withFunctions=True)
-            rprime_storage.initStorage()
-            graph_calculator.addCalculator(mincer_adapter.MincerGraphCalculator())
-            for gs, res in MS.items():
-                self._compareRPrime(gs, res, True)
-            rprime_storage.closeStorage(revert=False, doCommit=True, commitMessage="5 loops")
-        finally:
-            graph_calculator.dispose()
+        graph_calculator.addCalculator(mincer_adapter.MincerGraphCalculator())
+        for gs, res in MS.items():
+            self._compareRPrime(gs, res, True)
 
     def _compareRPrime(self, graphStateAsString, expected, useGraphCalculator=False):
         g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr(graphStateAsString)))
