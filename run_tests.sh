@@ -32,7 +32,8 @@ cd packages/MincerAdapter
 cd $PWD_
 
 cd packages/GFunctions
-./run_tests.sh || exit 1
+#statements swapped for storage functions
 ./setup.py install --user || exit 1
+./run_tests.sh || exit 1
 cd $PWD_
 
