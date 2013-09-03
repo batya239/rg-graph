@@ -27,7 +27,7 @@ class SubGraphReducerTestCase(test.GraphStorageAwareTestCase):
         g = graphine.Graph(
             graph_state.GraphState.fromStr("ee11-ee-::['(0,0)', '(0,0)', '(1, 0)', '(1, 0)', '(0,0)', '(0,0)']"))
         passings = [x for x in momentum.xPickPassingExternalMomentum(g)]
-        self.assertEquals(len(passings), 4)
+        self.assertEquals(len(passings), 1)
 
         g = graphine.Graph(
             graph_state.GraphState.fromStr("e111-e-::['(0,0)', '(0,0)', '(1, 0)', '(1, 0)', '(0,0)']"))
