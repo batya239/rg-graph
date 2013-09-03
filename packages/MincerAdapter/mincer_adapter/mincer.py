@@ -27,15 +27,18 @@ _RESULT_REGEXP = re.compile("F\s=(.*);")
 
 def initMincer(mincerDir=_MINCER_DEFAULT_TMP_DIR, useMultiThreading=True):
     _FORM_VERSION = "tform" if useMultiThreading else "form"
-    try:
-        _MINCER_DIR = mincerDir
-        os.makedirs(_MINCER_DIR)
-        shutil.copyfile(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, "lib", _MINCER2_H),
-                        os.path.join(_MINCER_DIR, _MINCER2_H))
-    except OSError as e:
-        disposeMincer()
-        raise e
-
+    exception = None
+    for i in xrange(2):
+        try:
+            _MINCER_DIR = mincerDir
+            os.makedirs(_MINCER_DIR)
+            shutil.copyfile(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, "lib", _MINCER2_H),
+                            os.path.join(_MINCER_DIR, _MINCER2_H))
+            return
+        except OSError as e:
+            disposeMincer()
+            exception = e
+    raise exception
 
 def disposeMincer():
     shutil.rmtree(_MINCER_DIR)
