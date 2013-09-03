@@ -69,7 +69,7 @@ def toInternalCode(expressionAsString):
 
 
 def _safeIntegerNumerators(expressionAsString):
-    return re.sub('(\d+)/', 'sympy.Number(\\1)/', expressionAsString)
+    return re.sub('([\.\d]+)/', 'sympy.Number(\\1)/', expressionAsString)
 
 
 def toExternalCode(expressionAsString):
@@ -80,7 +80,7 @@ def toExternalCode(expressionAsString):
         .replace("_lambda", "lambda")
 
 
-def polePart(expr):
+def polePart(expr, precision=10):
     return (expr + sympy.O(1, _e)).collect(_e).series(_e, 0, 0).removeO()
 
 
@@ -98,3 +98,5 @@ def _rawG(alpha, beta):
 
 
 _g11 = _rawG(1, 1) * _e
+
+

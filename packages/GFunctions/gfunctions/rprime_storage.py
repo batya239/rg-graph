@@ -3,7 +3,7 @@
 import os
 from subprocess import call
 import rggraphutil
-import symbolic_functions
+import rggraphutil.symbolic_functions as symbolic_functions
 
 
 _STORAGE_PATH = "~/.rg-graph-storage/"

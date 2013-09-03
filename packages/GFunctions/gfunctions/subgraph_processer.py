@@ -7,8 +7,6 @@ import graph_calculator
 import graph_storage
 import lambda_number
 import momentum
-import symbolic_functions
-
 
 def _createFilter():
     class RelevanceCondition:

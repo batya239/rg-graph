@@ -4,7 +4,6 @@
 __author__ = 'dima'
 
 import graph_calculator
-import symbolic_functions
 from gfunctions.subgraph_processer import GGraphReducer
 from gfunctions.momentum import graphFilter, oneIrreducible, connected, \
     xPassExternalMomentum, xPickPassingExternalMomentum, passMomentOnGraph, xArbitrarilyPassMomentum

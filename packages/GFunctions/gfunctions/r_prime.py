@@ -5,7 +5,7 @@ import graphine.filters
 
 __author__ = 'daddy-bear'
 
-import symbolic_functions
+import rggraphutil.symbolic_functions as symbolic_functions
 import graphine.phi4
 import subgraph_processer
 import rprime_storage
