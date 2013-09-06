@@ -1,12 +1,12 @@
-#!/usr/bin/python
+#!/usr/bin/ipython
 # encoding: utf8
 
 ## Исполняем все cuba-файлы 
 
 ## Параметры cuba:
-EpsRel = '1e-5'
-EpsAbs = '1e-10'
-MaxPoints = '1e6'
+EpsRel = '1e-4'
+EpsAbs = '1e-8'
+MaxPoints = '1e8'
 Method  = 'cuhre' ## one of: 'vegas', 'suave', 'divonne', 'cuhre'
 
 def method_num(method):
@@ -15,30 +15,49 @@ def method_num(method):
     elif method == 'divonne': return '2'
     elif method == 'cuhre': return '3'
 
+def getnode():
+    import platform
+    return platform.node()
+
+def cubaRun(cmd):
+    import os
+    os.system(cmd)
+    #return 'Processing'+cmd.split('/')[1]+'...'
+    #return cmd.split('/')[1]+' @ '+platform.node()
+
+
 import os
+from IPython.parallel import Client
 
 CUR_DIR = os.getcwd()
 print CUR_DIR
 
-#WORKDIR=$HOME'/work/rg-graph/phi_4_d2_s2/feynmanSDdotSF_mpi/'
 WORKDIR = '/home/kirienko/work/rg-graph/phi_4_d2_s2/feynmanSDdotSF_mpi/'
 
-
-#cd $WORKDIR
 os.chdir(WORKDIR)
 
-for d in [ d for d in os.listdir('.') if os.path.isdir(d) ]:
-        print 'Processing', d, '...'
-        os.chdir(os.path.join(WORKDIR,d))
-        #./cuba.run 3 10000000 EpsRel EpsAbs > out_${PWD##*/}_10M_e-5_e-12_$METHOD
-        cmd = ' '.join(('./cuba.run', method_num(Method), MaxPoints, EpsRel, EpsAbs, \
-                        '>', '_'.join(('out', d, MaxPoints, EpsRel, EpsAbs, Method)) \
-                        ))
-        print cmd
-        os.system(cmd)
-        os.chdir('..')
+rc = Client(profile='test')
+print rc.ids
 
-#cd $CUR_DIR
+dview = rc[:]
+print dview.apply_sync(getnode)
+
+diags = [ d for d in os.listdir('.') if os.path.isdir(d) ]
+commands = []
+for d in diags:
+    path = os.path.join(WORKDIR,d)
+    cmd = ' '.join((path+'/cuba.run', method_num(Method), MaxPoints, EpsRel, EpsAbs, \
+                    '>', '_'.join((path+'/out', d, Method, MaxPoints, EpsRel, EpsAbs)) \
+                    ))
+    commands += [cmd]
+
+#for cmd in commands:
+#    print cmd
+
+dview.map_sync(cubaRun,commands)
+#res = map(cubaRun,commands)
+#print res
+
 os.chdir(CUR_DIR)
 #python get_answer.py $METHOD
 #python compare.py $METHOD
