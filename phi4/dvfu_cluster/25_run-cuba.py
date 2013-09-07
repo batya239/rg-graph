@@ -4,9 +4,9 @@
 ## Исполняем все cuba-файлы 
 
 ## Параметры cuba:
-EpsRel = '1e-4'
-EpsAbs = '1e-8'
-MaxPoints = '1e8'
+EpsRel = '1e-6'
+EpsAbs = '1e-12'
+MaxPoints = '50000000'
 Method  = 'cuhre' ## one of: 'vegas', 'suave', 'divonne', 'cuhre'
 
 def method_num(method):
@@ -39,8 +39,9 @@ os.chdir(WORKDIR)
 rc = Client(profile='test')
 print rc.ids
 
-dview = rc[:]
-print dview.apply_sync(getnode)
+#dview = rc[:]
+lview = rc.load_balanced_view()
+print lview.apply_sync(getnode)
 
 diags = [ d for d in os.listdir('.') if os.path.isdir(d) ]
 commands = []
@@ -54,7 +55,7 @@ for d in diags:
 #for cmd in commands:
 #    print cmd
 
-dview.map_sync(cubaRun,commands)
+lview.map(cubaRun,commands)
 #res = map(cubaRun,commands)
 #print res
 
