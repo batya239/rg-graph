@@ -161,7 +161,7 @@ resultsKR1 = dict()
 print "{"
 for index in results:
     graph = graphine.Graph(graph_state.GraphState.fromStr("%s::" % index))
-    if graph.calculateLoopsCount() > maxNLoops:
+    if graph.getLoopsCount() > maxNLoops:
         continue
     resultsKR1[str(graph)] = KR1(graph, results, resultsKR1)
     print '"%s": %s, # %s , %s ' % (index, resultsKR1[str(graph)], results[str(graph)[:-2]][0][0], symmetryCoefficient(graph))
