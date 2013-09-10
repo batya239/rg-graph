@@ -4,6 +4,22 @@ import graph_state
 import graphine
 
 
+def hasIntersectingByVertexesGraphs(graphs):
+    """
+    return True if some of graphs hash non-trivial intersection on vertexes
+    """
+    if not len(graphs):
+        return False
+    uniqueVertexes = set()
+    for g in graphs:
+        internalVertexes = g.vertexes() - set([g.externalVertex])
+        currentUniqueVertexesSize = len(uniqueVertexes)
+        uniqueVertexes |= internalVertexes
+        if len(uniqueVertexes) != currentUniqueVertexesSize + len(internalVertexes):
+            return True
+    return False
+
+
 def merge(graph1, graph2):
     """
     graph1 and graph2 - graphs with same topology

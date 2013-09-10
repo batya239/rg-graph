@@ -135,7 +135,7 @@ class Graph(object):
             for e, o in edgesOccurrence.items():
                 for i in xrange(0, o / 2):
                     result.append(e)
-            self._allEdgesWithIndex = result
+            self._allEdgesWithIndex = frozenset(result)
         return self._allEdgesWithIndex
 
     def change(self, oldEdges, newEdges):
@@ -279,13 +279,13 @@ class Graph(object):
 
     def __hash__(self):
         if self._hash is None:
-            self._hash = hash(self.toGraphState())
+            self._hash = hash(self.allEdges(withIndex=True))
         return self._hash
 
     def __eq__(self, other):
         if not isinstance(other, Graph):
             return False
-        return str(self.toGraphState()).__eq__(str(other.toGraphState()))
+        return self.allEdges(withIndex=True) == other.allEdges(withIndex=True)
 
     @staticmethod
     def fromStr(string, initEdgesColor=False, zeroColor=(0, 0), unitColor=(1, 0)):
