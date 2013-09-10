@@ -4,6 +4,7 @@ import unittest
 
 from graph_state import graph_state as gs
 import graph as gr
+import filters
 import graph_operations as go
 
 
@@ -15,6 +16,13 @@ class ExternalVertexAware(object):
 class GraphOperationsTestCase(unittest.TestCase):
     def testVertexIrreducibility(self):
         pass
+
+    def testRelevantSubGraphs(self):
+        g = gr.Graph.fromStr("e12-e23-3--")
+        subGraphs = [str(x) for x in g.xRelevantSubGraphs(filters=filters.connected + filters.oneIrreducible,
+                                                          resultRepresentator=gr.Representator.asGraph,
+                                                          cutEdgesToExternal=False)]
+        self.assertEqual(set(subGraphs), set(['e12-e2--::', 'e12-2--::', 'e12-e3-3--::']))
 
     def testHasNoTadPoles(self):
         self.doTestHasNoTadPoles("ee18-233-334--ee5-667-78-88--::", [(1, 2), (1, 3), (2, 3), (2, 3)],

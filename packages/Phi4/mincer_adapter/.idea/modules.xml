@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/../gfunctions/.idea/gfunctions.iml" filepath="$PROJECT_DIR$/../gfunctions/.idea/gfunctions.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../Graphine/graphine/.idea/graphine.iml" filepath="$PROJECT_DIR$/../../Graphine/graphine/.idea/graphine.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/mincer_adapter.iml" filepath="$PROJECT_DIR$/.idea/mincer_adapter.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../RgGraphUtil/rggraphutil/.idea/rggraphutil.iml" filepath="$PROJECT_DIR$/../../RgGraphUtil/rggraphutil/.idea/rggraphutil.iml" />
+    </modules>
+  </component>
+</project>
+

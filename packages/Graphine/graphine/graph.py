@@ -237,10 +237,13 @@ class Graph(object):
     def shrinkToPoint(self, edges):
         return self._shrinkToPoint(edges)[0]
 
-    def xRelevantSubGraphs(self, filters=list(), resultRepresentator=Representator.asGraph):
+    def xRelevantSubGraphs(self, filters=list(), resultRepresentator=Representator.asGraph, cutEdgesToExternal=True):
         allEdges = self.allEdges()
         simpleCache = dict()
-        for subGraphAsList in graph_operations._xSubGraphs(allEdges, self._edges, self.externalVertex):
+        for subGraphAsList in graph_operations.xSubGraphs(allEdges,
+                                                          self._edges,
+                                                          self.externalVertex,
+                                                          cutEdgesToExternal=cutEdgesToExternal):
             subGraphAsTuple = tuple(subGraphAsList)
             isValid = simpleCache.get(subGraphAsTuple, None)
             if isValid is None:
