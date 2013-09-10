@@ -26,14 +26,7 @@ cd packages/Graphine
 ./setup.py install --user || exit 1
 cd $PWD_
 
-cd packages/MincerAdapter
-#statements swapped for form lib
-./setup.py install --user || exit 1
-./run_tests.sh || exit 1
-cd $PWD_
-
-cd packages/GFunctions
-#statements swapped for storage functions
+cd packages/Phi4
 ./setup.py install --user || exit 1
 ./run_tests.sh || exit 1
 cd $PWD_
