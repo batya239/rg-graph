@@ -11,7 +11,7 @@ WORKDIR=$HOME'/work/rg-graph/phi_4_d2_s2/feynmanSDdotSF_mpi/'
 rm -rf $WORKDIR/e*
 
 cd '../graphs/'
-for diag in $(for i  in `ls phi4/e?-[1234]*`; do awk '!/S/{print $1}' $i; done)
+for diag in $(for i  in `ls phi4/e?-[12345]*`; do awk '!/S/{print $1}' $i; done)
     do
         python gen_sectorsN.py $diag methods.feynmanSDdotSF_mpi _phi4_d2_s2
         python gen_sdN_mpi.py  $diag methods.feynmanSDdotSF_mpi _phi4_d2_s2

@@ -2,6 +2,7 @@
 # encoding: utf8
 
 # ---- from ch2nickel.py ----
+import graphine
 import graph_state
 import sympy
 
@@ -27,9 +28,18 @@ def symmetryCoefficient(graphstate):
 def sym_coef(diag):
     return symmetryCoefficient(graph_state.GraphState.fromStr(diag))
 
-## Сравниваю результаты в 5 петлях: мои и Миши
+def nloops(string):
+    return graphine.Graph(graph_state.GraphState.fromStr(string)).getLoopsCount()
 
-f_mine = open("res_cuhre.txt")
+## Сравниваю результаты в 5 петлях: мои и Миши
+import sys
+try:
+    method = sys.argv[1]
+except:
+    print "Usage: ./compare.py <method>\n where \
+    <method> is one of the following: \
+    vegas, suave, divonne, cuhre\n"
+f_mine = open("res_"+method+".txt")
 data1 = eval(f_mine.read())
 f_mine.close()
 
@@ -38,11 +48,12 @@ data2 = eval(f_mkompan.read())
 f_mkompan.close()
 
 for i in data1.keys():
+    #print abs(data1[i][0]/sym_coef(i)*sympy.gamma(nloops(i)) - data2[i][0][0])
     try:
-        delta = abs(data1[i][0]/sym_coef(i) - data2[i][0][0])
-        if delta < 1e-3:
-            print i,'\t',delta,'\t', data1[i][0]/sym_coef(i),'\t', data2[i][0][0]
+        delta = abs(data1[i][0]*sympy.gamma(nloops(i))/sym_coef(i) - data2[i][0][0])
+        if delta > 1e-6:
+            print i,'\t',delta,'\t', data1[i][0]*sympy.gamma(nloops(i))/sym_coef(i),'\t', data2[i][0][0]
     except:
         #pass
-        print i
+        print "Exception:",i
 

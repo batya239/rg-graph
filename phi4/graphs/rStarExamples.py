@@ -39,8 +39,10 @@ gamma = 'e111-e-'
 g[gamma] = G(1, 1) * G(e, 1)
 R1[gamma] = g[gamma]
 R[gamma] = R1[gamma] - K(R1[gamma])
-
+R1["%s_p2" % gamma] = R1[gamma]*(1-2*e)
+R["%s_p2" % gamma] = R1["%s_p2" % gamma] - K(R1["%s_p2" % gamma])
 print "KR1['%s'] = " % gamma, K(R1[gamma])
+print "R['%s_p2']" % gamma, R["%s_p2" % gamma]
 
 print "\n     ee11-22-ee-"
 # ee11-22-ee-
@@ -52,6 +54,7 @@ R[gamma] = R1[gamma] - K(R1[gamma])
 IR['11--'] = g['e11-e-']
 
 print "KR1['%s'] = " % gamma, K(R1[gamma])
+print "R['%s'] = " % gamma, R[gamma]
 
 print "\n     ee12-e22-e-"
 #ee12-e22-e-
@@ -123,6 +126,16 @@ R1[gamma] = (g[gamma] - K(R1['e111-e-']) * g['e11-e-'])  # no IR subgraph here!!
 R[gamma] = R1[gamma] - K(R1[gamma])
 
 print "KR1['%s'] = " % gamma, K(R1[gamma])
+
+
+# gamma = 'e1112-e3-3--'
+# print "\n     %s" % gamma
+# g[gamma] = (G(1, 1) * G(1 - l, 1) * G(1 - 2 * l, 3))
+# R1[gamma] = (g[gamma] - R['e111-e-_p2']) * g['e11-e-'])  # no IR subgraph here!!
+# R[gamma] = R1[gamma] - K(R1[gamma])
+#
+# print "KR1['%s'] = " % gamma, K(R1[gamma])
+
 
 
 # e123-e23-e3-e-
