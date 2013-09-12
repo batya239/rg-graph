@@ -3,13 +3,13 @@
 from distutils.core import setup
 
 setup(
-    name='RgGraphUtil',
+    name='RgGraphEnv',
     version='0.0.1',
     author='D. Batkovich',
     author_email='batya239@gmail.com',
-    packages=['rggraphutil', 'rggraphutil.test'],
-    url='http://pypi.python.org/pypi/RgGraphUtil/',
+    packages=['rggraphenv', 'rggraphenv.test'],
+    url='http://pypi.python.org/pypi/RgGraphEnv/',
     license='LICENSE.txt',
-    description='Common utils',
+    description='Common environments',
     long_description=open('README.txt').read()
 )

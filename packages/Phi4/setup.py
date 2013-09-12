@@ -7,7 +7,7 @@ setup(
     version='0.0.1',
     author='D. Batkovich',
     author_email='batya239@gmail.com',
-    packages=['gfunctions', 'gfunctions.test', 'mincer_adapter', 'mincer_adapter.test'],
+    packages=['phi4', 'phi4.test'],
     package_data={'mincer_adapter': ['lib/*.h']},
     url='http://pypi.python.org/pypi/Phi4/',
     license='LICENSE.txt',

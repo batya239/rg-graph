@@ -16,12 +16,17 @@ cd packages/RgGraphUtil
 ./setup.py install --user || exit 1
 cd $PWD_
 
-cd packages/Polynomial
+cd packages/Graphine
 ./run_tests.sh || exit 1
 ./setup.py install --user || exit 1
 cd $PWD_
 
-cd packages/Graphine
+cd packages/RgGraphEnv
+./run_tests.sh || exit 1
+./setup.py install --user || exit 1
+cd $PWD_
+
+cd packages/Polynomial
 ./run_tests.sh || exit 1
 ./setup.py install --user || exit 1
 cd $PWD_
