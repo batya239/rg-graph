@@ -8,7 +8,6 @@ else
   hg pull -u
 fi
 
-
 PWD_=`pwd`
 cd packages/GraphState
 ./run_tests.sh || exit 1
