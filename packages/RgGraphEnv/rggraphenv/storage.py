@@ -125,13 +125,7 @@ class _MercurialGraphOperationValuesStorage(common_storage.AbstractMercurialAwar
 
 
 class _GraphValueStorage(common_storage.AbstractMercurialAwareStorage):
-    _instance = None
     _FUNCTIONS_FOLDER_NAME = "fun"
-
-    def __new__(cls, *args, **kwargs):
-        if not cls._instance:
-            cls._instance = super(_GraphValueStorage, cls).__new__(cls, *args, **kwargs)
-        return cls._instance
 
     def __init__(self, theoryName, storagePath, storageFileName, canCalculateGraphChecker=(lambda g: False), withFunctions=False):
         super(_GraphValueStorage, self).__init__(theoryName, 2, storagePath, storageFileName)
