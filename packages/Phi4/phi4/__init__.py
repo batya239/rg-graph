@@ -1,7 +1,5 @@
 #!/usr/bin/python
 # -*- coding: utf8
-from rggraphutil.env import graph_calculator
-
 __author__ = 'dima'
 
 import lambda_number
