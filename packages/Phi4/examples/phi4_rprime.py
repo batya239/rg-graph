@@ -2,12 +2,12 @@
 # -*- coding: utf8
 import os
 import sys
+import rggraphutil.env.theory
 
 __author__ = 'daddy-bear'
 
 import gfunctions
-import gfunctions.graph_storage
-import gfunctions.rprime_storage
+import rggraphutil.env.storage
 import graph_state
 import graphine
 
@@ -20,7 +20,7 @@ def calculateGraphRPrime(graph):
 
     for _g in gfunctions.xPassExternalMomentum(graph, gfunctions.defaultGraphHasNotIRDivergenceFilter):
         try:
-            gfunctions.doRPrime(_g, gfunctions.MSKOperation(), gfunctions.defaultSubgraphUVFilter, description)
+            gfunctions.r.KR1(_g, gfunctions.MSKOperation(), gfunctions.defaultSubgraphUVFilter, description=description)
             calculated = True
         except gfunctions.CannotBeCalculatedError as e:
             print "\tcan't calculate:", e.message
@@ -31,11 +31,12 @@ def calculateGraphRPrime(graph):
 
 
 def main():
-    gfunctions.graph_storage.initStorage(withFunctions=True)
-    gfunctions.rprime_storage.initStorage()
+    rggraphutil.env.storage.initStorage(rggraphutil.env.theory.PHI4,
+                                        gfunctions.symbolic_functions.toInternalCode,
+                                        graphStorageUseFunctions=True)
 
-    loopsToFilter = int(sys.argv[1])
-    tailsCount = int(sys.argv[2])
+    loopsToFilter = int(6)
+    tailsCount = int(2)
     assert 1 <= loopsToFilter <= 6
     assert tailsCount in (2, 4)
 
@@ -48,12 +49,8 @@ def main():
     for g in graphsToCalculate:
         calculateGraphRPrime(g)
         
-    gfunctions.rprime_storage.closeStorage(revert=False, doCommit=False, commitMessage=sys.argv[3])
+    rggraphutil.env.storage.closeStorage(revert=False, doCommit=False, commitMessage="phi4_rprime.py")
 
 
 if __name__ == "__main__":
     main()
-    # gfunctions.graph_storage.initStorage(withFunctions=True)
-    # gfunctions.rprime_storage.initStorage()
-    # calculateGraphRPrime(graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr("e12-233-34-4-e-::"))))
-    # gfunctions.rprime_storage.closeStorage(revert=False, doCommit=False, commitMessage="")

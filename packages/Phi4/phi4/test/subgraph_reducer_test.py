@@ -1,0 +1,143 @@
+#!/usr/bin/python
+# -*- coding: utf8
+import copy
+import unittest
+import graphine
+import graph_state
+import mincer_graph_calculator
+import rggraphenv.graph_calculator as graph_calculator
+import graphine.momentum as momentum
+import gfun_calculator
+import base_test_case
+
+
+class SubGraphReducerTestCase(base_test_case.GraphStorageAwareTestCase):
+    def testTadpole(self):
+        reducer = gfun_calculator.GGraphReducer(graphine.Graph.initEdgesColors(graphine.Graph.fromStr("ee11--::['(0, 0)', '(0, 0)', '(1, 0)', '(1, 0)']")))
+        self.assertEqual(reducer.calculate(), ('0', (0, 0)))
+
+    def test4LoopDiagram(self):
+        g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr("e112-34-e33-4--::")))
+        reducer = gfun_calculator.GGraphReducer(g)
+        reducer2 = copy.copy(reducer)
+        while reducer.nextIteration():
+            pass
+        self.assertTrue(reducer.isSuccesfulDone())
+        actual = str(reducer.getFinalValue()[0])
+        self.assertEquals(reducer2.calculate(), reducer.getFinalValue())
+        self.assertEquals(set(actual.split("*")), set("G(1, 1)*G(1, 1)*G(1, 2)*G(1, 4-l*3)".split("*")))
+
+    def testPickPassingExternalMomentum(self):
+        g = graphine.Graph(
+            graph_state.GraphState.fromStr("ee11-ee-::['(0,0)', '(0,0)', '(1, 0)', '(1, 0)', '(0,0)', '(0,0)']"))
+        passings = [x for x in momentum.xPickPassingExternalMomentum(g)]
+        self.assertEquals(len(passings), 1)
+
+        g = graphine.Graph(
+            graph_state.GraphState.fromStr("e111-e-::['(0,0)', '(0,0)', '(1, 0)', '(1, 0)', '(0,0)']"))
+        passings = [x for x in momentum.xPickPassingExternalMomentum(g)]
+        self.assertEquals(len(passings), 1)
+
+        g = graphine.Graph(
+            graph_state.GraphState.fromStr("e111-e-::['(0,0)', '(0,0)', '(1, 0)', '(1, 0)', '(0,0)']"))
+        passings = [x for x in momentum.xPickPassingExternalMomentum(g)]
+        self.assertEquals(len(passings), 1)
+
+        edges = list()
+        edges.append(graph_state.Edge((-1, 0)))
+        edges.append(graph_state.Edge((-1, 0)))
+        edges.append(graph_state.Edge((0, 1)))
+        edges.append(graph_state.Edge((0, 2)))
+        edges.append(graph_state.Edge((1, 2)))
+        edges.append(graph_state.Edge((1, 2)))
+        edges.append(graph_state.Edge((-1, 1)))
+        edges.append(graph_state.Edge((-1, 2)))
+        g = graphine.Graph(
+            graph_state.GraphState(edges))
+        passings = [x for x in momentum.xPickPassingExternalMomentum(g)]
+        self.assertEquals(len(passings), 3)
+
+    def testReducingEyeOfATiger(self):
+        edges = list()
+        edges.append(graph_state.Edge((-1, 0), colors=(0, 0)))
+        edges.append(graph_state.Edge((-1, 0), colors=(0, 0)))
+        edges.append(graph_state.Edge((0, 1), colors=(1, 0)))
+        edges.append(graph_state.Edge((0, 2), colors=(1, 0)))
+        edges.append(graph_state.Edge((1, 2), colors=(1, 0)))
+        edges.append(graph_state.Edge((1, 2), colors=(1, 0)))
+        edges.append(graph_state.Edge((-1, 1), colors=(0, 0)))
+        edges.append(graph_state.Edge((-1, 2), colors=(0, 0)))
+        graph = graphine.Graph(
+            graph_state.GraphState(edges))
+        momentumPassing = (edges[-1], edges[0])
+        reducer = gfun_calculator.GGraphReducer(graph, momentumPassing)
+        self.assertEquals(reducer.calculate(), ("G(1, 1)*G(1, 2-l)", graph_state.Rainbow((2, -2))))
+
+    def testReducingE111_E_(self):
+        graph = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr("e111-e-::")))
+        reducer = gfun_calculator.GGraphReducer(graph)
+        reducer2 = copy.copy(reducer)
+        self.assertTrue(reducer.nextIteration())
+        self.assertTrue(reducer.nextIteration())
+        self.assertTrue(reducer.isSuccesfulDone())
+        self.assertEquals(reducer2.calculate(), reducer.getFinalValue())
+
+    def testReducingE11_22_E_(self):
+        graph = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr("e11-22-e-::")))
+        reducer = gfun_calculator.GGraphReducer(graph)
+        reducer2 = copy.copy(reducer)
+        self.assertTrue(reducer.nextIteration())
+        self.assertTrue(reducer.nextIteration())
+        self.assertTrue(reducer.nextIteration())
+        self.assertTrue(reducer.isSuccesfulDone())
+        self.assertEquals("('G(1, 1)*G(1, 1)', (2, -2))", str(reducer.getFinalValue()))
+        self.assertEquals(reducer2.calculate(), reducer.getFinalValue())
+
+
+    def testReducingAnotherDiagram(self):
+        edges = list()
+        edges.append(graph_state.Edge((-1, 0), colors=(0, 0)))
+        edges.append(graph_state.Edge((0, 1), colors=(1, 0)))
+        edges.append(graph_state.Edge((0, 3), colors=(1, 0)))
+        edges.append(graph_state.Edge((1, 2), colors=(1, 0)))
+        edges.append(graph_state.Edge((1, 3), colors=(1, 0)))
+        edges.append(graph_state.Edge((2, 3), colors=(1, 0)))
+        edges.append(graph_state.Edge((2, 3), colors=(1, 0)))
+        edges.append(graph_state.Edge((-1, 3), colors=(0, 0)))
+        graph = graphine.Graph(
+            graph_state.GraphState(edges))
+        momentumPassing = (edges[-1], edges[0])
+        reducer = gfun_calculator.GGraphReducer(graph, momentumPassing)
+        reducer2 = copy.copy(reducer)
+        hasIteration = reducer.nextIteration()
+        self.assertTrue(hasIteration)
+        self.assertEquals(str(reducer.getCurrentIterationGraph().toGraphState()),
+                          "e12-e23-3--::['(0, 0)', '(1, 0)', '(1, 0)', '(0, 0)', '(1, 0)', '(1, -1)', '(1, 0)']")
+        hasIteration = reducer.nextIteration()
+        self.assertTrue(hasIteration)
+        self.assertEquals(str(reducer.getCurrentIterationGraph().toGraphState()),
+                          "e112-2-e-::['(0, 0)', '(1, 0)', '(2, -1)', '(1, 0)', '(1, 0)', '(0, 0)']")
+        self.assertEquals(reducer2.calculate(), ('G(1, 1)*G(1, 2-l)*G(1, 3-l*2)', graph_state.Rainbow((3, -3))))
+
+    def testDiagramWithTBubbleLikeSubGraph(self):
+        try:
+            graph_calculator.addCalculator(mincer_graph_calculator.MincerGraphCalculator())
+            g = graphine.Graph.fromStr("e123-224-4-4-e-", initEdgesColor=True)
+            reducer = gfun_calculator.GGraphReducer(g, useGraphCalculator=True)
+            self.assertIsNotNone(reducer.calculate())
+        finally:
+            graph_calculator.dispose()
+
+    def testDiagramWithTBubbleLikeStructure(self):
+        try:
+            graph_calculator.addCalculator(mincer_graph_calculator.MincerGraphCalculator())
+            g = graphine.Graph.fromStr("e12-223-3-e-::", initEdgesColor=True)
+            reducer = gfun_calculator.GGraphReducer(g, useGraphCalculator=True)
+            self.assertIsNotNone(reducer.calculate())
+        finally:
+            graph_calculator.dispose()
+
+if __name__ == "__main__":
+    unittest.main()
+
+
