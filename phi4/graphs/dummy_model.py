@@ -378,3 +378,9 @@ class _phi4_d2_s2(_phi4_d2):
         self.removeRoots = False
 #        self.subtractionOperators = "from dynamics import to1\nfrom dynamics import mK1 as mK0\nfrom dynamics import D2 as D1\n"
         self.subtractionOperators = "to1=to1\nmK0=mK1\nD1=D2s\n"
+
+
+class _phi4_d2_s2S(_phi4_d2_s2):
+    def __init__(self, name):
+        super(_phi4_d2_s2S, self).__init__(name)
+        self.maxSize = 1

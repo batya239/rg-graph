@@ -1139,7 +1139,10 @@ def save(model, expr, sectors, name, neps, statics=False, introduce=False):
     uVars, aVars = splitUA(variables)
     delta_arg = deltaArg(uVars)
 
-    maxSize = 30000
+    if "maxSize" in model.__dict__:
+        maxSize = model.maxSize
+    else:
+        maxSize = 30000
     sectorCount = -1
     size = 0
     nSaved = 0
