@@ -2,7 +2,7 @@
 
 PWD1=`pwd`
 echo $PWD1
-for i in `ls -d GraphState Graphine GFunctions RgGraphUtil RgGraphEnv Polynomial MincerAdapter`; do
+for i in `ls -d GraphState Graphine RgGraphUtil RgGraphEnv Polynomial Phi4`; do
    cd $PWD1
    cd $i
    echo intstalling $i

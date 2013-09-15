@@ -76,22 +76,12 @@ class SubGraphReducerTestCase(base_test_case.GraphStorageAwareTestCase):
     def testReducingE111_E_(self):
         graph = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr("e111-e-::")))
         reducer = gfun_calculator.GGraphReducer(graph)
-        reducer2 = copy.copy(reducer)
-        self.assertTrue(reducer.nextIteration())
-        self.assertTrue(reducer.nextIteration())
-        self.assertTrue(reducer.isSuccesfulDone())
-        self.assertEquals(reducer2.calculate(), reducer.getFinalValue())
+        self.assertEquals(reducer.calculate(), ("G(1, 1)*G(1-l*1, 1)", graph_state.Rainbow((1, -2))))
 
     def testReducingE11_22_E_(self):
         graph = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr("e11-22-e-::")))
         reducer = gfun_calculator.GGraphReducer(graph)
-        reducer2 = copy.copy(reducer)
-        self.assertTrue(reducer.nextIteration())
-        self.assertTrue(reducer.nextIteration())
-        self.assertTrue(reducer.nextIteration())
-        self.assertTrue(reducer.isSuccesfulDone())
-        self.assertEquals("('G(1, 1)*G(1, 1)', (2, -2))", str(reducer.getFinalValue()))
-        self.assertEquals(reducer2.calculate(), reducer.getFinalValue())
+        self.assertEquals(str(reducer.calculate()), "('G(1, 1)*G(1, 1)', (2, -2))")
 
 
     def testReducingAnotherDiagram(self):
@@ -108,16 +98,7 @@ class SubGraphReducerTestCase(base_test_case.GraphStorageAwareTestCase):
             graph_state.GraphState(edges))
         momentumPassing = (edges[-1], edges[0])
         reducer = gfun_calculator.GGraphReducer(graph, momentumPassing)
-        reducer2 = copy.copy(reducer)
-        hasIteration = reducer.nextIteration()
-        self.assertTrue(hasIteration)
-        self.assertEquals(str(reducer.getCurrentIterationGraph().toGraphState()),
-                          "e12-e23-3--::['(0, 0)', '(1, 0)', '(1, 0)', '(0, 0)', '(1, 0)', '(1, -1)', '(1, 0)']")
-        hasIteration = reducer.nextIteration()
-        self.assertTrue(hasIteration)
-        self.assertEquals(str(reducer.getCurrentIterationGraph().toGraphState()),
-                          "e112-2-e-::['(0, 0)', '(1, 0)', '(2, -1)', '(1, 0)', '(1, 0)', '(0, 0)']")
-        self.assertEquals(reducer2.calculate(), ('G(1, 1)*G(1, 2-l)*G(1, 3-l*2)', graph_state.Rainbow((3, -3))))
+        self.assertEquals(reducer.calculate(), ('G(1, 1)*G(1, 2-l)*G(1, 3-l*2)', graph_state.Rainbow((3, -3))))
 
     def testDiagramWithTBubbleLikeSubGraph(self):
         try:
@@ -136,6 +117,9 @@ class SubGraphReducerTestCase(base_test_case.GraphStorageAwareTestCase):
             self.assertIsNotNone(reducer.calculate())
         finally:
             graph_calculator.dispose()
+
+    def assertIsNotNone(self, value):
+        assert value is not None
 
 if __name__ == "__main__":
     unittest.main()

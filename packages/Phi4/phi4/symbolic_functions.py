@@ -1,11 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf8
-"""
-wrapper on sympy library for working with symbolic evaluations
-"""
+#
+#
+# wrapper on sympy library to evaluate G-functions and eps expansions
+#
 import re
 import sympy
-
 
 e = sympy.var("e")
 l = 1 - e
@@ -18,20 +18,19 @@ pe = p ** e
 zeta = sympy.zeta
 polygamma = sympy.polygamma
 pi = sympy.pi
+gamma = sympy.gamma
 
 
 # noinspection PyUnusedLocal
 def evaluateSeries(expressionAsString, lineTuple, onlyPolePart=False):
     """
-    expressionAsString like '('G(1, 1)*G(1, 1)*G(1, 3-lambda*2)*G(1, 4-lambda*3)'
-    lineTuple like (4, -4) ~ 4 - 4 * lambda
+    expressionAsString like '('G(1, 1)*G(1, 1)*G(1, 3-l*2)*G(1, 4-l*3)'
+    lineTuple like (4, -4) ~ 4 - 4 * l
     """
     #expansion
     # noinspection PyCallingNonCallable
-    if onlyPolePart:
-        return evaluate(expressionAsString, lineTuple).series(e, 0, 0).collect(e).removeO()
-    else:
-        return evaluate(expressionAsString, lineTuple).series(e, 0, 0).collect(e)
+    evaluated = evaluate(expressionAsString, lineTuple).series(e, 0, 0).collect(e)
+    return evaluated.removeO() if onlyPolePart else evaluated
 
 
 def evaluateForTests(expressionAsString):
@@ -44,8 +43,8 @@ def evaluateForTests(expressionAsString):
 # noinspection PyUnusedLocal
 def evaluate(expressionAsString, lineTuple=None):
     """
-    expressionAsString like '('G(1, 1)*G(1, 1)*G(1, 3-lambda*2)*G(1, 4-lambda*3)'
-    lineTuple like (4, -4) ~ 4 - 4 * lambda
+    expressionAsString like '('G(1, 1)*G(1, 1)*G(1, 3-l*2)*G(1, 4-l*3)'
+    lineTuple like (4, -4) ~ 4 - 4 * l
     """
     gammaPart = eval(toInternalCode(expressionAsString))
     if not lineTuple:
@@ -62,7 +61,7 @@ def _safeIntegerNumerators(expressionAsString):
     return re.sub('([\.\d]+)/', 'sympy.Number(\\1)/', expressionAsString)
 
 
-def polePart(expr, precision=10):
+def polePart(expr):
     return (expr + sympy.O(1, e)).collect(e).series(e, 0, 0).removeO()
 
 
@@ -73,10 +72,8 @@ def G(alpha, beta):
 
 
 def _rawG(alpha, beta):
-    return sympy.gamma(l + 1 - alpha) * sympy.gamma(l + 1 - beta) \
-           * sympy.gamma(alpha + beta - l - 1) \
-           / ((4 * sympy.pi) ** (l + 1) * sympy.gamma(alpha) * sympy.gamma(beta)
-              * sympy.gamma(2 * l + 2 - alpha - beta))
+    return gamma(l + 1 - alpha) * gamma(l + 1 - beta) * gamma(alpha + beta - l - 1) \
+           / ((4 * pi) ** (l + 1) * gamma(alpha) * gamma(beta) * gamma(2 * l + 2 - alpha - beta))
 
 
 _g11 = _rawG(1, 1) * e

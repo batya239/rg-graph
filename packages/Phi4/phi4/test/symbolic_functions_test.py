@@ -8,7 +8,7 @@ __author__ = 'daddy-bear'
 
 class SymbolicFunctionsTestCase(unittest.TestCase):
     def testExpansion(self):
-        actualExpression = symbolic_functions.evaluateSeries(symbolic_functions.g(1, 1), (1, -1))
+        actualExpression = symbolic_functions.evaluateSeries("G(1, 1)", (1, -1))
         self.assertEquals(set(str(actualExpression).split(" + ")), set("1/e + O(1)".split(" + ")))
 
 
