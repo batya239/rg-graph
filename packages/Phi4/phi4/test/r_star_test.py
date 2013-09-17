@@ -14,6 +14,14 @@ __author__ = 'daddy-bear'
 
 
 class SubGraphReducerTestCase(base_test_case.GraphStorageAwareTestCase):
+    def testEE12_E34_555_E44_5__(self):
+        exceptionThrown = False
+        try:
+            self.doTestKRStar("12-e34-555-44-e5--", "-0.0286458333333333/e + 0.103125/e**2 - 0.114583333333333/e**3 + 0.0375/e**4")
+        except common.T0OperationNotDefined:
+            exceptionThrown = True
+        self.assertTrue(exceptionThrown)
+
     def testE112_E3_33__(self):
         self.doTestKRStar("e112-e3-33--", "1/(3*e**3)-1/(3*e**2)-1/(3*e)")
 
@@ -52,7 +60,7 @@ class SubGraphReducerTestCase(base_test_case.GraphStorageAwareTestCase):
             g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr(graphStateAsString)))
             expected = symbolic_functions.evaluateForTests(expectedResultAsString)
             actual = r.KRStar(g,  common.MSKOperation(), common.defaultSubgraphUVFilter, useGraphCalculator=useGraphCalculator)
-            sub = (expected - actual).simplify()
+            sub = expected - actual
             self.assertTrue(expected == actual or abs(
                 (sub * symbolic_functions.e ** 5).evalf(subs={symbolic_functions.e: 1})) < 1e-100,
                             "\nactual = " + str(actual) + "\nexpected = " + str(expected) + "\nsub = " + str(sub))

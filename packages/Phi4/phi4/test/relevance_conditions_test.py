@@ -4,13 +4,13 @@ import unittest
 import graph_state
 import graphine.filters as filters
 import graphine
-import relevance_conditions
+import ir_uv
 
 __author__ = 'daddy-bear'
 
 
-uv = relevance_conditions.UVRelevanceCondition()
-ir = relevance_conditions.IRRelevanceCondition()
+uv = ir_uv.UVRelevanceCondition()
+ir = ir_uv.IRRelevanceCondition()
 
 subgraphUVFilters = (filters.oneIrreducible
                      + filters.noTadpoles

@@ -8,7 +8,7 @@ setup(
     author='D. Batkovich',
     author_email='batya239@gmail.com',
     packages=['phi4', 'phi4.test'],
-    package_data={'mincer_adapter': ['lib/*.h']},
+    package_data={'phi4': ['lib/*.h']},
     url='http://pypi.python.org/pypi/Phi4/',
     license='LICENSE.txt',
     description='Calculating phi4',

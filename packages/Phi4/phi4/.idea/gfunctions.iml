@@ -8,6 +8,8 @@
     <orderEntry type="module" module-name="rggraphutil" />
     <orderEntry type="module" module-name="graphine" />
     <orderEntry type="module" module-name="GFunctions" />
+    <orderEntry type="module" module-name="examples" />
+    <orderEntry type="module" module-name="rggraphenv" />
   </component>
   <component name="PyDocumentationSettings">
     <option name="myDocStringFormat" value="Plain" />

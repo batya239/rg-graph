@@ -2,12 +2,20 @@
 # -*- coding: utf8
 import graphine
 import symbolic_functions
-import relevance_conditions
+import ir_uv
 
 __author__ = 'daddy-bear'
 
 
 class CannotBeCalculatedError(AssertionError):
+    def __init__(self, graph):
+        self._graph = graph
+
+    def __str__(self):
+        return "cannot calculate " + str(self._graph)
+
+
+class T0OperationNotDefined(AssertionError):
     pass
 
 
@@ -28,12 +36,12 @@ MS_SCHEME_NAME_MARKER = "ms-scheme"
 
 defaultSubgraphUVFilter = (graphine.filters.oneIrreducible
                            + graphine.filters.noTadpoles
-                           + graphine.filters.isRelevant(relevance_conditions.UVRelevanceCondition()))
+                           + graphine.filters.isRelevant(ir_uv.UVRelevanceCondition()))
 
 
 _DEFAULT_GRAPH_HAS_NOT_IR_DIVERGENCE_RESULT = dict()
 
-subgraphIRFilters = (graphine.filters.connected + graphine.filters.isRelevant(relevance_conditions.IRRelevanceCondition()))
+subgraphIRFilters = (graphine.filters.connected + graphine.filters.isRelevant(ir_uv.IRRelevanceCondition()))
 
 
 def defaultGraphHasNotIRDivergence(graph):

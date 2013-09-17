@@ -37,6 +37,7 @@ class AbstractMercurialAwareStorage(AbstractGraphOperationValuesStorage):
         log = sympy.log
         zeta = sympy.zeta
         pi = sympy.pi
+        EulerGamma = sympy.EulerGamma
         execfile(storageQualifiedFileName)
         self._storageFileName = storageFileName
         self._storagePath = storagePath

@@ -11,6 +11,8 @@ e = sympy.var("e")
 l = 1 - e
 p = sympy.var("p")
 
+D = 4 - 2 * e
+
 p2 = p ** 2
 
 pe = p ** e
@@ -19,6 +21,7 @@ zeta = sympy.zeta
 polygamma = sympy.polygamma
 pi = sympy.pi
 gamma = sympy.gamma
+EulerGamma = sympy.EulerGamma
 
 
 # noinspection PyUnusedLocal
@@ -62,7 +65,7 @@ def _safeIntegerNumerators(expressionAsString):
 
 
 def polePart(expr):
-    return (expr + sympy.O(1, e)).collect(e).series(e, 0, 0).removeO()
+    return expr.series(e, 0, 0).removeO()
 
 
 def G(alpha, beta):

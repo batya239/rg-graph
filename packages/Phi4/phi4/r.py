@@ -3,14 +3,14 @@
 import itertools
 import graphine.filters
 import common
+import ir_uv
 
 __author__ = 'daddy-bear'
 
-import rggraphutil.symbolic_functions as symbolic_functions
+import symbolic_functions
 import graphine.phi4
 import gfun_calculator
 import rggraphenv.storage as storage
-
 
 
 @graphine.filters.graphFilter
@@ -30,12 +30,13 @@ def KRStar(graph, kOperation, uvSubGraphFilter, description="", useGraphCalculat
     for i in xrange(1, len(spinneysGenerators) + 1):
         for spinney in itertools.combinations(spinneysGenerators, i):
             if not graphine.util.hasIntersectingByVertexesGraphs(spinney):
-                spinneyPart = reduce(
-                    lambda e, g: e * R(g, kOperation, uvSubGraphFilter,
-                                       useGraphCalculator=useGraphCalculator,
-                                       force=True),
-                    spinney, 1)
+                spinneyPart = reduce(lambda e, g: e * R(g, kOperation, uvSubGraphFilter,
+                                     useGraphCalculator=useGraphCalculator,
+                                     force=True),
+                                     spinney, 1)
                 shrunk, p2Counts = shrinkToPoint(graph, spinney)
+                if ir_uv.uvIndex(shrunk):
+                    raise common.T0OperationNotDefined()
                 ir = _irCOperation(shrunk, kOperation, uvSubGraphFilter, description, useGraphCalculator)
                 krs += kOperation.calculate(spinneyPart * ir).subs(
                     symbolic_functions.p, 1)
@@ -48,10 +49,12 @@ def _irCOperation(graph, kOperation, uvSubGraphFilter, description="", useGraphC
     for g in graphine.momentum.xArbitrarilyPassMomentum(body):
         try:
             if common.defaultGraphHasNotIRDivergence(g):
-                kr1 = KR1(g, kOperation, uvSubGraphFilter,
-                            description=description,
-                            useGraphCalculator=useGraphCalculator,
-                            force=True)
+                kr1 = KR1(g,
+                          kOperation,
+                          uvSubGraphFilter,
+                          description=description,
+                          useGraphCalculator=useGraphCalculator,
+                          force=True)
                 break
             else:
                 kr1 = KRStar(graph,
@@ -108,10 +111,13 @@ def _doKR1(rawGraph, kOperation, uvSubGraphFilter, description="", useGraphCalcu
         if evaluated is not None and len(evaluated):
             for e in evaluated:
                 return e[0], graph
-        r1 = _doR1(graph, kOperation, uvSubGraphFilter, description, useGraphCalculator, force=force)
-        kr1 = kOperation.calculate(r1[0])
-        storage.putGraphKR1(r1[1], kr1, common.GFUN_METHOD_NAME_MARKER, description)
-        return kr1, graph
+        try:
+            r1 = _doR1(graph, kOperation, uvSubGraphFilter, description, useGraphCalculator, force=force)
+            kr1 = kOperation.calculate(r1[0])
+            storage.putGraphKR1(r1[1], kr1, common.GFUN_METHOD_NAME_MARKER, description)
+            return kr1, graph
+        except common.CannotBeCalculatedError:
+            pass
 
     if force:
         preferable, notPreferable = graphine.momentum.arbitrarilyPassMomentumWithPreferable(rawGraph, common.defaultGraphHasNotIRDivergence)
@@ -121,7 +127,7 @@ def _doKR1(rawGraph, kOperation, uvSubGraphFilter, description="", useGraphCalcu
                 for e in evaluated:
                     return e[0], rawGraph
             try:
-                kr1 = KR1(g, kOperation, uvSubGraphFilter, description=description, useGraphCalculator=useGraphCalculator, force=force)
+                kr1 = KR1(g, kOperation, uvSubGraphFilter, description=description, useGraphCalculator=useGraphCalculator, force=False)
             except common.CannotBeCalculatedError:
                 pass
             else:
@@ -164,8 +170,8 @@ def _doR(rawGraph, kOperation, uvSubGraphFilter, description="", useGraphCalcula
         if evaluated is not None and len(evaluated):
             for e in evaluated:
                 return e[0], graph
-        r1 = _doR1(graph, kOperation, uvSubGraphFilter, description, useGraphCalculator, force)[0]
-        kr1 = _doKR1(graph, kOperation, uvSubGraphFilter, description, useGraphCalculator, force)[0]
+        r1 = _doR1(graph, kOperation, uvSubGraphFilter, description, useGraphCalculator, force=True)[0]
+        kr1 = _doKR1(graph, kOperation, uvSubGraphFilter, description, useGraphCalculator, force=True)[0]
         r = r1 - kr1
         storage.putGraphR(graph, r, common.GFUN_METHOD_NAME_MARKER, description)
         return r, graph

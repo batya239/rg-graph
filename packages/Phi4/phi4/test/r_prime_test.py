@@ -15,6 +15,13 @@ __author__ = 'daddy-bear'
 
 
 class RPrimeTestCase(base_test_case.GraphStorageAwareTestCase):
+    def test1(self):
+        g = graphine.Graph.initEdgesColors(graphine.Graph.fromStr("e112-e2-"))
+        _r = r.R(g, common.MSKOperation(), common.defaultSubgraphUVFilter,
+            useGraphCalculator=False, force=True)
+        print _r
+        assert False
+
     def testIR(self):
         self.assertFalse(common.defaultGraphHasNotIRDivergence(graphine.Graph.fromStr("e123-224-4-4-e-")))
         irFree = [x for x in graphine.momentum.xPassExternalMomentum(graphine.Graph.fromStr("e112-e3-e34-44-e-"),
@@ -115,21 +122,28 @@ class RPrimeTestCase(base_test_case.GraphStorageAwareTestCase):
     def testE12_E24_33_44__(self):
         self.doTestRPrime("e12-e24-33-44--::", "(-1/(12*e**4))*(1 - 3*e + e**2 + 5*e**3 - 6*zeta(3)*e**3)")
 
+    def testEE12_E34_555_E44_5__(self):
+        self.doTestRPrime("ee12-e34-555-e44-5--", "-0.0286458333333333/e + 0.103125/e**2 - 0.114583333333333/e**3 + 0.0375/e**4")
+
+    #print r.KR1(graphine.Graph.fromStr("e1112-e333-4-4--"), common.MSKOperation(), common.defaultSubgraphUVFilter, useGraphCalculator=False, force=True)
+    def test1111111(self):
+        self.doTestRPrime("e1112-e333-4-4--", "0", force=True)
+
     #WITH GRAPH CALCULATOR
     def testE12_223_3_E_(self):
         self.doTestRPrime("e12-223-3-e-::", "1/(3*e) - 2/(3*e**2) + 1/(3*e**3)", useGraphCalculator=True)
 
-    def doTestRPrime(self, graphStateAsString, expectedResultAsString, useGraphCalculator=False):
+    def doTestRPrime(self, graphStateAsString, expectedResultAsString, useGraphCalculator=False, force=False):
         try:
             if useGraphCalculator:
                 graph_calculator.addCalculator(mincer_graph_calculator.MincerGraphCalculator())
             g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr(graphStateAsString)))
             expected = symbolic_functions.evaluateForTests(expectedResultAsString)
             actual = r.KR1(g, common.MSKOperation(), common.defaultSubgraphUVFilter,
-                           useGraphCalculator=useGraphCalculator)
+                           useGraphCalculator=useGraphCalculator, force=force)
             sub = (expected - actual).simplify()
             self.assertTrue(expected == actual or abs(
-                (sub * symbolic_functions.e ** 5).evalf(subs={symbolic_functions.e: 1})) < 1e-100,
+                (sub * symbolic_functions.e ** 5).evalf(subs={symbolic_functions.e: 1})) < 1e-5,
                             "\nactual = " + str(actual) + "\nexpected = " + str(expected) + "\nsub = " + str(sub))
         finally:
             graph_calculator.dispose()
