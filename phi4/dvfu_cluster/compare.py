@@ -50,10 +50,11 @@ f_mkompan.close()
 for i in data1.keys():
     #print abs(data1[i][0]/sym_coef(i)*sympy.gamma(nloops(i)) - data2[i][0][0])
     try:
-        delta = abs(data1[i][0]*sympy.gamma(nloops(i))/sym_coef(i) - data2[i][0][0])
+        delta = abs(data1[i][0][0]*sympy.gamma(nloops(i))/sym_coef(i) - data2[i][0][0])
         if delta > 1e-6:
-            print i,'\t',delta,'\t', data1[i][0]*sympy.gamma(nloops(i))/sym_coef(i),'\t', data2[i][0][0]
+            print i,'\t',delta,'\t', data1[i][0][0]*sympy.gamma(nloops(i))/sym_coef(i),'\t', data2[i][0][0]
     except:
         #pass
         print "Exception:",i
 
+print "Total number of diagrams:",len(data1.keys())

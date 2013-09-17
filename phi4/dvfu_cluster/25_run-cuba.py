@@ -5,9 +5,9 @@
 
 ## Параметры cuba:
 EpsRel = '1e-6'
-EpsAbs = '1e-12'
-MaxPoints = '50000000'
-Method  = 'cuhre' ## one of: 'vegas', 'suave', 'divonne', 'cuhre'
+EpsAbs = '1e-10'
+MaxPoints = '10000000'
+Method  = 'suave' ## one of: 'vegas', 'suave', 'divonne', 'cuhre'
 
 def method_num(method):
     if method   == 'vegas': return '0'
@@ -48,7 +48,7 @@ commands = []
 for d in diags:
     path = os.path.join(WORKDIR,d)
     cmd = ' '.join((path+'/cuba.run', method_num(Method), MaxPoints, EpsRel, EpsAbs, \
-                    '>', '_'.join((path+'/out', d, Method, MaxPoints, EpsRel, EpsAbs)) \
+                    '>', '_'.join((path+'/out', d, Method, MaxPoints.replace('0000000','0M'), EpsRel, EpsAbs)) \
                     ))
     commands += [cmd]
 
