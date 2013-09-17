@@ -5,7 +5,6 @@ import itertools
 import os
 import shutil
 import subprocess
-import rggraphutil
 import symbolic_functions
 
 __author__ = 'mkompan'
@@ -74,15 +73,15 @@ def calculateGraph(graph):
     stdout = proc.stdout.read().replace("\n", "")
 
     rawResult = _RESULT_REGEXP.findall(stdout)[0]
-    rawResult = rawResult.replace("Q.Q", "1").replace("^", "**").replace("ep", "_e")
+    rawResult = rawResult.replace("Q.Q", "1").replace("^", "**").replace("ep", "e")
     rawResult = _replaceZetas(rawResult)
     rawResult = symbolic_functions._safeIntegerNumerators(rawResult)
     if rawResult.strip() == '0':
         return None
     # noinspection PyUnusedLocal
-    _e = rggraphutil.symbolic_functions._getE()
+    e = symbolic_functions.e
     # noinspection PyUnusedLocal
-    _p = rggraphutil.symbolic_functions._getP()
+    p = symbolic_functions.p
     res = eval(rawResult)
     return res, _calculatePFactor(graph)
 

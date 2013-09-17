@@ -195,24 +195,27 @@ def _doR1(rawGraph, kOperation, uvSubGraphFilter, description="", useGraphCalcul
             for e in evaluated:
                 return e[0], graph
 
-        uvSubgraphs = graphine.Graph.batchInitEdgesColors([sg for sg in graph.xRelevantSubGraphs(uvSubGraphFilter)])
-        if not len(uvSubgraphs):
-            expression, twoTailsGraph = gfun_calculator.calculateGraphValue(graph, useGraphCalculator=useGraphCalculator)
-            storage.putGraphR1(twoTailsGraph, expression, common.GFUN_METHOD_NAME_MARKER, description)
-            return expression, twoTailsGraph
+        try:
+            uvSubgraphs = graphine.Graph.batchInitEdgesColors([sg for sg in graph.xRelevantSubGraphs(uvSubGraphFilter)])
+            if not len(uvSubgraphs):
+                expression, twoTailsGraph = gfun_calculator.calculateGraphValue(graph, useGraphCalculator=useGraphCalculator)
+                storage.putGraphR1(twoTailsGraph, expression, common.GFUN_METHOD_NAME_MARKER, description)
+                return expression, twoTailsGraph
 
-        rawRPrime = gfun_calculator.calculateGraphValue(graph, useGraphCalculator=useGraphCalculator)[0]
-        sign = 1
-        for i in xrange(1, len(uvSubgraphs) + 1):
-            sign *= -1
-            for comb in itertools.combinations(uvSubgraphs, i):
-                if i == 1 or not graphine.util.hasIntersectingByVertexesGraphs(comb):
-                    r1 = reduce(lambda e, g: e * KR1(g, kOperation, uvSubGraphFilter, useGraphCalculator=useGraphCalculator, force=force), comb, 1)
-                    shrunk, p2Counts = shrinkToPoint(graph, comb)
-                    rawRPrime += sign * r1 * gfun_calculator.calculateGraphValue(shrunk, useGraphCalculator=useGraphCalculator)[0] * (symbolic_functions.p2 ** p2Counts)
+            rawRPrime = gfun_calculator.calculateGraphValue(graph, useGraphCalculator=useGraphCalculator)[0]
+            sign = 1
+            for i in xrange(1, len(uvSubgraphs) + 1):
+                sign *= -1
+                for comb in itertools.combinations(uvSubgraphs, i):
+                    if i == 1 or not graphine.util.hasIntersectingByVertexesGraphs(comb):
+                        r1 = reduce(lambda e, g: e * KR1(g, kOperation, uvSubGraphFilter, useGraphCalculator=useGraphCalculator, force=force), comb, 1)
+                        shrunk, p2Counts = shrinkToPoint(graph, comb)
+                        rawRPrime += sign * r1 * gfun_calculator.calculateGraphValue(shrunk, useGraphCalculator=useGraphCalculator)[0] * (symbolic_functions.p2 ** p2Counts)
 
-        storage.putGraphR1(graph, rawRPrime, common.GFUN_METHOD_NAME_MARKER, description)
-        return rawRPrime, graph
+            storage.putGraphR1(graph, rawRPrime, common.GFUN_METHOD_NAME_MARKER, description)
+            return rawRPrime, graph
+        except common.CannotBeCalculatedError:
+            pass
     raise common.CannotBeCalculatedError(rawGraph)
 
 

@@ -14,6 +14,10 @@ __author__ = 'daddy-bear'
 
 
 class SubGraphReducerTestCase(base_test_case.GraphStorageAwareTestCase):
+
+    def testEE12_334_345_E_55_E_(self):
+        self.doTestKRStar("ee12-334-345-e-55-e-", "0")
+
     def testEE12_E34_555_E44_5__(self):
         exceptionThrown = False
         try:
