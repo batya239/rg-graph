@@ -1738,7 +1738,7 @@ def save(name, graph, model, overwrite=True):
             file_list = os.listdir(dirname)
             for file in file_list:
                 if fnmatch.fnmatch(file, "*.c") or fnmatch.fnmatch(file, "*.run") or fnmatch.fnmatch(file, "*.o"):
-                    os.remove(dirname + file)
+                    os.remove(os.path.join(dirname, file))
     Prepare(graph, model)
     save_sd(os.path.join(dirname,name), graph, model)
 
