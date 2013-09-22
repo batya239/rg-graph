@@ -54,6 +54,7 @@ class GraphOperationsTestCase(unittest.TestCase):
         self.doTestConnected("ee12-ee1-ee-::", expectedResult=True)
 
     def testVertexIrreducibility(self):
+        self.doTestVertexIrreducibility("e11-e22--::", expectedResult=False)
         self.doTestVertexIrreducibility("ee11-22-ee-::", expectedResult=False)
         self.doTestVertexIrreducibility("ee12-ee2-ee-::", expectedResult=True)
         self.doTestVertexIrreducibility("011-22-2-::", expectedResult=False)
