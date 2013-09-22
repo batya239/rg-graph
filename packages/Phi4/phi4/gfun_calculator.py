@@ -2,11 +2,12 @@
 # -*- coding: utf8
 import copy
 import graphine
+import const
 import graph_state
-from rggraphenv import storage, graph_calculator
 import common
 import lambda_number
 import symbolic_functions
+from rggraphenv import storage, graph_calculator
 
 
 def _createFilter():
@@ -15,6 +16,7 @@ def _createFilter():
         def __init__(self):
             pass
 
+        # noinspection PyUnusedLocal
         def isRelevant(self, edgesList, superGraph, superGraphEdges):
             subGraph = graphine.Representator.asGraph(edgesList, superGraph.externalVertex)
             vertexes = set()
@@ -29,7 +31,8 @@ def _createFilter():
 
 
 def calculateGraphsValues(graphs, suppressException=False, useGraphCalculator=False):
-    return reduce(lambda e, g: e * calculateGraphValue(g, suppressException, useGraphCalculator=useGraphCalculator)[0], graphs, 1)
+    return reduce(lambda e, g: e * calculateGraphValue(g, suppressException, useGraphCalculator=useGraphCalculator)[0],
+                  graphs, 1)
 
 
 def calculateGraphValue0(graph, suppressException=False, useGraphCalculator=False):
@@ -41,8 +44,8 @@ def calculateGraphValue(graph, suppressException=False, useGraphCalculator=False
         graphReducer = GGraphReducer(graph, useGraphCalculator=useGraphCalculator)
     else:
         graphReducer = None
-        for gWithMomentum in graphine.momentum.xPassExternalMomentum(graph, common.defaultGraphHasNotIRDivergenceFilter):
-            graphReducer = GGraphReducer(gWithMomentum, useGraphCalculator=useGraphCalculator)
+        for g in graphine.momentum.xPassExternalMomentum(graph, common.defaultGraphHasNotIRDivergenceFilter):
+            graphReducer = GGraphReducer(g, useGraphCalculator=useGraphCalculator)
             break
         if graphReducer is None:
             raise common.CannotBeCalculatedError(graph)
@@ -66,9 +69,13 @@ def _adjust(graphAsList, externalVertex):
             adjustedEdges.append(e)
     boundaryVertexes.remove(externalVertex)
     adjustedExternalEdges = []
+    hasFields = graphAsList[0].fields is not None
     for v in boundaryVertexes:
-        adjustedExternalEdges.append(graph_state.Edge((externalVertex, v), external_node=externalVertex, colors=(0, 0)))
-    return adjustedEdges + adjustedExternalEdges, adjustedEdges, boundaryVertexes
+        adjustedExternalEdges.append(graph_state.Edge((externalVertex, v),
+                                                      external_node=externalVertex,
+                                                      colors=(0, 0),
+                                                      fields=const.EMPTY_NUMERATOR if hasFields else None))
+    return adjustedEdges + adjustedExternalEdges, adjustedEdges, tuple(boundaryVertexes)
 
 
 class GGraphReducer(object):
@@ -89,6 +96,7 @@ class GGraphReducer(object):
         """
         momentumPassing -- two external edges of graph in which external momentum passing
         """
+        self._fieldsAware = len(str(graph).split(":")[1]) != 0
         if isinstance(graph, graphine.Graph):
             if len(momentumPassing):
                 self._initGraph = graphine.momentum.passMomentOnGraph(graph, momentumPassing)
@@ -146,14 +154,16 @@ class GGraphReducer(object):
             return self.getFinalValue()
 
         relevantSubGraphs = [x for x in
-                             lastIteration.xRelevantSubGraphs(self._subGraphFilter, graphine.Representator.asList)] + [
-                             lastIteration.allEdges()]
+                             lastIteration.xRelevantSubGraphs(self._subGraphFilter,
+                                                              graphine.Representator.asList)] + \
+                            [lastIteration.allEdges()]
         relevantSubGraphs = relevantSubGraphs[::-1]
         relevantSubGraphs.sort(lambda x, y: len(y) - len(x))
 
         for subGraphAsList in relevantSubGraphs:
             adjustedSubGraph = _adjust(subGraphAsList, self._initGraph.externalVertex)
-            subGraph = graphine.Graph(adjustedSubGraph[0], externalVertex=self._initGraph.externalVertex)
+            subGraph = graphine.Graph(adjustedSubGraph[0],
+                                      externalVertex=self._initGraph.externalVertex)
             preprocessed = (adjustedSubGraph[1], subGraph, adjustedSubGraph[2])
             if storage.hasGraph(subGraph):
                 res = self._doIterate(preprocessed)
@@ -175,8 +185,18 @@ class GGraphReducer(object):
 
         maximalSubGraphValue = storage.getGraph(subGraphInfo[1])
 
-        newIteration = newIteration.addEdge(graph_state.Edge(subGraphInfo[2], self._initGraph.externalVertex,
-                                                             colors=maximalSubGraphValue[0][1]))
+        if self._fieldsAware:
+            fs = str(subGraphInfo[1]).split(":")[1]
+            if fs.count("i") % 2 == 0:
+                fields = const.EMPTY_NUMERATOR
+            else:
+                fields = const.LEFT_NUMERATOR
+        else:
+            fields = None
+
+        newIteration = newIteration.addEdge(graph_state.Edge(subGraphInfo[2],
+                                            self._initGraph.externalVertex,
+                                            colors=maximalSubGraphValue[0][1], fields=fields))
 
         newIterationGraphs = copy.copy(self._iterationGraphs)
         newIterationGraphs.append(newIteration)
@@ -269,9 +289,26 @@ class GGraphReducer(object):
                     if currentVertex != v:
                         boundaryVertexes.append(currentVertex)
             assert newLambdaNumber
-            newEdge = graph_state.Edge(boundaryVertexes,
-                                       external_node=self._initGraph.externalVertex,
-                                       colors=lambda_number.toRainbow(newLambdaNumber))
+            if self._fieldsAware:
+                fields = const.EMPTY_NUMERATOR
+                if edges[0].fields != const.EMPTY_NUMERATOR:
+                    if boundaryVertexes[0] == edges[0].nodes[0]:
+                        fields = edges[0].fields
+                    else:
+                        fields = const.chooseOppositeFields(edges[0].fields)
+                if fields == const.EMPTY_NUMERATOR and edges[1].fields != const.EMPTY_NUMERATOR:
+                    if boundaryVertexes[1] == edges[1].nodes[1]:
+                        fields = edges[1].fields
+                    else:
+                        fields = const.chooseOppositeFields(edges[1].fields)
+                newEdge = graph_state.Edge(boundaryVertexes,
+                                           external_node=self._initGraph.externalVertex,
+                                           colors=lambda_number.toRainbow(newLambdaNumber),
+                                           fields=fields)
+            else:
+                newEdge = graph_state.Edge(boundaryVertexes,
+                                           external_node=self._initGraph.externalVertex,
+                                           colors=lambda_number.toRainbow(newLambdaNumber))
             currentGraph = self.getCurrentIterationGraph()
             currentGraph = currentGraph.deleteEdges(edges)
             currentGraph = currentGraph.addEdge(newEdge)

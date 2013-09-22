@@ -8,55 +8,51 @@ import graph_state
 
 import graphine
 import graphine.filters as filters
-
 import sys
-
-spaceDim = 4
-edgeUVWeight = -2
-edgeIRWeight = -2
+import const
 
 
 def uvIndex(graph):
     nEdges = len(graph.allEdges(withIndex=True)) - len(graph.edges(graph.externalVertex))
     nVertexes = len(graph.vertexes()) - 1
     nLoop = nEdges - nVertexes + 1
-    index = nEdges * edgeUVWeight + nLoop * spaceDim
-    return index >= 0
+    index = nEdges * const.edgeUVWeight + nLoop * const.spaceDim
+    return index
 
 
 class UVRelevanceCondition(object):
     # noinspection PyUnusedLocal
     def isRelevant(self, edgesList, superGraph, superGraphEdges):
-        subgraph = graphine.Representator.asGraph(edgesList, superGraph.externalVertex)
-        nEdges = len(edgesList) - len(subgraph.edges(subgraph.externalVertex))
-        nVertexes = len(subgraph.vertexes()) - 1
+        subGraph = graphine.Representator.asGraph(edgesList, superGraph.externalVertex)
+        nEdges = len(edgesList) - len(subGraph.edges(subGraph.externalVertex))
+        nVertexes = len(subGraph.vertexes()) - 1
         nLoop = nEdges - nVertexes + 1
-        subgraphUVIndex = nEdges * edgeUVWeight + nLoop * spaceDim
-        return subgraphUVIndex >= 0
+        subGraphUVIndex = nEdges * const.edgeUVWeight + nLoop * const.spaceDim
+        return subGraphUVIndex >= 0
 
 
 class IRRelevanceCondition(object):
     def isRelevant(self, edgesList, superGraph, superGraphEdges):
-        subgraph = graphine.Representator.asGraph(edgesList, superGraph.externalVertex)
+        subGraph = graphine.Representator.asGraph(edgesList, superGraph.externalVertex)
 
-        externalEdges = subgraph.edges(subgraph.externalVertex)
+        externalEdges = subGraph.edges(subGraph.externalVertex)
         borderNodes = reduce(lambda x, y: x | y,
-                            map(lambda x: set(x.nodes), externalEdges)) - \
-                            set([superGraph.externalVertex])
+                             map(lambda x: set(x.nodes), externalEdges)) - \
+                             set([superGraph.externalVertex])
 
         if len(borderNodes) != 2:
             return False
         nEdges = len(edgesList) - len(externalEdges)
-        nVertexes = len(subgraph.vertexes()) - 1
+        nVertexes = len(subGraph.vertexes()) - 1
         nLoop = nEdges - nVertexes + 1
-        subgraphIRIndex = nEdges * edgeIRWeight + (nLoop + 1) * spaceDim
-        # invalid result for e12-e333-3-- (there is no IR subgraphs)
-        if subgraphIRIndex > 0:
+        subGraphIRIndex = nEdges * const.edgeIRWeight + (nLoop + 1) * const.spaceDim
+        # invalid result for e12-e333-3-- (there is no IR subGraphs)
+        if subGraphIRIndex > 0:
             return False
 
         superBorderNodes = reduce(lambda x, y: x | y,
-                            map(lambda x: set(x.nodes), superGraph.edges(superGraph.externalVertex))) - \
-                            set([superGraph.externalVertex])
+                                  map(lambda x: set(x.nodes), superGraph.edges(superGraph.externalVertex))) - \
+                                  set([superGraph.externalVertex])
 
         connectionEquivalence = _MergeResolver(superGraph.externalVertex, borderNodes, superBorderNodes)
         for e in superGraphEdges:
@@ -80,7 +76,7 @@ class _MergeResolver(object):
         vs = filter(lambda v: v not in self._cutVertexes and v is not self._externalVertex, e.nodes)
         length = len(vs)
         if length == 0:
-            if not self._hasBorderJumpers and len(filter(lambda  v: v is not self._externalVertex, e.nodes)) == 2:
+            if not self._hasBorderJumpers and len(filter(lambda v: v is not self._externalVertex, e.nodes)) == 2:
                 self._hasBorderJumpers = True
         elif length == 1:
             self._disjointSet.addKey(vs[0])
@@ -115,26 +111,26 @@ def main():
     uv = UVRelevanceCondition()
     ir = IRRelevanceCondition()
 
-    subgraphUVFilters = (filters.oneIrreducible
+    subGraphUVFilters = (filters.oneIrreducible
                          + filters.noTadpoles
                          + filters.vertexIrreducible
                          + filters.isRelevant(uv))
 
-    subgraphIRFilters = (filters.connected + filters.isRelevant(ir))
+    subGraphIRFilters = (filters.connected + filters.isRelevant(ir))
 
     g = graphine.Graph(graph_state.GraphState.fromStr(sys.argv[1]))
 
     print g.toGraphState()
 
-    subgraphsUV = [str(subg.toGraphState()) for subg in
-                   g.xRelevantSubGraphs(subgraphUVFilters, graphine.Representator.asMinimalGraph)]
+    subGraphsUV = [str(subg.toGraphState()) for subg in
+                   g.xRelevantSubGraphs(subGraphUVFilters, graphine.Representator.asMinimalGraph)]
 
-    print "UV\n", subgraphsUV
+    print "UV\n", subGraphsUV
 
-    subgraphsIR = [str(subg.toGraphState()) for subg in
-                   g.xRelevantSubGraphs(subgraphIRFilters, graphine.Representator.asMinimalGraph)]
+    subGraphsIR = [str(subg.toGraphState()) for subg in
+                   g.xRelevantSubGraphs(subGraphIRFilters, graphine.Representator.asMinimalGraph)]
 
-    print "IR\n", subgraphsIR
+    print "IR\n", subGraphsIR
 
 if __name__ == "__main__":
     main()
