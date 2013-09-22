@@ -32,8 +32,26 @@ def evaluateSeries(expressionAsString, lineTuple, onlyPolePart=False):
     """
     #expansion
     # noinspection PyCallingNonCallable
-    evaluated = evaluate(expressionAsString, lineTuple).series(e, 0, 0).collect(e)
+    evaluated = series(evaluate(expressionAsString, lineTuple), e, 0, 0, removeO=onlyPolePart)
     return evaluated.removeO() if onlyPolePart else evaluated
+
+
+def series(expr, x, x0, n, removeO=False):
+    """
+    sympy bugs avoided
+    """
+    expr_series = expr.series(x, x0, n)
+    return expr_series.removeO() if removeO else expr_series
+    # expansion = list()
+    # for t in expr.lseries(x, x0):
+    #     p = t.as_coeff_exponent(x)[1]
+    #     if p < n:
+    #         expansion.append(t)
+    #     else:
+    #         break
+    # if not removeO:
+    #     expansion.append(sympy.O(x**n))
+    # return sympy.Add(*expansion)
 
 
 def evaluateForTests(expressionAsString):
@@ -52,7 +70,7 @@ def evaluate(expressionAsString, lineTuple=None):
     gammaPart = eval(toInternalCode(expressionAsString))
     if not lineTuple:
         return gammaPart
-    linePart = p ** (eval("2 * (lineTuple[0] + lineTuple[1] * l)"))
+    linePart = p ** (eval("(-2) * (lineTuple[0] + lineTuple[1] * l)"))
     return gammaPart * linePart
 
 
@@ -65,7 +83,7 @@ def _safeIntegerNumerators(expressionAsString):
 
 
 def polePart(expr):
-    return expr.series(e, 0, 0).removeO()
+    return series(expr, e, 0, 0, removeO=True)
 
 
 def G(alpha, beta):
@@ -74,11 +92,17 @@ def G(alpha, beta):
     return _rawG(alpha, beta) / _g11
 
 
+def G1(alpha, beta):
+    return (G(alpha, beta) + G(alpha - 1, beta) - G(alpha, beta - 1))/2
+
+
+def G2(alpha, beta):
+    return (G(alpha, beta) - G(alpha - 1, beta) - G(alpha, beta - 1))/2
+
+
 def _rawG(alpha, beta):
     return gamma(l + 1 - alpha) * gamma(l + 1 - beta) * gamma(alpha + beta - l - 1) \
            / ((4 * pi) ** (l + 1) * gamma(alpha) * gamma(beta) * gamma(2 * l + 2 - alpha - beta))
 
 
 _g11 = _rawG(1, 1) * e
-
-

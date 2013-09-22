@@ -11,6 +11,9 @@ import symbolic_functions
 import graphine.phi4
 import gfun_calculator
 import rggraphenv.storage as storage
+import rggraphutil
+
+DEBUG = False
 
 
 @graphine.filters.graphFilter
@@ -19,34 +22,54 @@ def _is1Uniting(edgesList, superGraph, superGraphEdges):
     return len(sg.edges(sg.externalVertex)) == 2
 
 
-def KRStar(graph, kOperation, uvSubGraphFilter, description="", useGraphCalculator=True):
-    krs = KR1(graph, kOperation, uvSubGraphFilter, description, useGraphCalculator, force=True, insideKRStar=True).subs(
-        symbolic_functions.p, 1)
-    spinneysGenerators = graphine.Graph.batchInitEdgesColors(
-        [x for x in graph.xRelevantSubGraphs(filters=graphine.filters.oneIrreducible
-                                                     + graphine.filters.isRelevant(graphine.phi4.UVRelevanceCondition())
-                                                     + _is1Uniting,
-                                             cutEdgesToExternal=False)])
-    for i in xrange(1, len(spinneysGenerators) + 1):
-        for spinney in itertools.combinations(spinneysGenerators, i):
-            if not graphine.util.hasIntersectingByVertexesGraphs(spinney):
-                spinneyPart = reduce(lambda e, g: e * R(g, kOperation, uvSubGraphFilter,
-                                     useGraphCalculator=useGraphCalculator,
-                                     force=True),
-                                     spinney, 1)
-                shrunk, p2Counts = shrinkToPoint(graph, spinney)
-                if ir_uv.uvIndex(shrunk):
-                    raise common.T0OperationNotDefined()
-                ir = _irCOperation(shrunk, kOperation, uvSubGraphFilter, description, useGraphCalculator)
-                krs += kOperation.calculate(spinneyPart * ir).subs(
-                    symbolic_functions.p, 1)
-    return krs
+def KRStar(initialGraph, kOperation, uvSubGraphFilter, description="", useGraphCalculator=True):
+    if len(initialGraph.edges(initialGraph.externalVertex)) == 2:
+        iterator = initialGraph,
+    else:
+        iterator = graphine.Graph.batchInitEdgesColors(graphine.momentum.xArbitrarilyPassMomentum(initialGraph))
+    for graph in iterator:
+        try:
+            # evaluated = storage.getKR1(graph)
+            # if evaluated and len(evaluated):
+            #     e = evaluated[0]
+            #     return e[0].subs(symbolic_functions.p, 1)
+            krs = KR1(graph, kOperation, uvSubGraphFilter, description, useGraphCalculator, force=True, insideKRStar=False).subs(
+                symbolic_functions.p, 1)
+            spinneysGenerators = [x for x in graph.xRelevantSubGraphs(filters=graphine.filters.oneIrreducible
+                                                             + graphine.filters.isRelevant(graphine.phi4.UVRelevanceCondition())
+                                                             + _is1Uniting
+                                                             + graphine.filters.vertexIrreducible,
+                                                     cutEdgesToExternal=False)]
+            for i in xrange(1, len(spinneysGenerators) + 1):
+                for spinney in itertools.combinations(spinneysGenerators, i):
+                    if not graphine.util.hasIntersectingByVertexesGraphs(spinney):
+                        shrunk, p2Counts = shrinkToPoint(graph, spinney)
+                        if str(shrunk).startswith("ee0-::"):
+                            continue
+                        spinneyPart = reduce(lambda e, g: e * R(g, kOperation, uvSubGraphFilter,
+                                             useGraphCalculator=useGraphCalculator,
+                                             force=True),
+                                             spinney, 1)
+                        uv = ir_uv.uvIndex(shrunk)
+                        if uv < 0:
+                            raise common.T0OperationNotDefined(shrunk)
+                        ir = _irCOperation(shrunk, kOperation, uvSubGraphFilter, description, useGraphCalculator)
+                        if DEBUG:
+                            print "S", spinney, spinneyPart
+                            print "CS", shrunk, ir
+                        sub = kOperation.calculate(spinneyPart * ir).subs(symbolic_functions.p, 1)
+                        krs += sub
+            return krs
+        except common.CannotBeCalculatedError:
+            pass
+    raise common.CannotBeCalculatedError(initialGraph)
 
 
 def _irCOperation(graph, kOperation, uvSubGraphFilter, description="", useGraphCalculator=True):
     body = _deleteExternalEdges(graph)
     kr1 = None
-    for g in graphine.momentum.xArbitrarilyPassMomentum(body):
+    preferable, notPreferable = graphine.momentum.arbitrarilyPassMomentumWithPreferable(body, common.defaultGraphHasNotIRDivergence)
+    for g in preferable:
         try:
             if common.defaultGraphHasNotIRDivergence(g):
                 kr1 = KR1(g,
@@ -54,18 +77,26 @@ def _irCOperation(graph, kOperation, uvSubGraphFilter, description="", useGraphC
                           uvSubGraphFilter,
                           description=description,
                           useGraphCalculator=useGraphCalculator,
+                          checkRStarIfNeed=False,
                           force=True)
                 break
-            else:
-                kr1 = KRStar(graph,
-                             kOperation,
-                             uvSubGraphFilter=uvSubGraphFilter,
-                             description=description,
-                             useGraphCalculator=useGraphCalculator)
         except common.CannotBeCalculatedError:
             pass
     if kr1 is None:
-        raise common.CannotBeCalculatedError()
+        for g in notPreferable:
+            try:
+                kr1 = KRStar(g,
+                             kOperation,
+                             uvSubGraphFilter,
+                             description=description,
+                             useGraphCalculator=useGraphCalculator)
+                break
+            except common.CannotBeCalculatedError:
+                pass
+    if kr1 is None:
+        if str(graph).startswith("ee0-"):
+            return 0
+        raise common.CannotBeCalculatedError(graph)
     return kr1 - _doIRSubtractingOperation(graph, kOperation, uvSubGraphFilter, description, useGraphCalculator)
 
 
@@ -95,14 +126,20 @@ def _doIRSubtractingOperation(rawGraph, kOperation, uvSubGraphFilter, descriptio
     raise common.CannotBeCalculatedError(rawGraph)
 
 
-def KR1(graph, kOperation, uvSubGraphFilter, description="", useGraphCalculator=True, force=False, insideKRStar=False):
-    return _doKR1(graph, kOperation, uvSubGraphFilter, description, useGraphCalculator, force, insideKRStar=insideKRStar)[0]
+def KR1(graph, kOperation, uvSubGraphFilter, description="", useGraphCalculator=True, checkRStarIfNeed=False, force=False, insideKRStar=False):
+    return _doKR1(graph, kOperation, uvSubGraphFilter,
+                  description=description,
+                  useGraphCalculator=useGraphCalculator,
+                  checkRStarIfNeed=checkRStarIfNeed,
+                  force=force,
+                  insideKRStar=insideKRStar)[0]
 
 
-def _doKR1(rawGraph, kOperation, uvSubGraphFilter, description="", useGraphCalculator=True, force=False, insideKRStar=False):
+def _doKR1(rawGraph, kOperation, uvSubGraphFilter, description="", useGraphCalculator=True, checkRStarIfNeed=False, force=False, insideKRStar=False):
     if len(rawGraph.edges(rawGraph.externalVertex)) == 2:
         if not force and not common.defaultGraphHasNotIRDivergence(rawGraph):
-            raise AssertionError(str(rawGraph) + " - IR divergence")
+            pass
+            #raise AssertionError(str(rawGraph) + " - IR divergence")
         iterator = [rawGraph]
     else:
         iterator = graphine.momentum.xPassExternalMomentum(rawGraph, common.defaultGraphHasNotIRDivergenceFilter)
@@ -119,7 +156,7 @@ def _doKR1(rawGraph, kOperation, uvSubGraphFilter, description="", useGraphCalcu
         except common.CannotBeCalculatedError:
             pass
 
-    if force:
+    if checkRStarIfNeed:
         preferable, notPreferable = graphine.momentum.arbitrarilyPassMomentumWithPreferable(rawGraph, common.defaultGraphHasNotIRDivergence)
         for g in preferable:
             evaluated = storage.getKR1(g)
@@ -162,7 +199,7 @@ def _doR(rawGraph, kOperation, uvSubGraphFilter, description="", useGraphCalcula
     if len(rawGraph.edges(rawGraph.externalVertex)) == 2:
         if not force and not common.defaultGraphHasNotIRDivergence(rawGraph):
             raise AssertionError(str(rawGraph) + " - IR divergence")
-        iterator = [rawGraph]
+        iterator = rawGraph,
     else:
         iterator = graphine.momentum.xPassExternalMomentum(rawGraph, common.defaultGraphHasNotIRDivergenceFilter)
     for graph in iterator:
@@ -170,11 +207,14 @@ def _doR(rawGraph, kOperation, uvSubGraphFilter, description="", useGraphCalcula
         if evaluated is not None and len(evaluated):
             for e in evaluated:
                 return e[0], graph
-        r1 = _doR1(graph, kOperation, uvSubGraphFilter, description, useGraphCalculator, force=True)[0]
-        kr1 = _doKR1(graph, kOperation, uvSubGraphFilter, description, useGraphCalculator, force=True)[0]
-        r = r1 - kr1
-        storage.putGraphR(graph, r, common.GFUN_METHOD_NAME_MARKER, description)
-        return r, graph
+        try:
+            r1 = _doR1(graph, kOperation, uvSubGraphFilter, description, useGraphCalculator, force=True)[0]
+            kr1 = _doKR1(graph, kOperation, uvSubGraphFilter, description, useGraphCalculator, force=True)[0]
+            r = r1 - kr1
+            storage.putGraphR(graph, r, common.GFUN_METHOD_NAME_MARKER, description)
+            return r, graph
+        except common.CannotBeCalculatedError:
+            pass
     raise common.CannotBeCalculatedError(rawGraph)
 
 
@@ -182,11 +222,23 @@ def R1(graph, kOperation, uvSubGraphFilter, description="", useGraphCalculator=T
     return _doR1(graph, kOperation, uvSubGraphFilter, description, useGraphCalculator, force)[0]
 
 
+def _twoTails(g):
+    g_edges = g.edges(g.externalVertex)
+    if len(g_edges) == 2:
+        return g
+    es = rggraphutil.emptyListDict()
+    for e in g_edges:
+        es[e.internal_nodes[0]].append(e)
+    toRemove = es.values()
+    return g.deleteEdges(toRemove[0][1:] + toRemove[1][1:])
+
+
 def _doR1(rawGraph, kOperation, uvSubGraphFilter, description="", useGraphCalculator=True, force=False):
     if len(rawGraph.edges(rawGraph.externalVertex)) == 2:
         if not force and not common.defaultGraphHasNotIRDivergence(rawGraph):
-            raise AssertionError(str(rawGraph) + " - IR divergence")
-        iterator = [rawGraph]
+            pass
+            #raise AssertionError(str(rawGraph) + " - IR divergence")
+        iterator = rawGraph,
     else:
         iterator = graphine.momentum.xPassExternalMomentum(rawGraph, common.defaultGraphHasNotIRDivergenceFilter)
     for graph in iterator:
@@ -196,13 +248,19 @@ def _doR1(rawGraph, kOperation, uvSubGraphFilter, description="", useGraphCalcul
                 return e[0], graph
 
         try:
-            uvSubgraphs = graphine.Graph.batchInitEdgesColors([sg for sg in graph.xRelevantSubGraphs(uvSubGraphFilter)])
+            uvSubgraphs = map(lambda g: _twoTails(g), graph.xRelevantSubGraphs(uvSubGraphFilter))
+            if DEBUG:
+                print "R1", graph, "UV", uvSubgraphs
             if not len(uvSubgraphs):
                 expression, twoTailsGraph = gfun_calculator.calculateGraphValue(graph, useGraphCalculator=useGraphCalculator)
+                if DEBUG:
+                    print "R1", graph, expression
                 storage.putGraphR1(twoTailsGraph, expression, common.GFUN_METHOD_NAME_MARKER, description)
                 return expression, twoTailsGraph
 
             rawRPrime = gfun_calculator.calculateGraphValue(graph, useGraphCalculator=useGraphCalculator)[0]
+            if DEBUG:
+                print "R1", graph, rawRPrime
             sign = 1
             for i in xrange(1, len(uvSubgraphs) + 1):
                 sign *= -1
@@ -210,7 +268,10 @@ def _doR1(rawGraph, kOperation, uvSubGraphFilter, description="", useGraphCalcul
                     if i == 1 or not graphine.util.hasIntersectingByVertexesGraphs(comb):
                         r1 = reduce(lambda e, g: e * KR1(g, kOperation, uvSubGraphFilter, useGraphCalculator=useGraphCalculator, force=force), comb, 1)
                         shrunk, p2Counts = shrinkToPoint(graph, comb)
-                        rawRPrime += sign * r1 * gfun_calculator.calculateGraphValue(shrunk, useGraphCalculator=useGraphCalculator)[0] * (symbolic_functions.p2 ** p2Counts)
+                        value = gfun_calculator.calculateGraphValue(shrunk, useGraphCalculator=useGraphCalculator)
+                        if DEBUG:
+                            print '\tc-operation', r1, comb, "\n\tshrink", shrunk, "value", value[0]
+                        rawRPrime += sign * r1 * value[0] * (symbolic_functions.p2 ** (-p2Counts))
 
             storage.putGraphR1(graph, rawRPrime, common.GFUN_METHOD_NAME_MARKER, description)
             return rawRPrime, graph

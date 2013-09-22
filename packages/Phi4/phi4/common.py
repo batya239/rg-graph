@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf8
 import graphine
+import const
 import symbolic_functions
 import ir_uv
 
@@ -16,7 +17,11 @@ class CannotBeCalculatedError(AssertionError):
 
 
 class T0OperationNotDefined(AssertionError):
-    pass
+    def __init__(self, graph):
+        self._graph = graph
+
+    def __str__(self):
+        return "t0 not defined " + str(self._graph)
 
 
 class AbstractKOperation(object):
@@ -55,3 +60,7 @@ def defaultGraphHasNotIRDivergence(graph):
     return result
 
 defaultGraphHasNotIRDivergenceFilter = [defaultGraphHasNotIRDivergence]
+
+
+def isPSquareGraph(graph):
+    return graph.getLoopsCount() * const.spaceDim - 2 * graph.getAllInternalEdgesCount() == 2
