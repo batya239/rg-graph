@@ -188,16 +188,17 @@ def find_eq(cons):
     eqs = list()
     for tcons in cons:
         if len(tcons) == 2:
-            a, b = tuple(tcons)
-            new = True
-            eqs_ = list()
+            newEq = set(tcons)
+            eqsN = list()
             for i in range(len(eqs)):
-                if a in eqs[i] or b in eqs[i]:
-                    eqs[i] = eqs[i] | set([a, b])
-                    new = False
-                    break
-            if new:
-                eqs.append(set([a, b]))
+                eq = eqs[i]
+                if len(eq & newEq) == 0:
+                    eqsN.append(eq)
+                else:
+                    newEq = newEq | eq
+
+            eqsN.append(newEq)
+            eqs = eqsN
     for eq in eqs:
         eq_ = list(eq)
         for var in eq_[1:]:
@@ -1117,7 +1118,6 @@ def Prepare(graph, model):
     cons = apply_eq(cons, eqs)
     graph._qi, graph._qi2l = qi_lambda(cons, eqs)
     graph._eqsubgraphs = apply_eq_onsub(graph._qi2l, conv_sub(graph._subgraphs))
-    print graph._qi, graph._qi2l
     if len(graph.ExternalLines()) == 2:
         graph_ = graph.Clone()
         graph_._cons = cons

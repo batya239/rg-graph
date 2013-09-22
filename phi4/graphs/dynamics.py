@@ -556,7 +556,7 @@ def addBranches(tree, variables, conservations, parents=list(), depth=0):
                 if validVar(var, parentsSet, conservations):
                     branches.append(var)
             if len(branches) == 1:
-                raise ValueError, branches
+                raise ValueError("%s, %s , %s" % (branches, [x for x in xTreeElement(tree)], parents))
             elif len(branches) != 0:
 
                 tree.setBranches(branches)
