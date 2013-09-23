@@ -24,6 +24,19 @@ class GraphOperationsTestCase(unittest.TestCase):
                                                           cutEdgesToExternal=False)]
         self.assertEqual(set(subGraphs), set(['e12-e2--::', 'e12-2--::', 'e12-e3-3--::']))
 
+    def testRelevantSubGraphsWithIndexRepresentator(self):
+        g = gr.Graph.fromStr("e12-e23-3--")
+        subGraphs = [x for x in g.xRelevantSubGraphs(filters=filters.connected + filters.oneIrreducible,
+                                                          resultRepresentator=gr.Representator.asIndexAwareList,
+                                                          cutEdgesToExternal=False)]
+        indexes = []
+        for sg in subGraphs:
+            is_ = set()
+            indexes.append(is_)
+            for e in sg:
+                is_.add(e.index)
+        self.assertEqual(indexes, [set([3, 4, 5, 6]), set([0, 1, 2, 3, 4]), set([0, 1, 2, 3, 5, 6])])
+
     def testHasNoTadPoles(self):
         self.doTestHasNoTadPoles("ee18-233-334--ee5-667-78-88--::", [(1, 2), (1, 3), (2, 3), (2, 3)],
                                  expectedResult=False)

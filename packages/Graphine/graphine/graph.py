@@ -15,6 +15,11 @@ class Representator:
     def asList(edgeList, externalVertex):
         return edgeList
 
+    # noinspection PyUnusedLocal
+    @staticmethod
+    def asIndexAwareList(edgeList, externalVertex):
+        return edgeList
+
     @staticmethod
     def asGraph(edgeList, externalVertex):
         return Graph(edgeList, externalVertex=externalVertex, renumbering=False)
@@ -24,10 +29,32 @@ class Representator:
         return Graph(edgeList, externalVertex=externalVertex, renumbering=True)
 
 
-class IndexableEdge:
+class IndexAwareEdgeDelegate:
     def __init__(self, underlyingEdge, index):
         self._underlyingEdge = underlyingEdge
         self._index = index
+
+    @property
+    def nodes(self):
+        return self.underlying.nodes
+
+    @property
+    def internal_nodes(self):
+        return self.underlying.internal_nodes
+
+    @property
+    def colors(self):
+        return self.underlying.colors
+
+    @property
+    def fields(self):
+        return self.underlying.fields
+
+    def key(self):
+        return self.internal_nodes, self.fields, self.colors
+
+    def copy(self, node_map=None):
+        self.underlying.copy(node_map)
 
     @property
     def underlying(self):
@@ -54,7 +81,7 @@ class IndexableEdge:
         """
         return graph_state.Edge's
         """
-        if isinstance(obj, IndexableEdge):
+        if isinstance(obj, IndexAwareEdgeDelegate):
             return obj.underlying
         else:
             return map(lambda ie: ie.underlying, obj)
@@ -103,7 +130,6 @@ class Graph(object):
         else:
             return map(lambda x: x.underlying, res)
 
-
     def vertexes(self):
         return set(self._edges.keys())
 
@@ -114,7 +140,7 @@ class Graph(object):
 
     def edges(self, vertex, withIndex=False):
         vertexEdges = copy.copy(self._edges.get(vertex, []))
-        return vertexEdges if withIndex else IndexableEdge.toIndexless(vertexEdges)
+        return vertexEdges if withIndex else IndexAwareEdgeDelegate.toIndexless(vertexEdges)
 
     def allEdges(self, withIndex=False):
         if withIndex:
@@ -124,7 +150,7 @@ class Graph(object):
 
     def _getAllEdgesWithoutIndex(self):
         if self._allEdgesWithoutIndex is None:
-            self._allEdgesWithoutIndex = IndexableEdge.toIndexless(self._getAllEdgesWithIndex())
+            self._allEdgesWithoutIndex = IndexAwareEdgeDelegate.toIndexless(self._getAllEdgesWithIndex())
         return self._allEdgesWithoutIndex
 
     def _getAllEdgesWithIndex(self):
@@ -242,11 +268,13 @@ class Graph(object):
         return self._shrinkToPoint(edges)[0]
 
     def xRelevantSubGraphs(self, filters=list(), resultRepresentator=Representator.asGraph, cutEdgesToExternal=True):
-        allEdges = self.allEdges()
+        withIndex = resultRepresentator == Representator.asIndexAwareList
+        allEdges = list(self.allEdges(withIndex=withIndex))
         simpleCache = dict()
         for subGraphAsList in graph_operations.xSubGraphs(allEdges,
                                                           self._edges,
                                                           self.externalVertex,
+                                                          nextEdgeIndex=self._nextVertexIndex if withIndex else None,
                                                           cutEdgesToExternal=cutEdgesToExternal):
             subGraphAsTuple = tuple(subGraphAsList)
             isValid = simpleCache.get(subGraphAsTuple, None)
@@ -323,7 +351,7 @@ class Graph(object):
         indexGenerator = 0
         for edge in edgesIterable:
             v1, v2 = edge.nodes
-            iEdge = IndexableEdge(edge, indexGenerator)
+            iEdge = IndexAwareEdgeDelegate(edge, indexGenerator)
             indexGenerator += 1
             Graph._insertEdge(edgesDict, v1, iEdge)
             if v1 != v2:
@@ -357,11 +385,13 @@ class Graph(object):
 
     @staticmethod
     def _deleteEdge(edgesDict, vertex, edge):
+        if isinstance(edge, IndexAwareEdgeDelegate):
+            edge = edge.underlying
         try:
             edgeList = edgesDict[vertex]
             ieToRemove = None
             for ie in edgeList:
-                if IndexableEdge.toIndexless(ie) == edge:
+                if IndexAwareEdgeDelegate.toIndexless(ie) == edge:
                     ieToRemove = ie
                     break
             edgeList.remove(ieToRemove)
