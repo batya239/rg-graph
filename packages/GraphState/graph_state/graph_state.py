@@ -3,7 +3,6 @@
 
 import itertools
 import nickel
-import sys
 
 
 def chain_from_iterables(iterables):
@@ -93,7 +92,9 @@ class Rainbow(object):
 
 
 class Edge(object):
-    '''Representation of an edge of a graph.'''
+    """Representation of an edge of a graph."""
+    CREATE_EDGES_INDEX = True
+    NEXT_EDGES_INDEX = 0L
     def __init__(self, nodes, external_node=-1, fields=None, colors=None,
             edge_id=None):
         '''Edge constructor.
@@ -126,7 +127,14 @@ class Edge(object):
         else:
             self.colors = colors if isinstance(colors, Rainbow) else Rainbow(colors)
 
-        self.edge_id = edge_id
+        if edge_id is not None:
+            self.edge_id = edge_id
+        else:
+            if Edge.CREATE_EDGES_INDEX:
+                self.edge_id = Edge.NEXT_EDGES_INDEX
+                Edge.NEXT_EDGES_INDEX += 1
+            else:
+                self.edge_id = None
 
     @property
     def nodes(self):

@@ -102,6 +102,10 @@ class TestGraphState(unittest.TestCase):
         state2 = graph_state.GraphState.fromStr(str(state1))
         self.assertEqual(state1, state2)
 
+    def testEdgeId(self):
+        edges = [graph_state.Edge(e, colors=(1, 2, 3)) for e in [(-1, 0), (0, 1), (1, -1)]]
+        self.assertEqual(map(lambda e: e.edge_id, edges), [0, 1, 2])
+
     def testInit(self):
         edges = tuple([graph_state.Edge(e, colors=(1, 2, 3))
                 for e in [(-1, 0), (0, 1), (1, -1)]])
