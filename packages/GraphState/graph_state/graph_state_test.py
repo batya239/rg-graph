@@ -107,6 +107,27 @@ class TestGraphState(unittest.TestCase):
         ids = map(lambda e: e.edge_id, edges)
         self.assertEqual(ids[0] + 1, ids[1])
         self.assertEqual(ids[1] + 1, ids[2])
+    def testInitWithDefaultValues(self):
+        edges = tuple([graph_state.Edge(e) for e in [(-1, 0), (0, 1), (1, -1)]])
+        state = graph_state.GraphState(edges,
+                                       defaultColors=graph_state.Rainbow((1, 1)),
+                                       defaultFields=graph_state.Fields.fromStr("qw"))
+        for e in state.sortings[0]:
+            self.assertEqual(e.colors, graph_state.Rainbow((1, 1)))
+            self.assertEqual(e.fields, None)
+
+        edges = list([graph_state.Edge(e) for e in [(-1, 0), (-1, 1)]])
+        edges.append(graph_state.Edge((0, 1), colors=graph_state.Rainbow((2, 2)), fields=graph_state.Fields.fromStr("as")))
+        state = graph_state.GraphState(edges,
+                                       defaultColors=graph_state.Rainbow((1, 1)),
+                                       defaultFields=graph_state.Fields.fromStr("qw"))
+        for e in state.sortings[0]:
+            if len(e.internal_nodes) == 1:
+                self.assertEqual(e.colors, graph_state.Rainbow((1, 1)))
+                self.assertEqual(e.fields, graph_state.Fields.fromStr("0w"))
+            else:
+                self.assertEqual(e.colors, graph_state.Rainbow((2, 2)))
+                self.assertEqual(e.fields, graph_state.Fields.fromStr("as"))
 
     def testInit(self):
         edges = tuple([graph_state.Edge(e, colors=(1, 2, 3))

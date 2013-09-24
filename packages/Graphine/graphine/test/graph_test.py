@@ -3,6 +3,7 @@
 import unittest
 
 from graph_state import graph_state as gs
+import graph_state
 import graph as gr
 import graph_operations
 import filters
@@ -31,6 +32,33 @@ def twoEdgesFilter(edgesList, superGraph, superGraphEdges):
 
 
 class GraphTestCase(unittest.TestCase):
+    def testChange(self):
+        """
+        this test case is example of usages of this, is not very simple
+        """
+
+        #creates Graph object from nickel string
+        g = gr.Graph.fromStr("123-24-5-45-5-")
+
+        #find edges which node are 0 and 2
+        e = g.edges(0, 2)[0]
+
+        #create indexes for new edges
+        nvs = (g.createVertexIndex(), g.createVertexIndex())
+
+        #new internal edges will look like 0-->newVertex1, newVertex1-->newVertex2, newVertex2-->2
+        edgesSequence = (0,) + nvs + (2,)
+        newEdges = list()
+        for i in xrange(len(edgesSequence) - 1):
+            newEdges.append(graph_state.Edge(edgesSequence[i:i + 2]))
+
+        #new external edges will look like newVertex1-->externalVertex, newVertex2-->externalVertex
+        for v in nvs:
+            newEdges.append(graph_state.Edge((v, -1)))
+
+        #change graph edges: 1st arg -- edges to remove, 2nd -- edges to add
+        newGraph = g.change((e,), newEdges)
+        self.assertEqual(str(newGraph), "e12-e3-45-46-7-67-7--::")
 
     def testIndexableEdges(self):
         graph = gr.Graph(gs.GraphState.fromStr("e11-e-::"))
@@ -56,7 +84,6 @@ class GraphTestCase(unittest.TestCase):
         current = [g for g in
                    graph.xRelevantSubGraphs(twoEdgesFilter, gr.Representator.asList)]
         return graph_operations.isGraphConnected(current[1], graph, graph.allEdges())
-
 
     def testNextVertexIndex(self):
         self.assertEquals(simpleGraph.createVertexIndex(), 3)

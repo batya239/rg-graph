@@ -10,8 +10,9 @@ def chain_from_iterables(iterables):
         for element in it:
             yield element
 
-if  'chain_from_iterables' not in itertools.__dict__:
+if 'chain_from_iterables' not in itertools.__dict__:
     itertools.chain_from_iterables = chain_from_iterables
+
 
 class Fields(object):
     EXTERNAL = '0'
@@ -39,6 +40,9 @@ class Fields(object):
 
     def __str__(self):
         return self.pair[0] + self.pair[1]
+
+    def __repr__(self):
+        return str(self)
 
     @staticmethod
     def fromStr(string):
@@ -154,15 +158,16 @@ class Edge(object):
             self._hash = hash(self.key())
         return self._hash
 
-    def copy(self, node_map=None):
-        '''Creates a copy of the object with possible change of nodes.
+    def copy(self, node_map=None, fields=None, colors=None):
+        """
+        Creates a copy of the object with possible change of nodes.
 
         Args:
             node_map: dictionary mapping old nodes to new ones. Identity map
                 is assumed for the missed keys.
         Returns:
             New Edge object.
-        '''
+        """
         node_map = node_map or {}
 
         mapped_nodes = [node_map.get(node, node) for node in self.nodes]
@@ -174,7 +179,12 @@ class Edge(object):
                 external_node = self.nodes[1]
             mapped_external_node = node_map.get(external_node, external_node)
 
-        edge = Edge(mapped_nodes, external_node=mapped_external_node, fields=self.fields, colors=self.colors,
+        fields = self.fields if fields is None else fields
+        colors = self.colors if colors is None else colors
+        edge = Edge(mapped_nodes,
+                    external_node=mapped_external_node,
+                    fields=fields,
+                    colors=colors,
                     edge_id=self.edge_id)
         return edge
 
@@ -182,16 +192,24 @@ class Edge(object):
 class GraphState(object):
     SEP = ':'
     NICKEL_SEP = nickel.Nickel.SEP
-    def __init__(self, edges, node_maps=None):
-        # Fields must be in every edge or in no one.
-        fields_count = len([edge.fields for edge in edges if edge.fields])
-        assert fields_count == 0 or fields_count == len(edges)
 
-        node_maps = (node_maps or
-                nickel.Canonicalize([edge.nodes for edge in edges]).node_maps)
+    def __init__(self, edges, node_maps=None, defaultFields=None, defaultColors=None):
+        # Fields must be in every edge or defaultFields must be not None.
+        fields_count = len([edge.fields for edge in edges if edge.fields])
+        assert fields_count == 0 or fields_count == len(edges) or defaultFields is not None
+
+        node_maps = (node_maps or nickel.Canonicalize([edge.nodes for edge in edges]).node_maps)
         self.sortings = []
         for node_map in node_maps:
-            mapped_edges = [edge.copy(node_map=node_map) for edge in edges]
+            mapped_edges = list()
+            for edge in edges:
+                colors = defaultColors if edge.colors is None else edge.colors
+                if fields_count != 0:
+                    fields = defaultFields if edge.fields is None else edge.fields
+                else:
+                    fields = None
+                    fields = None
+                mapped_edges.append(edge.copy(node_map=node_map, colors=colors, fields=fields))
             mapped_edges.sort()
             self.sortings.append(tuple(mapped_edges))
         min_edges = min(self.sortings)

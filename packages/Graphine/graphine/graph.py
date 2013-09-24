@@ -97,8 +97,10 @@ class Graph(object):
         self._nextVertexIndex += 1
         return toReturn
 
-    def edges(self, vertex):
-        return copy.copy(self._edges.get(vertex, []))
+    def edges(self, vertex, vertex2=None):
+        if vertex2 is None:
+            return copy.copy(self._edges.get(vertex, []))
+        return filter(lambda e: vertex2 in e.nodes, self._edges.get(vertex, []))
 
     def allEdges(self):
         if self._allEdges is None:
@@ -132,13 +134,9 @@ class Graph(object):
         """
         transactional changes graph structure
         """
-        newEdges = copy.deepcopy(self._edges)
-        if edgesToRemove:
-            for e in edgesToRemove:
-                Graph._persDeleteEdge(newEdges, e)
-        if edgesToAdd:
-            for e in edgesToAdd:
-                Graph._persInsertEdge(newEdges, e)
+        newEdges = copy.deepcopy(self.allEdges())
+        map(lambda e: newEdges.remove(e), edgesToRemove)
+        map(lambda e: newEdges.append(e), edgesToAdd)
         return Graph(newEdges, externalVertex=self.externalVertex)
 
     def deleteVertex(self, vertex, transformEdgesToExternal=False):
