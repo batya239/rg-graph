@@ -5,19 +5,16 @@ import graph_state
 import rggraphutil
 import graph_operations
 
+assert graph_state.Edge.CREATE_EDGES_INDEX
 
-class Representator:
+
+class Representator(object):
     def __init__(self):
         raise AssertionError
 
     # noinspection PyUnusedLocal
     @staticmethod
     def asList(edgeList, externalVertex):
-        return edgeList
-
-    # noinspection PyUnusedLocal
-    @staticmethod
-    def asIndexAwareList(edgeList, externalVertex):
         return edgeList
 
     @staticmethod
@@ -29,69 +26,30 @@ class Representator:
         return Graph(edgeList, externalVertex=externalVertex, renumbering=True)
 
 
-class IndexAwareEdgeDelegate:
-    def __init__(self, underlyingEdge, index):
-        self._underlyingEdge = underlyingEdge
-        self._index = index
+class _IdAwareEdgeDelegate(object):
+    """
+    DO NOT USE IT OUTSIDE THIS PACKAGE
+
+    used for comparing edges by id
+    """
+    def __init__(self, edge):
+        self._edge = edge
 
     @property
-    def nodes(self):
-        return self.underlying.nodes
-
-    @property
-    def internal_nodes(self):
-        return self.underlying.internal_nodes
-
-    @property
-    def colors(self):
-        return self.underlying.colors
-
-    @property
-    def fields(self):
-        return self.underlying.fields
-
-    def key(self):
-        return self.internal_nodes, self.fields, self.colors
-
-    def copy(self, node_map=None):
-        self.underlying.copy(node_map)
-
-    @property
-    def underlying(self):
-        return self._underlyingEdge
-
-    @property
-    def index(self):
-        return self._index
-
-    def __eq__(self, other):
-        return other.index - self.index == 0 and self.underlying == other.underlying
+    def edge(self):
+        return self._edge
 
     def __hash__(self):
-        return hash(self.index) * 37 + hash(self.underlying)
+        return hash(self.edge.edge_id)
 
-    def __str__(self):
-        return "index = " + str(self.index) + ", edge = " + str(self.underlying)
-
-    def __repr__(self):
-        return self.__str__()
-
-    @staticmethod
-    def toIndexless(obj):
-        """
-        return graph_state.Edge's
-        """
-        if isinstance(obj, IndexAwareEdgeDelegate):
-            return obj.underlying
-        else:
-            return map(lambda ie: ie.underlying, obj)
+    def __eq__(self, other):
+        return self.edge.edge_id == other.edge.edge_id
 
 
 class Graph(object):
     """
     representation of graph
     """
-
     def __init__(self, obj, externalVertex=-1, renumbering=True):
         """
         self.edges - dict where keys is one vertex of edge and value is list of second vertexes
@@ -108,8 +66,10 @@ class Graph(object):
         self._loopsCount = None
         self._externalEdges = None
         self._graphState = None
-        self._allEdgesWithIndex = None
-        self._allEdgesWithoutIndex = None
+        self._allEdges = None
+        self._allInternalEdgesCount = None
+        self._boundVertexes = None
+        self._vertexes = None
 
     @property
     def externalVertex(self):
@@ -120,66 +80,41 @@ class Graph(object):
             self._externalEdges = self.edges(self.externalVertex)
         return self._externalEdges
 
-    def internalEdges(self, withIndex=False):
+    def internalEdges(self):
         res = list()
-        for edge in self.allEdges(withIndex=True):
-            if self.externalVertex not in edge.underlying.nodes:
+        for edge in self.allEdges():
+            if self.externalVertex not in edge.nodes:
                 res.append(edge)
-        if withIndex:
-            return res
-        else:
-            return map(lambda x: x.underlying, res)
+        return res
 
     def vertexes(self):
-        return set(self._edges.keys())
+        if self._vertexes is None:
+            self._vertexes = frozenset(self._edges.keys())
+        return self._vertexes
 
     def createVertexIndex(self):
         toReturn = self._nextVertexIndex
         self._nextVertexIndex += 1
         return toReturn
 
-    def edges(self, vertex, withIndex=False):
-        vertexEdges = copy.copy(self._edges.get(vertex, []))
-        return vertexEdges if withIndex else IndexAwareEdgeDelegate.toIndexless(vertexEdges)
+    def edges(self, vertex):
+        return copy.copy(self._edges.get(vertex, []))
 
-    def allEdges(self, withIndex=False):
-        if withIndex:
-            return self._getAllEdgesWithIndex()
-        else:
-            return self._getAllEdgesWithoutIndex()
-
-    def _getAllEdgesWithoutIndex(self):
-        if self._allEdgesWithoutIndex is None:
-            self._allEdgesWithoutIndex = IndexAwareEdgeDelegate.toIndexless(self._getAllEdgesWithIndex())
-        return self._allEdgesWithoutIndex
-
-    def _getAllEdgesWithIndex(self):
-        if self._allEdgesWithIndex is None:
-            edgesOccurrence = rggraphutil.zeroDict()
+    def allEdges(self):
+        if self._allEdges is None:
+            wrappedResult = set()
             for edges in self._edges.values():
-                for edge in edges:
-                    v1, v2 = edge.underlying.nodes
-                    occurrenceRate = 2 if v1 == v2 else 1
-                    edgesOccurrence[edge] += occurrenceRate
-            result = []
-            for e, o in edgesOccurrence.items():
-                for i in xrange(0, o / 2):
-                    result.append(e)
-            self._allEdgesWithIndex = frozenset(result)
-        return self._allEdgesWithIndex
-
-    def change(self, oldEdges, newEdges):
-        for e in oldEdges:
-            self.deleteEdge(e)
-        for e in newEdges:
-            self.addEdge(e)
+                for e in edges:
+                    wrappedResult.add(_IdAwareEdgeDelegate(e))
+            self._allEdges = map(lambda ei: ei.edge, wrappedResult)
+        return self._allEdges
 
     def addEdges(self, edgesToAdd):
         """
         immutable operation
         """
         newEdges = self.allEdges() + edgesToAdd
-        return Graph(newEdges)
+        return Graph(newEdges, externalVertex=self.externalVertex)
 
     def addEdge(self, edge):
         return self.addEdges([edge])
@@ -191,7 +126,20 @@ class Graph(object):
         newEdges = copy.deepcopy(self._edges)
         for edge in edgesToRemove:
             Graph._persDeleteEdge(newEdges, edge)
-        return Graph(newEdges)
+        return Graph(newEdges, externalVertex=self.externalVertex)
+
+    def change(self, edgesToRemove=None, edgesToAdd=None):
+        """
+        transactional changes graph structure
+        """
+        newEdges = copy.deepcopy(self._edges)
+        if edgesToRemove:
+            for e in edgesToRemove:
+                Graph._persDeleteEdge(newEdges, e)
+        if edgesToAdd:
+            for e in edgesToAdd:
+                Graph._persInsertEdge(newEdges, e)
+        return Graph(newEdges, externalVertex=self.externalVertex)
 
     def deleteVertex(self, vertex, transformEdgesToExternal=False):
         assert vertex != self.externalVertex
@@ -267,14 +215,15 @@ class Graph(object):
     def shrinkToPoint(self, edges):
         return self._shrinkToPoint(edges)[0]
 
-    def xRelevantSubGraphs(self, filters=list(), resultRepresentator=Representator.asGraph, cutEdgesToExternal=True):
-        withIndex = resultRepresentator == Representator.asIndexAwareList
-        allEdges = list(self.allEdges(withIndex=withIndex))
+    def xRelevantSubGraphs(self,
+                           filters=list(),
+                           resultRepresentator=Representator.asGraph,
+                           cutEdgesToExternal=True):
+        allEdges = self.allEdges()
         simpleCache = dict()
         for subGraphAsList in graph_operations.xSubGraphs(allEdges,
                                                           self._edges,
                                                           self.externalVertex,
-                                                          nextEdgeIndex=self._nextVertexIndex if withIndex else None,
                                                           cutEdgesToExternal=cutEdgesToExternal):
             subGraphAsTuple = tuple(subGraphAsList)
             isValid = simpleCache.get(subGraphAsTuple, None)
@@ -295,6 +244,21 @@ class Graph(object):
             self._graphState = graph_state.GraphState(self.allEdges())
         return self._graphState
 
+    def getBoundVertexes(self):
+        if self._boundVertexes is None:
+            self._boundVertexes = set()
+            for e in self.edges(self.externalVertex):
+                self._boundVertexes.add(e.internal_nodes[0])
+        return self._boundVertexes
+
+    def getAllInternalEdgesCount(self):
+        if self._allInternalEdgesCount is None:
+            internalEdgesCount = 0
+            for v, e in self._edges:
+                internalEdgesCount += len(e)
+            self._allInternalEdgesCount = internalEdgesCount / 2 - len(self._edges[self.externalVertex])
+        return self._allInternalEdgesCount
+
     def getLoopsCount(self):
         if self._loopsCount is None:
             externalLegsCount = len(self.edges(self.externalVertex))
@@ -314,19 +278,28 @@ class Graph(object):
 
     def __hash__(self):
         if self._hash is None:
-            self._hash = hash(self.allEdges(withIndex=True))
+            self._hash = hash(self.toGraphState()) + 37 * hash(self.vertexes())
         return self._hash
 
     def __eq__(self, other):
         if not isinstance(other, Graph):
             return False
-        return self.allEdges(withIndex=True) == other.allEdges(withIndex=True)
+        return self.toGraphState() == other.toGraphState() and self.vertexes() == other.vertexes()
 
     @staticmethod
-    def fromStr(string, initEdgesColor=False, zeroColor=(0, 0), unitColor=(1, 0)):
+    def fromStr(string,
+                initEdgesColor=False,
+                zeroColor=(0, 0),
+                unitColor=(1, 0),
+                initFields=False,
+                fieldLines=None,
+                fieldValue=None,
+                noFieldValue=None):
         g = Graph(graph_state.GraphState.fromStr(string))
         if initEdgesColor:
             g = Graph.initEdgesColors(g, zeroColor, unitColor)
+        if initFields:
+            g = Graph.initFields(g, fieldLines, fieldValue, noFieldValue)
         return g
 
     @staticmethod
@@ -336,9 +309,44 @@ class Graph(object):
         for e in edges:
             if e.colors is None:
                 color = zeroColor if graph.externalVertex in e.nodes else unitColor
-                initedEdges.append(graph_state.Edge(e.nodes, graph.externalVertex, colors=color))
+                initedEdges.append(graph_state.Edge(e.nodes, graph.externalVertex, colors=color, fields=e.fields))
             else:
                 initedEdges.append(e)
+        return Graph(initedEdges, externalVertex=graph.externalVertex, renumbering=False)
+
+    @staticmethod
+    def initFields(graph, fieldLines, fieldValue, noFieldValue):
+        """
+        numeratorLines is list of pair, where pair first is from pair second is to
+        """
+        fieldLines = list(fieldLines)
+        initedEdges = list()
+
+        for e in graph.allEdges():
+            nodes = e.nodes
+            if nodes in fieldLines:
+                fieldLines.remove(nodes)
+                initedEdges.append(graph_state.Edge(e.nodes,
+                                                    external_node=graph.externalVertex,
+                                                    fields=fieldValue,
+                                                    colors=e.colors,
+                                                    edge_id=e.edge_id))
+                continue
+            swapNodes = e.nodes[1], e.nodes[0]
+            if swapNodes in fieldLines:
+                fieldLines.remove(swapNodes)
+                initedEdges.append(graph_state.Edge(swapNodes,
+                                                    external_node=graph.externalVertex,
+                                                    fields=fieldValue,
+                                                    colors=e.colors,
+                                                    edge_id=e.edge_id))
+                continue
+            else:
+                initedEdges.append(graph_state.Edge(e.nodes,
+                                                    external_node=graph.externalVertex,
+                                                    fields=noFieldValue,
+                                                    colors=e.colors,
+                                                    edge_id=e.edge_id))
         return Graph(initedEdges, externalVertex=graph.externalVertex, renumbering=False)
 
     @staticmethod
@@ -348,14 +356,11 @@ class Graph(object):
     @staticmethod
     def _parseEdges(edgesIterable):
         edgesDict = dict()
-        indexGenerator = 0
         for edge in edgesIterable:
             v1, v2 = edge.nodes
-            iEdge = IndexAwareEdgeDelegate(edge, indexGenerator)
-            indexGenerator += 1
-            Graph._insertEdge(edgesDict, v1, iEdge)
+            Graph._insertEdge(edgesDict, v1, edge)
             if v1 != v2:
-                Graph._insertEdge(edgesDict, v2, iEdge)
+                Graph._insertEdge(edgesDict, v2, edge)
         return edgesDict
 
     @staticmethod
@@ -385,16 +390,9 @@ class Graph(object):
 
     @staticmethod
     def _deleteEdge(edgesDict, vertex, edge):
-        if isinstance(edge, IndexAwareEdgeDelegate):
-            edge = edge.underlying
         try:
             edgeList = edgesDict[vertex]
-            ieToRemove = None
-            for ie in edgeList:
-                if IndexAwareEdgeDelegate.toIndexless(ie) == edge:
-                    ieToRemove = ie
-                    break
-            edgeList.remove(ieToRemove)
+            edgeList.remove(edge)
             if not len(edgesDict[vertex]):
                 del edgesDict[vertex]
         except AttributeError as e:

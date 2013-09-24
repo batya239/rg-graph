@@ -14,8 +14,17 @@ class ExternalVertexAware(object):
 
 
 class GraphOperationsTestCase(unittest.TestCase):
-    def testVertexIrreducibility(self):
-        pass
+    def testRelevantSubGraphsTails(self):
+        g = gr.Graph.fromStr("e12-e23-3--")
+        gExternalIds = set(map(lambda e: e.edge_id, g.externalEdges()))
+        subGraphs = [x for x in g.xRelevantSubGraphs(filters=filters.connected + filters.oneIrreducible,
+                                                     resultRepresentator=gr.Representator.asGraph,
+                                                     cutEdgesToExternal=False)]
+        sgExternalIds = set()
+        for g in subGraphs:
+            for e in g.externalEdges():
+                sgExternalIds.add(e.edge_id)
+        self.assertTrue(gExternalIds.issuperset(sgExternalIds))
 
     def testRelevantSubGraphs(self):
         g = gr.Graph.fromStr("e12-e23-3--")
@@ -27,15 +36,14 @@ class GraphOperationsTestCase(unittest.TestCase):
     def testRelevantSubGraphsWithIndexRepresentator(self):
         g = gr.Graph.fromStr("e12-e23-3--")
         subGraphs = [x for x in g.xRelevantSubGraphs(filters=filters.connected + filters.oneIrreducible,
-                                                          resultRepresentator=gr.Representator.asIndexAwareList,
-                                                          cutEdgesToExternal=False)]
-        indexes = []
+                                                     resultRepresentator=gr.Representator.asList,
+                                                     cutEdgesToExternal=False)]
+        sgIndexes = set()
         for sg in subGraphs:
-            is_ = set()
-            indexes.append(is_)
             for e in sg:
-                is_.add(e.index)
-        self.assertEqual(indexes, [set([3, 4, 5, 6]), set([0, 1, 2, 3, 4]), set([0, 1, 2, 3, 5, 6])])
+                sgIndexes.add(e.edge_id)
+        gIndexes = set(map(lambda e: e.edge_id, g.allEdges()))
+        self.assertEqual(sgIndexes, gIndexes)
 
     def testHasNoTadPoles(self):
         self.doTestHasNoTadPoles("ee18-233-334--ee5-667-78-88--::", [(1, 2), (1, 3), (2, 3), (2, 3)],

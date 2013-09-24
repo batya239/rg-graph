@@ -34,22 +34,10 @@ class GraphTestCase(unittest.TestCase):
 
     def testIndexableEdges(self):
         graph = gr.Graph(gs.GraphState.fromStr("e11-e-::"))
-        indexableEdges = graph.allEdges(withIndex=True)
-        indexes = set()
-        for ie in indexableEdges:
-            indexes.add(ie.index)
-        self.assertSetEqual(indexes, set([0, 1, 2, 3]))
-
-        i = 100
-        for ie in indexableEdges:
-            ie.myBestEdgeProperty = i
-            i += 1
-
-        myBestProperties = set()
-        for ie in indexableEdges:
-            myBestProperties.add(ie.myBestEdgeProperty)
-
-        self.assertSetEqual(myBestProperties, set([100, 101, 102, 103]))
+        edges = graph.allEdges()
+        uniqueIndexes = set(map(lambda e: e.edge_id, edges))
+        self.assertEqual(len(edges), len(uniqueIndexes))
+        self.assertFalse(None in uniqueIndexes)
 
     def testCreationAndConvertingToGraphState(self):
         self.assertEquals(simpleGraph.toGraphState(), simpleGraphState)

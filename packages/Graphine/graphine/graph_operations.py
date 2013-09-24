@@ -40,7 +40,7 @@ def isGraphVertexIrreducible(edgesList, superGraph, superGraphEdges):
                 edges = copy.copy(edgesList)
                 for e in subGraph.edges(v):
                     edges.remove(e)
-                additionalVertexes = subGraph.vertexes()
+                additionalVertexes = set(subGraph.vertexes())
                 additionalVertexes.remove(v)
                 if not _isGraphConnected(edges, superGraph.externalVertex, additionalVertexes=additionalVertexes):
                     return False
@@ -80,7 +80,7 @@ def isGraphConnected(edgesList, superGraph, superGraphEdges):
     return _isGraphConnected(edgesList, superGraph.externalVertex)
 
 
-def xSubGraphs(edgesList, edgesMap, externalVertex, cutEdgesToExternal=True, startSize=2, nextEdgeIndex=None):
+def xSubGraphs(edgesList, edgesMap, externalVertex, cutEdgesToExternal=True, startSize=2):
     """
     cutEdgesToExternal - if True then all graphs from iterator hash only 2 external edges
     """
@@ -101,14 +101,13 @@ def xSubGraphs(edgesList, edgesMap, externalVertex, cutEdgesToExternal=True, sta
             for v in notExternalVertexes:
                 edges = edgesMap.get(v, None)
                 if edges:
+                    externalEdges = filter(lambda e: len(e.internal_nodes) == 1, edges)
                     subGraph = _createExternalEdge(v,
-                                                   nextEdgeIndex=nextEdgeIndex,
                                                    externalVertex=externalVertex,
-                                                   edgesCount=len(edges), hasColors=hasColors,
+                                                   edgesCount=len(edges) - len(externalEdges), hasColors=hasColors,
                                                    hasFields=hasFields,
                                                    defaultFields=DEFAULT_EXTERNAL_LINE_FIELD)
-                    if nextEdgeIndex:
-                        nextEdgeIndex += len(edges)
+                    subGraph += externalEdges
                     yield subGraph
 
         if innerLength:
@@ -120,19 +119,17 @@ def xSubGraphs(edgesList, edgesMap, externalVertex, cutEdgesToExternal=True, sta
                         subGraphVertexes |= set(e.nodes)
                     if cutEdgesToExternal:
                         for e in _supplement(inner, subGraph):
+                            if len(e.internal_nodes) == 1:
+                                pass
                             vSet = set(e.nodes)
-                            vSetCard = len(vSet)
-                            factor = 2 if vSetCard == 1 else 1
                             for v in vSet:
                                 if v in subGraphVertexes:
+                                    factor = 2 if len(vSet) == 1 else 1
                                     subGraph += _createExternalEdge(v,
                                                                     externalVertex, factor,
-                                                                    nextEdgeIndex=nextEdgeIndex,
                                                                     hasFields=hasFields,
                                                                     defaultFields=DEFAULT_EXTERNAL_LINE_FIELD,
                                                                     hasColors=hasColors)
-                                    if nextEdgeIndex:
-                                        nextEdgeIndex += factor
                     for e in external:
                         v = [v for v in e.nodes if v != externalVertex][0]
                         if v in subGraphVertexes:
@@ -186,13 +183,13 @@ def _pickExternalEdges(edgesList, externalVertex=-1):
 
 
 def _createExternalEdge(innerVertex, externalVertex=-1, edgesCount=1,
-                        hasColors=False, hasFields=False, defaultFields=None, nextEdgeIndex=None):
+                        hasColors=False, hasFields=False, defaultFields=None):
     colors = (0, 0) if hasColors else None
     fields = defaultFields if hasFields else None
-    e = graph_state.Edge((externalVertex, innerVertex), external_node=externalVertex,
-                                     colors=colors, fields=fields)
-    if nextEdgeIndex is not None:
-        e = graph.IndexAwareEdgeDelegate(e, nextEdgeIndex)
+    e = graph_state.Edge((externalVertex, innerVertex),
+                         external_node=externalVertex,
+                         colors=colors,
+                         fields=fields)
     return [e] * edgesCount
 
 
