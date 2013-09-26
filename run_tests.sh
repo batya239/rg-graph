@@ -1,5 +1,6 @@
 #!/bin/sh
 
+
 #storage for operations results
 if [ ! -d "~/.rg-graph-storage" ]; then
   hg clone https://code.google.com/p/rg-graph-storage/ ~/.rg-graph-storage
