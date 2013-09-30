@@ -94,21 +94,16 @@ class _MercurialGraphOperationValuesStorage(common_storage.AbstractMercurialAwar
         if self._checkExist(graph, methodName, description):
             return
         value = (expression, methodName, description)
-        gs = _MercurialGraphOperationValuesStorage._shortGraphState(graph)
+        gs = str(graph.toGraphState())
         self._underlying[gs].append(value)
         self._flushRawStorage.append("\nstorage[\"" + gs + "\"].append(("
-                                     + self._exprSerializer(str(value[0]))
+                                     + self._exprSerializer(str(value[0].simplify_indexed()))
                                      + ", \"" + self._theoryName
                                      + "\", \"" + value[1]
                                      + "\", \"" + value[2] + "\"))")
 
     def getValue(self, graph, defaultValue=None):
-        return self._underlying.get(_MercurialGraphOperationValuesStorage._shortGraphState(graph), defaultValue)
-
-    @staticmethod
-    def _shortGraphState(graph):
-        graphStateAsStr = str(graph.toGraphState())
-        return graphStateAsStr[:graphStateAsStr.index("::")]
+        return self._underlying.get(str(graph.toGraphState()), defaultValue)
 
     def _flush(self, storageFile):
         for rawData in self._flushRawStorage:
@@ -162,9 +157,9 @@ class _GraphValueStorage(common_storage.AbstractMercurialAwareStorage):
             return self.createUnCalculatedValue(graphState)
         return defaultValue
 
-    def putGraph(self, graph, expression, methodName, description=""):
+    def putGraph(self, graph, expression, methodName, description="", force=False):
         assert isinstance(graph, graphine.Graph)
-        if self.hasGraph(graph):
+        if not force and self.hasGraph(graph):
             return
         assert len(expression) == 2
         pPower = expression[1]
@@ -189,7 +184,9 @@ class _GraphValueStorage(common_storage.AbstractMercurialAwareStorage):
         if self._funUnderlying:
             for function in self._funUnderlying.items():
                 execfile(function[1])
-                if locals()[function[0]](graph):
+                result = locals()[function[0]](graph)
+                if result:
+                    self.putGraph(graph, result, function[0], force=True)
                     return True
         return self._canCalculateGraphCheckerWrapper(graph, graphState)
 

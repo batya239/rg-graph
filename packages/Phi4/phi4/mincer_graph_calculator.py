@@ -5,17 +5,20 @@ import mincer
 
 
 class MincerGraphCalculator(rggraphenv.AbstractGraphCalculator):
-    def isApplicable(self, graph):
-        return mincer.isApplicable(graph)
+    """
+    wrapper for mincer for usage in storage
+    """
+    def is_applicable(self, graph):
+        return mincer.is_applicable(graph)
 
-    def getLabel(self):
+    def get_label(self):
         return "mincer graph calculator"
 
     def calculate(self, graph):
-        return mincer.calculateGraph(graph)
+        return mincer.calculate_graph(graph)
 
     def init(self):
-        mincer.initMincer()
+        mincer.init_mincer()
 
     def dispose(self):
-        mincer.disposeMincer()
+        mincer.dispose_mincer()

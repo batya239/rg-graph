@@ -282,9 +282,9 @@ class GGraphReducer(object):
             newLambdaNumber = None
             for e in edges:
                 if not newLambdaNumber:
-                    newLambdaNumber = lambda_number.fromRainbow(e)
+                    newLambdaNumber = lambda_number.from_rainbow(e)
                 else:
-                    newLambdaNumber += lambda_number.fromRainbow(e)
+                    newLambdaNumber += lambda_number.from_rainbow(e)
                 for currentVertex in e.nodes:
                     if currentVertex != v:
                         boundaryVertexes.append(currentVertex)
@@ -303,12 +303,12 @@ class GGraphReducer(object):
                         fields = const.chooseOppositeFields(edges[1].fields)
                 newEdge = graph_state.Edge(boundaryVertexes,
                                            external_node=self._initGraph.externalVertex,
-                                           colors=lambda_number.toRainbow(newLambdaNumber),
+                                           colors=lambda_number.to_rainbow(newLambdaNumber),
                                            fields=fields)
             else:
                 newEdge = graph_state.Edge(boundaryVertexes,
                                            external_node=self._initGraph.externalVertex,
-                                           colors=lambda_number.toRainbow(newLambdaNumber))
+                                           colors=lambda_number.to_rainbow(newLambdaNumber))
             currentGraph = self.getCurrentIterationGraph()
             currentGraph = currentGraph.deleteEdges(edges)
             currentGraph = currentGraph.addEdge(newEdge)
@@ -326,16 +326,16 @@ class GGraphReducer(object):
             newLambdaNumber = None
             for e in edges:
                 if not newLambdaNumber:
-                    newLambdaNumber = lambda_number.fromRainbow(e)
+                    newLambdaNumber = lambda_number.from_rainbow(e)
                 else:
-                    newLambdaNumber += lambda_number.fromRainbow(e)
+                    newLambdaNumber += lambda_number.from_rainbow(e)
                 for currentVertex in e.nodes:
                     if currentVertex != v:
                         boundaryVertexes.append(currentVertex)
             assert newLambdaNumber
             newEdge = graph_state.Edge(boundaryVertexes,
                                        external_node=self._initGraph.externalVertex,
-                                       colors=lambda_number.toRainbow(newLambdaNumber))
+                                       colors=lambda_number.to_rainbow(newLambdaNumber))
             currentGraph = self.getCurrentIterationGraph()
             currentGraph = currentGraph.deleteEdges(edges)
             currentGraph = currentGraph.addEdge(newEdge)
@@ -344,7 +344,7 @@ class GGraphReducer(object):
 
     def _searchForChains(self):
         currentGraph = self.getCurrentIterationGraph()
-        for v in currentGraph.vertexes():
+        for v in currentGraph.vertices():
             if v is not currentGraph.externalVertex:
                 edges = currentGraph.edges(v)
                 if len(edges) == 2:

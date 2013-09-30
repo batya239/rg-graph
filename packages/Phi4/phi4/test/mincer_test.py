@@ -10,7 +10,7 @@ __author__ = 'daddy-bear'
 
 class MincerTest(unittest.TestCase):
     def setUp(self):
-        mincer.initMincer()
+        mincer.init_mincer()
 
     def testLoop(self):
         self.doTest("e11-e-::['(0, 0)', '(1, 0)', '(1, 0)', '(0, 0)']", (None,))
@@ -47,10 +47,10 @@ class MincerTest(unittest.TestCase):
     def doTest(self, graphStr, expectedResult):
         epsPartAsString = expectedResult[0]
         graph = graphine.Graph.fromStr(graphStr)
-        if not mincer.isApplicable(graph):
+        if not mincer.is_applicable(graph):
             self.assertIsNone(epsPartAsString)
             return
-        actual = mincer.calculateGraph(graph)
+        actual = mincer.calculate_graph(graph)
         if epsPartAsString is None:
             self.assertIsNone(actual)
             return
@@ -70,7 +70,7 @@ class MincerTest(unittest.TestCase):
 
 
     def tearDown(self):
-        mincer.disposeMincer()
+        mincer.dispose_mincer()
 
 
 if __name__ == "__main__":

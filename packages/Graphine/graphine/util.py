@@ -4,18 +4,18 @@ import graph_state
 import graphine
 
 
-def hasIntersectingByVertexesGraphs(graphs):
+def has_intersecting_by_vertexes_graphs(graphs):
     """
     return True if some of graphs hash non-trivial intersection on vertexes
     """
     if not len(graphs):
         return False
-    uniqueVertexes = set()
+    unique_vertices = set()
     for g in graphs:
-        internalVertexes = g.vertexes() - set([g.externalVertex])
-        currentUniqueVertexesSize = len(uniqueVertexes)
-        uniqueVertexes |= internalVertexes
-        if len(uniqueVertexes) != currentUniqueVertexesSize + len(internalVertexes):
+        internal_vertices = g.vertices() - set([g.externalVertex])
+        current_unique_vertices_size = len(unique_vertices)
+        unique_vertices |= internal_vertices
+        if len(unique_vertices) != current_unique_vertices_size + len(internal_vertices):
             return True
     return False
 
@@ -31,27 +31,13 @@ def merge(graph1, graph2):
     assert graph1.getPresentableStr() == graph2.getPresentableStr()
     edges1 = graph1.graphStateSortedEdges()
     edges2 = graph2.graphStateSortedEdges()
-    newEdges = list()
-    externalVertex = graph1.externalVertex
+    new_edges = list()
+    external_vertex = graph1.externalVertex
     for i in xrange(0, len(edges1)):
-        newEdges.append(_mergeEdge(edges1[i], edges2[i], externalVertex=externalVertex))
-    return graphine.Graph(newEdges, externalVertex=externalVertex)
+        new_edges.append(_merge_edge(edges1[i], edges2[i], external_vertex=external_vertex))
+    return graphine.Graph(new_edges, externalVertex=external_vertex)
 
 
-def _mergeEdge(e1, e2, externalVertex):
+def _merge_edge(e1, e2, external_vertex):
     assert e1.nodes == e2.nodes
-    return graph_state.Edge(e1.nodes, external_node=externalVertex, colors=e1.colors + e2.colors)
-
-
-def getSubExternalVertexes(graph, subGraphAsList):
-    """
-    deprecated. doesn't tested !!!
-    """
-    subGraphVertexes = set()
-    supplementGraph = graph.deleteEdges(subGraphAsList)
-    for edge in subGraphAsList:
-        subGraphVertexes |= set(edge.nodes)
-    supplementVertexes = supplementGraph.vertexes()
-    return supplementVertexes - subGraphVertexes
-
-
+    return graph_state.Edge(e1.nodes, external_node=external_vertex, colors=e1.colors + e2.colors)

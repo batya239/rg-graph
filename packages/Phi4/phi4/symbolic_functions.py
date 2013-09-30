@@ -2,14 +2,23 @@
 # -*- coding: utf8
 #
 #
-# wrapper on sympy library to evaluate G-functions and eps expansions
+# definitions of g-functions
 #
 import re
-import sympy
+import rggraphenv.computer_algebra
+import swiginac
 
-e = sympy.var("e")
+p, e = rggraphenv.cas_variable_resolver.var("p e")
 l = 1 - e
-p = sympy.var("p")
+
+
+zero = swiginac.numeric(0)
+tgamma = swiginac.tgamma
+Pi = swiginac.Pi
+psi = swiginac.psi
+zeta = swiginac.zeta
+Euler = swiginac.Euler
+log = swiginac.log
 
 D = 4 - 2 * e
 
@@ -17,79 +26,57 @@ p2 = p ** 2
 
 pe = p ** e
 
-zeta = sympy.zeta
-polygamma = sympy.polygamma
-pi = sympy.pi
-gamma = sympy.gamma
-EulerGamma = sympy.EulerGamma
+
+def series(expression, x, x0, n, remove_order=False):
+    res = expression.series(x == x0, n)
+    return res.convert_to_poly(no_order=True) if remove_order else res
+
+
+def subs(expression, z, z0):
+    return expression.subs(z == z0)
 
 
 # noinspection PyUnusedLocal
-def evaluateSeries(expressionAsString, lineTuple, onlyPolePart=False):
+def evaluate_series(expression_as_string, line_tuple, only_pole_part=False):
     """
     expressionAsString like '('G(1, 1)*G(1, 1)*G(1, 3-l*2)*G(1, 4-l*3)'
     lineTuple like (4, -4) ~ 4 - 4 * l
     """
     #expansion
-    # noinspection PyCallingNonCallable
-    evaluated = series(evaluate(expressionAsString, lineTuple), e, 0, 0, removeO=onlyPolePart)
-    return evaluated.removeO() if onlyPolePart else evaluated
-
-
-def series(expr, x, x0, n, removeO=False):
-    """
-    sympy bugs avoided
-    """
-    expr_series = expr.series(x, x0, n)
-    return expr_series.removeO() if removeO else expr_series
-    # expansion = list()
-    # for t in expr.lseries(x, x0):
-    #     p = t.as_coeff_exponent(x)[1]
-    #     if p < n:
-    #         expansion.append(t)
-    #     else:
-    #         break
-    # if not removeO:
-    #     expansion.append(sympy.O(x**n))
-    # return sympy.Add(*expansion)
-
-
-def evaluateForTests(expressionAsString):
-    """
-    use this only for tests please
-    """
-    return eval(toInternalCode(expressionAsString))
+    _series = evaluate(expression_as_string, line_tuple).series(e == 0, 0)
+    return _series.convert_to_poly(True) if only_pole_part else _series
 
 
 # noinspection PyUnusedLocal
-def evaluate(expressionAsString, lineTuple=None):
+def evaluate(expression_as_str, line_tuple=None):
     """
     expressionAsString like '('G(1, 1)*G(1, 1)*G(1, 3-l*2)*G(1, 4-l*3)'
     lineTuple like (4, -4) ~ 4 - 4 * l
     """
-    gammaPart = eval(toInternalCode(expressionAsString))
-    if not lineTuple:
-        return gammaPart
-    linePart = p ** (eval("(-2) * (lineTuple[0] + lineTuple[1] * l)"))
-    return gammaPart * linePart
+    eps_part = eval(to_internal_code(expression_as_str))
+    if not line_tuple:
+        return eps_part
+    line_part = p ** ((-2) * (line_tuple[0] + line_tuple[1] * l))
+    return eps_part * line_part
 
 
-def toInternalCode(expressionAsString):
-    return _safeIntegerNumerators(expressionAsString)
+def safe_integer_numerators(expression_as_str):
+    #return re.sub('([\.\d]+)/', 'swiginac.numeric(\\1)/', expression_as_str)
+    return re.sub('([\.\d]+)/', '\\1./', expression_as_str)
 
 
-def _safeIntegerNumerators(expressionAsString):
-    return re.sub('([\.\d]+)/', 'sympy.Number(\\1)/', expressionAsString)
+def to_internal_code(expression_as_str):
+    return safe_integer_numerators(expression_as_str)
 
 
-def polePart(expr):
-    return series(expr, e, 0, 0, removeO=True)
+def pole_part(expr):
+    return expr.series(e == 0, 0).convert_to_poly(True)
 
 
 def G(alpha, beta):
     if alpha == 1 and beta == 1:
         return 1 / e
-    return _rawG(alpha, beta) / _g11
+    return _raw_g(alpha, beta) / _g11
 
 
 def G1(alpha, beta):
@@ -100,9 +87,13 @@ def G2(alpha, beta):
     return (G(alpha, beta) - G(alpha - 1, beta) - G(alpha, beta - 1))/2
 
 
-def _rawG(alpha, beta):
-    return gamma(l + 1 - alpha) * gamma(l + 1 - beta) * gamma(alpha + beta - l - 1) \
-           / ((4 * pi) ** (l + 1) * gamma(alpha) * gamma(beta) * gamma(2 * l + 2 - alpha - beta))
+def _raw_g(alpha, beta):
+    #noinspection PyUnresolvedReferences
+    if (alpha + zero).is_equal(zero) or (beta + zero).is_equal(zero) \
+        or (2 * l + 2 - alpha - beta + zero).is_equal(zero):
+        return 0
+    return tgamma(l + 1 - alpha) * tgamma(l + 1 - beta) * tgamma(alpha + beta - l - 1) \
+           / ((4 * Pi) ** (l + 1) * tgamma(alpha) * tgamma(beta) * tgamma(2 * l + 2 - alpha - beta))
 
 
-_g11 = _rawG(1, 1) * e
+_g11 = _raw_g(1, 1) * e

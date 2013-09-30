@@ -28,16 +28,15 @@ class AbstractMercurialAwareStorage(AbstractGraphOperationValuesStorage):
             #call("cd " + storagePath + "; hg pull -u", shell=True)
         storageQualifiedFileName = os.path.join(storagePath, storageFileName)
         storage = rg_graph_collections.emptyListDict()
-        import sympy
-        e = sympy.var("e")
-        p = sympy.var("p")
-        gamma = sympy.gamma
-        polygamma = sympy.polygamma
-        gamma = sympy.gamma
-        log = sympy.log
-        zeta = sympy.zeta
-        pi = sympy.pi
-        EulerGamma = sympy.EulerGamma
+        import cas_variable_resolver
+        import swiginac
+        e, p = cas_variable_resolver.var("e p")
+        tgamma = swiginac.tgamma
+        psi = swiginac.psi
+        log = swiginac.log
+        zeta = swiginac.zeta
+        Pi = swiginac.Pi
+        Euler = swiginac.Euler
         execfile(storageQualifiedFileName)
         self._storageFileName = storageFileName
         self._storagePath = storagePath
@@ -51,7 +50,6 @@ class AbstractMercurialAwareStorage(AbstractGraphOperationValuesStorage):
         for k, vs in storage.items():
             filtered[k] = filter(lambda v: v[theoryIndex] == theoryName, vs)
         return filtered
-
 
     def _flush(self, storageFile):
         raise NotImplementedError()

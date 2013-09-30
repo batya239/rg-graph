@@ -36,10 +36,10 @@ class RPrime5LoopsTestCase(base_test_case.GraphStorageAwareTestCase):
                 break
             try:
                 actual = r_prime.KR1(graph, common.MSKOperation(), common.defaultSubgraphUVFilter,
-                                     useGraphCalculator=useGraphCalculator)
+                                     use_graph_calculator=useGraphCalculator)
                 sub = expected - actual
-                booleanExpression = expected == actual or abs((sub * symbolic_functions.e ** 5).evalf(
-                    subs={symbolic_functions.e: 1, symbolic_functions.p: 1})) < 1e-5
+                booleanExpression = expected == actual or abs((sub * g.e ** 5).evalf(
+                    subs={g.e: 1, g.p: 1})) < 1e-5
                 self.assertTrue(booleanExpression, "\nactual = " + str(actual) + "\nexpected = " + str(expected) + "\nsub = " + str(sub))
                 if booleanExpression:
                     calculated = True

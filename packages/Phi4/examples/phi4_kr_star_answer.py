@@ -18,8 +18,8 @@ def _compareRPrime(graph, expected, useGraphCalculator=False):
                                useGraphCalculator=useGraphCalculator)
         booleanExpression = expected == actual or abs(((expected - actual) * phi4.symbolic_functions.e ** 5).evalf(
             subs={phi4.symbolic_functions.e: 1, phi4.symbolic_functions.p: 1})) < 1e-5
-        _checkAnswer(booleanExpression, "\nactual = " + str(actual) + "\nexpected = " + str(expected) + "\nsub = " + str(
-            expected - actual))
+        _checkAnswer(booleanExpression, "\nactual = " + str(actual.evalf()) + "\nexpected = " + str(expected.evalf()) + "\nsub = " + str(
+            (expected - actual).evalf()))
         if booleanExpression:
             print "OK", str(graph)
         else:
@@ -28,8 +28,6 @@ def _compareRPrime(graph, expected, useGraphCalculator=False):
         print "FAIL", str(graph), e1
     except phi4.common.T0OperationNotDefined as e2:
         print "T0 FAIL", str(graph), e2
-    except Exception as e3:
-        print "FAIL EXCEPTION", str(graph), e3 , dir(phi4)
 
 
 def main():
@@ -46,7 +44,7 @@ def main():
     for gs, v in MS.items():
         if gs not in alreadyCalculated:
             graph = graphine.Graph.initEdgesColors(graphine.Graph.fromStr(gs))
-            if graph.getLoopsCount() == 5:
+            if graph.getLoopsCount() == 4:
                 _compareRPrime(graph, v, useGraphCalculator=True)
 
 zeta = phi4.symbolic_functions.zeta

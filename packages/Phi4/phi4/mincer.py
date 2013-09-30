@@ -5,6 +5,7 @@ import itertools
 import os
 import shutil
 import subprocess
+import rggraphutil
 import symbolic_functions
 
 __author__ = 'mkompan'
@@ -13,39 +14,38 @@ import sys
 import graphine
 import graph_state
 import re
-# noinspection PyUnresolvedReferences
-import sympy
 
 
 _MINCER_DEFAULT_TMP_DIR = "/tmp/__mincer1111_O_D_bl_N__"
-_MINCER_DIR = _MINCER_DEFAULT_TMP_DIR
+_MINCER_DIR = rggraphutil.Ref.create(_MINCER_DEFAULT_TMP_DIR)
 _MINCER2_H = "mincer2.h"
-_FORM_VERSION = "tform"
+_FORM_VERSION = rggraphutil.Ref.create("tform")
 
 _RESULT_REGEXP = re.compile("F\s=(.*);")
 
 
-def initMincer(mincerDir=_MINCER_DEFAULT_TMP_DIR, useMultiThreading=True):
-    _FORM_VERSION = "tform" if useMultiThreading else "form"
+def init_mincer(mincer_dir=_MINCER_DEFAULT_TMP_DIR, use_multi_threading=True):
+    _FORM_VERSION.set("tform" if use_multi_threading else "form")
     exception = None
     for i in xrange(2):
         try:
-            _MINCER_DIR = mincerDir
-            os.makedirs(_MINCER_DIR)
+            _MINCER_DIR.set(mincer_dir)
+            os.makedirs(_MINCER_DIR.get())
             shutil.copyfile(os.path.join(os.path.dirname(os.path.realpath(__file__)), "lib", _MINCER2_H),
-                            os.path.join(_MINCER_DIR, _MINCER2_H))
+                            os.path.join(_MINCER_DIR.get(), _MINCER2_H))
             return
         except OSError as e:
-            disposeMincer()
+            dispose_mincer()
             exception = e
     raise exception
 
-def disposeMincer():
-    shutil.rmtree(_MINCER_DIR)
+
+def dispose_mincer():
+    shutil.rmtree(_MINCER_DIR.get())
 
 
 # noinspection PyUnboundLocalVariable
-def isApplicable(graph):
+def is_applicable(graph):
     if graph.getLoopsCount() > 3:
         return False
     edges = graph.allEdges()
@@ -60,44 +60,48 @@ def isApplicable(graph):
     return True
 
 
-def calculateGraph(graph):
-    t = writeFormFile(graph, _MINCER_DIR)
+#noinspection PyUnresolvedReferences
+def calculate_graph(graph):
+    t = write_form_file(graph, _MINCER_DIR.get())
     if t is None:
         return None
-    fileName = t[2]
+    file_name = t[2]
 
-    #stdout = subprocess.check_output("cd " + _MINCER_DIR + ";" + "form " + fileName, shell=True).replace("\n", '')
-    proc = subprocess.Popen("cd " + _MINCER_DIR + ";" + _FORM_VERSION + " " + fileName, shell=True,
+    #std_out = subprocess.check_output("cd " + _MINCER_DIR + ";" + "form " + file_name, shell=True).replace("\n", '')
+    proc = subprocess.Popen("cd " + _MINCER_DIR.get() + ";" + _FORM_VERSION.get() + " " + file_name, shell=True,
                             stdout=subprocess.PIPE)
     proc.wait()
-    stdout = proc.stdout.read().replace("\n", "")
+    std_out = proc.stdout.read().replace("\n", "")
 
-    rawResult = _RESULT_REGEXP.findall(stdout)[0]
-    rawResult = rawResult.replace("Q.Q", "1").replace("^", "**").replace("ep", "e")
-    rawResult = _replaceZetas(rawResult)
-    rawResult = symbolic_functions._safeIntegerNumerators(rawResult)
-    if rawResult.strip() == '0':
+    raw_result = _RESULT_REGEXP.findall(std_out)[0]
+    raw_result = raw_result.replace("Q.Q", "1").replace("^", "**").replace("ep", "e")
+    raw_result = _replace_zetas(raw_result)
+    raw_result = symbolic_functions.safe_integer_numerators(raw_result)
+    if raw_result.strip() == '0':
         return None
     # noinspection PyUnusedLocal
     e = symbolic_functions.e
     # noinspection PyUnusedLocal
     p = symbolic_functions.p
-    res = eval(rawResult)
-    return res, _calculatePFactor(graph)
+    import swiginac
+    #noinspection PyUnusedLocal
+    zeta = swiginac.zeta
+    res = eval(raw_result)
+    return res, _calculate_p_factor(graph)
 
 
-def _replaceZetas(rawResult):
-    return re.sub('z(\d+)', 'sympy.zeta(\\1)', rawResult)
+def _replace_zetas(raw_result):
+    return re.sub('z(\d+)', 'zeta(\\1)', raw_result)
 
 
-def _calculatePFactor(graph):
+def _calculate_p_factor(graph):
     factor0 = 0
     for e in graph.internalEdges():
         factor0 += e.colors[0]
     return factor0 - graph.getLoopsCount(), - graph.getLoopsCount()
 
 # no signs for momenta at this moment
-topologies = {
+TOPOLOGIES = {
     'e12-23-3-e-': ('t1', ['Q', 'p1', 'p4', 'p5', 'p2', 'p3', 'Q']),
     'e12-e3-33--': ('t2', ['Q', 'p1', 'p2', 'Q', 'p1', 'p3', 'p4']),
     'e11-22-e-': ('t3', ['Q', 'p1', 'p2', 'p3', 'p4', 'Q']),
@@ -109,47 +113,45 @@ topologies = {
     'e12-34-34-5-5-e-': ('no', ['Q', 'p1', 'p6', 'p2', 'p7', 'p8', 'p5', 'p3', 'p4', 'Q']),
 }
 
-graphs = dict((k, v) for (k, v) in
-              map(lambda gs: (gs, graphine.Graph(graph_state.GraphState.fromStr("%s::" % gs))), topologies.keys()))
+GRAPHS = dict((k, v) for (k, v) in
+              map(lambda gs: (gs, graphine.Graph(graph_state.GraphState.fromStr("%s::" % gs))), TOPOLOGIES.keys()))
 
 
-def _setMomenta(graphName, momentaList):
-    graph = graphine.Graph(graph_state.GraphState.fromStr("%s::" % graphName))
-    edgesList = list()
-    for edge in graph.allEdges(withIndex=True):
-        edge_ = copy.copy(edge.underlying)
-        idx = edge.index
-        edge_.colors = graph_state.Rainbow((momentaList[idx],))
-        edgesList.append(edge_)
-    return graphine.Graph(graph_state.GraphState(edgesList))
+def _set_momenta(graph_name, momenta_list):
+    graph = graphine.Graph.fromStr(graph_name)
+    edges_list = list()
+    i = 0
+    for edge in graph.allEdges(nickel_ordering=True):
+        edge_ = copy.copy(edge)
+        edge_.colors = graph_state.Rainbow((momenta_list[i],))
+        i += 1
+        edges_list.append(edge_)
+    return graphine.Graph(graph_state.GraphState(edges_list))
 
 
-def _findTopology(targetGraph, topologies):
-    targetGraphName = targetGraph.getPresentableStr()
+def _find_topology(target_graph, topologies):
+    target_graph_name = target_graph.getPresentableStr()
     for topology in topologies:
         #print "topology : ", topologies[topology][0]
-
-        modelGraph = _setMomenta(topology, topologies[topology][1])
-
-        internalEdges = modelGraph.internalEdges()
-
+        model_graph = _set_momenta(topology, topologies[topology][1])
+        internal_edges = model_graph.internalEdges()
         #graph_ = graphine.Graph(graph_state.GraphState.fromStr("%s::" % graphName))
-        n = len(internalEdges) - len(targetGraph.internalEdges())
+        n = len(internal_edges) - len(target_graph.internalEdges())
         if n < 0:
             continue
         elif n == 0:
-            if topology == targetGraphName:
-                return topologies[topology][0], modelGraph
+            if topology == target_graph_name:
+                return topologies[topology][0], model_graph
 
-        for lines in itertools.combinations(internalEdges, n):
-            shrunk = modelGraph.batchShrinkToPoint([[x] for x in lines])
-            gsString = shrunk.getPresentableStr()
-            if targetGraphName == gsString:
+        for lines in itertools.combinations(internal_edges, n):
+            shrunk = model_graph.batchShrinkToPoint([[x] for x in lines])
+            gs_as_str = shrunk.getPresentableStr()
+            if target_graph_name == gs_as_str:
                 return topologies[topology][0], shrunk
     return None
 
 
-formTemplate = """
+_FORM_TEMPLATE = """
 #-
 #include mincer2.h
 .global
@@ -161,28 +163,28 @@ Print +f;
 """
 
 
-def generateFormFile(topologyType, graphWithMomenta, graphWithWeights):
+def generate_form_file(topology_type, graph_with_momenta, graph_with_weights):
     denom = ""
-    graphWithMomentaAndWeights = graphine.util.merge(graphWithMomenta, graphWithWeights)
-    for line in graphWithMomentaAndWeights.internalEdges():
+    graph_with_momenta_and_weights = graphine.util.merge(graph_with_momenta, graph_with_weights)
+    for line in graph_with_momenta_and_weights.internalEdges():
         denom += ''.join(["/%s.%s" % (line.colors[0], line.colors[0])] * line.colors[1])
-    return formTemplate.format(denom=denom, topology=topologyType)
+    return _FORM_TEMPLATE.format(denom=denom, topology=topology_type)
 
 
-def writeFormFile(graph, directory="form_files"):
-    ans = _findTopology(graph, topologies)
+def write_form_file(graph, directory="form_files"):
+    ans = _find_topology(graph, TOPOLOGIES)
     if ans is not None:
-        topologyType, graphWithMomenta = ans
-        fileName = '%s.frm' % graph.getPresentableStr()
-        f = open(os.path.join(directory, fileName), 'w+')
-        f.write(generateFormFile(topologyType, graphWithMomenta, graph))
+        topology_type, graph_with_momenta = ans
+        file_name = '%s.frm' % graph.getPresentableStr()
+        f = open(os.path.join(directory, file_name), 'w+')
+        f.write(generate_form_file(topology_type, graph_with_momenta, graph))
         f.close()
-        return topologyType, graphWithMomenta, fileName
+        return topology_type, graph_with_momenta, file_name
     else:
         return None
 
 
-def canCalculateGraphWithMincer(graph):
+def can_calculate_graph_with_mincer(graph):
     for e in graph.allEdges(withIndex=False):
         colors = e.colors
         if colors is not None and colors[0] != 0:
@@ -192,9 +194,9 @@ def canCalculateGraphWithMincer(graph):
 
 def main():
     g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr(sys.argv[1])))
-    initMincer()
-    calculateGraph(g)
-    disposeMincer()
+    init_mincer()
+    calculate_graph(g)
+    dispose_mincer()
 
 
 if __name__ == "__main__":

@@ -4,9 +4,11 @@ import graph_state
 
 __author__ = 'dimas'
 
-spaceDim = 4
+ONE_LINE_WEIGHT = (1, 0)
+
+SPACE_DIM = 4
 edgeUVWeight = -2
-edgeIRWeight = -2
+EDGE_IR_WEIGHT = -2
 
 NUMERATOR_INPUT = "i"
 NUMERATOR_OUTPUT = "o"

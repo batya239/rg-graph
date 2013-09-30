@@ -34,19 +34,21 @@ class MSKOperation(AbstractKOperation):
         self._description = description
 
     def calculate(self, expression):
-        return symbolic_functions.polePart(expression)
+        return symbolic_functions.pole_part(expression)
+
+MS_K_OPERATION = MSKOperation()
 
 GFUN_METHOD_NAME_MARKER = "g-functions"
 MS_SCHEME_NAME_MARKER = "ms-scheme"
 
 defaultSubgraphUVFilter = (graphine.filters.oneIrreducible
                            + graphine.filters.noTadpoles
-                           + graphine.filters.isRelevant(ir_uv.UVRelevanceCondition()))
+                           + graphine.filters.isRelevant(ir_uv.UV_RELEVANCE_CONDITION_4_DIM))
 
 
 _DEFAULT_GRAPH_HAS_NOT_IR_DIVERGENCE_RESULT = dict()
 
-subgraphIRFilters = (graphine.filters.connected + graphine.filters.isRelevant(ir_uv.IRRelevanceCondition()))
+subgraphIRFilters = (graphine.filters.connected + graphine.filters.isRelevant(ir_uv.IR_RELEVANCE_CONDITION_4_DIM))
 
 
 def defaultGraphHasNotIRDivergence(graph):
@@ -63,4 +65,4 @@ defaultGraphHasNotIRDivergenceFilter = [defaultGraphHasNotIRDivergence]
 
 
 def isPSquareGraph(graph):
-    return graph.getLoopsCount() * const.spaceDim - 2 * graph.getAllInternalEdgesCount() == 2
+    return graph.getLoopsCount() * const.SPACE_DIM - 2 * graph.getAllInternalEdgesCount() == 2

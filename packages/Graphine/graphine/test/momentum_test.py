@@ -19,12 +19,12 @@ class SubGraphReducerTestCase(unittest.TestCase):
         for x in momentum.xArbitrarilyPassMomentum(g):
             self.assertFalse(str(x).startswith("ee"))
 
-    def doTestArbitrarilyPassMomentum(self, graphStateStr, graphsNumber):
-        g = graph.Graph.initEdgesColors(graph.Graph(graph_state.GraphState.fromStr(graphStateStr)))
-        graphsWithPassedMomentum = [x for x in momentum.xArbitrarilyPassMomentum(g)]
-        for _g in graphsWithPassedMomentum:
+    def doTestArbitrarilyPassMomentum(self, graph_state_str, graphs_number):
+        g = graph.Graph.initEdgesColors(graph.Graph(graph_state.GraphState.fromStr(graph_state_str)))
+        graphs_with_passed_momentum = [x for x in momentum.xArbitrarilyPassMomentum(g)]
+        for _g in graphs_with_passed_momentum:
             self.assertEquals(len(_g.edges(_g.externalVertex)), 2)
-        self.assertEquals(len(graphsWithPassedMomentum), graphsNumber, graphsWithPassedMomentum)
+        self.assertEquals(len(graphs_with_passed_momentum), graphs_number, graphs_with_passed_momentum)
 
 if __name__ == "__main__":
     unittest.main()

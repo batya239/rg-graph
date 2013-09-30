@@ -11,11 +11,11 @@ class AbstractGraphCalculator(object):
     def dispose(self):
         pass
 
-    def getLabel(self):
+    def get_label(self):
         raise NotImplementedError
 
     def calculate(self, graph):
         raise NotImplementedError
 
-    def isApplicable(self, graph):
+    def is_applicable(self, graph):
         raise NotImplementedError

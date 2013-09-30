@@ -14,12 +14,12 @@ def addCalculator(graphCalculator):
 
 def tryCalculate(graph, putValueToStorage=False):
     for c in _calculators:
-        if c.isApplicable(graph):
+        if c.is_applicable(graph):
             res = c.calculate(graph)
             if res is not None:
                 if putValueToStorage and not storage.hasGraph(graph):
-                    storage.putGraph(graph, res, c.getLabel())
-                return res, c.getLabel()
+                    storage.putGraph(graph, res, c.get_label())
+                return res, c.get_label()
     return None
 
 

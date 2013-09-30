@@ -52,7 +52,7 @@ class Graph(object):
     """
     def __init__(self, obj, externalVertex=-1, renumbering=True):
         """
-        self.edges - dict where keys is one vertex of edge and value is list of second vertexes
+        self.edges - dict where keys is one vertex of edge and value is list of second vertices
         """
         if isinstance(obj, list):
             self._edges = Graph._parseEdges(graph_state.GraphState(obj).edges if renumbering else obj)
@@ -69,7 +69,7 @@ class Graph(object):
         self._allEdges = None
         self._allInternalEdgesCount = None
         self._boundVertexes = None
-        self._vertexes = None
+        self._vertices = None
 
     @property
     def externalVertex(self):
@@ -87,10 +87,10 @@ class Graph(object):
                 res.append(edge)
         return res
 
-    def vertexes(self):
-        if self._vertexes is None:
-            self._vertexes = frozenset(self._edges.keys())
-        return self._vertexes
+    def vertices(self):
+        if self._vertices is None:
+            self._vertices = frozenset(self._edges.keys())
+        return self._vertices
 
     def createVertexIndex(self):
         toReturn = self._nextVertexIndex
@@ -102,7 +102,9 @@ class Graph(object):
             return copy.copy(self._edges.get(vertex, []))
         return filter(lambda e: vertex2 in e.nodes, self._edges.get(vertex, []))
 
-    def allEdges(self):
+    def allEdges(self, nickel_ordering=False):
+        if nickel_ordering:
+            return self.toGraphState().edges
         if self._allEdges is None:
             wrappedResult = set()
             for edges in self._edges.values():
@@ -156,32 +158,35 @@ class Graph(object):
     def deleteEdge(self, edge):
         return self.deleteEdges([edge])
 
-    def batchShrinkToPoint(self, subGraphs):
+    def batchShrinkToPointWithAuxInfo(self, sub_graphs):
         """
-        subGraphs -- list of graphs edges
+        subGraphs -- list of graphs edges or graph with equivalent numbering of vertices
         """
-        if not len(subGraphs):
-            return self
+        if not len(sub_graphs):
+            return self, list()
 
-        vertexTransformation = ID_VERTEX_TRANSFORMATION
+        vertex_transformation = ID_VERTEX_TRANSFORMATION
         g = self
-        for subGraph in subGraphs:
-            if isinstance(subGraph, Graph):
-                g, vertexTransformation = g._shrinkToPoint(subGraph.allEdges(), vertexTransformation)
-            else:
-                g, vertexTransformation = g._shrinkToPoint(subGraph, vertexTransformation)
+        new_vertices = list()
+        for subGraph in sub_graphs:
+            all_edges = subGraph.allEdges() if isinstance(subGraph, Graph) else subGraph
+            g, new_vertex, vertex_transformation = g._shrinkToPoint(all_edges, vertex_transformation)
+            new_vertices.append(new_vertex)
         assert g
-        return g
+        return g, new_vertices
 
-    def _shrinkToPoint(self, unTransformedEdges, vertexTransformation=None):
+    def batchShrinkToPoint(self, sub_graphs):
+        return self.batchShrinkToPointWithAuxInfo(sub_graphs)[0]
+
+    def _shrinkToPoint(self, unTransformedEdges, vertex_transformation=None):
         """
         obj -- list of edges or graph
         immutable operation
         """
-        if not vertexTransformation:
-            vertexTransformation = ID_VERTEX_TRANSFORMATION
+        if not vertex_transformation:
+            vertex_transformation = ID_VERTEX_TRANSFORMATION
 
-        edges = map(lambda e: e.copy(vertexTransformation.mapping), unTransformedEdges)
+        edges = map(lambda e: e.copy(vertex_transformation.mapping), unTransformedEdges)
 
         newRawEdges = copy.copy(self.allEdges())
         markedVertexes = set()
@@ -196,22 +201,26 @@ class Graph(object):
         currVertexTransformationMap = dict()
         for edge in newRawEdges:
             v1, v2 = edge.nodes
-            copyMap = {}
+            copy_map = {}
             if v1 in markedVertexes:
                 currVertexTransformationMap[v1] = self._nextVertexIndex
-                copyMap[v1] = self._nextVertexIndex
+                copy_map[v1] = self._nextVertexIndex
             if v2 in markedVertexes:
                 currVertexTransformationMap[v2] = self._nextVertexIndex
-                copyMap[v2] = self._nextVertexIndex
-            if len(copyMap):
-                newEdges.append(edge.copy(copyMap))
+                copy_map[v2] = self._nextVertexIndex
+            if len(copy_map):
+                newEdges.append(edge.copy(copy_map))
             else:
                 newEdges.append(edge)
         return Graph(newEdges, externalVertex=self.externalVertex, renumbering=False), \
-               vertexTransformation.add(VertexTransformation(currVertexTransformationMap))
+               self._nextVertexIndex, \
+               vertex_transformation.add(VertexTransformation(currVertexTransformationMap))
 
     def shrinkToPoint(self, edges):
         return self._shrinkToPoint(edges)[0]
+
+    def shrinkToPointWithAuxInfo(self, edges):
+        return self._shrinkToPoint(edges)[0:2]
 
     def xRelevantSubGraphs(self,
                            filters=list(),
@@ -239,7 +248,7 @@ class Graph(object):
 
     def toGraphState(self):
         if self._graphState is None:
-            self._graphState = graph_state.GraphState(self.allEdges())
+            self._graphState = graph_state.GraphState(self.allEdges(nickel_ordering=False))
         return self._graphState
 
     def getBoundVertexes(self):
@@ -260,7 +269,7 @@ class Graph(object):
     def getLoopsCount(self):
         if self._loopsCount is None:
             externalLegsCount = len(self.edges(self.externalVertex))
-            self._loopsCount = len(self.allEdges()) - externalLegsCount - (len(self.vertexes()) -
+            self._loopsCount = len(self.allEdges()) - externalLegsCount - (len(self.vertices()) -
                                                                            (1 if externalLegsCount != 0 else 0)) + 1
         return self._loopsCount
 
@@ -276,13 +285,13 @@ class Graph(object):
 
     def __hash__(self):
         if self._hash is None:
-            self._hash = hash(self.toGraphState()) + 37 * hash(self.vertexes())
+            self._hash = hash(self.toGraphState()) + 37 * hash(self.vertices())
         return self._hash
 
     def __eq__(self, other):
         if not isinstance(other, Graph):
             return False
-        return self.toGraphState() == other.toGraphState() and self.vertexes() == other.vertexes()
+        return self.toGraphState() == other.toGraphState() and self.vertices() == other.vertices()
 
     @staticmethod
     def fromStr(string,
@@ -366,8 +375,8 @@ class Graph(object):
         """
         persistent operation
         """
-        vertexes = set(edge.nodes)
-        for v in vertexes:
+        vertices = set(edge.nodes)
+        for v in vertices:
             Graph._insertEdge(edgesDict, v, edge)
 
     @staticmethod
@@ -375,8 +384,8 @@ class Graph(object):
         """
         persistent operation
         """
-        vertexes = set(edge.nodes)
-        for v in vertexes:
+        vertices = set(edge.nodes)
+        for v in vertices:
             Graph._deleteEdge(edgesDict, v, edge)
 
     @staticmethod

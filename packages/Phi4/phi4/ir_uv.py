@@ -13,22 +13,39 @@ import const
 
 
 def uvIndex(graph):
-    nEdges = len(graph.allEdges(withIndex=True)) - len(graph.edges(graph.externalVertex))
-    nVertexes = len(graph.vertexes()) - 1
+    nEdges = len(graph.allEdges()) - len(graph.edges(graph.externalVertex))
+    nVertexes = len(graph.vertices()) - 1
     nLoop = nEdges - nVertexes + 1
-    index = nEdges * const.edgeUVWeight + nLoop * const.spaceDim
+    index = nEdges * const.edgeUVWeight + nLoop * const.SPACE_DIM
     return index
 
 
+def numeratorsCount(edgesList):
+    _numeratorsCount = 0
+    for e in edgesList:
+        if e.fields is None:
+            break
+        else:
+            if e.fields != const.EMPTY_NUMERATOR:
+                _numeratorsCount += 1
+    return _numeratorsCount
+
+
 class UVRelevanceCondition(object):
+    def __init__(self, space_dim):
+        self._space_dim = space_dim
+
     # noinspection PyUnusedLocal
     def isRelevant(self, edgesList, superGraph, superGraphEdges):
         subGraph = graphine.Representator.asGraph(edgesList, superGraph.externalVertex)
         nEdges = len(edgesList) - len(subGraph.edges(subGraph.externalVertex))
-        nVertexes = len(subGraph.vertexes()) - 1
+        nVertexes = len(subGraph.vertices()) - 1
         nLoop = nEdges - nVertexes + 1
-        subGraphUVIndex = nEdges * const.edgeUVWeight + nLoop * const.spaceDim
+        subGraphUVIndex = nEdges * const.edgeUVWeight + numeratorsCount(edgesList) + nLoop * self._space_dim
         return subGraphUVIndex >= 0
+
+
+UV_RELEVANCE_CONDITION_4_DIM = UVRelevanceCondition(const.SPACE_DIM)
 
 
 class IRRelevanceCondition(object):
@@ -40,12 +57,12 @@ class IRRelevanceCondition(object):
                              map(lambda x: set(x.nodes), externalEdges)) - \
                              set([superGraph.externalVertex])
 
-        if len(borderNodes) != 2:
+        if len(borderNodes) > 2:
             return False
         nEdges = len(edgesList) - len(externalEdges)
-        nVertexes = len(subGraph.vertexes()) - 1
+        nVertexes = len(subGraph.vertices()) - 1
         nLoop = nEdges - nVertexes + 1
-        subGraphIRIndex = nEdges * const.edgeIRWeight + (nLoop + 1) * const.spaceDim
+        subGraphIRIndex = nEdges * const.EDGE_IR_WEIGHT + numeratorsCount(edgesList) + (nLoop + 1) * const.SPACE_DIM
         # invalid result for e12-e333-3-- (there is no IR subGraphs)
         if subGraphIRIndex > 0:
             return False
@@ -58,6 +75,9 @@ class IRRelevanceCondition(object):
         for e in superGraphEdges:
             connectionEquivalence.addEdge(e)
         return connectionEquivalence.isRelevant()
+
+
+IR_RELEVANCE_CONDITION_4_DIM = IRRelevanceCondition()
 
 
 class _MergeResolver(object):

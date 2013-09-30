@@ -90,9 +90,9 @@ class GraphTestCase(unittest.TestCase):
         self.assertEquals(simpleGraph.createVertexIndex(), 4)
 
     def testGetVertexEdges(self):
-        self.assertSetEqual(simpleGraph.vertexes(), set([-1, 0, 1, 2]))
+        self.assertSetEqual(simpleGraph.vertices(), set([-1, 0, 1, 2]))
         #
-        self.assertSetEqual(graph.vertexes(), set([-1, 0, 1, 2, 3]))
+        self.assertSetEqual(graph.vertices(), set([-1, 0, 1, 2, 3]))
 
     def testShrinkToPointInBatch(self):
         self.doTestShrinkToPointInBatch([(-1, 0), (0, 1), (0, 2), (1, 2), (2, 3), (1, 3), (3, -1)],

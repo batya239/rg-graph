@@ -25,22 +25,22 @@ def isGraph1Irreducible(edgesList, superGraph, superGraphEdges):
 # noinspection PyUnusedLocal
 def isGraphVertexIrreducible(edgesList, superGraph, superGraphEdges):
     subGraph = graph.Representator.asGraph(edgesList, superGraph.externalVertex)
-    if len(subGraph.vertexes() - set([superGraph.externalVertex])) == 1:
+    if len(subGraph.vertices() - set([superGraph.externalVertex])) == 1:
         return True
-    if len(subGraph.vertexes()) == 2:
+    if len(subGraph.vertices()) == 2:
         return len(subGraph.allEdges()) - len(subGraph.edges(subGraph.externalVertex)) > 0
-    for v in subGraph.vertexes():
+    for v in subGraph.vertices():
         for e in subGraph.edges(v):
             if e.nodes[0] == e.nodes[1]:
                 return False
         if v is not superGraph.externalVertex:
-            if len(subGraph.vertexes()) == 2:
+            if len(subGraph.vertices()) == 2:
                 return len(subGraph.allEdges()) - len(subGraph.edges(subGraph.externalVertex)) > 0
             else:
                 edges = copy.copy(edgesList)
                 for e in subGraph.edges(v):
                     edges.remove(e)
-                additionalVertexes = set(subGraph.vertexes())
+                additionalVertexes = set(subGraph.vertices())
                 additionalVertexes.remove(v)
                 if not _isGraphConnected(edges, superGraph.externalVertex, additionalVertexes=additionalVertexes):
                     return False
