@@ -6,7 +6,7 @@ import nickel
 import graph_state
 import graphine
 from graphine import filters
-from phi4.graphs import conserv
+from . import _conserv as conserv
 
 
 def unique(seq):
