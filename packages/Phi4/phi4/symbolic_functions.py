@@ -5,7 +5,7 @@
 # definitions of g-functions
 #
 import re
-import rggraphenv.computer_algebra
+import rggraphenv
 import swiginac
 
 p, e = rggraphenv.cas_variable_resolver.var("p e")
