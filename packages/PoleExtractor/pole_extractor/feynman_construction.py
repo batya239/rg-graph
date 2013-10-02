@@ -44,6 +44,9 @@ class FeynmanRepresentation:
             c = polynomial.poly(self._setup_c(nick.edges, loops_number),
                                 degree=(-edges_number + 2 + loops_number * deg, -loops_number)).set0toVar(edges_number)
             self._integrand = self._integrand * c.toPolyProd()
+        self._gamma_coefs = []
+        self._gamma_coefs.append((edges_number - tails_number - deg * loops_number, loops_number))
+        self._gamma_coefs.append((deg, -1))
 
     def _setup_conslaws(self, edges):
         vacuum_loop = dict((n, e) for n, e in enumerate(edges) if -1 not in e)
@@ -92,7 +95,10 @@ class FeynmanRepresentation:
         return map(lambda x: (1, [x, ]), base)
 
     def __str__(self):
-        result = str(self._integrand) + '*DELTA[1-' + str(self._delta_argument) + "]"
+        result = '||'
+        for g in self._gamma_coefs:
+            result += str(g[0]) + '+(' + str(g[1]) + '*eps)||'
+        result += str(self._integrand) + '*DELTA[1-' + str(self._delta_argument) + "]"
         return result
 
 
