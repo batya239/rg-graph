@@ -57,22 +57,17 @@ class FeynmanRepresentation:
         det_base = filter(lambda x: -1 not in edges[x], range(0, len(edges)))
         det = unique(map(lambda x: sorted(x), list(itertools.permutations(det_base, loops))))
         for law in filter(lambda x: len(x) == 2, self._conslaws):
-            for monomial in det:
-                if law[0] in monomial:
-                    monomial.remove(law[0])
-                    monomial.append(law[1])
+            for i, monomial in enumerate(det):
+                det[i] = [law[1] if x == law[0] else x for x in monomial]
         det = unique(filter(lambda x: len(x) >= loops, map(lambda y: sorted(unique(y)), det)))
         det = filter(lambda x: all(map(lambda y: not set(y).issubset(x), self._conslaws)), det)
         return map(lambda x: (1, x), det)
 
     def _setup_numerator(self, edges_number):
         num_base = list(xrange(0, edges_number))
-        for law in self._conslaws:
-            if len(law) == 2:
-                while law[0] in num_base:
-                    num_base.remove(law[0])
-                    num_base.append(law[1])
-        for edge in list(xrange(0, edges_number)):
+        for law in filter(lambda x: len(x) == 2, self._conslaws):
+            num_base = [law[1] if x == law[0] else x for x in num_base]
+        for edge in range(0, edges_number):
             if edge in num_base:
                 num_base.remove(edge)
         return [(1, num_base), ]
