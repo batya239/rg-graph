@@ -56,18 +56,17 @@ def graph_info(diag):
     nick = nickel.Nickel(nickel=c.nickel)
 
     result['external vertex'] = ext
-    result['adjacency list'] = copy.deepcopy(nick.edges)
-    result['nickel label'] = copy.deepcopy(nick.string)
+    result['adjacency list'] = nick.edges
+    result['nickel label'] = nick.string
 
-    result['edges'] = len(result['adjacency list'])
-    result['tails'] = len(filter(lambda x: ext in x, result['adjacency list']))
+    result['edges'] = len(nick.edges)
+    result['tails'] = len(filter(lambda x: ext in x, nick.edges))
+    result['vertices'] = len(nick.adjacent.keys())
 
-    result['vertices'] = len(set(unite(result['adjacency list']))) - int(result['tails'] > 0)
-    result['loops'] = result['edges'] - result['tails'] - result['vertices'] + 1
-
-    vacuum_loop = dict((edge_number, edge) for edge_number, edge in
-                       enumerate(result['adjacency list']) if ext not in edge)
+    vacuum_loop = dict((n, e) for n, e in enumerate(nick.edges) if ext not in e)
     result['conservation laws'] = sorted([sorted(list(law)) for law in list(conserv.Conservations(vacuum_loop))])
+
+    result['loops'] = result['edges'] - result['tails'] - result['vertices'] + 1
 
     return result
 

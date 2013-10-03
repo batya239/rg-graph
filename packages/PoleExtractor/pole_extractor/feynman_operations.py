@@ -12,7 +12,6 @@ import graph_state
 
 def sectors(c_laws, loops, variable_list):
     """
-
     :param c_laws:
     :param loops:
     :param variable_list: is a list of variables in Feynman's interpretation integrand

@@ -5,6 +5,8 @@ import polynomial
 import copy
 import itertools
 import math
+import os
+import sys
 
 
 class EpsExpansion:
@@ -358,7 +360,7 @@ def str_for_CUBA(expansion):
             result += ' + '
 
     result = result[:-3] + ';' + '\n' + '\n'
-    result = result + 'return 0;' + '\n' + '}' + '\n' + '#endif /*INTEGRATE_H_*/'
+    result = result + 'return 0;' + '\n' + '}' + '\n' + '#endif /*INTEGRATE_H_*/' + '\n'
     return result
 
 
@@ -367,14 +369,15 @@ def compute_exp_via_CUBA(expansion):
     So for now in order for everything to work properly you have to have files integrate.c and integrate.h
     in the folder where the script you are calling this func from is. I will fix it later, honestly.
     """
-    #TODO: fix the fast_nickel call, this is bs
+
     result = dict()
     for k in expansion.keys():
-        header_str = str_for_CUBA(expansion[k])
         f = open('integrate.h', 'w')
+        header_str = str_for_CUBA(expansion[k])
         f.write(header_str)
         f.close()
-        mc_integral = subprocess.Popen(['./run_integration.sh'], shell=True,
+
+        mc_integral = subprocess.Popen([sys.prefix + '/pole_extractor_ni/' + 'run_integration.sh'], shell=True,
                                        stdout=subprocess.PIPE,
                                        stderr=subprocess.PIPE)
 
@@ -387,5 +390,7 @@ def compute_exp_via_CUBA(expansion):
         except ValueError:
             print 'Something went wrong during integration. Here\'s what CUBA said:'
             print str(out)
+            print str(err)
+        os.remove('integrate.h')
 
     return result
