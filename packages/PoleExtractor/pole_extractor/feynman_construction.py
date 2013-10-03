@@ -14,7 +14,7 @@ def unique(seq):
     return [x for x in seq if str(x) not in seen and not seen.add(str(x))]
 
 
-class FeynmanRepresentation:
+class Feynman:
     def __init__(self, nick, momentum_derivative=False, theory=0):
         if not isinstance(nick, nickel.Nickel):
             raise AttributeError('You are supposed to construct it from a nickel.Nickel instance')
