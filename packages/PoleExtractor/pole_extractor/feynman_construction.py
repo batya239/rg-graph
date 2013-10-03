@@ -14,6 +14,18 @@ def unique(seq):
     return [x for x in seq if str(x) not in seen and not seen.add(str(x))]
 
 
+def unite(seq):
+    """
+    turns sequence of sequences in sequence of elements of sequences, e.g.
+    [[1, 2, 3], [4, 5], [6,]] -> [1, 2, 3, 4, 5, 6]
+    """
+    s = copy.deepcopy(seq)
+    result = []
+    while s:
+        result.extend(s.pop(0))
+    return result
+
+
 class Feynman:
     def __init__(self, nick, momentum_derivative=False, theory=0):
         if not isinstance(nick, nickel.Nickel):
@@ -37,30 +49,38 @@ class Feynman:
         loops_number = edges_number - tails_number - vertices_number + 1
 
         Denominator = polynomial.poly(self._setup_determinant(nick.edges, loops_number), degree=(-deg, 1))
-        Numerator = polynomial.poly(self._setup_numerator(edges_number))
+        _numerator = self._setup_numerator(edges_number)
+        Numerator = polynomial.poly(_numerator)
         self._integrand = Denominator * Numerator
         self._delta_argument = polynomial.poly(self._setup_delta_argument(nick.edges))
         if momentum_derivative:
             c = polynomial.poly(self._setup_c(nick.edges, loops_number),
                                 degree=(-edges_number + 2 + loops_number * deg, -loops_number)).set0toVar(edges_number)
             self._integrand = self._integrand * c.toPolyProd()
-        self._gamma_coefs = []
-        self._gamma_coefs.append((edges_number - tails_number - deg * loops_number, loops_number))
-        self._gamma_coefs.append((deg, -1))
+        self._gamma_coef1 = (edges_number - tails_number - deg * loops_number, loops_number)
+        self._gamma_coef2 = (deg, -1, loops_number)
+        g = dict((i, _numerator[0][1].count(i)) for i in _numerator[0][1]).values()
+        coef = 1
+        for i in g:
+            coef *= math.factorial(i)
+        coef *= 2 ** loops_number
+        self._inverse_coefficient = coef
 
     def _setup_conslaws(self, edges):
         vacuum_loop = dict((n, e) for n, e in enumerate(edges) if -1 not in e)
         result = sorted([sorted(list(law)) for law in list(conserv.Conservations(vacuum_loop))])
         return tuple(map(lambda x: tuple(x), result))
 
-    def _setup_determinant(self, edges, loops):
+    def _setup_determinant(self, edges, loops, conslaws=None):
+        if not conslaws:
+            conslaws = self._conslaws
         det_base = filter(lambda x: -1 not in edges[x], range(0, len(edges)))
         det = unique(map(lambda x: sorted(x), list(itertools.permutations(det_base, loops))))
-        for law in filter(lambda x: len(x) == 2, self._conslaws):
+        for law in filter(lambda x: len(x) == 2, conslaws):
             for i, monomial in enumerate(det):
                 det[i] = [law[1] if x == law[0] else x for x in monomial]
         det = unique(filter(lambda x: len(x) >= loops, map(lambda y: sorted(unique(y)), det)))
-        det = filter(lambda x: all(map(lambda y: not set(y).issubset(x), self._conslaws)), det)
+        det = filter(lambda x: all(map(lambda y: not set(y).issubset(x), conslaws)), det)
         return map(lambda x: (1, x), det)
 
     def _setup_numerator(self, edges_number):
@@ -73,14 +93,11 @@ class Feynman:
         return [(1, num_base), ]
 
     def _setup_c(self, edges, loops_number):
-        new_edge = []
-        for edge in edges:
-            if -1 in edge[0:2]:
-                new_edge += edge[0:2]
-        new_edge = filter(lambda x: x != -1, new_edge)
         diag_for_c = copy.deepcopy(edges)
+        new_edge = filter(lambda x: x != -1, unite(filter(lambda x: -1 in x, edges)))
         diag_for_c.append(new_edge)
-        c_base = self._setup_determinant(diag_for_c, loops_number + 1)
+        conslaws_for_c = self._setup_conslaws(diag_for_c)
+        c_base = self._setup_determinant(diag_for_c, loops_number + 1, conslaws=conslaws_for_c)
         return c_base
 
     def _setup_delta_argument(self, edges):
@@ -90,9 +107,10 @@ class Feynman:
         return map(lambda x: (1, [x, ]), base)
 
     def __str__(self):
-        result = '||'
-        for g in self._gamma_coefs:
-            result += str(g[0]) + '+(' + str(g[1]) + '*eps)||'
+        result = '(||'
+        result += str(self._gamma_coef1[0]) + '+(' + str(self._gamma_coef1[1]) + '*eps)||'
+        result += str(self._gamma_coef2[0]) + '+(' + str(self._gamma_coef2[1]) + '*eps)||^('
+        result += str(self._gamma_coef2[2]) + ')/' + str(self._inverse_coefficient) + ')'
         result += str(self._integrand) + '*DELTA[1-' + str(self._delta_argument) + "]"
         return result
 
