@@ -8,7 +8,9 @@ NITER=$4
 DELTA=$5
 NODESPPN=$6
 DIR=$7
-SCRIPTDIR='/home/mkompan/workspace/rg-graph/phi4/graphs'
+if [ -z "$SCRIPTDIR" ]; then
+   SCRIPTDIR='/home/mkompan/workspace/rg-graph/phi4/graphs'
+fi
 
 PNAME=`echo $DIR/$NAME|sed 's/\//\\\\\//g'`
 DIRNAMR=`echo $DIR|sed 's/\//\\\\\//g'`
