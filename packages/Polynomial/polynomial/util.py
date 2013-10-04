@@ -12,12 +12,6 @@ def zeroDict(dictionary=None):
     else:
         return collections.defaultdict(_zeroFactory, dictionary)
 
-_emptyListFactory = lambda: []
-
-
-def emptyListDict():
-    return collections.defaultdict(_emptyListFactory)
-
 
 class UnorderedHashable(object):
     def __init__(self, anIterable):

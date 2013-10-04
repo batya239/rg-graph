@@ -50,11 +50,8 @@ fileName = folder + "/sectors.py"
 fileNameC = "%s" % graphName
 
 sectorsFileContent = open(fileName).readlines()
-if "subtractionOperators" in model.__dict__:
-    exec  model.subtractionOperators
-    exec("\n".join(sectorsFileContent[1:]))
-else:
-    exec("\n".join(sectorsFileContent))
+
+exec("\n".join(sectorsFileContent))
 
 dynamics.method_name = method_name
 

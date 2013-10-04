@@ -2,6 +2,8 @@
 # -*- coding: utf8
 
 import copy
+import rggraphutil
+import checkers
 import eps_number
 import formatter
 import polynomial
@@ -126,6 +128,15 @@ class PolynomialProduct(object):
                                                                                            self.polynomials),
                       eps_number.epsNumber(0))
 
+    def hasPolynomialWith(self, condition=None):
+        if condition is None:
+            return checkers._PolynomialChecker(list(self.polynomials))
+        satisfying = list()
+        for p in self.polynomials:
+            if condition._check(p):
+                satisfying.append(p)
+        return checkers._PolynomialChecker(satisfying)
+
     def simplify(self):
         """
         trying to simplifying product by polynomials factorization
@@ -140,7 +151,7 @@ class PolynomialProduct(object):
         """
         collecting polynomials by monomial part
         """
-        factorDict = util.emptyListDict()
+        factorDict = rggraphutil.emptyListDict()
         for p in polynomials:
             key = util.unordered_hashable(tuple(p.monomials.items()))
             factorDict[key].append(p)

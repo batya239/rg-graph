@@ -82,7 +82,7 @@ if (METHOD == 0) {{
   printf("VEGAS RESULT:\tneval %d\tfail %d\\n",
     neval, fail);
   for( comp = 0; comp < NCOMP; ++comp )
-    printf("VEGAS RESULT:\t%.8f +- %.8f\tp = %.3f\\n",
+    printf("VEGAS RESULT:\t%.14f +- %.14f\tp = %.3f\\n",
       integral[comp], error[comp], prob[comp]);
 }}
 else if (METHOD == 1) {{
@@ -96,7 +96,7 @@ else if (METHOD == 1) {{
   printf("SUAVE RESULT:\tnregions %d\tneval %d\tfail %d\\n",
     nregions, neval, fail);
   for( comp = 0; comp < NCOMP; ++comp )
-    printf("SUAVE RESULT:\t%.8f +- %.8f\tp = %.3f\\n",
+    printf("SUAVE RESULT:\t%.14f +- %.14f\tp = %.3f\\n",
       integral[comp], error[comp], prob[comp]);
 }}
 else if (METHOD == 2) {{
@@ -112,7 +112,7 @@ else if (METHOD == 2) {{
   printf("DIVONNE RESULT:\tnregions %d\tneval %d\tfail %d\\n",
     nregions, neval, fail);
   for( comp = 0; comp < NCOMP; ++comp )
-    printf("DIVONNE RESULT:\t%.8f +- %.8f\tp = %.3f\\n",
+    printf("DIVONNE RESULT:\t%.14f +- %.14f\tp = %.3f\\n",
       integral[comp], error[comp], prob[comp]);
 }}
 else if (METHOD == 3) {{
@@ -126,7 +126,7 @@ else if (METHOD == 3) {{
   printf("CUHRE RESULT:\tnregions %d\tneval %d\tfail %d\\n",
     nregions, neval, fail);
   for( comp = 0; comp < NCOMP; ++comp )
-    printf("CUHRE RESULT:\t%.8f +- %.8f\tp = %.3f\\n",
+    printf("CUHRE RESULT:\t%.14f +- %.14f\tp = %.3f\\n",
       integral[comp], error[comp], prob[comp]);
 }}
   return 0;

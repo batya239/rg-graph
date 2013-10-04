@@ -44,7 +44,7 @@ Z3 = 1
 
 for nickel in r1op:
     graph = graphine.Graph(graph_state.GraphState.fromStr("%s::" % nickel))
-    graphLoopCount = graph.calculateLoopsCount()
+    graphLoopCount = graph.getLoopsCount()
     if graphLoopCount > nLoops:
         continue
     if len(graph.edges(graph.externalVertex)) == 2:

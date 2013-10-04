@@ -16,12 +16,15 @@ def _prepareVars(_vars):
     for k, v in _vars.iteritems():
         if v == 0:
             emptyKeys.add(k)
+        elif v < 0:
+            raise AssertionError
     for k in emptyKeys:
         del _vars[k]
 
     return _vars
 
-class MultiIndex:
+
+class MultiIndex(object):
     def __init__(self, _vars=zeroDict(), doPrepare=True):
         """self.vars -- dictionary {variable index --> variable power}
         """
@@ -40,6 +43,13 @@ class MultiIndex:
             return MultiIndex(nVars, doPrepare=False)
         else:
             return self
+
+    def integrate(self, varIndex):
+        nVars = self.vars.copy()
+        lastDegree = nVars[varIndex]
+        newDegree = lastDegree + 1
+        nVars[varIndex] = newDegree
+        return MultiIndex(nVars, doPrepare=False), newDegree
 
     def diff(self, varIndex):
         """

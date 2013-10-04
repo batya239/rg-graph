@@ -22,11 +22,23 @@ eta_z=eta.subs(e,e/2)
 for i in range(len(z)):
     eta_z=eta_z.subs(z[i], zeta(i))
 
+print eta_z
+eta_zf=eta.subs(e,e/2)
+for i in range(len(z)):
+    eta_zf=eta_zf.subs(z[i], zeta(i).evalf())
+
+print "\n\n ZF"
+eta_zf=eta_zf/(n+2)
+for i in range(1,7):
+   print i-1, "  ", (eta_zf.subs(e,0)*(n+8)**(2*i-4)).evalf().series(n,0,8)
+   eta_zf = eta_zf.diff(e)/i
+
+print "\n\n"
+
 eta_n1=eta_z.subs(n, 1)
-
-
-
 print eta_n1.evalf()
+
+
 
 N=sympy.var('N')
 eta_1n=eta_z.subs(n,1/N)

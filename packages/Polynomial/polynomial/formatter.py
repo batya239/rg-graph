@@ -250,7 +250,7 @@ class AbstractFormatter:
         pass
 
     def formatVar(self, varIndex):
-        return self.formatVarIndex(varIndex) if isinstance(varIndex, int) else str(varIndex)
+        return self.formatVarIndex(varIndex) if isinstance(varIndex, int) or isinstance(varIndex, long) else str(varIndex)
 
     def formatPolynomialProductLogarithm(self, log, polynomialLookupBuilder):
         if log.isZero():

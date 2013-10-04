@@ -11,20 +11,21 @@ import graph_state
 import sys
 
 
-class Model(object):
+class RelevanceCondition(object):
     relevantGraphsLegsCard = set([4, ])
 
     # noinspection PyUnusedLocal
-    def isUVRelevant(self, edgesList, superGraph, superGraphEdges):
+    def isRelevant(self, edgesList, superGraph, superGraphEdges):
         subgraph = graphine.Representator.asGraph(edgesList, superGraph.externalVertex)
         return len(subgraph.edges(subgraph.externalVertex)) in self.relevantGraphsLegsCard
 
 
-phi4 = Model()
+phi4 = RelevanceCondition()
+
 subgraphUVFilters = (filters.oneIrreducible
                      + filters.noTadpoles
                      #                     + filters.vertexIrreducible
-                     + filters.isUVRelevant(phi4))
+                     + filters.isRelevant(phi4))
 
 fileName = sys.argv[1]
 
@@ -123,18 +124,19 @@ def KR1(graph, results, resultsKR1):
     subGraphsUV = [subG for subG in
                    graph.xRelevantSubGraphs(subgraphUVFilters, graphine.Representator.asGraph)]
 
-    subGraphMap = dict()
+    subGraphMap = list()
     for subGraph in subGraphsUV:
         intEdges = tuple(internalEdges(subGraph))
-        subGraphMap[subGraph] = intEdges
+        subGraphMap.append((subGraph, intEdges))
     #        subGraphMap[subGraph] = (subGraph, graph.shrinkToPoint(intEdges))
     for i in range(len(subGraphMap)):
-        for subGraphs in itertools.combinations(subGraphMap.keys(), i + 1):
-            if checkIntersection(map(lambda x: subGraphMap[x], subGraphs)):
+        for subGraphs in itertools.combinations(subGraphMap, i + 1):
+            if checkIntersection(map(lambda x: x[1], subGraphs)):
 
-                shrinkedGraph = graph.batchShrinkToPoint([subGraphMap[x] for x in subGraphs])
-                term = calculateKR1term(subGraphs, shrinkedGraph, results, resultsKR1)
-#                print graph, subGraphs, shrinkedGraph, term
+                shrinkedGraph = graph.batchShrinkToPoint([x[1] for x in subGraphs])
+                subGraphs_ = [x[0] for x in subGraphs]
+                term = calculateKR1term(subGraphs_, shrinkedGraph, results, resultsKR1)
+#                print graph, subGraphs_, shrinkedGraph, term
                 res += term
     return res
 
@@ -160,7 +162,7 @@ resultsKR1 = dict()
 print "{"
 for index in results:
     graph = graphine.Graph(graph_state.GraphState.fromStr("%s::" % index))
-    if graph.calculateLoopsCount() > maxNLoops:
+    if graph.getLoopsCount() > maxNLoops:
         continue
     resultsKR1[str(graph)] = KR1(graph, results, resultsKR1)
     print '"%s": %s, # %s , %s ' % (index, resultsKR1[str(graph)], results[str(graph)[:-2]][0][0], symmetryCoefficient(graph))

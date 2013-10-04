@@ -3,6 +3,7 @@
 import unittest
 
 from graph_state import graph_state as gs
+import graph_state
 import graph as gr
 import graph_operations
 import filters
@@ -20,25 +21,51 @@ subGraphState = gs.GraphState(subEdges)
 subGraph = gr.Graph(subGraphState)
 
 
+@filters.graphFilter
+def twoEdgesFilter(edgesList, superGraph, superGraphEdges):
+    externalVertex = superGraph.externalVertex
+    notExternalEdges = list()
+    for e in edgesList:
+        if externalVertex not in set(e.nodes):
+            notExternalEdges.append(e)
+    return len(notExternalEdges) == 2
+
+
 class GraphTestCase(unittest.TestCase):
+    def testChange(self):
+        """
+        this test case is example of usages of this, is not very simple
+        """
+
+        #creates Graph object from nickel string
+        g = gr.Graph.fromStr("123-24-5-45-5-")
+
+        #find edges which node are 0 and 2
+        e = g.edges(0, 2)[0]
+
+        #create indexes for new edges
+        nvs = (g.createVertexIndex(), g.createVertexIndex())
+
+        #new internal edges will look like 0-->newVertex1, newVertex1-->newVertex2, newVertex2-->2
+        edgesSequence = (0,) + nvs + (2,)
+        newEdges = list()
+        for i in xrange(len(edgesSequence) - 1):
+            newEdges.append(graph_state.Edge(edgesSequence[i:i + 2]))
+
+        #new external edges will look like newVertex1-->externalVertex, newVertex2-->externalVertex
+        for v in nvs:
+            newEdges.append(graph_state.Edge((v, -1)))
+
+        #change graph edges: 1st arg -- edges to remove, 2nd -- edges to add
+        newGraph = g.change((e,), newEdges)
+        self.assertEqual(str(newGraph), "e12-e3-45-46-7-67-7--::")
+
     def testIndexableEdges(self):
         graph = gr.Graph(gs.GraphState.fromStr("e11-e-::"))
-        indexableEdges = graph.allEdges(withIndex=True)
-        indexes = set()
-        for ie in indexableEdges:
-            indexes.add(ie.index)
-        self.assertSetEqual(indexes, set([0, 1, 2, 3]))
-
-        i = 100
-        for ie in indexableEdges:
-            ie.myBestEdgeProperty = i
-            i += 1
-
-        myBestProperties = set()
-        for ie in indexableEdges:
-            myBestProperties.add(ie.myBestEdgeProperty)
-
-        self.assertSetEqual(myBestProperties, set([100, 101, 102, 103]))
+        edges = graph.allEdges()
+        uniqueIndexes = set(map(lambda e: e.edge_id, edges))
+        self.assertEqual(len(edges), len(uniqueIndexes))
+        self.assertFalse(None in uniqueIndexes)
 
     def testCreationAndConvertingToGraphState(self):
         self.assertEquals(simpleGraph.toGraphState(), simpleGraphState)
@@ -53,14 +80,19 @@ class GraphTestCase(unittest.TestCase):
         self.doTestGetRelevantSubGraphs("ee12-e3-445-455-5--::", 5)
         self.doTestGetRelevantSubGraphs("ee12-e22-e-::", 1)
 
+        graph = gr.Graph(gs.GraphState.fromStr("e14-2-344-4-e-::"))
+        current = [g for g in
+                   graph.xRelevantSubGraphs(twoEdgesFilter, gr.Representator.asList)]
+        return graph_operations.isGraphConnected(current[1], graph, graph.allEdges())
+
     def testNextVertexIndex(self):
         self.assertEquals(simpleGraph.createVertexIndex(), 3)
         self.assertEquals(simpleGraph.createVertexIndex(), 4)
 
     def testGetVertexEdges(self):
-        self.assertSetEqual(simpleGraph.vertexes(), set([-1, 0, 1, 2]))
+        self.assertSetEqual(simpleGraph.vertices(), set([-1, 0, 1, 2]))
         #
-        self.assertSetEqual(graph.vertexes(), set([-1, 0, 1, 2, 3]))
+        self.assertSetEqual(graph.vertices(), set([-1, 0, 1, 2, 3]))
 
     def testShrinkToPointInBatch(self):
         self.doTestShrinkToPointInBatch([(-1, 0), (0, 1), (0, 2), (1, 2), (2, 3), (1, 3), (3, -1)],
@@ -83,6 +115,23 @@ class GraphTestCase(unittest.TestCase):
         self.doTestShrinkToPoint([(-1, 0), (0, 1), (0, 1), (0, 1), (1, -1)],
                                  [(0, 1), (0, 1)],
                                  'ee0-::')
+
+    def testGetLoopCount(self):
+        self.assertEqual(gr.Graph.fromStr('e111-e-::').getLoopsCount(), 2)
+        self.assertEqual(gr.Graph.fromStr('ee11-ee-::').getLoopsCount(), 1)
+        self.assertEqual(gr.Graph.fromStr('111--::').getLoopsCount(), 2)
+
+    def testDeleteVertex(self):
+        self.doTestDeleteVertex("e12-223-3-e-::", "e1-2-e-::", 2, False)
+        self.doTestDeleteVertex("e12-34-34--e-::", "e12-3-3-e-::", 3, False)
+        self.doTestDeleteVertex("e112-3-e3--::", "e1-e22--::", 3, False)
+        self.doTestDeleteVertex("e12-223-3-e-::", "ee1-ee2-ee-::", 2, True)
+        self.doTestDeleteVertex("e12-34-34--e-::", "e12-e3-e3-e-::", 3, True)
+        self.doTestDeleteVertex("e112-3-e3--::", "ee1-e22-e-::", 3, True)
+
+    def doTestDeleteVertex(self, rawToDelete, rawExpected, vertexToDelete, transformEdgesToExternal):
+        actual = gr.Graph.fromStr(rawToDelete).deleteVertex(vertexToDelete, transformEdgesToExternal)
+        self.assertEqual(str(actual), rawExpected)
 
     def doTestGetRelevantSubGraphs(self, nickelRepresentation, expected):
         graph = gr.Graph(gs.GraphState.fromStr(nickelRepresentation))

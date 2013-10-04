@@ -34,8 +34,13 @@ def err_pow(a,i):
 
 class Number:
     def __init__(self, number, error):
-        self.number=sympy.Number(number)
-        self.error=abs(sympy.Number(error))
+        if isinstance(number, (int, float)):
+            self.number = sympy.Number(number)
+            self.error = abs(sympy.Number(error))
+        else:
+            self.number = number
+            self.error = abs(error)
+
         if str(self.error)=='nan':
             raise Exception, "NAN !! %s, %s"%(number,error)
 

@@ -188,16 +188,17 @@ def find_eq(cons):
     eqs = list()
     for tcons in cons:
         if len(tcons) == 2:
-            a, b = tuple(tcons)
-            new = True
-            eqs_ = list()
+            newEq = set(tcons)
+            eqsN = list()
             for i in range(len(eqs)):
-                if a in eqs[i] or b in eqs[i]:
-                    eqs[i] = eqs[i] | set([a, b])
-                    new = False
-                    break
-            if new:
-                eqs.append(set([a, b]))
+                eq = eqs[i]
+                if len(eq & newEq) == 0:
+                    eqsN.append(eq)
+                else:
+                    newEq = newEq | eq
+
+            eqsN.append(newEq)
+            eqs = eqsN
     for eq in eqs:
         eq_ = list(eq)
         for var in eq_[1:]:
@@ -1117,7 +1118,6 @@ def Prepare(graph, model):
     cons = apply_eq(cons, eqs)
     graph._qi, graph._qi2l = qi_lambda(cons, eqs)
     graph._eqsubgraphs = apply_eq_onsub(graph._qi2l, conv_sub(graph._subgraphs))
-    print graph._qi, graph._qi2l
     if len(graph.ExternalLines()) == 2:
         graph_ = graph.Clone()
         graph_._cons = cons
@@ -1436,6 +1436,7 @@ def save_sd(name, graph, model):
 
     if graph._cdet <> None:
         A4 = poly_exp(graph._cdet, (1, 0), coef=(-1, 0))
+        print "A4 ", A4
 
     sub_idx = -1
     for sub in graph._subgraphs:
@@ -1725,21 +1726,21 @@ def core_pvmpi_code(Nf, N, func_fname, neps=-1):
 
 
 def save(name, graph, model, overwrite=True):
-    dirname = '%s/%s/%s/' % (model.workdir, method_name, name)
+    dirname = os.path.join(model.workdir, method_name, name)
     try:
-        os.mkdir('%s/%s' % (model.workdir, method_name))
+        os.makedirs(os.path.join(model.workdir, method_name))
     except:
         pass
     try:
-        os.mkdir(dirname)
-    except:
+        os.makedirs(dirname)
+    except OSError:
         if overwrite:
             file_list = os.listdir(dirname)
             for file in file_list:
                 if fnmatch.fnmatch(file, "*.c") or fnmatch.fnmatch(file, "*.run") or fnmatch.fnmatch(file, "*.o"):
-                    os.remove(dirname + file)
+                    os.remove(os.path.join(dirname, file))
     Prepare(graph, model)
-    save_sd(dirname + name, graph, model)
+    save_sd(os.path.join(dirname,name), graph, model)
 
 
 def compile(name, model):

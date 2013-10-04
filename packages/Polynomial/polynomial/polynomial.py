@@ -48,6 +48,18 @@ class Polynomial:
         self.hash = None
         self._monomialsWithHash = None
 
+    def integrate(self, varIndex):
+        """
+        integration of real polynomial (self.degree == 1)
+        """
+        assert self.degree == 1
+        nMonomials = zeroDict()
+        for m, c in self.monomials.iteritems():
+            nm, degree = m.integrate(varIndex)
+            nc = c / float(degree)
+            nMonomials[nm] += nc
+        return Polynomial(nMonomials, self.degree, self.c, doPrepare=False)
+
     def getMonomialsWithHash(self):
         if self._monomialsWithHash is None:
             self._monomialsWithHash = MonomialsWithHash(self.monomials)
@@ -89,7 +101,8 @@ class Polynomial:
             if mi.hasVar(varIndex):
                 power = mi.vars[varIndex]
                 nPolynomial = polynomial._inPowerOf(power)
-                factor = nPolynomial.c
+                assert nPolynomial.c.isRealNumber()
+                factor = nPolynomial.c.a
                 nMi = mi.set1toVar(varIndex)
                 for pMi, pC in nPolynomial.monomials.items():
                     Polynomial._append(nMonomials, pMi * nMi, c * pC * factor)
@@ -235,6 +248,39 @@ class Polynomial:
     def __neg__(self):
         return Polynomial(self.monomials, degree=self.degree, c=-self.c, doPrepare=False)
 
+    def __add__(self, other):
+        return self._doAddOrSub(other, 1)
+
+    def __sub__(self, other):
+        return self._doAddOrSub(other, -1)
+
+    def _doAddOrSub(self, other, sign):
+        if isinstance(other, Polynomial):
+            assert self.degree == 1 and other.degree == 1
+            if self.c.isRealNumber() and other.c.isRealNumber():
+                return Polynomial._addOrSubCoefficientsIsRealNumber(self, other, sign)
+            elif self.c == other.c:
+                return Polynomial._addOrSubCoefficientsAreEqual(self, other, sign)
+        raise AssertionError
+
+    @staticmethod
+    def _addOrSubCoefficientsIsRealNumber(p1, p2, sign):
+        nMonomials = zeroDict()
+        for m, c in p1.monomials.iteritems():
+            nMonomials[m] += c * p1.c
+        for m, c in p2.monomials.iteritems():
+            nMonomials[m] += c * p2.c * sign
+        return Polynomial(nMonomials, degree=1, c=1, doPrepare=True)
+
+    @staticmethod
+    def _addOrSubCoefficientsAreEqual(p1, p2, sign):
+        nMonomials = zeroDict()
+        for m, c in p1.monomials.iteritems():
+            nMonomials[m] += c
+        for m, c in p2.monomials.iteritems():
+            nMonomials[m] += c * sign
+        return Polynomial(nMonomials, degree=1, c=p1.c, doPrepare=True)
+
     def __mul__(self, other):
         if isinstance(other, v_number.VariableAwareNumber) and other.isRealNumber():
             _other = other.a
@@ -252,8 +298,10 @@ class Polynomial:
         elif isinstance(_other, v_number.VariableAwareNumber):
             return polynomial_product.PolynomialProduct(
                 [self, Polynomial(zeroDict({multiindex.MultiIndex(): 1}), c=eps_number.epsNumber(_other))])
-        elif isinstance(_other, int):
+        elif isinstance(_other, (int, float)):
             return Polynomial(self.monomials, degree=self.degree, c=self.c * _other, doPrepare=False)
+        else:
+            raise NotImplementedError("multiplication of poly with %s not implemented" % type(other))
 
     __rmul__ = __mul__
 

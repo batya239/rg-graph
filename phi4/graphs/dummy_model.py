@@ -80,8 +80,12 @@ class _phi3(_generic_model):
         self.nodes_dim = {1: 0}
         self.checktadpoles = False
         self.target = 4
-        home = os.environ['HOME']
-        self.workdir = '%s/work/rg-graph/phi_3/' % home
+        try:
+            home = os.environ['HOME']
+        except:
+            self.workdir = 'phi_3/'
+        else:
+            self.workdir = '%s/work/rg-graph/phi_3/' % home
 
 
 class _phi3_dyn(_generic_model):
@@ -372,4 +376,11 @@ class _phi4_d2_s2(_phi4_d2):
         home = os.environ['HOME']
         self.workdir = '%s/work/rg-graph/phi_4_d2_s2/' % home
         self.removeRoots = False
-        self.subtractionOperators = "from dynamics import to1\nfrom dynamics import mK1 as mK0\nfrom dynamics import D2s as D1\n"
+#        self.subtractionOperators = "from dynamics import to1\nfrom dynamics import mK1 as mK0\nfrom dynamics import D2 as D1\n"
+        self.subtractionOperators = "to1=to1\nmK0=mK1\nD1=D2s\n"
+
+
+class _phi4_d2_s2S(_phi4_d2_s2):
+    def __init__(self, name):
+        super(_phi4_d2_s2S, self).__init__(name)
+        self.maxSize = 1
