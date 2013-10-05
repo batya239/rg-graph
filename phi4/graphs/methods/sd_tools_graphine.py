@@ -156,17 +156,22 @@ def merge_overlapping_subgraphs(subgraphs):
         subgraph_edges = subgraph.internalEdges()
         to_merge = list()
         merged_ = list()
-        for subgraph2_edges in merged:
+        for subgraph2_edges, common_edges in merged:
             if len(set(subgraph_edges) & set(subgraph2_edges)) != 0:
-                to_merge.append(subgraph2_edges)
+                to_merge.append((subgraph2_edges, common_edges))
             else:
-                merged_.append(subgraph2_edges)
+                merged_.append((subgraph2_edges, common_edges))
         merged_subgraph = set(subgraph_edges)
-        for subgraph_edges in to_merge:
-            merged_subgraph = merged_subgraph|set(subgraph_edges)
-        merged_.append(list(merged_subgraph))
+        common_edges = set(subgraph_edges)
+        for subgraph_edges, common_edges_ in to_merge:
+            merged_subgraph = merged_subgraph | set(subgraph_edges)
+            common_edges = common_edges & set(common_edges_)
+        merged_.append((list(merged_subgraph), list(common_edges)))
         merged = merged_
-
+    #print "merge"
+    #print subgraphs
+    #print merged
+    #print
     return merged
 
 def find_max_non_covered_subgraphs(subgraphs_with_index, graph, parents):
@@ -225,9 +230,16 @@ def find_max_non_overlapping_subgraphs(subgraphs_with_index):
 
 
 def find_excluded_edge_ids(graph_qi, subgraphs):
+    merged = merge_overlapping_subgraphs(subgraphs)
+    if len(merged) == 0:
+        common_edges = list()
+    else:
+        common_edges = zip(*merged)[1]
     result = set(graph_qi.keys())
-    for subgraph in subgraphs:
-        result -= set(internal_edges_dict(subgraph).keys())
+    for edges in common_edges:
+        result -= set(map(lambda x: x.edge_id, edges))
+    #print "excluded edges"
+    #print list(result)
     return list(result)
 
 
@@ -298,7 +310,12 @@ def get_subgraph_id(var):
 
 
 def find_homogeneity(graph, subgraphs, parents):
-    return graph.batchShrinkToPoint(merge_overlapping_subgraphs(subgraphs)).getLoopsCount() - len(set(parents) & set(internal_edges_dict(graph.batchShrinkToPoint(merge_overlapping_subgraphs(subgraphs))).keys()))
+    merged = merge_overlapping_subgraphs(subgraphs)
+    if len(merged) == 0:
+        common_edges = list()
+    else:
+        common_edges = zip(*merged)[1]
+    return graph.batchShrinkToPoint(common_edges).getLoopsCount() - len(set(parents) & set(internal_edges_dict(graph.batchShrinkToPoint(common_edges)).keys()))
 
 
 def add_subgraph_branches(tree, graph, subgraphs, conservations):
