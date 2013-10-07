@@ -71,16 +71,21 @@ D = sd_tools.gendet(graph)
 print D
 
 allVars = sorted(reduce(lambda x, y: set(x) | set(y), D))
-conservations_for_sd = sd_tools.find_conservations(D, allVars)
+#conservations_for_sd = sd_tools.find_conservations(D, allVars)
+#
+#print
+#for x in conservations_for_sd:
+#    print list(x)
+#print
+
+
+#tree = sd_tools.gen_sdt_tree(graph, subgraphsUV, conservations_for_sd)
+
+D_poly = polynomial.poly(map(lambda x: (1, x), D))
+
+tree = sd_tools.gen_adoptive_tree(D_poly)
 
 print
-for x in conservations_for_sd:
-    print list(x)
-print
-
-
-tree = sd_tools.gen_sdt_tree(graph, subgraphsUV, conservations_for_sd)
-
 D_polyprod = polynomial.poly(map(lambda x: (1, x), D)).toPolyProd()
 delta_arg = polynomial.poly(map(lambda x: (1, [x]), graph._qi.keys()))
 
@@ -97,22 +102,31 @@ def check_decomposition(expr):
 print
 print "Total number of sectors = ", len([x for x in dynamics.xTreeElement2(tree)])
 print
-count = 0
-for sector in dynamics.xTreeElement2(tree):
-    D_poly_ = sd_lib.sectorDiagram(D_polyprod, sector, delta_arg, remove_delta=False)
-#    print D_poly_
-    assert len(D_poly_) == 2, len(D_poly_)
-    assert len(D_poly_[0]) == 1, len(D_poly_[0])
-    d_simplified = D_poly_[0][0].simplify()
-    count += 1
-    if count % 100 == 0:
-        sys.stdout.write("\r  %s... " % count)
-        sys.stdout.flush()
 
-    if not check_decomposition(d_simplified):
-        print sector, d_simplified
-        print d_simplified.set0toVar(7L).set0toVar(8L)
-        #for i in range(1,len(sector)):
-        #    D_poly_ = sd_lib.sectorDiagram(D_polyprod, sector[:i], delta_arg, remove_delta=False)[0][0].simplify()
-        #    print i, D_poly_
-print
+def check_tree(tree, D_polyprod, show="bad"):
+    count = 0
+    for sector in dynamics.xTreeElement2(tree):
+        D_poly_ = sd_lib.sectorDiagram(D_polyprod, sector, delta_arg, remove_delta=False)
+    #    print D_poly_
+        assert len(D_poly_) == 2, len(D_poly_)
+        assert len(D_poly_[0]) == 1, len(D_poly_[0])
+        d_simplified = D_poly_[0][0].simplify()
+        count += 1
+        if count % 100 == 0:
+            sys.stdout.write("\r  %s... " % count)
+            sys.stdout.flush()
+        check = check_decomposition(d_simplified)
+        if show == "bad":
+            if not check:
+                print sector, d_simplified
+                print d_simplified.set0toVar(7L).set0toVar(8L)
+                #for i in range(1,len(sector)):
+                #    D_poly_ = sd_lib.sectorDiagram(D_polyprod, sector[:i], delta_arg, remove_delta=False)[0][0].simplify()
+                #    print i, D_poly_
+        else:
+            if check:
+                print sector, check
+    print
+
+
+check_tree(tree, D_polyprod, show="good")

@@ -3,6 +3,7 @@
 import itertools
 import re
 import dynamics
+import polynomial.sd_lib as sd_lib
 
 __author__ = 'mkompan'
 
@@ -379,3 +380,103 @@ def gen_sdt_tree(graph, subgraphs, conservations):
     sdt_tree = Tree(None, [])
     add_subgraph_branches(sdt_tree, graph, subgraphs, conservations)
     return sdt_tree
+
+#####################################################
+#
+#####################################################
+
+
+def get_ui_count(variables):
+    ui_count = reduce(lambda x, y: x+y, [1 if isinstance(x, long) else 0 for x in variables])
+    return ui_count
+
+
+def get_ui(variables):
+    res = list()
+    for var in variables:
+        if isinstance(var, long):
+            res.append(var)
+    return res
+
+
+def xCombinations_with_exceptions(seq, n, denied_combinations=list()):
+    """Generator of all the n-element combinations of the given sequence.
+    """
+    if n == 0:
+        yield seq[0:0]
+    else:
+        for i in range(len(seq)):
+            for tail in xCombinations_with_exceptions(seq[:i] + seq[i+1:], n - 1, denied_combinations):
+                combination = seq[i:i+1] + tail
+                if not is_subset(combination, denied_combinations):
+#                    print combination, get_ui_count(combination), ui_count
+                    yield combination
+
+
+def check_zero(poly, variables):
+    variables_ = frozenset(variables)
+    return set([]) not in map(lambda x: variables_ & x.getVarsIndexes(), poly.monomials.keys())
+
+
+def is_subset(combination, zeroes):
+    combination_ = frozenset(combination)
+    return True in map(lambda x: x.issuperset(combination_), zeroes)
+
+
+def is_superset(combination, zeroes):
+    combination_ = frozenset(combination)
+    return True in map(lambda x: x.issubset(combination_), zeroes)
+
+def find_zeroes(poly, denied_combinations):
+    variables = frozenset(poly.getVarsIndexes())
+    zeroes = list()
+    for n in range(2, len(variables)):  ## +1?
+        print n, zeroes
+        for combination in xCombinations_with_exceptions(list(variables), n, denied_combinations+zeroes):
+            if not is_superset(combination, zeroes):
+                if check_zero(poly, combination):
+                    zeroes.append(frozenset(combination))
+    print "zzz", zeroes
+    return zeroes
+
+
+#def find_max_zero(poly, ui_count):
+#    variables = poly.getVarsIndexes()
+#    zeroes = list()
+#    for n in range(len(variables)-1, 1, -1):  ## +1?
+#        for combination in xCombinations_with_exceptions(list(variables), n, ui_count):
+#            if check_zero(poly, combination):
+#                if not is_superset(zeroes, combination):
+#                    zeroes.append(frozenset(combination))
+#                    return zeroes
+#    return zeroes
+
+
+def non_factorized_part(poly):
+    polyprod = poly.toPolyProd().simplify()
+    for poly_ in polyprod.polynomials:
+        if len(poly_.monomials) > 1:
+            return poly_
+
+
+def add_adoptive_branch(tree, poly, denied_combinations=list()):
+    zeroes = sorted(find_zeroes(poly, denied_combinations), key=len, reverse=True)
+#    zeroes = sorted(find_max_zero(poly, ui_count), key=len, reverse=True)
+    print  zeroes
+    if len(zeroes) != 0:
+        tree.setBranches(zeroes[0])
+        for i in range(len(tree.branches)):
+            branch = tree.branches[i]
+            poly_ = sd_lib.sectorPoly(poly, [[branch.node, map(lambda x: x.node, tree.branches[:i]+tree.branches[i+1:])]])
+            print non_factorized_part(poly_)
+            add_adoptive_branch(branch, non_factorized_part(poly_), denied_combinations)
+
+
+
+
+
+def gen_adoptive_tree(poly):
+    tree = Tree(None, [])
+    variables = poly.getVarsIndexes()
+    add_adoptive_branch(tree, poly, [frozenset(get_ui(variables))])
+    return tree
