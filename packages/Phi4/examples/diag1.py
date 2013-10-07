@@ -54,10 +54,13 @@ i2 = qi2 / (4 - 2 * e - e - 2 - 2)
 print i2.series(e == 0, n).evalf()
 
 
-qi0 = e * (i1 - G(1, 2) * G(3 - l, 1 + e)) + (i2 - G(2, 1) * G(4 - l, e))
+#qi0 = e * (i1 - G(1, 2) * G(3 - l, 1 + e)) + (i2 - G(2, 1) * G(4 - l, e))
+qi0 = e * (i1 - G(1, 2) * G(3 - l, 1 + e)) + (i2 - G(2, 1) * G(3 - 2*l, 2))
 i0 = qi0 / (4 - 2 * e - e - 1 - 4)
+print i0.series(e == 0, n).evalf()
+
 I = i0 * G(1, 1)
-I_series = I.series(e == 0, 0)
+I_series = I.series(e == 0, n)
 print I_series.evalf()
 #(-0.5)*e**(-3)+4.25*e**(-2)+(-17.375)*e**(-1)+Order(1)
 ISE = I_series.evalf()
