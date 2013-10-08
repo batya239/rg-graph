@@ -3,6 +3,7 @@
 from rggraphenv import storage, theory, graph_calculator
 import graphine
 import phi4
+import swiginac
 
 __author__ = 'dima'
 
@@ -15,10 +16,10 @@ def _checkAnswer(booleanExpression, param):
 def _compareRPrime(graph, expected, useGraphCalculator=False):
     try:
         actual = phi4.r.KR1(graph, phi4.common.MSKOperation(), phi4.common.defaultSubgraphUVFilter,
-                            useGraphCalculator=useGraphCalculator)
+                            use_graph_calculator=useGraphCalculator)
         sub = expected - actual
-        booleanExpression = expected == actual or abs((sub * phi4.symbolic_functions.e ** 5).evalf(
-            subs={phi4.symbolic_functions.e: 1, phi4.symbolic_functions.p: 1})) < 1e-5
+        booleanExpression = expected == actual or swiginac.abs((sub * phi4.symbolic_functions.e ** 5).subs(
+            phi4.symbolic_functions.e == 1).subs(phi4.symbolic_functions.p == 1).evalf()).compare(swiginac.numeric(1e-5)) < 0
         _checkAnswer(booleanExpression, "\nactual = " + str(actual) + "\nexpected = " + str(expected) + "\nsub = " + str(sub))
         if booleanExpression:
             print "OK", str(graph)
@@ -32,7 +33,7 @@ def _compareRPrime(graph, expected, useGraphCalculator=False):
 
 def main():
     try:
-        storage.initStorage(theory.PHI4, phi4.symbolic_functions.toInternalCode, graphStorageUseFunctions=True)
+        storage.initStorage(theory.PHI4, phi4.symbolic_functions.to_internal_code, graphStorageUseFunctions=True)
         graph_calculator.addCalculator(phi4.mincer_graph_calculator.MincerGraphCalculator())
 
         for gs, v in MS.items():

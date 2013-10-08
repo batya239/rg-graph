@@ -82,7 +82,7 @@ def isGraphConnected(edgesList, superGraph, superGraphEdges):
 
 def xSubGraphs(edgesList, edgesMap, externalVertex, cutEdgesToExternal=True, startSize=2):
     """
-    cutEdgesToExternal - if True then all graphs from iterator hash only 2 external edges
+    cutEdgesToExternal - if True then all graphs from iterator has only 2 external edges
     """
     external, inner = _pickExternalEdges(edgesList, externalVertex)
 
@@ -131,7 +131,7 @@ def xSubGraphs(edgesList, edgesMap, externalVertex, cutEdgesToExternal=True, sta
                                                                     defaultFields=DEFAULT_EXTERNAL_LINE_FIELD,
                                                                     hasColors=hasColors)
                     for e in external:
-                        v = [v for v in e.nodes if v != externalVertex][0]
+                        v = e.internal_nodes[0]
                         if v in subGraphVertexes:
                             subGraph.append(e)
                     yield subGraph

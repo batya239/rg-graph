@@ -7,8 +7,7 @@ __author__ = 'dimas'
 ONE_LINE_WEIGHT = (1, 0)
 
 SPACE_DIM = 4
-edgeUVWeight = -2
-EDGE_IR_WEIGHT = -2
+EDGE_WEIGHT = -2
 
 NUMERATOR_INPUT = "i"
 NUMERATOR_OUTPUT = "o"

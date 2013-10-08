@@ -3,16 +3,43 @@
 
 __author__ = 'dimas'
 
-import phi4.symbolic_functions
+import phi4.symbolic_functions as sf
 from phi4.symbolic_functions import G, e, l
-qi1 = (1+e)*(G(2+e,1)*G(1,1)-G(1,1)*G(2+e,2-l)) + (G(1+e,2)*G(1,1)-G(1,1)*G(2,2-l+e))
-i1 = qi1/(4-2*e-(1+e)-1-2)
-qi2 = e*(G(1,1)*G(2,1+e)-G(1,1)*G(1+e,3-l)) + 2*(G(e,3)*G(1,1)-G(1,1)*G(3,1-l+e))
-i2 = qi2/(4-2*e-e-2-2)
-qi0 = e*(i1-G(1,2)*G(3-l,1+e))+(i2-G(2,1)*G(4-l,e))
-i0 = qi0/(4-2*e-e-1-4)
-I = i0 * G(1,1)
-I_series = I.series(e==0, 0)
-I_series.evalf()
-(-0.5)*e**(-3)+4.25*e**(-2)+(-17.375)*e**(-1)+Order(1)
-ISE = I_series.evalf()
+
+d0 = G(1, 1) * G(2 - l, 1) * G(3 - 2 * l, 1)
+s_d0_1 = 1 / e * G(1, 1) * G(2 - l, 1)
+s_d0_2 = 0.5 * (1 / e - 1 / e / e) * G(1, 1)
+d0_r1 = d0 - s_d0_1 - s_d0_2
+d0_r = d0_r1 - sf.series(d0_r1, e, 0, 0, remove_order=True)
+R = sf.series(d0_r, e, 0, 1, remove_order=True).evalf()
+print "R", R
+
+IR = 1 / e
+print "IR", IR
+
+import r
+import graphine
+import common
+import symbolic_functions
+from rggraphenv import storage
+from rggraphenv import theory
+
+storage.initStorage(theory.PHI4, symbolic_functions.to_internal_code, graphStorageUseFunctions=True)
+r.DEBUG = True
+KR1 = r.KR1(graphine.Graph.fromStr("e12-233-e34-4--", initEdgesColor=True),
+            common.MSKOperation(),
+            common.defaultSubgraphUVFilter)
+KR1 = KR1.subs(symbolic_functions.p == 1).evalf()
+print "KR1", KR1
+
+KR_STAR = (KR1 + R * IR).simplify_indexed()
+print "ACTUAL", KR_STAR
+
+from swiginac import zeta
+EXPECTED = (11./6-zeta(3))/2/e-13./3./2/2/e**2+10./3/2/2/2/e**3-4./3/2/2/2/2/e**4
+EXPECTED = EXPECTED.evalf().simplify_indexed()
+print "EXPECTED", EXPECTED
+storage.closeStorage(revert=True)
+
+
+

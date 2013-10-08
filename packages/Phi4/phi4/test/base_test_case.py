@@ -16,7 +16,7 @@ class GraphStorageAwareTestCase(unittest.TestCase):
         storage.initStorage(theory.PHI4, symbolic_functions.to_internal_code, graphStorageUseFunctions=True)
 
     def tearDown(self):
-        #storage.closeStorage(revert=True)
+        storage.closeStorage(revert=True)
         t = time.time() - self.startTime
         print "TIME - %s: %.3f" % (self.id(), t)
 

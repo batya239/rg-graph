@@ -3,6 +3,7 @@
 from rggraphenv import storage, theory, graph_calculator
 import graphine
 import phi4
+import swiginac
 
 __author__ = 'dima'
 
@@ -15,11 +16,11 @@ def _checkAnswer(booleanExpression, param):
 def _compareRPrime(graph, expected, useGraphCalculator=False):
     try:
         actual = phi4.r.KRStar(graph, phi4.common.MSKOperation(), phi4.common.defaultSubgraphUVFilter,
-                               useGraphCalculator=useGraphCalculator)
-        booleanExpression = expected == actual or abs(((expected - actual) * phi4.symbolic_functions.e ** 5).evalf(
-            subs={phi4.symbolic_functions.e: 1, phi4.symbolic_functions.p: 1})) < 1e-5
-        _checkAnswer(booleanExpression, "\nactual = " + str(actual.evalf()) + "\nexpected = " + str(expected.evalf()) + "\nsub = " + str(
-            (expected - actual).evalf()))
+                               use_graph_calculator=useGraphCalculator)
+        sub = expected - actual
+        booleanExpression = expected == actual or swiginac.abs((sub * phi4.symbolic_functions.e ** 5).subs(
+            phi4.symbolic_functions.e == 1).subs(phi4.symbolic_functions.p == 1).evalf()).compare(swiginac.numeric(1e-5)) < 0
+        _checkAnswer(booleanExpression, "\nactual = " + str(actual) + "\nexpected = " + str(expected) + "\nsub = " + str(sub.evalf()))
         if booleanExpression:
             print "OK", str(graph)
         else:
@@ -31,7 +32,7 @@ def _compareRPrime(graph, expected, useGraphCalculator=False):
 
 
 def main():
-    storage.initStorage(theory.PHI4, phi4.symbolic_functions.toInternalCode, graphStorageUseFunctions=True)
+    storage.initStorage(theory.PHI4, phi4.symbolic_functions.to_internal_code, graphStorageUseFunctions=True)
     graph_calculator.addCalculator(phi4.mincer_graph_calculator.MincerGraphCalculator())
 
     alreadyCalculated = set()
@@ -44,7 +45,7 @@ def main():
     for gs, v in MS.items():
         if gs not in alreadyCalculated:
             graph = graphine.Graph.initEdgesColors(graphine.Graph.fromStr(gs))
-            if graph.getLoopsCount() == 4:
+            if graph.getLoopsCount() == 5 and graph.externalEdgesCount() == 4:
                 _compareRPrime(graph, v, useGraphCalculator=True)
 
 zeta = phi4.symbolic_functions.zeta

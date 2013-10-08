@@ -80,6 +80,9 @@ class Graph(object):
             self._externalEdges = self.edges(self.externalVertex)
         return self._externalEdges
 
+    def externalEdgesCount(self):
+        return len(self.externalEdges())
+
     def internalEdges(self):
         res = list()
         for edge in self.allEdges():

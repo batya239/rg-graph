@@ -41,14 +41,15 @@ MS_K_OPERATION = MSKOperation()
 GFUN_METHOD_NAME_MARKER = "g-functions"
 MS_SCHEME_NAME_MARKER = "ms-scheme"
 
-defaultSubgraphUVFilter = (graphine.filters.oneIrreducible
-                           + graphine.filters.noTadpoles
-                           + graphine.filters.isRelevant(ir_uv.UV_RELEVANCE_CONDITION_4_DIM))
+defaultSubgraphUVFilter = graphine.filters.isRelevant(ir_uv.UV_RELEVANCE_CONDITION_4_DIM)
 
+oneIrreducibleAndNoTadpoles = graphine.filters.oneIrreducible + graphine.filters.noTadpoles
 
 _DEFAULT_GRAPH_HAS_NOT_IR_DIVERGENCE_RESULT = dict()
 
-subgraphIRFilters = (graphine.filters.connected + graphine.filters.isRelevant(ir_uv.IR_RELEVANCE_CONDITION_4_DIM))
+DEFAULT_IR_RELEVANCE = graphine.filters.isRelevant(ir_uv.IR_RELEVANCE_CONDITION_4_DIM)
+
+subgraphIRFilters = (graphine.filters.connected + DEFAULT_IR_RELEVANCE)
 
 
 def defaultGraphHasNotIRDivergence(graph):

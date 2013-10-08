@@ -2,10 +2,12 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/../../PoleExtractor/.idea/PoleExtractor.iml" filepath="$PROJECT_DIR$/../../PoleExtractor/.idea/PoleExtractor.iml" />
       <module fileurl="file://$PROJECT_DIR$/../examples/.idea/examples.iml" filepath="$PROJECT_DIR$/../examples/.idea/examples.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/gfunctions.iml" filepath="$PROJECT_DIR$/.idea/gfunctions.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../Graphine/graphine/.idea/graphine.iml" filepath="$PROJECT_DIR$/../../Graphine/graphine/.idea/graphine.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../MincerAdapter/mincer_adapter/.idea/mincer_adapter.iml" filepath="$PROJECT_DIR$/../../MincerAdapter/mincer_adapter/.idea/mincer_adapter.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../Polynomial/polynomial/.idea/polynomial.iml" filepath="$PROJECT_DIR$/../../Polynomial/polynomial/.idea/polynomial.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../RgGraphWebService/rggraph_webservice/.idea/rggraph_webservice.iml" filepath="$PROJECT_DIR$/../../RgGraphWebService/rggraph_webservice/.idea/rggraph_webservice.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../RgGraphEnv/rggraphenv/.idea/rggraphenv.iml" filepath="$PROJECT_DIR$/../../RgGraphEnv/rggraphenv/.idea/rggraphenv.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../RgGraphUtil/rggraphutil/.idea/rggraphutil.iml" filepath="$PROJECT_DIR$/../../RgGraphUtil/rggraphutil/.idea/rggraphutil.iml" />

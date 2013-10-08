@@ -135,6 +135,11 @@ class SubGraphReducerTestCase(base_test_case.GraphStorageAwareTestCase):
         reducer = gfun_calculator.GGraphReducer(graph)
         self.assertEquals(str(reducer.calculate()), "('G(1, 1)*G(1, 1)', (2, -2))")
 
+    def testReducingE12_E23_33__(self):
+        graph = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr("e12-e23-33--")))
+        reducer = gfun_calculator.GGraphReducer(graph)
+        self.assertEquals(str(reducer.calculate()), "('G(1, 1)*G(1, 2-l)*G(1, 3-l*2)', (3, -3))")
+
     def testReducingAnotherDiagram(self):
         edges = list()
         edges.append(graph_state.Edge((-1, 0), colors=(0, 0)))
@@ -172,7 +177,7 @@ class SubGraphReducerTestCase(base_test_case.GraphStorageAwareTestCase):
     def testDiagram5Loops(self):
         try:
             graph_calculator.addCalculator(mincer_graph_calculator.MincerGraphCalculator())
-            g = graphine.Graph.fromStr("e1123-24-e3-4--", initEdgesColor=True)
+            g = graphine.Graph.fromStr("e1123-34-34-e--", initEdgesColor=True)
             reducer = gfun_calculator.GGraphReducer(g, useGraphCalculator=True)
             calculated = reducer.calculate()
             print calculated
