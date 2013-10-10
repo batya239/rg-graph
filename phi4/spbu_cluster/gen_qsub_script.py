@@ -56,7 +56,7 @@ diagramdir = os.path.join(append_home(workdir), graph_name)
 libdir = append_home(libdir)
 mpidir = append_home(mpidir)
 
-
+nodesppn = "%s:ppn=%s" % (nodes/ppn, ppn)
 
 print qsubScriptTemplate.format(diagramdir=diagramdir,
                                 libdir=libdir,
