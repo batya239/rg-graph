@@ -13,8 +13,8 @@ NODESPPN="{nodesppn}"
 ITER={iter}
 DELTA={delta}
 cd $PWD
-for PNAME in `ls *.run`; do
-cat << EOF | qsub  -N $PNAME -l nodes=$NODESPPN  -q long@pbs-vm.hpc.cc.spbu.ru -W group_list=vcluster
+for PROG in `ls *.run`; do
+cat << EOF | qsub  -N $PROG -l nodes=$NODESPPN  -q long@pbs-vm.hpc.cc.spbu.ru -W group_list=vcluster
 
 export PATH={mpidir}/bin:$PATH
 export LD_LIBRARY_PATH={mpidir}/lib64:{libdir}:{mpidir}/../lib/
@@ -22,15 +22,15 @@ PREFIX={mpidir}
 
 echo $PROG $POINTS $NODES $ITER
 
-NODEFILE=$PBS_NODEFILE
+NODEFILE=\$PBS_NODEFILE
 
-for adrr in `cat $PBS_NODEFILE`;do
-   ssh $adrr /usr/local/sbin/cleanipcs;
+for adrr in `cat \$PBS_NODEFILE`;do
+   ssh \$adrr /usr/local/sbin/cleanipcs;
 done
 
 cd {diagramdir}
-echo "$PREFIX/bin/mpirun  -machinefile $NODEFILE  -x LD_LIBRARY_PATH  -np $NODES $PROG $POINTS $NODES $ITER -t $TMPDIR"
-$PREFIX/bin/mpirun  -machinefile $NODEFILE  -x LD_LIBRARY_PATH  -np $NODES $PROG $POINTS $NODES $ITER $DELTA |tee ${{PROG}}-curr.log
+echo "\$PREFIX/bin/mpirun  -machinefile \$NODEFILE  -x LD_LIBRARY_PATH  -np $NODES $PROG $POINTS $NODES $ITER"
+\$PREFIX/bin/mpirun  -machinefile \$NODEFILE  -x LD_LIBRARY_PATH  -np $NODES $PROG $POINTS $NODES $ITER $DELTA |tee ${{PROG}}-curr.log
 
 EOF
 done
