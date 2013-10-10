@@ -2,6 +2,7 @@
 # -*- coding: utf8
 import itertools
 import re
+from polynomial.polynomial_product import PolynomialProduct
 import dynamics
 import polynomial.sd_lib as sd_lib
 
@@ -77,6 +78,7 @@ def qi_lambda(conservations, equations):
         qi[ui] += 1
         qi2line[ui].append(eq)
     return qi, qi2line
+
 
 def check_cons(term, conservations):
     """
@@ -169,11 +171,12 @@ def merge_overlapping_subgraphs(subgraphs):
             common_edges = common_edges & set(common_edges_)
         merged_.append((list(merged_subgraph), list(common_edges)))
         merged = merged_
-    #print "merge"
+        #print "merge"
     #print subgraphs
     #print merged
     #print
     return merged
+
 
 def find_max_non_covered_subgraphs(subgraphs_with_index, graph, parents):
     subgraphs_ = sorted(subgraphs_with_index, key=lambda x: len(x.internalEdges()), reverse=True)
@@ -192,7 +195,7 @@ def find_max_non_covered_subgraphs(subgraphs_with_index, graph, parents):
         if not covered:
             result.append(subgraph1)
             union = union | internal_edges1
-    #print
+        #print
     #print union
     #print
     #print set(internal_edges_dict(graph).keys())
@@ -206,7 +209,7 @@ def find_max_non_covered_subgraphs(subgraphs_with_index, graph, parents):
         if find_homogeneity(graph, result, parents) <= 0 and len(result) > 0:
             result = result[:-1]
             validated = False
-        #print "mfncs", find_homogeneity(graph, result, parents), result, parents
+            #print "mfncs", find_homogeneity(graph, result, parents), result, parents
 
     return result
 
@@ -239,7 +242,7 @@ def find_excluded_edge_ids(graph_qi, subgraphs):
     result = set(graph_qi.keys())
     for edges in common_edges:
         result -= set(map(lambda x: x.edge_id, edges))
-    #print "excluded edges"
+        #print "excluded edges"
     #print list(result)
     return list(result)
 
@@ -274,7 +277,7 @@ def is_valid_var(var, parents, conservations):
     if var in parents:
         return False
     else:
-        return not is_denied_by_conservations(parents+[var], conservations)
+        return not is_denied_by_conservations(parents + [var], conservations)
 
 
 def safe_subgraph_ids(primary_vars, conservations, subgraphs):
@@ -282,7 +285,7 @@ def safe_subgraph_ids(primary_vars, conservations, subgraphs):
     result = list()
     for id in subgraph_ids:
         for cons in conservations:
-            if cons.issubset(set(primary_vars+["a%s"%id])):
+            if cons.issubset(set(primary_vars + ["a%s" % id])):
                 result.append(id)
                 break
     return result
@@ -290,7 +293,7 @@ def safe_subgraph_ids(primary_vars, conservations, subgraphs):
 
 def remove_subgraph_by_ids(subgraphs, ids):
     result = list()
-    subgraph_by_id = dict(map(lambda x: (x._sd_idx,  x), subgraphs))
+    subgraph_by_id = dict(map(lambda x: (x._sd_idx, x), subgraphs))
     subgraph_edges = dict(map(lambda x: (x._sd_idx, frozenset(internal_edges_dict(x).keys())), subgraphs))
     for i in subgraph_by_id.keys():
         subgraph = subgraph_by_id[i]
@@ -316,18 +319,21 @@ def find_homogeneity(graph, subgraphs, parents):
         common_edges = list()
     else:
         common_edges = zip(*merged)[1]
-    return graph.batchShrinkToPoint(common_edges).getLoopsCount() - len(set(parents) & set(internal_edges_dict(graph.batchShrinkToPoint(common_edges)).keys()))
+    return graph.batchShrinkToPoint(common_edges).getLoopsCount() - len(
+        set(parents) & set(internal_edges_dict(graph.batchShrinkToPoint(common_edges)).keys()))
 
 
 def add_subgraph_branches(tree, graph, subgraphs, conservations):
     parents = tree.parents + ([tree.node] if tree.node is not None else [])
     subgraphs_to_decouple = find_max_non_covered_subgraphs(subgraphs, graph, parents)
-    variables = find_excluded_edge_ids(graph._qi, subgraphs_to_decouple) + ['a%s' % x._sd_idx for x in subgraphs_to_decouple]
+    variables = find_excluded_edge_ids(graph._qi, subgraphs_to_decouple) + ['a%s' % x._sd_idx for x in
+                                                                            subgraphs_to_decouple]
     homogeneity = find_homogeneity(graph, subgraphs_to_decouple, parents)
     if homogeneity == 0:
         return
     else:
-        print "add_subgraph_branches", tree.node, tree.parents, map(lambda x: x._sd_idx, subgraphs_to_decouple), variables, homogeneity
+        print "add_subgraph_branches", tree.node, tree.parents, map(lambda x: x._sd_idx,
+                                                                    subgraphs_to_decouple), variables, homogeneity
         add_branches(tree, variables, conservations, graph, subgraphs, depth=homogeneity)
 
 
@@ -349,7 +355,7 @@ def add_branches(tree, variables, conservations, graph, subgraphs, depth):
         if tree.node is None:
             parents_ = tree.parents
         else:
-            parents_ = tree.parents+[tree.node]
+            parents_ = tree.parents + [tree.node]
         for var in variables:
             #print var, tree.parents, is_valid_var(var, parents_, conservations)
             if is_valid_var(var, parents_, conservations):
@@ -359,7 +365,7 @@ def add_branches(tree, variables, conservations, graph, subgraphs, depth):
             raise ValueError("%s, %s , %s" % (branches, [x for x in dynamics.xTreeElement(tree)], parents_))
         elif len(branches) != 0:
             tree.setBranches(branches)
-#        print tree.node, branches
+        #        print tree.node, branches
         for branch in tree.branches:
             subgraph_id = get_subgraph_id(branch.node)
             if subgraph_id is not None:
@@ -367,13 +373,13 @@ def add_branches(tree, variables, conservations, graph, subgraphs, depth):
                 conservations_ = remove_subgraphs_from_conservations(conservations, [subgraph_id])
                 add_subgraph_branches(branch, graph, subgraphs_, conservations_)
             else:
-                subgraph_ids_to_remove = safe_subgraph_ids(branch.parents+[branch.node], conservations, subgraphs)
+                subgraph_ids_to_remove = safe_subgraph_ids(branch.parents + [branch.node], conservations, subgraphs)
                 if len(subgraph_ids_to_remove) != 0:
                     subgraphs_ = remove_subgraph_by_ids(subgraphs, subgraph_ids_to_remove)
                     conservations_ = remove_subgraphs_from_conservations(conservations, subgraph_ids_to_remove)
                     add_subgraph_branches(branch, graph, subgraphs_, conservations_)
                 else:
-                    add_branches(branch, variables, conservations, graph, subgraphs, depth-1)
+                    add_branches(branch, variables, conservations, graph, subgraphs, depth - 1)
 
 
 def gen_sdt_tree(graph, subgraphs, conservations):
@@ -387,7 +393,7 @@ def gen_sdt_tree(graph, subgraphs, conservations):
 
 
 def get_ui_count(variables):
-    ui_count = reduce(lambda x, y: x+y, [1 if isinstance(x, long) else 0 for x in variables])
+    ui_count = reduce(lambda x, y: x + y, [1 if isinstance(x, long) else 0 for x in variables])
     return ui_count
 
 
@@ -406,10 +412,10 @@ def xCombinations_with_exceptions(seq, n, denied_combinations=list()):
         yield seq[0:0]
     else:
         for i in range(len(seq)):
-            for tail in xCombinations_with_exceptions(seq[:i] + seq[i+1:], n - 1, denied_combinations):
-                combination = seq[i:i+1] + tail
+            for tail in xCombinations_with_exceptions(seq[:i] + seq[i + 1:], n - 1, denied_combinations):
+                combination = seq[i:i + 1] + tail
                 if not is_subset(combination, denied_combinations):
-#                    print combination, get_ui_count(combination), ui_count
+                #                    print combination, get_ui_count(combination), ui_count
                     yield combination
 
 
@@ -427,18 +433,33 @@ def is_superset(combination, zeroes):
     combination_ = frozenset(combination)
     return True in map(lambda x: x.issubset(combination_), zeroes)
 
+
 def find_zeroes(poly, denied_combinations):
     variables = frozenset(poly.getVarsIndexes())
     zeroes = list()
     for n in range(2, len(variables)):  ## +1?
         print n, zeroes
-        for combination in xCombinations_with_exceptions(list(variables), n, denied_combinations+zeroes):
+        for combination in xCombinations_with_exceptions(list(variables), n, denied_combinations + zeroes):
             if not is_superset(combination, zeroes):
                 if check_zero(poly, combination):
                     zeroes.append(frozenset(combination))
     print "zzz", zeroes
     return zeroes
 
+
+def find_min_zero(poly, denied_combinations):
+    variables = frozenset(poly.getVarsIndexes())
+    zeroes = list()
+    for n in range(2, len(variables)):  ## +1?
+        print n, zeroes
+        for combination in xCombinations_with_exceptions(list(variables), n, denied_combinations + zeroes):
+            if not is_superset(combination, zeroes):
+                if check_zero(poly, combination):
+                    zeroes.append(frozenset(combination))
+                    print "zzz", zeroes
+                    return zeroes
+    print "zzz", zeroes
+    return zeroes
 
 #def find_max_zero(poly, ui_count):
 #    variables = poly.getVarsIndexes()
@@ -453,30 +474,63 @@ def find_zeroes(poly, denied_combinations):
 
 
 def non_factorized_part(poly):
-    polyprod = poly.toPolyProd().simplify()
+    if isinstance(poly, PolynomialProduct):
+        polyprod = poly.simplify()
+    else:
+        polyprod = poly.toPolyProd().simplify()
+
     for poly_ in polyprod.polynomials:
         if len(poly_.monomials) > 1:
             return poly_
 
 
-def add_adoptive_branch(tree, poly, denied_combinations=list()):
-    zeroes = sorted(find_zeroes(poly, denied_combinations), key=len, reverse=True)
-#    zeroes = sorted(find_max_zero(poly, ui_count), key=len, reverse=True)
+def add_adoptive_branches(tree, poly, denied_combinations=list(), parents=[]):
+#    zeroes = sorted(find_zeroes(poly, denied_combinations), key=len, reverse=True)
+    zeroes = find_min_zero(poly, denied_combinations)
+    print parents, tree.node
     print  zeroes
     if len(zeroes) != 0:
         tree.setBranches(zeroes[0])
         for i in range(len(tree.branches)):
             branch = tree.branches[i]
-            poly_ = sd_lib.sectorPoly(poly, [[branch.node, map(lambda x: x.node, tree.branches[:i]+tree.branches[i+1:])]])
-            print non_factorized_part(poly_)
-            add_adoptive_branch(branch, non_factorized_part(poly_), denied_combinations)
-
-
-
+            poly_ = sd_lib.sectorPoly(poly,
+                                      [[branch.node, map(lambda x: x.node, tree.branches[:i] + tree.branches[i + 1:])]])
+            #            print non_factorized_part(poly_)
+            add_adoptive_branches(branch, non_factorized_part(poly_), denied_combinations,
+                                  parents=parents + [(branch.node, (tuple(zeroes)))])
 
 
 def gen_adoptive_tree(poly):
     tree = Tree(None, [])
     variables = poly.getVarsIndexes()
-    add_adoptive_branch(tree, poly, [frozenset(get_ui(variables))])
+    add_adoptive_branches(tree, poly, [frozenset(get_ui(variables))], parents=list())
+    return tree
+
+
+def add_speer_branches(tree, variables, conservations, parents=list(), depth=0):
+#    print parents, depth
+    if depth == 0:
+        return
+    else:
+        parent_main_vars = map(lambda x: x[0], parents)
+        branches = list()
+        for variable in variables:
+            if variable in parent_main_vars:
+                continue
+            if not is_superset(parent_main_vars + [variable], conservations):
+                branches.append(variable)
+#        print parent_main_vars, branches
+        if len(branches) == 0:
+            return
+        elif len(branches) == 1:
+            raise ValueError("parents: %s, branches %s" % (parents, branches))
+        else:
+            tree.setBranches(branches)
+            for branch in tree.branches:
+                add_speer_branches(branch, variables, conservations, parents=parents+[(branch.node,tuple(branches))], depth=depth-1)
+
+def gen_speer_tree(graph):
+    tree = Tree(None, [])
+    variables = graph._qi.keys()
+    add_speer_branches(tree, variables, graph._cons, parents=list(), depth=graph.getLoopsCount())
     return tree

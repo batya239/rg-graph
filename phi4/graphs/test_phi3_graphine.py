@@ -71,19 +71,25 @@ D = sd_tools.gendet(graph)
 print D
 
 allVars = sorted(reduce(lambda x, y: set(x) | set(y), D))
-#conservations_for_sd = sd_tools.find_conservations(D, allVars)
-#
-#print
-#for x in conservations_for_sd:
-#    print list(x)
-#print
+conservations_for_sd = sd_tools.find_conservations(D, allVars)
 
+print
+for x in graph._cons:
+    print list(x)
+print
+
+print
+for x in conservations_for_sd:
+    print list(x)
+print
 
 #tree = sd_tools.gen_sdt_tree(graph, subgraphsUV, conservations_for_sd)
+print cons
+tree = sd_tools.gen_speer_tree(graph)
 
-D_poly = polynomial.poly(map(lambda x: (1, x), D))
+#D_poly = polynomial.poly(map(lambda x: (1, x), D))
 
-tree = sd_tools.gen_adoptive_tree(D_poly)
+#tree = sd_tools.gen_adoptive_tree(D_poly)
 
 print
 D_polyprod = polynomial.poly(map(lambda x: (1, x), D)).toPolyProd()
@@ -118,8 +124,10 @@ def check_tree(tree, D_polyprod, show="bad"):
         check = check_decomposition(d_simplified)
         if show == "bad":
             if not check:
-                print sector, d_simplified
-                print d_simplified.set0toVar(7L).set0toVar(8L)
+#                assert len(d_simplified.polynomials) == 1, len(d_simplified.polynomials)
+                print sector, sd_tools.non_factorized_part(d_simplified), type(d_simplified)
+                print "zeroes: %s" % sorted(sd_tools.find_zeroes(sd_tools.non_factorized_part(d_simplified),  []), key=len, reverse=True)
+                #print d_simplified.set0toVar(7L).set0toVar(8L)
                 #for i in range(1,len(sector)):
                 #    D_poly_ = sd_lib.sectorDiagram(D_polyprod, sector[:i], delta_arg, remove_delta=False)[0][0].simplify()
                 #    print i, D_poly_
@@ -129,4 +137,8 @@ def check_tree(tree, D_polyprod, show="bad"):
     print
 
 
-check_tree(tree, D_polyprod, show="good")
+check_tree(tree, D_polyprod, show="bad")
+#check_tree(tree, D_polyprod, show="good")
+
+
+
