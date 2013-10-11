@@ -3,7 +3,7 @@ __author__ = 'gleb'
 import unittest
 import known
 import nickel
-import pole_extractor.feynman_construction as feynman
+import pole_extractor.feynman as feynman
 import polynomial
 import copy
 
@@ -32,9 +32,6 @@ class TestFeynman(unittest.TestCase):
         for k in known.determinants.keys():
             det = polynomial.poly(map(lambda x: (1, x), known.determinants[k]), degree=(-2, 1))
             num = polynomial.poly([(1, known.numerators[k])], degree=1)
-            #print self.feynman_reps[k]
-            #if len(filter(lambda x: -1 in x, known.connectivity_lists[k])) == 2:
-            #    print feynman.Feynman(nickel.Nickel(string=k), momentum_derivative=True, theory=4)
             self.assertEqual(self.feynman_reps[k]._integrand, det * num)
 
     def test_delta(self):
@@ -50,6 +47,18 @@ class TestFeynman(unittest.TestCase):
             self.assertEqual(self.feynman_reps[k]._gamma_coef2, (2, -1, known.loops[k]))
 
     #def test_inv_coef(self):
+
+
+class TestSectors(unittest.TestCase):
+    """
+    """
+    def test_symmetries(self):
+        for k in known.determinants.keys():
+            n = nickel.Nickel(string=k)
+            sym = feynman.sectors(n, symmetries=True)
+            nsym = feynman.sectors(n, symmetries=False)
+            self.assertEqual(len(nsym), sum(map(lambda x: x[0], sym)))
+            self.assertEqual(set(map(lambda x: x[1], sym)) - set(map(lambda x: x[1], nsym)), set())
 
 if __name__ == '__main__':
     unittest.main()

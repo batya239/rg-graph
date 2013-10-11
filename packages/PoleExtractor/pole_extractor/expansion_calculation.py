@@ -128,7 +128,7 @@ def ac_principal_part(polyprod, pole_var, var_degree_a, var_degree_b):
         PList1 = copy.deepcopy(PList2)
         del PList2[:]
 
-    for i in list(xrange(0, len(PList1))):
+    for i in list(range(len(PList1))):
         PList1[i] = PList1[i].set0toVar(pole_var)
         coefficient = polynomial.poly([(1, []), ], degree=1)
         coefficient.c *= (math.factorial(-1 - var_degree_a) ** (-1))
@@ -145,8 +145,6 @@ def ac_expansion_part(polyprod, pole_var, var_degree_a, var_degree_b, toIndex):
     part of analytical continuation function. returns 2nd of 3 parts of resulting eps expansion.
     """
     #TODO: tests tests tests
-    #    if var_degree_a > -2:
-    #        continue
     result = dict()
 
     if var_degree_a > -2:
@@ -274,7 +272,7 @@ def extract_eps_poles(polypr, toIndex):
         for k in old_expansion.keys():
             need_another_go = False
 
-            for i in list(xrange(0, len(old_expansion[k]))):
+            for i in range(len(old_expansion[k])):
                 old_expansion[k][i] = old_expansion[k][i].simplify()
 
             for current_poly_prod in old_expansion[k]:
@@ -366,8 +364,6 @@ def str_for_CUBA(expansion):
 
 def compute_exp_via_CUBA(expansion):
     """
-    So for now in order for everything to work properly you have to have files integrate.c and integrate.h
-    in the folder where the script you are calling this func from is. I will fix it later, honestly.
     """
 
     result = dict()
