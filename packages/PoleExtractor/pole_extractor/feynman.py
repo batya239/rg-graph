@@ -4,10 +4,10 @@ import copy
 import itertools
 import polynomial
 import math
-import nickel
 import _conserv as conserv
 import graph_state
 import polynomial.sd_lib as sd_lib
+import graphine
 
 
 def unique(seq):
@@ -20,7 +20,7 @@ def unite(seq):
     turns sequence of sequences in sequence of elements of sequences, e.g.
     [[1, 2, 3], [4, 5], [6,]] -> [1, 2, 3, 4, 5, 6]
     """
-    s = copy.deepcopy(seq)
+    s = copy.copy(seq)
     result = []
     while s:
         result.extend(s.pop(0))
@@ -52,11 +52,11 @@ def prepare_edges(edges, conservation_laws):
 
 
 class Feynman:
-    def __init__(self, nick, momentum_derivative=False, theory=0):
-        if not isinstance(nick, nickel.Nickel):
-            raise AttributeError('You are supposed to construct it from a nickel.Nickel instance')
+    def __init__(self, graph, momentum_derivative=False, theory=0):
+        if not isinstance(graph, graphine.Graph):
+            raise AttributeError('You are supposed to construct it from a graphine.Graph instance')
 
-        tails_number = len(filter(lambda x: -1 in x, nick.edges))
+        tails_number = len(graph.externalEdges())
         if tails_number != 2 and momentum_derivative:
             raise AttributeError('Nope, it does not work that way')
 
@@ -67,19 +67,20 @@ class Feynman:
         else:
             raise AttributeError('Nope, it does not work that way. theory=3 for phi^3 and theory=4 for phi^4 diagrams.')
 
-        self._conslaws = self._setup_conslaws(nick.edges)
+        edges = map(lambda x: x.nodes, graph.allEdges(nickel_ordering=True))
 
-        edges_number = len(nick.edges)
-        vertices_number = len(nick.adjacent.keys())
-        loops_number = edges_number - tails_number - vertices_number + 1
+        self._conslaws = self._setup_conslaws(edges)
 
-        Denominator = polynomial.poly(self._setup_determinant(nick.edges, loops_number), degree=(-deg, 1))
-        _numerator = self._setup_numerator(nick.edges)
+        edges_number = len(edges)
+        loops_number = graph.getLoopsCount()
+
+        Denominator = polynomial.poly(self._setup_determinant(edges, loops_number), degree=(-deg, 1))
+        _numerator = self._setup_numerator(edges)
         Numerator = polynomial.poly(_numerator)
         self._integrand = Denominator * Numerator
-        self._delta_argument = polynomial.poly(self._setup_delta_argument(nick.edges))
+        self._delta_argument = polynomial.poly(self._setup_delta_argument(edges))
         if momentum_derivative:
-            c = polynomial.poly(self._setup_c(nick.edges, loops_number),
+            c = polynomial.poly(self._setup_c(edges, loops_number),
                                 degree=(-edges_number + 2 + loops_number * deg, -loops_number)).set0toVar(edges_number)
             self._integrand = self._integrand * c.toPolyProd()
         self._gamma_coef1 = (edges_number - tails_number - deg * loops_number, loops_number)
@@ -115,7 +116,7 @@ class Feynman:
         return [(1, num_base), ]
 
     def _setup_c(self, edges, loops_number):
-        diag_for_c = copy.deepcopy(edges)
+        diag_for_c = copy.copy(edges)
         new_edge = filter(lambda x: x != -1, unite(filter(lambda x: -1 in x, edges)))
         diag_for_c.append(new_edge)
         conslaws_for_c = self._setup_conslaws(diag_for_c)
@@ -152,19 +153,20 @@ class Feynman:
         return result
 
 
-def sectors(nick, conservation_laws=None, symmetries=True):
+def sectors(graph, conservation_laws=None, symmetries=True):
     """
     returns sectors as tuple of elements (coef, sector), where
     coef is a symmetry coefficient, and
     sector is sector as ((main_variable_1, ()), (main_variable_1, ()), ...)
     """
-    if not isinstance(nick, nickel.Nickel):
+    if not isinstance(graph, graphine.Graph):
         raise AttributeError('Sectors must be generated from a nickel.Nickel instance')
+    edges = map(lambda x: x.nodes, graph.allEdges(nickel_ordering=True))
     if not conservation_laws:
-        conservation_laws = prepare_cons_laws(nick.edges)
+        conservation_laws = prepare_cons_laws(edges)
 
-    loops_number = len(nick.edges) - len(filter(lambda x: -1 in x, nick.edges)) - len(nick.adjacent.keys()) + 1
-    variable_list = unique(prepare_edges(nick.edges, conservation_laws))
+    loops_number = graph.getLoopsCount()
+    variable_list = unique(prepare_edges(edges, conservation_laws))
 
     dec_subspace = variable_list
     main_vars = tuple(itertools.permutations(dec_subspace, loops_number))
@@ -203,7 +205,7 @@ def sectors(nick, conservation_laws=None, symmetries=True):
 
     sym_result = []
 
-    d = copy.deepcopy(nick.edges)
+    d = copy.deepcopy(map(lambda x: list(x), edges))
 
     for edge in d:
         if len(edge) == 2:
