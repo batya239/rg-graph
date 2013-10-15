@@ -9,7 +9,10 @@ cd $WORKDIR
 for d in `ls -d */`
     do
         cd $d
-        ./cuba.run 3 10000000 1e-5 1e-12 > out_${PWD##*/}_10M_e-5_e-12_$METHOD
+        for c in `ls cuba__?.run`
+            do
+                ./$c 3 100000 1e-5 1e-12 > out_${PWD##*/}_10M_e-5_e-12_$METHOD
+            done
         cd ..
     done
 cd $CUR_DIR
