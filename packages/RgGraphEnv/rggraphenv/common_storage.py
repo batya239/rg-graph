@@ -21,8 +21,7 @@ class AbstractMercurialAwareStorage(AbstractGraphOperationValuesStorage):
     def __init__(self, theoryName, theoryIndex, storagePath, storageFileName):
         storagePath = os.path.expanduser(storagePath)
         if not os.path.exists(storagePath):
-            raise AssertionError(
-                "please checkout https://code.google.com/p/rg-graph-storage to ~/.rg-graph-storage/ firstly")
+            raise AssertionError("please checkout https://code.google.com/p/rg-graph-storage to ~/.rg-graph-storage/ firstly")
         else:
             pass
             #call("cd " + storagePath + "; hg pull -u", shell=True)

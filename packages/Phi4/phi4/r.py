@@ -80,8 +80,12 @@ def KRStar(initial_graph, k_operation, uv_sub_graph_filter, description="", use_
                 shrunk, p2Counts = shrink_to_point(graph, (spinney,))
                 if str(shrunk).startswith("ee0-::"):
                     continue
-                spinneyPart = R(spinney, k_operation, uv_sub_graph_filter,
-                                use_graph_calculator=use_graph_calculator, force=True).subs(symbolic_functions.p == 1)
+                spinneyPart = R(spinney,
+                                k_operation,
+                                uv_sub_graph_filter,
+                                use_graph_calculator=use_graph_calculator,
+                                force=True,
+                                inside_krstar=True).subs(symbolic_functions.p == 1)
                 uv = ir_uv.uvIndex(shrunk)
                 if uv < 0:
                     raise common.T0OperationNotDefined(shrunk)
@@ -101,12 +105,18 @@ def KRStar(initial_graph, k_operation, uv_sub_graph_filter, description="", use_
 
 #noinspection PyPep8Naming
 def Delta_IR(graph, kOperation, uvSubGraphFilter, description="", useGraphCalculator=True):
+    #if str(graph).startswith("ee12-23-33--::"):
+    #    return symbolic_functions.evaluate("2/3*e**(-1)-1/2*e**(-2)+1/6*e**(-3)")
     #if common.defaultGraphHasNotIRDivergence(graph):
     #    if DEBUG:
     #        print "DELTA_IR = 0", graph
     #    return 0
     #if str(graph) == "ee112-2--::['(0, 0)', '(0, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(1, 0)']":
     #    return (swiginac.numeric(1)/2) * (1/symbolic_functions.e + 1/symbolic_functions.e/symbolic_functions.e)
+
+    storage_value = storage.getDeltaIR(graph)
+    if storage_value is not None:
+        return storage_value
     body = graph.deleteEdges(graph.edges(graph.externalVertex))
     kr1 = None
     preferable, notPreferable = \
@@ -120,7 +130,8 @@ def Delta_IR(graph, kOperation, uvSubGraphFilter, description="", useGraphCalcul
                           description=description,
                           use_graph_calculator=useGraphCalculator,
                           check_rstar_if_need=False,
-                          force=True)
+                          force=True,
+                          inside_krstar=True)
                 if DEBUG:
                     _type = "IR R'"
                 break
@@ -148,37 +159,46 @@ def Delta_IR(graph, kOperation, uvSubGraphFilter, description="", useGraphCalcul
         symbolic_functions.p == 1)
     if DEBUG:
         print _type, ir.simplify_indexed().evalf(), g
+    storage.putDeltaIR(graph, ir, common.GFUN_METHOD_NAME_MARKER, description=description)
     return ir
 
 
 def _do_ir_subtracting_operation(raw_graph, k_operation, uv_subgraph_filter, description="", use_graph_calculator=True):
-    if len(raw_graph.edges(raw_graph.externalVertex)) == 2:
-        iterator = [raw_graph]
-    else:
-        iterator = graphine.momentum.xPassExternalMomentum(raw_graph, common.defaultGraphHasNotIRDivergenceFilter)
-    for graph in iterator:
-        uv_subgraphs = graphine.Graph.batchInitEdgesColors(
-            [sg for sg in graph.xRelevantSubGraphs(uv_subgraph_filter +
-                                                   graphine.filters.oneIrreducible,
-                                                   cutEdgesToExternal=True)])
-        sub = 0
-        sign = 1
-        for i in xrange(1, len(uv_subgraphs) + 1):
-            sign *= -1
-            for comb in itertools.combinations(uv_subgraphs, i):
-                if not graphine.util.has_intersecting_by_vertexes_graphs(comb):
-                    r1 = reduce(lambda e, g: e * KR1(g, k_operation, uv_subgraph_filter,
-                                                     description=description,
-                                                     use_graph_calculator=use_graph_calculator,
-                                                     force=True), comb, 1)
-                    if r1 != 0:
-                        shrunk, p2_counts = shrink_to_point(graph, comb)
-                        ir = Delta_IR(shrunk, k_operation, uv_subgraph_filter, description, use_graph_calculator)
-                        sub += sign * r1 * ir * (symbolic_functions.p2 ** -p2_counts)
-        if DEBUG:
-            print "DELTA_IR", graph, uv_subgraphs
-        return sub
-    raise common.CannotBeCalculatedError(raw_graph)
+    return 0
+    #if len(raw_graph.edges(raw_graph.externalVertex)) == 2:
+    #    iterator = [raw_graph]
+    #else:
+    #    iterator = graphine.momentum.xPassExternalMomentum(raw_graph, common.defaultGraphHasNotIRDivergenceFilter)
+    #for graph in iterator:
+    #    #uv_subgraphs = graphine.Graph.batchInitEdgesColors(
+    #    #    [sg for sg in graph.xRelevantSubGraphs(uv_subgraph_filter +
+    #    #                                           graphine.filters.oneIrreducible,
+    #    #                                           cutEdgesToExternal=True)])
+    #    #sub = 0
+    #    #sign = 1
+    #    #for i in xrange(1, len(uv_subgraphs) + 1):
+    #    #    sign *= -1
+    #    #    for comb in itertools.combinations(uv_subgraphs, i):
+    #    #        if not graphine.util.has_intersecting_by_vertexes_graphs(comb):
+    #    #            doContinue = False
+    #    #            for _sg in comb:
+    #    #                if len(_sg.getBoundVertexes()) == 1:
+    #    #                    doContinue = True
+    #    #                    break
+    #    #            if doContinue:
+    #    #                continue
+    #    #            r1 = reduce(lambda e, g: e * KR1(g, k_operation, uv_subgraph_filter,
+    #    #                                             description=description,
+    #    #                                             use_graph_calculator=use_graph_calculator,
+    #    #                                             force=True), comb, 1)
+    #    #            if r1 != 0:
+    #    #                shrunk, p2_counts = shrink_to_point(graph, comb)
+    #    #                ir = Delta_IR(shrunk, k_operation, uv_subgraph_filter, description, use_graph_calculator)
+    #    #                sub += sign * r1 * ir * (symbolic_functions.p2 ** -p2_counts)
+    #    if DEBUG:
+    #        print "DELTA_IR", graph, uv_subgraphs
+    #    return sub
+    #raise common.CannotBeCalculatedError(raw_graph)
 
 
 #noinspection PyPep8Naming
@@ -255,17 +275,30 @@ def _do_kr1(raw_graph, k_operation, uv_subgraph_filter, description="", use_grap
 
 
 #noinspection PyPep8Naming
-def R(graph, k_operation, uv_subgraph_filter, description="", use_graph_calculator=True, force=False):
+def R(graph,
+      k_operation,
+      uv_subgraph_filter,
+      description="",
+      use_graph_calculator=True,
+      force=False,
+      inside_krstar=False):
     """
     R = (1-K)R'
     """
     return _do_r(graph, k_operation, uv_subgraph_filter,
                  description=description,
                  use_graph_calculator=use_graph_calculator,
-                 force=force)[0]
+                 force=force,
+                 inside_krstar=inside_krstar)[0]
 
 
-def _do_r(raw_graph, k_operation, uv_subgraph_filter, description="", use_graph_calculator=True, force=False):
+def _do_r(raw_graph,
+          k_operation,
+          uv_subgraph_filter,
+          description="",
+          use_graph_calculator=True,
+          force=False,
+          inside_krstar=False):
     if len(raw_graph.edges(raw_graph.externalVertex)) == 2:
         if not force and not common.defaultGraphHasNotIRDivergence(raw_graph):
             raise AssertionError(str(raw_graph) + " - IR divergence")
@@ -278,12 +311,26 @@ def _do_r(raw_graph, k_operation, uv_subgraph_filter, description="", use_graph_
             for e in evaluated:
                 return e[0], graph
         try:
-            r1 = _do_r1(graph, k_operation, uv_subgraph_filter, description, use_graph_calculator, force=True)[0]
-            kr1 = _do_kr1(graph, k_operation, uv_subgraph_filter, description, use_graph_calculator, force=True)[0]
+            r1 = _do_r1(graph,
+                        k_operation,
+                        uv_subgraph_filter,
+                        description,
+                        use_graph_calculator,
+                        force=True,
+                        inside_krstar=inside_krstar)[0]
+            kr1 = _do_kr1(graph,
+                          k_operation,
+                          uv_subgraph_filter,
+                          description,
+                          use_graph_calculator,
+                          force=True,
+                          inside_krstar=inside_krstar)[0]
             r = r1 - kr1
             storage.putGraphR(graph, r, common.GFUN_METHOD_NAME_MARKER, description)
             if DEBUG:
-                print "R", graph, r
+                print "R", graph, r.subs(symbolic_functions.p == 1)\
+                    .series(symbolic_functions.e == 0, 4)\
+                    .simplify_indexed().evalf()
             return r, graph
         except common.CannotBeCalculatedError:
             pass

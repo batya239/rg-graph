@@ -67,6 +67,7 @@ class Graph(object):
         self._externalEdges = None
         self._graphState = None
         self._allEdges = None
+        self._allEdgesIndices = None
         self._allInternalEdgesCount = None
         self._boundVertexes = None
         self._vertices = None
@@ -105,9 +106,17 @@ class Graph(object):
             return copy.copy(self._edges.get(vertex, []))
         return filter(lambda e: vertex2 in e.nodes, self._edges.get(vertex, []))
 
+    def allEdgesIndices(self):
+        """
+        special method, inserted to Graph for caching
+        """
+        if self._allEdgesIndices is None:
+            self._allEdgesIndices = frozenset(map(lambda e: e.edge_id, self.allEdges()))
+        return self._allEdgesIndices
+
     def allEdges(self, nickel_ordering=False):
         if nickel_ordering:
-            return self.toGraphState().edges
+            return self.allEdges(nickel_ordering=False)
         if self._allEdges is None:
             wrappedResult = set()
             for edges in self._edges.values():
