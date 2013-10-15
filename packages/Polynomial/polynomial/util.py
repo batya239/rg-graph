@@ -3,7 +3,8 @@
 import collections
 
 
-_zeroFactory = lambda: 0
+def _zeroFactory():
+    return 0
 
 
 def zeroDict(dictionary=None):

@@ -12,6 +12,7 @@ import rggraphutil.variable_aware_number as v_number
 from math import factorial
 import util
 import collections
+import pickle
 
 
 def _preparePolynomials(polynomials):
@@ -212,11 +213,18 @@ class PolynomialProduct(object):
     def isZero(self):
         return len(self.polynomials) == 0
 
-    def saveToFile(self):
-        pass
+    def saveToFile(self, fileName):
+        output = open(fileName, 'wb')
+        pickle.dump(self, output)
+        output.close()
 
-    def loadFromFile(self, fileName):
-        pass
+    @staticmethod
+    def loadFromFile(fileName):
+        _input = open(fileName, 'rb')
+        obj = pickle.load(_input)
+        _input.close()
+        assert isinstance(obj, PolynomialProduct)
+        return obj
 
     def __neg__(self):
         if self.isZero():
