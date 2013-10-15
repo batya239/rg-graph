@@ -94,13 +94,14 @@ def _ac_part(poly_prod, var_info, order):
         return dict()
 
     b_factor = 1
-    diff_cache = dict()
+    diff_cache = rggraphutil.emptyListDict()
     eps_expansion = rggraphutil.emptyListDict()
     for i in xrange(order):
         for k in xrange(a_ + 1):
             diff = diff_cache[k] if k in diff_cache else poly_prod.diff(var_info.var_index, k)
-            diff *= b_factor * (math.factorial(k) * (k - a_ + 1) ** (n + 1)) ** (-1)
-            eps_expansion[i].append(diff)
+            coeff = (b_factor * (math.factorial(k) * (k - var_info.a + 1) ** (i + 1)) ** (-1))
+            diff = map(lambda d: d * coeff, diff)
+            eps_expansion[i] += diff
         b_factor *= - var_info.b
     return eps_expansion
 
@@ -115,7 +116,8 @@ def tail_part(poly_prod, var_info):
             stretched_diff)
     if a_ == 0:
         return main_part
-    return map(lambda _pp: _pp * (a_ ** (-1)) * _stretch_prefix(stretch_var_name, a_), main_part)
+    coeff = ((math.factorial(a_) ** (-1)) * _stretch_prefix(stretch_var_name, a_))
+    return map(lambda _pp: _pp * coeff, main_part)
 
 
 def _stretch_prefix(var_index, power):

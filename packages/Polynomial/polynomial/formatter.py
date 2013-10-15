@@ -28,7 +28,7 @@ def format(obj, exportType=HUMAN):
 def formatPoleExtracting(epsDict, exportType=CPP):
     result = dict()
     for o, vs in epsDict.iteritems():
-        result[0] = '+'.join(format(vs, exportType=exportType))
+        result[o] = "+".join(map(lambda s: '(%s)' % s, format(vs, exportType=exportType)))
     return result
 
 
