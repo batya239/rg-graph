@@ -8,23 +8,7 @@ import _conserv as conserv
 import graph_state
 import polynomial.sd_lib as sd_lib
 import graphine
-
-
-def unique(seq):
-    seen = set()
-    return [x for x in seq if str(x) not in seen and not seen.add(str(x))]
-
-
-def unite(seq):
-    """
-    turns sequence of sequences in sequence of elements of sequences, e.g.
-    [[1, 2, 3], [4, 5], [6,]] -> [1, 2, 3, 4, 5, 6]
-    """
-    s = copy.copy(seq)
-    result = []
-    while s:
-        result.extend(s.pop(0))
-    return result
+import utils
 
 
 def prepare_cons_laws(edges):
@@ -54,11 +38,11 @@ def prepare_edges(edges, conservation_laws):
 class Feynman:
     def __init__(self, graph, momentum_derivative=False, theory=0):
         if not isinstance(graph, graphine.Graph):
-            raise AttributeError('You are supposed to construct it from a graphine.Graph instance')
+            raise AttributeError('Feynman instances must be constructed from graphine.Graph instances.')
 
         tails_number = len(graph.externalEdges())
         if tails_number != 2 and momentum_derivative:
-            raise AttributeError('Nope, it does not work that way')
+            raise AttributeError('Nope, it does not work that way.')
 
         if theory == 3:
             deg = 3
@@ -79,10 +63,12 @@ class Feynman:
         Numerator = polynomial.poly(_numerator)
         self._integrand = Denominator * Numerator
         self._delta_argument = polynomial.poly(self._setup_delta_argument(edges))
+
         if momentum_derivative:
             c = polynomial.poly(self._setup_c(edges, loops_number),
                                 degree=(-edges_number + 2 + loops_number * deg, -loops_number)).set0toVar(edges_number)
             self._integrand = self._integrand * c.toPolyProd()
+
         self._gamma_coef1 = (edges_number - tails_number - deg * loops_number, loops_number)
         self._gamma_coef2 = (deg, -1, loops_number)
         g = dict((i, _numerator[0][1].count(i)) for i in _numerator[0][1]).values()
@@ -99,11 +85,11 @@ class Feynman:
         if not conslaws:
             conslaws = self._conslaws
         det_base = filter(lambda x: -1 not in edges[x], range(0, len(edges)))
-        det = unique(map(lambda x: sorted(x), list(itertools.permutations(det_base, loops))))
+        det = utils.unique(map(lambda x: sorted(x), list(itertools.permutations(det_base, loops))))
         for law in filter(lambda x: len(x) == 2, conslaws):
             for i, monomial in enumerate(det):
                 det[i] = [law[1] if x == law[0] else x for x in monomial]
-        det = unique(filter(lambda x: len(x) >= loops, map(lambda y: sorted(unique(y)), det)))
+        det = utils.unique(filter(lambda x: len(x) >= loops, map(lambda y: sorted(utils.unique(y)), det)))
         det = filter(lambda x: all(map(lambda y: not set(y).issubset(x), conslaws)), det)
         return map(lambda x: (1, x), det)
 
@@ -116,9 +102,7 @@ class Feynman:
         return [(1, num_base), ]
 
     def _setup_c(self, edges, loops_number):
-        diag_for_c = copy.copy(edges)
-        new_edge = filter(lambda x: x != -1, unite(filter(lambda x: -1 in x, edges)))
-        diag_for_c.append(new_edge)
+        diag_for_c = edges + filter(lambda x: x != -1, utils.merge_filter(lambda x: -1 in x, edges))
         conslaws_for_c = self._setup_conslaws(diag_for_c)
         c_base = self._setup_determinant(diag_for_c, loops_number + 1, conslaws=conslaws_for_c)
         return c_base
@@ -134,10 +118,9 @@ class Feynman:
         res = sd_lib.sectorDiagram(result._integrand, sector[1], result._delta_argument)[0][0]
         coefficient = polynomial.poly([(1, []), ], degree=1, c=sector[0] / float(result._inverse_coefficient))
         res *= coefficient.toPolyProd()
-        res = res.simplify()
         result._delta_argument = None
         result._inverse_coefficient = None
-        result._integrand = res
+        result._integrand = res.simplify()
         return result
 
     def __str__(self):
@@ -166,7 +149,7 @@ def sectors(graph, conservation_laws=None, symmetries=True):
         conservation_laws = prepare_cons_laws(edges)
 
     loops_number = graph.getLoopsCount()
-    variable_list = unique(prepare_edges(edges, conservation_laws))
+    variable_list = utils.unique(prepare_edges(edges, conservation_laws))
 
     dec_subspace = variable_list
     main_vars = tuple(itertools.permutations(dec_subspace, loops_number))
@@ -177,8 +160,8 @@ def sectors(graph, conservation_laws=None, symmetries=True):
         for edge in p:
             dec_subspace = tuple(x for x in dec_subspace if x != edge)
             sector.append((edge, dec_subspace))
-        result.append(copy.copy(sector))
-        del sector[:]
+        result.append(sector)
+        sector = []
         dec_subspace = variable_list
 
     for law in filter(lambda x: len(x) > 2, conservation_laws):
