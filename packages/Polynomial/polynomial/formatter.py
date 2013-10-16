@@ -28,7 +28,7 @@ def format(obj, exportType=HUMAN):
 def formatPoleExtracting(epsDict, exportType=CPP):
     result = dict()
     for o, vs in epsDict.iteritems():
-        result[o] = "+".join(map(lambda s: '(%s)' % s, format(vs, exportType=exportType)))
+        result[o] = filter(lambda p: p[0] != '0', map(lambda v: (format(v, exportType=exportType), formatVarIndexes(v, exportType=exportType)), vs))
     return result
 
 
@@ -298,8 +298,8 @@ class AbstractFormatter(object):
         if not p.c:
             return '0'
         internal = '+'.join(map(lambda v: self.formatMultiIndex(v[0]) if v[1] == 1 else '%s%s%s' % (
-            v[1], self.multiplicationSign(), self.formatMultiIndex(v[0])),
-                                p.monomials.items()))
+            AbstractFormatter.insertBracketsIfNeed(v[1]), self.multiplicationSign(), self.formatMultiIndex(v[0])),
+            p.monomials.items()))
         if p.c == 1:
             if not p.degree:
                 return '1'
@@ -311,6 +311,10 @@ class AbstractFormatter(object):
             return '(%s)%s%s' % (
                 self.formatEpsNumber(p.c), self.multiplicationSign(),
                 self.degree(internal, self.formatEpsNumber(p.degree)))
+
+    @staticmethod
+    def insertBracketsIfNeed(number):
+        return number if number >= 0 else '(%s)' % number
 
     def formatMultiIndex(self, mi):
         if not len(mi):

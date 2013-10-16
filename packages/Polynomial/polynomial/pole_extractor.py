@@ -14,8 +14,21 @@ import math
 import formatter
 
 
-LogarithmAndPolyProd = collections.namedtuple("LogarithmAndPolyProd", ["poly_prod", "log"])
+class LogarithmAndPolyProd(object):
+    def __init__(self, poly_prod, log):
+        self._poly_prod = poly_prod
+        self._log = log
 
+    @property
+    def poly_prod(self):
+        return self._poly_prod
+
+    @property
+    def log(self):
+        return self._log
+
+    def getVarsIndexes(self):
+        return self.log.polynomialProduct.getVarsIndexes() | self.poly_prod.getVarsIndexes()
 
 VarInfo = collections.namedtuple("VarInfo", ["var_index", "a", "b"])
 
