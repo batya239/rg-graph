@@ -73,7 +73,7 @@ def _extract_poles(poly_prod, order):
                 npp = polynomial_product.PolynomialProduct(filter(lambda p: p != param[1], _poly_prod.polynomials)) * param[2]
                 current_result[o - 1] += _pole_part(npp, param[0])
                 _update_dict_with_other(current_result, _ac_part(npp, param[0], _order), o)
-                current_result[0] += tail_part(npp, param[0])
+                current_result[o] += tail_part(npp, param[0])
         result = current_result
     return result
 
