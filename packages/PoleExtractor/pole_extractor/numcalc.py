@@ -9,7 +9,7 @@ from sympy import mpmath
 
 def get_gamma(a, b, max_index):
     """
-    Returns coefficients of Laurent series of Gamma(a + bx)
+    Returns coefficients of Laurent series of Gamma(a + bx), x->0
     """
     result = dict()
     if a > 0:
@@ -88,6 +88,8 @@ def str_for_CUBA(expansion):
         used_vars = used_vars.union(element[0].getVarsIndexes())
         for logarithm in element[1]:
             used_vars = used_vars.union(logarithm.polynomialProduct.getVarsIndexes())
+    if len(used_vars) == 0:
+        used_vars.add(1)
     result += str(len(used_vars)) + '\n'
     result += 'static int Integrand(const int *ndim, const double xx[], const int *ncomp, double ff[], void *userdata)'
     result += '\n' + '{' + '\n'

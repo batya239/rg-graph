@@ -64,7 +64,8 @@ def ac_stretched_part(polyprod, pole_var, pole_degree_a, pole_degree_b):
         poly_list = utils.merge_map(lambda x: x.diff(stretcher), poly_list)
 
     if pole_degree_a <= -2:
-        stretch_factor = polynomial.poly([(1, []), (-1, [stretcher, ])], degree=(-pole_degree_a - 1, 0))
+        stretch_factor = polynomial.poly([(1, []), (-1, [stretcher, ])],
+                                         degree=(-pole_degree_a - 1, 0), c=(math.factorial(-pole_degree_a - 1) ** (-1)))
         poly_list = map(lambda x: x * stretch_factor, poly_list)
 
     p = polynomial.poly([(1, [pole_var, ]), ], degree=(pole_degree_a, pole_degree_b))
@@ -156,6 +157,7 @@ def extract_poles(polypr, toIndex):
                     pole_var = list(p_part.getVarsIndexes())[0]
 
                     cont = analytical_continuation(a_part, pole_var, p_part.degree.a, p_part.degree.b, toIndex)
+
                     for k1 in cont.keys():
                         if k + k1 <= toIndex:
                             if k + k1 not in result.keys():
@@ -178,13 +180,13 @@ def extract_poles(polypr, toIndex):
         else:
             l = sum(map(lambda x: len(x), expansion.values()))
 
-    result = dict((k, []) for k in expansion.keys())
+    result = dict((k, []) for k in utils.unique(expansion.keys() + range(toIndex + 1)))
     for k in expansion.keys():
         for polypr in expansion[k]:
             exp = polypr.epsExpansion(toIndex - k)
             for k2 in exp[1].keys():
-                exp[1][k2] = filter(lambda a: a.c != 0, exp[1][k2])
+                exp[1][k2] = filter(lambda a: not a.isZero(), exp[1][k2])
                 if len(exp[1][k2]) != 0 and k + k2 in result.keys():
-                    result[k + k2].append((exp[0], exp[1][k2]))
+                    result[k + k2].append([exp[0], exp[1][k2]])
 
     return result
