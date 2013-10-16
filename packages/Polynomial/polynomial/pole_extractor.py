@@ -34,11 +34,12 @@ def extract_poles_and_eps_series(poly_prod, order):
         to_index = order - o
         for raw_pp in raw_res:
             expansion = raw_pp.epsExpansion(to_index + 1)
-            main_expansion = expansion.main_expansion
-            for o1, raw_res1 in main_expansion.iteritems():
-                sum_order = o + o1
-                if sum_order <= order:
-                    _result[sum_order].append((expansion.factor, raw_res1))
+            if expansion is not None:
+                main_expansion = expansion.main_expansion
+                for o1, raw_res1 in main_expansion.iteritems():
+                    sum_order = o + o1
+                    if sum_order <= order:
+                        _result[sum_order].append((expansion.factor, raw_res1))
     result = dict()
     for o, vs in _result.iteritems():
         flatten_values = []
