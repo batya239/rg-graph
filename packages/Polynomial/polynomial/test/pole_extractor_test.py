@@ -70,7 +70,7 @@ class PoleExtractorTest(unittest.TestCase):
         #p2 = (u2 + u3 + u2*u3)**(-3+eps)
         p2 = polynomial.Polynomial({multiindex.CONST: 1,
                                     multiindex.MultiIndex({3: 1}): 1,
-                                    multiindex.MultiIndex({2: 1, 3: 1}): 1},  degree=eps_number.epsNumber((-3, 1)))
+                                    multiindex.MultiIndex({2: 1, 3: 1}): 1}, degree=eps_number.epsNumber((-3, 1)))
         pp = polynomial_product.PolynomialProduct([p1, p2])
         #raw_dict
         extracted = pole_extractor.extract_poles_and_eps_series(pp, 2)
@@ -81,8 +81,38 @@ class PoleExtractorTest(unittest.TestCase):
         #p1 = (1 + u2 + u2*u2)**(-3 + 2*eps)
         p1 = polynomial.Polynomial({multiindex.CONST: 1,
                                     multiindex.MultiIndex({3: 1}): 1,
-                                    multiindex.MultiIndex({2: 1, 3: 1}): 1},  degree=eps_number.epsNumber((-3, 1)))
+                                    multiindex.MultiIndex({2: 1, 3: 1}): 1}, degree=eps_number.epsNumber((-3, 1)))
         pass
+
+    def test_zero_polynomials_expansion(self):
+        #p1 = (u1)**(-2+2*eps)
+        p1 = polynomial.Polynomial({multiindex.MultiIndex({1: 1}): 1}, degree=eps_number.epsNumber((-2, 2)))
+        #p2 = (u4)**(-2+eps)
+        p2 = polynomial.Polynomial({multiindex.MultiIndex({4: 1}): 1}, degree=eps_number.epsNumber((-2, 1)))
+        #p3 = ((1+u1*u3+u1*u2+u1*u4*u5+u1*u4+u1)^(3-eps*3)
+        p3 = polynomial.Polynomial({multiindex.CONST: 1,
+                                    multiindex.MultiIndex({1: 1, 3: 1}): 1,
+                                    multiindex.MultiIndex({1: 1, 2: 1}): 1,
+                                    multiindex.MultiIndex({1: 1, 4: 1, 5: 1}): 1,
+                                    multiindex.MultiIndex({1: 1, 4: 1}): 1,
+                                    multiindex.MultiIndex({1: 1}): 1}, degree=eps_number.epsNumber((3, -3)))
+        #p4 = ((1+u1*u3*u5+u1*u2+u1*u2*u5+u2*u5+u1*u3+u3+u2+u1*u4*u5+u4*u5+u5+u3*u5)^(-3+eps))
+        p4 = polynomial.Polynomial({multiindex.CONST: 1,
+                                    multiindex.MultiIndex({1: 1, 2: 1, 5: 1}): 1,
+                                    multiindex.MultiIndex({1: 1, 2: 1}): 1,
+                                    multiindex.MultiIndex({1: 1, 2: 1, 5: 1}): 1,
+                                    multiindex.MultiIndex({2: 1, 5: 1}): 1,
+                                    multiindex.MultiIndex({1: 1, 3: 1}): 1,
+                                    multiindex.MultiIndex({3: 1}): 1,
+                                    multiindex.MultiIndex({2: 1}): 1,
+                                    multiindex.MultiIndex({1: 1, 4: 1, 5: 1}): 1,
+                                    multiindex.MultiIndex({4: 1, 5: 1}): 1,
+                                    multiindex.MultiIndex({5: 1}): 1,
+                                    multiindex.MultiIndex({3: 1, 5: 1}): 1}, degree=eps_number.epsNumber((-3, 1)))
+        pp = polynomial_product.PolynomialProduct([p1, p2, p3, p4])
+        extracted = pole_extractor.extract_poles_and_eps_series(pp, 2)
+        print extracted
+
 
 if __name__ == "__main__":
     unittest.main()
