@@ -65,16 +65,17 @@ class PolynomialProduct(object):
         for i in xrange(count):
             curr_res = list()
             for pp in res:
-                curr_res += pp._diff(varIndex)
+                if not pp.isZero():
+                    curr_res += pp._diff(varIndex)
             res = curr_res
-        return res
+        return filter(lambda pp: not pp.isZero(), res)
 
     def _diff(self, varIndex):
         """
         return set of PolynomialProduct
         """
         if not len(self.polynomials):
-            return
+            return []
         processedPolynomialToSummand = dict()
         summandToOccurrences = util.zeroDict()
         for p in self.polynomials:
