@@ -1,11 +1,15 @@
 __author__ = 'gleb'
 
+import polynomial
+import subprocess
+import sys
+import os
 from sympy import mpmath
 
 
 def get_gamma(a, b, max_index):
     """
-    Returns coefficients of Laurent series of Gamma(a + bx)
+    Returns coefficients of Laurent series of Gamma(a + bx), x->0
     """
     result = dict()
     if a > 0:
@@ -73,5 +77,65 @@ def get_gamma(a, b, max_index):
         else:
             result[k][0] *= b ** k
             result[k][1] *= abs(b ** k)
+
+    return result
+
+
+def str_for_CUBA(expansion):
+    result = '#ifndef INTEGRATE_H_' + '\n' + '#define INTEGRATE_H_' + '\n' + '#define NDIM '
+    used_vars = set()
+    for element in expansion:
+        used_vars = used_vars.union(element[0].getVarsIndexes())
+        for logarithm in element[1]:
+            used_vars = used_vars.union(logarithm.polynomialProduct.getVarsIndexes())
+    if len(used_vars) == 0:
+        used_vars.add(1)
+    result += str(len(used_vars)) + '\n'
+    result += 'static int Integrand(const int *ndim, const double xx[], const int *ncomp, double ff[], void *userdata)'
+    result += '\n' + '{' + '\n'
+    for v_num, v in enumerate(list(used_vars)):
+        if isinstance(v, int):
+            result += '#define u' + str(v) + ' xx[' + str(v_num) + ']' + '\n'
+        else:
+            result += '#define ' + str(v) + ' xx[' + str(v_num) + ']' + '\n'
+    result += '#define f ff[0]' + '\n' + '\n' + 'f = '
+
+    for element in expansion:
+        for logarithm in element[1]:
+            result += polynomial.formatter.format(logarithm, polynomial.formatter.CPP)
+            result += ' * '
+            result += polynomial.formatter.format(element[0], polynomial.formatter.CPP)
+            result += ' + '
+
+    result = result[:-3] + ';' + '\n' + '\n'
+    result = result + 'return 0;' + '\n' + '}' + '\n' + '#endif /*INTEGRATE_H_*/' + '\n'
+    return result
+
+
+def compute_exp_via_CUBA(expansion):
+    """
+    """
+    result = dict()
+    for k in expansion.keys():
+        f = open('integrate.h', 'w')
+        header_str = str_for_CUBA(expansion[k])
+        f.write(header_str)
+        f.close()
+
+        mc_integral = subprocess.Popen([sys.prefix + '/pole_extractor_ni/' + 'run_integration.sh'], shell=True,
+                                       stdout=subprocess.PIPE,
+                                       stderr=subprocess.PIPE)
+
+        out, err = mc_integral.communicate()
+        m = out.split(' ', 2)
+        result[k] = [0.0, 0.0]
+        try:
+            result[k][0] = float(m[0])
+            result[k][1] = float(m[1])
+        except ValueError:
+            print 'Something went wrong during integration. Here\'s what CUBA said:'
+            print str(out)
+            print str(err)
+        os.remove('integrate.h')
 
     return result
