@@ -17,7 +17,7 @@ objs = [ s[:-1]+'o' for s in obj_src]
 
 
 localPath = os.getcwd() 
-cubaPath  = "/home/kirienko/cuba/Cuba-3.0"
+cubaPath  = os.path.expanduser('~')+"/cuba/Cuba-3.0"
 headers   = [ os.path.join(localPath,s[:-1]+'h') for s in obj_src]
 
 env = Environment(  LIBS=['m','cuba'], 

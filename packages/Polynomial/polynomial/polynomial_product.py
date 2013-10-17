@@ -11,6 +11,8 @@ import multiindex
 import rggraphutil.variable_aware_number as v_number
 from math import factorial
 import util
+import collections
+import pickle
 
 
 def _preparePolynomials(polynomials):
@@ -27,6 +29,9 @@ def _preparePolynomials(polynomials):
         return [pOne]
     else:
         return filteredPolynomials
+
+
+EpsExpansionResult = collections.namedtuple("EpsExpansionResult", ["factor", "main_expansion"])
 
 
 class PolynomialProduct(object):
@@ -51,12 +56,26 @@ class PolynomialProduct(object):
             nPolynomials.append(p.stretch(sVar, varList))
         return PolynomialProduct(nPolynomials)
 
-    def diff(self, varIndex):
+    def diff(self, varIndex, count=1):
+        assert isinstance(count, int)
+        assert count >= 0
+        if count == 0:
+            return self,
+        res = [self]
+        for i in xrange(count):
+            curr_res = list()
+            for pp in res:
+                if not pp.isZero():
+                    curr_res += pp._diff(varIndex)
+            res = curr_res
+        return filter(lambda pp: not pp.isZero(), res)
+
+    def _diff(self, varIndex):
         """
         return set of PolynomialProduct
         """
         if not len(self.polynomials):
-            return
+            return []
         processedPolynomialToSummand = dict()
         summandToOccurrences = util.zeroDict()
         for p in self.polynomials:
@@ -118,7 +137,7 @@ class PolynomialProduct(object):
             while coefficient[-1].isZero() and len(coefficient) > 1:
                 del coefficient[-1]
             mainEpsExpansion[i] = coefficient
-        return aPart, mainEpsExpansion
+        return EpsExpansionResult(aPart, mainEpsExpansion)
 
     def changeVarToPolynomial(self, varIndex, polynomial):
         return PolynomialProduct(map(lambda p: p.changeVarToPolynomial(varIndex, polynomial), self.polynomials))
@@ -195,6 +214,19 @@ class PolynomialProduct(object):
     def isZero(self):
         return len(self.polynomials) == 0
 
+    def saveToFile(self, fileName):
+        output = open(fileName, 'wb')
+        pickle.dump(self, output)
+        output.close()
+
+    @staticmethod
+    def loadFromFile(fileName):
+        _input = open(fileName, 'rb')
+        obj = pickle.load(_input)
+        _input.close()
+        assert isinstance(obj, PolynomialProduct)
+        return obj
+
     def __neg__(self):
         if self.isZero():
             return self
@@ -207,10 +239,10 @@ class PolynomialProduct(object):
             if self.isZero() or other.isZero():
                 return PolynomialProduct([])
             return PolynomialProduct(self.polynomials + other.polynomials)
-        elif isinstance(other, v_number.VariableAwareNumber) or isinstance(other, int):
+        elif isinstance(other, v_number.VariableAwareNumber) or isinstance(other, (int, float)):
             if self.isZero() or other == 0:
                 return PolynomialProduct([])
-            if (isinstance(other, int) or other.isRealNumber()) and len(self.polynomials):
+            if (isinstance(other, (int, float)) or other.isRealNumber()) and len(self.polynomials):
                 return PolynomialProduct([self.polynomials[0] * other] + self.polynomials[1:])
             return PolynomialProduct(
                 self.polynomials + [polynomial.Polynomial(util.zeroDict({multiindex.MultiIndex(): 1}), c=eps_number.epsNumber(other))])
@@ -249,7 +281,7 @@ def poly_prod(polynomials):
     return PolynomialProduct(polynomials)
 
 
-class Logarithm:
+class Logarithm(object):
     """
     logarithm from polynomial product.
     In real we use this only for formatting out
@@ -266,4 +298,5 @@ class Logarithm:
     def isZero(self):
         return not self.c or (self.polynomialProduct.isOne() and self.power != 0)
 
-
+    def isConst(self):
+        return self.power == 0

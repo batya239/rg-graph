@@ -21,7 +21,7 @@ def _prepareVars(_vars):
     for k in emptyKeys:
         del _vars[k]
 
-    return _vars
+    return zeroDict(_vars) if isinstance(_vars, dict) else _vars
 
 
 class MultiIndex(object):

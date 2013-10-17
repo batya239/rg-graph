@@ -40,6 +40,7 @@ def initStorage(theoryName, exprSerializer, graphStorageUseFunctions=False):
     _KR1_STORAGE_REF.set(_MercurialGraphOperationValuesStorage(theoryName, 1, _STORAGE_PATH, _KR1_STORAGE_FILE_NAME, exprSerializer))
     _IR_C_OPERATION_STORAGE_REF.set(_MercurialGraphOperationValuesStorage(theoryName, 1, _STORAGE_PATH, _IR_C_OPERATION_STORAGE_FILE_NAME, exprSerializer))
 
+
 def putGraph(graph, expression, methodName, description=""):
     _V_STORAGE_REF.get().putGraph(graph, expression, methodName, description)
 
@@ -76,6 +77,14 @@ def getKR1(graph, defaultValue=None):
     return _KR1_STORAGE_REF.get().getValue(graph, defaultValue)
 
 
+def putDeltaIR(graph, expression, methodName, description=""):
+    _IR_C_OPERATION_STORAGE_REF.get().putGraph(graph, expression, methodName, description)
+
+
+def getDeltaIR(graph, defaultValue=None):
+    _IR_C_OPERATION_STORAGE_REF.get().getValue(graph, defaultValue)
+
+
 def closeStorage(revert=False, doCommit=False, commitMessage=None):
     if commitMessage is None:
         commitMessage = "no commit message"
@@ -83,6 +92,7 @@ def closeStorage(revert=False, doCommit=False, commitMessage=None):
     _R_STORAGE_REF.get().close(revert, doCommit, "r storage: [" + commitMessage + "]")
     _R1_STORAGE_REF.get().close(revert, doCommit, "r1 storage: [" + commitMessage + "]")
     _KR1_STORAGE_REF.get().close(revert, doCommit, "kr1 storage [" + commitMessage + "]")
+    _IR_C_OPERATION_STORAGE_REF.get().close(revert, doCommit, "ir c operation storage [" + commitMessage + "]")
 
 
 class _MercurialGraphOperationValuesStorage(common_storage.AbstractMercurialAwareStorage):

@@ -167,7 +167,9 @@ class RPrimeTestCase(base_test_case.GraphStorageAwareTestCase):
             sub = (expected - actual).simplify_indexed()
             self.assertTrue(expected == actual or swiginac.abs(
                 (sub * symbolic_functions.e ** 5).subs(symbolic_functions.e == 100)).compare(EPS) < 0,
-                            "\nactual = " + str(actual.simplify_indexed().evalf()) + "\nexpected = " + str(expected) + "\nsub = " + str(sub.simplify_indexed()))
+                            "\nactual = " + str(actual.simplify_indexed().evalf()) +
+                            "\nexpected = " + str(expected) +
+                            "\nsub = " + str(sub.simplify_indexed()))
         finally:
             graph_calculator.dispose()
 

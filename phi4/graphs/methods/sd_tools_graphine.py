@@ -1,10 +1,12 @@
 #!/usr/bin/python
 # -*- coding: utf8
+import collections
 import itertools
 import re
 from polynomial.polynomial_product import PolynomialProduct
 import dynamics
 import polynomial.sd_lib as sd_lib
+from polynomial import pole_extractor, formatter
 
 __author__ = 'mkompan'
 
@@ -195,11 +197,11 @@ def find_max_non_covered_subgraphs(subgraphs_with_index, graph, parents):
         if not covered:
             result.append(subgraph1)
             union = union | internal_edges1
-        #print
-    #print union
-    #print
-    #print set(internal_edges_dict(graph).keys())
-    #print map(lambda x: internal_edges_dict(x).keys(), result)
+            #print
+            #print union
+            #print
+            #print set(internal_edges_dict(graph).keys())
+            #print map(lambda x: internal_edges_dict(x).keys(), result)
     validated = False
     while not validated:
         validated = True
@@ -365,7 +367,7 @@ def add_branches(tree, variables, conservations, graph, subgraphs, depth):
             raise ValueError("%s, %s , %s" % (branches, [x for x in dynamics.xTreeElement(tree)], parents_))
         elif len(branches) != 0:
             tree.setBranches(branches)
-        #        print tree.node, branches
+            #        print tree.node, branches
         for branch in tree.branches:
             subgraph_id = get_subgraph_id(branch.node)
             if subgraph_id is not None:
@@ -519,7 +521,7 @@ def add_speer_branches(tree, variables, conservations, parents=list(), depth=0):
                 continue
             if not is_superset(parent_main_vars + [variable], conservations):
                 branches.append(variable)
-#        print parent_main_vars, branches
+                #        print parent_main_vars, branches
         if len(branches) == 0:
             return
         elif len(branches) == 1:
@@ -527,10 +529,136 @@ def add_speer_branches(tree, variables, conservations, parents=list(), depth=0):
         else:
             tree.setBranches(branches)
             for branch in tree.branches:
-                add_speer_branches(branch, variables, conservations, parents=parents+[(branch.node,tuple(branches))], depth=depth-1)
+                add_speer_branches(branch, variables, conservations, parents=parents + [(branch.node, tuple(branches))],
+                                   depth=depth - 1)
+
 
 def gen_speer_tree(graph):
     tree = Tree(None, [])
     variables = graph._qi.keys()
     add_speer_branches(tree, variables, graph._cons, parents=list(), depth=graph.getLoopsCount())
     return tree
+
+
+resultingFunctionTemplate = """
+double func_t_{fileIdx}(double k[DIMENSION])
+{{
+double f=0;
+{resultingFunctions}
+return f;
+}}
+"""
+
+functionBodyTemplate = """
+{comments}
+{vars}
+double f=0;
+{expr}
+return f;
+"""
+
+functionTemplate = """
+double func{idx}_t_{fileIdx}(double k[DIMENSION])
+{{
+{functionBody}
+}}
+"""
+
+functionsCodeTemplate = """
+#include <math.h>
+#define DIMENSION {dims}
+
+{functions}
+
+{resultingFunction}
+"""
+
+headerCodeTemplate = """
+#include <math.h>
+#define DIMENSION {dims}
+
+double func_t_{fileIdx}(double k[DIMENSION]);
+"""
+
+
+def generate_function_body(expr_string, variables_list, comments=""):
+    vars_string = ""
+    for i in range(len(variables_list)):
+        variable = variables_list[i]
+        vars_string += "double %s=k[%s];\n" % (variable, i)
+    return functionBodyTemplate.format(comments=comments,
+                                       vars=vars_string,
+                                       expr="f += %s;" % expr_string)
+
+
+class FunctionsFile(object):
+    def __init__(self, file_idx):
+        self.file_idx = file_idx
+        self.file_info = None
+        self.functions = ""
+        self.functions_count = 0
+
+    def add_function(self, function_body):
+        self.functions += functionTemplate.format(idx=self.functions_count,
+                                                  fileIdx=self.file_idx,
+                                                  functionBody=function_body)
+        self.functions_count += 1
+
+    def set_file_info(self, file_info):
+        self.file_info = file_info
+
+    def __len__(self):
+        return len(self.functions)
+
+    def _resulting_function(self):
+        function_body = ""
+        for i in range(self.functions_count):
+            function_body += "f+=func{idx}_t_{fileIdx}(k);\n".format(fileIdx=self.file_idx, idx=i)
+        return resultingFunctionTemplate.format(fileIdx=self.file_idx,
+                                                resultingFunctions=function_body)
+
+    def get_c_file(self):
+        return functionsCodeTemplate.format(dims=self.file_info.dimension,
+                                            functions=self.functions,
+                                            resultingFunction=self._resulting_function())
+
+    def get_h_file(self):
+        return headerCodeTemplate.format(dims=self.file_info.dimension,
+                                         fileIdx=self.file_idx)
+
+    def get_file_name(self, prefix):
+        return "%s_func_%s_V%s_E%s" % (prefix,
+                                       self.file_idx,
+                                       self.file_info.dimension,
+                                       self.file_info.eps_order)
+
+funcFileInfo = collections.namedtuple("funcFileInfo", ["eps_order", "dimension"])
+
+maxFunctionLength = 1000000
+
+
+def generate_func_files(tree, generate_expr_for_sector):
+    files = collections.defaultdict(lambda: FunctionsFile(0))
+    for sector in dynamics.xTreeElement2(tree):
+        expr = generate_expr_for_sector(sector)
+    extracted = pole_extractor.extract_poles_and_eps_series(expr, 1)
+    formatted_dict = formatter.formatPoleExtracting(extracted)
+    for eps_order in formatted_dict:
+        for expr, variables in formatted_dict[eps_order]:
+            file_info = funcFileInfo(eps_order, len(variables))
+            function_file = files[file_info]
+            function_file.add_function(generate_function_body(expr, variables, "// sector: %s" % sector))
+
+            if len(function_file) > maxFunctionLength:
+                function_file.set_file_info(file_info)
+                files[file_info] = FunctionsFile(function_file.file_idx + 1)
+                yield function_file
+
+    for file_info, function_file in files.items():
+        function_file.set_file_info(file_info)
+        yield function_file
+
+
+
+
+        #        yield sector, generate_expr_for_sector(sector)

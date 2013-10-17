@@ -11,17 +11,25 @@ PYTHON = 'PYTHON'
 CPP = 'CPP'
 
 import polynomial_product
+import pole_extractor
 
 
 def format(obj, exportType=HUMAN):
     """
     return expression as string corresponds exportType. export type should one of (PYTHON, CPP, HUMAN)
     """
-    formatter = availableFormatters[exportType]
+    formatter = AVAILABLE_FORMATTERS[exportType]
     if isinstance(obj, list):
         return map(lambda l: Lookup.asString(l, formatter), map(lambda o: _format(o, formatter), obj))
     else:
         return Lookup.asString(_format(obj, formatter), formatter)
+
+
+def formatPoleExtracting(epsDict, exportType=CPP):
+    result = dict()
+    for o, vs in epsDict.iteritems():
+        result[o] = filter(lambda p: p[0] != '0', map(lambda v: (format(v, exportType=exportType), formatVarIndexes(v, exportType=exportType)), vs))
+    return result
 
 
 def formatPairsWithExtractingNewVariables(pairs, variableBasement="_A", exportType=HUMAN):
@@ -44,7 +52,7 @@ def formatWithExtractingNewVariables(listOrObject, variableBasement="_A", export
     """
     inlineService = PolynomialInlineService(variableBasement)
     polynomialLookupBuilder = LazyGeneratedPolynomialLookup.builder(inlineService)
-    formatter = availableFormatters[exportType]
+    formatter = AVAILABLE_FORMATTERS[exportType]
     if isinstance(listOrObject, list):
         rawResult = map(lambda o: _format(o, formatter, polynomialLookupBuilder), listOrObject)
         formatResult = map(lambda l: Lookup.asString(l, formatter), rawResult)
@@ -58,7 +66,7 @@ def formatVarIndexes(obj, exportType=HUMAN):
     """
     obj MUST have getVarsIndexes method
     """
-    formatter = availableFormatters[exportType]
+    formatter = AVAILABLE_FORMATTERS[exportType]
     return map(lambda i: formatter.formatVar(i), obj.getVarsIndexes())
 
 
@@ -106,6 +114,19 @@ class LogLookup(Lookup):
                                formatter.multiplicationSign(),
                                formatter.degree(formatter.log(self._polynomialProductLookup.getLookupString(formatter)),
                                                 self._power))
+
+
+class LogarithmAndPolyProdLookupBuilder(Lookup):
+    def __init__(self, poly_prod_lookup, log_lookup):
+        self._log_lookup = log_lookup
+        self._poly_prod_lookup = poly_prod_lookup
+
+    def getLookupString(self, formatter):
+        if self._log_lookup is ZERO_LOOKUP:
+            return ZERO_LOOKUP.getLookupString(formatter)
+        elif self._log_lookup is ONE_LOOKUP:
+            return self._poly_prod_lookup.getLookupString(formatter)
+        return self._log_lookup.getLookupString(formatter) + "*" + self._poly_prod_lookup.getLookupString(formatter)
 
 
 class PolyProdLookup(Lookup):
@@ -208,7 +229,7 @@ def _format(obj, formatter, polynomialLookupBuilder=SimplePolynomialLookup.build
     return formatter.format(obj, polynomialLookupBuilder)
 
 
-class AbstractFormatter:
+class AbstractFormatter(object):
     """
     contains main logic of expression formatting
     """
@@ -220,6 +241,8 @@ class AbstractFormatter:
             return self.formatPolynomialProduct(obj, polynomialLookupBuilder)
         elif isinstance(obj, polynomial.Polynomial):
             return self.formatPolynomial(obj)
+        elif isinstance(obj, pole_extractor.LogarithmAndPolyProd):
+            return self.formatLogarithmAndPolyProd(obj, polynomialLookupBuilder)
         elif isinstance(obj, list):
             return map(lambda o: self.format(o, polynomialLookupBuilder), obj)
         else:
@@ -252,6 +275,10 @@ class AbstractFormatter:
     def formatVar(self, varIndex):
         return self.formatVarIndex(varIndex) if isinstance(varIndex, int) or isinstance(varIndex, long) else str(varIndex)
 
+    def formatLogarithmAndPolyProd(self, obj, polynomialLookupBuilder):
+        return LogarithmAndPolyProdLookupBuilder(self.formatPolynomialProduct(obj.poly_prod, polynomialLookupBuilder),
+                                                 self.formatPolynomialProductLogarithm(obj.log, polynomialLookupBuilder))
+
     def formatPolynomialProductLogarithm(self, log, polynomialLookupBuilder):
         if log.isZero():
             return ZERO_LOOKUP
@@ -271,8 +298,8 @@ class AbstractFormatter:
         if not p.c:
             return '0'
         internal = '+'.join(map(lambda v: self.formatMultiIndex(v[0]) if v[1] == 1 else '%s%s%s' % (
-            v[1], self.multiplicationSign(), self.formatMultiIndex(v[0])),
-                                p.monomials.items()))
+            AbstractFormatter.insertBracketsIfNeed(v[1]), self.multiplicationSign(), self.formatMultiIndex(v[0])),
+            p.monomials.items()))
         if p.c == 1:
             if not p.degree:
                 return '1'
@@ -284,6 +311,10 @@ class AbstractFormatter:
             return '(%s)%s%s' % (
                 self.formatEpsNumber(p.c), self.multiplicationSign(),
                 self.degree(internal, self.formatEpsNumber(p.degree)))
+
+    @staticmethod
+    def insertBracketsIfNeed(number):
+        return number if number >= 0 else '(%s)' % number
 
     def formatMultiIndex(self, mi):
         if not len(mi):
@@ -362,7 +393,7 @@ class PythonFormatter(AbstractFormatter):
         return 'log(%s)' % a
 
 
-availableFormatters = dict()
-availableFormatters[HUMAN] = HumanReadableFormatter()
-availableFormatters[CPP] = CppFormatter()
-availableFormatters[PYTHON] = PythonFormatter()
+AVAILABLE_FORMATTERS = dict()
+AVAILABLE_FORMATTERS[HUMAN] = HumanReadableFormatter()
+AVAILABLE_FORMATTERS[CPP] = CppFormatter()
+AVAILABLE_FORMATTERS[PYTHON] = PythonFormatter()

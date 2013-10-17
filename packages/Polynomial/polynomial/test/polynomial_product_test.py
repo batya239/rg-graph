@@ -81,7 +81,7 @@ class PolynomialProductTestCase(PolynomialToolsTestCase):
 
     def testEpsExpansion2(self):
         a = poly([(1, [1, 2])]).toPolyProd()
-        self.assertEquals(repr(a.epsExpansion(2)), "(((u1*u2)), {0: [1], 1: [0], 2: [0]})")
+        self.assertEquals(repr(a.epsExpansion(2)), "EpsExpansionResult(factor=((u1*u2)), main_expansion={0: [1], 1: [0], 2: [0]})")
 
     def testSimplifying(self):
         npp = pp.simplify()
