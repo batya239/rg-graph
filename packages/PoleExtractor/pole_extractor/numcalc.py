@@ -7,6 +7,85 @@ import os
 from sympy import mpmath
 
 
+class NumEpsExpansion():
+    """
+    Class representing Laurent eps-series.
+    """
+    def __init__(self, exp=None):
+        if exp is None:
+            self._elements = dict()
+            return
+
+        if not type(exp) == dict:
+            raise ValueError('Your argument is bad and you should feel bad.')
+        if not all(map(lambda x: len(x) == 2, exp.values())):
+            raise ValueError('Your argument is bad and you should feel bad.')
+
+        self._elements = dict()
+        for k in exp.keys():
+            self._elements[k] = tuple(exp[k])
+        return
+
+    def keys(self):
+        return self._elements.keys()
+
+    def __getitem__(self, item):
+        return self._elements[item]
+
+    def __mul__(self, other):
+        if self.keys() and other.keys():
+            ks = range(min(self.keys()) + min(other.keys()),
+                       1 + min(min(self.keys()) + max(other.keys()), max(self.keys()) + min(other.keys())))
+        else:
+            raise AttributeError("Don't try to multiply by an empty expansion.")
+        res = dict((k, [0.0, 0.0]) for k in ks)
+
+        for k1 in self.keys():
+            for k2 in other.keys():
+                if k1 + k2 in ks:
+                    res[k1 + k2][0] += self[k1][0] * other[k2][0]
+                    res[k1 + k2][1] += self[k1][1] * other[k2][0]
+                    res[k1 + k2][1] += self[k1][0] * other[k2][1]
+                    res[k1 + k2][1] += self[k1][1] * other[k2][1]
+
+        return NumEpsExpansion(res)
+
+    def __add__(self, other):
+        if self.keys() and other.keys():
+            ks = range(min(self.keys() + other.keys()), 1 + min(max(self.keys()), max(other.keys())))
+        elif not self.keys() and not other.keys():
+            raise AttributeError("Don't try to add 2 empty expansions.")
+        elif self.keys():
+            return NumEpsExpansion(self._elements)
+        elif other.keys():
+            return NumEpsExpansion(other._elements)
+
+        res = dict((k, [0.0, 0.0]) for k in ks)
+        for k in ks:
+            if k in self.keys():
+                res[k][0] += self[k][0]
+                res[k][1] += self[k][1]
+            if k in other.keys():
+                res[k][0] += other[k][0]
+                res[k][1] += other[k][1]
+
+        return NumEpsExpansion(res)
+
+    def __pow__(self, power, modulo=None):
+        if not isinstance(power, int) or int < 1:
+            raise AttributeError("Sorry, we can't get non-natural powers")
+        result = NumEpsExpansion(self._elements)
+        for k in range(power - 1):
+            result = result * self
+        return result
+
+    def __str__(self):
+        result = ''
+        for k in sorted(self.keys()):
+            result += 'eps^(' + str(k) + ')[' + str(self[k][0]) + '+-' + str(self[k][1]) + '] + '
+        return result[:-2]
+
+
 def get_gamma(a, b, max_index):
     """
     Returns coefficients of Laurent series of Gamma(a + bx), x->0
@@ -78,7 +157,7 @@ def get_gamma(a, b, max_index):
             result[k][0] *= b ** k
             result[k][1] *= abs(b ** k)
 
-    return result
+    return NumEpsExpansion(result)
 
 
 def str_for_CUBA(expansion):
@@ -138,4 +217,4 @@ def compute_exp_via_CUBA(expansion):
             print str(err)
         os.remove('integrate.h')
 
-    return result
+    return NumEpsExpansion(result)

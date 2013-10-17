@@ -14,6 +14,7 @@ for i in range(1, -a + 1):
     p2base.append((1, [1]*i))
 p2 = polynomial.poly(p2base)
 
+print p1 * p2
 polynomial_expansion = pole_extractor.expansion.extract_poles(p1 * p2, toIndex)
 integrated_exp = pole_extractor.numcalc.compute_exp_via_CUBA(polynomial_expansion)
 

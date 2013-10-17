@@ -187,12 +187,7 @@ def sectors(graph, conservation_laws=None, symmetries=True):
         return tuple(map(lambda x: (1, x), result))
 
     sym_result = []
-
-    d = copy.deepcopy(map(lambda x: list(x), edges))
-
-    for edge in d:
-        if len(edge) == 2:
-            edge.append(0)
+    d = map(lambda x: list(x) + [0], edges)
 
     test_diagrams = []
     for _ in itertools.repeat(None, len(result)):
