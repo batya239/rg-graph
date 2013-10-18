@@ -27,21 +27,14 @@ for label in labels:
 
     expansions = map(lambda x: pole_extractor.expansion.extract_poles(x._integrand, 5), decomposed)
 
-    num_expansion = dict()
+    num_expansion = pole_extractor.numcalc.NumEpsExpansion()
     i = 0
     for e in expansions:
         i += 1
         print '\rcalculating ' + str(i) + ' sector of ' + str(len(expansions)) + '...',
-        ne = pole_extractor.numcalc.compute_exp_via_CUBA(e)
+        num_expansion += pole_extractor.numcalc.compute_exp_via_CUBA(e)
         print ' done!',
-        for k in ne.keys():
-            if k not in num_expansion.keys():
-                num_expansion[k] = [0.0, 0.0]
-            num_expansion[k][0] += ne[k][0]
-            num_expansion[k][1] += ne[k][1]
-    print
-    for k in sorted(num_expansion.keys()):
-        print "eps^{" + str(k) + "}: " + str(num_expansion[k][0]) + "+-" + str(num_expansion[k][1])
+    print '\n' + str(num_expansion)
     print
 
 """
