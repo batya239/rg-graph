@@ -20,9 +20,9 @@ def compileCuba(dir):
     from platform import node
     wd = '/home/kirienko/work/rg-graph/phi_4_d2_s2/feynmanSDdotSF_mpi/'
     os.chdir(os.path.join(wd,dir))
-    cmd = 'scons -j 8 -f ../SConstruct'
+    cmd = 'scons -j 2 -f ../SConstruct > scons_%s_%s.log 2>&1'%(dir,node())
     os.system(cmd)
-    return "%s scheduled at %s" %(dir,node())
+    #return "%s scheduled at %s" %(dir,node())
 
 os.chdir(WORKDIR)
 
@@ -36,7 +36,7 @@ dirs = os.listdir('.')
 dirs = [ d for d in dirs if os.path.isdir(d) ]
 #print dirs
 
-scheduled = lview.map_async(compileCuba,dirs)
+scheduled = lview.map(compileCuba,dirs)
 for s in scheduled: print s
 
 os.chdir(CUR_DIR)
