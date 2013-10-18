@@ -655,8 +655,9 @@ def generate_func_files(tree, generate_expr_for_sector):
                 yield function_file
 
     for file_info, function_file in files.items():
-        function_file.set_file_info(file_info)
-        yield function_file
+        if len(function_file) != 0:
+            function_file.set_file_info(file_info)
+            yield function_file
 
 
 

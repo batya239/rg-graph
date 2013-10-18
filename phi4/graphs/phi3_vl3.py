@@ -47,6 +47,8 @@ try:
 except OSError:
     pass
 
+print "sectors done"
+
 for functions_file in sd_tools.generate_func_files(tree, lambda x: sd_lib.sectorDiagram(D, x, delta_arg=delta)[0][0].simplify()):
     print os.path.join(dir, "%s.c" % functions_file.get_file_name(str(graph))), functions_file.file_info, len(functions_file.functions), functions_file.functions_count
     f = open(os.path.join(dir, "%s.c" % functions_file.get_file_name(str(graph))), "w")
