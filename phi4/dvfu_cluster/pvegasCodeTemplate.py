@@ -12,10 +12,11 @@ corePvegasCodeTemplate = """
 #define NITER 2
 
 {includes}
+#ifdef MPI
 #include <mpi.h>
+#endif
 
-
-double reg_initial[2*DIMENSION]={{0,0,1,1}};
+double reg_initial[2*DIMENSION]={{{region}}};
 
 void func (double k[DIMENSION], double f[FUNCTIONS])
  {{
@@ -100,9 +101,9 @@ int main(int argc, char **argv)
     double elapsed;
     start = clock();
 
-
+#ifdef MPI
 MPI_Init(&argv, &argc);
-
+#endif
 
   vegas(reg, DIMENSION, func,
         0, npoints/10, 5, NPRN_INPUT | NPRN_RESULT,
@@ -114,16 +115,16 @@ MPI_Init(&argv, &argc);
         estim, std_dev, chi2a);
     int rank=0;
 
-
+#ifdef MPI
 MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 MPI_Finalize();
-
+#endif
 
     if(rank==0) {{
         end = clock();
         elapsed = ((double) (end - start)) / CLOCKS_PER_SEC;
         double delta= std_dev[0]/estim[0];
-        printf ("result = %20.18g\nstd_dev = %20.18g\ndelta = %20.18g\ntime = %20.10g\n", estim[0], std_dev[0], delta, elapsed);
+        printf ("result = %20.18g\\nstd_dev = %20.18g\\ndelta = %20.18g\\ntime = %20.10g\\n", estim[0], std_dev[0], delta, elapsed);
     }}
     return(0);
 }}

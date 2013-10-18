@@ -1,6 +1,7 @@
+#!/usr/bin/python
+
 import os, re
 from pvegasCodeTemplate import *
-from string import zfill, replace
 
 listdir = os.listdir('.')
 
@@ -14,30 +15,29 @@ name = obj_src[0].split('_func_')[0]
 #    Object(src)
 
 ### list of *.o-files
-objs = [ s[:-1]+'o' for s in obj_src]
-
-
-for i in obj_src: print i
+objs = [s[:-1] + 'o' for s in obj_src]
 
 ## find all possible groups
-func = set() 
+func = set()
 for i in obj_src:
-        func.add(tuple(i[:-2].split('V')[1].split('_E')))
+    func.add(tuple(i[:-2].split('V')[1].split('_E')))
 
-headers   = [ s[:-1]+'h' for s in obj_src]
+headers = [s[:-1] + 'h' for s in obj_src]
 
 for e in func:
-    curName = "V%s_E%s"%(e[0],e[1])
-    includes,functions = "",""
+    curName = "V%s_E%s" % (e[0], e[1])
+    includes, functions = "", ""
 
     for i, fileName in enumerate(headers):
         if curName in fileName:
-            functions += "f[0] += func_t_%s(xx);\n" % fileName.split('_')[2]
-            includes +=  "#include \"%s\"\n"%(fileName)
+            functions += "f[0] += func_t_%s(k);\n" % fileName.split('_')[2]
+            includes += "#include \"%s\"\n" % fileName
+    region = ("0," * int(e[0]) + "1," * int(e[0]))[:-1]
 
-    f = open(name+'_0_'+curName+".c",'w')
-    f.write('#define DIMENSION %s'%e[0])
+    f = open(name + '_0_' + curName + ".c", 'w')
+    f.write('#define DIMENSION %s' % e[0])
     f.write(corePvegasCodeTemplate.format(
-            includes = includes,
-            functions= functions))
+        region=region,
+        includes=includes,
+        functions=functions))
     f.close()
