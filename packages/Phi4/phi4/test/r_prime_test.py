@@ -113,7 +113,7 @@ class RPrimeTestCase(base_test_case.GraphStorageAwareTestCase):
         self.do_test_r1("e112-34-ee3-44-e-", "-2./3/2/e-5./6/2/2/e**2+8./3/2/2/2/e**3-2./2/2/2/2/e**4")
 
     def test_e12_e24_33_44__(self):
-        self.do_test_r1("e12-e24-33-44--::", "(-1/(12*e**4))*(1 - 3*e + e**2 + 5*e**3 - 6*zeta(3)*e**3)")
+        self.do_test_r1("e12-e24-33-44--::", "(-1/(12*e**4))*(1-3*e+e**2+5*e**3-6*zeta(3)*e**3)")
 
     def test_e112_e3_333__(self):
         self.do_test_r1("e112-e3-333--", "5*p**2/(32*e)-p**2/(32*e**2)")

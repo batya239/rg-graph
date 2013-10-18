@@ -16,6 +16,7 @@ import rggraphenv.storage as storage
 #noinspection PyPep8Naming
 import rggraphutil
 import swiginac
+import forest
 
 DEBUG = False
 
@@ -60,23 +61,31 @@ def KRStar(initial_graph, k_operation, uv_sub_graph_filter, description="", use_
     if len(initial_graph.edges(initial_graph.externalVertex)) == 2:
         iterator = initial_graph,
     else:
+        try:
+            kr1 = KR1(initial_graph, k_operation, uv_sub_graph_filter,
+                      description=description,
+                      use_graph_calculator=use_graph_calculator,
+                      force=False)
+            return kr1
+        except common.CannotBeCalculatedError:
+            pass
         iterator = graphine.Graph.batchInitEdgesColors(graphine.momentum.xArbitrarilyPassMomentum(initial_graph))
     for graph in iterator:
         try:
-            # evaluated = storage.getKR1(graph)
-            # if evaluated and len(evaluated):
-            #     e = evaluated[0]
-            #     return e[0].subs(symbolic_functions.p, 1)
+            evaluated = storage.getKR1(graph)
+            if evaluated and len(evaluated):
+                e = evaluated[0]
+                return e[0].subs(symbolic_functions.p, 1)
             krs = KR1(graph, k_operation, uv_sub_graph_filter, description, use_graph_calculator,
                       force=True,
                       inside_krstar=True).subs(symbolic_functions.p == 1)
-            spinneysGenerators = \
+            spinneys_generators = \
                 [x for x in graph.xRelevantSubGraphs(filters=graphine.filters.oneIrreducible
                                                      + uv_sub_graph_filter
                                                      + _is_1uniting
                                                      + graphine.filters.vertexIrreducible,
-                                                     cutEdgesToExternal=False)]
-            for spinney in spinneysGenerators:
+                                                     cutEdgesToExternal=False, resultRepresentator=graphine.Representator.asGraph)]
+            for spinney in spinneys_generators:
                 shrunk, p2Counts = shrink_to_point(graph, (spinney,))
                 if str(shrunk).startswith("ee0-::"):
                     continue
@@ -89,116 +98,18 @@ def KRStar(initial_graph, k_operation, uv_sub_graph_filter, description="", use_
                 uv = ir_uv.uvIndex(shrunk)
                 if uv < 0:
                     raise common.T0OperationNotDefined(shrunk)
-                ir = Delta_IR(shrunk, k_operation, uv_sub_graph_filter, description, use_graph_calculator)
+                ir = forest.Delta_IR(spinney, graph, k_operation, uv_sub_graph_filter, description, use_graph_calculator)
                 if DEBUG:
-                    print "S", spinney, symbolic_functions.safe_integer_numerators(str(spinneyPart.eval()))
-                    print "CS", shrunk, symbolic_functions.safe_integer_numerators(str(ir.eval()))
+                    print "SPINNEY", spinney, str(spinneyPart.eval())
+                    print "CS", shrunk, str(ir.simplify_indexed().evalf())
                 sub = k_operation.calculate(spinneyPart * ir)
                 krs += sub
             if DEBUG:
-                print "R*", graph, symbolic_functions.safe_integer_numerators(str(krs.evalf()))
+                print "R*", graph, str(krs.evalf())
             return krs
         except common.CannotBeCalculatedError:
             pass
     raise common.CannotBeCalculatedError(initial_graph)
-
-
-#noinspection PyPep8Naming
-def Delta_IR(graph, kOperation, uvSubGraphFilter, description="", useGraphCalculator=True):
-    #if str(graph).startswith("ee12-23-33--::"):
-    #    return symbolic_functions.evaluate("2/3*e**(-1)-1/2*e**(-2)+1/6*e**(-3)")
-    #if common.defaultGraphHasNotIRDivergence(graph):
-    #    if DEBUG:
-    #        print "DELTA_IR = 0", graph
-    #    return 0
-    #if str(graph) == "ee112-2--::['(0, 0)', '(0, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(1, 0)']":
-    #    return (swiginac.numeric(1)/2) * (1/symbolic_functions.e + 1/symbolic_functions.e/symbolic_functions.e)
-
-    storage_value = storage.getDeltaIR(graph)
-    if storage_value is not None:
-        return storage_value
-    body = graph.deleteEdges(graph.edges(graph.externalVertex))
-    kr1 = None
-    preferable, notPreferable = \
-        graphine.momentum.arbitrarilyPassMomentumWithPreferable(body, common.defaultGraphHasNotIRDivergence)
-    for g in preferable:
-        try:
-            if common.defaultGraphHasNotIRDivergence(g):
-                kr1 = KR1(g,
-                          kOperation,
-                          uvSubGraphFilter,
-                          description=description,
-                          use_graph_calculator=useGraphCalculator,
-                          check_rstar_if_need=False,
-                          force=True,
-                          inside_krstar=True)
-                if DEBUG:
-                    _type = "IR R'"
-                break
-        except common.CannotBeCalculatedError:
-            pass
-    if kr1 is None:
-        for g in notPreferable:
-            try:
-                kr1 = KRStar(g,
-                             kOperation,
-                             uvSubGraphFilter,
-                             description=description,
-                             use_graph_calculator=useGraphCalculator)
-                if DEBUG:
-                    _type = "IR R*"
-                break
-            except common.CannotBeCalculatedError:
-                pass
-    if kr1 is None:
-        if str(graph).startswith("ee0-"):
-            return 0
-        raise common.CannotBeCalculatedError(graph)
-    #noinspection PyUnboundLocalVariable
-    ir = (kr1 - _do_ir_subtracting_operation(graph, kOperation, uvSubGraphFilter, description, useGraphCalculator)).subs(
-        symbolic_functions.p == 1)
-    if DEBUG:
-        print _type, ir.simplify_indexed().evalf(), g
-    storage.putDeltaIR(graph, ir, common.GFUN_METHOD_NAME_MARKER, description=description)
-    return ir
-
-
-def _do_ir_subtracting_operation(raw_graph, k_operation, uv_subgraph_filter, description="", use_graph_calculator=True):
-    return 0
-    #if len(raw_graph.edges(raw_graph.externalVertex)) == 2:
-    #    iterator = [raw_graph]
-    #else:
-    #    iterator = graphine.momentum.xPassExternalMomentum(raw_graph, common.defaultGraphHasNotIRDivergenceFilter)
-    #for graph in iterator:
-    #    #uv_subgraphs = graphine.Graph.batchInitEdgesColors(
-    #    #    [sg for sg in graph.xRelevantSubGraphs(uv_subgraph_filter +
-    #    #                                           graphine.filters.oneIrreducible,
-    #    #                                           cutEdgesToExternal=True)])
-    #    #sub = 0
-    #    #sign = 1
-    #    #for i in xrange(1, len(uv_subgraphs) + 1):
-    #    #    sign *= -1
-    #    #    for comb in itertools.combinations(uv_subgraphs, i):
-    #    #        if not graphine.util.has_intersecting_by_vertexes_graphs(comb):
-    #    #            doContinue = False
-    #    #            for _sg in comb:
-    #    #                if len(_sg.getBoundVertexes()) == 1:
-    #    #                    doContinue = True
-    #    #                    break
-    #    #            if doContinue:
-    #    #                continue
-    #    #            r1 = reduce(lambda e, g: e * KR1(g, k_operation, uv_subgraph_filter,
-    #    #                                             description=description,
-    #    #                                             use_graph_calculator=use_graph_calculator,
-    #    #                                             force=True), comb, 1)
-    #    #            if r1 != 0:
-    #    #                shrunk, p2_counts = shrink_to_point(graph, comb)
-    #    #                ir = Delta_IR(shrunk, k_operation, uv_subgraph_filter, description, use_graph_calculator)
-    #    #                sub += sign * r1 * ir * (symbolic_functions.p2 ** -p2_counts)
-    #    if DEBUG:
-    #        print "DELTA_IR", graph, uv_subgraphs
-    #    return sub
-    #raise common.CannotBeCalculatedError(raw_graph)
 
 
 #noinspection PyPep8Naming
@@ -222,55 +133,21 @@ def _do_kr1(raw_graph, k_operation, uv_subgraph_filter, description="", use_grap
     else:
         iterator = graphine.momentum.xPassExternalMomentum(raw_graph, common.defaultGraphHasNotIRDivergenceFilter)
     for graph in iterator:
-        evaluated = storage.getKR1(graph)
-        if evaluated is not None and len(evaluated):
-            for e in evaluated:
-                return e[0], graph
+        if not force:
+            evaluated = storage.getKR1(graph)
+            if evaluated is not None and len(evaluated):
+                for e in evaluated:
+                    return e[0], graph
         try:
             r1 = _do_r1(graph, k_operation, uv_subgraph_filter, description, use_graph_calculator,
                         force=force,
                         inside_krstar=inside_krstar)
             kr1 = k_operation.calculate(r1[0])
-            storage.putGraphKR1(r1[1], kr1, common.GFUN_METHOD_NAME_MARKER, description)
+            if not force:
+                storage.putGraphKR1(r1[1], kr1, common.GFUN_METHOD_NAME_MARKER, description)
             return kr1, graph
         except common.CannotBeCalculatedError:
             pass
-
-    if check_rstar_if_need:
-        preferable, not_preferable = \
-            graphine.momentum.arbitrarilyPassMomentumWithPreferable(raw_graph, common.defaultGraphHasNotIRDivergence)
-        for g in preferable:
-            evaluated = storage.getKR1(g)
-            if evaluated is not None and len(evaluated):
-                for e in evaluated:
-                    return e[0], raw_graph
-            try:
-                kr1 = KR1(g, k_operation, uv_subgraph_filter,
-                          description=description,
-                          use_graph_calculator=use_graph_calculator,
-                          force=False)
-            except common.CannotBeCalculatedError:
-                pass
-            else:
-                storage.putGraphKR1(g, kr1, common.GFUN_METHOD_NAME_MARKER, description)
-                return kr1, g
-        if not inside_krstar:
-            for g in not_preferable:
-                if g == raw_graph:
-                    continue
-                evaluated = storage.getKR1(g)
-                if evaluated is not None and len(evaluated):
-                    for e in evaluated:
-                        return e[0], raw_graph
-                try:
-                    kr1 = KRStar(g, k_operation, uv_subgraph_filter,
-                                 description=description,
-                                 use_graph_calculator=use_graph_calculator)
-                except common.CannotBeCalculatedError:
-                    pass
-                else:
-                    storage.putGraphKR1(g, kr1, common.GFUN_METHOD_NAME_MARKER, description)
-                    return kr1, g
     raise common.CannotBeCalculatedError(raw_graph)
 
 
@@ -306,10 +183,11 @@ def _do_r(raw_graph,
     else:
         iterator = graphine.momentum.xPassExternalMomentum(raw_graph, common.defaultGraphHasNotIRDivergenceFilter)
     for graph in iterator:
-        evaluated = storage.getR(graph)
-        if evaluated is not None and len(evaluated):
-            for e in evaluated:
-                return e[0], graph
+        if not force:
+            evaluated = storage.getR(graph)
+            if evaluated is not None and len(evaluated):
+                for e in evaluated:
+                    return e[0], graph
         try:
             r1 = _do_r1(graph,
                         k_operation,
@@ -326,7 +204,8 @@ def _do_r(raw_graph,
                           force=True,
                           inside_krstar=inside_krstar)[0]
             r = r1 - kr1
-            storage.putGraphR(graph, r, common.GFUN_METHOD_NAME_MARKER, description)
+            if not force:
+                storage.putGraphR(graph, r, common.GFUN_METHOD_NAME_MARKER, description)
             if DEBUG:
                 print "R", graph, r.subs(symbolic_functions.p == 1)\
                     .series(symbolic_functions.e == 0, 4)\
@@ -364,11 +243,11 @@ def _do_r1(raw_graph, k_operation, uv_subgraph_filter, description="", use_graph
     else:
         iterator = graphine.momentum.xPassExternalMomentum(raw_graph, common.defaultGraphHasNotIRDivergenceFilter)
     for graph in iterator:
-        evaluated = storage.getR1(graph)
-        if evaluated is not None:
-            for e in evaluated:
-                return e[0], graph
-
+        if not force:
+            evaluated = storage.getR1(graph)
+            if evaluated is not None:
+                for e in evaluated:
+                    return e[0], graph
         try:
             uv_subgraphs = filter(lambda _g: _g is not None, map(lambda g: _two_tails_no_tadpoles(g),
                                                                  graph.xRelevantSubGraphs(
@@ -379,7 +258,8 @@ def _do_r1(raw_graph, k_operation, uv_subgraph_filter, description="", use_graph
                     gfun_calculator.calculateGraphValue(graph, useGraphCalculator=use_graph_calculator)
                 if DEBUG:
                     print "R1 no UV", graph, expression
-                storage.putGraphR1(two_tails_graph, expression, common.GFUN_METHOD_NAME_MARKER, description)
+                if not force:
+                    storage.putGraphR1(two_tails_graph, expression, common.GFUN_METHOD_NAME_MARKER, description)
                 return expression, two_tails_graph
 
             raw_r1 = gfun_calculator.calculateGraphValue(graph, useGraphCalculator=use_graph_calculator)[0]
@@ -393,8 +273,8 @@ def _do_r1(raw_graph, k_operation, uv_subgraph_filter, description="", use_graph
                 for comb in itertools.combinations(uv_subgraphs, i):
                     if i == 1 or not graphine.util.has_intersecting_by_vertexes_graphs(comb):
                         r1 = reduce(lambda _e, g: _e * c_operation(g, k_operation, uv_subgraph_filter,
-                                                                   use_graph_calculator=use_graph_calculator,
-                                                                   force=True), comb, 1)
+                                                           use_graph_calculator=use_graph_calculator,
+                                                           force=True), comb, 1)
                         shrunk, p2_counts = shrink_to_point(graph, comb)
                         value = gfun_calculator.calculateGraphValue(shrunk,
                                                                     useGraphCalculator=use_graph_calculator)
@@ -409,7 +289,8 @@ def _do_r1(raw_graph, k_operation, uv_subgraph_filter, description="", use_graph
                 print "R1", graph, k_operation.calculate(raw_r1).subs(symbolic_functions.p == 1).evalf()
                 for d in debug:
                     print d
-            storage.putGraphR1(graph, raw_r1, common.GFUN_METHOD_NAME_MARKER, description)
+            if not force:
+                storage.putGraphR1(graph, raw_r1, common.GFUN_METHOD_NAME_MARKER, description)
             return raw_r1, graph
         except common.CannotBeCalculatedError:
             pass
@@ -459,5 +340,5 @@ def _has_momentum_quadratic_divergence(sub_graph, graph, excluded_edges):
     assert False
 
 
-def is_graph_quadratic_divergence(graph):
+def _is_graph_quadratic_divergence(graph):
     return 2 == const.SPACE_DIM * graph.getLoopsCount() + const.EDGE_WEIGHT * len(graph.internalEdges())
