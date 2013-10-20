@@ -97,9 +97,9 @@ class Graph(object):
         return self._vertices
 
     def createVertexIndex(self):
-        toReturn = self._nextVertexIndex
+        to_return = self._nextVertexIndex
         self._nextVertexIndex += 1
-        return toReturn
+        return to_return
 
     def edges(self, vertex, vertex2=None):
         if vertex2 is None:
@@ -116,13 +116,13 @@ class Graph(object):
 
     def allEdges(self, nickel_ordering=False):
         if nickel_ordering:
-            return self.allEdges(nickel_ordering=False)
+            return self.toGraphState().edges
         if self._allEdges is None:
-            wrappedResult = set()
+            wrapped_result = set()
             for edges in self._edges.values():
                 for e in edges:
-                    wrappedResult.add(_IdAwareEdgeDelegate(e))
-            self._allEdges = map(lambda ei: ei.edge, wrappedResult)
+                    wrapped_result.add(_IdAwareEdgeDelegate(e))
+            self._allEdges = map(lambda ei: ei.edge, wrapped_result)
         return self._allEdges
 
     def addEdges(self, edgesToAdd):
@@ -169,6 +169,21 @@ class Graph(object):
 
     def deleteEdge(self, edge):
         return self.deleteEdges([edge])
+
+    def contains(self, other_graph):
+        self_edges = self._edges
+        other_edges = other_graph._edges
+        for v, other_es in other_edges.iteritems():
+            _self_es = self_edges.get(v, None)
+            if _self_es is None and len(other_edges):
+                return False
+            self_es = copy.copy(_self_es)
+            for e in other_es:
+                if e in self_es:
+                    self_es.remove(e)
+                else:
+                    return False
+        return True
 
     def batchShrinkToPointWithAuxInfo(self, sub_graphs):
         """
@@ -436,13 +451,13 @@ class VertexTransformation(object):
         composedMapping = dict()
         usedKeys = set()
         for k, v in self._mapping.items():
-            av = anotherVertexTransformation._mapping.get(v, None)
+            av = anotherVertexTransformation.mapping.get(v, None)
             if av:
-                composedMapping[k] = anotherVertexTransformation._mapping[v]
+                composedMapping[k] = anotherVertexTransformation.mapping[v]
                 usedKeys.add(v)
             else:
                 composedMapping[k] = v
-        for k, v in anotherVertexTransformation._mapping.items():
+        for k, v in anotherVertexTransformation.mapping.items():
             if k not in usedKeys:
                 composedMapping[k] = v
         return VertexTransformation(composedMapping)

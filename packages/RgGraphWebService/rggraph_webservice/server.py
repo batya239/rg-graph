@@ -3,7 +3,7 @@
 
 __author__ = 'daddy-bear'
 
-from flask import Flask, abort, make_response, render_template
+from flask import Flask, abort, make_response, render_template, send_from_directory
 import draw_graph_state
 import rggraphenv.storage
 
@@ -27,10 +27,13 @@ def get_png_from_graph_state(raw_graph_state=None):
         response.headers['Content-Type'] = 'image/png'
         return response
 
-@app.route("/graph-state", methods=["GET"])
+@app.route("/graph-state/", methods=["GET"])
 def get_graph_state():
-    return render_template("graph-state.html")
+    return render_template("graph-state.html", td_iterator=xrange(4))
 
+@app.route('/js/<path:filename>')
+def serve_js(filename):
+    return send_from_directory('templates/js', filename)
 
 _KR1_NAME = "kr1"
 _R1_NAME = "r1"

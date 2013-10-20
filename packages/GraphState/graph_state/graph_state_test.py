@@ -4,7 +4,6 @@
 import graph_state
 import unittest
 
-
 class TestFields(unittest.TestCase):
     def testCopy(self):
         fields = graph_state.Fields('ab')
