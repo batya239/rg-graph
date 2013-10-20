@@ -637,11 +637,11 @@ funcFileInfo = collections.namedtuple("funcFileInfo", ["eps_order", "dimension"]
 maxFunctionLength = 1000000
 
 
-def generate_func_files(tree, generate_expr_for_sector):
+def generate_func_files(tree, generate_expr_for_sector, eps_order=0):
     files = collections.defaultdict(lambda: FunctionsFile(0))
     for sector in dynamics.xTreeElement2(tree):
         expr = generate_expr_for_sector(sector)
-    extracted = pole_extractor.extract_poles_and_eps_series(expr, 1)
+    extracted = pole_extractor.extract_poles_and_eps_series(expr, eps_order)
     formatted_dict = formatter.formatPoleExtracting(extracted)
     for eps_order in formatted_dict:
         for expr, variables in formatted_dict[eps_order]:
