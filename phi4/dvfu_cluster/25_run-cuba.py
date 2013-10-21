@@ -55,7 +55,7 @@ for d in diags:
         execNum = e.split('.')[0].split('__')[1] ##  number of executable
         cmd = ' '.join((os.path.join(path,e), method_num(Method), MaxPoints, EpsRel, EpsAbs, \
                     '>', '_'.join((path+'/out', execNum, d, Method, \
-                    MaxPoints.replace('0000000','0M'), \
+                    MaxPoints.replace('000000','M'), \
                     EpsRel, EpsAbs)) \
                     ))
         commands += [cmd]

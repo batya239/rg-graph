@@ -50,6 +50,6 @@ for e in func:
         includes=includes,
         functions=functions))
     f.close()
-targetName = pvegasFile[:-2]+".run" 
-env.Program(target = targetName, source = [pvegasFile]+objs)
-env.Clean(objs,'.')
+    targetName = pvegasFile[:-2]+".run" 
+    obj = [o for o in objs if 'V%s_E%s'%e in o ]
+    env.Program(target = targetName, source = [pvegasFile]+obj)

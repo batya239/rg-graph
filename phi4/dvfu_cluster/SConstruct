@@ -22,6 +22,7 @@ headers   = [ os.path.join(localPath,s[:-1]+'h') for s in obj_src]
 
 env = Environment(  LIBS=['m','cuba'], 
                     LIBPATH=cubaPath, CPPPATH=[cubaPath],
+                    CCFLAGS='-O2',
                     platform='posix',ENV=os.environ) 
 
 includes,functions = [],[]

@@ -32,12 +32,13 @@ print rc.ids
 lview = rc.load_balanced_view()
 print lview.apply_sync(getnode)
 
-dirs = os.listdir('.')
-dirs = [ d for d in dirs if os.path.isdir(d) ]
-#print dirs
+#dirs = os.listdir('.')
+#dirs = [ d for d in dirs if os.path.isdir(d) ]
+dirs = map(lambda x: x.strip(),open('todo.list').readlines())
+print dirs
 
 #scheduled = lview.map(compileCuba,dirs)
-lview.map(compileCuba,dirs)
 #for s in scheduled: print s
+lview.map(compileCuba,dirs)
 
 os.chdir(CUR_DIR)
