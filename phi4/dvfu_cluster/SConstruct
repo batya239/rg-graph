@@ -44,3 +44,4 @@ for i, cubaFile in enumerate(cubaFiles):
     print "Compiling", cubaFile
     targetName = "cuba__%s.run" %zfill(i,len(str(num)))
     env.Program(target = targetName, source = [cubaFile]+objs)
+env.Clean(objs,'.')
