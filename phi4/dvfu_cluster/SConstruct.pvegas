@@ -29,7 +29,7 @@ for i in obj_src:
 headers = [s[:-1] + 'h' for s in obj_src]
 
 env = Environment(  LIBS=['m','pvegas'], 
-                    #LIBPATH=cubaPath, CPPPATH=[cubaPath],
+                    LIBPATH=config.pvegasLIBPATHs, CPPPATH=pveagsCPPPATHs,
                     CCFLAGS='-Wno-write-strings',##no CC warnings
                     platform='posix',ENV=os.environ) 
 
