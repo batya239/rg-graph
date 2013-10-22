@@ -9,6 +9,7 @@ import lambda_number
 import symbolic_functions
 from rggraphenv import storage, graph_calculator
 
+DEBUG = False
 
 def _createFilter():
     class RelevanceCondition:
@@ -166,6 +167,8 @@ class GGraphReducer(object):
                                       externalVertex=self._initGraph.externalVertex)
             preprocessed = (adjustedSubGraph[1], subGraph, adjustedSubGraph[2])
             if storage.hasGraph(subGraph):
+                if DEBUG:
+                    print subGraph
                 res = self._doIterate(preprocessed)
                 if res is not None:
                     return res

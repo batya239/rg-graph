@@ -79,12 +79,12 @@ def KRStar(initial_graph, k_operation, uv_sub_graph_filter, description="", use_
             krs = KR1(graph, k_operation, uv_sub_graph_filter, description, use_graph_calculator,
                       force=True,
                       inside_krstar=True).subs(symbolic_functions.p == 1)
-            spinneys_generators = \
-                [x for x in graph.xRelevantSubGraphs(filters=graphine.filters.oneIrreducible
-                                                     + uv_sub_graph_filter
-                                                     + _is_1uniting
-                                                     + graphine.filters.vertexIrreducible,
-                                                     cutEdgesToExternal=False, resultRepresentator=graphine.Representator.asGraph)]
+            spinneys_generators = graph.xRelevantSubGraphs(filters=graphine.filters.oneIrreducible
+                                                           + uv_sub_graph_filter
+                                                           + _is_1uniting
+                                                           + graphine.filters.vertexIrreducible,
+                                                           cutEdgesToExternal=False,
+                                                           resultRepresentator=graphine.Representator.asGraph)
             for spinney in spinneys_generators:
                 shrunk, p2Counts = shrink_to_point(graph, (spinney,))
                 if str(shrunk).startswith("ee0-::"):
@@ -98,11 +98,14 @@ def KRStar(initial_graph, k_operation, uv_sub_graph_filter, description="", use_
                 uv = ir_uv.uvIndex(shrunk)
                 if uv < 0:
                     raise common.T0OperationNotDefined(shrunk)
-                ir = forest.Delta_IR(spinney, graph, k_operation, uv_sub_graph_filter, description, use_graph_calculator)
+                ir = forest.Delta_IR(spinney, graph, k_operation, uv_sub_graph_filter, description, use_graph_calculator)\
+                    .subs(symbolic_functions.p == 1)
                 if DEBUG:
                     print "SPINNEY", spinney, str(spinneyPart.eval())
                     print "CS", shrunk, str(ir.simplify_indexed().evalf())
                 sub = k_operation.calculate(spinneyPart * ir)
+                if DEBUG:
+                    print "SPINNEY_PART", spinney, sub.simplify_indexed().evalf()
                 krs += sub
             if DEBUG:
                 print "R*", graph, str(krs.evalf())
@@ -113,23 +116,19 @@ def KRStar(initial_graph, k_operation, uv_sub_graph_filter, description="", use_
 
 
 #noinspection PyPep8Naming
-def KR1(graph, k_operation, uv_sub_graph_filter, description="", use_graph_calculator=True,
-        check_rstar_if_need=False, force=False, inside_krstar=False):
+def KR1(graph, k_operation, uv_sub_graph_filter, description="", use_graph_calculator=True, force=False, inside_krstar=False):
     return _do_kr1(graph, k_operation, uv_sub_graph_filter,
                    description=description,
                    use_graph_calculator=use_graph_calculator,
-                   check_rstar_if_need=check_rstar_if_need,
                    force=force,
                    inside_krstar=inside_krstar)[0]
 
 
-def _do_kr1(raw_graph, k_operation, uv_subgraph_filter, description="", use_graph_calculator=True,
-            check_rstar_if_need=False, force=False, inside_krstar=False):
+def _do_kr1(raw_graph, k_operation, uv_subgraph_filter, description="", use_graph_calculator=True, force=False, inside_krstar=False):
     if len(raw_graph.edges(raw_graph.externalVertex)) == 2:
         if not force and not common.defaultGraphHasNotIRDivergence(raw_graph):
-            pass
-            #raise AssertionError(str(rawGraph) + " - IR divergence")
-        iterator = [raw_graph]
+            raise AssertionError(str(raw_graph) + " - IR divergence")
+        iterator = raw_graph,
     else:
         iterator = graphine.momentum.xPassExternalMomentum(raw_graph, common.defaultGraphHasNotIRDivergenceFilter)
     for graph in iterator:
@@ -196,13 +195,20 @@ def _do_r(raw_graph,
                         use_graph_calculator,
                         force=True,
                         inside_krstar=inside_krstar)[0]
-            kr1 = _do_kr1(graph,
-                          k_operation,
-                          uv_subgraph_filter,
-                          description,
-                          use_graph_calculator,
-                          force=True,
-                          inside_krstar=inside_krstar)[0]
+            if inside_krstar:
+                kr1 = KRStar(graph,
+                             k_operation,
+                             uv_subgraph_filter,
+                             description=description,
+                             use_graph_calculator=use_graph_calculator)
+            else:
+                kr1 = _do_kr1(graph,
+                              k_operation,
+                              uv_subgraph_filter,
+                              description,
+                              use_graph_calculator,
+                              force=True,
+                              inside_krstar=inside_krstar)[0]
             r = r1 - kr1
             if not force:
                 storage.putGraphR(graph, r, common.GFUN_METHOD_NAME_MARKER, description)
@@ -237,8 +243,7 @@ def _two_tails_no_tadpoles(g):
 def _do_r1(raw_graph, k_operation, uv_subgraph_filter, description="", use_graph_calculator=True, force=False, inside_krstar=False):
     if len(raw_graph.edges(raw_graph.externalVertex)) == 2:
         if not force and not common.defaultGraphHasNotIRDivergence(raw_graph):
-            pass
-            #raise AssertionError(str(rawGraph) + " - IR divergence")
+            raise AssertionError(str(rawGraph) + " - IR divergence")
         iterator = raw_graph,
     else:
         iterator = graphine.momentum.xPassExternalMomentum(raw_graph, common.defaultGraphHasNotIRDivergenceFilter)
@@ -265,7 +270,7 @@ def _do_r1(raw_graph, k_operation, uv_subgraph_filter, description="", use_graph
             raw_r1 = gfun_calculator.calculateGraphValue(graph, useGraphCalculator=use_graph_calculator)[0]
             if DEBUG:
                 debug = []
-                print "value", graph, symbolic_functions.series(raw_r1.subs(symbolic_functions.p == 1), symbolic_functions.e, 0, 0).evalf()
+                print "R1 value", graph, symbolic_functions.series(raw_r1.subs(symbolic_functions.p == 1), symbolic_functions.e, 0, 0).convert_to_poly(True).evalf()
             sign = 1
             c_operation = KRStar if inside_krstar else KR1
             for i in xrange(1, len(uv_subgraphs) + 1):
@@ -273,14 +278,14 @@ def _do_r1(raw_graph, k_operation, uv_subgraph_filter, description="", use_graph
                 for comb in itertools.combinations(uv_subgraphs, i):
                     if i == 1 or not graphine.util.has_intersecting_by_vertexes_graphs(comb):
                         r1 = reduce(lambda _e, g: _e * c_operation(g, k_operation, uv_subgraph_filter,
-                                                           use_graph_calculator=use_graph_calculator,
-                                                           force=True), comb, 1)
+                                                                   use_graph_calculator=use_graph_calculator,
+                                                                   force=force), comb, 1)
                         shrunk, p2_counts = shrink_to_point(graph, comb)
                         value = gfun_calculator.calculateGraphValue(shrunk,
                                                                     useGraphCalculator=use_graph_calculator)
                         if DEBUG:
                             debug.append('\tc-operation ' + str(r1) + " " + str(comb) + "\n\tshrink "
-                                         + str(shrunk) + "value " + str(value[0]))
+                                         + str(shrunk) + " value " + str(value[0].subs(symbolic_functions.p == 1),))
                             debug.append("\tsum " + str((r1 * value[0]).subs(symbolic_functions.p == 1).series(symbolic_functions.e == 0, 0).evalf()))
                         raw_r1 += sign * r1 * value[0] * (symbolic_functions.p2 ** (-p2_counts))
 

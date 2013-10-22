@@ -67,14 +67,13 @@ def calculate_graph(graph):
         return None
     file_name = t[2]
 
-    #std_out = subprocess.check_output("cd " + _MINCER_DIR + ";" + "form " + file_name, shell=True).replace("\n", '')
     proc = subprocess.Popen("cd " + _MINCER_DIR.get() + ";" + _FORM_VERSION.get() + " " + file_name, shell=True,
                             stdout=subprocess.PIPE)
     proc.wait()
     std_out = proc.stdout.read().replace("\n", "")
 
     raw_result = _RESULT_REGEXP.findall(std_out)[0]
-    raw_result = raw_result.replace("Q.Q", "1").replace("^", "**").replace("ep", "e")
+    raw_result = raw_result.replace("Q.Q^-1", "1").replace("^", "**").replace("ep", "e")
     raw_result = _replace_zetas(raw_result)
     raw_result = symbolic_functions.safe_integer_numerators(raw_result)
     if raw_result.strip() == '0':
@@ -113,9 +112,6 @@ TOPOLOGIES = {
     'e12-34-34-5-5-e-': ('no', ['Q', 'p1', 'p6', 'p2', 'p7', 'p8', 'p5', 'p3', 'p4', 'Q']),
 }
 
-GRAPHS = dict((k, v) for (k, v) in
-              map(lambda gs: (gs, graphine.Graph(graph_state.GraphState.fromStr("%s::" % gs))), TOPOLOGIES.keys()))
-
 
 def _set_momenta(graph_name, momenta_list):
     graph = graphine.Graph.fromStr(graph_name)
@@ -128,26 +124,28 @@ def _set_momenta(graph_name, momenta_list):
         edges_list.append(edge_)
     return graphine.Graph(graph_state.GraphState(edges_list))
 
+INITED_GRAPHS = dict()
+for topology in TOPOLOGIES:
+    INITED_GRAPHS[topology] = _set_momenta(topology, TOPOLOGIES[topology][1])
 
-def _find_topology(target_graph, topologies):
+
+def _find_topology(target_graph):
     target_graph_name = target_graph.getPresentableStr()
-    for topology in topologies:
-        #print "topology : ", topologies[topology][0]
-        model_graph = _set_momenta(topology, topologies[topology][1])
+    for topology in TOPOLOGIES:
+        model_graph = INITED_GRAPHS[topology]
         internal_edges = model_graph.internalEdges()
-        #graph_ = graphine.Graph(graph_state.GraphState.fromStr("%s::" % graphName))
         n = len(internal_edges) - len(target_graph.internalEdges())
         if n < 0:
             continue
         elif n == 0:
             if topology == target_graph_name:
-                return topologies[topology][0], model_graph
+                return TOPOLOGIES[topology][0], model_graph
 
         for lines in itertools.combinations(internal_edges, n):
             shrunk = model_graph.batchShrinkToPoint([[x] for x in lines])
             gs_as_str = shrunk.getPresentableStr()
             if target_graph_name == gs_as_str:
-                return topologies[topology][0], shrunk
+                return TOPOLOGIES[topology][0], shrunk
     return None
 
 
@@ -172,7 +170,7 @@ def generate_form_file(topology_type, graph_with_momenta, graph_with_weights):
 
 
 def write_form_file(graph, directory="form_files"):
-    ans = _find_topology(graph, TOPOLOGIES)
+    ans = _find_topology(graph)
     if ans is not None:
         topology_type, graph_with_momenta = ans
         file_name = '%s.frm' % graph.getPresentableStr()
@@ -193,10 +191,11 @@ def can_calculate_graph_with_mincer(graph):
 
 
 def main():
-    g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr(sys.argv[1])))
-    init_mincer()
-    calculate_graph(g)
-    dispose_mincer()
+    try:
+        init_mincer()
+        print calculate_graph(graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr(sys.argv[1]))))
+    finally:
+        dispose_mincer()
 
 
 if __name__ == "__main__":

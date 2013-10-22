@@ -138,7 +138,7 @@ class SubGraphReducerTestCase(base_test_case.GraphStorageAwareTestCase):
     def testReducingE12_E23_33__(self):
         graph = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr("e12-e23-33--")))
         reducer = gfun_calculator.GGraphReducer(graph)
-        self.assertEquals(str(reducer.calculate()), "('G(1, 1)*G(1, 2-l)*G(1, 3-l*2)', (3, -3))")
+        self.assertEquals(str(reducer.calculate()), "('G(1, 1)*G(1, 2-l*1)*G(1, 3-l*2)', (3, -3))")
 
     def testReducingAnotherDiagram(self):
         edges = list()
@@ -182,7 +182,18 @@ class SubGraphReducerTestCase(base_test_case.GraphStorageAwareTestCase):
             calculated = reducer.calculate()
             print calculated
             print symbolic_functions.series(symbolic_functions.evaluate(calculated[0]), symbolic_functions.e, 0, 0).simplify_indexed().evalf()
-            assert False
+            self.assertIsNotNone(calculated)
+        finally:
+            graph_calculator.dispose()
+
+    def testDiagram5Loops2(self):
+        try:
+            graph_calculator.addCalculator(mincer_graph_calculator.MincerGraphCalculator())
+            g = graphine.Graph.fromStr("e12-e234-35-45-5--", initEdgesColor=True)
+            reducer = gfun_calculator.GGraphReducer(g, useGraphCalculator=True)
+            calculated = reducer.calculate()
+            print calculated
+            print symbolic_functions.series(symbolic_functions.evaluate(calculated[0]), symbolic_functions.e, 0, 0).simplify_indexed().evalf()
             self.assertIsNotNone(calculated)
         finally:
             graph_calculator.dispose()

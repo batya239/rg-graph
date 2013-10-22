@@ -184,7 +184,8 @@ class Edge(object):
         edge = Edge(mapped_nodes,
                     external_node=mapped_external_node,
                     fields=fields,
-                    colors=colors)
+                    colors=colors,
+                    edge_id=self.edge_id)
         return edge
 
 
@@ -206,6 +207,7 @@ class GraphState(object):
                 if fields_count != 0:
                     fields = defaultFields if edge.fields is None else edge.fields
                 else:
+                    fields = None
                     fields = None
                 mapped_edges.append(edge.copy(node_map=node_map, colors=colors, fields=fields))
             mapped_edges.sort()

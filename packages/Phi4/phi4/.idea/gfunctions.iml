@@ -13,6 +13,7 @@
     <orderEntry type="module" module-name="rggraph_webservice" />
     <orderEntry type="module" module-name="PoleExtractor" />
     <orderEntry type="module" module-name="polynomial" />
+    <orderEntry type="module" module-name="graph_state" />
   </component>
   <component name="PyDocumentationSettings">
     <option name="myDocStringFormat" value="Plain" />
