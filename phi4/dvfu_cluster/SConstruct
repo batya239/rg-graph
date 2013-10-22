@@ -15,13 +15,14 @@ for src in obj_src:
 ### list of *.o-files
 objs = [ s[:-1]+'o' for s in obj_src]
 
-
+#tmpPath   = '/tmp'
 localPath = os.getcwd() 
 cubaPath  = os.path.expanduser('~')+"/cuba/Cuba-3.0"
 headers   = [ os.path.join(localPath,s[:-1]+'h') for s in obj_src]
 
 env = Environment(  LIBS=['m','cuba'], 
                     LIBPATH=cubaPath, CPPPATH=[cubaPath],
+                    CCFLAGS='-O2',
                     platform='posix',ENV=os.environ) 
 
 includes,functions = [],[]
@@ -30,8 +31,7 @@ for i, fileName in enumerate(headers):
     functions += ["f = func_t_%d(xx);" % i]
     includes += ["#include \"%s\"\n"%(fileName)]
 
-
-#cubaFile = os.path.join(localPath,localPath.split('/')[-1]+"_cuba__E0.c")
+#cubaFiles = [os.path.join(tmpPath,localPath.split('/')[-1]+"_cuba__E%s.c" \
 cubaFiles = [os.path.join(localPath,localPath.split('/')[-1]+"_cuba__E%s.c" \
         %zfill(i,len(str(num)))) for i in range(num)]
 for i, cubaFile in enumerate(cubaFiles):
@@ -45,3 +45,4 @@ for i, cubaFile in enumerate(cubaFiles):
     print "Compiling", cubaFile
     targetName = "cuba__%s.run" %zfill(i,len(str(num)))
     env.Program(target = targetName, source = [cubaFile]+objs)
+env.Clean(objs,'.')

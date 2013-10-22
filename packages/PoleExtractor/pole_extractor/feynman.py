@@ -116,10 +116,9 @@ class Feynman:
     def sector_decomposition(self, sector):
         result = copy.deepcopy(self)
         res = sd_lib.sectorDiagram(result._integrand, sector[1], result._delta_argument)[0][0]
-        coefficient = polynomial.poly([(1, []), ], degree=1, c=sector[0] / float(result._inverse_coefficient))
+        coefficient = polynomial.poly([(1, []), ], degree=1, c=sector[0])
         res *= coefficient.toPolyProd()
         result._delta_argument = None
-        result._inverse_coefficient = None
         result._integrand = res.simplify()
         return result
 

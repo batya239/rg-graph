@@ -5,13 +5,17 @@ import subprocess
 import sys
 import os
 from sympy import mpmath
+import inspect
 
 
 class NumEpsExpansion():
     """
     Class representing Laurent eps-series.
     """
+
     def __init__(self, exp=None):
+        """
+        """
         if exp is None:
             self._elements = dict()
             return
@@ -24,7 +28,6 @@ class NumEpsExpansion():
         self._elements = dict()
         for k in exp.keys():
             self._elements[k] = tuple(exp[k])
-        return
 
     def keys(self):
         return self._elements.keys()
@@ -33,20 +36,27 @@ class NumEpsExpansion():
         return self._elements[item]
 
     def __mul__(self, other):
-        if self.keys() and other.keys():
-            ks = range(min(self.keys()) + min(other.keys()),
-                       1 + min(min(self.keys()) + max(other.keys()), max(self.keys()) + min(other.keys())))
-        else:
-            raise AttributeError("Don't try to multiply by an empty expansion.")
-        res = dict((k, [0.0, 0.0]) for k in ks)
+        if isinstance(other, NumEpsExpansion):
+            if self.keys() and other.keys():
+                ks = range(min(self.keys()) + min(other.keys()),
+                           1 + min(min(self.keys()) + max(other.keys()), max(self.keys()) + min(other.keys())))
+            else:
+                raise AttributeError("Don't try to multiply by an empty expansion.")
+            res = dict((k, [0.0, 0.0]) for k in ks)
 
-        for k1 in self.keys():
-            for k2 in other.keys():
-                if k1 + k2 in ks:
-                    res[k1 + k2][0] += self[k1][0] * other[k2][0]
-                    res[k1 + k2][1] += self[k1][1] * other[k2][0]
-                    res[k1 + k2][1] += self[k1][0] * other[k2][1]
-                    res[k1 + k2][1] += self[k1][1] * other[k2][1]
+            for k1 in self.keys():
+                for k2 in other.keys():
+                    if k1 + k2 in ks:
+                        res[k1 + k2][0] += self[k1][0] * other[k2][0]
+                        res[k1 + k2][1] += abs(self[k1][1] * other[k2][0])
+                        res[k1 + k2][1] += abs(self[k1][0] * other[k2][1])
+                        res[k1 + k2][1] += abs(self[k1][1] * other[k2][1])
+        elif isinstance(other, float):
+            res = dict()
+            for k in self.keys():
+                res[k] = (self[k][0] * other, self[k][1] * abs(other))
+        else:
+            raise AttributeError('Can only multiply by float or other expansion')
 
         return NumEpsExpansion(res)
 
@@ -191,30 +201,48 @@ def str_for_CUBA(expansion):
     return result
 
 
-def compute_exp_via_CUBA(expansion):
+def CUBA_calculate(expansion):
     """
+    :param expansion:
+    :return:
     """
     result = dict()
+    split = 2
+
     for k in expansion.keys():
-        f = open('integrate.h', 'w')
-        header_str = str_for_CUBA(expansion[k])
-        f.write(header_str)
-        f.close()
+        for i in range(0, len(expansion[k]), split):
+            f = open('integrate.h', 'w')
+            header_str = str_for_CUBA(expansion[k][i:i + split])
+            f.write(header_str)
+            f.close()
 
-        mc_integral = subprocess.Popen([sys.prefix + '/pole_extractor_ni/' + 'run_integration.sh'], shell=True,
-                                       stdout=subprocess.PIPE,
-                                       stderr=subprocess.PIPE)
+            #compiling external C program
+            command = 'gcc -Wall -fopenmp -I' + os.path.dirname(inspect.stack()[-1][1]) + ' -o integrate ' +\
+                      sys.prefix + '/pole_extractor_ni/integrate.c -lm -lcuba -fopenmp'
+            subprocess.Popen([command], shell=True, stderr=subprocess.PIPE).communicate()
 
-        out, err = mc_integral.communicate()
-        m = out.split(' ', 2)
-        result[k] = [0.0, 0.0]
-        try:
-            result[k][0] = float(m[0])
-            result[k][1] = float(m[1])
-        except ValueError:
-            print 'Something went wrong during integration. Here\'s what CUBA said:'
-            print str(out)
-            print str(err)
-        os.remove('integrate.h')
+            #running external C program
+            integrate = subprocess.Popen(['./integrate'], env={'OMP_NUM_THREADS': '4', 'CUBAVERBOSE': '0'},
+                                         shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+            out, err = integrate.communicate()
+            m = out.split(' ', 2)
+            try:
+                r = float(m[0])
+                e = float(m[1])
+            except ValueError:
+                print 'Something went wrong during integration. Here\'s what CUBA said:'
+                print str(out)
+                print str(err)
+
+            if k in result.keys():
+                result[k][0] += r
+                result[k][1] += e
+            else:
+                result[k] = [r, e]
+
+            os.remove('integrate.h')
+            os.remove('integrate')
+
 
     return NumEpsExpansion(result)
