@@ -25,6 +25,7 @@ objs = [s[:-1] + 'o' for s in obj_src]
 func = set()
 for i in obj_src:
     func.add(tuple(i[:-2].split('V')[1].split('_E')))
+print func
 
 headers = [s[:-1] + 'h' for s in obj_src]
 
@@ -34,7 +35,7 @@ env = Environment(  LIBS=['m','pvegas'],
                     platform='posix',ENV=os.environ) 
 
 for e in func:
-    curName = "V%s_E%s" % (e[0], e[1])
+    curName = "V%s_E%s." % (e[0], e[1])
     includes, functions = "", ""
 
     for i, fileName in enumerate(headers):
@@ -42,7 +43,7 @@ for e in func:
             functions += "f[0] += func_t_%s(k);\n" % fileName.split('_')[2]
             includes += "#include \"%s\"\n" % fileName
     region = ("0," * int(e[0]) + "1," * int(e[0]))[:-1]
-    pvegasFile = name + "_0_" + curName + ".c"
+    pvegasFile = name + "_0_" + curName + "c"
     f = open(pvegasFile, 'w')
     f.write('#define DIMENSION %s' % e[0])
     f.write(corePvegasCodeTemplate.format(
@@ -51,5 +52,5 @@ for e in func:
         functions=functions))
     f.close()
     targetName = pvegasFile[:-2]+".run" 
-    obj = [o for o in objs if 'V%s_E%s'%e in o ]
+    obj = [o for o in objs if 'V%s_E%s.'%e in o ]
     env.Program(target = targetName, source = [pvegasFile]+obj)

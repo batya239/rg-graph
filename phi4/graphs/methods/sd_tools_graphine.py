@@ -641,18 +641,23 @@ def generate_func_files(tree, generate_expr_for_sector, eps_order=0):
     files = collections.defaultdict(lambda: FunctionsFile(0))
     for sector in dynamics.xTreeElement2(tree):
         expr = generate_expr_for_sector(sector)
-    extracted = pole_extractor.extract_poles_and_eps_series(expr, eps_order)
-    formatted_dict = formatter.formatPoleExtracting(extracted)
-    for eps_order in formatted_dict:
-        for expr, variables in formatted_dict[eps_order]:
-            file_info = funcFileInfo(eps_order, len(variables))
-            function_file = files[file_info]
-            function_file.add_function(generate_function_body(expr, variables, "// sector: %s" % sector))
+        #print sector
+        #print expr
+        #print eps_order
+        extracted = pole_extractor.extract_poles_and_eps_series(expr, eps_order)
+        #print extracted
+        #print
+        formatted_dict = formatter.formatPoleExtracting(extracted)
+        for eps_order_ in formatted_dict:
+            for expr, variables in formatted_dict[eps_order_]:
+                file_info = funcFileInfo(eps_order_, len(variables))
+                function_file = files[file_info]
+                function_file.add_function(generate_function_body(expr, variables, "// sector: %s" % sector))
 
-            if len(function_file) > maxFunctionLength:
-                function_file.set_file_info(file_info)
-                files[file_info] = FunctionsFile(function_file.file_idx + 1)
-                yield function_file
+                if len(function_file) > maxFunctionLength:
+                    function_file.set_file_info(file_info)
+                    files[file_info] = FunctionsFile(function_file.file_idx + 1)
+                    yield function_file
 
     for file_info, function_file in files.items():
         if len(function_file) != 0:
