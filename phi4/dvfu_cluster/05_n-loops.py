@@ -61,13 +61,13 @@ lview = rc.load_balanced_view()
 print lview.apply_sync(getnode)
 ## Затем вызываем скрипт запуска этих cuba.run-файлов
 
-#lview.map(getDiags,diags)
+lview.map(getDiags,diags)
 #scheduled = lview.map(getDiags,diags)
 
 ## Direct view!
-dview = rc[:]
-scheduled = dview.map_sync(getDiags,diags)
-for s in scheduled: print s
+#dview = rc[:]
+#scheduled = dview.map_sync(getDiags,diags)
+#for s in scheduled: print s
 ## Возвращаемся обратно
 #cd $CUR_DIR
 os.chdir(CUR_DIR)

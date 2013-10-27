@@ -20,8 +20,9 @@ def compileCuba(dir):
     from platform import node
     wd = '/home/kirienko/work/rg-graph/phi_4_d2_s2/feynmanSDdotSF_mpi/'
     os.chdir(os.path.join(wd,dir))
-    cmd = 'scons -f ../SConstruct > scons_%s_%s.log 2>&1'%(dir,node())
+    cmd = 'scons -j 4 -f ../SConstruct > scons_%s_%s.log 2>&1'%(dir,node())
     os.system(cmd)
+    os.system("scons -f ../SConstruct -c cleanObjs")
     #return "%s scheduled at %s" %(dir,node())
 
 os.chdir(WORKDIR)

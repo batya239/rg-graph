@@ -6,7 +6,7 @@
 ## Параметры cuba:
 EpsRel = '1e-6'
 EpsAbs = '1e-12'
-MaxPoints = '1000000'
+MaxPoints = '10000'
 Method  = 'cuhre' ## one of: 'vegas', 'suave', 'divonne', 'cuhre'
 
 def method_num(method):
