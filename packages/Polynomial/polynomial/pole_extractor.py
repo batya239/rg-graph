@@ -59,7 +59,7 @@ def extract_poles_and_eps_series(poly_prod, order):
         result[o] = flatten_values
         for f, _vs in vs:
             for v in _vs:
-                flatten_values.append(LogarithmAndPolyProd(f, v))
+                flatten_values.append(LogarithmAndPolyProd(f.simplify(), v))
     return result
 
 
