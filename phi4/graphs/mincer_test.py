@@ -68,7 +68,9 @@ expr = C * D
 delta = polynomial.poly(map(lambda x: (1, (x,)), D.getVarsIndexes()))
 #print delta
 
-tree = sd_tools.gen_speer_tree(graph)
+#tree = sd_tools.gen_speer_tree(graph)
+#graph._cons = conservations_c
+tree = sd_tools.gen_speer_tree(graph, graph.getLoopsCount()+1)
 
 dir = os.path.join("sample_extraction/", str(graph))
 try:

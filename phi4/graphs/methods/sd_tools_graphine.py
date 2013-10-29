@@ -533,10 +533,13 @@ def add_speer_branches(tree, variables, conservations, parents=list(), depth=0):
                                    depth=depth - 1)
 
 
-def gen_speer_tree(graph):
+def gen_speer_tree(graph, depth=None):
     tree = Tree(None, [])
     variables = graph._qi.keys()
-    add_speer_branches(tree, variables, graph._cons, parents=list(), depth=graph.getLoopsCount())
+    if depth is None:
+        add_speer_branches(tree, variables, graph._cons, parents=list(), depth=graph.getLoopsCount())
+    else:
+        add_speer_branches(tree, variables, graph._cons, parents=list(), depth=depth)
     return tree
 
 
@@ -641,8 +644,8 @@ def generate_func_files(tree, generate_expr_for_sector, eps_order=0):
     files = collections.defaultdict(lambda: FunctionsFile(0))
     for sector in dynamics.xTreeElement2(tree):
         expr = generate_expr_for_sector(sector)
-        #print sector
-        #print expr
+        print sector
+        print expr
         #print eps_order
         extracted = pole_extractor.extract_poles_and_eps_series(expr, eps_order)
         #print extracted
