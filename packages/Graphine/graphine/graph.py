@@ -4,6 +4,7 @@ import copy
 import graph_state
 import rggraphutil
 import graph_operations
+import itertools
 
 assert graph_state.Edge.CREATE_EDGES_INDEX
 
@@ -252,13 +253,16 @@ class Graph(object):
     def xRelevantSubGraphs(self,
                            filters=list(),
                            resultRepresentator=Representator.asGraph,
-                           cutEdgesToExternal=True):
+                           cutEdgesToExternal=True,
+                           exact=True):
         allEdges = self.allEdges()
         simpleCache = dict()
-        for subGraphAsList in graph_operations.xSubGraphs(allEdges,
-                                                          self._edges,
-                                                          self.externalVertex,
-                                                          cutEdgesToExternal=cutEdgesToExternal):
+        exactSubGraphIterator = graph_operations.xSubGraphs(allEdges,
+                                                            self._edges,
+                                                            self.externalVertex,
+                                                            cutEdgesToExternal=cutEdgesToExternal)
+        sgIterator = exactSubGraphIterator if exact else itertools.chain(exactSubGraphIterator, (allEdges,))
+        for subGraphAsList in sgIterator:
             subGraphAsTuple = tuple(subGraphAsList)
             isValid = simpleCache.get(subGraphAsTuple, None)
             if isValid is None:
