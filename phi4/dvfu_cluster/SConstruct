@@ -4,45 +4,49 @@ from string import zfill
 
 listdir = os.listdir('.')
 
-pat = re.compile('.*func.*c$')
-obj_src = [i for i in listdir if pat.match(i)]
-num = len(obj_src)
-
-### compile object files
-for src in obj_src:
-    Object(src)
-
-### list of *.o-files
-objs = [ s[:-1]+'o' for s in obj_src]
-
+### Envs (TODO: via settings.py)
 localPath = os.getcwd() 
 cubaPath  = os.path.expanduser('~')+"/cuba/Cuba-3.0"
-headers   = [ os.path.join(localPath,s[:-1]+'h') for s in obj_src]
 
 env = Environment(  LIBS=['m','cuba'], 
                     LIBPATH=cubaPath, CPPPATH=[cubaPath],
                     CCFLAGS='-O2',
                     platform='posix',ENV=os.environ) 
 
-includes,functions = [],[]
 
-for fileName in headers:
-    i = int(fileName.split("_func_")[1].split("_")[0])
-    functions += ["f = func_t_%d(xx);" % i]
-    includes += ["#include \"%s\"\n"%(fileName)]
+pat = re.compile('.*func.*c$')
+## list of func-files
+obj_src = sorted([i for i in listdir if pat.match(i)])
+## list of *.o-files:
+objs = [ s[:-1]+'o' for s in obj_src]
+## list of headers:
+#headers   = [ os.path.join(localPath,s[:-1]+'h') for s in obj_src]
+num = len(obj_src) # <-- for zfill() and test purposes
 
-#cubaFiles = [os.path.join(tmpPath,localPath.split('/')[-1]+"_cuba__E%s.c" \
-cubaFiles = [os.path.join(localPath,localPath.split('/')[-1]+"_cuba__%s.c" \
-        %zfill(i,len(str(num)))) for i in range(num)]
-for i, cubaFile in enumerate(cubaFiles):
+
+### Loop over all func-files.
+### Every iteration produces one final binary cuba-file.
+for src in obj_src:
+## compile object files
+    Object(src)
+
+    i = int(src.split("_func_")[1].split("_")[0])
+    #print "fileName = %s, i = %s"%(src,i)
+    function = "f = func_t_%d(xx);" % i
+    header   = os.path.join(localPath,src[:-1]+'h')
+    include = "#include \"%s\"\n"%(header)
+
+    cubaFile = os.path.join(localPath,localPath.split('/')[-1]+"_cuba__%s.c" \
+        %zfill(i,len(str(num))))  
     f = open(cubaFile,'w')
     f.write(coreCubaCodeTemplate.format(
-            includes = includes[i],
+            includes = include,
             cuba_path= os.path.join(cubaPath,'cuba.h'),
-            functions= functions[i]))
+            functions= function))
     f.close()
-    #print cubaFile+" created\n"
     print "Compiling", cubaFile
     targetName = "cuba__%s.run" %zfill(i,len(str(num)))
     env.Program(target = targetName, source = [cubaFile]+objs)
+
+## Do nothing, just points out what to clean with '-c' option (see man scons)
 env.Clean("cleanObjs",objs)

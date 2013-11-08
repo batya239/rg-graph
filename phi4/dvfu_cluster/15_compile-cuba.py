@@ -20,7 +20,7 @@ def compileCuba(dir):
     from platform import node
     wd = '/home/kirienko/work/rg-graph/phi_4_d2_s2/feynmanSDdotSF_mpi/'
     os.chdir(os.path.join(wd,dir))
-    cmd = 'scons -j 4 -f ../SConstruct > scons_%s_%s.log 2>&1'%(dir,node())
+    cmd = 'scons -j 2 -f ../SConstruct > scons_%s_%s.log 2>&1'%(dir,node())
     os.system(cmd)
     os.system("scons -f ../SConstruct -c cleanObjs")
     #return "%s scheduled at %s" %(dir,node())
@@ -33,10 +33,11 @@ print rc.ids
 lview = rc.load_balanced_view()
 print lview.apply_sync(getnode)
 
-#dirs = os.listdir('.')
-#dirs = [ d for d in dirs if os.path.isdir(d) ]
-dirs = map(lambda x: x.strip(),open('todo.list').readlines())
-print dirs
+dirs = os.listdir('.')
+dirs = [ d for d in dirs if os.path.isdir(d) ]
+#dirs = map(lambda x: x.strip(),open('todo.list').readlines())
+print "Diags list:"
+for d in dirs: print d
 
 #scheduled = lview.map(compileCuba,dirs)
 #for s in scheduled: print s

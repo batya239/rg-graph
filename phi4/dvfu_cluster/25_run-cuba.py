@@ -4,10 +4,10 @@
 ## Исполняем все cuba-файлы 
 
 ## Параметры cuba:
-EpsRel = '1e-6'
+EpsRel = '1e-8'
 EpsAbs = '1e-12'
-MaxPoints = '10000'
-Method  = 'cuhre' ## one of: 'vegas', 'suave', 'divonne', 'cuhre'
+MaxPoints = '10000000'
+Method  = 'vegas' ## one of: 'vegas', 'suave', 'divonne', 'cuhre'
 
 def method_num(method):
     if method   == 'vegas': return '0'
@@ -32,7 +32,8 @@ from IPython.parallel import Client
 CUR_DIR = os.getcwd()
 print CUR_DIR
 
-WORKDIR = os.path.expanduser('~')+'/work/rg-graph/phi_4_d2_s2/feynmanSDdotSF_mpi/'
+#WORKDIR = os.path.expanduser('~')+'/work/rg-graph/phi_4_d2_s2/feynmanSDdotSF_mpi/'
+WORKDIR = os.path.expanduser('~')+'/work/rg-graph/phi_4_d2_s2/todo/'
 
 os.chdir(WORKDIR)
 
@@ -55,7 +56,7 @@ for d in diags:
         execNum = e.split('.')[0].split('__')[1] ##  number of executable
         cmd = ' '.join((os.path.join(path,e), method_num(Method), MaxPoints, EpsRel, EpsAbs, \
                     '>', '_'.join((path+'/out', execNum, d, Method, \
-                    MaxPoints.replace('000000','M'), \
+                    MaxPoints.replace('0000000','0M'), \
                     EpsRel, EpsAbs)) \
                     ))
         commands += [cmd]

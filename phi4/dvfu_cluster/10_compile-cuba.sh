@@ -11,7 +11,7 @@ cd $WORKDIR
 for d in `ls -d */`
     do
         cd $d
-        scons -j 8 -f ../SConstruct
+        scons -j 3 -f ../SConstruct
         cd ..
     done
 cd $CUR_DIR

@@ -52,10 +52,12 @@ for i in data1.keys():
     #print abs(data1[i][0]/sym_coef(i)*sympy.gamma(nloops(i)) - data2[i][0][0])
     try:
         delta = abs(data1[i][0][0]*sympy.gamma(nloops(i))/sym_coef(i) - data2[i][0][0])
-        if delta > 1e-2:
-            print i,'\t',delta,'\t', data1[i][0][0]*sympy.gamma(nloops(i))/sym_coef(i),'\t', data2[i][0][0]
+        err_mine = data1[i][1][0]*sympy.gamma(nloops(i))/sym_coef(i)
+        err_mkompan = data2[i][1][0]
+        if delta > .99e-4:
+            print i,'\t',delta,'\t', err_mine,'\t', err_mkompan, '\t', err_mkompan/err_mine
         else:
-            print i,':OK\t',delta,'\t', data1[i][0][0]*sympy.gamma(nloops(i))/sym_coef(i),'\t', data2[i][0][0]
+            print i,':OK\t',delta,'\t', err_mine,'\t', err_mkompan, '\t', err_mkompan/err_mine
     except:
         #pass
         print "Exception:",i
