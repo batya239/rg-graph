@@ -170,8 +170,9 @@ def _enumerate_graph(graph, init_propagators, to_sector=True):
             propagators = copy.copy(init_propagators)
             for c in comb:
                 propagators[c] = tuple(map(lambda q: -q, propagators[c]))
-            for ps in itertools.permutations(enumerate(propagators), len(internal_edges)):
-                _ps = dict(enumerate(map(lambda p_: p_[1], ps)))
+            enumerated = [x for x in enumerate(propagators)]
+            for ps in itertools.permutations(enumerated, len(internal_edges)):
+                _ps = dict(enumerated)
                 _ps[None] = external_propagator
                 mapped_internal_edges = map(lambda pair: pair[1].copy(colors=abs(pair[0][0])), zip(ps, internal_edges))
                 graph = graphine.Graph(mapped_external_edges + mapped_internal_edges,
