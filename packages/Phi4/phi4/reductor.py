@@ -131,11 +131,16 @@ def initialize():
     l = symbolic_functions.l
     two_loop_reductor = Reductor("loop2",
                                  "loop2",
+                                 #[(0, -1, 0),
+                                 # (1, 1, 0),
+                                 # (0, -1, 1),
+                                 # (0, 0, -1),
+                                 # (1, 0, 1)],
                                  [(0, 1, 0),
-                                  (1, 1, 0),
-                                  (0, 1, -1),
-                                  (0, 0, 1),
-                                  (1, 0, 1)],
+                                 (1, 1, 0),
+                                 (0, 1, -1),
+                                 (0, 0, 1),
+                                 (1, 0, 1)],
                                  [graphine.Graph.fromStr("e12-23-3-e-")],
                                  5,
                                  2,
@@ -157,7 +162,7 @@ def _enumerate_graph(graph, init_propagators, to_sector=True):
     to_sector = False => return graphine.Graph with corresponding colors
     """
     external_propagator = (1,) + (0,) * (len(init_propagators[0]) - 1)
-    mapped_external_edges = map(lambda e: e.copy(colors=len(init_propagators)), graph.externalEdges())
+    mapped_external_edges = map(lambda e: e.copy(colors=None), graph.externalEdges())
     internal_edges = graph.internalEdges()
     result = set()
     for i in xrange(len(init_propagators)):
@@ -166,9 +171,9 @@ def _enumerate_graph(graph, init_propagators, to_sector=True):
             for c in comb:
                 propagators[c] = tuple(map(lambda q: -q, propagators[c]))
             for ps in itertools.permutations(enumerate(propagators), len(internal_edges)):
-                _ps = map(lambda p_: p_[1], ps)
-                _ps.append(external_propagator)
-                mapped_internal_edges = map(lambda pair: pair[1].copy(colors=abs(pair[0][1])), zip(_ps, internal_edges))
+                _ps = dict(enumerate(map(lambda p_: p_[1], ps)))
+                _ps[None] = external_propagator
+                mapped_internal_edges = map(lambda pair: pair[1].copy(colors=abs(pair[0][0])), zip(ps, internal_edges))
                 graph = graphine.Graph(mapped_external_edges + mapped_internal_edges,
                                        externalVertex=graph.externalVertex)
                 valid = True
@@ -190,8 +195,8 @@ def _enumerate_graph(graph, init_propagators, to_sector=True):
 
 
 def _check_vertex_edges(vertex, edges, propagators):
-    sequence = zip(*map(lambda e: propagators[e.colors[0]] if vertex == e.nodes[0]
-                        else tuple(map(lambda q: -q, propagators[e.colors[0]])), edges))
+    sequence = zip(*map(lambda e: propagators[e.colors[0] if e.colors else None] if (vertex == e.nodes[0] or (vertex != 0 and e.nodes[0] == -1))
+                        else tuple(map(lambda q: -q, propagators[e.colors[0] if e.colors else None])), edges))
     _sum = map(lambda ps: sum(ps), sequence)
     for x in _sum:
         if x != 0:
