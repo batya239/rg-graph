@@ -124,8 +124,8 @@ class RStarTestCase(base_test_case.GraphStorageAwareTestCase):
     #                         "-(4./3)/2/e-(2./15)/2/2/e/e+11./5/2/2/2/e/e/e-32./15/2/2/2/2/e/e/e/e+4./5/2/2/2/2/2/e/e/e/e/e")
 
     def test_ee12_234_35_45_e5_e_(self):
-        self._do_test_krstar("e12-e234-35-45-5--",
-                             "1/378*(Pi**6-(75.6000000000000042)*zeta(3)**2+1134*zeta(5))*e**(-1)-4*zeta(5)*e**(-2)", use_graph_calculator=True)
+        self._do_test_krstar("e123-e24-55-e45-e5--",
+                             "-1/378*(Pi**6+(831.60000000000006715)*zeta(3)**2-1890*zeta(5))*e**(-1)-zeta(5)*e**(-2)", use_graph_calculator=True)
 
     #def test_ee12_22__(self):
     #    self._do_test_ir_coperation("ee12-22--", "1/2*e**(-2)+1/2*e**(-1)")

@@ -73,7 +73,7 @@ def calculate_graph(graph):
     std_out = proc.stdout.read().replace("\n", "")
 
     raw_result = _RESULT_REGEXP.findall(std_out)[0]
-    raw_result = raw_result.replace("Q.Q^-1", "1").replace("^", "**").replace("ep", "e")
+    raw_result = raw_result.replace("Q.Q", "1").replace("^", "**").replace("ep", "e")
     raw_result = _replace_zetas(raw_result)
     raw_result = symbolic_functions.safe_integer_numerators(raw_result)
     if raw_result.strip() == '0':
@@ -86,6 +86,7 @@ def calculate_graph(graph):
     #noinspection PyUnusedLocal
     zeta = swiginac.zeta
     res = eval(raw_result)
+    print "MINCER", graph, res
     return res, _calculate_p_factor(graph)
 
 

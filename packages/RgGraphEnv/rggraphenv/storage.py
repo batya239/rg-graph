@@ -41,6 +41,10 @@ def initStorage(theoryName, exprSerializer, graphStorageUseFunctions=False):
     _IR_C_OPERATION_STORAGE_REF.set(_MercurialGraphOperationValuesStorage(theoryName, 1, _STORAGE_PATH, _IR_C_OPERATION_STORAGE_FILE_NAME, exprSerializer))
 
 
+def is_enabled():
+    return _V_STORAGE_REF.get() and _R_STORAGE_REF.get() and _R1_STORAGE_REF.get() and _KR1_STORAGE_REF.get()
+
+
 def putGraph(graph, expression, methodName, description=""):
     _V_STORAGE_REF.get().putGraph(graph, expression, methodName, description)
 

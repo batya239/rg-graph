@@ -10,6 +10,9 @@ assert graph_state.Edge.CREATE_EDGES_INDEX
 
 
 class Representator(object):
+    """
+    see Graph#xRelevantSubGraphs
+    """
     def __init__(self):
         raise AssertionError
 
@@ -27,33 +30,19 @@ class Representator(object):
         return Graph(edgeList, externalVertex=externalVertex, renumbering=True)
 
 
-class _IdAwareEdgeDelegate(object):
-    """
-    DO NOT USE IT OUTSIDE THIS PACKAGE
-
-    used for comparing edges by id
-    """
-    def __init__(self, edge):
-        self._edge = edge
-
-    @property
-    def edge(self):
-        return self._edge
-
-    def __hash__(self):
-        return hash(self.edge.edge_id)
-
-    def __eq__(self, other):
-        return self.edge.edge_id == other.edge.edge_id
-
-
 class Graph(object):
     """
     representation of graph
     """
     def __init__(self, obj, externalVertex=-1, renumbering=True):
         """
+        constructor to create Graph
+
+        obj - adjacency matrix, edges list or GraphState
+
         self.edges - dict where keys is one vertex of edge and value is list of second vertices
+
+        renumbering - reordering edges using GraphState
         """
         if isinstance(obj, list):
             self._edges = Graph._parseEdges(graph_state.GraphState(obj).edges if renumbering else obj)
@@ -103,6 +92,9 @@ class Graph(object):
         return to_return
 
     def edges(self, vertex, vertex2=None):
+        """
+        returns all edges with one vertex equals vertex parameter
+        """
         if vertex2 is None:
             return copy.copy(self._edges.get(vertex, []))
         return filter(lambda e: vertex2 in e.nodes, self._edges.get(vertex, []))
@@ -308,6 +300,10 @@ class Graph(object):
         asStr = str(self)
         return asStr[:asStr.index("::")]
 
+    def removeTadpoles(self):
+        no_tadpoles = filter(lambda e: e.nodes[0] != e.nodes[1], self.allEdges())
+        return Graph(no_tadpoles, externalVertex=self.externalVertex)
+
     def __repr__(self):
         return str(self)
 
@@ -474,3 +470,23 @@ class VertexTransformation(object):
 
 
 ID_VERTEX_TRANSFORMATION = VertexTransformation()
+
+
+class _IdAwareEdgeDelegate(object):
+    """
+    DO NOT USE IT OUTSIDE THIS PACKAGE
+
+    used for comparing edges by id
+    """
+    def __init__(self, edge):
+        self._edge = edge
+
+    @property
+    def edge(self):
+        return self._edge
+
+    def __hash__(self):
+        return hash(self.edge.edge_id)
+
+    def __eq__(self, other):
+        return self.edge.edge_id == other.edge.edge_id

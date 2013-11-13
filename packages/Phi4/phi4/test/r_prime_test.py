@@ -154,8 +154,8 @@ class RPrimeTestCase(base_test_case.GraphStorageAwareTestCase):
     #    self.do_test_r1("e112-23-3-e-", "(0.16666666666666666667)*e**(-3)-(0.5)*e**(-2)+(0.6666666666666666667)*e**(-1)", force=True, use_graph_calculator=True)
 
     def test_ee12_234_35_45_e5_e_(self):
-        self.do_test_r1("e12-e234-35-45-5--",
-                             "1/378*(Pi**6-(75.6000000000000042)*zeta(3)**2+1134*zeta(5))*e**(-1)-4*zeta(5)*e**(-2)", use_graph_calculator=True)
+        self.do_test_r1("e123-e45-e45-445--e-",
+                             "0", use_graph_calculator=True)
 
     #def test_e123_22_4_455_e5__(self):
     #    self.do_test_r1("e123-22-4-455-e5--", "(8./30)/e-(8./60)/e/e+34./120/e/e/e-16./80/e/e/e/e+8./160/e/e/e/e/e")
