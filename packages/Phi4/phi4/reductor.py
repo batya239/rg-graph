@@ -41,7 +41,6 @@ class Reductor(object):
         self._topologies = reduce(lambda ts, t: ts | _enumerate_graph(t, self._propagators, to_sector=False),
                                   topologies,
                                   set())
-        print self._topologies
         self._all_propagators_count = all_propagators_count
         self._main_loop_count_condition = main_loop_count_condition
         self._sector_rules = list()
@@ -188,7 +187,7 @@ def _enumerate_graph(graph, init_propagators, to_sector=True):
                     if not to_sector:
                         result.add(graph)
                     else:
-                        raw_sector = [0] * len(internal_edges)
+                        raw_sector = [0] * len(init_propagators)
                         for p in ps:
                             raw_sector[p[0]] = 1
                         result.add(sector.Sector(raw_sector))
