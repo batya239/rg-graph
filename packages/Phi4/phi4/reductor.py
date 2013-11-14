@@ -179,7 +179,15 @@ def initialize():
     l = symbolic_functions.l
     three_loop_reductor = Reductor("loop3",
                                    "loop3",
-                                   [], #TODO propagators
+                                   [(0, 1, 0, 0),
+                                    (1, 1, 0, 0),
+                                    (0, 1, 1, 0),
+                                    (0, 0, 1, 0),
+                                    (0, 0, 1, 1),
+                                    (0, 0, 0, 1),
+                                    (1, 0, 0, 1),
+                                    (0, 1, 0, -1),
+                                    (1, 0, -1, 0)],
                                    [graphine.Graph.fromStr("e12-34-35-4-5-e-")],
                                    9,
                                    3,

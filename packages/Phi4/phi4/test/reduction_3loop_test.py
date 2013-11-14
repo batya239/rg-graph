@@ -7,8 +7,6 @@ __author__ = 'dima'
 import unittest
 import reductor
 import graphine
-from rggraphenv import storage, theory
-import symbolic_functions
 
 
 class Reduction3LoopTest(unittest.TestCase):
@@ -19,10 +17,8 @@ class Reduction3LoopTest(unittest.TestCase):
     #    storage.closeStorage(revert=True)
 
     def test_tbubble(self):
-        storage.initStorage(theory.PHI4, symbolic_functions.to_internal_code, graphStorageUseFunctions=True)
         reductor.initialize()
         print reductor.calculate(graphine.Graph.fromStr("e12-23-3-e-::['(0, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(0, 0)']"))
-        storage.closeStorage(revert=True)
 
     #def do_test(self, graph_as_string, expected_value_string):
     #    g = graphine.Graph.fromStr(graph_as_string)
