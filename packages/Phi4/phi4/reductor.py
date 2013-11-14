@@ -165,7 +165,8 @@ class Reductor(object):
         if not os.path.exists(file_path):
             with open(file_path, 'w') as f:
                 for s, v in self._masters.iteritems():
-                    f.write(str(s.propagators_weights) + ";" + symbolic_functions.safe_integer_numerators(str(v)) + "\n")
+                    f.write(
+                        str(s.propagators_weights) + ";" + symbolic_functions.safe_integer_numerators(str(v)) + "\n")
         else:
             raise ValueError("file %s already exists" % file_path)
 
@@ -174,33 +175,33 @@ _MAIN_REDUCTION_HOLDER = ref.Ref.create()
 
 
 def initialize():
-    #three_loop_reductor = Reductor("loop3",
-    #                               "loop3",
-    #                               [graphine.Graph.fromStr("e12-34-35-4-5-e-::[None, 1, 0, 2, 8, 7, 5, 4, 6, None]"),
-    #                                graphine.Graph.fromStr("e12-34-35-4-5-e-::[None, 1, 0, 7, 6, 2, 3, 4, 8, None]"),
-    #                                graphine.Graph.fromStr("e12-34-35-4-5-e-::[None, 8, 3, 2, 1, 4, 5, 7, 6, None]")],
-    #                               9,
-    #                               3,
-    #                               [("P1", "e112-22-e-", ("G(1,1)*G(1,1)*G(2-2*e,1)", (2, -3))),
-    #                                ("P2", "e11-222-e-", ("G(1,1)*G(1,1)*G(1-e,1)", (2, -3))),
-    #                                ("P3", "e1111-e-", ("G(1,1)*G(1-e,1)*G(1-2*e,1)", (1, -3))),
-    #                                ("L1", "e12-223-3-e-", ("(swiginac.exp(-3*swiginac.Euler*e)*(1./3/e/e/e+"
-    #                                                        "7./3/e/e+"
-    #                                                        "(31./3-Pi**2/12)/e+"
-    #                                                        "(103./3-7*Pi**2/12+7*zeta(3)/3)+"
-    #                                                        "e*(235./3-31*Pi**2/12+49*zeta(3)/3+5*Pi**4/96)+"
-    #                                                        "e**2*(19./3-103*Pi**2/12+289*zeta(3)/3+35*Pi**4/96-7*Pi**2*zeta(3)/12+599*zeta(5)/5)))",
-    #                                                        (3, -3)))])
-
     G = symbolic_functions.G
     l = symbolic_functions.l
+    three_loop_reductor = Reductor("loop3",
+                                   "loop3",
+                                   [], #TODO propagators
+                                   [graphine.Graph.fromStr("e12-34-35-4-5-e-")],
+                                   9,
+                                   3,
+                                   {graphine.Graph.fromStr("e112-22-e-"): G(1, 1) * G(1, 1) * G(2 - 2 * l, 1),
+                                    graphine.Graph.fromStr("e11-222-e-"): G(1, 1) * G(1, 1) * G(1 - l, 1),
+                                    graphine.Graph.fromStr("e1111-e-"): G(1, 1) * G(1 - l, 1) * G(1 - 2 * l, 1),
+                                    graphine.Graph.fromStr("e12-223-3-e-"):
+                                        symbolic_functions.evaluate("(swiginac.exp(-3*swiginac.Euler*e)*(1./3/e/e/e+"
+                                        "7./3/e/e+"
+                                        "(31./3-Pi**2/12)/e+"
+                                        "(103./3-7*Pi**2/12+7*zeta(3)/3)+"
+                                        "e*(235./3-31*Pi**2/12+49*zeta(3)/3+5*Pi**4/96)+"
+                                        "e**2*(19./3-103*Pi**2/12+289*zeta(3)/3+35*Pi**4/96-7*Pi**2*zeta(3)/12+599*zeta(5)/5)))")})
+
+
     two_loop_reductor = Reductor("loop2",
                                  "loop2",
                                  [(0, 1, 0),
-                                 (1, 1, 0),
-                                 (0, 1, -1),
-                                 (0, 0, 1),
-                                 (1, 0, 1)],
+                                  (1, 1, 0),
+                                  (0, 1, -1),
+                                  (0, 0, 1),
+                                  (1, 0, 1)],
                                  [graphine.Graph.fromStr("e12-23-3-e-")],
                                  5,
                                  2,
@@ -256,8 +257,9 @@ def _enumerate_graph(graph, init_propagators, to_sector=True):
 
 
 def _check_vertex_edges(vertex, edges, propagators):
-    sequence = zip(*map(lambda e: propagators[e.colors[0] if e.colors else None] if (vertex == e.nodes[0] or (vertex != 0 and e.nodes[0] == -1))
-                        else tuple(map(lambda q: -q, propagators[e.colors[0] if e.colors else None])), edges))
+    sequence = zip(*map(lambda e: propagators[e.colors[0] if e.colors else None] if (
+    vertex == e.nodes[0] or (vertex != 0 and e.nodes[0] == -1))
+    else tuple(map(lambda q: -q, propagators[e.colors[0] if e.colors else None])), edges))
     _sum = map(lambda ps: sum(ps), sequence)
     for x in _sum:
         if x != 0:
