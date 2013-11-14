@@ -33,13 +33,14 @@ class Reductor(object):
     def __init__(self,
                  env_name,
                  env_path,
-                 propagators,
                  topologies,
                  main_loop_count_condition,
                  masters):
         self._env_name = env_name
         self._env_path = env_path
-        self._propagators = propagators
+        self._main_loop_count_condition = main_loop_count_condition
+        self._propagators = jrules_parser.parse_propagators(self._get_file_path(self._env_name),
+                                                            self._main_loop_count_condition)
         read_topologies = self._try_read_topologies()
         if read_topologies:
             self._topologies = read_topologies
@@ -48,8 +49,7 @@ class Reductor(object):
                                       topologies,
                                       set())
             self._save_topologies()
-        self._all_propagators_count = len(propagators)
-        self._main_loop_count_condition = main_loop_count_condition
+        self._all_propagators_count = len(self._propagators)
         self._sector_rules = list()
         self._zero_sectors = list()
         self._open_j_rules()
@@ -178,15 +178,6 @@ def initialize():
     l = symbolic_functions.l
     three_loop_reductor = Reductor("loop3",
                                    "loop3",
-                                   [(0, 1, 0, 0),
-                                    (1, 1, 0, 0),
-                                    (0, 1, 1, 0),
-                                    (0, 0, 1, 0),
-                                    (0, 0, 1, 1),
-                                    (0, 0, 0, 1),
-                                    (1, 0, 0, 1),
-                                    (0, 1, 0, -1),
-                                    (1, 0, -1, 0)],
                                    [graphine.Graph.fromStr("e12-34-35-4-5-e-")],
                                    3,
                                    {graphine.Graph.fromStr("e112-22-e-"): G(1, 1) * G(1, 1) * G(2 - 2 * l, 1),
@@ -201,11 +192,6 @@ def initialize():
                                         "e**2*(19./3-103*Pi**2/12+289*zeta(3)/3+35*Pi**4/96-7*Pi**2*zeta(3)/12+599*zeta(5)/5)))")})
     two_loop_reductor = Reductor("loop2",
                                  "loop2",
-                                 [(0, 1, 0),
-                                  (1, 1, 0),
-                                  (0, 1, -1),
-                                  (0, 0, 1),
-                                  (1, 0, 1)],
                                  [graphine.Graph.fromStr("e12-23-3-e-")],
                                  2,
                                  {graphine.Graph.fromStr("e111-e-"): G(1, 1) * G(1 - l, 1),

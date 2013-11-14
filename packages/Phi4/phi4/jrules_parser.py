@@ -11,6 +11,7 @@ _SECTOR_CONDITION_REGEXP = re.compile(".*n(.+)_\)\?(.+)")
 _EXPAND_REGEXP = re.compile(".*Expand\[(.*)$")
 _JS_REGEXP = re.compile("(js[^\]]+\])")
 _SECTOR_SECTOR_REGEXP = re.compile("(Sector[^\)]+\))")
+_PROPAGATORS_REGEXP = re.compile("Ds\[[^\{]+\{([^\}]+)\}")
 _DEBUG = False
 
 
@@ -126,9 +127,25 @@ def x_parse_rules(file_path, j_suffix, raw_zero_sectors):
             yield rule
 
 
-def main():
-    for r in x_parse_rules(sys.argv[1], sys.argv[2]):
-        print r
-
-if __name__ == "__main__":
-    main()
+def parse_propagators(file_path, loops_count):
+    propagator_variables = ["p"]
+    for i in xrange(1, loops_count + 1):
+        propagator_variables.append("k%d" % i)
+    propagators = list()
+    with open(file_path, 'r') as f:
+        content = "".join(f.readlines())
+        content = content.replace("\n", "")
+        raw_result = _PROPAGATORS_REGEXP.findall(content)[0]
+        raw_result = raw_result.split(",")
+        for i in xrange(1, len(raw_result), 2):
+            raw_propagator = raw_result[i][:-1].replace(" ", "")
+            propagator_as_list = list()
+            for variable in propagator_variables:
+                index = raw_propagator.find(variable)
+                if index != -1:
+                    sign = 1 if index == 0 or raw_propagator[index - 1] == "+" else - 1
+                    propagator_as_list.append(sign)
+                else:
+                    propagator_as_list.append(0)
+            propagators.append(tuple(propagator_as_list))
+    return propagators
