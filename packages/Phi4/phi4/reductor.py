@@ -35,7 +35,6 @@ class Reductor(object):
                  env_path,
                  propagators,
                  topologies,
-                 all_propagators_count,
                  main_loop_count_condition,
                  masters):
         self._env_name = env_name
@@ -49,7 +48,7 @@ class Reductor(object):
                                       topologies,
                                       set())
             self._save_topologies()
-        self._all_propagators_count = all_propagators_count
+        self._all_propagators_count = len(propagators)
         self._main_loop_count_condition = main_loop_count_condition
         self._sector_rules = list()
         self._zero_sectors = list()
@@ -189,7 +188,6 @@ def initialize():
                                     (0, 1, 0, -1),
                                     (1, 0, -1, 0)],
                                    [graphine.Graph.fromStr("e12-34-35-4-5-e-")],
-                                   9,
                                    3,
                                    {graphine.Graph.fromStr("e112-22-e-"): G(1, 1) * G(1, 1) * G(2 - 2 * l, 1),
                                     graphine.Graph.fromStr("e11-222-e-"): G(1, 1) * G(1, 1) * G(1 - l, 1),
@@ -211,7 +209,6 @@ def initialize():
                                   (0, 0, 1),
                                   (1, 0, 1)],
                                  [graphine.Graph.fromStr("e12-23-3-e-")],
-                                 5,
                                  2,
                                  {graphine.Graph.fromStr("e111-e-"): G(1, 1) * G(1 - l, 1),
                                   graphine.Graph.fromStr("e11-22-e-"): G(1, 1) ** 2})
