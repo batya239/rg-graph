@@ -199,8 +199,6 @@ def initialize():
                                         "(103./3-7*Pi**2/12+7*zeta(3)/3)+"
                                         "e*(235./3-31*Pi**2/12+49*zeta(3)/3+5*Pi**4/96)+"
                                         "e**2*(19./3-103*Pi**2/12+289*zeta(3)/3+35*Pi**4/96-7*Pi**2*zeta(3)/12+599*zeta(5)/5)))")})
-
-
     two_loop_reductor = Reductor("loop2",
                                  "loop2",
                                  [(0, 1, 0),
@@ -263,8 +261,8 @@ def _enumerate_graph(graph, init_propagators, to_sector=True):
 
 def _check_vertex_edges(vertex, edges, propagators):
     sequence = zip(*map(lambda e: propagators[e.colors[0] if e.colors else None] if (
-    vertex == e.nodes[0] or (vertex != 0 and e.nodes[0] == -1))
-    else tuple(map(lambda q: -q, propagators[e.colors[0] if e.colors else None])), edges))
+                        vertex == e.nodes[0] or (vertex != 0 and e.nodes[0] == -1))
+                        else tuple(map(lambda q: -q, propagators[e.colors[0] if e.colors else None])), edges))
     _sum = map(lambda ps: sum(ps), sequence)
     for x in _sum:
         if x != 0:
