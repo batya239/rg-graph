@@ -7,7 +7,7 @@ import rggraphutil
 import itertools
 import swiginac
 import copy
-import symbolic_functions
+from rggraphenv import symbolic_functions
 
 
 class Sector(object):

@@ -9,7 +9,7 @@ import reductor
 import graphine
 
 
-class Reduction3LoopTest(unittest.TestCase):
+class ReductionTest(unittest.TestCase):
     #def test_WAT1(self):
     #    storage.initStorage(theory.PHI4, symbolic_functions.to_internal_code, graphStorageUseFunctions=True)
     #    reductor.initialize()

@@ -6,17 +6,14 @@ import common
 import const
 import diff_util
 import ir_uv
+import gfun_calculator
+import rggraphenv.storage as storage
+import rggraphutil
+import forest
+from rggraphenv import symbolic_functions
 
 __author__ = 'daddy-bear'
 
-import symbolic_functions
-import gfun_calculator
-#noinspection PyPep8Naming
-import rggraphenv.storage as storage
-#noinspection PyPep8Naming
-import rggraphutil
-import swiginac
-import forest
 
 DEBUG = False
 
@@ -243,7 +240,7 @@ def _two_tails_no_tadpoles(g):
 def _do_r1(raw_graph, k_operation, uv_subgraph_filter, description="", use_graph_calculator=True, force=False, inside_krstar=False):
     if len(raw_graph.edges(raw_graph.externalVertex)) == 2:
         if not force and not common.defaultGraphHasNotIRDivergence(raw_graph):
-            raise AssertionError(str(rawGraph) + " - IR divergence")
+            raise AssertionError(str(raw_graph) + " - IR divergence")
         iterator = raw_graph,
     else:
         iterator = graphine.momentum.xPassExternalMomentum(raw_graph, common.defaultGraphHasNotIRDivergenceFilter)

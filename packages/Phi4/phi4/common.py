@@ -2,8 +2,8 @@
 # -*- coding: utf8
 import graphine
 import const
-import symbolic_functions
 import ir_uv
+from rggraphenv import symbolic_functions
 
 __author__ = 'daddy-bear'
 

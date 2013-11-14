@@ -6,7 +6,7 @@ import os
 import shutil
 import subprocess
 import rggraphutil
-import symbolic_functions
+from rggraphenv import symbolic_functions
 
 __author__ = 'mkompan'
 

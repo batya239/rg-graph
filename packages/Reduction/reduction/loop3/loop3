@@ -1,10 +1,10 @@
 BasisDirectory[loop3] = StringDrop[DirectoryName[$Input], -1]
 loop3 /: BasisSectors[loop3] := Get[StringJoin[BasisDirectory[loop3], 
     "/BasisSectors[loop3]"]]
-loop3 /: Ds[loop3] := {sp[k1, k1], sp[k1 + q, k1 + q], sp[k1 + k2, k1 + k2], 
-   sp[k2, k2], sp[k2 + k3, k2 + k3], sp[k3, k3], sp[k3 + q, k3 + q], 
-   sp[k1 - k3, k1 - k3], sp[-k2 + q, -k2 + q]}
-loop3 /: EMs[loop3] := {q}
+loop3 /: Ds[loop3] := {sp[k1, k1], sp[k1 + p, k1 + p], sp[k1 + k2, k1 + k2],
+   sp[k2, k2], sp[k2 + k3, k2 + k3], sp[k3, k3], sp[k3 + p, k3 + p],
+   sp[k1 - k3, k1 - k3], sp[-k2 + p, -k2 + p]}
+loop3 /: EMs[loop3] := {p}
 loop3 /: IBP[loop3] := Get[StringJoin[BasisDirectory[loop3], "/IBP[loop3]"]]
 loop3 /: jRules[loop3, 0, 0, 1, 0, 0, 1, 0, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 

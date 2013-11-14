@@ -6,12 +6,12 @@ import const
 import graph_state
 import common
 import lambda_number
-import symbolic_functions
-from rggraphenv import storage, graph_calculator
+from rggraphenv import storage, graph_calculator, symbolic_functions
 
 DEBUG = False
 
-def _createFilter():
+
+def _create_filter():
     class RelevanceCondition:
     # noinspection PyUnusedLocal
         def __init__(self):
@@ -107,7 +107,7 @@ class GGraphReducer(object):
             raise TypeError('unsupported type of initial graph')
         self._iterationGraphs = [self._initGraph] if iterationGraphs is None else iterationGraphs
         self._iterationValues = [] if iterationValues is None else iterationValues
-        self._subGraphFilter = subGraphFilters if rawFilters else (_createFilter() + subGraphFilters)
+        self._subGraphFilter = subGraphFilters if rawFilters else (_create_filter() + subGraphFilters)
         self._useGraphCalculator = useGraphCalculator
         self._isTadpole = None
 

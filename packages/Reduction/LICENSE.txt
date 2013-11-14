@@ -1,4 +1,4 @@
-Phi4. Library allows calculate Phi4 theory graphs and corresponding R operation using various methods
+Reduction of Feynmann graphs using LiteRed reduction rules
 Copyright (C) 2013  Dmitry Batkovich
 
 This program is free software: you can redistribute it and/or modify

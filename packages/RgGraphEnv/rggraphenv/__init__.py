@@ -9,7 +9,7 @@ import common_storage
 import abstract_graph_calculator
 import storage
 import graph_calculator
-import cas_variable_resolver
+import symbolic_functions
 from abstract_graph_calculator import AbstractGraphCalculator
 
 __author__ = 'daddy-bear'

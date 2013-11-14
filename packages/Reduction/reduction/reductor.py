@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf8
 import copy
-import symbolic_functions
+from rggraphenv import symbolic_functions
 
 __author__ = 'dimas'
 
@@ -174,6 +174,7 @@ _MAIN_REDUCTION_HOLDER = ref.Ref.create()
 
 
 def initialize():
+    #noinspection PyPep8Naming
     G = symbolic_functions.G
     l = symbolic_functions.l
     three_loop_reductor = Reductor("loop3",
@@ -254,3 +255,5 @@ def _check_vertex_edges(vertex, edges, propagators):
         if x != 0:
             return False
     return True
+
+initialize()
