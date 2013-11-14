@@ -27,6 +27,9 @@ class ReductorHolder(object):
 
 
 class Reductor(object):
+    TOPOLOGIES_FILE_NAME = "topologies"
+    MASTERS_FILE_NAME = "masters"
+
     def __init__(self,
                  env_name,
                  env_path,
@@ -38,18 +41,29 @@ class Reductor(object):
         self._env_name = env_name
         self._env_path = env_path
         self._propagators = propagators
-        self._topologies = reduce(lambda ts, t: ts | _enumerate_graph(t, self._propagators, to_sector=False),
-                                  topologies,
-                                  set())
+        read_topologies = self._try_read_topologies()
+        if read_topologies:
+            self._topologies = read_topologies
+        else:
+            self._topologies = reduce(lambda ts, t: ts | _enumerate_graph(t, self._propagators, to_sector=False),
+                                      topologies,
+                                      set())
+            self._save_topologies()
         self._all_propagators_count = all_propagators_count
         self._main_loop_count_condition = main_loop_count_condition
         self._sector_rules = list()
         self._zero_sectors = list()
         self._open_j_rules()
-        self._masters = dict()
-        for m, v in masters.items():
-            for enumerated in _enumerate_graph(m, self._propagators, to_sector=True):
-                self._masters[enumerated] = v
+
+        read_masters = self._try_read_masters()
+        if read_masters:
+            self._masters = read_masters
+        else:
+            self._masters = dict()
+            for m, v in masters.items():
+                for enumerated in _enumerate_graph(m, self._propagators, to_sector=True):
+                    self._masters[enumerated] = v
+            self._save_masters()
 
     def _open_j_rules(self):
         dir_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), self._env_path)
@@ -103,6 +117,58 @@ class Reductor(object):
         value = sectors.get_value(self._masters)
         return value
 
+    def _get_file_path(self, file_name):
+        dir_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), self._env_path)
+        file_path = os.path.join(dir_path, file_name)
+        return file_path
+
+    def _get_topologies_file_path(self):
+        return self._get_file_path(Reductor.TOPOLOGIES_FILE_NAME)
+
+    def _get_masters_file_path(self):
+        return self._get_file_path(Reductor.MASTERS_FILE_NAME)
+
+    def _try_read_topologies(self):
+        file_path = self._get_topologies_file_path()
+        if os.path.exists(file_path):
+            topologies = set()
+            with open(file_path, 'r') as f:
+                for s in f:
+                    topologies.add(graphine.Graph.fromStr(s))
+                return topologies
+        return None
+
+    def _save_topologies(self):
+        file_path = self._get_topologies_file_path()
+        if not os.path.exists(file_path):
+            with open(file_path, 'w') as f:
+                for t in self._topologies:
+                    f.write(str(t) + "\n")
+        else:
+            raise ValueError("file %s already exists" % file_path)
+
+    def _try_read_masters(self):
+        file_path = self._get_masters_file_path()
+        if os.path.exists(file_path):
+            with open(file_path, 'r') as f:
+                masters = dict()
+                for s in f:
+                    raw_sector, raw_value = s.split(";")
+                    value = symbolic_functions.evaluate(raw_value)
+                    _sector = sector.Sector(eval(raw_sector))
+                    masters[_sector] = value
+                return masters
+        return None
+
+    def _save_masters(self):
+        file_path = self._get_masters_file_path()
+        if not os.path.exists(file_path):
+            with open(file_path, 'w') as f:
+                for s, v in self._masters.iteritems():
+                    f.write(str(s.propagators_weights) + ";" + symbolic_functions.safe_integer_numerators(str(v)) + "\n")
+        else:
+            raise ValueError("file %s already exists" % file_path)
+
 
 _MAIN_REDUCTION_HOLDER = ref.Ref.create()
 
@@ -130,11 +196,6 @@ def initialize():
     l = symbolic_functions.l
     two_loop_reductor = Reductor("loop2",
                                  "loop2",
-                                 #[(0, -1, 0),
-                                 # (1, 1, 0),
-                                 # (0, -1, 1),
-                                 # (0, 0, -1),
-                                 # (1, 0, 1)],
                                  [(0, 1, 0),
                                  (1, 1, 0),
                                  (0, 1, -1),

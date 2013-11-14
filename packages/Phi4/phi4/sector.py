@@ -12,7 +12,7 @@ import symbolic_functions
 
 class Sector(object):
     def __init__(self, *propagators_weights):
-        if len(propagators_weights) == 1 and isinstance(propagators_weights[0], list):
+        if len(propagators_weights) == 1 and isinstance(propagators_weights[0], (list, tuple)):
             self._propagators_weights = tuple(propagators_weights[0])
         else:
             self._propagators_weights = propagators_weights
