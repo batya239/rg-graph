@@ -25,6 +25,9 @@ class Sector(object):
     def as_sector_linear_combinations(self):
         return SectorLinearCombination.singleton(self, 1)
 
+    def __neg__(self):
+        return SectorLinearCombination.singleton(self, -1)
+
     def __str__(self):
         return "Sector" + str(self._propagators_weights)
 
