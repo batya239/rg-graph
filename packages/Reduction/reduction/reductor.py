@@ -195,7 +195,7 @@ def initialize():
                                                                     "e**2*(19./3-103*Pi**2/12+289*zeta(3)/3+35*Pi**4/96-7*Pi**2*zeta(3)/12+599*zeta(5)/5)+"
                                                                     "e**3*(-3953./3-235*Pi**2/12+1729*zeta(3)/3+967*Pi**4/480-49*Pi**2*zeta(3)/12+4193*zeta(5)/5+108481*Pi**6/362880-599*zeta(3)**2/6)+"
                                                                     "e**4*(-31889./3-19*Pi**2/12+10213*zeta(3)/3+5263*Pi**4/480-289*Pi**2*zeta(3)/12+20609*zeta(5)/5+108481*Pi**6/51840-4193*zeta(3)**2/6-1553*Pi**4*zeta(3)/480-599*Pi**2*zeta(5)/20+13593*zeta(7)/7)+"
-                                                                    "e**5*(-188141./3+3953*Pi**2/12+57445*zeta(3)/3+28723*Pi**4/480-1729*Pi**2*zeta(3)/12+90257*zeta(5)/5+3695263*Pi**6/362880-21449*zeta(3)**2/6-10871*Pi**4*zeta(3)/480-4193*Pi**2*zeta(5)/20+13593*zeta(7)+1913939*Pi**8/5806080+599*Pi**2*zeta(3)**2/24-9847*zeta(3)*zeta(5)/5+576*psi(-6,-2))"
+                                                                    "e**5*(-188141./3+3953*Pi**2/12+57445*zeta(3)/3+28723*Pi**4/480-1729*Pi**2*zeta(3)/12+90257*zeta(5)/5+3695263*Pi**6/362880-21449*zeta(3)**2/6-10871*Pi**4*zeta(3)/480-4193*Pi**2*zeta(5)/20+13593*zeta(7)+1913939*Pi**8/5806080+599*Pi**2*zeta(3)**2/24-9847*zeta(3)*zeta(5)/5+576*65)"
                                                                     "))")})
     two_loop_reductor = Reductor("loop2",
                                  "loop2",
@@ -305,6 +305,3 @@ def _enumerate_graph(graph, init_propagators, to_sector=True):
                 raw_sector[e.colors[0]] = 1
             sector_result.add(sector.Sector(raw_sector))
         return sector_result
-
-
-initialize()
