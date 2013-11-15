@@ -31,7 +31,7 @@ for dir in os.listdir(inPath):
                 fd.close()
                 #print data
                 if 'RESULT' in data[-1]:
-                    print data[-1],
+                    #print data[-1],
                     res = data[-1].split('\t')
                     res = res[1].split('+-')
                     ans += ufloat(float(res[0]),float(res[1]))
