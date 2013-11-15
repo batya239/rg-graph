@@ -1,0 +1,4 @@
+j[loop3, (n1_)?Positive, (n2_)?Positive, (n3_)?NonPositive, 
+  (n4_)?NonPositive, (n5_)?Positive, (n6_)?Positive, (n7_)?Positive, 
+  (n8_)?NonPositive, (n9_)?Positive] :> 
+ Expand[j[loop3, n4, n9, n3, n1, n8, n6, n7, n5, n2]]

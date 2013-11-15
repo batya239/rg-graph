@@ -1,0 +1,28 @@
+{{j[loop2, (n1_)?Positive, (n2_)?Positive, (n3_)?NonPositive, (n4_)?Positive, 
+    (n5_)?Positive] :> Expand[j[loop2, n1, n2, n3, n4, n5]]}, 
+ {j[loop2, (n1_)?Positive, (n2_)?Positive, (n3_)?NonPositive, (n4_)?Positive, 
+    (n5_)?Positive] :> Expand[j[loop2, n1, n2, 0, n5, n4]/
+     (j[loop2, -1, 0, 0, 0, 0] + j[loop2, 0, -1, 0, 0, 0] - 
+       j[loop2, 0, 0, -1, 0, 0] + j[loop2, 0, 0, 0, -1, 0] + 
+       j[loop2, 0, 0, 0, 0, -1] - j[loop2, 0, 0, 0, 0, 0])^n3]}, 
+ {j[loop2, (n1_)?Positive, (n2_)?Positive, (n3_)?NonPositive, (n4_)?Positive, 
+    (n5_)?Positive] :> Expand[j[loop2, n2, n1, 0, n4, n5]/
+     (j[loop2, -1, 0, 0, 0, 0] + j[loop2, 0, -1, 0, 0, 0] - 
+       j[loop2, 0, 0, -1, 0, 0] + j[loop2, 0, 0, 0, -1, 0] + 
+       j[loop2, 0, 0, 0, 0, -1] - j[loop2, 0, 0, 0, 0, 0])^n3]}, 
+ {j[loop2, (n1_)?Positive, (n2_)?Positive, (n3_)?NonPositive, (n4_)?Positive, 
+    (n5_)?Positive] :> Expand[j[loop2, n2, n1, n3, n5, n4]]}, 
+ {j[loop2, (n1_)?Positive, (n2_)?Positive, (n3_)?NonPositive, (n4_)?Positive, 
+    (n5_)?Positive] :> Expand[j[loop2, n4, n5, n3, n1, n2]]}, 
+ {j[loop2, (n1_)?Positive, (n2_)?Positive, (n3_)?NonPositive, (n4_)?Positive, 
+    (n5_)?Positive] :> Expand[j[loop2, n4, n5, 0, n2, n1]/
+     (j[loop2, -1, 0, 0, 0, 0] + j[loop2, 0, -1, 0, 0, 0] - 
+       j[loop2, 0, 0, -1, 0, 0] + j[loop2, 0, 0, 0, -1, 0] + 
+       j[loop2, 0, 0, 0, 0, -1] - j[loop2, 0, 0, 0, 0, 0])^n3]}, 
+ {j[loop2, (n1_)?Positive, (n2_)?Positive, (n3_)?NonPositive, (n4_)?Positive, 
+    (n5_)?Positive] :> Expand[j[loop2, n5, n4, 0, n1, n2]/
+     (j[loop2, -1, 0, 0, 0, 0] + j[loop2, 0, -1, 0, 0, 0] - 
+       j[loop2, 0, 0, -1, 0, 0] + j[loop2, 0, 0, 0, -1, 0] + 
+       j[loop2, 0, 0, 0, 0, -1] - j[loop2, 0, 0, 0, 0, 0])^n3]}, 
+ {j[loop2, (n1_)?Positive, (n2_)?Positive, (n3_)?NonPositive, (n4_)?Positive, 
+    (n5_)?Positive] :> Expand[j[loop2, n5, n4, n3, n2, n1]]}}

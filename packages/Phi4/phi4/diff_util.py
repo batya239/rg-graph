@@ -7,7 +7,7 @@ import graph_state
 
 __author__ = 'dima'
 
-import symbolic_functions
+from rggraphenv import symbolic_functions
 import itertools
 
 D = const.SPACE_DIM - 2 * symbolic_functions.e

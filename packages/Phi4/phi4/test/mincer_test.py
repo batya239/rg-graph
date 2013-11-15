@@ -26,10 +26,10 @@ class MincerTest(unittest.TestCase):
     #                "-21*e**3*zeta(5) - 9*e**3*zeta(3) - pi**4*e**3/20 + 81*e**3/2 - pi**4*e**2/20 - 3*e**2*zeta(3) + 27*e**2/2 - 3*e*zeta(3) + 9*e/2 + 3/2 + 1/(2*e) + 1/(2*e**2)",
     #                (2, -2)))
     #
-    def testTBubble(self):
-        self.doTest("e12-23-3-e-::['(0, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(0, 0)']", (
-        "-84.0*e**3*zeta(5) - 18.0*e**3*zeta(3)**2 + 0.0952380952380952*Pi**6*e**3 - 0.2*Pi**4*e**2 + 42.0*e**2*zeta(5) - 12.0*e*zeta(3) + 0.1*Pi**4*e + 6.0*zeta(3)",
-        (3, -2)))
+    #def testTBubble(self):
+    #    self.doTest("e12-23-34-4-e-::['(0, 0)', '(1, 0)', '(1, 0)', '(1, 0)' ,'(1, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(0, 0)']", (
+    #    "-84.0*e**3*zeta(5) - 18.0*e**3*zeta(3)**2 + 0.0952380952380952*Pi**6*e**3 - 0.2*Pi**4*e**2 + 42.0*e**2*zeta(5) - 12.0*e*zeta(3) + 0.1*Pi**4*e + 6.0*zeta(3)",
+    #    (3, -2)))
 
     #def testTBubble1(self):
     #    self.doTest("e12-223-3-e-::['(0, 0)', '(1, 0)', '(1, 0)','(1, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(0, 0)']",
@@ -64,7 +64,7 @@ class MincerTest(unittest.TestCase):
         sub = (expected - actual[0]).simplify_indexed()
         self.assertTrue(expected == actual[0] or swiginac.abs(
             sub.subs(symbolic_functions.e == 1)).compare(swiginac.numeric(1e-5)) < 0,
-                        "\nactual = " + str(actual[0]) + "\nexpected = " + str(expected) + "\nsub = " + str(sub.evalf()))
+                        "\nactual = " + str(actual[0].evalf()) + "\nexpected = " + str(expected) + "\nsub = " + str(sub.evalf()))
         self.assertEquals(expectedResult[1], actual[1])
 
     def assertIsNone(self, arg):

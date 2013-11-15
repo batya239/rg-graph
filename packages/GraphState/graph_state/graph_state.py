@@ -10,6 +10,7 @@ def chain_from_iterables(iterables):
         for element in it:
             yield element
 
+
 if 'chain_from_iterables' not in itertools.__dict__:
     itertools.chain_from_iterables = chain_from_iterables
 
@@ -54,17 +55,25 @@ class Fields(object):
 
     @staticmethod
     def fieldsFromStr(string):
-        return [Fields.fromStr(string[i : i + Fields.STR_LEN])
-            for i in range(0, len(string), Fields.STR_LEN)]
+        return [Fields.fromStr(string[i: i + Fields.STR_LEN])
+                for i in range(0, len(string), Fields.STR_LEN)]
 
 
 class Rainbow(object):
-    '''Class of sequences assigned to the edge.'''
+    """
+    Class of sequences assigned to the edge.
+    Stores all input attributes as tuple ex:
+        colors: [1,2] self._colors: (1,2)
+        colors: 1     self._colors: (1,)
+    """
     def __init__(self, colors):
-        self._colors = tuple(colors) if isinstance(colors, list) or isinstance(colors, set) or isinstance(colors, tuple) else (colors, )
+        self._colors = tuple(colors) if isinstance(colors, (list, set, tuple)) else (colors, )
 
     @property
     def colors(self):
+        """
+        main method to access data from colors
+        """
         return self._colors
 
     def __getitem__(self, item):
@@ -91,27 +100,34 @@ class Rainbow(object):
         raise AssertionError()
 
     @staticmethod
-    def fromStr(string):
-        return Rainbow(eval(string))
+    def fromObject(obj):
+        if obj is None:
+            return None
+        elif isinstance(obj, str):
+            return Rainbow(eval(obj))
+        else:
+            return Rainbow(obj)
 
 
 class Edge(object):
     """Representation of an edge of a graph."""
+
+    #if this attribute is True than any new Edge will be generated with unique edge_id
     CREATE_EDGES_INDEX = True
     NEXT_EDGES_INDEX = 0L
-    def __init__(self, nodes, external_node=-1, fields=None, colors=None,
-            edge_id=None):
-        '''Edge constructor.
+
+    def __init__(self, nodes, external_node=-1, fields=None, colors=None, edge_id=None):
+        """Edge constructor.
 
         Args:
             nodes: pair of ints enumerating edge ends.
             external_node: which nodes are external. Default: -1.
             fields: Fields object with fields corresponding to the nodes.
             colors: Rainbow object.
-        '''
+        """
         self._nodes = tuple(sorted(nodes))
         self.internal_nodes = tuple(
-                [node for node in self.nodes if node != external_node])
+            [node for node in self.nodes if node != external_node])
 
         self.fields = None
         # Init fields annotating external edge.
@@ -140,21 +156,25 @@ class Edge(object):
             else:
                 self.edge_id = None
 
+    def is_external(self):
+        return len(self.internal_nodes) == 1
+
     @property
     def nodes(self):
         return self._nodes
 
     def key(self):
-        return (self.internal_nodes, self.fields, self.colors)
+        return self.internal_nodes, self.fields, self.colors
 
     def __repr__(self):
-        return "(%s, fields=%s, colors=%s)"%self.key()
+        return "(%s, fields=%s, colors=%s)" % self.key()
 
     def __cmp__(self, other):
         return cmp(self.key(), other.key())
 
     def __hash__(self):
         if '_hash' not in self.__dict__:
+            #noinspection PyAttributeOutsideInit
             self._hash = hash(self.key())
         return self._hash
 
@@ -184,8 +204,12 @@ class Edge(object):
         edge = Edge(mapped_nodes,
                     external_node=mapped_external_node,
                     fields=fields,
-                    colors=colors,
-                    edge_id=self.edge_id)
+                    colors=colors)
+        #edge = Edge(mapped_nodes,
+        #            external_node=mapped_external_node,
+        #            fields=fields,
+        #            colors=colors,
+        #            edge_id=self.edge_id)
         return edge
 
 
@@ -208,7 +232,6 @@ class GraphState(object):
                     fields = defaultFields if edge.fields is None else edge.fields
                 else:
                     fields = None
-                    fields = None
                 mapped_edges.append(edge.copy(node_map=node_map, colors=colors, fields=fields))
             mapped_edges.sort()
             self.sortings.append(tuple(mapped_edges))
@@ -217,6 +240,9 @@ class GraphState(object):
 
     @property
     def edges(self):
+        """
+        returns ordered with nickel order edges which represents corresponding GraphState
+        """
         return self.sortings[0]
 
     def __cmp__(self, other):
@@ -254,6 +280,9 @@ class GraphState(object):
 
     @staticmethod
     def fromStr(string):
+        """
+        creates GraphState object from nickel serialized string
+        """
         splitted_string = string.split(GraphState.SEP, 2)
         splitted_len = len(splitted_string)
         assert splitted_len == 1 or splitted_len == 3
@@ -270,12 +299,10 @@ class GraphState(object):
         if not colors_str:
             colors_list = [None] * len(nickel_edges)
         else:
-            colors_list = itertools.imap(Rainbow.fromStr, eval(colors_str))
-
+            colors_list = itertools.imap(Rainbow.fromObject, eval(colors_str))
         edges = []
         for nodes, fields, colors in itertools.izip(nickel_edges, fields, colors_list):
             edges.append(Edge(nodes, fields=fields, colors=colors))
         assert len(edges) == len(nickel_edges)
 
         return GraphState(edges)
-

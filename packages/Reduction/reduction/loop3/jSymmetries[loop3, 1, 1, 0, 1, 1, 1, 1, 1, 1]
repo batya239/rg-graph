@@ -1,0 +1,12 @@
+{{j[loop3, (n1_)?Positive, (n2_)?Positive, (n3_)?NonPositive, (n4_)?Positive, 
+    (n5_)?Positive, (n6_)?Positive, (n7_)?Positive, (n8_)?Positive, 
+    (n9_)?Positive] :> Expand[j[loop3, n1, n2, n3, n4, n5, n6, n7, n8, n9]]}, 
+ {j[loop3, (n1_)?Positive, (n2_)?Positive, (n3_)?NonPositive, (n4_)?Positive, 
+    (n5_)?Positive, (n6_)?Positive, (n7_)?Positive, (n8_)?Positive, 
+    (n9_)?Positive] :> Expand[j[loop3, n2, n1, n3, n9, n5, n7, n6, n8, n4]]}, 
+ {j[loop3, (n1_)?Positive, (n2_)?Positive, (n3_)?NonPositive, (n4_)?Positive, 
+    (n5_)?Positive, (n6_)?Positive, (n7_)?Positive, (n8_)?Positive, 
+    (n9_)?Positive] :> Expand[j[loop3, n9, n4, n3, n2, n8, n7, n6, n5, n1]]}, 
+ {j[loop3, (n1_)?Positive, (n2_)?Positive, (n3_)?NonPositive, (n4_)?Positive, 
+    (n5_)?Positive, (n6_)?Positive, (n7_)?Positive, (n8_)?Positive, 
+    (n9_)?Positive] :> Expand[j[loop3, n4, n9, n3, n1, n8, n6, n7, n5, n2]]}}

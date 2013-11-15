@@ -3,6 +3,8 @@
 
 __author__ = 'daddy-bear'
 
+import symbolic_functions
+import swiginac
 import os
 import rggraphutil.rg_graph_collections as rg_graph_collections
 from subprocess import call
@@ -27,9 +29,8 @@ class AbstractMercurialAwareStorage(AbstractGraphOperationValuesStorage):
             #call("cd " + storagePath + "; hg pull -u", shell=True)
         storageQualifiedFileName = os.path.join(storagePath, storageFileName)
         storage = rg_graph_collections.emptyListDict()
-        import cas_variable_resolver
-        import swiginac
-        e, p = cas_variable_resolver.var("e p")
+
+        e, p = symbolic_functions.var("e p")
         tgamma = swiginac.tgamma
         psi = swiginac.psi
         log = swiginac.log

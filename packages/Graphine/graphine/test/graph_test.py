@@ -108,13 +108,17 @@ class GraphTestCase(unittest.TestCase):
                                         'ee0-::')
 
     def testShrinkToPoint(self):
-        self.doTestShrinkToPoint([(-1, 0), (0, 1), (0, 2), (1, 2), (2, 3), (1, 3), (3, -1)],
-                                 [(0, 1), (0, 2), (1, 2)],
-                                 'e11-e-::')
-
-        self.doTestShrinkToPoint([(-1, 0), (0, 1), (0, 1), (0, 1), (1, -1)],
-                                 [(0, 1), (0, 1)],
-                                 'ee0-::')
+        #self.doTestShrinkToPoint([(-1, 0), (0, 1), (0, 2), (1, 2), (2, 3), (1, 3), (3, -1)],
+        #                         [(0, 1), (0, 2), (1, 2)],
+        #                         'e11-e-::')
+        #
+        #self.doTestShrinkToPoint([(-1, 0), (0, 1), (0, 1), (0, 1), (1, -1)],
+        #                         [(0, 1), (0, 1)],
+        #                         'ee0-::')
+        #
+        self.doTestShrinkToPoint([(-1, 0), (0, 1), (0, 2), (1, 2), (1, 3), (2, 3), (3, -1)],
+                                 [(0, 1), (2, 3)],
+                                 "e111-e-")
 
     def testGetLoopCount(self):
         self.assertEqual(gr.Graph.fromStr('e111-e-::').getLoopsCount(), 2)
