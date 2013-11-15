@@ -18,7 +18,7 @@ class ReductionTest(unittest.TestCase):
     #    storage.closeStorage(revert=True)
 
     def setUp(self):
-        reductor.initialize(reductor.THREE_LOOP_REDUCTOR2, reductor.TWO_LOOP_REDUCTOR)
+        reductor.initialize(reductor.THREE_LOOP_REDUCTOR, reductor.TWO_LOOP_REDUCTOR)
 
     #def test_tbubble(self):
     #    print reductor.calculate(graphine.Graph.fromStr("e12-23-3-e-::['(0, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(0, 0)']"))
