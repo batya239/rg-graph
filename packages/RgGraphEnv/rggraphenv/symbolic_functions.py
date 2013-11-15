@@ -29,6 +29,7 @@ def var(names):
 p, e = var("p e")
 l = 1 - e
 
+exp = swiginac.exp
 zero = swiginac.numeric(0)
 tgamma = swiginac.tgamma
 Pi = swiginac.Pi

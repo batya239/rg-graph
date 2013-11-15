@@ -204,8 +204,12 @@ class Edge(object):
         edge = Edge(mapped_nodes,
                     external_node=mapped_external_node,
                     fields=fields,
-                    colors=colors,
-                    edge_id=self.edge_id)
+                    colors=colors)
+        #edge = Edge(mapped_nodes,
+        #            external_node=mapped_external_node,
+        #            fields=fields,
+        #            colors=colors,
+        #            edge_id=self.edge_id)
         return edge
 
 
