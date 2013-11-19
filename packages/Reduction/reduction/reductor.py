@@ -275,7 +275,7 @@ class Reductor(object):
                 masters = dict()
                 for s in f:
                     raw_sector, raw_value = s.split(";")
-                    value = symbolic_functions.evaluate(raw_value)
+                    value = symbolic_functions.series(symbolic_functions.evaluate(raw_value), symbolic_functions.e, 0, 5, remove_order=True).evalf()
                     _sector = sector.Sector(eval(raw_sector))
                     masters[_sector] = value
                 return masters
