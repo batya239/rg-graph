@@ -190,7 +190,8 @@ class Reductor(object):
     def _try_calculate(self, graph):
         sectors = sector.Sector.create_from_topologies_and_graph(graph, self._topologies, self._all_propagators_count) \
             .as_sector_linear_combinations()
-
+        print "initial sector"
+        print sectors
         calculated_sectors = dict()
         while len(sectors):
             raw_sectors = sectors.sectors_to_coefficient.keys()
@@ -228,8 +229,13 @@ class Reductor(object):
 
             if not is_updated:
                 return None
+        print "with sectors, d"
         sectors.print_not_evaled_result()
         value = sectors.get_value(self._masters)
+        print "with d"
+        print value
+        print "substituted"
+        print value.subs(sector.d == symbolic_functions.D)
         return value
 
     def _get_file_path(self, file_name):

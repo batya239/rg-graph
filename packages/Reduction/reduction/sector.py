@@ -7,7 +7,7 @@ import rggraphutil
 import itertools
 import swiginac
 import copy
-from rggraphenv import symbolic_functions
+from rggraphenv import symbolic_functions, cas_variable_resolver
 
 
 class Sector(object):
@@ -243,7 +243,7 @@ class SectorLinearCombination(object):
 
 ZERO_SECTOR_LINEAR_COMBINATION = SectorLinearCombination(rggraphutil.zeroDict())
 
-d = symbolic_functions.D
+d = cas_variable_resolver.var("d")
 
 
 class SectorRuleKey(object):
