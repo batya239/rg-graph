@@ -207,6 +207,7 @@ class Reductor(object):
                 is_break = False
                 s.as_rule_key()
                 if s.as_rule_key() in self._zero_sectors:
+                    print "zero", s, s.as_rule_key()
                     sectors = sectors.remove_sector(s)
                     is_break = True
                 if is_break:
@@ -237,7 +238,9 @@ class Reductor(object):
             if not is_updated:
                 return None
         print "with sectors, d"
-        sectors.print_not_evaled_result()
+        sectors.print_not_evaled_result(_d=6)
+        sectors.print_not_evaled_result(_d=10)
+        sectors.print_not_evaled_result(_d=15)
         value = sectors.get_value(self._masters)
         print "with d"
         print value
