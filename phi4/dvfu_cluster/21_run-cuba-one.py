@@ -1,4 +1,4 @@
-#!/bin/python
+#!/usr/bin/python
 #! encoding=utf8
 
 ## Исполняем все cuba-файлы, которые лежат в конкретной папке <diag>,
@@ -10,7 +10,7 @@ from string import zfill
 
 if len(sys.argv) is not 5:
     print "usage: ./21_run-cuba-one <diag> <start-node> <start_cuba_num> <end_cuba_num>"
-    print "example: ./21_run-cuba-one e112-34-e34-55-55--/ 17 00 13"
+    print "example: ./21_run-cuba-one e112-34-e34-55-55-- 17 00 13"
 else:
     diag = sys.argv[1]
     node = int(sys.argv[2])
@@ -26,6 +26,13 @@ os.chdir(os.path.join(workdir,diag))
 for i in range(int(start),int(finish)+1):
     num = zfill(i,fill)
     print "ssh to n%s... start cuba__%s.run"%(node,num)
+    ## profile 1
+    out = "out_%s_%s_%s_1M_e-6_e-12"%(num,diag,method)
+    print "result will be stored in",out
+    bin_file = os.path.join(workdir,diag,"cuba__%s.run"%num)
+    cmd = "ssh n%d nohup %s 3 1000000 1e-6 1e-12 > %s &"%(node,bin_file,out)
+    os.system(cmd)
+    ## profile 2
     out = "out_%s_%s_%s_50M_e-8_e-12"%(num,diag,method)
     print "result will be stored in",out
     bin_file = os.path.join(workdir,diag,"cuba__%s.run"%num)

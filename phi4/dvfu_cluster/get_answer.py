@@ -11,8 +11,8 @@ except IndexError:
     print "Method does not set, used 'cuhre'"
     method = 'cuhre'
 dumpFile = 'res_'+method+'.txt'
-#inPath = os.path.expanduser('~')+'/work/rg-graph/phi_4_d2_s2/feynmanSDdotSF_mpi'
-inPath = os.path.expanduser('~')+'/work/rg-graph/phi_4_d2_s2/correct'
+inPath = os.path.expanduser('~')+'/work/rg-graph/phi_4_d2_s2/feynmanSDdotSF_mpi'
+#inPath = os.path.expanduser('~')+'/work/rg-graph/phi_4_d2_s2/correct'
 
 result = {}
 failed = 0
@@ -20,7 +20,7 @@ failed = 0
 ## На баше это выглядело бы лучше...
 for dir in os.listdir(inPath):
     if os.path.isdir(os.path.join(inPath,dir)):
-        print "\nDiagram:",dir
+        print "Diagram:",dir
         files = os.listdir(os.path.join(inPath,dir))
         ans = ufloat(0.,0.)
         for f in files:
