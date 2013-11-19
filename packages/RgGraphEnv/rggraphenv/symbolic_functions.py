@@ -28,6 +28,7 @@ def var(names):
 
 p, e = var("p e")
 l = 1 - e
+Z_5_3 = var("bleat")
 
 exp = swiginac.exp
 zero = swiginac.numeric(0)
@@ -114,6 +115,6 @@ def _raw_g(alpha, beta):
         or (2 * l + 2 - alpha - beta + zero).is_equal(zero):
         return 0
     return tgamma(l + 1 - alpha) * tgamma(l + 1 - beta) * tgamma(alpha + beta - l - 1) \
-           / ((4 * Pi) ** (l + 1) * tgamma(alpha) * tgamma(beta) * tgamma(2 * l + 2 - alpha - beta))
+           / (tgamma(alpha) * tgamma(beta) * tgamma(2 * l + 2 - alpha - beta))
 
 _g11 = _raw_g(1, 1) * e
