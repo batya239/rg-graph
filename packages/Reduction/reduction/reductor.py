@@ -161,9 +161,12 @@ class Reductor(object):
             self._masters = read_masters
         else:
             self._masters = dict()
+            master_sectors = jrules_parser.parse_masters(self._get_file_path(self._env_name),
+                                                         self._env_name)
             for m, v in masters.items():
                 for enumerated in _enumerate_graph(m, self._propagators, to_sector=True):
-                    self._masters[enumerated] = v
+                    if enumerated in master_sectors:
+                        self._masters[enumerated] = v
             self._save_masters()
 
     def _open_j_rules(self):

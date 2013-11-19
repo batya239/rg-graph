@@ -1,10 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf8
-import rggraphutil
 
 __author__ = ['mkompan', 'dima']
 
-import sys
 import re
 import sector
 
@@ -14,6 +12,7 @@ _EXPAND_REGEXP = re.compile(".*Expand\[(.*)$")
 _JS_REGEXP = re.compile("(js[^\]]+\])")
 _SECTOR_SECTOR_REGEXP = re.compile("(Sector[^\)]+\))")
 _PROPAGATORS_REGEXP = re.compile("Ds\[[^\{]+\{([^\}]+)\}")
+_MIS_REGEXP = re.compile("MIs[^\{]+\{([^\}]+)\}")
 _DEBUG = False
 
 
@@ -104,9 +103,10 @@ def _replace_n(string):
 def _parse_rule(rule_string, j_suffix, raw_zero_sectors):
     regex_result = _SECTOR_REGEXP.match(rule_string)
     if regex_result:
+        sector_rule = sector.SectorRule(_parse_additional_condition(regex_result.groups()[1]),
+                                        _convert_rule(regex_result.groups()[2], j_suffix).replace("^", "**"))
         return sector.SectorRuleKey(_convert_sector_conditions(regex_result.groups()[0])), \
-               sector.SectorRule(_parse_additional_condition(regex_result.groups()[1]),
-                                 _convert_rule(regex_result.groups()[2], j_suffix).replace("^", "**"))
+               sector_rule
     if "Expand" in rule_string:
         rule = _parse_strange_rule(rule_string, j_suffix, raw_zero_sectors)
         return sector.SectorRuleKey(_convert_sector_conditions(rule_string[:rule_string.index("] :>")])), \
@@ -124,6 +124,19 @@ def x_parse_rules(file_path, j_suffix, raw_zero_sectors):
     j_rules_string = ''.join(map(lambda x: x.rstrip(), open(file_path).readlines()))[2:-1].split(', j')
     for item in j_rules_string:
         yield _parse_rule(item, j_suffix, raw_zero_sectors)
+
+
+def parse_masters(file_path, j_suffix):
+    with open(file_path, 'r') as f:
+        content = "".join(f.readlines())
+        content = content.replace("\n", "")
+        sectors = set()
+        for raw_sector in _MIS_REGEXP.findall(content)[0].split("],"):
+            raw_sector = raw_sector.strip()
+            raw_sector = raw_sector.replace("j[%s," % j_suffix, "sector.Sector(")
+            raw_sector = raw_sector[:-1] if raw_sector.endswith("]") else raw_sector
+            sectors.add(eval(raw_sector + ")"))
+        return sectors
 
 
 def parse_propagators(file_path, loops_count):
