@@ -26,8 +26,12 @@ class ReductionTest(unittest.TestCase):
     #def test_E12_23_34_4_E_(self):
     #    print symbolic_functions.series(reductor.calculate(graphine.Graph.fromStr("e12-23-34-4-e-", initEdgesColor=True)), symbolic_functions.e, 0, 5, remove_order=True).evalf()
 
-    def test_E12_34_35_4_5_E_(self):
-        calculated = reductor.calculate(graphine.Graph.fromStr("e12-34-35-4-5-e-", initEdgesColor=True))
+    #def test_E12_34_35_4_5_E_(self):
+    #    calculated = reductor.calculate(graphine.Graph.fromStr("e12-34-35-4-5-e-", initEdgesColor=True))
+    #    print symbolic_functions.series(calculated, symbolic_functions.e, 0, 5, remove_order=True).evalf()
+
+    def test_E12_23_34_4_E_(self):
+        calculated = reductor.calculate(graphine.Graph.fromStr("e12-23-34-4-e-", initEdgesColor=True))
         print symbolic_functions.series(calculated, symbolic_functions.e, 0, 5, remove_order=True).evalf()
 
     #def do_test(self, graph_as_string, expected_value_string):

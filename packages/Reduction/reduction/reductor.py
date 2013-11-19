@@ -2,6 +2,7 @@
 # -*- coding: utf8
 import copy
 from rggraphenv import symbolic_functions
+import rggraphutil
 
 __author__ = 'dimas'
 
@@ -61,7 +62,9 @@ def _enumerate_graph(graph, init_propagators, to_sector=True):
 
     def _enumerate_next_vertex(remaining_propagators, _graph, vertex, result):
         if vertex not in graph_vertices:
-            new_edges = map(lambda e_: e_.copy(colors=propagator_indices[e_.colors.colors] if len(e_.internal_nodes) == 2 else None), _graph.allEdges())
+            new_edges = map(lambda e_: e_.copy(
+                colors=propagator_indices[e_.colors.colors] if len(e_.internal_nodes) == 2 else None),
+                            _graph.allEdges())
             result.add(graphine.Graph(new_edges, external_vertex, renumbering=False))
             return
         vertex_known_factor = [0] * momentum_count
@@ -151,10 +154,9 @@ class Reductor(object):
                                       set())
             self._save_topologies()
         self._all_propagators_count = len(self._propagators)
-        self._sector_rules = list()
+        self._sector_rules = rggraphutil.emptyListDict()
         self._zero_sectors = list()
         self._open_j_rules()
-
         read_masters = self._try_read_masters()
         if read_masters:
             self._masters = read_masters
@@ -170,12 +172,13 @@ class Reductor(object):
 
         zero_sectors = jrules_parser.read_raw_zero_sectors(os.path.join(dir_path, "ZeroSectors[%s]" % self._env_name),
                                                            self._env_name)
-        self._sector_rules.extend(zero_sectors[1])
         self._zero_sectors = zero_sectors[1]
         for f in os.listdir(dir_path):
             if f.startswith("jRules"):
-                map(lambda r: self._sector_rules.append(r),
+                map(lambda (k, r): self._sector_rules[k].append(r),
                     jrules_parser.x_parse_rules(os.path.join(dir_path, f), self._env_name, zero_sectors[0]))
+        for v in self._sector_rules.values():
+            v.reverse()
 
     def is_applicable(self, graph):
         return graph.getLoopsCount() == self._main_loop_count_condition
@@ -189,16 +192,17 @@ class Reductor(object):
         sectors = sector.Sector.create_from_topologies_and_graph(graph, self._topologies, self._all_propagators_count) \
             .as_sector_linear_combinations()
 
+        calculated_sectors = dict()
+        usage = 0
         while len(sectors):
             raw_sectors = sectors.sectors_to_coefficient.keys()
             not_masters = list()
             for s in raw_sectors:
                 is_break = False
-                for r in self._zero_sectors:
-                    if r.is_applicable(s):
-                        sectors = sectors.remove_sector(s)
-                        is_break = True
-                        break
+                s.as_rule_key()
+                if s.as_rule_key() in self._zero_sectors:
+                    sectors = sectors.remove_sector(s)
+                    is_break = True
                 if is_break:
                     continue
                 if s not in self._masters.keys():
@@ -206,16 +210,24 @@ class Reductor(object):
 
             if not len(not_masters):
                 break
-            print len(not_masters), not_masters
 
             biggest = reduction_util.choose_max(not_masters)
             is_updated = False
-            for rule in self._sector_rules:
-                if rule.is_applicable(biggest):
-                    new_sectors = rule.apply(biggest)
-                    sectors = sectors.replace_sector_to_sector_linear_combination(biggest, new_sectors)
-                    is_updated = True
-                    break
+            if biggest not in calculated_sectors:
+                key = biggest.as_rule_key()
+                current_rules = self._sector_rules.get(key, None)
+                assert current_rules
+                for rule in current_rules:
+                    if rule.is_applicable(biggest):
+                        new_sectors = rule.apply(biggest)
+                        calculated_sectors[biggest] = new_sectors
+                        sectors = sectors.replace_sector_to_sector_linear_combination(biggest, new_sectors)
+                        is_updated = True
+                        break
+            else:
+                usage += 1
+                is_updated = True
+                sectors = sectors.replace_sector_to_sector_linear_combination(biggest, calculated_sectors.get(biggest))
 
             if not is_updated:
                 return None
@@ -288,7 +300,11 @@ THREE_LOOP_REDUCTOR = Reductor("loop3",
                                [graphine.Graph.fromStr("e12-34-35-4-5-e-"),
                                 graphine.Graph.fromStr("e12-34-34-5-5-e-")],
                                3,
-                               {graphine.Graph.fromStr("e12-34-34-5-5-e-"): 0,
+                               {graphine.Graph.fromStr("e12-34-34-5-5-e-"):
+                                    symbolic_functions.evaluate("_g11**(-3)*(exp(-3 * Euler * e))/(1-2*e)*(20 * zeta(5)"
+                                                                "+e *(68 * zeta(3)**2+(10 * Pi**6)/189)"
+                                                                "+e**2 *((34 * Pi **4 * zeta(3))/15-5 * Pi **2 * zeta(5)+450 *zeta(7))"
+                                                                "+e**3 *(-9072/5 *zeta(5,3)-2588*zeta(3)*zeta(5)-17* Pi **2 *zeta(3)**2+(6487*Pi**8)/10500))"),
                                 graphine.Graph.fromStr("e11-22-33-e-"): G(1, 1) ** 3,
                                 graphine.Graph.fromStr("e112-22-e-"): G(1, 1) * G(1, 1) * G(2 - 2 * l, 1),
                                 graphine.Graph.fromStr("e11-222-e-"): G(1, 1) * G(1, 1) * G(1 - l, 1),
@@ -302,9 +318,8 @@ THREE_LOOP_REDUCTOR = Reductor("loop3",
                                                                 "e**2*(19./3-103*Pi**2/12+289*zeta(3)/3+35*Pi**4/96-7*Pi**2*zeta(3)/12+599*zeta(5)/5)+"
                                                                 "e**3*(-3953./3-235*Pi**2/12+1729*zeta(3)/3+967*Pi**4/480-49*Pi**2*zeta(3)/12+4193*zeta(5)/5+108481*Pi**6/362880-599*zeta(3)**2/6)+"
                                                                 "e**4*(-31889./3-19*Pi**2/12+10213*zeta(3)/3+5263*Pi**4/480-289*Pi**2*zeta(3)/12+20609*zeta(5)/5+108481*Pi**6/51840-4193*zeta(3)**2/6-1553*Pi**4*zeta(3)/480-599*Pi**2*zeta(5)/20+13593*zeta(7)/7)"
-                                                                #"e**5*(-188141./3+3953*Pi**2/12+57445*zeta(3)/3+28723*Pi**4/480-1729*Pi**2*zeta(3)/12+90257*zeta(5)/5+3695263*Pi**6/362880-21449*zeta(3)**2/6-10871*Pi**4*zeta(3)/480-4193*Pi**2*zeta(5)/20+13593*zeta(7)+1913939*Pi**8/5806080+599*Pi**2*zeta(3)**2/24-9847*zeta(3)*zeta(5)/5+576*65)"#TODO 65 == zeta(-6,-2)
+                                    #"e**5*(-188141./3+3953*Pi**2/12+57445*zeta(3)/3+28723*Pi**4/480-1729*Pi**2*zeta(3)/12+90257*zeta(5)/5+3695263*Pi**6/362880-21449*zeta(3)**2/6-10871*Pi**4*zeta(3)/480-4193*Pi**2*zeta(5)/20+13593*zeta(7)+1913939*Pi**8/5806080+599*Pi**2*zeta(3)**2/24-9847*zeta(3)*zeta(5)/5+576*65)"#TODO 65 == zeta(-6,-2)
                                                                 "))")})
-
 
 TWO_LOOP_REDUCTOR = Reductor("loop2",
                              "loop2",

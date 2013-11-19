@@ -11,6 +11,8 @@ from rggraphenv import symbolic_functions
 
 
 class Sector(object):
+    SECTOR_TO_KEY = dict()
+
     def __init__(self, *propagators_weights):
         if len(propagators_weights) == 1 and isinstance(propagators_weights[0], (list, tuple)):
             self._propagators_weights = tuple(propagators_weights[0])
@@ -24,6 +26,16 @@ class Sector(object):
 
     def as_sector_linear_combinations(self):
         return SectorLinearCombination.singleton(self, 1)
+
+    def as_rule_key(self):
+        key = Sector.SECTOR_TO_KEY.get(self, None)
+        if key is None:
+            propagators_condition = list()
+            for w in self._propagators_weights:
+                propagators_condition.append(SectorRuleKey.PROPAGATOR_CONDITION_POSITIVE if w > 0 else SectorRuleKey.PROPAGATOR_CONDITION_NOT_POSITIVE)
+            key = SectorRuleKey(propagators_condition)
+            Sector.SECTOR_TO_KEY[self] = key
+        return key
 
     def __neg__(self):
         return SectorLinearCombination.singleton(self, -1)
@@ -103,7 +115,7 @@ class SectorLinearCombination(object):
     def _filter_zeros(some_dict):
         to_remove = list()
         for k, v in some_dict.items():
-            if v == 0:
+            if isinstance(v, swiginac.numeric) and v.to_double() == 0:
                 to_remove.append(k)
         for k in to_remove:
             del some_dict[k]
@@ -193,7 +205,8 @@ class SectorLinearCombination(object):
         return self._do_mul_or_div(other, False)
 
     def __str__(self):
-        return str(self.additional_part) + "".join(map(lambda i: "+%s*%s" % (i[0], i[1]), self.sectors_to_coefficient.items()))
+        return str(self.additional_part) + "".join(
+            map(lambda i: "+%s*%s" % (i[0], i[1]), self.sectors_to_coefficient.items()))
 
     def _do_add(self, other, operation_sign):
         sectors_to_coefficient = copy.copy(self.sectors_to_coefficient)
@@ -213,42 +226,58 @@ class SectorLinearCombination(object):
         if isinstance(other, (int, float, swiginac.refcounted)):
             sectors_to_coefficient = rggraphutil.zeroDict()
             for s, c in self.sectors_to_coefficient.items():
-                sectors_to_coefficient[s] = c * other if do_mul else (float(c) / other if isinstance(c, int) else c / other)
+                sectors_to_coefficient[s] = c * other if do_mul else (
+                    float(c) / other if isinstance(c, int) else c / other)
             additional_part = self.additional_part * other if do_mul else (float(self.additional_part) / other
                                                                            if isinstance(self.additional_part, int)
                                                                            else self.additional_part / other)
             return SectorLinearCombination(sectors_to_coefficient, additional_part)
         raise NotImplementedError()
 
+
 ZERO_SECTOR_LINEAR_COMBINATION = SectorLinearCombination(rggraphutil.zeroDict())
 
 d = symbolic_functions.D
 
 
-class SectorRule(object):
+class SectorRuleKey(object):
     PROPAGATOR_CONDITION_POSITIVE = "+"
     PROPAGATOR_CONDITION_NOT_POSITIVE = "0"
 
-    def __init__(self, initial_propagators_condition, additional_condition, apply_formula, expection_condition=None):
+    def __init__(self, initial_propagators_condition):
+        self._initial_propagators_condition = tuple(initial_propagators_condition)
+
+    def is_applicable(self, sector):
+        assert len(self._initial_propagators_condition) == len(sector.propagators_weights), \
+            "%d != %d" % (len(self._initial_propagators_condition), len(sector.propagators_weights))
+        for condition, weight in itertools.izip(self._initial_propagators_condition, sector.propagators_weights):
+            if condition is SectorRuleKey.PROPAGATOR_CONDITION_POSITIVE and weight <= 0 \
+            or condition is SectorRuleKey.PROPAGATOR_CONDITION_NOT_POSITIVE and weight > 0:
+                return False
+        return True
+
+    def __repr__(self):
+        return "SectorRuleKey: " + str(self._initial_propagators_condition)
+
+    __str__ = __repr__
+
+    def __hash__(self):
+        return hash(self._initial_propagators_condition)
+
+    def __eq__(self, other):
+        return self._initial_propagators_condition == other._initial_propagators_condition
+
+
+class SectorRule(object):
+    def __init__(self, additional_condition, apply_formula, expection_condition=None):
         """
         exception_condition -- yet another condition because LiteRed is so crazy
         """
         self._exception_condition = expection_condition
-        self._initial_propagators_condition = initial_propagators_condition
         self._additional_condition = additional_condition
         self._apply_formula = apply_formula
 
-    @staticmethod
-    def create_zero_rule(initial_propagators_condition):
-        return SectorRule(initial_propagators_condition, None, None)
-
     def is_applicable(self, sector):
-        if self._initial_propagators_condition:
-            assert len(self._initial_propagators_condition) == len(sector.propagators_weights), "%d != %d" % (len(self._initial_propagators_condition), len(sector.propagators_weights))
-            for condition, weight in itertools.izip(self._initial_propagators_condition, sector.propagators_weights):
-                if condition is SectorRule.PROPAGATOR_CONDITION_POSITIVE and weight <= 0 \
-                or condition is SectorRule.PROPAGATOR_CONDITION_NOT_POSITIVE and weight > 0:
-                    return False
         if self._additional_condition:
             return self._apply_additional_condition(sector)
         return True
@@ -258,21 +287,16 @@ class SectorRule(object):
 
     def apply(self, sector):
         if self._exception_condition and eval(self._exception_condition.format(None, *sector.propagators_weights)) == 0:
-                raise ValueError("%s: %s" % (self._exception_condition, sector))
+            raise ValueError("%s: %s" % (self._exception_condition, sector))
 
         if self._apply_formula is None:
             return ZERO_SECTOR_LINEAR_COMBINATION
         return eval(self._apply_formula.format(None, *sector.propagators_weights)).as_sector_linear_combinations()
 
     def __str__(self):
-        return "SectorRule:\n\t%s\n\t%s\n\t%s" % (self._initial_propagators_condition,
-                                                  self._additional_condition,
-                                                  self._apply_formula)
+        return "SectorRule:\n\t%s\n\t%s" % (self._additional_condition, self._apply_formula)
 
     __repr__ = __str__
-
-
-ZERO = SectorRule(None, None, None)
 
 
 class AdditionalNonEqualityCondition(object):
@@ -285,3 +309,18 @@ class AdditionalNonEqualityCondition(object):
 
     def __str__(self):
         return "n%d != %d" % (self._var_index, self._number)
+
+
+class LazySwiginacSum(object):
+    def __init__(self, args):
+        self._args = args
+
+    @staticmethod
+    def singleton(val):
+        return LazySwiginacSum((val, ))
+
+    def evaluate(self):
+        return reduce(lambda a, b: a + b, self._args)
+
+    def __add__(self, other):
+        return LazySwiginacSum(self._args + other._args)

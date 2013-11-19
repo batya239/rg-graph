@@ -31,21 +31,26 @@ def find_topology(target_graph, topologies):
                 yield topologies[topology][0], topologies[1] + tuple(map(lambda e: e.colors[0], lines))
 
 
-def choose_max(graphs):
-    assert len(graphs)
+def choose_max(sectors):
+    assert len(sectors)
+    return sorted(sectors, cmp=_compare)[-1]
 
-    def compare(graph1, graph2):
-        """
-        Laporta comparator
-        """
-        n1 = graph1.internalEdges()
-        n2 = graph2.internalEdges()
-        sub = n1 - n2
-        if sub != 0:
-            return sub
-        md1 = reduce(lambda e: e.colors[0] - 1, graph1.internalEdges())
-        md2 = reduce(lambda e: e.colors[0] - 1, graph2.internalEdges())
-        sub = md1 - md2
+
+def _compare(sector1, sector2):
+    """
+    Laporta comparator
+    """
+    n1 = len(filter(lambda i: i > 0, sector1.propagators_weights))
+    n2 = len(filter(lambda i: i > 0, sector2.propagators_weights))
+    sub = n1 - n2
+    if sub != 0:
         return sub
-
-    return max(graphs, compare)[0]
+    md1 = reduce(lambda j, i: j + (i if i > 0 else 0), sector1.propagators_weights)
+    md2 = reduce(lambda j, i: j + (i if i > 0 else 0), sector2.propagators_weights)
+    sub = md1 - md2
+    if sub != 0:
+        return sub
+    max1 = max(sector1.propagators_weights)
+    max2 = max(sector2.propagators_weights)
+    sub = max1 - max2
+    return sub
