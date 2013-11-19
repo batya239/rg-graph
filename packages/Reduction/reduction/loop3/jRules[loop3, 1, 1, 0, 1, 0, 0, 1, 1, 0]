@@ -1,0 +1,8 @@
+j[loop3, (n1_)?Positive, (n2_)?Positive, (n3_)?NonPositive, (n4_)?Positive, 
+  (n5_)?NonPositive, (n6_)?NonPositive, (n7_)?Positive, (n8_)?Positive, 
+  (n9_)?NonPositive] :> Expand[j[loop3, n6, n3, n1, n5, n4, n2, 0, n7, n8]/
+   (-j[loop3, -1, 0, 0, 0, 0, 0, 0, 0, 0] - j[loop3, 0, -1, 0, 0, 0, 0, 0, 0, 
+      0] + j[loop3, 0, 0, -1, 0, 0, 0, 0, 0, 0] + j[loop3, 0, 0, 0, 0, 0, -1, 
+      0, 0, 0] + j[loop3, 0, 0, 0, 0, 0, 0, -1, 0, 0] - 
+     j[loop3, 0, 0, 0, 0, 0, 0, 0, -1, 0] + j[loop3, 0, 0, 0, 0, 0, 0, 0, 0, 
+      -1])^n9]

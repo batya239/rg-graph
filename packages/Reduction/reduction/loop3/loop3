@@ -1,71 +1,108 @@
 BasisDirectory[loop3] = StringDrop[DirectoryName[$Input], -1]
 loop3 /: BasisSectors[loop3] := Get[StringJoin[BasisDirectory[loop3], 
     "/BasisSectors[loop3]"]]
-loop3 /: Ds[loop3] := {sp[k1, k1], sp[k1 + p, k1 + p], sp[k1 + k2, k1 + k2],
-   sp[k2, k2], sp[k2 + k3, k2 + k3], sp[k3, k3], sp[k3 + p, k3 + p],
-   sp[k1 - k3, k1 - k3], sp[-k2 + p, -k2 + p]}
+loop3 /: Ds[loop3] := {sp[k1, k1], sp[k2, k2], sp[k3, k3], 
+   sp[k2 + k3, k2 + k3], sp[k1 - k3, k1 - k3], 
+   sp[k1 - k2 - k3, k1 - k2 - k3], sp[k1 + p, k1 + p], sp[k3 + p, k3 + p], 
+   sp[-k2 + p, -k2 + p]}
 loop3 /: EMs[loop3] := {p}
 loop3 /: IBP[loop3] := Get[StringJoin[BasisDirectory[loop3], "/IBP[loop3]"]]
-loop3 /: jRules[loop3, 0, 0, 1, 0, 0, 1, 0, 1, 1] := 
+loop3 /: jRules[loop3, 0, 0, 0, 0, 0, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 0, 0, 1, 0, 0, 1, 0, 1, 1]"]]
+    "/jRules[loop3, 0, 0, 0, 0, 0, 1, 1, 1, 1]"]]
+loop3 /: jRules[loop3, 0, 0, 0, 0, 1, 1, 1, 1, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 0, 0, 0, 0, 1, 1, 1, 1, 1]"]]
+loop3 /: jRules[loop3, 0, 0, 0, 1, 0, 1, 1, 1, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 0, 0, 0, 1, 0, 1, 1, 1, 1]"]]
+loop3 /: jRules[loop3, 0, 0, 0, 1, 1, 1, 0, 1, 0] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 0, 0, 0, 1, 1, 1, 0, 1, 0]"]]
+loop3 /: jRules[loop3, 0, 0, 0, 1, 1, 1, 0, 1, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 0, 0, 0, 1, 1, 1, 0, 1, 1]"]]
+loop3 /: jRules[loop3, 0, 0, 0, 1, 1, 1, 1, 0, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 0, 0, 0, 1, 1, 1, 1, 0, 1]"]]
+loop3 /: jRules[loop3, 0, 0, 0, 1, 1, 1, 1, 1, 0] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 0, 0, 0, 1, 1, 1, 1, 1, 0]"]]
+loop3 /: jRules[loop3, 0, 0, 0, 1, 1, 1, 1, 1, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 0, 0, 0, 1, 1, 1, 1, 1, 1]"]]
+loop3 /: jRules[loop3, 0, 0, 1, 0, 0, 1, 1, 0, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 0, 0, 1, 0, 0, 1, 1, 0, 1]"]]
 loop3 /: jRules[loop3, 0, 0, 1, 0, 0, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 0, 0, 1, 0, 0, 1, 1, 1, 1]"]]
 loop3 /: jRules[loop3, 0, 0, 1, 0, 1, 1, 0, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 0, 0, 1, 0, 1, 1, 0, 1, 1]"]]
+loop3 /: jRules[loop3, 0, 0, 1, 0, 1, 1, 1, 0, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 0, 0, 1, 0, 1, 1, 1, 0, 1]"]]
 loop3 /: jRules[loop3, 0, 0, 1, 0, 1, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 0, 0, 1, 0, 1, 1, 1, 1, 1]"]]
-loop3 /: jRules[loop3, 0, 0, 1, 1, 0, 0, 1, 1, 0] := 
+loop3 /: jRules[loop3, 0, 0, 1, 1, 0, 1, 1, 0, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 0, 0, 1, 1, 0, 0, 1, 1, 0]"]]
-loop3 /: jRules[loop3, 0, 0, 1, 1, 0, 0, 1, 1, 1] := 
-  Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 0, 0, 1, 1, 0, 0, 1, 1, 1]"]]
-loop3 /: jRules[loop3, 0, 0, 1, 1, 0, 1, 0, 1, 1] := 
-  Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 0, 0, 1, 1, 0, 1, 0, 1, 1]"]]
+    "/jRules[loop3, 0, 0, 1, 1, 0, 1, 1, 0, 1]"]]
 loop3 /: jRules[loop3, 0, 0, 1, 1, 0, 1, 1, 1, 0] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 0, 0, 1, 1, 0, 1, 1, 1, 0]"]]
 loop3 /: jRules[loop3, 0, 0, 1, 1, 0, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 0, 0, 1, 1, 0, 1, 1, 1, 1]"]]
-loop3 /: jRules[loop3, 0, 0, 1, 1, 1, 0, 1, 1, 0] := 
+loop3 /: jRules[loop3, 0, 0, 1, 1, 1, 0, 1, 0, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 0, 0, 1, 1, 1, 0, 1, 1, 0]"]]
+    "/jRules[loop3, 0, 0, 1, 1, 1, 0, 1, 0, 1]"]]
 loop3 /: jRules[loop3, 0, 0, 1, 1, 1, 0, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 0, 0, 1, 1, 1, 0, 1, 1, 1]"]]
+loop3 /: jRules[loop3, 0, 0, 1, 1, 1, 1, 0, 0, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 0, 0, 1, 1, 1, 1, 0, 0, 1]"]]
+loop3 /: jRules[loop3, 0, 0, 1, 1, 1, 1, 0, 1, 0] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 0, 0, 1, 1, 1, 1, 0, 1, 0]"]]
 loop3 /: jRules[loop3, 0, 0, 1, 1, 1, 1, 0, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 0, 0, 1, 1, 1, 1, 0, 1, 1]"]]
+loop3 /: jRules[loop3, 0, 0, 1, 1, 1, 1, 1, 0, 0] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 0, 0, 1, 1, 1, 1, 1, 0, 0]"]]
+loop3 /: jRules[loop3, 0, 0, 1, 1, 1, 1, 1, 0, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 0, 0, 1, 1, 1, 1, 1, 0, 1]"]]
 loop3 /: jRules[loop3, 0, 0, 1, 1, 1, 1, 1, 1, 0] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 0, 0, 1, 1, 1, 1, 1, 1, 0]"]]
 loop3 /: jRules[loop3, 0, 0, 1, 1, 1, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 0, 0, 1, 1, 1, 1, 1, 1, 1]"]]
-loop3 /: jRules[loop3, 0, 1, 0, 0, 1, 1, 0, 1, 1] := 
+loop3 /: jRules[loop3, 0, 1, 0, 0, 0, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 0, 1, 0, 0, 1, 1, 0, 1, 1]"]]
+    "/jRules[loop3, 0, 1, 0, 0, 0, 1, 1, 1, 1]"]]
 loop3 /: jRules[loop3, 0, 1, 0, 0, 1, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 0, 1, 0, 0, 1, 1, 1, 1, 1]"]]
-loop3 /: jRules[loop3, 0, 1, 0, 1, 0, 1, 0, 1, 1] := 
+loop3 /: jRules[loop3, 0, 1, 0, 1, 0, 1, 1, 0, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 0, 1, 0, 1, 0, 1, 0, 1, 1]"]]
+    "/jRules[loop3, 0, 1, 0, 1, 0, 1, 1, 0, 1]"]]
+loop3 /: jRules[loop3, 0, 1, 0, 1, 0, 1, 1, 1, 0] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 0, 1, 0, 1, 0, 1, 1, 1, 0]"]]
 loop3 /: jRules[loop3, 0, 1, 0, 1, 0, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 0, 1, 0, 1, 0, 1, 1, 1, 1]"]]
-loop3 /: jRules[loop3, 0, 1, 0, 1, 1, 0, 0, 1, 0] := 
+loop3 /: jRules[loop3, 0, 1, 0, 1, 1, 0, 1, 0, 0] := 
   Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 0, 1, 0, 1, 1, 0, 0, 1, 0]"]]
-loop3 /: jRules[loop3, 0, 1, 0, 1, 1, 0, 0, 1, 1] := 
+    "/jRules[loop3, 0, 1, 0, 1, 1, 0, 1, 0, 0]"]]
+loop3 /: jRules[loop3, 0, 1, 0, 1, 1, 0, 1, 0, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 0, 1, 0, 1, 1, 0, 0, 1, 1]"]]
+    "/jRules[loop3, 0, 1, 0, 1, 1, 0, 1, 0, 1]"]]
 loop3 /: jRules[loop3, 0, 1, 0, 1, 1, 0, 1, 1, 0] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 0, 1, 0, 1, 1, 0, 1, 1, 0]"]]
@@ -78,27 +115,36 @@ loop3 /: jRules[loop3, 0, 1, 0, 1, 1, 1, 0, 1, 0] :=
 loop3 /: jRules[loop3, 0, 1, 0, 1, 1, 1, 0, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 0, 1, 0, 1, 1, 1, 0, 1, 1]"]]
+loop3 /: jRules[loop3, 0, 1, 0, 1, 1, 1, 1, 0, 0] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 0, 1, 0, 1, 1, 1, 1, 0, 0]"]]
+loop3 /: jRules[loop3, 0, 1, 0, 1, 1, 1, 1, 0, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 0, 1, 0, 1, 1, 1, 1, 0, 1]"]]
 loop3 /: jRules[loop3, 0, 1, 0, 1, 1, 1, 1, 1, 0] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 0, 1, 0, 1, 1, 1, 1, 1, 0]"]]
 loop3 /: jRules[loop3, 0, 1, 0, 1, 1, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 0, 1, 0, 1, 1, 1, 1, 1, 1]"]]
-loop3 /: jRules[loop3, 0, 1, 1, 0, 0, 1, 0, 1, 1] := 
+loop3 /: jRules[loop3, 0, 1, 1, 0, 0, 1, 1, 0, 0] := 
   Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 0, 1, 1, 0, 0, 1, 0, 1, 1]"]]
+    "/jRules[loop3, 0, 1, 1, 0, 0, 1, 1, 0, 0]"]]
+loop3 /: jRules[loop3, 0, 1, 1, 0, 0, 1, 1, 0, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 0, 1, 1, 0, 0, 1, 1, 0, 1]"]]
+loop3 /: jRules[loop3, 0, 1, 1, 0, 0, 1, 1, 1, 0] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 0, 1, 1, 0, 0, 1, 1, 1, 0]"]]
 loop3 /: jRules[loop3, 0, 1, 1, 0, 0, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 0, 1, 1, 0, 0, 1, 1, 1, 1]"]]
-loop3 /: jRules[loop3, 0, 1, 1, 0, 1, 1, 0, 0, 0] := 
+loop3 /: jRules[loop3, 0, 1, 1, 0, 1, 0, 1, 0, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 0, 1, 1, 0, 1, 1, 0, 0, 0]"]]
-loop3 /: jRules[loop3, 0, 1, 1, 0, 1, 1, 0, 0, 1] := 
+    "/jRules[loop3, 0, 1, 1, 0, 1, 0, 1, 0, 1]"]]
+loop3 /: jRules[loop3, 0, 1, 1, 0, 1, 0, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 0, 1, 1, 0, 1, 1, 0, 0, 1]"]]
-loop3 /: jRules[loop3, 0, 1, 1, 0, 1, 1, 0, 1, 0] := 
-  Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 0, 1, 1, 0, 1, 1, 0, 1, 0]"]]
+    "/jRules[loop3, 0, 1, 1, 0, 1, 0, 1, 1, 1]"]]
 loop3 /: jRules[loop3, 0, 1, 1, 0, 1, 1, 0, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 0, 1, 1, 0, 1, 1, 0, 1, 1]"]]
@@ -114,18 +160,6 @@ loop3 /: jRules[loop3, 0, 1, 1, 0, 1, 1, 1, 1, 0] :=
 loop3 /: jRules[loop3, 0, 1, 1, 0, 1, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 0, 1, 1, 0, 1, 1, 1, 1, 1]"]]
-loop3 /: jRules[loop3, 0, 1, 1, 1, 0, 0, 1, 1, 0] := 
-  Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 0, 1, 1, 1, 0, 0, 1, 1, 0]"]]
-loop3 /: jRules[loop3, 0, 1, 1, 1, 0, 0, 1, 1, 1] := 
-  Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 0, 1, 1, 1, 0, 0, 1, 1, 1]"]]
-loop3 /: jRules[loop3, 0, 1, 1, 1, 0, 1, 0, 1, 0] := 
-  Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 0, 1, 1, 1, 0, 1, 0, 1, 0]"]]
-loop3 /: jRules[loop3, 0, 1, 1, 1, 0, 1, 0, 1, 1] := 
-  Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 0, 1, 1, 1, 0, 1, 0, 1, 1]"]]
 loop3 /: jRules[loop3, 0, 1, 1, 1, 0, 1, 1, 0, 0] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 0, 1, 1, 1, 0, 1, 1, 0, 0]"]]
@@ -138,12 +172,6 @@ loop3 /: jRules[loop3, 0, 1, 1, 1, 0, 1, 1, 1, 0] :=
 loop3 /: jRules[loop3, 0, 1, 1, 1, 0, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 0, 1, 1, 1, 0, 1, 1, 1, 1]"]]
-loop3 /: jRules[loop3, 0, 1, 1, 1, 1, 0, 0, 1, 0] := 
-  Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 0, 1, 1, 1, 1, 0, 0, 1, 0]"]]
-loop3 /: jRules[loop3, 0, 1, 1, 1, 1, 0, 0, 1, 1] := 
-  Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 0, 1, 1, 1, 1, 0, 0, 1, 1]"]]
 loop3 /: jRules[loop3, 0, 1, 1, 1, 1, 0, 1, 0, 0] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 0, 1, 1, 1, 1, 0, 1, 0, 0]"]]
@@ -156,9 +184,6 @@ loop3 /: jRules[loop3, 0, 1, 1, 1, 1, 0, 1, 1, 0] :=
 loop3 /: jRules[loop3, 0, 1, 1, 1, 1, 0, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 0, 1, 1, 1, 1, 0, 1, 1, 1]"]]
-loop3 /: jRules[loop3, 0, 1, 1, 1, 1, 1, 0, 0, 0] := 
-  Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 0, 1, 1, 1, 1, 1, 0, 0, 0]"]]
 loop3 /: jRules[loop3, 0, 1, 1, 1, 1, 1, 0, 0, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 0, 1, 1, 1, 1, 1, 0, 0, 1]"]]
@@ -180,45 +205,54 @@ loop3 /: jRules[loop3, 0, 1, 1, 1, 1, 1, 1, 1, 0] :=
 loop3 /: jRules[loop3, 0, 1, 1, 1, 1, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 0, 1, 1, 1, 1, 1, 1, 1, 1]"]]
-loop3 /: jRules[loop3, 1, 0, 0, 0, 1, 0, 0, 1, 1] := 
+loop3 /: jRules[loop3, 1, 0, 0, 0, 0, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 1, 0, 0, 0, 1, 0, 0, 1, 1]"]]
-loop3 /: jRules[loop3, 1, 0, 0, 0, 1, 0, 1, 1, 1] := 
-  Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 1, 0, 0, 0, 1, 0, 1, 1, 1]"]]
+    "/jRules[loop3, 1, 0, 0, 0, 0, 1, 1, 1, 1]"]]
 loop3 /: jRules[loop3, 1, 0, 0, 0, 1, 1, 0, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 0, 0, 0, 1, 1, 0, 1, 1]"]]
+loop3 /: jRules[loop3, 1, 0, 0, 0, 1, 1, 1, 0, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 1, 0, 0, 0, 1, 1, 1, 0, 1]"]]
 loop3 /: jRules[loop3, 1, 0, 0, 0, 1, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 0, 0, 0, 1, 1, 1, 1, 1]"]]
-loop3 /: jRules[loop3, 1, 0, 0, 1, 0, 0, 1, 1, 1] := 
-  Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 1, 0, 0, 1, 0, 0, 1, 1, 1]"]]
 loop3 /: jRules[loop3, 1, 0, 0, 1, 0, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 0, 0, 1, 0, 1, 1, 1, 1]"]]
+loop3 /: jRules[loop3, 1, 0, 0, 1, 1, 0, 0, 0, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 1, 0, 0, 1, 1, 0, 0, 0, 1]"]]
 loop3 /: jRules[loop3, 1, 0, 0, 1, 1, 0, 0, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 0, 0, 1, 1, 0, 0, 1, 1]"]]
-loop3 /: jRules[loop3, 1, 0, 0, 1, 1, 0, 1, 1, 0] := 
+loop3 /: jRules[loop3, 1, 0, 0, 1, 1, 0, 1, 0, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 1, 0, 0, 1, 1, 0, 1, 1, 0]"]]
+    "/jRules[loop3, 1, 0, 0, 1, 1, 0, 1, 0, 1]"]]
 loop3 /: jRules[loop3, 1, 0, 0, 1, 1, 0, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 0, 0, 1, 1, 0, 1, 1, 1]"]]
+loop3 /: jRules[loop3, 1, 0, 0, 1, 1, 1, 0, 0, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 1, 0, 0, 1, 1, 1, 0, 0, 1]"]]
+loop3 /: jRules[loop3, 1, 0, 0, 1, 1, 1, 0, 1, 0] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 1, 0, 0, 1, 1, 1, 0, 1, 0]"]]
 loop3 /: jRules[loop3, 1, 0, 0, 1, 1, 1, 0, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 0, 0, 1, 1, 1, 0, 1, 1]"]]
+loop3 /: jRules[loop3, 1, 0, 0, 1, 1, 1, 1, 0, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 1, 0, 0, 1, 1, 1, 1, 0, 1]"]]
 loop3 /: jRules[loop3, 1, 0, 0, 1, 1, 1, 1, 1, 0] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 0, 0, 1, 1, 1, 1, 1, 0]"]]
 loop3 /: jRules[loop3, 1, 0, 0, 1, 1, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 0, 0, 1, 1, 1, 1, 1, 1]"]]
-loop3 /: jRules[loop3, 1, 0, 1, 0, 0, 0, 1, 1, 1] := 
+loop3 /: jRules[loop3, 1, 0, 1, 0, 0, 1, 0, 0, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 1, 0, 1, 0, 0, 0, 1, 1, 1]"]]
+    "/jRules[loop3, 1, 0, 1, 0, 0, 1, 0, 0, 1]"]]
 loop3 /: jRules[loop3, 1, 0, 1, 0, 0, 1, 0, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 0, 1, 0, 0, 1, 0, 1, 1]"]]
@@ -228,45 +262,27 @@ loop3 /: jRules[loop3, 1, 0, 1, 0, 0, 1, 1, 0, 1] :=
 loop3 /: jRules[loop3, 1, 0, 1, 0, 0, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 0, 1, 0, 0, 1, 1, 1, 1]"]]
-loop3 /: jRules[loop3, 1, 0, 1, 0, 1, 0, 0, 1, 1] := 
-  Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 1, 0, 1, 0, 1, 0, 0, 1, 1]"]]
-loop3 /: jRules[loop3, 1, 0, 1, 0, 1, 0, 1, 0, 0] := 
-  Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 1, 0, 1, 0, 1, 0, 1, 0, 0]"]]
-loop3 /: jRules[loop3, 1, 0, 1, 0, 1, 0, 1, 0, 1] := 
-  Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 1, 0, 1, 0, 1, 0, 1, 0, 1]"]]
-loop3 /: jRules[loop3, 1, 0, 1, 0, 1, 0, 1, 1, 0] := 
-  Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 1, 0, 1, 0, 1, 0, 1, 1, 0]"]]
-loop3 /: jRules[loop3, 1, 0, 1, 0, 1, 0, 1, 1, 1] := 
-  Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 1, 0, 1, 0, 1, 0, 1, 1, 1]"]]
 loop3 /: jRules[loop3, 1, 0, 1, 0, 1, 1, 0, 0, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 0, 1, 0, 1, 1, 0, 0, 1]"]]
 loop3 /: jRules[loop3, 1, 0, 1, 0, 1, 1, 0, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 0, 1, 0, 1, 1, 0, 1, 1]"]]
-loop3 /: jRules[loop3, 1, 0, 1, 0, 1, 1, 1, 0, 0] := 
-  Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 1, 0, 1, 0, 1, 1, 1, 0, 0]"]]
 loop3 /: jRules[loop3, 1, 0, 1, 0, 1, 1, 1, 0, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 0, 1, 0, 1, 1, 1, 0, 1]"]]
-loop3 /: jRules[loop3, 1, 0, 1, 0, 1, 1, 1, 1, 0] := 
-  Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 1, 0, 1, 0, 1, 1, 1, 1, 0]"]]
 loop3 /: jRules[loop3, 1, 0, 1, 0, 1, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 0, 1, 0, 1, 1, 1, 1, 1]"]]
-loop3 /: jRules[loop3, 1, 0, 1, 1, 0, 0, 1, 1, 0] := 
+loop3 /: jRules[loop3, 1, 0, 1, 1, 0, 0, 1, 0, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 1, 0, 1, 1, 0, 0, 1, 1, 0]"]]
+    "/jRules[loop3, 1, 0, 1, 1, 0, 0, 1, 0, 1]"]]
 loop3 /: jRules[loop3, 1, 0, 1, 1, 0, 0, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 0, 1, 1, 0, 0, 1, 1, 1]"]]
+loop3 /: jRules[loop3, 1, 0, 1, 1, 0, 1, 0, 0, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 1, 0, 1, 1, 0, 1, 0, 0, 1]"]]
 loop3 /: jRules[loop3, 1, 0, 1, 1, 0, 1, 0, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 0, 1, 1, 0, 1, 0, 1, 1]"]]
@@ -279,24 +295,24 @@ loop3 /: jRules[loop3, 1, 0, 1, 1, 0, 1, 1, 1, 0] :=
 loop3 /: jRules[loop3, 1, 0, 1, 1, 0, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 0, 1, 1, 0, 1, 1, 1, 1]"]]
+loop3 /: jRules[loop3, 1, 0, 1, 1, 1, 0, 0, 0, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 1, 0, 1, 1, 1, 0, 0, 0, 1]"]]
 loop3 /: jRules[loop3, 1, 0, 1, 1, 1, 0, 0, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 0, 1, 1, 1, 0, 0, 1, 1]"]]
-loop3 /: jRules[loop3, 1, 0, 1, 1, 1, 0, 1, 0, 0] := 
-  Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 1, 0, 1, 1, 1, 0, 1, 0, 0]"]]
 loop3 /: jRules[loop3, 1, 0, 1, 1, 1, 0, 1, 0, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 0, 1, 1, 1, 0, 1, 0, 1]"]]
-loop3 /: jRules[loop3, 1, 0, 1, 1, 1, 0, 1, 1, 0] := 
-  Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 1, 0, 1, 1, 1, 0, 1, 1, 0]"]]
 loop3 /: jRules[loop3, 1, 0, 1, 1, 1, 0, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 0, 1, 1, 1, 0, 1, 1, 1]"]]
 loop3 /: jRules[loop3, 1, 0, 1, 1, 1, 1, 0, 0, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 0, 1, 1, 1, 1, 0, 0, 1]"]]
+loop3 /: jRules[loop3, 1, 0, 1, 1, 1, 1, 0, 1, 0] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 1, 0, 1, 1, 1, 1, 0, 1, 0]"]]
 loop3 /: jRules[loop3, 1, 0, 1, 1, 1, 1, 0, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 0, 1, 1, 1, 1, 0, 1, 1]"]]
@@ -312,36 +328,63 @@ loop3 /: jRules[loop3, 1, 0, 1, 1, 1, 1, 1, 1, 0] :=
 loop3 /: jRules[loop3, 1, 0, 1, 1, 1, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 0, 1, 1, 1, 1, 1, 1, 1]"]]
+loop3 /: jRules[loop3, 1, 1, 0, 0, 0, 1, 0, 1, 0] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 1, 1, 0, 0, 0, 1, 0, 1, 0]"]]
+loop3 /: jRules[loop3, 1, 1, 0, 0, 0, 1, 0, 1, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 1, 1, 0, 0, 0, 1, 0, 1, 1]"]]
+loop3 /: jRules[loop3, 1, 1, 0, 0, 0, 1, 1, 1, 0] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 1, 1, 0, 0, 0, 1, 1, 1, 0]"]]
+loop3 /: jRules[loop3, 1, 1, 0, 0, 0, 1, 1, 1, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 1, 1, 0, 0, 0, 1, 1, 1, 1]"]]
 loop3 /: jRules[loop3, 1, 1, 0, 0, 1, 0, 0, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 1, 0, 0, 1, 0, 0, 1, 1]"]]
 loop3 /: jRules[loop3, 1, 1, 0, 0, 1, 0, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 1, 0, 0, 1, 0, 1, 1, 1]"]]
-loop3 /: jRules[loop3, 1, 1, 0, 0, 1, 1, 0, 0, 1] := 
+loop3 /: jRules[loop3, 1, 1, 0, 0, 1, 1, 0, 1, 0] := 
   Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 1, 1, 0, 0, 1, 1, 0, 0, 1]"]]
+    "/jRules[loop3, 1, 1, 0, 0, 1, 1, 0, 1, 0]"]]
 loop3 /: jRules[loop3, 1, 1, 0, 0, 1, 1, 0, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 1, 0, 0, 1, 1, 0, 1, 1]"]]
 loop3 /: jRules[loop3, 1, 1, 0, 0, 1, 1, 1, 0, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 1, 0, 0, 1, 1, 1, 0, 1]"]]
+loop3 /: jRules[loop3, 1, 1, 0, 0, 1, 1, 1, 1, 0] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 1, 1, 0, 0, 1, 1, 1, 1, 0]"]]
 loop3 /: jRules[loop3, 1, 1, 0, 0, 1, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 1, 0, 0, 1, 1, 1, 1, 1]"]]
+loop3 /: jRules[loop3, 1, 1, 0, 1, 0, 0, 1, 1, 0] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 1, 1, 0, 1, 0, 0, 1, 1, 0]"]]
 loop3 /: jRules[loop3, 1, 1, 0, 1, 0, 0, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 1, 0, 1, 0, 0, 1, 1, 1]"]]
+loop3 /: jRules[loop3, 1, 1, 0, 1, 0, 1, 0, 1, 0] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 1, 1, 0, 1, 0, 1, 0, 1, 0]"]]
 loop3 /: jRules[loop3, 1, 1, 0, 1, 0, 1, 0, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 1, 0, 1, 0, 1, 0, 1, 1]"]]
 loop3 /: jRules[loop3, 1, 1, 0, 1, 0, 1, 1, 0, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 1, 0, 1, 0, 1, 1, 0, 1]"]]
+loop3 /: jRules[loop3, 1, 1, 0, 1, 0, 1, 1, 1, 0] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 1, 1, 0, 1, 0, 1, 1, 1, 0]"]]
 loop3 /: jRules[loop3, 1, 1, 0, 1, 0, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 1, 0, 1, 0, 1, 1, 1, 1]"]]
+loop3 /: jRules[loop3, 1, 1, 0, 1, 1, 0, 0, 0, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 1, 1, 0, 1, 1, 0, 0, 0, 1]"]]
 loop3 /: jRules[loop3, 1, 1, 0, 1, 1, 0, 0, 1, 0] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 1, 0, 1, 1, 0, 0, 1, 0]"]]
@@ -384,33 +427,36 @@ loop3 /: jRules[loop3, 1, 1, 0, 1, 1, 1, 1, 1, 1] :=
 loop3 /: jRules[loop3, 1, 1, 1, 0, 0, 0, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 1, 1, 0, 0, 0, 1, 1, 1]"]]
+loop3 /: jRules[loop3, 1, 1, 1, 0, 0, 1, 0, 0, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 1, 1, 1, 0, 0, 1, 0, 0, 1]"]]
+loop3 /: jRules[loop3, 1, 1, 1, 0, 0, 1, 0, 1, 0] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 1, 1, 1, 0, 0, 1, 0, 1, 0]"]]
 loop3 /: jRules[loop3, 1, 1, 1, 0, 0, 1, 0, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 1, 1, 0, 0, 1, 0, 1, 1]"]]
+loop3 /: jRules[loop3, 1, 1, 1, 0, 0, 1, 1, 0, 0] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 1, 1, 1, 0, 0, 1, 1, 0, 0]"]]
 loop3 /: jRules[loop3, 1, 1, 1, 0, 0, 1, 1, 0, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 1, 1, 0, 0, 1, 1, 0, 1]"]]
+loop3 /: jRules[loop3, 1, 1, 1, 0, 0, 1, 1, 1, 0] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 1, 1, 1, 0, 0, 1, 1, 1, 0]"]]
 loop3 /: jRules[loop3, 1, 1, 1, 0, 0, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 1, 1, 0, 0, 1, 1, 1, 1]"]]
 loop3 /: jRules[loop3, 1, 1, 1, 0, 1, 0, 0, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 1, 1, 0, 1, 0, 0, 1, 1]"]]
-loop3 /: jRules[loop3, 1, 1, 1, 0, 1, 0, 1, 0, 0] := 
-  Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 1, 1, 1, 0, 1, 0, 1, 0, 0]"]]
 loop3 /: jRules[loop3, 1, 1, 1, 0, 1, 0, 1, 0, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 1, 1, 0, 1, 0, 1, 0, 1]"]]
-loop3 /: jRules[loop3, 1, 1, 1, 0, 1, 0, 1, 1, 0] := 
-  Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 1, 1, 1, 0, 1, 0, 1, 1, 0]"]]
 loop3 /: jRules[loop3, 1, 1, 1, 0, 1, 0, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 1, 1, 0, 1, 0, 1, 1, 1]"]]
-loop3 /: jRules[loop3, 1, 1, 1, 0, 1, 1, 0, 0, 0] := 
-  Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 1, 1, 1, 0, 1, 1, 0, 0, 0]"]]
 loop3 /: jRules[loop3, 1, 1, 1, 0, 1, 1, 0, 0, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 1, 1, 0, 1, 1, 0, 0, 1]"]]
@@ -432,12 +478,18 @@ loop3 /: jRules[loop3, 1, 1, 1, 0, 1, 1, 1, 1, 0] :=
 loop3 /: jRules[loop3, 1, 1, 1, 0, 1, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 1, 1, 0, 1, 1, 1, 1, 1]"]]
+loop3 /: jRules[loop3, 1, 1, 1, 1, 0, 0, 1, 0, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 1, 1, 1, 1, 0, 0, 1, 0, 1]"]]
 loop3 /: jRules[loop3, 1, 1, 1, 1, 0, 0, 1, 1, 0] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 1, 1, 1, 0, 0, 1, 1, 0]"]]
 loop3 /: jRules[loop3, 1, 1, 1, 1, 0, 0, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 1, 1, 1, 0, 0, 1, 1, 1]"]]
+loop3 /: jRules[loop3, 1, 1, 1, 1, 0, 1, 0, 0, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 1, 1, 1, 1, 0, 1, 0, 0, 1]"]]
 loop3 /: jRules[loop3, 1, 1, 1, 1, 0, 1, 0, 1, 0] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 1, 1, 1, 0, 1, 0, 1, 0]"]]
@@ -456,6 +508,9 @@ loop3 /: jRules[loop3, 1, 1, 1, 1, 0, 1, 1, 1, 0] :=
 loop3 /: jRules[loop3, 1, 1, 1, 1, 0, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 1, 1, 1, 0, 1, 1, 1, 1]"]]
+loop3 /: jRules[loop3, 1, 1, 1, 1, 1, 0, 0, 0, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jRules[loop3, 1, 1, 1, 1, 1, 0, 0, 0, 1]"]]
 loop3 /: jRules[loop3, 1, 1, 1, 1, 1, 0, 0, 1, 0] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 1, 1, 1, 1, 0, 0, 1, 0]"]]
@@ -474,9 +529,6 @@ loop3 /: jRules[loop3, 1, 1, 1, 1, 1, 0, 1, 1, 0] :=
 loop3 /: jRules[loop3, 1, 1, 1, 1, 1, 0, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 1, 1, 1, 1, 0, 1, 1, 1]"]]
-loop3 /: jRules[loop3, 1, 1, 1, 1, 1, 1, 0, 0, 0] := 
-  Get[StringJoin[BasisDirectory[loop3], 
-    "/jRules[loop3, 1, 1, 1, 1, 1, 1, 0, 0, 0]"]]
 loop3 /: jRules[loop3, 1, 1, 1, 1, 1, 1, 0, 0, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 1, 1, 1, 1, 1, 0, 0, 1]"]]
@@ -498,69 +550,111 @@ loop3 /: jRules[loop3, 1, 1, 1, 1, 1, 1, 1, 1, 0] :=
 loop3 /: jRules[loop3, 1, 1, 1, 1, 1, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jRules[loop3, 1, 1, 1, 1, 1, 1, 1, 1, 1]"]]
-loop3 /: jSymmetries[loop3, 0, 0, 1, 0, 0, 1, 0, 1, 1] := 
+loop3 /: jSymmetries[loop3, 0, 0, 0, 0, 0, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
-    "/jSymmetries[loop3, 0, 0, 1, 0, 0, 1, 0, 1, 1]"]]
+    "/jSymmetries[loop3, 0, 0, 0, 0, 0, 1, 1, 1, 1]"]]
+loop3 /: jSymmetries[loop3, 0, 0, 0, 0, 1, 1, 1, 1, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jSymmetries[loop3, 0, 0, 0, 0, 1, 1, 1, 1, 1]"]]
+loop3 /: jSymmetries[loop3, 0, 0, 0, 1, 1, 1, 1, 0, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jSymmetries[loop3, 0, 0, 0, 1, 1, 1, 1, 0, 1]"]]
+loop3 /: jSymmetries[loop3, 0, 0, 0, 1, 1, 1, 1, 1, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jSymmetries[loop3, 0, 0, 0, 1, 1, 1, 1, 1, 1]"]]
+loop3 /: jSymmetries[loop3, 0, 0, 1, 0, 0, 1, 1, 0, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jSymmetries[loop3, 0, 0, 1, 0, 0, 1, 1, 0, 1]"]]
 loop3 /: jSymmetries[loop3, 0, 0, 1, 0, 0, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jSymmetries[loop3, 0, 0, 1, 0, 0, 1, 1, 1, 1]"]]
 loop3 /: jSymmetries[loop3, 0, 0, 1, 0, 1, 1, 0, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jSymmetries[loop3, 0, 0, 1, 0, 1, 1, 0, 1, 1]"]]
+loop3 /: jSymmetries[loop3, 0, 0, 1, 0, 1, 1, 1, 0, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jSymmetries[loop3, 0, 0, 1, 0, 1, 1, 1, 0, 1]"]]
 loop3 /: jSymmetries[loop3, 0, 0, 1, 0, 1, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jSymmetries[loop3, 0, 0, 1, 0, 1, 1, 1, 1, 1]"]]
-loop3 /: jSymmetries[loop3, 0, 0, 1, 1, 0, 1, 1, 1, 1] := 
+loop3 /: jSymmetries[loop3, 0, 0, 1, 1, 1, 0, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
-    "/jSymmetries[loop3, 0, 0, 1, 1, 0, 1, 1, 1, 1]"]]
+    "/jSymmetries[loop3, 0, 0, 1, 1, 1, 0, 1, 1, 1]"]]
+loop3 /: jSymmetries[loop3, 0, 0, 1, 1, 1, 1, 0, 1, 0] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jSymmetries[loop3, 0, 0, 1, 1, 1, 1, 0, 1, 0]"]]
+loop3 /: jSymmetries[loop3, 0, 0, 1, 1, 1, 1, 0, 1, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jSymmetries[loop3, 0, 0, 1, 1, 1, 1, 0, 1, 1]"]]
+loop3 /: jSymmetries[loop3, 0, 0, 1, 1, 1, 1, 1, 0, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jSymmetries[loop3, 0, 0, 1, 1, 1, 1, 1, 0, 1]"]]
 loop3 /: jSymmetries[loop3, 0, 0, 1, 1, 1, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jSymmetries[loop3, 0, 0, 1, 1, 1, 1, 1, 1, 1]"]]
-loop3 /: jSymmetries[loop3, 0, 1, 0, 0, 1, 1, 0, 1, 1] := 
-  Get[StringJoin[BasisDirectory[loop3], 
-    "/jSymmetries[loop3, 0, 1, 0, 0, 1, 1, 0, 1, 1]"]]
 loop3 /: jSymmetries[loop3, 0, 1, 0, 0, 1, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jSymmetries[loop3, 0, 1, 0, 0, 1, 1, 1, 1, 1]"]]
-loop3 /: jSymmetries[loop3, 0, 1, 0, 1, 0, 1, 0, 1, 1] := 
-  Get[StringJoin[BasisDirectory[loop3], 
-    "/jSymmetries[loop3, 0, 1, 0, 1, 0, 1, 0, 1, 1]"]]
-loop3 /: jSymmetries[loop3, 0, 1, 0, 1, 0, 1, 1, 1, 1] := 
-  Get[StringJoin[BasisDirectory[loop3], 
-    "/jSymmetries[loop3, 0, 1, 0, 1, 0, 1, 1, 1, 1]"]]
 loop3 /: jSymmetries[loop3, 0, 1, 0, 1, 1, 1, 0, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jSymmetries[loop3, 0, 1, 0, 1, 1, 1, 0, 1, 1]"]]
-loop3 /: jSymmetries[loop3, 0, 1, 0, 1, 1, 1, 1, 1, 0] := 
-  Get[StringJoin[BasisDirectory[loop3], 
-    "/jSymmetries[loop3, 0, 1, 0, 1, 1, 1, 1, 1, 0]"]]
 loop3 /: jSymmetries[loop3, 0, 1, 0, 1, 1, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jSymmetries[loop3, 0, 1, 0, 1, 1, 1, 1, 1, 1]"]]
-loop3 /: jSymmetries[loop3, 0, 1, 1, 0, 1, 1, 0, 1, 1] := 
+loop3 /: jSymmetries[loop3, 0, 1, 1, 0, 0, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
-    "/jSymmetries[loop3, 0, 1, 1, 0, 1, 1, 0, 1, 1]"]]
+    "/jSymmetries[loop3, 0, 1, 1, 0, 0, 1, 1, 1, 1]"]]
+loop3 /: jSymmetries[loop3, 0, 1, 1, 0, 1, 0, 1, 1, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jSymmetries[loop3, 0, 1, 1, 0, 1, 0, 1, 1, 1]"]]
 loop3 /: jSymmetries[loop3, 0, 1, 1, 0, 1, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jSymmetries[loop3, 0, 1, 1, 0, 1, 1, 1, 1, 1]"]]
 loop3 /: jSymmetries[loop3, 0, 1, 1, 1, 0, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jSymmetries[loop3, 0, 1, 1, 1, 0, 1, 1, 1, 1]"]]
-loop3 /: jSymmetries[loop3, 0, 1, 1, 1, 1, 1, 0, 1, 1] := 
+loop3 /: jSymmetries[loop3, 0, 1, 1, 1, 1, 0, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
-    "/jSymmetries[loop3, 0, 1, 1, 1, 1, 1, 0, 1, 1]"]]
+    "/jSymmetries[loop3, 0, 1, 1, 1, 1, 0, 1, 1, 1]"]]
 loop3 /: jSymmetries[loop3, 0, 1, 1, 1, 1, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jSymmetries[loop3, 0, 1, 1, 1, 1, 1, 1, 1, 1]"]]
-loop3 /: jSymmetries[loop3, 1, 1, 0, 1, 0, 1, 1, 0, 1] := 
+loop3 /: jSymmetries[loop3, 1, 1, 0, 0, 0, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
-    "/jSymmetries[loop3, 1, 1, 0, 1, 0, 1, 1, 0, 1]"]]
-loop3 /: jSymmetries[loop3, 1, 1, 0, 1, 0, 1, 1, 1, 1] := 
+    "/jSymmetries[loop3, 1, 1, 0, 0, 0, 1, 1, 1, 1]"]]
+loop3 /: jSymmetries[loop3, 1, 1, 0, 0, 1, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
-    "/jSymmetries[loop3, 1, 1, 0, 1, 0, 1, 1, 1, 1]"]]
+    "/jSymmetries[loop3, 1, 1, 0, 0, 1, 1, 1, 1, 1]"]]
 loop3 /: jSymmetries[loop3, 1, 1, 0, 1, 1, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jSymmetries[loop3, 1, 1, 0, 1, 1, 1, 1, 1, 1]"]]
+loop3 /: jSymmetries[loop3, 1, 1, 1, 0, 0, 0, 1, 1, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jSymmetries[loop3, 1, 1, 1, 0, 0, 0, 1, 1, 1]"]]
+loop3 /: jSymmetries[loop3, 1, 1, 1, 0, 0, 1, 1, 1, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jSymmetries[loop3, 1, 1, 1, 0, 0, 1, 1, 1, 1]"]]
+loop3 /: jSymmetries[loop3, 1, 1, 1, 0, 1, 0, 1, 1, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jSymmetries[loop3, 1, 1, 1, 0, 1, 0, 1, 1, 1]"]]
+loop3 /: jSymmetries[loop3, 1, 1, 1, 0, 1, 1, 1, 1, 0] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jSymmetries[loop3, 1, 1, 1, 0, 1, 1, 1, 1, 0]"]]
+loop3 /: jSymmetries[loop3, 1, 1, 1, 0, 1, 1, 1, 1, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jSymmetries[loop3, 1, 1, 1, 0, 1, 1, 1, 1, 1]"]]
+loop3 /: jSymmetries[loop3, 1, 1, 1, 1, 1, 0, 1, 1, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jSymmetries[loop3, 1, 1, 1, 1, 1, 0, 1, 1, 1]"]]
+loop3 /: jSymmetries[loop3, 1, 1, 1, 1, 1, 1, 0, 0, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jSymmetries[loop3, 1, 1, 1, 1, 1, 1, 0, 0, 1]"]]
+loop3 /: jSymmetries[loop3, 1, 1, 1, 1, 1, 1, 0, 1, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jSymmetries[loop3, 1, 1, 1, 1, 1, 1, 0, 1, 1]"]]
+loop3 /: jSymmetries[loop3, 1, 1, 1, 1, 1, 1, 1, 0, 1] := 
+  Get[StringJoin[BasisDirectory[loop3], 
+    "/jSymmetries[loop3, 1, 1, 1, 1, 1, 1, 1, 0, 1]"]]
 loop3 /: jSymmetries[loop3, 1, 1, 1, 1, 1, 1, 1, 1, 1] := 
   Get[StringJoin[BasisDirectory[loop3], 
     "/jSymmetries[loop3, 1, 1, 1, 1, 1, 1, 1, 1, 1]"]]
@@ -568,52 +662,62 @@ loop3 /: LI[loop3] := Get[StringJoin[BasisDirectory[loop3], "/LI[loop3]"]]
 loop3 /: LMs[loop3] := {k1, k2, k3}
 loop3 /: MappedSectors[loop3] := Get[StringJoin[BasisDirectory[loop3], 
     "/MappedSectors[loop3]"]]
-loop3 /: MIs[loop3] := {j[loop3, 0, 0, 1, 0, 0, 1, 0, 1, 1], 
-   j[loop3, 0, 1, 0, 0, 1, 1, 0, 1, 1], j[loop3, 0, 1, 0, 1, 0, 1, 0, 1, 1], 
-   j[loop3, 0, 0, 1, 1, 0, 1, 1, 1, 1], j[loop3, 1, 1, 0, 1, 0, 1, 1, 0, 1]}
+loop3 /: MIs[loop3] := {j[loop3, 0, 0, 0, 0, 0, 1, 1, 1, 1], 
+   j[loop3, 0, 0, 1, 0, 0, 1, 1, 0, 1], j[loop3, 0, 0, 0, 1, 1, 1, 1, 0, 1], 
+   j[loop3, 0, 0, 1, 0, 0, 1, 1, 1, 1], j[loop3, 0, 0, 1, 0, 1, 1, 0, 1, 1], 
+   j[loop3, 0, 0, 1, 0, 1, 1, 1, 0, 1], j[loop3, 0, 0, 1, 1, 1, 1, 1, 0, 1], 
+   j[loop3, 0, 1, 1, 0, 0, 1, 1, 1, 1], j[loop3, 1, 1, 0, 0, 0, 1, 1, 1, 1], 
+   j[loop3, 1, 1, 1, 0, 0, 0, 1, 1, 1], j[loop3, 1, 1, 1, 0, 0, 1, 1, 1, 1], 
+   j[loop3, 1, 1, 0, 1, 1, 1, 1, 1, 1]}
 loop3 /: NonZeroSectors[loop3] := Get[StringJoin[BasisDirectory[loop3], 
     "/NonZeroSectors[loop3]"]]
 loop3 /: SimpleSectors[loop3] := Get[StringJoin[BasisDirectory[loop3], 
     "/SimpleSectors[loop3]"]]
-loop3 /: SPs[loop3] := {sp[k1, k1], sp[k1, k2], sp[k1, k3], sp[k1, q], 
-   sp[k2, k2], sp[k2, k3], sp[k2, q], sp[k3, k3], sp[k3, q]}
+loop3 /: SPs[loop3] := {sp[k1, k1], sp[k1, k2], sp[k1, k3], sp[k1, p], 
+   sp[k2, k2], sp[k2, k3], sp[k2, p], sp[k3, k3], sp[k3, p]}
 loop3 /: SR[loop3] := Get[StringJoin[BasisDirectory[loop3], "/SR[loop3]"]]
 loop3 /: Toj[loop3] := {sp[k1, k1] -> j[loop3, -1, 0, 0, 0, 0, 0, 0, 0, 0], 
-   sp[k1, k2] -> -j[loop3, -1, 0, 0, 0, 0, 0, 0, 0, 0]/2 + 
-     j[loop3, 0, 0, -1, 0, 0, 0, 0, 0, 0]/2 - 
-     j[loop3, 0, 0, 0, -1, 0, 0, 0, 0, 0]/2, 
+   sp[k1, k2] -> (-j[loop3, 0, 0, -1, 0, 0, 0, 0, 0, 0] + 
+      j[loop3, 0, 0, 0, -1, 0, 0, 0, 0, 0] + j[loop3, 0, 0, 0, 0, -1, 0, 0, 
+       0, 0] - j[loop3, 0, 0, 0, 0, 0, -1, 0, 0, 0])/2, 
    sp[k1, k3] -> j[loop3, -1, 0, 0, 0, 0, 0, 0, 0, 0]/2 + 
-     j[loop3, 0, 0, 0, 0, 0, -1, 0, 0, 0]/2 - 
-     j[loop3, 0, 0, 0, 0, 0, 0, 0, -1, 0]/2, 
-   sp[k1, q] -> -1/2 - j[loop3, -1, 0, 0, 0, 0, 0, 0, 0, 0]/2 + 
-     j[loop3, 0, -1, 0, 0, 0, 0, 0, 0, 0]/2, 
-   sp[k2, k2] -> j[loop3, 0, 0, 0, -1, 0, 0, 0, 0, 0], 
-   sp[k2, k3] -> -j[loop3, 0, 0, 0, -1, 0, 0, 0, 0, 0]/2 + 
-     j[loop3, 0, 0, 0, 0, -1, 0, 0, 0, 0]/2 - 
-     j[loop3, 0, 0, 0, 0, 0, -1, 0, 0, 0]/2, 
-   sp[k2, q] -> 1/2 + j[loop3, 0, 0, 0, -1, 0, 0, 0, 0, 0]/2 - 
+     j[loop3, 0, 0, -1, 0, 0, 0, 0, 0, 0]/2 - 
+     j[loop3, 0, 0, 0, 0, -1, 0, 0, 0, 0]/2, 
+   sp[k1, p] -> -1/2 - j[loop3, -1, 0, 0, 0, 0, 0, 0, 0, 0]/2 + 
+     j[loop3, 0, 0, 0, 0, 0, 0, -1, 0, 0]/2, 
+   sp[k2, k2] -> j[loop3, 0, -1, 0, 0, 0, 0, 0, 0, 0], 
+   sp[k2, k3] -> -j[loop3, 0, -1, 0, 0, 0, 0, 0, 0, 0]/2 - 
+     j[loop3, 0, 0, -1, 0, 0, 0, 0, 0, 0]/2 + 
+     j[loop3, 0, 0, 0, -1, 0, 0, 0, 0, 0]/2, 
+   sp[k2, p] -> 1/2 + j[loop3, 0, -1, 0, 0, 0, 0, 0, 0, 0]/2 - 
      j[loop3, 0, 0, 0, 0, 0, 0, 0, 0, -1]/2, 
-   sp[k3, k3] -> j[loop3, 0, 0, 0, 0, 0, -1, 0, 0, 0], 
-   sp[k3, q] -> -1/2 - j[loop3, 0, 0, 0, 0, 0, -1, 0, 0, 0]/2 + 
-     j[loop3, 0, 0, 0, 0, 0, 0, -1, 0, 0]/2}
+   sp[k3, k3] -> j[loop3, 0, 0, -1, 0, 0, 0, 0, 0, 0], 
+   sp[k3, p] -> -1/2 - j[loop3, 0, 0, -1, 0, 0, 0, 0, 0, 0]/2 + 
+     j[loop3, 0, 0, 0, 0, 0, 0, 0, -1, 0]/2}
 loop3 /: UniqueSectors[loop3] := Get[StringJoin[BasisDirectory[loop3], 
     "/UniqueSectors[loop3]"]]
 loop3 /: ZerojRule[loop3] := LiteRed`Private`jjj:j[loop3, __] :> 
    0 /; Module[{LiteRed`Private`jjs = 
        Rest[List @@ jSector[LiteRed`Private`jjj]]}, 
      Or @@ (BitOr[LiteRed`Private`jjs, #1] === #1 & ) /@ 
-       {{1, 1, 1, 1, 1, 0, 0, 0, 1}, {1, 1, 1, 1, 0, 0, 0, 1, 1}, 
-        {1, 1, 1, 1, 0, 1, 0, 0, 1}, {1, 1, 1, 1, 0, 0, 1, 0, 1}, 
-        {0, 0, 0, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 0, 1, 0, 0, 1, 0}, 
-        {0, 0, 1, 0, 1, 1, 1, 1, 0}, {1, 1, 1, 0, 0, 1, 1, 1, 0}, 
-        {0, 0, 1, 1, 1, 0, 0, 1, 1}, {1, 1, 0, 1, 0, 1, 1, 1, 0}, 
-        {1, 1, 0, 1, 1, 1, 0, 0, 0}, {0, 0, 1, 1, 1, 1, 1, 0, 1}, 
-        {0, 1, 0, 1, 0, 0, 1, 1, 1}, {1, 1, 0, 0, 1, 1, 1, 1, 0}, 
-        {1, 1, 0, 0, 0, 1, 1, 1, 1}, {1, 1, 0, 0, 1, 0, 1, 0, 1}, 
-        {0, 1, 0, 1, 1, 1, 1, 0, 1}, {0, 1, 1, 0, 0, 1, 1, 0, 1}, 
-        {1, 0, 1, 1, 1, 1, 0, 1, 0}, {1, 0, 1, 1, 0, 1, 1, 0, 0}, 
-        {0, 1, 1, 0, 1, 0, 1, 1, 1}, {1, 0, 0, 1, 1, 1, 1, 0, 1}, 
-        {1, 0, 0, 1, 0, 1, 0, 1, 1}}]
+       {{1, 1, 1, 1, 1, 1, 0, 0, 0}, {1, 1, 1, 1, 0, 0, 1, 0, 0}, 
+        {1, 1, 1, 1, 0, 0, 0, 1, 1}, {0, 0, 0, 1, 1, 0, 1, 1, 1}, 
+        {1, 1, 1, 0, 1, 0, 1, 1, 0}, {1, 1, 1, 0, 1, 0, 0, 0, 1}, 
+        {1, 1, 1, 0, 0, 0, 1, 0, 1}, {1, 1, 0, 1, 0, 1, 1, 0, 0}, 
+        {1, 1, 0, 1, 0, 1, 0, 0, 1}, {0, 1, 0, 0, 1, 0, 1, 1, 1}, 
+        {0, 1, 0, 0, 1, 1, 0, 1, 1}, {0, 1, 0, 0, 1, 1, 1, 0, 1}, 
+        {1, 1, 0, 1, 0, 0, 1, 0, 1}, {0, 1, 0, 0, 1, 1, 1, 1, 0}, 
+        {1, 1, 0, 0, 1, 1, 1, 0, 0}, {1, 1, 0, 0, 1, 1, 0, 0, 1}, 
+        {1, 1, 0, 0, 1, 0, 1, 0, 1}, {0, 1, 0, 1, 1, 1, 0, 0, 1}, 
+        {1, 1, 0, 0, 0, 1, 1, 0, 1}, {0, 1, 1, 0, 1, 1, 0, 1, 0}, 
+        {0, 1, 1, 0, 1, 1, 0, 0, 1}, {1, 1, 0, 0, 0, 0, 1, 1, 1}, 
+        {1, 0, 1, 1, 0, 1, 0, 1, 0}, {1, 0, 1, 1, 0, 1, 1, 0, 0}, 
+        {1, 0, 1, 1, 1, 0, 1, 1, 0}, {0, 1, 1, 1, 0, 0, 1, 1, 1}, 
+        {1, 0, 1, 0, 1, 1, 1, 1, 0}, {1, 0, 1, 0, 1, 0, 1, 1, 1}, 
+        {1, 0, 0, 1, 0, 0, 1, 1, 1}, {0, 1, 1, 1, 0, 1, 0, 1, 1}, 
+        {1, 0, 0, 1, 1, 1, 1, 0, 0}, {1, 0, 0, 1, 0, 1, 1, 0, 1}, 
+        {1, 0, 0, 1, 0, 1, 0, 1, 1}, {1, 0, 0, 1, 0, 1, 1, 1, 0}, 
+        {0, 1, 1, 1, 1, 0, 0, 1, 1}}]
 loop3 /: ZeroSectors[loop3] := Get[StringJoin[BasisDirectory[loop3], 
     "/ZeroSectors[loop3]"]]
 BasisDirectory[loop3]

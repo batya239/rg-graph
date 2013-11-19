@@ -3,4 +3,4 @@
 
 __author__ = 'dima'
 
-import reductor
+from reductor import TwoAndThreeReductionCalculator
