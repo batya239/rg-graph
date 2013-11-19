@@ -7,7 +7,6 @@ import rggraphutil
 __author__ = 'dimas'
 
 import os
-import itertools
 from rggraphutil import ref
 from rggraphenv import abstract_graph_calculator
 import graphine
@@ -193,7 +192,6 @@ class Reductor(object):
             .as_sector_linear_combinations()
 
         calculated_sectors = dict()
-        usage = 0
         while len(sectors):
             raw_sectors = sectors.sectors_to_coefficient.keys()
             not_masters = list()
@@ -225,12 +223,12 @@ class Reductor(object):
                         is_updated = True
                         break
             else:
-                usage += 1
                 is_updated = True
                 sectors = sectors.replace_sector_to_sector_linear_combination(biggest, calculated_sectors.get(biggest))
 
             if not is_updated:
                 return None
+        sectors.print_not_evaled_result()
         value = sectors.get_value(self._masters)
         return value
 

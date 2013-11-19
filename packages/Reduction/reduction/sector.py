@@ -135,6 +135,12 @@ class SectorLinearCombination(object):
             value += masters[s] * c
         return value
 
+    def print_not_evaled_result(self):
+        string = ""
+        for s, c in self._sectors_to_coefficient.items():
+           string += "+(" + str(c.eval().simplify_indexed()) + ")*" + str(s)
+        print string
+
     def substitute(self, sectors_to_value):
         new_additional_part = self._additional_part
         new_sectors_to_coefficient = copy.copy(self._sectors_to_coefficient)
