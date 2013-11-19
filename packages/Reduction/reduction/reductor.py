@@ -191,8 +191,12 @@ class Reductor(object):
         return self._try_calculate(graph)
 
     def _try_calculate(self, graph):
-        sectors = sector.Sector.create_from_topologies_and_graph(graph, self._topologies, self._all_propagators_count) \
-            .as_sector_linear_combinations()
+        return self.evaluate_sector(sector.Sector.create_from_topologies_and_graph(graph,
+                                                                                   self._topologies,
+                                                                                   self._all_propagators_count))
+
+    def evaluate_sector(self, a_sector):
+        sectors = a_sector.as_sector_linear_combinations()
         print "initial sector"
         print sectors
         calculated_sectors = dict()
@@ -239,7 +243,8 @@ class Reductor(object):
         print value
         print "substituted"
         print value.subs(sector.d == symbolic_functions.D)
-        return value.subs(sector.d == symbolic_functions.D)
+        print "\n\n\n"
+        return value
 
     def _get_file_path(self, file_name):
         dir_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), self._env_path)

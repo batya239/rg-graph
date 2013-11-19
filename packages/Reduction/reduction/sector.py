@@ -297,7 +297,14 @@ class SectorRule(object):
 
         if self._apply_formula is None:
             return ZERO_SECTOR_LINEAR_COMBINATION
-        return eval(self._apply_formula.format(None, *sector.propagators_weights)).as_sector_linear_combinations()
+        print sector
+        evaled = eval(
+            self._apply_formula.format(None, *sector.propagators_weights)).as_sector_linear_combinations()
+        print evaled
+        print self._apply_formula
+        print self._additional_condition
+        print "\n"
+        return evaled
 
     def __str__(self):
         return "SectorRule:\n\t%s\n\t%s" % (self._additional_condition, self._apply_formula)

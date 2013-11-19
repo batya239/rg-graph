@@ -93,7 +93,8 @@ def _convert_sector_conditions(sector_condition_string):
 def _parse_additional_condition(condition_string):
     raw_result = condition_string.replace("||", "or").replace("&&", "and").replace("!(", "not (")
     raw_result = re.sub("\s+", " ", raw_result)
-    return _replace_n(raw_result)
+    raw_result = _replace_n(raw_result)
+    return raw_result
 
 
 def _replace_n(string):
