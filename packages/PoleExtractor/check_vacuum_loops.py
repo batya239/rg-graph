@@ -30,15 +30,15 @@ def calc_expansion(label):
 
     sectors = feynman.sectors(g, conservation_laws=f._conslaws, symmetries=True)
     decomposed = map(lambda x: f.sector_decomposition(x), sectors)
-    expansions = map(lambda x: pole_extractor.expansion.extract_poles(x._integrand, 5), decomposed)
+    expansions = map(lambda x: pole_extractor.expansion.extract_poles(x._integrand, 7), decomposed)
 
     num_expansion = pole_extractor.numcalc.NumEpsExpansion()
     for e in expansions:
         num_expansion += pole_extractor.numcalc.CUBA_calculate(e)
 
-    g_coef = pole_extractor.numcalc.get_gamma(f._gamma_coef2[0], f._gamma_coef2[1], 5)
+    g_coef = pole_extractor.numcalc.get_gamma(f._gamma_coef2[0], f._gamma_coef2[1], 7)
     g_coef = g_coef ** (f._gamma_coef2[2])
-    g_coef *= pole_extractor.numcalc.get_gamma(f._gamma_coef1[0], f._gamma_coef1[1], 5)
+    g_coef *= pole_extractor.numcalc.get_gamma(f._gamma_coef1[0], f._gamma_coef1[1], 7)
     g_coef *= float(f._inverse_coefficient) ** (-1)
     result = g_coef * num_expansion
 
@@ -79,6 +79,17 @@ print calc_expansion('123-23-3--') * m4
 print
 """
 
+print calc_expansion('111--')
+
+for label in two_loops_ee:
+    print label[1]
+    print calc_expansion(label[1])._elements
+print '###'
+for label in two_loops_eee:
+    print label[1]
+    print calc_expansion(label[1])._elements
+print '###'
+"""
 for label in three_loops_ee1:
     print label[1]
     print calc_expansion(label[1])
@@ -94,3 +105,4 @@ print '###'
 for label in three_loops_eee2:
     print label[1]
     print calc_expansion(label[1])
+"""

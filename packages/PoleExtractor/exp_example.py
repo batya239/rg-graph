@@ -16,7 +16,7 @@ p2 = polynomial.poly(p2base)
 
 print p1 * p2
 polynomial_expansion = pole_extractor.expansion.extract_poles(p1 * p2, toIndex)
-integrated_exp = pole_extractor.numcalc.compute_exp_via_CUBA(polynomial_expansion)
+integrated_exp = pole_extractor.numcalc.CUBA_calculate(polynomial_expansion)
 
 analytical_exp = {-1: float(b) ** (-1)}
 for k in range(toIndex + 1):

@@ -32,6 +32,15 @@ class NumEpsExpansion():
     def keys(self):
         return self._elements.keys()
 
+    def cut(self, toIndex):
+        n_elements = dict()
+        for k in self.keys():
+            if k <= toIndex:
+                n_elements[k] = self[k]
+            else:
+                n_elements[k] = (0.0, 0.0)
+        return NumEpsExpansion(n_elements)
+
     def __getitem__(self, item):
         return self._elements[item]
 
@@ -219,6 +228,7 @@ def CUBA_calculate(expansion):
             #compiling external C program
             command = 'gcc -Wall -fopenmp -I' + os.path.dirname(inspect.stack()[-1][1]) + ' -o integrate ' +\
                       sys.prefix + '/pole_extractor_ni/integrate.c -lm -lcuba -fopenmp'
+            print '###' + str(os.path.dirname(inspect.stack()[-1][1]))
             subprocess.Popen([command], shell=True, stderr=subprocess.PIPE).communicate()
 
             #running external C program
@@ -230,19 +240,19 @@ def CUBA_calculate(expansion):
             try:
                 r = float(m[0])
                 e = float(m[1])
+                if k in result.keys():
+                    result[k][0] += r
+                    result[k][1] += e
+                else:
+                    result[k] = [r, e]
+                os.remove('integrate')
             except ValueError:
                 print 'Something went wrong during integration. Here\'s what CUBA said:'
                 print str(out)
                 print str(err)
 
-            if k in result.keys():
-                result[k][0] += r
-                result[k][1] += e
-            else:
-                result[k] = [r, e]
-
             os.remove('integrate.h')
-            os.remove('integrate')
+
 
 
     return NumEpsExpansion(result)

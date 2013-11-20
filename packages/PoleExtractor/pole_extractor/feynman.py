@@ -102,7 +102,7 @@ class Feynman:
         return [(1, num_base), ]
 
     def _setup_c(self, edges, loops_number):
-        diag_for_c = edges + filter(lambda x: x != -1, utils.merge_filter(lambda x: -1 in x, edges))
+        diag_for_c = edges + [tuple(filter(lambda x: x != -1, utils.merge_filter(lambda x: -1 in x, edges))), ]
         conslaws_for_c = self._setup_conslaws(diag_for_c)
         c_base = self._setup_determinant(diag_for_c, loops_number + 1, conslaws=conslaws_for_c)
         return c_base

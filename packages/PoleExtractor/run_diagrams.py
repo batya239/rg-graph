@@ -47,3 +47,5 @@ def calc_expansion(label):
     #print "result: " + str(result)
     #print
     return result
+
+print calc_expansion('e12-23-3-e-')

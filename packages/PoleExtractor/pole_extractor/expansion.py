@@ -15,7 +15,8 @@ def ac_principal_part(polyprod, pole_var, pole_degree_a, pole_degree_b):
     poly_list = [polyprod, ]
 
     for _ in itertools.repeat(None, -pole_degree_a - 1):
-        poly_list = utils.merge_map(lambda x: x.diff(pole_var), poly_list)
+        #poly_list = utils.merge_map(lambda x: x.diff(pole_var), poly_list)
+        poly_list = sum(map(lambda x: x.diff(pole_var), poly_list), [])
 
     coef_as_poly = polynomial.poly([(1, []), ],
                                    degree=1, c=(math.factorial(-1 - pole_degree_a) ** (-1)) * (pole_degree_b ** (-1)))
@@ -45,7 +46,8 @@ def ac_expansion_part(polyprod, pole_var, pole_degree_a, pole_degree_b, toIndex)
             c2 = (math.factorial(i) * (i + pole_degree_a + 1) ** (k + 1)) ** (-1)
             coef_as_poly = polynomial.poly([(1, []), ], degree=1, c=c1 * c2)
             result[k].extend(map(lambda x: x.set0toVar(pole_var) * coef_as_poly, poly_list))
-            poly_list = utils.merge_map(lambda x: x.diff(pole_var), poly_list)
+            #poly_list = utils.merge_map(lambda x: x.diff(pole_var), poly_list)
+            poly_list = sum(map(lambda x: x.diff(pole_var), poly_list), [])
 
     return result
 
@@ -61,7 +63,8 @@ def ac_stretched_part(polyprod, pole_var, pole_degree_a, pole_degree_b):
     poly_list = [polyprod.stretch(stretcher, [pole_var, ]), ]
 
     for _ in itertools.repeat(None, -pole_degree_a):
-        poly_list = utils.merge_map(lambda x: x.diff(stretcher), poly_list)
+        #poly_list = utils.merge_map(lambda x: x.diff(stretcher), poly_list)
+        poly_list = sum(map(lambda x: x.diff(stretcher), poly_list), [])
 
     if pole_degree_a <= -2:
         stretch_factor = polynomial.poly([(1, []), (-1, [stretcher, ])],
