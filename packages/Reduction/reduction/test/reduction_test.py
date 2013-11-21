@@ -7,6 +7,7 @@ __author__ = 'dima'
 import unittest
 import reductor
 import graphine
+import sector
 from rggraphenv import symbolic_functions
 
 
@@ -32,7 +33,7 @@ class ReductionTest(unittest.TestCase):
 
     def test_E12_23_34_4_E_(self):
         calculated = reductor.calculate(graphine.Graph.fromStr("e12-23-34-4-e-", initEdgesColor=True))
-        print symbolic_functions.series(calculated, symbolic_functions.e, 0, 5, remove_order=True).evalf()
+        print symbolic_functions.series(calculated.subs(sector.d == 4 - 2*symbolic_functions.e), symbolic_functions.e, 0, 5, remove_order=True).evalf()
 
     #def do_test(self, graph_as_string, expected_value_string):
     #    g = graphine.Graph.fromStr(graph_as_string)

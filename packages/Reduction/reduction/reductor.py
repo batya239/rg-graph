@@ -178,7 +178,7 @@ class Reductor(object):
         for f in os.listdir(dir_path):
             if f.startswith("jRules"):
                 map(lambda (k, r): self._sector_rules[k].append(r),
-                    jrules_parser.x_parse_rules(os.path.join(dir_path, f), self._env_name, zero_sectors[0]))
+                    jrules_parser.x_parse_rules(os.path.join(dir_path, f), self._env_name))
         for v in self._sector_rules.values():
             v.reverse()
 
@@ -197,8 +197,6 @@ class Reductor(object):
 
     def evaluate_sector(self, a_sector):
         sectors = a_sector.as_sector_linear_combinations()
-        print "initial sector"
-        print sectors
         calculated_sectors = dict()
         while len(sectors):
             raw_sectors = sectors.sectors_to_coefficient.keys()
@@ -207,7 +205,6 @@ class Reductor(object):
                 is_break = False
                 s.as_rule_key()
                 if s.as_rule_key() in self._zero_sectors:
-                    print "zero", s, s.as_rule_key()
                     sectors = sectors.remove_sector(s)
                     is_break = True
                 if is_break:
@@ -237,16 +234,7 @@ class Reductor(object):
 
             if not is_updated:
                 return None
-        print "with sectors, d"
-        sectors.print_not_evaled_result(_d=6)
-        sectors.print_not_evaled_result(_d=10)
-        sectors.print_not_evaled_result(_d=15)
         value = sectors.get_value(self._masters)
-        print "with d"
-        print value
-        print "substituted"
-        print value.subs(sector.d == symbolic_functions.D)
-        print "\n\n\n"
         return value
 
     def _get_file_path(self, file_name):
@@ -287,8 +275,6 @@ class Reductor(object):
                 for s in f:
                     raw_sector, raw_value = s.split(";")
                     value = symbolic_functions.series(symbolic_functions.evaluate(raw_value), symbolic_functions.e, 0, 5, remove_order=True).evalf()
-                    print value, raw_sector
-                    print "---"
                     _sector = sector.Sector(eval(raw_sector))
                     masters[_sector] = value
                 return masters

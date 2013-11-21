@@ -52,6 +52,10 @@ class Sector(object):
     def __sub__(self, other):
         return self.as_sector_linear_combinations() - other
 
+    def __pow__(self, power, modulo=None):
+        assert power == -1
+        return Sector(map(lambda p: p * power, self._propagators_weights))
+
     __radd__ = __add__
 
     __rsub__ = __sub__
@@ -59,6 +63,8 @@ class Sector(object):
     def __mul__(self, other):
         if isinstance(other, (float, int, swiginac.refcounted)):
             return SectorLinearCombination.singleton(self, other)
+        elif isinstance(other, Sector):
+            return Sector(map(lambda (x, y): x + y, itertools.izip(self.propagators_weights, other.propagators_weights)))
         raise NotImplementedError()
 
     __rmul__ = __mul__
@@ -66,7 +72,17 @@ class Sector(object):
     def __div__(self, other):
         if isinstance(other, (float, int, swiginac.refcounted)):
             return SectorLinearCombination.singleton(self, 1. / other)
-        raise NotImplementedError()
+        elif isinstance(other, SectorLinearCombination):
+            assert isinstance(other.additional_part, int) and other.additional_part == 0
+            sector_to_coefficients = rggraphutil.zeroDict()
+            for s, c in other.sectors_to_coefficient.items():
+                assert isinstance(c, int)
+                sector_to_coefficients[self / s] = c
+            combination = SectorLinearCombination(sector_to_coefficients)
+            return combination
+        elif isinstance(other, Sector):
+            return Sector(map(lambda (x, y): x - y, itertools.izip(self.propagators_weights, other.propagators_weights)))
+        raise NotImplementedError(type(other))
 
     def __eq__(self, other):
         return self.propagators_weights == other.propagators_weights
@@ -137,8 +153,9 @@ class SectorLinearCombination(object):
 
     def print_not_evaled_result(self, _d=6):
         string = ""
+        e = symbolic_functions.e
         for s, c in self._sectors_to_coefficient.items():
-           string += "+(" + str(c.subs(d == _d).evalf().simplify_indexed()) + ")*" + str(s)
+           string += "+(" + str(c.subs(d == _d).evalf().simplify_indexed() if not isinstance(c, (int, float)) else c) + ")*" + str(s)
         print "result d=" + str(_d) + "\n" + string
 
     def substitute(self, sectors_to_value):
@@ -170,8 +187,6 @@ class SectorLinearCombination(object):
     def replace_sector_to_sector_linear_combination(self, sector, sector_linear_combination):
         sectors_to_coefficient = copy.copy(self.sectors_to_coefficient)
         c = sectors_to_coefficient[sector]
-        if c == 0:
-            raise AssertionError()
         del sectors_to_coefficient[sector]
         for s, _c in sector_linear_combination.sectors_to_coefficient.items():
             sectors_to_coefficient[s] += c * _c
@@ -210,6 +225,21 @@ class SectorLinearCombination(object):
     def __div__(self, other):
         return self._do_mul_or_div(other, False)
 
+    def __pow__(self, power, modulo=None):
+        if power == 0:
+            return 1
+        assert modulo is None
+        assert isinstance(power, int)
+        assert self._additional_part == 0
+        assert power < 0
+        _power = abs(power)
+        sectors_to_coefficient = rggraphutil.zeroDict()
+        for s, c in self._sectors_to_coefficient.items():
+            assert isinstance(c, int) and abs(c) == 1
+            sectors_to_coefficient[s ** -1] = c
+        inversed = SectorLinearCombination(sectors_to_coefficient)
+        return reduce(lambda x, y: x * y, [inversed] * _power, 1)
+
     def __str__(self):
         return str(self.additional_part) + "".join(
             map(lambda i: "+%s*%s" % (i[0], i[1]), self.sectors_to_coefficient.items()))
@@ -238,7 +268,16 @@ class SectorLinearCombination(object):
                                                                            if isinstance(self.additional_part, int)
                                                                            else self.additional_part / other)
             return SectorLinearCombination(sectors_to_coefficient, additional_part)
-        raise NotImplementedError()
+        if isinstance(other, SectorLinearCombination):
+            assert do_mul
+            new_sector_to_coefficient = rggraphutil.zeroDict()
+            for s1, c1 in self.sectors_to_coefficient.items():
+                for s2, c2 in other.sectors_to_coefficient.items():
+                    new_sector_to_coefficient[s1 * s2] += c1 * c2
+                    if new_sector_to_coefficient[s1 * s2] == 0:
+                        del new_sector_to_coefficient[s1 * s2]
+            return SectorLinearCombination(new_sector_to_coefficient)
+        raise NotImplementedError("other type: %s, operation %s" % (type(other), "*" if do_mul else ":"))
 
 
 ZERO_SECTOR_LINEAR_COMBINATION = SectorLinearCombination(rggraphutil.zeroDict())
@@ -297,13 +336,7 @@ class SectorRule(object):
 
         if self._apply_formula is None:
             return ZERO_SECTOR_LINEAR_COMBINATION
-        print sector
-        evaled = eval(
-            self._apply_formula.format(None, *sector.propagators_weights)).as_sector_linear_combinations()
-        print evaled
-        print self._apply_formula
-        print self._additional_condition
-        print "\n"
+        evaled = eval(self._apply_formula.format(None, *sector.propagators_weights)).as_sector_linear_combinations()
         return evaled
 
     def __str__(self):

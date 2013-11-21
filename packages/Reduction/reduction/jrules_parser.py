@@ -54,7 +54,7 @@ def _replace_zeros(rule_string, raw_zero_sectors):
     return result
 
 
-def _parse_strange_rule(rule_string, j_suffix, raw_zero_sectors):
+def _parse_strange_rule(rule_string, j_suffix):
     _rule_string = _EXPAND_REGEXP.match(rule_string)
     _rule_string = _rule_string.groups()
     if not _rule_string or not len(_rule_string):
@@ -62,15 +62,8 @@ def _parse_strange_rule(rule_string, j_suffix, raw_zero_sectors):
     _rule_string = _rule_string[0]
     _rule_string = re.sub("j\[([^,]+),([^\]]+)\]", "j_\\1(\\2)", _rule_string)
     _rule_string = _rule_string.replace("j_%s" % j_suffix, "Sector")
-    _rule_string = re.sub("\s+", " ", _rule_string)
-    _rule_string = re.sub("\(\s", "(", _rule_string)
-    _rule_string = _replace_zeros(_rule_string, raw_zero_sectors)
     _rule_string = _replace_n(_rule_string)
-    _rule_string = _rule_string.split("/")
-    assert len(_rule_string) in (1, 2)
-    if _DEBUG:
-        print "STRANGE STRING", _rule_string
-    return _rule_string[0], _rule_string[1] if len(rule_string) == 2 else None
+    return _rule_string
 
 
 def _convert_sector_conditions(sector_condition_string):
@@ -101,7 +94,7 @@ def _replace_n(string):
     return re.sub('n(\d+)', '{\\1}', string)
 
 
-def _parse_rule(rule_string, j_suffix, raw_zero_sectors):
+def _parse_rule(rule_string, j_suffix):
     regex_result = _SECTOR_REGEXP.match(rule_string)
     if regex_result:
         sector_rule = sector.SectorRule(_parse_additional_condition(regex_result.groups()[1]),
@@ -109,9 +102,9 @@ def _parse_rule(rule_string, j_suffix, raw_zero_sectors):
         return sector.SectorRuleKey(_convert_sector_conditions(regex_result.groups()[0])), \
                sector_rule
     if "Expand" in rule_string:
-        rule = _parse_strange_rule(rule_string, j_suffix, raw_zero_sectors)
+        rule = _parse_strange_rule(rule_string, j_suffix)
         return sector.SectorRuleKey(_convert_sector_conditions(rule_string[:rule_string.index("] :>")])), \
-               sector.SectorRule(None, rule[0].replace("^", "**"), expection_condition=rule[1])
+               sector.SectorRule(None, rule.replace("^", "**"))
     raise ValueError("invalid rule: %s" % rule_string)
 
 
@@ -121,10 +114,10 @@ def read_raw_zero_sectors(file_path, j_suffix):
         return raw_zero_sectors, _create_zero_rules(raw_zero_sectors)
 
 
-def x_parse_rules(file_path, j_suffix, raw_zero_sectors):
+def x_parse_rules(file_path, j_suffix):
     j_rules_string = ''.join(map(lambda x: x.rstrip(), open(file_path).readlines()))[2:-1].split(', j')
     for item in j_rules_string:
-        yield _parse_rule(item, j_suffix, raw_zero_sectors)
+        yield _parse_rule(item, j_suffix)
 
 
 def parse_masters(file_path, j_suffix):
