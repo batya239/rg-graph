@@ -12,7 +12,7 @@ import sys
 
 from uncertainties import ufloat
 
-DEBUG = True
+DEBUG = False
 
 class RelevanceCondition(object):
     relevantGraphsLegsCard = set([4, ])
@@ -150,7 +150,7 @@ def KR1(graph, results, resultsKR1):
                 term = calculateKR1term(subGraphs_, shrinkedGraph, results, resultsKR1)
                 #print graph, subGraphs_, shrinkedGraph, term
                 res += term ### WTF?!
-    return res.n
+    return res
 
 
 def symmetryCoefficient(graph):
@@ -168,7 +168,7 @@ def symmetryCoefficient(graph):
     return C
 
 
-maxNLoops = 3
+maxNLoops = 4
 
 resultsKR1 = dict()
 print "{"
@@ -177,6 +177,8 @@ for index in results:
     if graph.getLoopsCount() > maxNLoops:
         continue
     resultsKR1[str(graph)] = KR1(graph, results, resultsKR1)
-    print '"%s": %s, # %s , %s ' % (index, resultsKR1[str(graph)], results[str(graph)[:-2]][0][0], symmetryCoefficient(graph))
+    res = resultsKR1[str(graph)]
+    err = abs(float(res.s)/float(res.n))
+    print '"%s": \t%s, \t# %s, \t%s \t err_rel: %.3e' % (index, (res.n,res.s), results[str(graph)[:-2]][0][0], symmetryCoefficient(graph), err)
 #    print
 print "}"
