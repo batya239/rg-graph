@@ -72,7 +72,7 @@ def KRStar(initial_graph, k_operation, uv_sub_graph_filter, description="", use_
             evaluated = storage.getKR1(graph)
             if evaluated and len(evaluated):
                 e = evaluated[0]
-                return e[0].subs(symbolic_functions.p, 1)
+                return e[0].subs(symbolic_functions.p == 1)
             krs = KR1(graph, k_operation, uv_sub_graph_filter, description, use_graph_calculator,
                       force=True,
                       inside_krstar=True).subs(symbolic_functions.p == 1)

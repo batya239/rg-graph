@@ -10,7 +10,6 @@ import rggraphenv.graph_calculator as graph_calculator
 import graphine.momentum as momentum
 import gfun_calculator
 import base_test_case
-import symbolic_functions
 
 
 class SubGraphReducerTestCase(base_test_case.GraphStorageAwareTestCase):

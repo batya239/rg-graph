@@ -9,8 +9,9 @@ import rggraphenv.graph_calculator
 import base_test_case
 import common
 import r
-import symbolic_functions
 import forest
+from rggraphenv import symbolic_functions
+import reduction
 
 __author__ = 'daddy-bear'
 
@@ -21,21 +22,7 @@ EPS = swiginac.numeric(1e-5)
 
 
 class RStarTestCase(base_test_case.GraphStorageAwareTestCase):
-    #def test_ir_coperation_e112_23_e3__(self):
-    #    self._do_test_ir_coperation("e112-23-e3--", "-1/(3*e**3) + 2/(3*e)")
-    #
-    #def test_rstar_suspicious2(self):
-    #    self._do_test_krstar("e112-33-e33--", "5./32/e+1./16/e**2-1./8/e**3")
-    #
-    #def test_ir_coperation_e112_e2__(self):
-    #    self._do_test_ir_coperation("e112-e2--", "1/(2*e)+1/(2*e**2)")
-    #
-    ##
-    ##
-    ## FUUCKKKK
-    ##
-    ##
-    #def _test_e12_e234_33_4__(self):
+    #def test_e12_e234_33_4__(self):
     #    self._do_test_krstar("e12-e234-33-4--", "(11./6-zeta(3))/2/e-13./3./4/e**2+10./3/8/e**3-4./3/16/e**4")
     #
     #def _test_e112_e3_e34_44_e_(self):
@@ -127,20 +114,18 @@ class RStarTestCase(base_test_case.GraphStorageAwareTestCase):
         self._do_test_krstar("e123-e24-55-e45-e5--",
                              "-1/378*(Pi**6+(831.60000000000006715)*zeta(3)**2-1890*zeta(5))*e**(-1)-zeta(5)*e**(-2)", use_graph_calculator=True)
 
-    #def test_ee12_22__(self):
-    #    self._do_test_ir_coperation("ee12-22--", "1/2*e**(-2)+1/2*e**(-1)")
-
     def _do_test_krstar(self, graph_state_as_string, expected_result_as_string, use_graph_calculator=False):
         try:
             if use_graph_calculator:
-                rggraphenv.graph_calculator.addCalculator(mincer_graph_calculator.MincerGraphCalculator())
+                rggraphenv.graph_calculator.addCalculator(reduction.TwoAndThreeReductionCalculator())
+                #rggraphenv.graph_calculator.addCalculator(mincer_graph_calculator.MincerGraphCalculator())
             g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr(graph_state_as_string)))
-            expected = symbolic_functions.evaluate(expected_result_as_string)
+            expected = symbolic_functions.evaluate(expected_result_as_string).evalf()
             actual = r.KRStar(g,
                               common.MSKOperation(),
                               common.defaultSubgraphUVFilter,
                               use_graph_calculator=use_graph_calculator)
-            sub = (expected - actual).simplify_indexed()
+            sub = (expected - actual).evalf().simplify_indexed()
             self.assertTrue(expected == actual.simplify_indexed() or swiginac.abs(
                 (sub * symbolic_functions.e ** 5).subs(symbolic_functions.e == 1)).evalf().compare(EPS) < 0,
                             "\nactual = " + str(actual.simplify_indexed().evalf()) +

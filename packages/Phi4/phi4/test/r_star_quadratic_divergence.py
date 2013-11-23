@@ -3,7 +3,6 @@
 import graphine
 import base_test_case
 import common
-import symbolic_functions
 import r
 import swiginac
 import unittest

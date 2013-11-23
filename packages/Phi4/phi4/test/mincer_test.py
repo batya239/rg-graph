@@ -2,9 +2,9 @@
 # -*- coding: utf8
 import unittest
 import graphine
-import symbolic_functions
 import mincer
 import swiginac
+from rggraphenv import symbolic_functions
 
 __author__ = 'daddy-bear'
 
@@ -35,11 +35,11 @@ class MincerTest(unittest.TestCase):
     #    self.doTest("e12-223-3-e-::['(0, 0)', '(1, 0)', '(1, 0)','(1, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(0, 0)']",
     #                "0")
     #
-    #def testTBubbleWithWeight(self):
-    #    self.doTest("e12-23-3-e-::['(0, 0)', '(2, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(0, 0)']",
-    #                (
-    #                "-27*e**3*zeta(3) - 3*pi**4*e**3/(20) - 9*e**3/(2) + 63*e**3*zeta(5) - 9*e**2*zeta(3) + 9*e**2/(2) + 3*pi**4*e**2/(20) - 9*e/(2) + 9*e*zeta(3) + 9/(2.) - 5/(2*e) + 1/(2*e**2)",
-    #                (4, -2)))
+    def testTBubbleWithWeight(self):
+        self.doTest("e12-223-3-e-::['(0, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(0, 0)']",
+                    (
+                    "0",
+                    (4, -2)))
     #    self.doTest("e12-23-3-e-::['(0, 0)', '(1, 0)', '(1, 0)', '(2, 0)', '(1, 0)', '(1, 0)', '(0, 0)']",
     #                (
     #                "-126*e**3*zeta(5) - 18*e**3*zeta(3) + 57*e**3 + 9*pi**4*e**3/(10) - 39*e**2 - 3*pi**4*e**2/(10) + 54*e**2*zeta(3) - 18*e*zeta(3) + 21*e - 3 - 3/(e) + 1/(e**2)",

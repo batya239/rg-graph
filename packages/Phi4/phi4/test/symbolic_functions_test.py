@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf8
 import unittest
-import symbolic_functions
 import rggraphenv.computer_algebra as ca
 
 __author__ = 'daddy-bear'

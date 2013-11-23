@@ -9,7 +9,6 @@ import common
 import mincer_graph_calculator
 from rggraphenv import graph_calculator
 import r
-import symbolic_functions
 import base_test_case
 
 

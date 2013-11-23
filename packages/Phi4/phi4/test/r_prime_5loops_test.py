@@ -7,7 +7,6 @@ import mincer_graph_calculator
 import sympy
 import rggraphenv.graph_calculator as graph_calculator
 import r as r_prime
-import symbolic_functions
 import graphine.momentum as momentum
 import graphine
 import base_test_case

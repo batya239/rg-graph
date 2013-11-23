@@ -128,6 +128,25 @@ def _enumerate_graph(graph, init_propagators, to_sector=True):
         return sector_result
 
 
+class ReductorResult(object):
+    def __init__(self, final_sector_linear_combinations, masters):
+        self._masters = masters
+        self._final_sector_linear_combinations = final_sector_linear_combinations
+
+    def evaluate(self, substitute_sectors=False, _d=None, series_n=-1, remove_o=True):
+        if not substitute_sectors:
+            return self._final_sector_linear_combinations
+        value = self._final_sector_linear_combinations.get_value(self._masters)
+        if _d is None:
+            return value
+        substituted = value.subs(sector.d == _d).evalf()
+        return substituted if series_n == -1 else symbolic_functions.series(substituted,
+                                                                            symbolic_functions.e,
+                                                                            0,
+                                                                            series_n,
+                                                                            remove_order=remove_o)
+
+
 class Reductor(object):
     TOPOLOGIES_FILE_NAME = "topologies"
     MASTERS_FILE_NAME = "masters"
@@ -234,8 +253,7 @@ class Reductor(object):
 
             if not is_updated:
                 return None
-        value = sectors.get_value(self._masters)
-        return value
+        return ReductorResult(sectors, masters)
 
     def _get_file_path(self, file_name):
         dir_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), self._env_path)
@@ -356,7 +374,10 @@ class TwoAndThreeReductionCalculator(abstract_graph_calculator.AbstractGraphCalc
         return is_applicable(graph)
 
     def calculate(self, graph):
-        return calculate(graph)
+        result = calculate(graph)
+        if result is None:
+            return None
+        return result.evaluate(substitute_sectors=True, _d=symbolic_functions.D, series_n=5, remove_o=True)
 
     def dispose(self):
         pass

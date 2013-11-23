@@ -1,9 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf8
 import unittest
-from rggraphenv import storage, theory
+from rggraphenv import storage, theory, symbolic_functions
 import time
-import symbolic_functions
 
 __author__ = 'daddy-bear'
 
