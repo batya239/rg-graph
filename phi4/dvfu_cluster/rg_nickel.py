@@ -3,10 +3,11 @@
 __author__ = 'mkompan'
 
 import sys
-import sympy
+import math
 import graphine
 import graph_state
 from uncertainties import ufloat
+
 
 def internalEdges(graph):
     res = list()
@@ -24,14 +25,110 @@ def symmetryCoefficient(graph):
             unique_edges[idx] += 1
         else:
             unique_edges[idx] = 1
-    C = sympy.factorial(len(graph.edges(graph.externalVertex))) / len(graph.toGraphState().sortings)
+    C = float(math.factorial(len(graph.edges(graph.externalVertex)))) / len(graph.toGraphState().sortings)
 
     for idxE in unique_edges:
-        C = C / sympy.factorial(unique_edges[idxE])
+        C = C / float(math.factorial(unique_edges[idxE]))
     return C
 
 
-g = sympy.var('g')
+class Series():
+    """ Класс, обеспечивающий разложение в ряд по g с точностью до n-го порядка с учётом погрешности.
+    """
+
+    def __init__(self, d={}, n=3):
+        self.n = n
+        self.gSeries = d
+        if 0 not in d.keys():
+            self.gSeries[0] = ufloat(1,0)
+        for i in range(1,n):
+            if i not in d.keys():
+                self.gSeries[i] = ufloat(0,0)
+    def __lt__(self, other):
+        return len(self.gSeries) < len(other.gSeries)
+
+    def __add__(self, other):
+        tmp = dict(self.gSeries)
+        stop = min(self.n,other.n)
+        for g in other.gSeries.keys():
+            if g <= stop:
+                try:
+                    tmp[g] += other.gSeries[g]
+                except KeyError:
+                    tmp[g] = other.gSeries[g]
+        return Series(tmp, len(tmp))
+
+    def __sub__(self, other):
+        pass
+
+    def __mul__(self, other):
+        tmp = {}
+        if isinstance(other,Series):
+            stop = min(self.n,other.n)
+            for i in self.gSeries.keys():
+                for j in other.gSeries.keys():
+                    if (i + j) <= stop:
+                        try:
+                            tmp[i+j] += self.gSeries[i]*other.gSeries[j]
+                        except  KeyError:
+                            tmp[i+j] = self.gSeries[i]*other.gSeries[j]
+            res = Series(tmp,max(self.n,other.n))
+        elif isinstance(other,(int,float)):
+            for i in self.gSeries.keys():
+                tmp[i] = self.gSeries[i]*other
+            res = Series(tmp,self.n)
+        else:
+            raise NotImplementedError
+        return res
+    def __rmul__(self, other):
+        return self*other
+    def __neg__(self):
+        return self*(-1)
+    def __invert__(self):
+        """ Z.__invert__() = 1/Z
+        """
+        for i,c in self.gSeries.items():
+            self.gSeries[i] = c*(-1)**i
+        return self
+
+    def __div__(self, other):
+        """ Пока полагаем, что все степени g неотрицательны
+        """
+        if isinstance(other,Series):
+            return self*other.__invert__()
+        elif isinstance(other,(int,float)):
+            return self*(float(1)/other)
+        else:
+            raise NotImplementedError
+    def __rdiv__(self, other):
+        return other * self.__invert__()
+    def __pow__(self, power, modulo=None):
+        if isinstance(power,int) and power > 1:
+            return reduce(lambda x,y: x*y,[self]*power)
+        elif isinstance(power,int) and power == 1:
+            return self
+        else:
+            raise NotImplementedError
+    def __repr__(self):
+        return self.gSeries
+    def __str__(self):
+        res = ''
+        for g,c in self.gSeries.items():
+            res += str(c)+" * g^"+str(g)+" + "
+        return res[:-2]
+    def __len__(self):
+        return len(self.gSeries)
+"""
+Z1 = Series()
+Z2 = Series({0:ufloat(-4,0.3),1:ufloat(2,.002)},1)
+print "Z1 =",Z1
+print "len(Z1) =",len(Z1)
+print "Z2 =",Z2
+print "1/Z2 =",1/Z2
+print "Z1*Z2 =",Z1*Z2
+print "Z2**2 =",Z2**2
+"""
+#g = sympy.var('g')
 
 fileName = sys.argv[1]
 
@@ -40,9 +137,9 @@ nLoops = int(sys.argv[2])
 r1op = eval(open(fileName).read())
 
 Z2 = 1
-Z2_new = {0:1}
+Z2_new = {0:ufloat(1,0)}
 Z3 = 1
-Z3_new = {0:1}
+Z3_new = {0:ufloat(1,0)}
 
 for nickel in r1op:
     uncert = ufloat(r1op[nickel])
@@ -52,22 +149,19 @@ for nickel in r1op:
         continue
     if len(graph.edges(graph.externalVertex)) == 2:
         #Z2 -= (-2 * g / 3) ** graphLoopCount * r1op[nickel] * symmetryCoefficient(graph)
-        Z2 -= (-2 * g / 3) ** graphLoopCount * float(uncert.n) * symmetryCoefficient(graph)
         Z2_new[graphLoopCount] = float(-(-2. / 3) ** graphLoopCount * symmetryCoefficient(graph)) * uncert
     elif len(graph.edges(graph.externalVertex)) == 4:
-        Z3 -= (-2 * g / 3) ** graphLoopCount * float(uncert.n) * symmetryCoefficient(graph)
+        #Z3 -= (-2 * g / 3) ** graphLoopCount * float(uncert.n) * symmetryCoefficient(graph)
         Z3_new[graphLoopCount] = float(-(-2./ 3) ** graphLoopCount* symmetryCoefficient(graph)) * uncert 
     else:
         raise ValueError("invalid ext legs count: %s, %s" % (graphLoopCount, nickel))
 
-print "Z2 = ", Z2_new
+Z2 = Series(Z2_new,3)
+Z3 = Series(Z3_new,3)
+print "Z2 = ", Z2
+print "Z3 = ", Z3
 
-print "Z3 = ", Z3_new
-
-#Zg = (Z3 / Z2 ** 2).series(g, 0, nLoops + 1).removeO()
-Zg = (Z3 / Z2 ** 2).series(g, 0, nLoops + 1).removeO()
-Zg = (Z3 / Z2 ** 2).series(g, 0, nLoops + 1)
-
+Zg = (Z3 / Z2 ** 2)
 print "Zg = ", Zg
 
 print
@@ -101,4 +195,3 @@ print "etaStar = ", etaStar
 etaStarGS = eta.subs(g, gStarS).series(tau, 0, nLoops + 1)
 
 print "etaStarGS = ", etaStarGS
-
