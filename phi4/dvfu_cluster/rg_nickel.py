@@ -39,9 +39,9 @@ class Series():
     def __init__(self, d={}, n=3):
         self.n = n
         self.gSeries = d
-        if 0 not in d.keys():
-            self.gSeries[0] = ufloat(1,0)
-        for i in range(1,n):
+        #if 0 not in d.keys():
+        #    self.gSeries[0] = ufloat(1,0)
+        for i in range(0,n):
             if i not in d.keys():
                 self.gSeries[i] = ufloat(0,0)
     def __lt__(self, other):
@@ -49,17 +49,23 @@ class Series():
 
     def __add__(self, other):
         tmp = dict(self.gSeries)
-        stop = min(self.n,other.n)
-        for g in other.gSeries.keys():
-            if g <= stop:
-                try:
-                    tmp[g] += other.gSeries[g]
-                except KeyError:
-                    tmp[g] = other.gSeries[g]
+        if isinstance(other,Series):
+            stop = min(self.n,other.n)
+            for g in other.gSeries.keys():
+                if g <= stop:
+                    try:
+                        tmp[g] += other.gSeries[g]
+                    except KeyError:
+                        tmp[g] = other.gSeries[g]
+        elif isinstance(other,(int,float)):
+            tmp[0] += other
+        else:
+            raise NotImplementedError
         return Series(tmp, len(tmp))
-
+    def __radd__(self, other):
+        return self+other
     def __sub__(self, other):
-        pass
+        return self + (-1)*other
 
     def __mul__(self, other):
         tmp = {}
@@ -87,10 +93,11 @@ class Series():
     def __invert__(self):
         """ Z.__invert__() = 1/Z
         """
+        res = {}
         for i,c in self.gSeries.items():
-            self.gSeries[i] = c*(-1)**i
-        return self
-
+            #self.gSeries[i] = c*(-1)**i
+            res[i] = c*(-1)**i
+        return Series(res,self.n)
     def __div__(self, other):
         """ Пока полагаем, что все степени g неотрицательны
         """
@@ -109,12 +116,22 @@ class Series():
             return self
         else:
             raise NotImplementedError
+
+    def diff(self):
+        """
+        Дифференцирование полинома по g
+        """
+        res = {}
+        for i in range(len(self.gSeries)-1):
+            res[i] = (i+1)*self.gSeries[i+1]
+        return Series(res,self.n)
     def __repr__(self):
         return self.gSeries
     def __str__(self):
         res = ''
         for g,c in self.gSeries.items():
-            res += str(c)+" * g^"+str(g)+" + "
+            if c != 0:
+                res += "(%s) * g^%s + "%(str(c),str(g))
         return res[:-2]
     def __len__(self):
         return len(self.gSeries)
@@ -122,13 +139,13 @@ class Series():
 Z1 = Series()
 Z2 = Series({0:ufloat(-4,0.3),1:ufloat(2,.002)},1)
 print "Z1 =",Z1
-print "len(Z1) =",len(Z1)
+print "Z2 =",Z2
+print "Z2.diff() =",Z2.diff()
 print "Z2 =",Z2
 print "1/Z2 =",1/Z2
 print "Z1*Z2 =",Z1*Z2
 print "Z2**2 =",Z2**2
 """
-#g = sympy.var('g')
 
 fileName = sys.argv[1]
 
@@ -165,24 +182,28 @@ Zg = (Z3 / Z2 ** 2)
 print "Zg = ", Zg
 
 print
+g = Series({1:ufloat(1,0)})
 
-beta = (-2 * g / (1 + g * sympy.ln(Zg).diff(g))).series(g, 0, nLoops + 2).removeO()
-
+#beta = (-2 * g / (1 + g * sympy.ln(Zg).diff(g))).series(g, 0, nLoops + 2).removeO()
+beta = (-2 * g / (1 + g * Zg.diff()/Zg))
 print "beta/2 = ", beta / 2
 
-eta = (beta * sympy.ln(Z2).diff(g)).series(g, 0, nLoops + 1).removeO()
+#eta = (beta * sympy.ln(Z2).diff(g)).series(g, 0, nLoops + 1).removeO()
+eta = beta * Z2.diff()/Z2
 
 print "eta =", eta
-
+import sympy
 tau = sympy.var('tau')
 
-beta1 = (beta / g / 2 + 1).expand()
+#beta1 = (beta / g / 2 + 1).expand()
+beta1 = beta / g / 2 + 1
 
-print beta1
+print "beta1 =", beta1
 
 gStar = 0
 for i in range(1, nLoops):
-    gStar = (tau - (beta1 - g).series(g, 0, i + 1).removeO().subs(g, gStar)).series(tau, 0, i + 1).removeO()
+    #gStar = (tau - (beta1 - g).series(g, 0, i + 1).removeO().subs(g, gStar)).series(tau, 0, i + 1).removeO()
+    gStar = (tau - (beta1 - g).subs(g, gStar)).series(tau, 0, i + 1).removeO()
 
 print "gStar = ", gStar
 gStarS = tau + 0.716173621 * tau**2 + 0.095042867 * tau**3 + 0.086080396 * tau ** 4 - 0.204139 * tau ** 5
