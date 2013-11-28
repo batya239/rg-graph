@@ -13,7 +13,21 @@ _JS_REGEXP = re.compile("(js[^\]]+\])")
 _SECTOR_SECTOR_REGEXP = re.compile("(Sector[^\)]+\))")
 _PROPAGATORS_REGEXP = re.compile("Ds\[[^\{]+\{([^\}]+)\}")
 _MIS_REGEXP = re.compile("MIs[^\{]+\{([^\}]+)\}")
+_NUMERATORS_REGEXP = re.compile("Toj\[.*\{[^\}]+\}")
 _DEBUG = False
+
+
+def _read_numerators_reducing_rules(file_path, j_suffix):
+    with open(file_path, 'r') as f:
+        content = "".join(f.readlines())
+        content = content.replace("\n", "")
+        sectors = set()
+        for raw_sector in _NUMERATORS_REGEXP.findall(content)[0].split("],"):
+            raw_sector = raw_sector.strip()
+            raw_sector = raw_sector.replace("j[%s," % j_suffix, "sector.Sector(")
+            raw_sector = raw_sector[:-1] if raw_sector.endswith("]") else raw_sector
+            sectors.add(eval(raw_sector + ")"))
+        return sectors
 
 
 def _read_raw_zero_sectors(zero_sectors_string, j_suffix):
@@ -35,7 +49,7 @@ def _create_zero_rules(raw_zero_sectors):
     return result
 
 
-def _convert_rule(rule_string, j_suffix):
+def convert_rule(rule_string, j_suffix):
     result = re.sub("j\[([^,]+),([^\]]+)\]", "j_\\1(\\2)", rule_string)
     result = re.sub("\s+", " ", result)
     result = result.replace("j_%s" % j_suffix, "Sector")
@@ -98,7 +112,7 @@ def _parse_rule(rule_string, j_suffix):
     regex_result = _SECTOR_REGEXP.match(rule_string)
     if regex_result:
         sector_rule = sector.SectorRule(_parse_additional_condition(regex_result.groups()[1]),
-                                        _convert_rule(regex_result.groups()[2], j_suffix).replace("^", "**"))
+                                        convert_rule(regex_result.groups()[2], j_suffix).replace("^", "**"))
         return sector.SectorRuleKey(_convert_sector_conditions(regex_result.groups()[0])), \
                sector_rule
     if "Expand" in rule_string:

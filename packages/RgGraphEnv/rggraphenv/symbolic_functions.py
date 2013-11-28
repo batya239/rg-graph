@@ -38,6 +38,7 @@ psi = swiginac.psi
 zeta = swiginac.zeta
 Euler = swiginac.Euler
 log = swiginac.log
+O = swiginac.Order
 
 D = 4 - 2 * e
 
@@ -93,10 +94,10 @@ def pole_part(expr):
 
 
 #noinspection PyPep8Naming
-def G(alpha, beta):
+def G(alpha, beta, d=4-2*e):
     if alpha == 1 and beta == 1:
         return 1 / e
-    return _raw_g(alpha, beta) / _g11
+    return _raw_g(alpha, beta, d=d) / _g11
 
 
 #noinspection PyPep8Naming
@@ -109,12 +110,14 @@ def G2(alpha, beta):
     return (G(alpha, beta) - G(alpha - 1, beta) - G(alpha, beta - 1))/2
 
 
-def _raw_g(alpha, beta):
+def _raw_g(alpha, beta, d=4-2*e):
     #noinspection PyUnresolvedReferences
     if (alpha + zero).is_equal(zero) or (beta + zero).is_equal(zero) \
-        or (2 * l + 2 - alpha - beta + zero).is_equal(zero):
+        or (2 * (d/2 - 1) + 2 - alpha - beta + zero).is_equal(zero):
         return 0
-    return tgamma(l + 1 - alpha) * tgamma(l + 1 - beta) * tgamma(alpha + beta - l - 1) \
-           / (tgamma(alpha) * tgamma(beta) * tgamma(2 * l + 2 - alpha - beta))
+    return tgamma((d/2 - 1) + 1 - alpha) * tgamma((d/2 - 1) + 1 - beta) * tgamma(alpha + beta - (d/2 - 1) - 1) \
+           / (tgamma(alpha) * tgamma(beta) * tgamma(2 * (d/2 - 1) + 2 - alpha - beta))
 
-_g11 = _raw_g(1, 1) * e
+
+def _g11(d=4-2*e):
+    return _raw_g(1, 1, d=d) * e

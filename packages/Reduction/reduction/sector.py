@@ -37,6 +37,9 @@ class Sector(object):
             Sector.SECTOR_TO_KEY[self] = key
         return key
 
+    def as_litered_representation(self, env_name):
+        return "j[" + env_name + "".join(map(lambda i: ", " + str(i), self._propagators_weights)) + "]"
+
     def __neg__(self):
         return SectorLinearCombination.singleton(self, -1)
 
@@ -283,6 +286,19 @@ class SectorLinearCombination(object):
 ZERO_SECTOR_LINEAR_COMBINATION = SectorLinearCombination(rggraphutil.zeroDict())
 
 d = cas_variable_resolver.var("d")
+
+
+class NumeratorsReducingRuleKey(object):
+    def __init__(self, ):
+        pass
+
+    def is_applicable(self, graph):
+        pass
+
+
+class NumeratorsReducingRule(object):
+    def __init__(self, rule):
+        pass
 
 
 class SectorRuleKey(object):
