@@ -38,7 +38,7 @@ psi = swiginac.psi
 zeta = swiginac.zeta
 Euler = swiginac.Euler
 log = swiginac.log
-O = swiginac.Order
+Order = swiginac.Order
 
 D = 4 - 2 * e
 
@@ -97,7 +97,7 @@ def pole_part(expr):
 def G(alpha, beta, d=4-2*e):
     if alpha == 1 and beta == 1:
         return 1 / e
-    return _raw_g(alpha, beta, d=d) / _g11
+    return _raw_g(alpha, beta, d=d) / _g11(d=d)
 
 
 #noinspection PyPep8Naming

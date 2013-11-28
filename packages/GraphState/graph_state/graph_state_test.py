@@ -36,10 +36,10 @@ class TestRainbow(unittest.TestCase):
     def testToFromStr(self):
         r = graph_state.Rainbow((0, 1))
         self.assertEqual(str(r), '(0, 1)')
-        self.assertEqual(r, graph_state.Rainbow.fromStr(str(r)))
+        self.assertEqual(r, graph_state.Rainbow.fromObject(str(r)))
 
     def testFromStr2(self):
-        r = graph_state.Rainbow.fromStr("\"asd\"")
+        r = graph_state.Rainbow.fromObject("\"asd\"")
         self.assertEqual(r.colors, ("asd",))
 
 class TestEdge(unittest.TestCase):
