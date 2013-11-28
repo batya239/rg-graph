@@ -217,22 +217,24 @@ def CUBA_calculate(expansion):
     """
     result = dict()
     split = 2
+    wd = os.path.expanduser("~") + '/.pole_extractor'
+    source = wd + '/' + 'integrate.c'
+    header = wd + '/' + 'integrate.h'
+    binary = wd + '/' + 'integrate'
 
     for k in expansion.keys():
         for i in range(0, len(expansion[k]), split):
-            f = open('integrate.h', 'w')
+            f = open(header, 'w')
             header_str = str_for_CUBA(expansion[k][i:i + split])
             f.write(header_str)
             f.close()
 
             #compiling external C program
-            command = 'gcc -Wall -fopenmp -I' + os.path.dirname(inspect.stack()[-1][1]) + ' -o integrate ' +\
-                      sys.prefix + '/pole_extractor_ni/integrate.c -lm -lcuba -fopenmp'
-            print '###' + str(os.path.dirname(inspect.stack()[-1][1]))
+            command = 'gcc -Wall -fopenmp -I' + wd + ' -o ' + binary + ' ' + source + ' -lm -lcuba -fopenmp'
             subprocess.Popen([command], shell=True, stderr=subprocess.PIPE).communicate()
 
             #running external C program
-            integrate = subprocess.Popen(['./integrate'], env={'OMP_NUM_THREADS': '4', 'CUBAVERBOSE': '0'},
+            integrate = subprocess.Popen([binary], env={'OMP_NUM_THREADS': '4', 'CUBAVERBOSE': '0'},
                                          shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
             out, err = integrate.communicate()
@@ -245,13 +247,13 @@ def CUBA_calculate(expansion):
                     result[k][1] += e
                 else:
                     result[k] = [r, e]
-                os.remove('integrate')
+                os.remove(binary)
             except ValueError:
                 print 'Something went wrong during integration. Here\'s what CUBA said:'
                 print str(out)
                 print str(err)
 
-            os.remove('integrate.h')
+            os.remove(header)
 
 
 
