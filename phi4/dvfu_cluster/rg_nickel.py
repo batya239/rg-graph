@@ -35,10 +35,10 @@ def symmetryCoefficient(graph):
 class Series():
     """ Класс, обеспечивающий разложение в ряд по g с точностью до n-го порядка с учётом погрешности.
     """
-
-    def __init__(self, d={}, n=3):
+    def __init__(self, d={}, n = 4, name = 'g'):
         self.n = n
         self.gSeries = d
+        self.name = name
         #if 0 not in d.keys():
         #    self.gSeries[0] = ufloat(1,0)
         for i in range(0,n):
@@ -60,6 +60,7 @@ class Series():
         elif isinstance(other,(int,float)):
             tmp[0] += other
         else:
+            print type(self),type(other)
             raise NotImplementedError
         return Series(tmp, len(tmp))
     def __radd__(self, other):
@@ -130,11 +131,18 @@ class Series():
     def __str__(self):
         res = ''
         for g,c in self.gSeries.items():
-            if c != 0:
-                res += "(%s) * g^%s + "%(str(c),str(g))
+            if c != 0 and g <= self.n:
+                res += "(%s) * %s^%s + "%(str(c),self.name,str(g))
         return res[:-2]
     def __len__(self):
         return len(self.gSeries)
+    def subs(self,point):
+        #res = Series({0:ufloat(0,0)},n = 0)
+        res = ufloat(0,0)
+        for i,c in self.gSeries.items():
+            res += c * (point.gSeries[0]**i)
+        #return res
+        return Series({0:res},n=0)
 """
 Z1 = Series()
 Z2 = Series({0:ufloat(-4,0.3),1:ufloat(2,.002)},1)
@@ -192,23 +200,25 @@ print "beta/2 = ", beta / 2
 eta = beta * Z2.diff()/Z2
 
 print "eta =", eta
-import sympy
-tau = sympy.var('tau')
+#import sympy
+#tau = sympy.var('tau')
 
 #beta1 = (beta / g / 2 + 1).expand()
-beta1 = beta / g / 2 + 1
-
-print "beta1 =", beta1
-
-gStar = 0
+beta1 = (beta/g)  + 1
+print "beta1 =",beta1
+tau = Series({1:ufloat(1,0)},n = 1, name='tau')
+gStar = Series({0:ufloat(0,0)},n=nLoops,name='tau')
 for i in range(1, nLoops):
     #gStar = (tau - (beta1 - g).series(g, 0, i + 1).removeO().subs(g, gStar)).series(tau, 0, i + 1).removeO()
-    gStar = (tau - (beta1 - g).subs(g, gStar)).series(tau, 0, i + 1).removeO()
+    tmp = Series((beta1 - g).gSeries,n = i, name='tau')
+    print "tmp =",tmp
+    gStar = (tau - tmp.subs(gStar))#.series(tau, 0, i + 1).removeO()
 
 print "gStar = ", gStar
-gStarS = tau + 0.716173621 * tau**2 + 0.095042867 * tau**3 + 0.086080396 * tau ** 4 - 0.204139 * tau ** 5
+#gStarS = tau + 0.716173621 * tau**2 + 0.095042867 * tau**3 + 0.086080396 * tau ** 4 - 0.204139 * tau ** 5
+gStarS = Series({1:1,2:0.716173621,3:0.095042867,4:0.086080396,5:- 0.204139},n=5,name='tau')
 print "gStarS = ", gStarS
-
+"""
 etaStar = eta.subs(g, gStar).series(tau, 0, nLoops + 1)
 
 print "etaStar = ", etaStar
@@ -216,3 +226,4 @@ print "etaStar = ", etaStar
 etaStarGS = eta.subs(g, gStarS).series(tau, 0, nLoops + 1)
 
 print "etaStarGS = ", etaStarGS
+"""
