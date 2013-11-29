@@ -81,6 +81,13 @@ resG[4], err[4] = loadFromFile(g4File, 4, struct=struct)
 for G in resG.keys():
     print "G%s:\n %s \n %s\n\n"%(G, resG[G],  err[G])
 
+resG[2][5]=0
+err[2][5]=0
+resG[4][5]=0
+err[4][5]=0
+
+
+
 sys.stdout.flush()
 #sys.exit()
 
@@ -88,7 +95,7 @@ g, n, e = sympy.var('g n e')
 A = sympy.var('A0 A1 A2 A3 A4 A5 A6 A7')
 B = sympy.var('B0 B1 B2 B3 B4 B5 B6 B7')
 N = phi4.target
-N = 5
+N = 4
 f2 = 0
 for i in range(2, N + 1):
     f2 = f2 + B[i] * g ** i
