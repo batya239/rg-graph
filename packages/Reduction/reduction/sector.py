@@ -74,7 +74,7 @@ class Sector(object):
 
     def __div__(self, other):
         if isinstance(other, (float, int, swiginac.refcounted)):
-            return SectorLinearCombination.singleton(self, 1. / other)
+            return SectorLinearCombination.singleton(self, swiginac.numeric(1) / other)
         elif isinstance(other, SectorLinearCombination):
             assert isinstance(other.additional_part, int) and other.additional_part == 0
             sector_to_coefficients = rggraphutil.zeroDict()
@@ -158,7 +158,7 @@ class SectorLinearCombination(object):
         string = ""
         e = symbolic_functions.e
         for s, c in self._sectors_to_coefficient.items():
-           string += "+(" + str(c.subs(d == _d).evalf().simplify_indexed() if not isinstance(c, (int, float)) else c) + ")*" + str(s)
+           string += "+(" + str(c.subs(d == _d).simplify_indexed() if not isinstance(c, (int, float)) else c) + ")*" + str(s)
         print "result d=" + str(_d) + "\n" + string
 
     def substitute(self, sectors_to_value):
@@ -175,6 +175,12 @@ class SectorLinearCombination(object):
 
     def __len__(self):
         return len(self._sectors_to_coefficient)
+
+    def normalize(self):
+        sectors_to_coefficient = copy.copy(self._sectors_to_coefficient)
+        for key, value in sectors_to_coefficient.items():
+            sectors_to_coefficient[key] = value.normal() if not isinstance(value, (swiginac.numeric, float, int)) else value
+        return SectorLinearCombination(sectors_to_coefficient, self.additional_part)
 
     @staticmethod
     def singleton(sector, coefficient):
@@ -266,8 +272,8 @@ class SectorLinearCombination(object):
             sectors_to_coefficient = rggraphutil.zeroDict()
             for s, c in self.sectors_to_coefficient.items():
                 sectors_to_coefficient[s] = c * other if do_mul else (
-                    float(c) / other if isinstance(c, int) else c / other)
-            additional_part = self.additional_part * other if do_mul else (float(self.additional_part) / other
+                    swiginac.numeric(c) / other if isinstance(c, int) else c / other)
+            additional_part = self.additional_part * other if do_mul else (swiginac.numeric(self.additional_part) / other
                                                                            if isinstance(self.additional_part, int)
                                                                            else self.additional_part / other)
             return SectorLinearCombination(sectors_to_coefficient, additional_part)
