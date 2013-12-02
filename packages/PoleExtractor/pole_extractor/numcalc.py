@@ -2,10 +2,10 @@ __author__ = 'gleb'
 
 import polynomial
 import subprocess
-import sys
 import os
 from sympy import mpmath
-import inspect
+import reduced_vl
+import itertools
 
 
 class NumEpsExpansion():
@@ -40,6 +40,25 @@ class NumEpsExpansion():
             else:
                 n_elements[k] = (0.0, 0.0)
         return NumEpsExpansion(n_elements)
+
+    @staticmethod
+    def gammaCoefficient(rvl, theory, max_index):
+        assert(isinstance(rvl, reduced_vl.ReducedVacuumLoop))
+        if 3 == theory:
+            deg = -3
+        else:
+            deg = -2
+        g11 = sum(rvl.edges_weights()) + deg * rvl.loops()
+        g12 = rvl.loops()
+        d = rvl.loops()
+        g21 = -deg
+        g22 = -1
+
+        g_coef_1 = get_gamma(g11, g12, max_index)
+        g_coef_2 = get_gamma(g21, g22, max_index)
+        for _ in itertools.repeat(None, d - 1):
+            g_coef_2 *= get_gamma(g21, g22, max_index)
+        return g_coef_2 * g_coef_1
 
     def __getitem__(self, item):
         return self._elements[item]
@@ -103,6 +122,9 @@ class NumEpsExpansion():
         for k in sorted(self.keys()):
             result += 'eps^(' + str(k) + ')[' + str(self[k][0]) + '+-' + str(self[k][1]) + '] + '
         return result[:-2]
+
+    def __repr__(self):
+        return str(self)
 
 
 def get_gamma(a, b, max_index):
@@ -254,7 +276,5 @@ def CUBA_calculate(expansion):
                 print str(err)
 
             os.remove(header)
-
-
 
     return NumEpsExpansion(result)

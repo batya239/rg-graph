@@ -15,8 +15,7 @@ class RPrimeTermFactor:
     DerivativePrefix = '{d/dp^2}'
 
     def __init__(self, diagram, k=False, derivative=False):
-        if not isinstance(diagram, graphine.Graph):
-            raise ValueError('Your argument is bad and you should feel bad.')
+        assert(isinstance(diagram, graphine.Graph))
         self._diagram = diagram
         self._k = k
         self._derivative = derivative
@@ -131,17 +130,3 @@ def r_prime(label, PHI_EXPONENT):
     if 2 == g.externalEdgesCount():
         result.append((1, [str(RPrimeTermFactor(g, derivative=True)), 'p^2']))
     return polynomial.poly(result)
-
-
-print 'e112-22-e-'
-print r_prime('e112-22-e-', 4)
-print 'e12-e3-33--'
-print r_prime('e12-e3-33--', 3)
-print 'e12-33-44-5-5-e-'
-print r_prime('e12-33-44-5-5-e-', 3)
-print 'e12-e3-44-55-6-6-e-'
-print r_prime('e12-e3-44-55-6-6-e-', 3)
-print '####'
-ls = ('e12-e3-33--', 'e12-23-3-e-', 'e12-e3-e4-44--', 'e12-e3-34-4-e-', 'e12-34-34-e-e-')
-for l in ls:
-    print "R'{" + l + "} = " + str(r_prime(l, 3))[1:-1]
