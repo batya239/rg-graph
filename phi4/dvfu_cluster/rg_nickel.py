@@ -6,7 +6,7 @@ import sys
 import math
 import graphine
 import graph_state
-from uncertainties import ufloat
+from uncertainties import ufloat, Variable
 
 
 def internalEdges(graph):
@@ -39,8 +39,12 @@ class Series():
         self.n = n
         self.gSeries = d
         self.name = name
-        #if 0 not in d.keys():
-        #    self.gSeries[0] = ufloat(1,0)
+        for k,v in d.items():
+            #if not isinstance(v,AffineScalarFunc):
+            try:
+                self.gSeries[k] = ufloat(v[0],v[1])
+            except:
+                pass
         for i in range(0,n):
             if i not in d.keys():
                 self.gSeries[i] = ufloat(0,0)
@@ -162,18 +166,15 @@ print "Z2**2 =",Z2**2
 """
 
 fileName = sys.argv[1]
-
 nLoops = int(sys.argv[2])
 
 r1op = eval(open(fileName).read())
 
-Z2 = 1
-Z2_new = {0:ufloat(1,0)}
-Z3 = 1
-Z3_new = {0:ufloat(1,0)}
+Z2_new = {0:(1,0)}
+Z3_new = {0:(1,0)}
 
 for nickel in r1op:
-    uncert = ufloat(r1op[nickel])
+    uncert = ufloat(r1op[nickel][0],r1op[nickel][1])
     graph = graphine.Graph(graph_state.GraphState.fromStr("%s::" % nickel))
     graphLoopCount = graph.getLoopsCount()
     if graphLoopCount > nLoops:
