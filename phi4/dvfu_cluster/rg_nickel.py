@@ -35,12 +35,11 @@ def symmetryCoefficient(graph):
 class Series():
     """ Класс, обеспечивающий разложение в ряд по g с точностью до n-го порядка с учётом погрешности.
     """
-    def __init__(self, d={}, n = 5, name = 'g'):
+    def __init__(self, d={}, n = 6, name = 'g'):
         self.n = n
         self.gSeries = d
         self.name = name
         for k,v in d.items():
-            #if not isinstance(v,AffineScalarFunc):
             try:
                 self.gSeries[k] = ufloat(v[0],v[1])
             except:
@@ -152,10 +151,8 @@ class Series():
     def subs(self,point):
         res = Series({0:ufloat(0,0)},n = self.n,name=point.name)
         for i,c in self.gSeries.items():
-            #print "c.n * (point**i) = ",c.n * (point**i)
             res += c * (point**i)
         return res
-        #return Series({0:res},n=0)
 """
 Z1 = Series()
 Z2 = Series({0:ufloat(-4,0.3),1:ufloat(2,.002)},1)
@@ -209,27 +206,22 @@ g = Series({1:ufloat(1,0)})
 
 #beta = (-2 * g / (1 + g * sympy.ln(Zg).diff(g))).series(g, 0, nLoops + 2).removeO()
 beta = (-2 * g / (1 + g * Zg.diff()/Zg))
-print "beta/2 = ", beta / 2
+print "\nbeta/2 = ", beta / 2
 
 #eta = (beta * sympy.ln(Z2).diff(g)).series(g, 0, nLoops + 1).removeO()
 eta = beta * Z2.diff()/Z2
 
-#print "eta =", eta
-
-#import sympy
-#tau = sympy.var('tau')
+print "\neta =", eta
 
 #beta1 = (beta / g / 2 + 1).expand()
 beta1 = (-1/ (1 + g * Zg.diff()/Zg) +1)
 beta1.gSeries.pop(1) ## equal to 'beta1 - g'
-print "beta1 =",beta1
+#print "beta1 =",beta1
 
 gStar = Series({0:ufloat(0.,0.)},n=1,name='tau')
 for i in range(1, nLoops):
     d = {1:ufloat(1.,0.)}
     d.update( dict(map(lambda x: (x,ufloat(0,0.)),range(2,i+1))))
-    #print "\n g* =",gStar
-    #print "d =",d
     tau = Series(d,n = i, name='tau')
     #gStar = (tau - (beta1 - g).series(g, 0, i + 1).removeO().subs(g, gStar)).series(tau, 0, i + 1).removeO()
     tmp = Series((beta1).gSeries,n = i)
@@ -237,7 +229,6 @@ for i in range(1, nLoops):
     #print "tmp.subs(gStar) =",tmp.subs(gStar)
     #print "(tau - tmp.subs(gStar)) =", tau - tmp.subs(gStar)
     gStar = Series((tau - tmp.subs(gStar)).__repr__(),n = i+1, name='tau')#.series(tau, 0, i + 1).removeO()
-    #print "g* =", gStar
 
 print "gStar = ", gStar
 
