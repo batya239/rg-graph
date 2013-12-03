@@ -6,7 +6,7 @@ import sys
 import math
 import graphine
 import graph_state
-from uncertainties import ufloat, Variable
+from uncertainties import ufloat, Variable, AffineScalarFunc
 
 
 def internalEdges(graph):
@@ -86,12 +86,12 @@ class Series():
                         except  KeyError:
                             tmp[i+j] = self.gSeries[i]*other.gSeries[j]
             res = Series(tmp,max(self.n,other.n),name=self.name)
-        elif isinstance(other,(int,float)):
+        elif isinstance(other,(int,float,Variable,AffineScalarFunc)):
             for i in self.gSeries.keys():
                 tmp[i] = self.gSeries[i]*other
             res = Series(tmp,self.n,name=self.name)
         else:
-            print "other =",other," type(other) =",type(other)
+            print "\nother =",other," type(other) =",type(other)
             raise NotImplementedError
         return res
     def __rmul__(self, other):
@@ -153,7 +153,7 @@ class Series():
         res = Series({0:ufloat(0,0)},n = self.n,name=point.name)
         for i,c in self.gSeries.items():
             #print "c.n * (point**i) = ",c.n * (point**i)
-            res += c.n * (point**i)
+            res += c * (point**i)
         return res
         #return Series({0:res},n=0)
 """
@@ -224,10 +224,10 @@ beta1 = (-1/ (1 + g * Zg.diff()/Zg) +1)
 beta1.gSeries.pop(1) ## equal to 'beta1 - g'
 print "beta1 =",beta1
 
-gStar = Series({0:ufloat(0,0)},n=1,name='tau')
+gStar = Series({0:ufloat(0.,0.)},n=1,name='tau')
 for i in range(1, nLoops):
-    d = {1:ufloat(1,0)}
-    d.update( dict(map(lambda x: (x,ufloat(0,0)),range(2,i+1))))
+    d = {1:ufloat(1.,0.)}
+    d.update( dict(map(lambda x: (x,ufloat(0,0.)),range(2,i+1))))
     #print "\n g* =",gStar
     #print "d =",d
     tau = Series(d,n = i, name='tau')
@@ -237,7 +237,7 @@ for i in range(1, nLoops):
     #print "tmp.subs(gStar) =",tmp.subs(gStar)
     #print "(tau - tmp.subs(gStar)) =", tau - tmp.subs(gStar)
     gStar = Series((tau - tmp.subs(gStar)).__repr__(),n = i+1, name='tau')#.series(tau, 0, i + 1).removeO()
-    print "g* =", gStar
+    #print "g* =", gStar
 
 print "gStar = ", gStar
 
@@ -247,9 +247,9 @@ gStarS = Series({1:1,2:0.716173621,3:0.095042867,4:0.086080396,5:- 0.204139},n=5
 print "gStarS = ", gStarS
 
 #etaStar = eta.subs(g, gStar).series(tau, 0, nLoops + 1)
-
-#print "etaStar = ", etaStar
+etaStar = eta.subs(gStar)
+print "etaStar = ", etaStar
 
 #etaStarGS = eta.subs(g, gStarS).series(tau, 0, nLoops + 1)
-
-#print "etaStarGS = ", etaStarGS
+etaStarGS = eta.subs(gStarS)
+print "etaStarGS = ", etaStarGS
