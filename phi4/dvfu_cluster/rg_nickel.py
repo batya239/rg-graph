@@ -31,11 +31,13 @@ def symmetryCoefficient(graph):
         C = C / float(math.factorial(unique_edges[idxE]))
     return C
 
+fileName = sys.argv[1]
+nLoops = int(sys.argv[2])
 
 class Series():
     """ Класс, обеспечивающий разложение в ряд по g с точностью до n-го порядка с учётом погрешности.
     """
-    def __init__(self, d={}, n = 6, name = 'g'):
+    def __init__(self, d={}, n = nLoops, name = 'g'):
         self.n = n
         self.gSeries = d
         self.name = name
@@ -165,9 +167,6 @@ print "Z1*Z2 =",Z1*Z2
 print "Z2**2 =",Z2**2
 """
 
-fileName = sys.argv[1]
-nLoops = int(sys.argv[2])
-
 r1op = eval(open(fileName).read())
 
 Z2_new = {0:(1,0)}
@@ -193,8 +192,8 @@ for nickel in r1op:
     else:
         raise ValueError("invalid ext legs count: %s, %s" % (graphLoopCount, nickel))
 
-Z2 = Series(Z2_new,4)
-Z3 = Series(Z3_new,4)
+Z2 = Series(Z2_new,nLoops)
+Z3 = Series(Z3_new,nLoops)
 print "Z2 = ", Z2
 print "Z3 = ", Z3
 
