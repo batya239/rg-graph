@@ -15,7 +15,7 @@ def sectors(rvl):
     sector is sector as ((main_variable_1, ()), (main_variable_1, ()), ...)
     """
     assert (isinstance(rvl, reduced_vl.ReducedVacuumLoop))
-    conservation_laws = rvl.conservation_laws()
+    conservation_laws = rvl.conservation_laws(exclude_ext_edges=True)
 
     loops_number = rvl.loops()
     variable_list = rvl.edges()

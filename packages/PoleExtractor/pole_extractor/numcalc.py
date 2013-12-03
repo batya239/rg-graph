@@ -60,6 +60,23 @@ class NumEpsExpansion():
             g_coef_2 *= get_gamma(g21, g22, max_index)
         return g_coef_2 * g_coef_1
 
+    @staticmethod
+    def unite(e1, e2):
+        assert(isinstance(e1, NumEpsExpansion))
+        assert(isinstance(e2, NumEpsExpansion))
+        result_base = dict()
+        for k in list(set(e1.keys() + e2.keys())):
+            if k not in e1.keys():
+                result_base[k] = e2[k]
+            elif k not in e2.keys():
+                result_base[k] = e1[k]
+            else:
+                if e1[k][1] < e2[k][1]:
+                    result_base[k] = e1[k]
+                else:
+                    result_base[k] = e2[k]
+        return NumEpsExpansion(exp=result_base)
+
     def __getitem__(self, item):
         return self._elements[item]
 
@@ -201,7 +218,7 @@ def get_gamma(a, b, max_index):
     return NumEpsExpansion(result)
 
 
-def str_for_CUBA(expansion):
+def str_for_cuba(expansion):
     result = '#ifndef INTEGRATE_H_' + '\n' + '#define INTEGRATE_H_' + '\n' + '#define NDIM '
     used_vars = set()
     for element in expansion:
@@ -232,22 +249,22 @@ def str_for_CUBA(expansion):
     return result
 
 
-def CUBA_calculate(expansion):
+def cuba_calculate(expansion):
     """
     :param expansion:
     :return:
     """
     result = dict()
-    split = 2
+    split_size = 2
     wd = os.path.expanduser("~") + '/.pole_extractor'
     source = wd + '/' + 'integrate.c'
     header = wd + '/' + 'integrate.h'
     binary = wd + '/' + 'integrate'
 
     for k in expansion.keys():
-        for i in range(0, len(expansion[k]), split):
+        for i in range(0, len(expansion[k]), split_size):
             f = open(header, 'w')
-            header_str = str_for_CUBA(expansion[k][i:i + split])
+            header_str = str_for_cuba(expansion[k][i:i + split_size])
             f.write(header_str)
             f.close()
 
@@ -269,12 +286,12 @@ def CUBA_calculate(expansion):
                     result[k][1] += e
                 else:
                     result[k] = [r, e]
-                os.remove(binary)
             except ValueError:
                 print 'Something went wrong during integration. Here\'s what CUBA said:'
                 print str(out)
                 print str(err)
 
+            os.remove(binary)
             os.remove(header)
 
     return NumEpsExpansion(result)

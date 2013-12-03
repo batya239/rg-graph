@@ -27,4 +27,3 @@ for l in labels3tails:
                          max_eps=5,
                          zero_momenta=True,
                          verbose=2)
-    print
