@@ -103,7 +103,10 @@ class Series():
         1/(1+x)=Sum_i (-1)^i x^i
         """
         res = Series({},self.n,self.name)
-        for i in range(self.n):
+        #if self.gSeries[0] == 1:
+        #    tmp = Series(self.gSeries[1:], n = self.n-1, name=self.name)
+        #        for i in range(tmp.n):
+        for i in range(len(self.gSeries)):
             res += (-1)**i * (self - 1)**i
         return res
     def __div__(self, other):
@@ -149,7 +152,7 @@ class Series():
     def subs(self,point):
         res = Series({0:ufloat(0,0)},n = self.n,name=point.name)
         for i,c in self.gSeries.items():
-            print "c.n * (point**i) = ",c.n * (point**i)
+            #print "c.n * (point**i) = ",c.n * (point**i)
             res += c.n * (point**i)
         return res
         #return Series({0:res},n=0)
@@ -197,7 +200,7 @@ Z2 = Series(Z2_new,4)
 Z3 = Series(Z3_new,4)
 print "Z2 = ", Z2
 print "Z3 = ", Z3
-"""
+
 Zg = (Z3 / Z2 ** 2)
 print "Zg = ", Zg
 
@@ -225,15 +228,15 @@ gStar = Series({0:ufloat(0,0)},n=1,name='tau')
 for i in range(1, nLoops):
     d = {1:ufloat(1,0)}
     d.update( dict(map(lambda x: (x,ufloat(0,0)),range(2,i+1))))
-    print "\n g* =",gStar
-    print "d =",d
+    #print "\n g* =",gStar
+    #print "d =",d
     tau = Series(d,n = i, name='tau')
     #gStar = (tau - (beta1 - g).series(g, 0, i + 1).removeO().subs(g, gStar)).series(tau, 0, i + 1).removeO()
     tmp = Series((beta1).gSeries,n = i)
-    print "tau =",tau,"; tmp =",tmp
-    print "tmp.subs(gStar) =",tmp.subs(gStar)
-    print "(tau - tmp.subs(gStar)) =", tau - tmp.subs(gStar)
-    gStar = Series((tau - tmp.subs(gStar)).__repr__(),n = i, name='tau')#.series(tau, 0, i + 1).removeO()
+    #print "tau =",tau,"; tmp =",tmp
+    #print "tmp.subs(gStar) =",tmp.subs(gStar)
+    #print "(tau - tmp.subs(gStar)) =", tau - tmp.subs(gStar)
+    gStar = Series((tau - tmp.subs(gStar)).__repr__(),n = i+1, name='tau')#.series(tau, 0, i + 1).removeO()
     print "g* =", gStar
 
 print "gStar = ", gStar
@@ -243,11 +246,10 @@ print "gStar = ", gStar
 gStarS = Series({1:1,2:0.716173621,3:0.095042867,4:0.086080396,5:- 0.204139},n=5,name='tau')
 print "gStarS = ", gStarS
 
-etaStar = eta.subs(g, gStar).series(tau, 0, nLoops + 1)
+#etaStar = eta.subs(g, gStar).series(tau, 0, nLoops + 1)
 
-print "etaStar = ", etaStar
+#print "etaStar = ", etaStar
 
-etaStarGS = eta.subs(g, gStarS).series(tau, 0, nLoops + 1)
+#etaStarGS = eta.subs(g, gStarS).series(tau, 0, nLoops + 1)
 
-print "etaStarGS = ", etaStarGS
-"""
+#print "etaStarGS = ", etaStarGS
