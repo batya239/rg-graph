@@ -2,10 +2,10 @@ __author__ = 'gleb'
 
 import polynomial
 import subprocess
-import sys
 import os
 from sympy import mpmath
-import inspect
+import reduced_vl
+import itertools
 
 
 class NumEpsExpansion():
@@ -40,6 +40,42 @@ class NumEpsExpansion():
             else:
                 n_elements[k] = (0.0, 0.0)
         return NumEpsExpansion(n_elements)
+
+    @staticmethod
+    def gammaCoefficient(rvl, theory, max_index):
+        assert(isinstance(rvl, reduced_vl.ReducedVacuumLoop))
+        if 3 == theory:
+            deg = -3
+        else:
+            deg = -2
+        g11 = sum(rvl.edges_weights()) + deg * rvl.loops()
+        g12 = rvl.loops()
+        d = rvl.loops()
+        g21 = -deg
+        g22 = -1
+
+        g_coef_1 = get_gamma(g11, g12, max_index)
+        g_coef_2 = get_gamma(g21, g22, max_index)
+        for _ in itertools.repeat(None, d - 1):
+            g_coef_2 *= get_gamma(g21, g22, max_index)
+        return g_coef_2 * g_coef_1
+
+    @staticmethod
+    def unite(e1, e2):
+        assert(isinstance(e1, NumEpsExpansion))
+        assert(isinstance(e2, NumEpsExpansion))
+        result_base = dict()
+        for k in list(set(e1.keys() + e2.keys())):
+            if k not in e1.keys():
+                result_base[k] = e2[k]
+            elif k not in e2.keys():
+                result_base[k] = e1[k]
+            else:
+                if e1[k][1] < e2[k][1]:
+                    result_base[k] = e1[k]
+                else:
+                    result_base[k] = e2[k]
+        return NumEpsExpansion(exp=result_base)
 
     def __getitem__(self, item):
         return self._elements[item]
@@ -103,6 +139,9 @@ class NumEpsExpansion():
         for k in sorted(self.keys()):
             result += 'eps^(' + str(k) + ')[' + str(self[k][0]) + '+-' + str(self[k][1]) + '] + '
         return result[:-2]
+
+    def __repr__(self):
+        return str(self)
 
 
 def get_gamma(a, b, max_index):
@@ -179,7 +218,7 @@ def get_gamma(a, b, max_index):
     return NumEpsExpansion(result)
 
 
-def str_for_CUBA(expansion):
+def str_for_cuba(expansion):
     result = '#ifndef INTEGRATE_H_' + '\n' + '#define INTEGRATE_H_' + '\n' + '#define NDIM '
     used_vars = set()
     for element in expansion:
@@ -210,29 +249,31 @@ def str_for_CUBA(expansion):
     return result
 
 
-def CUBA_calculate(expansion):
+def cuba_calculate(expansion):
     """
     :param expansion:
     :return:
     """
     result = dict()
-    split = 2
+    split_size = 2
+    wd = os.path.expanduser("~") + '/.pole_extractor'
+    source = wd + '/' + 'integrate.c'
+    header = wd + '/' + 'integrate.h'
+    binary = wd + '/' + 'integrate'
 
     for k in expansion.keys():
-        for i in range(0, len(expansion[k]), split):
-            f = open('integrate.h', 'w')
-            header_str = str_for_CUBA(expansion[k][i:i + split])
+        for i in range(0, len(expansion[k]), split_size):
+            f = open(header, 'w')
+            header_str = str_for_cuba(expansion[k][i:i + split_size])
             f.write(header_str)
             f.close()
 
             #compiling external C program
-            command = 'gcc -Wall -fopenmp -I' + os.path.dirname(inspect.stack()[-1][1]) + ' -o integrate ' +\
-                      sys.prefix + '/pole_extractor_ni/integrate.c -lm -lcuba -fopenmp'
-            print '###' + str(os.path.dirname(inspect.stack()[-1][1]))
+            command = 'gcc -Wall -fopenmp -I' + wd + ' -o ' + binary + ' ' + source + ' -lm -lcuba -fopenmp'
             subprocess.Popen([command], shell=True, stderr=subprocess.PIPE).communicate()
 
             #running external C program
-            integrate = subprocess.Popen(['./integrate'], env={'OMP_NUM_THREADS': '4', 'CUBAVERBOSE': '0'},
+            integrate = subprocess.Popen([binary], env={'OMP_NUM_THREADS': '4', 'CUBAVERBOSE': '0'},
                                          shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
             out, err = integrate.communicate()
@@ -245,14 +286,12 @@ def CUBA_calculate(expansion):
                     result[k][1] += e
                 else:
                     result[k] = [r, e]
-                os.remove('integrate')
             except ValueError:
                 print 'Something went wrong during integration. Here\'s what CUBA said:'
                 print str(out)
                 print str(err)
 
-            os.remove('integrate.h')
-
-
+            os.remove(binary)
+            os.remove(header)
 
     return NumEpsExpansion(result)

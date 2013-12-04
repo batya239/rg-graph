@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf8
 from distutils.core import setup
+import os.path
 
 setup(
     name='PoleExtractor',
@@ -8,7 +9,7 @@ setup(
     author='G. Dovzhenko',
     author_email='dovjenko.g@gmail.com',
     packages=['pole_extractor'],
-    data_files=[('pole_extractor_ni', ['pole_extractor/integrate.c'])],
+    data_files=[(os.path.expanduser("~") + '/.pole_extractor', ['pole_extractor/integrate.c'])],
     license='LICENSE.txt',
     description='SD and analytical continuation of Feynman Representation.',
     long_description=open('README.txt').read(),
