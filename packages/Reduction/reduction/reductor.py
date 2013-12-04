@@ -367,7 +367,8 @@ l = symbolic_functions.l
 THREE_LOOP_REDUCTOR = Reductor("loop3",
                                "loop3",
                                [graphine.Graph.fromStr("e12-34-35-4-5-e-"),
-                                graphine.Graph.fromStr("e12-34-34-5-5-e-")],
+                                graphine.Graph.fromStr("e12-34-34-5-5-e-"),
+                                graphine.Graph.fromStr("e12-23-4-45-5-e-")],
                                3,
                                {graphine.Graph.fromStr("e12-34-34-5-5-e-"):
                                 symbolic_functions.evaluate("(20*zeta(5))"
