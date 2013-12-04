@@ -79,7 +79,7 @@ int main()
 
 #ifndef OPENMP_PARALLEL
 
-    fp = fopen("out.txt", "a");
+    //fp = fopen("out.txt", "a");
 
     Vegas(NDIM, NCOMP, Integrand, NULL, EPSREL, EPSABS, verbose, SEED, MINEVAL,
             MAXEVAL, NSTART, NINCREASE, NBATCH, GRIDNO, STATEFILE, &neval,
@@ -91,9 +91,9 @@ int main()
 
 //    printf("\n");
 
-    for (comp = 0; comp < NCOMP; ++comp)
-            fprintf(fp, "(%.8f +- %.8f), x^2-prob = %.8f\n", integral[comp], error[comp], prob[comp]);
-    fclose(fp);
+    //for (comp = 0; comp < NCOMP; ++comp)
+    //        fprintf(fp, "(%.8f +- %.8f), x^2-prob = %.8f\n", integral[comp], error[comp], prob[comp]);
+    //fclose(fp);
 
 #endif
 

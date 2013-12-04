@@ -1,9 +1,18 @@
 __author__ = 'gleb'
 
+import pickle
+import os
+
 import graphine
 from graphine import filters
 import graph_state
 import polynomial
+
+import reduced_vl
+import numcalc
+import feynman
+import sector_decomposition
+import expansion
 
 
 class RPrimeTermFactor:
@@ -15,8 +24,7 @@ class RPrimeTermFactor:
     DerivativePrefix = '{d/dp^2}'
 
     def __init__(self, diagram, k=False, derivative=False):
-        if not isinstance(diagram, graphine.Graph):
-            raise ValueError('Your argument is bad and you should feel bad.')
+        assert(isinstance(diagram, graphine.Graph))
         self._diagram = diagram
         self._k = k
         self._derivative = derivative
@@ -126,22 +134,104 @@ def r_prime(label, PHI_EXPONENT):
             if 2 == ctm[1][-1].externalEdgesCount():
                 result.append((ctm[0], map(lambda x: str(x), ctm[1][:-1]) +
                               [str(RPrimeTermFactor(ctm[1][-1], derivative=True)), 'p^2']))
-
-    result.append((1, [str(RPrimeTermFactor(g)), ]))
-    if 2 == g.externalEdgesCount():
-        result.append((1, [str(RPrimeTermFactor(g, derivative=True)), 'p^2']))
     return polynomial.poly(result)
 
 
-print 'e112-22-e-'
-print r_prime('e112-22-e-', 4)
-print 'e12-e3-33--'
-print r_prime('e12-e3-33--', 3)
-print 'e12-33-44-5-5-e-'
-print r_prime('e12-33-44-5-5-e-', 3)
-print 'e12-e3-44-55-6-6-e-'
-print r_prime('e12-e3-44-55-6-6-e-', 3)
-print '####'
-ls = ('e12-e3-33--', 'e12-23-3-e-', 'e12-e3-e4-44--', 'e12-e3-34-4-e-', 'e12-34-34-e-e-')
-for l in ls:
-    print "R'{" + l + "} = " + str(r_prime(l, 3))[1:-1]
+def gen_filename(g, rprime, momentum_derivative):
+    wd = os.path.expanduser("~") + '/.pole_extractor/'
+    if rprime:
+        wd += 'RPRIME/'
+    else:
+        wd += 'BASE/'
+    fn = wd
+    if isinstance(g, graphine.Graph):
+        fn += str(g)[:-2]
+    elif isinstance(g, str):
+        fn += g
+    if momentum_derivative:
+        fn += 'p2'
+    return fn
+
+
+def get_expansion(g, rprime, momentum_derivative):
+    f = open(gen_filename(g, rprime, momentum_derivative), 'rb')
+    result = pickle.load(f)
+    f.close()
+    return result
+
+
+def set_expansion(g, rprime, momentum_derivative, e):
+    f = open(gen_filename(g, rprime, momentum_derivative), 'wb')
+    pickle.dump(e, f)
+    f.close()
+
+
+def update_expansion(g, rprime, momentum_derivative, e):
+    if os.path.isfile(gen_filename(g, rprime, momentum_derivative)):
+        set_expansion(g, rprime, momentum_derivative,
+                      numcalc.NumEpsExpansion.unite(get_expansion(g, rprime, momentum_derivative), e))
+    else:
+        set_expansion(g, rprime, momentum_derivative, e)
+
+
+def calculate_diagram(label, theory, max_eps, zero_momenta=True, verbose=1, store=True):
+    g = graphine.Graph.fromStr(label)
+    if verbose > 0:
+        print "Graph: " + str(g)
+
+    rvl = reduced_vl.ReducedVacuumLoop.fromGraphineGraph(g, zero_momenta=zero_momenta)
+    if verbose > 1:
+        print "Reduced v-loop: " + str(rvl)
+
+    fi = feynman.FeynmanIntegrand.fromRVL(rvl, theory)
+    if verbose > 0:
+        print "Feynman integrand:\n" + str(fi)
+
+    ns = sector_decomposition.sectors(rvl)
+    if verbose > 1:
+        print "SD Sectors: " + str(len(ns))
+
+    ss = sector_decomposition.reduce_symmetrical_sectors(ns, g)
+    if verbose > 0:
+        print "Non-symmetric SD Sectors: " + str(len(ss))
+    if verbose > 2:
+        for s in ss:
+            print str(s[0]) + " * " + str(s[1])
+
+    sector_expressions = map(lambda x: (x, fi.sector_decomposition(x)), ss)
+    if verbose > 1:
+        print "Decomposed integrand:"
+        for s in sector_expressions:
+            print "{" + str(s[0][0]) + " * " + str(s[0][1]) + "}->\n" + str(s[1])
+
+    expansions = map(lambda x: (x[0], expansion.extract_poles(x[1]._integrand, max_eps)), sector_expressions)
+    if verbose > 2:
+        print "Analytical continuations:"
+        for s in expansions:
+            print "{" + str(s[0][0]) + " * " + str(s[0][1]) + "}->"
+            for k in sorted(s[1].keys()):
+                print "eps^{" + str(k) + "}: " + str(s[1][k])
+
+    num_expansion = numcalc.NumEpsExpansion()
+    i = 0
+    for e in expansions:
+        if verbose > 0:
+            i += 1
+            print '\rcalculating ' + str(i) + ' sector of ' + str(len(expansions)) + '...',
+        num_expansion += numcalc.cuba_calculate(e[1])
+        if verbose > 0:
+            print ' done!',
+    if verbose > 0:
+        print "\rResult of numerical integration:\n" + str(num_expansion)
+
+    gamma_coef = numcalc.NumEpsExpansion.gammaCoefficient(rvl,
+                                                          theory=theory,
+                                                          max_index=max_eps)
+    result = num_expansion * gamma_coef
+    if verbose > 0:
+        print "Result multiplied by Gammas:\n" + str(result)
+
+    if store:
+        update_expansion(g, False, momentum_derivative=not zero_momenta, e=result)
+
+    return result
