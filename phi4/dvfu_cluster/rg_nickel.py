@@ -145,8 +145,10 @@ class Series():
     def __str__(self):
         res = ''
         for g,c in self.gSeries.items():
-            if c != 0 and g <= self.n:
-                res += "(%s) * %s**%s + "%(str(c),self.name,str(g))
+            if c != 0 and g <= self.n and isinstance(c,(Variable,AffineScalarFunc)):
+                res += "(%s ± %s) * %s**%s + "%(str(c.n),str(c.s),self.name,str(g))
+            elif c != 0 and g <= self.n and isinstance(c,(int,float)):
+                res += "%s * %s**%s + "%(str(c),self.name,str(g))
         return res[:-2]
     def __len__(self):
         return len(self.gSeries)
@@ -217,27 +219,27 @@ beta1 = (-1/ (1 + g * Zg.diff()/Zg) +1)
 beta1.gSeries.pop(1) ## equal to 'beta1 - g'
 #print "beta1 =",beta1
 
-gStar = Series({0:ufloat(0.,0.)},n=1,name='tau')
+gStar = Series({0:ufloat(0.,0.)},n=1,name='τ')
 for i in range(1, nLoops):
     d = {1:ufloat(1.,0.)}
     d.update( dict(map(lambda x: (x,ufloat(0,0.)),range(2,i+1))))
-    tau = Series(d,n = i, name='tau')
+    tau = Series(d,n = i, name='τ')
     #gStar = (tau - (beta1 - g).series(g, 0, i + 1).removeO().subs(g, gStar)).series(tau, 0, i + 1).removeO()
     tmp = Series((beta1).gSeries,n = i)
     #print "tau =",tau,"; tmp =",tmp
     #print "tmp.subs(gStar) =",tmp.subs(gStar)
     #print "(tau - tmp.subs(gStar)) =", tau - tmp.subs(gStar)
-    gStar = Series((tau - tmp.subs(gStar)).__repr__(),n = i+1, name='tau')#.series(tau, 0, i + 1).removeO()
+    gStar = Series((tau - tmp.subs(gStar)).__repr__(),n = i+1, name='τ')#.series(tau, 0, i + 1).removeO()
 
-print "gStar = ", gStar
-
+print "g* = ", gStar
 
 #gStarS = tau + 0.716173621 * tau**2 + 0.095042867 * tau**3 + 0.086080396 * tau ** 4 - 0.204139 * tau ** 5
-gStarS = Series({1:1,2:0.716173621,3:0.095042867,4:0.086080396,5:- 0.204139},n=5,name='tau')
-print "gStarS = ", gStarS
+gStarS = Series({1:1,2:0.716173621,3:0.095042867,4:0.086080396,5:-0.204139},n=6,name='τ')
+print "g*_S = ", gStarS
 
 #etaStar = eta.subs(g, gStar).series(tau, 0, nLoops + 1)
 etaStar = eta.subs(gStar)
+
 print "etaStar = ", etaStar
 
 #etaStarGS = eta.subs(g, gStarS).series(tau, 0, nLoops + 1)

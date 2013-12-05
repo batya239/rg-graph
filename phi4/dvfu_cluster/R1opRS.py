@@ -178,7 +178,10 @@ for index in results:
         continue
     resultsKR1[str(graph)] = KR1(graph, results, resultsKR1)
     res = resultsKR1[str(graph)]
-    err = abs(float(res.s)/float(res.n))
+    try:
+        err = abs(float(res.s)/float(res.n))
+    except ZeroDivisionError:
+        err = 0
     print '"%s": \t%s, \t# %s, \t%s \t err_rel: %.3e' % (index, (res.n,res.s), results[str(graph)[:-2]][0][0], symmetryCoefficient(graph), err)
 #    print
 print "}"
