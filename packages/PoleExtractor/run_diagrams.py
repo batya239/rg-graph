@@ -18,12 +18,20 @@ for l in labels2tails:
                          theory=3,
                          max_eps=5,
                          zero_momenta=False,
-                         verbose=2)
+                         verbose=5,
+                         force_update=True)
+    dc.calculate_diagram(label=l,
+                         theory=3,
+                         max_eps=5,
+                         zero_momenta=True,
+                         verbose=5,
+                         force_update=True)
     print
-
+"""
 for l in labels3tails:
     dc.calculate_diagram(label=l,
                          theory=3,
                          max_eps=5,
                          zero_momenta=True,
                          verbose=2)
+"""

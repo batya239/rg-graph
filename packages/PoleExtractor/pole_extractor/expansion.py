@@ -183,7 +183,7 @@ def extract_poles(polypr, toIndex):
         else:
             l = sum(map(lambda x: len(x), expansion.values()))
 
-    result = dict((k, []) for k in utils.unique(expansion.keys() + range(toIndex + 1)))
+    result = dict((k, []) for k in list(set(expansion.keys() + range(toIndex + 1))))
     for k in expansion.keys():
         for polypr in expansion[k]:
             exp = polypr.epsExpansion(toIndex - k)

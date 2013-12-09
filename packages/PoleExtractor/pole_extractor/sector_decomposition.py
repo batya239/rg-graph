@@ -41,7 +41,7 @@ def sectors(rvl):
 
         # removing sectors that are unnecessary after removing ones with conservation laws
         for sector in result:
-            for i in range(2, len(sector)):
+            for i in range(1, len(sector)):
                 main_vars = map(lambda x: x[0], sector[:i])
                 if not len(set(law) - set(main_vars)) == 1:
                     continue

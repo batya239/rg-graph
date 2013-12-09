@@ -6,13 +6,49 @@ import os
 import graphine
 from graphine import filters
 import graph_state
-import polynomial
 
 import reduced_vl
 import numcalc
 import feynman
 import sector_decomposition
 import expansion
+
+
+def gen_filename(g, rprime, momentum_derivative):
+    wd = os.path.expanduser("~") + '/.pole_extractor/'
+    if rprime:
+        wd += 'RPRIME/'
+    else:
+        wd += 'BASE/'
+    fn = wd
+    if isinstance(g, graphine.Graph):
+        fn += str(g)[:-2]
+    elif isinstance(g, str):
+        fn += g
+    if momentum_derivative:
+        fn += 'p2'
+    return fn
+
+
+def get_expansion(g, rprime, momentum_derivative):
+    f = open(gen_filename(g, rprime, momentum_derivative), 'rb')
+    result = pickle.load(f)
+    f.close()
+    return result
+
+
+def set_expansion(g, rprime, momentum_derivative, e):
+    f = open(gen_filename(g, rprime, momentum_derivative), 'wb')
+    pickle.dump(e, f)
+    f.close()
+
+
+def update_expansion(g, rprime, momentum_derivative, e, force_update=False):
+    if (not os.path.isfile(gen_filename(g, rprime, momentum_derivative))) or force_update:
+        set_expansion(g, rprime, momentum_derivative, e)
+    else:
+        set_expansion(g, rprime, momentum_derivative,
+                      numcalc.NumEpsExpansion.unite(get_expansion(g, rprime, momentum_derivative), e))
 
 
 class RPrimeTermFactor:
@@ -57,8 +93,16 @@ class RPrimeTermFactor:
         g = graphine.Graph.fromStr(s)
         return RPrimeTermFactor(g, k_operation, d)
 
+    def get_expansion(self):
+        assert(os.path.isfile(gen_filename(self._diagram, rprime=True, momentum_derivative=self._derivative)))
+        e = get_expansion(self._diagram, rprime=True, momentum_derivative=self._derivative)
+        if self._k:
+            return e.cut(-1)
+        else:
+            return e
 
-def r_prime(label, PHI_EXPONENT):
+
+def r_prime_counterterms(label, PHI_EXPONENT, verbose=1, force_update=False):
     """
     """
 
@@ -130,51 +174,50 @@ def r_prime(label, PHI_EXPONENT):
             counterterms = sum(map(lambda x: exclude_sg(x, subgraph), counterterms), [])
         for ctm in counterterms:
             ctm[1][-1] = update_tails(ctm[1][-1], PHI_EXPONENT)
-            result.append((ctm[0], map(lambda x: str(x), ctm[1][:-1]) + [str(RPrimeTermFactor(ctm[1][-1]))]))
+            result.append((ctm[0], ctm[1][:-1] + [RPrimeTermFactor(ctm[1][-1])]))
             if 2 == ctm[1][-1].externalEdgesCount():
-                result.append((ctm[0], map(lambda x: str(x), ctm[1][:-1]) +
-                              [str(RPrimeTermFactor(ctm[1][-1], derivative=True)), 'p^2']))
-    return polynomial.poly(result)
+                result.append((ctm[0], ctm[1][:-1] + [RPrimeTermFactor(ctm[1][-1], derivative=True), 'p^2']))
+    if verbose > 0:
+        print 'Diagram: ' + str(g) + '\nCounterterms: ' + str(result)
 
+    if 0 == len(result):
+        update_expansion(g,
+                         rprime=True,
+                         momentum_derivative=False,
+                         e=get_expansion(g, rprime=False, momentum_derivative=False))
+        return get_expansion(g, rprime=False, momentum_derivative=False)
 
-def gen_filename(g, rprime, momentum_derivative):
-    wd = os.path.expanduser("~") + '/.pole_extractor/'
-    if rprime:
-        wd += 'RPRIME/'
+    c_part = filter(lambda x: 'p^2' not in x[1], result)
+    exp_poly_c = map(lambda x: (x[0], map(lambda y: y.get_expansion(), x[1])), c_part)
+
+    exp_c = reduce(lambda a, b: a + b, map(lambda x: reduce(lambda y, z: y * z, x[1]) * float(x[0]), exp_poly_c))
+    if verbose > 1:
+        print 'Tau-part: ' + str(c_part)
+    if 2 == g.externalEdgesCount():
+        p2_part = filter(lambda y: y is not None, map(lambda x: (x[0], x[1][:-1]) if 'p^2' in x[1] else None, result))
+        exp_poly_p2 = map(lambda x: (x[0], map(lambda y: y.get_expansion(), x[1])), p2_part)
+        exp_p2 = reduce(lambda a, b: a + b, map(lambda x: reduce(lambda y, z: y * z, x[1]) * float(x[0]), exp_poly_p2))
+
+        if verbose > 1:
+            print 'p^2-part: ' + str(p2_part)
+
+        rpr_exp = (get_expansion(g, rprime=False, momentum_derivative=False) + exp_c,
+                   get_expansion(g, rprime=False, momentum_derivative=True) + exp_p2)
+        if verbose > 0:
+            print 'Tau-part: ' + str(rpr_exp[0])
+            print 'p^2-part: ' + str(rpr_exp[1])
+        update_expansion(g, rprime=True, momentum_derivative=False, e=rpr_exp[0], force_update=force_update)
+        update_expansion(g, rprime=True, momentum_derivative=True, e=rpr_exp[1], force_update=force_update)
+        return rpr_exp
     else:
-        wd += 'BASE/'
-    fn = wd
-    if isinstance(g, graphine.Graph):
-        fn += str(g)[:-2]
-    elif isinstance(g, str):
-        fn += g
-    if momentum_derivative:
-        fn += 'p2'
-    return fn
+        rpr_exp = get_expansion(g, rprime=False, momentum_derivative=False) + exp_c
+        if verbose > 0:
+            print 'Tau-part: ' + str(rpr_exp)
+        update_expansion(g, rprime=True, momentum_derivative=False, e=rpr_exp, force_update=force_update)
+        return rpr_exp
 
 
-def get_expansion(g, rprime, momentum_derivative):
-    f = open(gen_filename(g, rprime, momentum_derivative), 'rb')
-    result = pickle.load(f)
-    f.close()
-    return result
-
-
-def set_expansion(g, rprime, momentum_derivative, e):
-    f = open(gen_filename(g, rprime, momentum_derivative), 'wb')
-    pickle.dump(e, f)
-    f.close()
-
-
-def update_expansion(g, rprime, momentum_derivative, e):
-    if os.path.isfile(gen_filename(g, rprime, momentum_derivative)):
-        set_expansion(g, rprime, momentum_derivative,
-                      numcalc.NumEpsExpansion.unite(get_expansion(g, rprime, momentum_derivative), e))
-    else:
-        set_expansion(g, rprime, momentum_derivative, e)
-
-
-def calculate_diagram(label, theory, max_eps, zero_momenta=True, verbose=1, store=True):
+def calculate_diagram(label, theory, max_eps, zero_momenta=True, verbose=1, force_update=False):
     g = graphine.Graph.fromStr(label)
     if verbose > 0:
         print "Graph: " + str(g)
@@ -190,6 +233,9 @@ def calculate_diagram(label, theory, max_eps, zero_momenta=True, verbose=1, stor
     ns = sector_decomposition.sectors(rvl)
     if verbose > 1:
         print "SD Sectors: " + str(len(ns))
+    if verbose > 3:
+        for s in ns:
+            print str(s[1])
 
     ss = sector_decomposition.reduce_symmetrical_sectors(ns, g)
     if verbose > 0:
@@ -228,10 +274,10 @@ def calculate_diagram(label, theory, max_eps, zero_momenta=True, verbose=1, stor
                                                           theory=theory,
                                                           max_index=max_eps)
     result = num_expansion * gamma_coef
+
     if verbose > 0:
         print "Result multiplied by Gammas:\n" + str(result)
 
-    if store:
-        update_expansion(g, False, momentum_derivative=not zero_momenta, e=result)
+    update_expansion(g, False, momentum_derivative=not zero_momenta, e=result, force_update=force_update)
 
     return result

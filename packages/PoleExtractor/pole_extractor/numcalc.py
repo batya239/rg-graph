@@ -49,15 +49,21 @@ class NumEpsExpansion():
         else:
             deg = -2
         g11 = sum(rvl.edges_weights()) + deg * rvl.loops()
+        if not rvl.zero_momenta():
+            g11 += 1
         g12 = rvl.loops()
         d = rvl.loops()
         g21 = -deg
         g22 = -1
-
+        print '### ||' + str(g11) + ' + ' + str(g12) + '*eps||' \
+              + str(g21) + ' + ' + str(g22) + '*eps||^(' + str(d) + ')'
         g_coef_1 = get_gamma(g11, g12, max_index)
         g_coef_2 = get_gamma(g21, g22, max_index)
         for _ in itertools.repeat(None, d - 1):
             g_coef_2 *= get_gamma(g21, g22, max_index)
+
+        if not rvl.zero_momenta():
+            g_coef_1 *= -1.0
         return g_coef_2 * g_coef_1
 
     @staticmethod
@@ -100,8 +106,12 @@ class NumEpsExpansion():
             res = dict()
             for k in self.keys():
                 res[k] = (self[k][0] * other, self[k][1] * abs(other))
+        elif isinstance(other, int):
+            res = dict()
+            for k in self.keys():
+                res[k] = (self[k][0] * float(other), self[k][1] * abs(float(other)))
         else:
-            raise AttributeError('Can only multiply by float or other expansion')
+            raise AttributeError('Can only multiply by a number or other expansion')
 
         return NumEpsExpansion(res)
 
@@ -142,6 +152,9 @@ class NumEpsExpansion():
 
     def __repr__(self):
         return str(self)
+
+    def __eq__(self, other):
+        return str(self) == str(other)
 
 
 def get_gamma(a, b, max_index):
