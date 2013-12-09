@@ -8,37 +8,49 @@ import unittest
 import reductor
 import graphine
 import sector
+import swiginac
 from rggraphenv import symbolic_functions
 
 
 class ReductionTest(unittest.TestCase):
-    #def test_WAT1(self):
-    #    storage.initStorage(theory.PHI4, symbolic_functions.to_internal_code, graphStorageUseFunctions=True)
-    #    reductor.initialize()
-    #    print reductor.calculate(graphine.Graph.fromStr("e12-23-34-4-e-", initEdgesColor=True))
-    #    storage.closeStorage(revert=True)
-
     def setUp(self):
         reductor.initialize(reductor.THREE_LOOP_REDUCTOR, reductor.TWO_LOOP_REDUCTOR)
 
-    #def test_tbubble(self):
-    #    print reductor.calculate(graphine.Graph.fromStr("e12-23-3-e-::['(0, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(0, 0)']"))
-    #
-    #def test_E12_23_34_4_E_(self):
-    #    print symbolic_functions.series(reductor.calculate(graphine.Graph.fromStr("e12-23-34-4-e-", initEdgesColor=True)), symbolic_functions.e, 0, 5, remove_order=True).evalf()
+    def test_tbubble(self):
+        self.do_test("e12-23-3-e-::['(0, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(0, 0)']",
+                     "7.2123414189575657156-(4.6837737345148877438)*e+(24.069147509221049367)*e**2-(21.549990225248066582)*e**3")
 
-    #def test_E12_34_35_4_5_E_(self):
-    #    calculated = reductor.calculate(graphine.Graph.fromStr("e12-34-35-4-5-e-", initEdgesColor=True))
-    #    print symbolic_functions.series(calculated, symbolic_functions.e, 0, 5, remove_order=True).evalf()
+    def test_tbubble_with_weight1(self):
+        self.do_test("e12-23-3-e-::['(0, 0)', '(1, 0)', '(1, 0)', '(2, 0)', '(1, 0)', '(1, 0)', '(0, 0)']",
+                     "-3.0-(3.0)*e**(-1)-(3.311654539582639764)*e**2-(7.6217394743351143255)*e**3+e**(-2)-(0.6370242568726971373)*e")
 
-    def test_E12_23_34_4_E_(self):
-        calculated = reductor.calculate(graphine.Graph.fromStr("e12-23-34-4-e-", initEdgesColor=True))
-        print symbolic_functions.series(calculated.subs(sector.d == 4 - 2*symbolic_functions.e), symbolic_functions.e, 0, 5, remove_order=True).evalf()
+    def test_tbubble_with_weight2(self):
+        self.do_test("e12-23-3-e-::['(0, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(2, 0)', '(1, 0)', '(0, 0)']",
+                     "-3.0-(3.0)*e**(-1)-(3.311654539582639764)*e**2-(7.6217394743351143255)*e**3+e**(-2)-(0.6370242568726971373)*e")
 
-    #def do_test(self, graph_as_string, expected_value_string):
-    #    g = graphine.Graph.fromStr(graph_as_string)
-    #    reductor.initialize()
-    #    print reductor.calculate(graphine.Graph.fromStr("e12-23-3-e-", initEdgesColor=True))
+    def test_looped_tbubble(self):
+        self.do_test("e112-23-3-e-::['(0, 0)', '(1, 0)', '(1, 0)', '(1, 0)', '(2, 0)', '(1, 0)', '(1, 0)', '(0, 0)']",
+                     "-(17.375)*e**(-1)+(4.25)*e**(-2)-(0.5)*e**(-3)")
+
+    def test_tbubble_with_numerator(self):
+        pass
+
+    def do_test(self, graph_as_string, expected_value_string):
+        g = graphine.Graph.fromStr(graph_as_string)
+        unsubstituted_actual = reductor.calculate(g)
+        if not expected_value_string:
+            self.assertIsNone(unsubstituted_actual)
+            return
+        expected = symbolic_functions.evaluate(expected_value_string)
+        actual = unsubstituted_actual.evaluate(substitute_sectors=True,
+                                               _d=4 - 2 * symbolic_functions.e,
+                                               series_n=4,
+                                               remove_o=True)
+        sub = (expected - actual).evalf().simplify_indexed()
+        self.assertTrue(expected == actual.simplify_indexed() or swiginac.abs(
+            (sub * symbolic_functions.e ** 5).subs(symbolic_functions.e == 1)).evalf().compare(10E-6) < 0,
+                        "\nactual = " + str(actual.simplify_indexed().evalf()) +
+                        "\nexpected = " + str(expected) + "\nsub = " + str(sub.evalf()))
 
 
 if __name__ == "__main__":

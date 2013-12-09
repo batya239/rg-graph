@@ -7,28 +7,22 @@ __author__ = 'dimas'
 import itertools
 
 
-def find_topology(target_graph, topologies):
-    """
-    finds correct topology for target_graph
-
-    topology - Graph, tuple
-    """
-    target_graph_name = target_graph.getPresentableStr()
+def find_topology_for_graph(graph, topologies, result_converter):
+    target_graph_name = graph.getPresentableStr()
     for topology in topologies:
-        model_graph = topologies[0]
-        internal_edges = model_graph.internalEdges()
-        n = len(internal_edges) - len(target_graph.internalEdges())
+        internal_edges = topology.internalEdges()
+        n = len(internal_edges) - len(graph.internalEdges())
         if n < 0:
             continue
         elif n == 0:
-            if topology == target_graph_name:
-                yield topologies[topology][0], model_graph
-
+            if topology.getPresentableStr() == target_graph_name:
+                return result_converter(topology, graph)
         for lines in itertools.combinations(internal_edges, n):
-            shrunk = model_graph.batchShrinkToPoint([[x] for x in lines])
+            shrunk = topology.batchShrinkToPoint([[x] for x in lines])
             gs_as_str = shrunk.getPresentableStr()
             if target_graph_name == gs_as_str:
-                yield topologies[topology][0], topologies[1] + tuple(map(lambda e: e.colors[0], lines))
+                return result_converter(shrunk, graph)
+    return None
 
 
 def choose_max(sectors):

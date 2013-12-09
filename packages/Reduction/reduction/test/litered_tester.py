@@ -28,6 +28,7 @@ class BaseTestCase(unittest.TestCase):
 
 
 class LiteRedTester(object):
+    DIMENSIONS = (5.3, 11.3, 15.3)
 
     def __init__(self, tested_reductor, test_case):
         self._dir = tempfile.mkdtemp(prefix="litered_tezZ_z_Zzter")
@@ -40,20 +41,18 @@ class LiteRedTester(object):
     def execute_math(self, sector):
         code = _LITERED_TEMPLATE.format(sector.as_litered_representation(self._env_name),
                                         path.join(path.dirname(path.realpath(__file__)), path.pardir, self._env_path, self._env_name),
-                                        self._dir)
-        executable = path.join(self._dir, "test.m")
-        #with open(executable, "w") as f:
-        #    f.write(code)
-        #call("cat %s | math" % executable)
+                                        self._dir, LiteRedTester.DIMENSIONS)
         proc = subprocess.Popen("math", shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         proc.stdin.write(code)
         proc.stdin.close()
         proc.stdout.read()
         result = dict()
-        for i in (5.9, 9.9, 14.9):
+        print code
+        for i in LiteRedTester.DIMENSIONS:
             result_file_name = path.join(self._dir, "test.res%s" % i)
             with open(result_file_name, 'r') as f:
                 raw_result = f.read()
+                print raw_result
                 raw_result = raw_result.replace(".,", ",").replace(". ", "").replace(".*", "*").replace(".]", "]")
                 r = eval(jrules_parser.convert_rule(raw_result, self._env_name))
                 result[i] = r
@@ -92,7 +91,7 @@ Declare[{{k1, k2, k3, p}}, Vector];
 sp[p, p] = 1;
 <<"{1}";
 expr = IBPReduce[{0}];
-expr6 = N[expr/.d->5.9]>>{2}/test.res5.9
-expr10 = N[expr/.d->9.9]>>{2}/test.res9.9
-expr15 = N[expr/.d->14.9]>>{2}/test.res14.9
+expr6 = N[expr/.d->{3}]>>{2}/test.res{3}
+expr10 = N[expr/.d->{4}]>>{2}/test.res{4}
+expr15 = N[expr/.d->{5}]>>{2}/test.res{5}
 """

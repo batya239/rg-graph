@@ -5,6 +5,7 @@ __author__ = ['mkompan', 'dima']
 
 import re
 import sector
+import scalar_product
 
 _SECTOR_REGEXP = re.compile("^\[(.*)\] /; (.*) -> (.*)$")
 _SECTOR_CONDITION_REGEXP = re.compile(".*n(.+)_\)\?(.+)")
@@ -13,21 +14,33 @@ _JS_REGEXP = re.compile("(js[^\]]+\])")
 _SECTOR_SECTOR_REGEXP = re.compile("(Sector[^\)]+\))")
 _PROPAGATORS_REGEXP = re.compile("Ds\[[^\{]+\{([^\}]+)\}")
 _MIS_REGEXP = re.compile("MIs[^\{]+\{([^\}]+)\}")
-_NUMERATORS_REGEXP = re.compile("Toj\[.*\{[^\}]+\}")
+_NUMERATORS_REGEXP = re.compile("Toj[^\{]+\{([^\}]+)\}")
 _DEBUG = False
 
 
-def _read_numerators_reducing_rules(file_path, j_suffix):
+def parse_scalar_products_reducing_rules(file_path, j_suffix):
     with open(file_path, 'r') as f:
         content = "".join(f.readlines())
         content = content.replace("\n", "")
-        sectors = set()
-        for raw_sector in _NUMERATORS_REGEXP.findall(content)[0].split("],"):
-            raw_sector = raw_sector.strip()
-            raw_sector = raw_sector.replace("j[%s," % j_suffix, "sector.Sector(")
-            raw_sector = raw_sector[:-1] if raw_sector.endswith("]") else raw_sector
-            sectors.add(eval(raw_sector + ")"))
-        return sectors
+        rules = dict()
+        raw_extracted = _NUMERATORS_REGEXP.findall(content)[0]
+        raw_extracted = raw_extracted.replace(" ", "")[2:]
+        for raw_numerator in raw_extracted.split(",sp"):
+            raw_numerator = raw_numerator.strip()
+            raw_numerator = raw_numerator.replace("j[%s," % j_suffix, "sector.Sector(")
+            raw_numerator = raw_numerator.replace("]", ")")
+            raw_key, raw_rule = raw_numerator.split("->")
+            raw_key = raw_key[1:-1]
+            raw_kp = raw_key.split(",")
+            kp = list()
+            for p in raw_kp:
+                if p.startswith("k"):
+                    kp.append(int(p[1:]))
+                else:
+                    kp.append(0)
+            key = scalar_product.ScalarProductRuleKey(*kp)
+            rules[key] = eval(raw_rule)
+        return rules
 
 
 def _read_raw_zero_sectors(zero_sectors_string, j_suffix):

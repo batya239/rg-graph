@@ -7,6 +7,7 @@ import rggraphutil
 import itertools
 import swiginac
 import copy
+import reduction_util
 from rggraphenv import symbolic_functions, cas_variable_resolver
 
 
@@ -95,25 +96,12 @@ class Sector(object):
 
     @staticmethod
     def create_from_topologies_and_graph(graph, topologies, all_propagators_count):
-        target_graph_name = graph.getPresentableStr()
-        for topology in topologies:
-            internal_edges = topology.internalEdges()
-            n = len(internal_edges) - len(graph.internalEdges())
-            if n < 0:
-                continue
-            elif n == 0:
-                if topology.getPresentableStr() == target_graph_name:
-                    return Sector._create_from_graph(topology, graph, all_propagators_count)
-
-            for lines in itertools.combinations(internal_edges, n):
-                shrunk = topology.batchShrinkToPoint([[x] for x in lines])
-                gs_as_str = shrunk.getPresentableStr()
-                if target_graph_name == gs_as_str:
-                    return Sector._create_from_graph(shrunk, graph, all_propagators_count)
-        return None
+        return reduction_util.find_topology_for_graph(graph,
+                                                      topologies,
+                                                      lambda _s, _g: Sector.create_from_shrunk_topology(_s, _g, all_propagators_count))
 
     @staticmethod
-    def _create_from_graph(topology_graph, weights_graph, all_propagators_count):
+    def create_from_shrunk_topology(topology_graph, weights_graph, all_propagators_count):
         id_to_weight = dict()
         for e1, e2 in itertools.izip(topology_graph.allEdges(nickel_ordering=True),
                                      weights_graph.allEdges(nickel_ordering=True)):

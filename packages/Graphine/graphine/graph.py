@@ -298,7 +298,7 @@ class Graph(object):
 
     def getPresentableStr(self):
         asStr = str(self)
-        return asStr[:asStr.index("::")]
+        return asStr.split(":")[0]
 
     def removeTadpoles(self):
         no_tadpoles = filter(lambda e: e.nodes[0] != e.nodes[1], self.allEdges())
