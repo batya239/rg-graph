@@ -32,13 +32,13 @@ def tau_differentiate(g):
                 result += tuple([(new_num, x[1]), ])
         return result
 
-g = graphine.Graph.fromStr('112-3-33--')
-print tau_differentiate(g)
-print tau_differentiate(tau_differentiate(g))
-print tau_differentiate(tau_differentiate(tau_differentiate(g)))
-print
-g = graphine.Graph.fromStr('123-23-3--')
-print tau_differentiate(g)
-print tau_differentiate(tau_differentiate(g))
-print tau_differentiate(tau_differentiate(tau_differentiate(g)))
-print
+#g = graphine.Graph.fromStr('112-3-33--')
+#print tau_differentiate(g)
+#print tau_differentiate(tau_differentiate(g))
+#print tau_differentiate(tau_differentiate(tau_differentiate(g)))
+#print
+#g = graphine.Graph.fromStr('123-23-3--')
+#print tau_differentiate(g)
+#print tau_differentiate(tau_differentiate(g))
+#print tau_differentiate(tau_differentiate(tau_differentiate(g)))
+#print

@@ -3,7 +3,6 @@ __author__ = 'gleb'
 import itertools
 import polynomial
 import math
-import utils
 
 
 def ac_principal_part(polyprod, pole_var, pole_degree_a, pole_degree_b):
