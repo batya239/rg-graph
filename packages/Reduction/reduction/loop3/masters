@@ -1,6 +1,0 @@
-(0, 0, 1, 0, 1, 1, 0, 1, 1);tgamma(3-3*e)**(-1)*tgamma(2-2*e)**2*tgamma(e)**(-2)*tgamma(1-e)**(-1)*e**(-3)*tgamma(-1+2*e)
-(1, 1, 1, 0, 0, 0, 1, 1, 1);e**(-3)
-(0, 0, 0, 0, 0, 1, 1, 1, 1);tgamma(2-2*e)**3*tgamma(-2+3*e)*tgamma(e)**(-3)*tgamma(1-e)**(-2)*tgamma(4-4*e)**(-1)*e**(-3)
-(1, 1, 0, 0, 0, 1, 1, 1, 1);-swiginac.numeric(7)/3-swiginac.numeric(1)/810*e**4*(2652210+2034*Pi**4*zeta(3)-2151*Pi**4-432540*zeta(5)-260*Pi**6+61020*zeta(3)**2-1587600*zeta(7)-660420*zeta(3))+swiginac.numeric(1)/3*e**(-2)+swiginac.numeric(1)/3*e**(-3)+swiginac.numeric(1)/90*(-12090+7*Pi**4+11340*zeta(5)+2580*zeta(3))*e**2+swiginac.numeric(1)/90*(-2010+7*Pi**4+420*zeta(3))*e+swiginac.numeric(1)/810*(-559170+387*Pi**4+102060*zeta(5)+260*Pi**6-61020*zeta(3)**2+129060*zeta(3))*e**3+swiginac.numeric(14)/3*zeta(3)+swiginac.numeric(1)/3*e**(-1)+Order(e**5)
-(0, 0, 0, 1, 1, 1, 1, 0, 1);tgamma(2-2*e)*tgamma(2-3*e)*tgamma(2*e)**(-1)*tgamma(3-4*e)**(-1)*tgamma(e)**(-1)*tgamma(1-e)**(-1)*e**(-3)*tgamma(-1+3*e)
-(1, 1, 0, 1, 1, 1, 1, 1, 1);-swiginac.numeric(1)/94500*(856800*Pi**4*zeta(3)+231336000*zeta(5)*zeta(3)-20000*Pi**6-25704000*zeta(3)**2+170100000*zeta(7)+171460800*Z_5_3-59633*Pi**8)*e**3+20*zeta(5)+swiginac.numeric(2)/945*e**2*(1071*Pi**4*zeta(3)+37800*zeta(5)-100*Pi**6-128520*zeta(3)**2+212625*zeta(7))-swiginac.numeric(2)/189*(7560*zeta(5)-5*Pi**6-6426*zeta(3)**2)*e+Order(e**4)
