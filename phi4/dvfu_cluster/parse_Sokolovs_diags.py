@@ -3,7 +3,7 @@
 ## каждой диаграмме сопоставляем номенклатуру Никеля
 
 from xlrd import open_workbook
-import math
+import sympy
 import graphine, graph_state
 
 def symmetryCoefficient(nickel):
@@ -15,10 +15,10 @@ def symmetryCoefficient(nickel):
             unique_edges[idx] += 1
         else:
             unique_edges[idx] = 1
-    C = math.factorial(len(graph.edges(graph.externalVertex))) / len(graph.toGraphState().sortings)
+    C = sympy.factorial(len(graph.edges(graph.externalVertex))) / len(graph.toGraphState().sortings)
 
     for idxE in unique_edges:
-        C = C / math.factorial(unique_edges[idxE])
+        C = C / sympy.factorial(unique_edges[idxE])
     return C
 
 
@@ -38,14 +38,21 @@ f_mkompan = open("phi4_d2_s2-5loop-e4-100M-6loop-e2-1M.py")
 mkompan = eval(f_mkompan.read())
 f_mkompan.close()
 
-count = 0
+matched = []
 for a in diags:
+    n = int(a[3][-1:])+1
     for d,c in mkompan.items():
-        if abs(c[0][0]+a[0]) < c[1][0] and abs(symmetryCoefficient(d) - a[2])< 0.01:
-            print d
+        if abs(c[0][0]-((-1)**n)*a[0]) < 1e-4 and abs(symmetryCoefficient(d) - a[2])< 0.01:
+            matched += [d]
+            #print d
+            #print "mkompan:",[-c[0][0],c[1][0]]
+            #print "Sokolov:",a
+            #print
+            #count +=1
+        if a[3] == '5-7-2' and d == 'e112-23-e4-444--':
             print "mkompan:",[-c[0][0],c[1][0]]
             print "Sokolov:",a
-            print
-            count +=1
+            print ((-1)**n)*a[0], c[0][0],n,symmetryCoefficient(d)
 
-print "Matches:",count
+#print matched
+print "Matches:",len(matched)
