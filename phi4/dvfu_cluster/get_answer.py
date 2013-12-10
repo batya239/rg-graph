@@ -10,10 +10,10 @@ try:
 except IndexError:
     print "Method does not set, used 'cuhre'"
     method = 'cuhre'
-#dumpFile = 'res_'+method+'.txt'
-dumpFile = 'res_5loops_'+method+'.txt'
-#inPath = os.path.expanduser('~')+'/work/rg-graph/phi_4_d2_s2/feynmanSDdotSF_mpi'
-inPath = os.path.expanduser('~')+'/work/rg-graph/phi_4_d2_s2/archive_feynmanSDdotS_mpi'
+dumpFile = 'res_'+method+'.txt'
+#dumpFile = 'res_5loops_'+method+'.txt'
+inPath = os.path.expanduser('~')+'/work/rg-graph/phi_4_d2_s2/feynmanSDdotSF_mpi'
+#inPath = os.path.expanduser('~')+'/work/rg-graph/phi_4_d2_s2/archive_feynmanSDdotS_mpi'
 
 result = {}
 failed = 0

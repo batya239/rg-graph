@@ -31,6 +31,7 @@ for src in obj_src:
     Object(src)
 
     i = int(src.split("_func_")[1].split("_")[0])
+    obj =  src[:-1]+'o'
     #print "fileName = %s, i = %s"%(src,i)
     function = "f = func_t_%d(xx);" % i
     header   = os.path.join(localPath,src[:-1]+'h')
@@ -46,7 +47,7 @@ for src in obj_src:
     f.close()
     print "Compiling", cubaFile
     targetName = "cuba__%s.run" %zfill(i,len(str(num)))
-    env.Program(target = targetName, source = [cubaFile]+objs)
+    env.Program(target = targetName, source = [cubaFile]+[obj])
 
 ## Do nothing, just points out what to clean with '-c' option (see man scons)
 env.Clean("cleanObjs",objs)

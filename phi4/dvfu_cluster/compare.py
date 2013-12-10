@@ -39,8 +39,8 @@ except:
     print "Usage: ./compare.py <method>\n where \
     <method> is one of the following: \
     vegas, suave, divonne, cuhre\n"
-#f_mine = open("res_"+method+".txt")
-f_mine = open("res_5loops_"+method+".txt")
+f_mine = open("res_"+method+".txt")
+#f_mine = open("res_5loops_"+method+".txt")
 data1 = eval(f_mine.read())
 f_mine.close()
 
