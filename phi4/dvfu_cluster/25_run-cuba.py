@@ -6,8 +6,8 @@
 ## Параметры cuba:
 EpsRel = '1e-8'
 EpsAbs = '1e-12'
-MaxPoints = '10000000'
-Method  = 'vegas' ## one of: 'vegas', 'suave', 'divonne', 'cuhre'
+MaxPoints = '50000000'
+Method  = 'cuhre' ## one of: 'vegas', 'suave', 'divonne', 'cuhre'
 
 def method_num(method):
     if method   == 'vegas': return '0'
@@ -33,11 +33,12 @@ CUR_DIR = os.getcwd()
 print CUR_DIR
 
 #WORKDIR = os.path.expanduser('~')+'/work/rg-graph/phi_4_d2_s2/feynmanSDdotSF_mpi/'
-WORKDIR = os.path.expanduser('~')+'/work/rg-graph/phi_4_d2_s2/todo/'
+#WORKDIR = os.path.expanduser('~')+'/work/rg-graph/phi_4_d2_s2/todo/'
+WORKDIR = os.path.expanduser('~')+'/work/rg-graph/phi_4_d2_s2/archive_feynmanSDdotS_mpi/'
 
 os.chdir(WORKDIR)
 
-rc = Client(profile='test')
+rc = Client(profile='ssh')
 print rc.ids
 
 #dview = rc[:]
@@ -53,7 +54,10 @@ for d in diags:
     path = os.path.join(WORKDIR,d)
     cubaExecs = [ e for e in os.listdir(path) if '.run' in e ] 
     for e in cubaExecs:
-        execNum = e.split('.')[0].split('__')[1] ##  number of executable
+        try:
+            execNum = e.split('.')[0].split('__')[1] ##  number of executable
+        except IndexError:
+            execNum = '0'
         cmd = ' '.join((os.path.join(path,e), method_num(Method), MaxPoints, EpsRel, EpsAbs, \
                     '>', '_'.join((path+'/out', execNum, d, Method, \
                     MaxPoints.replace('0000000','0M'), \
