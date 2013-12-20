@@ -29,8 +29,12 @@ subgraphUVFilters = (filters.oneIrreducible
                      + filters.noTadpoles
                      #                     + filters.vertexIrreducible
                      + filters.isRelevant(phi4))
-
-fileName = sys.argv[1]
+try:
+    fileName = sys.argv[1]
+except IndexError:
+    print "Usage:\n$ python %s <fileName>\n where <fileName> = source file that contains diags\n \
+    in a dict {'diag1':[[res1],[err1]], 'diag2':[[res2],[err2]], ...}"%sys.argv[0]
+    exit(0)
 
 results = eval(open(fileName).read())
 
@@ -168,7 +172,7 @@ def symmetryCoefficient(graph):
     return C
 
 
-maxNLoops = 6
+maxNLoops = 5
 
 resultsKR1 = dict()
 print "{"

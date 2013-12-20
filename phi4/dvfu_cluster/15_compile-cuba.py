@@ -10,6 +10,7 @@ from IPython.parallel import Client
 
 CUR_DIR = os.getcwd()
 WORKDIR='/home/kirienko/work/rg-graph/phi_4_d2_s2/feynmanSDdotSF_mpi/'
+#WORKDIR='/home/kirienko/work/rg-graph/phi_4_d2_s2/archive_feynmanSDdotS_mpi/'
 
 def getnode():
     import platform
@@ -20,14 +21,14 @@ def compileCuba(dir):
     from platform import node
     wd = '/home/kirienko/work/rg-graph/phi_4_d2_s2/feynmanSDdotSF_mpi/'
     os.chdir(os.path.join(wd,dir))
-    cmd = 'scons -j 2 -f ../SConstruct > scons_%s_%s.log 2>&1'%(dir,node())
+    cmd = 'scons -j 2 -f /home/kirienko/rg-graph/phi4/dvfu_cluster/SConstruct > scons_%s_%s.log 2>&1'%(dir,node())
     os.system(cmd)
-    os.system("scons -f ../SConstruct -c cleanObjs")
+    os.system("scons -f /home/kirienko/rg-graph/phi4/dvfu_cluster/SConstruct -c cleanObjs")
     #return "%s scheduled at %s" %(dir,node())
 
 os.chdir(WORKDIR)
 
-rc = Client(profile='test')
+rc = Client(profile='ssh')
 print rc.ids
 
 lview = rc.load_balanced_view()

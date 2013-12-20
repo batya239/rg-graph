@@ -34,13 +34,12 @@ def nloops(string):
 ## Сравниваю результаты в 5 петлях: мои и Миши
 import sys
 try:
-    method = sys.argv[1]
+    inFile = sys.argv[1]
 except:
-    print "Usage: ./compare.py <method>\n where \
-    <method> is one of the following: \
-    vegas, suave, divonne, cuhre\n"
-f_mine = open("res_"+method+".txt")
-#f_mine = open("res_5loops_"+method+".txt")
+    print "Usage: ./compare.py <inFile>\n where \
+    <inFile> is file that contains a dict\
+    with results\n"
+f_mine = open(inFile)
 data1 = eval(f_mine.read())
 f_mine.close()
 
@@ -48,19 +47,22 @@ f_mkompan = open("phi4_d2_s2-5loop-e4-100M-6loop-e2-1M.py")
 data2 = eval(f_mkompan.read())
 f_mkompan.close()
 
+okay = 0
 print "\tdiagram \t delta \t\t\tmine result \t\t mkompan's result"
 for i in data1.keys():
-    #print abs(data1[i][0]/sym_coef(i)*sympy.gamma(nloops(i)) - data2[i][0][0])
     try:
-        delta = abs(data1[i][0][0]*sympy.gamma(nloops(i))/sym_coef(i) - data2[i][0][0])
-        err_mine = data1[i][1][0]*sympy.gamma(nloops(i))/sym_coef(i)
+        #delta = abs(data1[i][0][0]*sympy.gamma(nloops(i))/sym_coef(i) - data2[i][0][0])
+        #err_mine = data1[i][1][0]*sympy.gamma(nloops(i))/sym_coef(i)
+        delta = abs(data1[i][0][0] - data2[i][0][0])
+        err_mine = data1[i][1][0]
         err_mkompan = data2[i][1][0]
-        if delta > .99e-4:
-            print i,'\t',delta,'\t', err_mine,'\t', err_mkompan, '\t', err_mkompan/err_mine
+        #if delta < max(data1[i][1][0],data2[i][1][0]):#0.99e-6:
+        if delta < 0.99e-6:
+            #print i,':OK\t',delta,'\t', err_mine,'\t', err_mkompan, '\t', err_mkompan/err_mine
+            okay += 1
         else:
-            print i,':OK\t',delta,'\t', err_mine,'\t', err_mkompan, '\t', err_mkompan/err_mine
+            print i,'\t',delta,'\t', err_mine,'\t', err_mkompan, '\t', err_mkompan/err_mine
     except:
-        #pass
         print "Exception:",i
 
-print "Total number of diagrams:",len(data1.keys())
+print "OK / total number of diagrams: %d / %d"%(okay,len(data1.keys()))

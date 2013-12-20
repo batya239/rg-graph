@@ -8,7 +8,7 @@ CUR_DIR=`pwd`
 WORKDIR=$HOME'/work/rg-graph/phi_4_d2_s2/feynmanSDdotSF_mpi/'
 
 ## WARNING: применять с осторожностью:
-rm -rf $WORKDIR/e*
+#rm -rf $WORKDIR/e*
 
 cd '../graphs/'
 for diag in $(for i  in `ls phi4/e?-[23]*`; do awk '!/S/{print $1}' $i; done)

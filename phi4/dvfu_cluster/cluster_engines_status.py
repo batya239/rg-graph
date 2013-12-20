@@ -8,14 +8,20 @@
 # [kirienko@n1 ]$ for i in `cat mpd.test`; do ssh $i ipengine --ip=192.168.56.6 --profile=test &  done
 
 from IPython.parallel import Client
-from sys import exit
+from sys import argv, exit
 
 def getnode():
     import platform
     return platform.node()
 
 try:
-    rc = Client(profile='ssh')
+    p = argv[1]
+except IndexError:
+    print "profile does not set, use 'ssh'"
+    p = 'ssh'
+
+try:
+    rc = Client(profile=p)
 except IOError:
     print "error: it seems ipCluster is not active"
     exit()

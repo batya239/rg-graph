@@ -8,6 +8,12 @@
 import os, sys
 from string import zfill
 
+def method_num(method):
+    if method   == 'vegas': return '0'
+    elif method == 'suave': return '1'
+    elif method == 'divonne': return '2'
+    elif method == 'cuhre': return '3'
+
 if len(sys.argv) is not 5:
     print "usage: ./21_run-cuba-one <diag> <start-node> <start_cuba_num> <end_cuba_num>"
     print "example: ./21_run-cuba-one e112-34-e34-55-55-- 17 00 13"
@@ -21,44 +27,23 @@ else:
 curDir = os.getcwd()
 print curDir
 workdir = '/home/kirienko/work/rg-graph/phi_4_d2_s2/feynmanSDdotSF_mpi/'
-method = 'cuhre'
+method = 'suave'
 os.chdir(os.path.join(workdir,diag))
 for i in range(int(start),int(finish)+1):
     num = zfill(i,fill)
     print "ssh to n%s... start cuba__%s.run"%(node,num)
     ## profile 1
-    out = "out_%s_%s_%s_1M_e-6_e-12"%(num,diag,method)
-    print "result will be stored in",out
-    bin_file = os.path.join(workdir,diag,"cuba__%s.run"%num)
-    cmd = "ssh n%d nohup %s 3 1000000 1e-6 1e-12 > %s &"%(node,bin_file,out)
-    os.system(cmd)
+    #out = "out_%s_%s_%s_1M_e-6_e-12"%(num,diag,method)
+    #print "result will be stored in",out
+    #bin_file = os.path.join(workdir,diag,"cuba__%s.run"%num)
+    #cmd = "ssh n%d nohup %s 3 1000000 1e-6 1e-12 > %s &"%(node,bin_file,out)
+    #os.system(cmd)
     ## profile 2
     out = "out_%s_%s_%s_50M_e-8_e-12"%(num,diag,method)
     print "result will be stored in",out
     bin_file = os.path.join(workdir,diag,"cuba__%s.run"%num)
-    cmd = "ssh n%d nohup %s 3 50000000 1e-8 1e-12 > %s &"%(node,bin_file,out)
+    cmd = "ssh n%d nohup %s %s 50000000 1e-8 1e-12 > %s &"%(node,bin_file,method_num(method),out)
     os.system(cmd)
     node +=1
 
 os.chdir(curDir)
-"""
-cd $WORKDIR$1
-        for c in {$START..$FINISH}
-        #for c in `ls cuba__??.run`
-        #for c in `ls cuba__1?.run` ### <-- HERE!
-            do
-                NUM=`echo $c | cut -c 7,8`
-                #NUM=`echo $c | cut -c 8` ### <-- HERE!
-                echo "ssh to n"$NODE"... start cuba__"$NUM".run" ### <-- HERE!
-                #OUT="out_"$NUM"_"${PWD##*/}"_"$METHOD"_1M_e-6_e-12"
-                OUT="out_"$NUM"_"${PWD##*/}"_"$METHOD"_50M_e-8_e-12" ### <-- HERE!
-                echo "result will be stored in "$OUT
-                #ssh n$START nohup $WORKDIR$diag$c 3 1000000 1e-6 1e-12 > $OUT &
-                #ssh n$START nohup $WORKDIR$diag$c 3 50000000 1e-8 1e-12 > $OUT &
-                NODE=$((NODE+1))
-            done
-cd ..
-cd $CUR_DIR
-#python get_answer.py $METHOD
-#python compare.py $METHOD
-"""

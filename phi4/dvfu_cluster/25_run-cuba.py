@@ -33,8 +33,8 @@ CUR_DIR = os.getcwd()
 print CUR_DIR
 
 #WORKDIR = os.path.expanduser('~')+'/work/rg-graph/phi_4_d2_s2/feynmanSDdotSF_mpi/'
-#WORKDIR = os.path.expanduser('~')+'/work/rg-graph/phi_4_d2_s2/todo/'
-WORKDIR = os.path.expanduser('~')+'/work/rg-graph/phi_4_d2_s2/archive_feynmanSDdotS_mpi/'
+WORKDIR = os.path.expanduser('~')+'/work/rg-graph/phi_4_d2_s2/todo/'
+#WORKDIR = os.path.expanduser('~')+'/work/rg-graph/phi_4_d2_s2/archive_feynmanSDdotS_mpi/'
 
 os.chdir(WORKDIR)
 
