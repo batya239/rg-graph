@@ -151,8 +151,10 @@ def xChains(edges, forwardProp, backwardProp):
                     yield chain
 
 externalFields = [x for x in sys.argv[2]]
-lines = ['aA', 'Aa']
-vertices = set(map(sortString, ['aAa', 'AAa']))
+lines = ['aA', 'Aa', 'aa']
+#lines = ['aA', 'Aa']
+vertices = set(map(sortString, ['Aaaa']))
+#vertices = set(map(sortString, ['aAa', 'AAa']))
 
 edges = graph_state.GraphState.fromStr(sys.argv[1]).edges
 

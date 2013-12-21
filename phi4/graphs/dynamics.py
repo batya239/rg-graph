@@ -533,6 +533,26 @@ def xTreeElement2(tree, parents=list(), varMap=dict(), debug=False):
         if debug:
             print
 
+def xTreeElement2limit(tree, parents=list(), varMap=dict(), debug=False, limit=None):
+    if not (limit is None) and limit < 0:
+        yield parents
+    else:
+        if len(tree.branches) == 0:
+            yield parents
+        else:
+            branchIds = [x if x not in varMap else varMap[x] for x in map(lambda x: x.node, tree.branches)]
+            for branch in tree.branches:
+                branchIds_ = copy.copy(branchIds)
+                branchIds_.remove(branch.node)
+                parents_ = copy.copy(parents) + [(branch.node if branch.node not in varMap else varMap[branch.node],
+                                                  branchIds_)]
+                for elem in xTreeElement2limit(branch, parents_, varMap, limit=None if limit is None else limit-1):
+                    yield elem
+                if tree.node is None and debug:
+                    print
+            if debug:
+                print
+
 
 def validVar(var, parentsSet, conservations):
     if var in parentsSet:

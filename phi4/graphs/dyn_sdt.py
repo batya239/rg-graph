@@ -12,7 +12,7 @@ import subgraphs
 from dummy_model import _phi3_dyn, _phi4_dyn
 
 import dynamics
-
+from methods.sd_tools import FeynmanSubgraphs
 
 def splitUA(varSet):
     u = list()
@@ -56,8 +56,9 @@ for tVersion_ in tVersions:
     gs = graph_state.GraphState.fromStr(graphName)
 
     dG = dynamics.DynGraph(gs)
-    dG.FindSubgraphs(model)
-    subgraphs.RemoveTadpoles(dG)
+    #dG.FindSubgraphs(model)
+    #subgraphs.RemoveTadpoles(dG)
+    FeynmanSubgraphs(dG, model)
     Components = dynamics.generateCDET(dG, tVersion, model=model)
     print str(gs), tVersion
     #print "C = %s\nD = %s\nE = %s\nT = %s\n" % tuple(Components)
