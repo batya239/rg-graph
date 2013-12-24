@@ -3,6 +3,7 @@
 
 import itertools
 import nickel
+import graph_state_property
 
 
 def chain_from_iterables(iterables):
@@ -19,14 +20,27 @@ class Fields(object):
     EXTERNAL = '0'
     STR_LEN = 2
 
+    class Externalizer(graph_state_property.PropertyExternalizer):
+        def deserialize(self, string):
+            return Fields.fromStr(string)
+
     def __init__(self, pair):
         assert len(str(pair[0])) == 1
         assert len(str(pair[1])) == 1
         self._pair = str(pair[0]), str(pair[1])
 
+    def make_external(self, nodes, external_node):
+        if external_node is nodes[0]:
+            return Fields((Fields.EXTERNAL, self.pair[1]))
+        else:
+            return Fields((self.pair[0], Fields.EXTERNAL))
+
     @property
     def pair(self):
         return self._pair
+
+    def __neg__(self):
+        return Fields((self.pair[1], self.pair[0]))
 
     def __cmp__(self, other):
         return cmp(self.pair, other.pair)
@@ -44,6 +58,10 @@ class Fields(object):
 
     def __repr__(self):
         return str(self)
+
+    @staticmethod
+    def externalizer():
+        return Fields.Externalizer()
 
     @staticmethod
     def fromStr(string):
@@ -66,6 +84,11 @@ class Rainbow(object):
         colors: [1,2] self._colors: (1,2)
         colors: 1     self._colors: (1,)
     """
+
+    class Externalizer(graph_state_property.PropertyExternalizer):
+        def deserialize(self, string):
+            return Rainbow.fromObject(string)
+
     def __init__(self, colors):
         self._colors = tuple(colors) if isinstance(colors, (list, set, tuple)) else (colors, )
 
@@ -100,6 +123,10 @@ class Rainbow(object):
         raise AssertionError()
 
     @staticmethod
+    def externalizer():
+        return Rainbow.Externalizer()
+
+    @staticmethod
     def fromObject(obj):
         if obj is None:
             return None
@@ -114,9 +141,9 @@ class Edge(object):
 
     #if this attribute is True than any new Edge will be generated with unique edge_id
     CREATE_EDGES_INDEX = True
-    NEXT_EDGES_INDEX = 0L
+    MAKE_PROPERTY_EXTERNAL_METHOD_NAME = "make_external"
 
-    def __init__(self, nodes, external_node=-1, fields=None, colors=None, edge_id=None):
+    def __init__(self, nodes, external_node=-1, edge_id=None, **kwargs):
         """Edge constructor.
 
         Args:
@@ -126,35 +153,30 @@ class Edge(object):
             colors: Rainbow object.
         """
         self._nodes = tuple(sorted(nodes))
-        self.internal_nodes = tuple(
-            [node for node in self.nodes if node != external_node])
+        self.internal_nodes = tuple([node for node in self.nodes if node != external_node])
 
-        self.fields = None
-        # Init fields annotating external edge.
-        if fields:
-            pair = list(fields.pair)
-            for i in (0, 1):
-                if nodes[i] == external_node:
-                    pair[i] = Fields.EXTERNAL
-            swap = (nodes[0] > nodes[1])
-            if swap:
-                pair = list(reversed(pair))
-
-            self.fields = Fields(pair)
-
-        if colors is None:
-            self.colors = None
-        else:
-            self.colors = colors if isinstance(colors, Rainbow) else Rainbow(colors)
+        properties = kwargs.get('properties', None)
+        if properties is None:
+            properties = graph_state_property.Properties.from_kwargs(**kwargs)
+        swap = (nodes[0] > nodes[1])
+        if properties is not None and self.is_external():
+            properties = properties.make_external(nodes, external_node)
+        self._properties = properties if not swap or properties is None else -properties
 
         if edge_id is not None:
             self.edge_id = edge_id
         else:
             if Edge.CREATE_EDGES_INDEX:
-                self.edge_id = Edge.NEXT_EDGES_INDEX
-                Edge.NEXT_EDGES_INDEX += 1
+                self.edge_id = id(self)
             else:
                 self.edge_id = None
+
+    def __getattr__(self, item):
+        if self._properties is None:
+            return None
+        elif self._properties.has_property(item):
+            return getattr(self._properties, item)
+        raise ValueError("not attribute with name %s" % item)
 
     def is_external(self):
         return len(self.internal_nodes) == 1
@@ -164,10 +186,17 @@ class Edge(object):
         return self._nodes
 
     def key(self):
-        return self.internal_nodes, self.fields, self.colors
+        if '_key' not in self.__dict__:
+            # noinspection PyAttributeOutsideInit
+            self._key = (self.internal_nodes,)
+            if self._properties:
+                self._key += self._properties.key()
+        return self._key
 
     def __repr__(self):
-        return "(%s, fields=%s, colors=%s)" % self.key()
+        return "(%s, %s)" % (self.internal_nodes, str(self._properties))
+
+    __str__ = __repr__
 
     def __cmp__(self, other):
         return cmp(self.key(), other.key())
@@ -178,7 +207,7 @@ class Edge(object):
             self._hash = hash(self.key())
         return self._hash
 
-    def copy(self, node_map=None, fields=None, colors=None):
+    def copy(self, node_map=None, **kwargs):
         """
         Creates a copy of the object with possible change of nodes.
 
@@ -199,44 +228,48 @@ class Edge(object):
                 external_node = self.nodes[1]
             mapped_external_node = node_map.get(external_node, external_node)
 
-        fields = self.fields if fields is None else fields
-        colors = self.colors if colors is None else colors
-        edge = Edge(mapped_nodes,
+        properties_is_none = self._properties is None
+        updated_properties = None if properties_is_none else self._properties.update(**kwargs)
+        if updated_properties is None:
+            updated_properties = kwargs.get('properties', None)
+
+        return Edge(mapped_nodes,
                     external_node=mapped_external_node,
-                    fields=fields,
-                    colors=colors)
-        #edge = Edge(mapped_nodes,
-        #            external_node=mapped_external_node,
-        #            fields=fields,
-        #            colors=colors,
-        #            edge_id=self.edge_id)
-        return edge
+                    properties=updated_properties)
 
 
+DEFAULT_PROPERTIES_CONFIG = graph_state_property. \
+    PropertiesConfig.create(graph_state_property.PropertyKey(name="colors",
+                                                             is_directed=False,
+                                                             externalizer=Rainbow.externalizer()),
+                            graph_state_property.PropertyKey(name="fields",
+                                                             is_directed=True,
+                                                             externalizer=Fields.externalizer()))
+
+
+# noinspection PyProtectedMember
 class GraphState(object):
     SEP = ':'
+    SEP2 = "#"
     NICKEL_SEP = nickel.Nickel.SEP
 
-    def __init__(self, edges, node_maps=None, defaultFields=None, defaultColors=None):
+    def __init__(self, edges, node_maps=None, default_properties=None):
         # Fields must be in every edge or defaultFields must be not None.
-        fields_count = len([edge.fields for edge in edges if edge.fields])
-        assert fields_count == 0 or fields_count == len(edges) or defaultFields is not None
+        properties_count = len([edge._properties for edge in edges if edge._properties])
+        assert properties_count == 0 or properties_count == len(edges) or default_properties is not None
 
         node_maps = (node_maps or nickel.Canonicalize([edge.nodes for edge in edges]).node_maps)
         self.sortings = []
         for node_map in node_maps:
             mapped_edges = list()
             for edge in edges:
-                colors = defaultColors if edge.colors is None else edge.colors
-                if fields_count != 0:
-                    fields = defaultFields if edge.fields is None else edge.fields
-                else:
-                    fields = None
-                mapped_edges.append(edge.copy(node_map=node_map, colors=colors, fields=fields))
+                props = default_properties if edge._properties is None else edge._properties
+                mapped_edges.append(edge.copy(node_map=node_map, properties=props))
             mapped_edges.sort()
             self.sortings.append(tuple(mapped_edges))
         min_edges = min(self.sortings)
         self.sortings = [edges for edges in self.sortings if edges == min_edges]
+        self._properties_config = None if edges[0]._properties is None else edges[0]._properties._properties_config
 
     @property
     def edges(self):
@@ -258,51 +291,67 @@ class GraphState(object):
         nickel_edges = [edge.nodes for edge in self.sortings[0]]
         edges_str = nickel.Nickel(edges=nickel_edges).string
 
-        fields_str = ''
-        if self.sortings[0][0].fields:
-            fields_chars = [str(edge.fields) for edge in self.sortings[0]]
-            fields_chars_iter = iter(fields_chars)
-            # Add separators to fields string so that it would look similar to
-            # edge string.
-            fields_chars_with_sep = []
-            for char in edges_str:
-                if char == self.NICKEL_SEP:
-                    fields_chars_with_sep.append(self.NICKEL_SEP)
-                else:
-                    fields_chars_with_sep.append(fields_chars_iter.next())
-            fields_str = ''.join(fields_chars_with_sep)
+        serialized = [edges_str]
 
-        colors_str = ''
-        if [1 for edge in self.sortings[0] if edge.colors]:
-            colors_str = str([str(edge.colors) for edge in self.sortings[0]])
+        if self._properties_config is not None:
+            for p_name in self._properties_config.property_order:
+                externalizer = self._properties_config.externalizer(p_name)
+                is_all_attrs_none = reduce(lambda b, edge: b and getattr(edge, p_name) is None, self.sortings[0], True)
+                if is_all_attrs_none:
+                    serialized.append('')
+                    continue
+                fields_chars = [externalizer.serialize((getattr(edge, p_name))) for edge in self.sortings[0]]
+                fields_chars_iter = iter(fields_chars)
+                # Add separators to fields string so that it would look similar to
+                # edge string.
+                fields_chars_with_sep = []
+                for char in edges_str:
+                    if char == self.NICKEL_SEP:
+                        fields_chars_with_sep.append(self.NICKEL_SEP)
+                    else:
+                        if len(fields_chars_with_sep) and fields_chars_with_sep[-1] != self.NICKEL_SEP:
+                            fields_chars_with_sep.append(self.SEP2)
+                        fields_chars_with_sep.append(fields_chars_iter.next())
+                serialized.append(''.join(fields_chars_with_sep))
 
-        return edges_str + self.SEP + fields_str + self.SEP + colors_str
+        return self.SEP.join(serialized)
 
     @staticmethod
-    def fromStr(string):
+    def fromStr(string, properties_config=DEFAULT_PROPERTIES_CONFIG):
         """
         creates GraphState object from nickel serialized string
         """
-        splitted_string = string.split(GraphState.SEP, 2)
+        parts_count = 1 + properties_config.properties_count()
+        splitted_string = string.split(GraphState.SEP, parts_count)
         splitted_len = len(splitted_string)
-        assert splitted_len == 1 or splitted_len == 3
-        edges_str, fields_str, colors_str = splitted_string if splitted_len == 3 \
-            else (splitted_string[0], None, None)
+        empty_properties = splitted_len == 1
+        assert empty_properties or splitted_len == parts_count
 
-        nickel_edges = nickel.Nickel(string=edges_str).edges
-        if not fields_str:
-            fields = [None] * len(nickel_edges)
-        else:
-            fields_no_sep = filter(lambda c: c != GraphState.NICKEL_SEP, fields_str)
-            fields = Fields.fieldsFromStr(fields_no_sep)
+        nickel_edges = nickel.Nickel(string=splitted_string[0]).edges
 
-        if not colors_str:
-            colors_list = [None] * len(nickel_edges)
+        if not empty_properties:
+            raw_properties = splitted_string[1:]
+            un_transposed_properties = dict()
+            for (r_property_line, p_name) in itertools.izip(raw_properties, properties_config.property_order):
+                if r_property_line != '':
+                    r_properties = reduce(lambda _list, line: _list + line.split(GraphState.SEP2), r_property_line.split(nickel.Nickel.SEP),
+                                          list())[:-1]
+                    externalizer = properties_config.externalizer(p_name)
+                    un_transposed_properties[p_name] = map(lambda raw_prop: externalizer.deserialize(raw_prop), r_properties)
+                else:
+                    un_transposed_properties[p_name] = [None] * len(nickel_edges)
+            transposed_properties = list()
+            for i in xrange(len(nickel_edges)):
+                transposed_properties.append(dict({'properties_config': properties_config}))
+            for (p_name, properties) in un_transposed_properties.iteritems():
+                for p, m in itertools.izip(properties, transposed_properties):
+                    m[p_name] = p
         else:
-            colors_list = itertools.imap(Rainbow.fromObject, eval(colors_str))
+            transposed_properties = [None] * len(nickel_edges)
+
         edges = []
-        for nodes, fields, colors in itertools.izip(nickel_edges, fields, colors_list):
-            edges.append(Edge(nodes, fields=fields, colors=colors))
+        for nodes, props in itertools.izip(nickel_edges, transposed_properties):
+            edges.append(Edge(nodes) if props is None else Edge(nodes, **props))
         assert len(edges) == len(nickel_edges)
 
         return GraphState(edges)
