@@ -240,7 +240,7 @@ class TestProperties(unittest.TestCase):
 
         state = graph_state.GraphState.fromStr("e1-e-:(0,0)#(1,0)-(3,9)-", properties_config=config)
         es = set(map(lambda b: b.some_name, filter(lambda a: a.is_external(), state.edges)))
-        self.assertSetEqual(es, set((MyProperty(3, 9), MyProperty(0, 0))))
+        self.assertEqual(es, set((MyProperty(3, 9), MyProperty(0, 0))))
 
     def testDirectedCustomProperty(self):
         class MyProperty(object):
