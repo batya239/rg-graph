@@ -7,7 +7,7 @@
 EpsRel = '1e-8'
 EpsAbs = '1e-12'
 MaxPoints = '50000000'
-Method  = 'cuhre' ## one of: 'vegas', 'suave', 'divonne', 'cuhre'
+Method  = 'suave' ## one of: 'vegas', 'suave', 'divonne', 'cuhre'
 
 def method_num(method):
     if method   == 'vegas': return '0'
@@ -33,8 +33,8 @@ CUR_DIR = os.getcwd()
 print CUR_DIR
 
 #WORKDIR = os.path.expanduser('~')+'/work/rg-graph/phi_4_d2_s2/feynmanSDdotSF_mpi/'
-WORKDIR = os.path.expanduser('~')+'/work/rg-graph/phi_4_d2_s2/todo/'
-#WORKDIR = os.path.expanduser('~')+'/work/rg-graph/phi_4_d2_s2/archive_feynmanSDdotS_mpi/'
+#WORKDIR = os.path.expanduser('~')+'/work/rg-graph/phi_4_d2_s2/todo/'
+WORKDIR = os.path.expanduser('~')+'/work/rg-graph/phi_4_d2_s2/archive_feynmanSDdotS_mpi/'
 
 os.chdir(WORKDIR)
 
