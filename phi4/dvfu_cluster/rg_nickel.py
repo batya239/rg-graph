@@ -226,9 +226,6 @@ for i in range(1, nLoops):
     tau = Series(d,n = i, name='τ')
     #gStar = (tau - (beta1 - g).series(g, 0, i + 1).removeO().subs(g, gStar)).series(tau, 0, i + 1).removeO()
     tmp = Series((beta1).gSeries,n = i)
-    #print "tau =",tau,"; tmp =",tmp
-    #print "tmp.subs(gStar) =",tmp.subs(gStar)
-    #print "(tau - tmp.subs(gStar)) =", tau - tmp.subs(gStar)
     gStar = Series((tau - tmp.subs(gStar)).__repr__(),n = i+1, name='τ')#.series(tau, 0, i + 1).removeO()
 
 print "g* = ", gStar
@@ -240,8 +237,8 @@ print "g*_S = ", gStarS
 #etaStar = eta.subs(g, gStar).series(tau, 0, nLoops + 1)
 etaStar = eta.subs(gStar)
 
-print "etaStar = ", etaStar
+print "η* = ", etaStar
 
 #etaStarGS = eta.subs(g, gStarS).series(tau, 0, nLoops + 1)
 etaStarGS = eta.subs(gStarS)
-print "etaStarGS = ", etaStarGS
+print "η*_GS = ", etaStarGS

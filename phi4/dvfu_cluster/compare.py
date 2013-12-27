@@ -57,11 +57,11 @@ for i in data1.keys():
         err_mine = data1[i][1][0]
         err_mkompan = data2[i][1][0]
         #if delta < max(data1[i][1][0],data2[i][1][0]):#0.99e-6:
-        if delta < 0.99e-6:
+        if delta < 0.99e-5:
             #print i,':OK\t',delta,'\t', err_mine,'\t', err_mkompan, '\t', err_mkompan/err_mine
             okay += 1
         else:
-            print i,'\t',delta,'\t', err_mine,'\t', err_mkompan, '\t', err_mkompan/err_mine
+            print i,'\t',delta,'\t', data1[i][0][0],'\t', data2[i][0][0]
     except:
         print "Exception:",i
 
