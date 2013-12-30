@@ -10,3 +10,4 @@ ppn = 4
 iterations = 2
 delta = 0.
 points = 100000
+queue="short@pbs-tp.hpc.cc.spbu.ru"
