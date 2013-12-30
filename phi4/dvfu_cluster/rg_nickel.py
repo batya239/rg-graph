@@ -218,8 +218,6 @@ for nickel in r1op:
 
 Z2 = Series(Z2_new, nLoops)
 Z3 = Series(Z3_new, nLoops)
-Z2 = Series(Z2_new, 3)
-Z3 = Series(Z3_new, 3)
 print "Z2 = ", Z2
 print "Z3 = ", Z3
 
