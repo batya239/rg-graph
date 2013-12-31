@@ -284,11 +284,11 @@ class TestOldStyle(unittest.TestCase):
         self.assertEqual(str(gs), "e1|e|:(0, 0)_(1, 0)|(3, 9)|:")
 
     def testFromOldStyleStrWithFields(self):
-        gs = graph_state.GraphState.fromStrOldStyle("e1-e-:00ab-00:")
+        gs = graph_state.GraphState.fromStrOldStyle("e1-e-:00ab-00-:")
         self.assertEqual(str(gs), "e1|e|::00_ab|00|")
 
     def testComplexObjects(self):
-        gs = graph_state.GraphState.fromStrOldStyle("e1-e-:00ab-00:['(0,0)','(1,0)','(3,9)']")
+        gs = graph_state.GraphState.fromStrOldStyle("e1-e-:00ab-00-:['(0,0)','(1,0)','(3,9)']")
         self.assertEqual(str(gs), "e1|e|:(0, 0)_(1, 0)|(3, 9)|:00_ab|00|")
 
     def testSimpleObjects(self):

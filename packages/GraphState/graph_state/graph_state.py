@@ -401,7 +401,6 @@ class GraphState(object):
                 f = ""
             else:
                 f += c
-        yield f
 
     @staticmethod
     def _raw_old_colors_tokenizer(raw_old_colors):
