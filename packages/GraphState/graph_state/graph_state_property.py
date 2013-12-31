@@ -5,6 +5,7 @@ __author__ = 'dima'
 from collections import namedtuple
 import graph_state
 
+
 # noinspection PyMethodMayBeStatic
 class PropertyExternalizer(object):
     def serialize(self, obj):
@@ -12,6 +13,14 @@ class PropertyExternalizer(object):
 
     def deserialize(self, string):
         return eval(string)
+
+
+class FakePropertyExternalizer(PropertyExternalizer):
+    def deserialize(self, string):
+        raise NotImplementedError()
+
+    def serialize(self, obj):
+        raise NotImplementedError()
 
 
 class PropertiesConfig(object):
@@ -58,7 +67,36 @@ class PropertiesConfig(object):
             property_externalizer[k.name] = k.externalizer
         return PropertiesConfig(property_order, property_directionality, property_externalizer)
 
-PropertyKey = namedtuple('PropertyKey', ('name', 'is_directed', 'externalizer'))
+
+class PropertyKey(object):
+    def __init__(self, name, is_directed, externalizer=FakePropertyExternalizer()):
+        self._name = name
+        self._is_directed = is_directed
+        self._externalizer = externalizer
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def is_directed(self):
+        return self._is_directed
+
+    @property
+    def externalizer(self):
+        return self._externalizer
+
+    def __eq__(self, other):
+        assert isinstance(other, PropertyKey)
+        return self.name == other.name and \
+               self.is_directed == other.is_directed and \
+               self.externalizer == other.externalizer
+
+    def __hash__(self):
+        h = hash(self.name)
+        h = 31 * h + hash(self.is_directed)
+        h = 31 * h + hash(self.externalizer)
+        return h
 
 
 class Properties(object):

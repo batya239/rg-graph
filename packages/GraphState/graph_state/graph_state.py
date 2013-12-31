@@ -176,7 +176,7 @@ class Edge(object):
             return None
         elif self._properties.has_property(item):
             return getattr(self._properties, item)
-        raise ValueError("not attribute with name %s" % item)
+        return super(Edge, self).__getattr__(item)
 
     def is_external(self):
         return len(self.internal_nodes) == 1
@@ -250,7 +250,7 @@ DEFAULT_PROPERTIES_CONFIG = graph_state_property. \
 # noinspection PyProtectedMember
 class GraphState(object):
     SEP = ':'
-    SEP2 = "#"
+    SEP2 = "_"
     NICKEL_SEP = nickel.Nickel.SEP
 
     def __init__(self, edges, node_maps=None, default_properties=None):
@@ -355,3 +355,55 @@ class GraphState(object):
         assert len(edges) == len(nickel_edges)
 
         return GraphState(edges)
+
+    @staticmethod
+    def fromStrOldStyle(string):
+        parts = string.split(GraphState.SEP, 3)
+        basement = parts[0].replace("-", GraphState.NICKEL_SEP)
+        new_style_str = basement + GraphState.SEP
+        assert len(parts) in (1, 3)
+        if len(parts) == 1 or (not len(parts[1]) and not len(parts[2])):
+            return GraphState.fromStr(basement, properties_config=DEFAULT_PROPERTIES_CONFIG)
+
+        raw_old_fields = parts[1]
+        raw_old_colors = parts[2]
+
+        if len(raw_old_colors):
+            colors_it = GraphState._raw_old_colors_tokenizer(raw_old_colors)
+            for c in iter(parts[0]):
+                if c == "-":
+                    new_style_str += GraphState.NICKEL_SEP
+                else:
+                    add = "" if new_style_str[-1] == GraphState.SEP or new_style_str[-1] == GraphState.NICKEL_SEP else GraphState.SEP2
+                    new_style_str += add + colors_it.next()
+
+        new_style_str += GraphState.SEP
+        if len(raw_old_fields):
+            fields_it = GraphState._raw_old_fields_tokenizer(raw_old_fields)
+            for c in iter(parts[0]):
+                if c == "-":
+                    new_style_str += GraphState.NICKEL_SEP
+                else:
+                    add = "" if new_style_str[-1] == GraphState.SEP or new_style_str[-1] == GraphState.NICKEL_SEP else GraphState.SEP2
+                    new_style_str += add + fields_it.next()
+
+        return GraphState.fromStr(new_style_str, properties_config=DEFAULT_PROPERTIES_CONFIG)
+
+
+    @staticmethod
+    def _raw_old_fields_tokenizer(raw_old_fields):
+        f = ""
+        for c in raw_old_fields:
+            if len(f) == 2:
+                yield f
+                f = ""
+            if c == "-":
+                f = ""
+            else:
+                f += c
+        yield f
+
+    @staticmethod
+    def _raw_old_colors_tokenizer(raw_old_colors):
+        for raw_color in eval(raw_old_colors):
+            yield str(raw_color)
