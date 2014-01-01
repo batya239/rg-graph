@@ -174,14 +174,14 @@ class TestGraphState(unittest.TestCase):
                  new_edge((0, 1)),
                  new_edge((1, -1)))
         state = graph_state.GraphState(edges)
-        self.assertEqual(str(state), 'e1-e-')
+        self.assertEqual(str(state), 'e1|e|')
 
         decoded = graph_state.GraphState.fromStr(str(state))
         self.assertEqual(decoded.sortings[0], edges)
 
     def testToFromStr1(self):
-        actual_state = graph_state.GraphState.fromStr("e1-e-")
-        self.assertEqual("e1-e-", str(actual_state))
+        actual_state = graph_state.GraphState.fromStr("e1|e|")
+        self.assertEqual("e1|e|", str(actual_state))
         edges = (new_edge((-1, 0)),
                  new_edge((0, 1)),
                  new_edge((1, -1)))
@@ -193,7 +193,7 @@ class TestGraphState(unittest.TestCase):
                  new_edge((0, 1), fields=graph_state.Fields('ab')),
                  new_edge((1, -1), fields=graph_state.Fields('a0')))
         state = graph_state.GraphState(edges)
-        self.assertEqual(str(state), 'e1-e-::0a#ab-0a-')
+        self.assertEqual(str(state), 'e1|e|::0a_ab|0a|')
 
         decoded = graph_state.GraphState.fromStr(str(state))
         self.assertEqual(decoded.sortings[0], edges)
@@ -202,7 +202,7 @@ class TestGraphState(unittest.TestCase):
         edges = (new_edge((-1, 0),
                                   colors=graph_state.Rainbow((1, 7))),)
         state = graph_state.GraphState(edges)
-        self.assertEqual(str(state), "e-:(1, 7)-:")
+        self.assertEqual(str(state), "e|:(1, 7)|:")
 
         decoded = graph_state.GraphState.fromStr(str(state))
         self.assertEqual(decoded.sortings[0], edges)
@@ -238,7 +238,7 @@ class TestProperties(unittest.TestCase):
                                                         externalizer=MyPropertyExternalizer())
         config = graph_state_property.PropertiesConfig.create(property_key)
 
-        state = graph_state.GraphState.fromStr("e1-e-:(0,0)#(1,0)-(3,9)-", properties_config=config)
+        state = graph_state.GraphState.fromStr("e1|e|:(0,0)_(1,0)|(3,9)|", properties_config=config)
         es = set(map(lambda b: b.some_name, filter(lambda a: a.is_external(), state.edges)))
         self.assertEqual(es, set((MyProperty(3, 9), MyProperty(0, 0))))
 
@@ -271,10 +271,32 @@ class TestProperties(unittest.TestCase):
                                                         externalizer=MyPropertyExternalizer())
         config = graph_state_property.PropertiesConfig.create(property_key)
 
-        state = graph_state.GraphState.fromStr("e12-2-e-:(1,0)#(1,0)#(1,0)-(1,0)-(1,0)-", properties_config=config)
+        state = graph_state.GraphState.fromStr("e12|2|e|:(1,0)_(1,0)_(1,0)|(1,0)|(1,0)|", properties_config=config)
         e = state.edges[3]
         self.assertEqual(e.nodes, (-1, 1))
         self.assertEqual(e.some_name, MyProperty(1, 0))
+
+
+
+class TestOldStyle(unittest.TestCase):
+    def testFromOldStyleStrWithColors(self):
+        gs = graph_state.GraphState.fromStrOldStyle("e1-e-::['(0,0)','(1,0)','(3,9)']")
+        self.assertEqual(str(gs), "e1|e|:(0, 0)_(1, 0)|(3, 9)|:")
+
+    def testFromOldStyleStrWithFields(self):
+        gs = graph_state.GraphState.fromStrOldStyle("e1-e-:00ab-00-:")
+        self.assertEqual(str(gs), "e1|e|::00_ab|00|")
+
+    def testComplexObjects(self):
+        gs = graph_state.GraphState.fromStrOldStyle("e1-e-:00ab-00-:['(0,0)','(1,0)','(3,9)']")
+        self.assertEqual(str(gs), "e1|e|:(0, 0)_(1, 0)|(3, 9)|:00_ab|00|")
+
+    def testSimpleObjects(self):
+        gs = graph_state.GraphState.fromStrOldStyle("e1-e-")
+        self.assertEqual(str(gs), "e1|e|")
+
+        gs = graph_state.GraphState.fromStrOldStyle("e1-e-::")
+        self.assertEqual(str(gs), "e1|e|")
 
 if __name__ == "__main__":
     unittest.main()
