@@ -55,6 +55,8 @@ def solve_pade_sympy(pade_num, pade_denom, series_dict, n, tau):
     eqs = list()
     for i in range(n + 1):
         eqs.append(eq.coeff(tau, i))
+#    print "eq", eq , n
+#    print "eqs", eqs
     return sympy.solve_linear_system(eqs2matrix(eqs, vars), *vars)
 
 
@@ -67,7 +69,7 @@ def resummation_pade(L, M, series_dict):
     padeNum, padeDenom = pade_aproximant(L, M, tau)
     padeFunc = padeNum / padeDenom
     res = solve_pade_sympy(padeNum, padeDenom, series_dict, L + M, tau)
-    #    print res
+#    print padeNum, padeDenom, res
     padeFunc_ = padeFunc
     for var, value in res.iteritems():
         var_ = sympy.var(str(var))
@@ -114,112 +116,215 @@ gStar_05 = {1: 1, 2: 0.716173621, 3: 0.095042867, 4: 0.086080396, 5: -0.204139}
 gamma_minus_05 = {0: 1, 1: -1. / 3, 2: -0.113701246, 3: 0.024940678, 4: -0.039896059, 5: 0.0645212}
 nu_minus_05 = {0: 2, 1: -2. / 3, 2: -0.2613686, 3: 0.0145746, 4: -0.0913127, 5: 0.118121}
 
+from collections import namedtuple
 
+results2013 = namedtuple('results2013', ('gamma', 'gamma_minus', 'nu', 'nu_minus', 'eta'))
 #13
 #n=1
-gamma_13_n1 = {0: 1, 1: 1. / 3, 2: 0.224812357, 3: 0.087897190, 4: 0.086443008, 5: -0.0180209}
-gamma_13_n1_minus = {0: 1, 1: -1. / 3, 2: -0.113701246, 3: 0.024940678, 4: -0.039896059, 5: 0.0645210}
-nu_13_n1 = {0: 1./2, 1: 1. / 6, 2: 0.120897626, 3: 0.0584361287, 4: 0.056891652, 5: 0.00379868}
-nu_13_n1_minus = {0: 2., 1: -2. / 3, 2: -0.261368281, 3: 0.0145750797, 4: -0.091312521, 5: 0.118121}
-eta_13_n1 = {0: 0., 1: 0., 2: 0.0339661470, 3: 0.0466287623, 4: 0.030925471, 5: 0.0256843}
+n1 = results2013({0: 1, 1: 1. / 3, 2: 0.224812357, 3: 0.087897190, 4: 0.086443008, 5: -0.0180209},
+                 {0: 1, 1: -1. / 3, 2: -0.113701246, 3: 0.024940678, 4: -0.039896059, 5: 0.0645210},
+                 {0: 1./2, 1: 1. / 6, 2: 0.120897626, 3: 0.0584361287, 4: 0.056891652, 5: 0.00379868},
+                 {0: 2., 1: -2. / 3, 2: -0.261368281, 3: 0.0145750797, 4: -0.091312521, 5: 0.118121},
+                 {0: 0., 1: 0., 2: 0.0339661470, 3: 0.0466287623, 4: 0.030925471, 5: 0.0256843})
+
 
 #n=0
-gamma_13_n0 = {0: 1, 1: 1. / 4, 2: 0.143242270, 3: 0.018272597, 4: 0.035251118, 5: -0.0634415}
-gamma_13_n0_minus = {0: 1, 1: -1. / 4, 2: -0.08742270, 3: 0.037723538, 4: -0.028548147, 5: 0.0754631}
-nu_13_n0 = {0: 1./2, 1: 1. / 8, 2: 0.0787857831, 3: 0.0211750671, 4: 0.028101050, 5: -0.0222040}
-nu_13_n0_minus = {0: 2., 1: -1. / 2, 2: -0.190143132, 3: 0.0416216976, 4: -0.071673308, 5: 0.136330}
-eta_13_n0 = {0: 0., 1: 0., 2: 0.0286589366, 3: 0.0409908542, 4: 0.027138940, 5: 0.0236106}
+n0 = results2013({0: 1, 1: 1. / 4, 2: 0.143242270, 3: 0.018272597, 4: 0.035251118, 5: -0.0634415},
+                 {0: 1, 1: -1. / 4, 2: -0.08742270, 3: 0.037723538, 4: -0.028548147, 5: 0.0754631},
+                 {0: 1./2, 1: 1. / 8, 2: 0.0787857831, 3: 0.0211750671, 4: 0.028101050, 5: -0.0222040},
+                 {0: 2., 1: -1. / 2, 2: -0.190143132, 3: 0.0416216976, 4: -0.071673308, 5: 0.136330},
+                 {0: 0., 1: 0., 2: 0.0286589366, 3: 0.0409908542, 4: 0.027138940, 5: 0.0236106})
 
 #n=-1
-gamma_13_nm1 = {0: 1, 1: 1. / 7, 2: 0.060380873, 3: -0.023532210, 4: 0.012034268, 5: -0.0638772}
-gamma_13_nm1_minus = {0: 1, 1: -1. / 7, 2: -0.039972710, 3: 0.03786436, 4: -0.018392201, 5: 0.0649966}
-nu_13_nm1 = {0: 1./2, 1: 1. / 14, 2: 0.0348693698, 3: -0.00424514372, 4: 0.011608435, 5: -0.0268913}
-nu_13_nm1_minus = {0: 2., 1: -2. / 7, 2: -0.0986611527, 3: 0.0510003794, 4: -0.049264800, 5: 0.116842}
-eta_13_nm1 = {0: 0., 1: 0., 2: 0.0187160402, 3: 0.0274103364, 4: 0.017144702, 5: 0.0159901}
+nm1 = results2013({0: 1, 1: 1. / 7, 2: 0.060380873, 3: -0.023532210, 4: 0.012034268, 5: -0.0638772},
+                  {0: 1, 1: -1. / 7, 2: -0.039972710, 3: 0.03786436, 4: -0.018392201, 5: 0.0649966},
+                  {0: 1./2, 1: 1. / 14, 2: 0.0348693698, 3: -0.00424514372, 4: 0.011608435, 5: -0.0268913},
+                  {0: 2., 1: -2. / 7, 2: -0.0986611527, 3: 0.0510003794, 4: -0.049264800, 5: 0.116842},
+                  {0: 0., 1: 0., 2: 0.0187160402, 3: 0.0274103364, 4: 0.017144702, 5: 0.0159901})
 
 
 #b = 0
 #gStarBorel = borel_transform(gStar, b=0)
 #print gStarBorel
 
-N = 5
-print "\ngStar\n"
-for M in range(0, N):
-    for L in range(1, N - M + 1):
-    #        print M, L,
-        print "%10.4f" % (resummation_pade(L, M, gStar_05)),
+
+
+
+def print_ds(series_dict):
+    tau = sympy.var('tau')
+    print "DS", dict2poly(series_dict, tau).subs(tau, 1)
+
+
+def print_dsm1(series_dict):
+    tau = sympy.var('tau')
+    print "DS-1", 1/dict2poly(series_dict, tau).subs(tau, 1)
+
+
+def print_pade(series_dict, N, m0=0, l0=0):
+    print "Pade"
+    print " "*10,
+    for i in range(l0, N + 1):
+        print "%10d" % (i),
     print
+    for M in range(m0, N + 1):
+        print "%10d" % M,
+        for L in range(l0, N - M + 1):
+            print "%10.4f" % (resummation_pade(L, M, series_dict)),
+        print
+
+
+def print_pade_borel(series_dict, N, m0=0, l0=0):
+    print "Pade-Borel"
+    #for L, M  in [(1,4), (3,2), (4,1)]:
+    #    print (L,M), resummation_pade_borel(L, M, gamma_13_n1)
+    print " "*10,
+    for i in range(l0, N + 1):
+        print "%10d" % (i),
+    print
+    for M in range(m0, N + 1):
+        print "%10d" % M,
+        for L in range(l0, N - M + 1):
+        #        print M, L,
+            #FIXME : unknown exception
+            try:
+                res = resummation_pade_borel(L, M, series_dict)
+            except:
+                res = "    Except"
+            if res is None:
+                print "      None",
+            elif isinstance(res, str):
+                print res,
+            else:
+                print "%10.4f" % res,
+        print
+
+
+def print_pade_borel_minus(series_dict, N, m0=0, l0=0):
+    print "Pade-Borel-1"
+    print (2, 3), 1/resummation_pade_borel(2, 3, series_dict)
+    print (3, 2), 1/resummation_pade_borel(3, 2, series_dict)
+    print " "*10,
+    for i in range(l0, N + 1):
+        print "%10d" % (i),
+    print
+    for M in range(m0, N + 1):
+        print "%10d" % M,
+        for L in range(l0, N - M + 1):
+        #        print M, L,
+            #FIXME : unknown exception
+            try:
+                res = resummation_pade_borel(L, M, series_dict)
+            except:
+                res = "    Except"
+            if res is None:
+                print "      None",
+            elif isinstance(res, str):
+                print res,
+            else:
+                print "%10.4f" % (1/res),
+        print
+
+
+
+def calculate2013(result, N):
+
+    print "gamma"
+    try:
+        print_ds(result.gamma)
+    except:
+        print
+    try:
+        print_dsm1(result.gamma_minus)
+    except:
+        print
+
+    try:
+        print_pade(result.gamma, N)
+    except:
+        print
+
+    try:
+        print_pade_borel(result.gamma, N)
+    except:
+        print
+    try:
+        print_pade_borel_minus(result.gamma_minus, N)
+    except:
+        print
+
+    print
+    print "nu"
+    try:
+        print_ds(result.nu)
+    except:
+        print
+
+    try:
+        print_dsm1(result.nu_minus)
+    except:
+        print
+
+    try:
+        print_pade(result.nu, N)
+    except:
+        print
+
+    try:
+        print_pade_borel(result.nu, N)
+    except:
+        print
+
+
+    try:
+        print_pade_borel_minus(result.nu_minus, N)
+    except:
+        print
+
+    print
+    print "eta"
+
+
+    try:
+        print_ds(result.eta)
+    except:
+        print
+
+    print "DS-1", "-------"
+
+    try:
+        print_pade(result.eta, N, l0=2)
+    except:
+        print
+
+    try:
+        print_pade_borel(result.eta, N, l0=2)
+    except:
+        print
+
+
+
+
+N = 5
+
+print "\ngStar\n"
+print_pade(gStar_05, N, l0=1)
 
 print "\ngamma^-1\n"
-for M in range(0, N + 1):
-    for L in range(0, N - M + 1):
-    #        print M, L,
-        print "%10.4f" % (1 / resummation_pade(L, M, gamma_minus_05)),
-    print
+print_pade(gamma_minus_05, N)
 
 print "\nnu^-1\n"
-for M in range(0, N + 1):
-    for L in range(0, N - M + 1):
-    #        print M, L,
-        print "%10.4f" % (1 / resummation_pade(L, M, nu_minus_05)),
-    print
+print_pade(nu_minus_05, N)
 
-tau = sympy.var('tau')
 
 print 2013
-print "n=1"
-print "gamma"
-print "DS", dict2poly(gamma_13_n1, tau).subs(tau,1)
-print "DS-1", 1/dict2poly(gamma_13_n1_minus, tau).subs(tau,1)
 
-print "Pade"
-for M in range(0, N + 1):
-    for L in range(0, N - M + 1):
-    #        print M, L,
-        print "%10.4f" % (resummation_pade(L, M, gamma_13_n1)),
-    print
+print "\n\nn=1"
+calculate2013(n1, N)
 
-print "Pade-Borel"
-#for L, M  in [(1,4), (3,2), (4,1)]:
-#    print (L,M), resummation_pade_borel(L, M, gamma_13_n1)
+#try:
+#    calculate2013(n1)
+#except:
+#    pass
 
-for M in range(0, N + 1):
-    for L in range(0, N - M + 1):
-    #        print M, L,
-        #FIXME : unknown exception
-        try:
-            res = resummation_pade_borel(L, M, gamma_13_n1)
-        except:
-            res = "    Except"
-        if res is None:
-            print "      None",
-        elif isinstance(res, str):
-            print res,
-        else:
-            print "%10.4f" % (res),
-    print
-
-print "Pade-Borel-1"
-print (2, 3), 1/resummation_pade_borel(2, 3, gamma_13_n1_minus)
-print (3, 2), 1/resummation_pade_borel(3, 2, gamma_13_n1_minus)
-for M in range(0, N + 1):
-    for L in range(0, N - M + 1):
-    #        print M, L,
-        #FIXME : unknown exception
-        try:
-            res = resummation_pade_borel(L, M, gamma_13_n1_minus)
-        except:
-            res = "    Except"
-        if res is None:
-            print "      None",
-        elif isinstance(res, str):
-            print res,
-        else:
-            print "%10.4f" % (1/res),
-    print
-
-
-print
-print "nu"
-print "DS", dict2poly(nu_13_n1, tau).subs(tau,1)
-print "DS-1", 1/dict2poly(nu_13_n1_minus, tau).subs(tau,1)
+print "\n\nn=0"
+calculate2013(n0, N)
