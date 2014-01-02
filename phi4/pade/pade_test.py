@@ -1,8 +1,12 @@
 #!/usr/bin/python
 # -*- coding: utf8
+import sys
+
 __author__ = 'mkompan'
 
 import sympy
+import scipy.integrate as integrate
+import math
 
 
 def pade_aproximant(L, M, tau):
@@ -78,14 +82,13 @@ def resummation_pade(L, M, series_dict):
     return padeFunc_.subs(tau, 1)
 
 func_template = """
-
-def func(tau,arg):
-    from pygsl import _numobj as numx
-    res = numx.exp(-tau) * ({pade})
+def func(x):
+    tau = x/(1-x)
+    res = math.exp(-tau) * ({pade})/(1-x)**2
     return res
 """
 
-from pygsl import integrate
+
 def resummation_pade_borel(L, M, series_dict, b=0):
     tau = sympy.var('tau')
     borel_dict = borel_transform(series_dict, b=b)
@@ -101,13 +104,16 @@ def resummation_pade_borel(L, M, series_dict, b=0):
 
 #    print func_template.format(pade=padeFunc_)
     exec(func_template.format(pade=padeFunc_))
-    gfunc = integrate.gsl_function(func, None)
-    w = integrate.workspace(1000000)
     try:
-        flag, result, error = integrate.qagiu(gfunc, 0, 1e-12, 1e-12, 100000, w)
-        return result
+        output = integrate.quad(func, 0., 1., full_output=1)
+        result = output[0]
+        if len(output)==4:
+            warn = output[3]
+        else:
+            warn = None
+        return result, warn
     except:
-        return None
+        return None, None
     #flag, result, error = integrate.qagiu(gfunc, 0, 1e-12, 1e-12, 100000, w)
     #return result
 
@@ -167,9 +173,23 @@ def print_pade(series_dict, N, m0=0, l0=0):
         print "%10d" % (i),
     print
     for M in range(m0, N + 1):
-        print "%10d" % M,
+        if l0 < N - M + 1:
+            print "%10d" % M,
         for L in range(l0, N - M + 1):
             print "%10.4f" % (resummation_pade(L, M, series_dict)),
+        print
+
+def print_pade_minus(series_dict, N, m0=0, l0=0):
+    print "Pade"
+    print " "*10,
+    for i in range(l0, N + 1):
+        print "%10d" % (i),
+    print
+    for M in range(m0, N + 1):
+        if l0 < N - M + 1:
+            print "%10d" % M,
+        for L in range(l0, N - M + 1):
+            print "%10.4f" % (1/resummation_pade(L, M, series_dict)),
         print
 
 
@@ -182,12 +202,13 @@ def print_pade_borel(series_dict, N, m0=0, l0=0):
         print "%10d" % (i),
     print
     for M in range(m0, N + 1):
-        print "%10d" % M,
+        if l0 < N - M + 1:
+            print "%10d" % M,
         for L in range(l0, N - M + 1):
         #        print M, L,
             #FIXME : unknown exception
             try:
-                res = resummation_pade_borel(L, M, series_dict)
+                res, warn = resummation_pade_borel(L, M, series_dict)
             except:
                 res = "    Except"
             if res is None:
@@ -195,25 +216,29 @@ def print_pade_borel(series_dict, N, m0=0, l0=0):
             elif isinstance(res, str):
                 print res,
             else:
-                print "%10.4f" % res,
+                if warn is not None:
+                    print "%9.4fW" % res,
+                else:
+                    print "%9.4f " % res,
         print
 
 
 def print_pade_borel_minus(series_dict, N, m0=0, l0=0):
     print "Pade-Borel-1"
-    print (2, 3), 1/resummation_pade_borel(2, 3, series_dict)
-    print (3, 2), 1/resummation_pade_borel(3, 2, series_dict)
+    print (2, 3), 1/resummation_pade_borel(2, 3, series_dict)[0]
+    print (3, 2), 1/resummation_pade_borel(3, 2, series_dict)[0]
     print " "*10,
     for i in range(l0, N + 1):
         print "%10d" % (i),
     print
     for M in range(m0, N + 1):
-        print "%10d" % M,
+        if l0 < N - M + 1:
+            print "%10d" % M,
         for L in range(l0, N - M + 1):
         #        print M, L,
             #FIXME : unknown exception
             try:
-                res = resummation_pade_borel(L, M, series_dict)
+                res, warn = resummation_pade_borel(L, M, series_dict)
             except:
                 res = "    Except"
             if res is None:
@@ -221,7 +246,10 @@ def print_pade_borel_minus(series_dict, N, m0=0, l0=0):
             elif isinstance(res, str):
                 print res,
             else:
-                print "%10.4f" % (1/res),
+                if warn is not None:
+                    print "%9.4fW" % (1/res),
+                else:
+                    print "%9.4f " % (1/res),
         print
 
 
@@ -229,78 +257,33 @@ def print_pade_borel_minus(series_dict, N, m0=0, l0=0):
 def calculate2013(result, N):
 
     print "gamma"
-    try:
-        print_ds(result.gamma)
-    except:
-        print
-    try:
-        print_dsm1(result.gamma_minus)
-    except:
-        print
 
-    try:
-        print_pade(result.gamma, N)
-    except:
-        print
+    print_ds(result.gamma)
 
-    try:
-        print_pade_borel(result.gamma, N)
-    except:
-        print
-    try:
-        print_pade_borel_minus(result.gamma_minus, N)
-    except:
-        print
+    print_dsm1(result.gamma_minus)
+    print_pade(result.gamma, N)
+    print_pade_borel(result.gamma, N)
+
+    print_pade_borel_minus(result.gamma_minus, N)
 
     print
     print "nu"
-    try:
-        print_ds(result.nu)
-    except:
-        print
-
-    try:
-        print_dsm1(result.nu_minus)
-    except:
-        print
-
-    try:
-        print_pade(result.nu, N)
-    except:
-        print
-
-    try:
-        print_pade_borel(result.nu, N)
-    except:
-        print
-
-
-    try:
-        print_pade_borel_minus(result.nu_minus, N)
-    except:
-        print
+    print_ds(result.nu)
+    print_dsm1(result.nu_minus)
+    print_pade(result.nu, N)
+    print_pade_borel(result.nu, N)
+    print_pade_borel_minus(result.nu_minus, N)
 
     print
     print "eta"
 
 
-    try:
-        print_ds(result.eta)
-    except:
-        print
+    print_ds(result.eta)
 
     print "DS-1", "-------"
 
-    try:
-        print_pade(result.eta, N, l0=2)
-    except:
-        print
-
-    try:
-        print_pade_borel(result.eta, N, l0=2)
-    except:
-        print
-
+    print_pade(result.eta, N, l0=2)
+    print_pade_borel(result.eta, N, l0=2)
 
 
 
@@ -310,10 +293,10 @@ print "\ngStar\n"
 print_pade(gStar_05, N, l0=1)
 
 print "\ngamma^-1\n"
-print_pade(gamma_minus_05, N)
+print_pade_minus(gamma_minus_05, N)
 
 print "\nnu^-1\n"
-print_pade(nu_minus_05, N)
+print_pade_minus(nu_minus_05, N)
 
 
 print 2013
@@ -321,10 +304,8 @@ print 2013
 print "\n\nn=1"
 calculate2013(n1, N)
 
-#try:
-#    calculate2013(n1)
-#except:
-#    pass
-
 print "\n\nn=0"
 calculate2013(n0, N)
+
+print "\n\nn=-1"
+calculate2013(nm1, N)
