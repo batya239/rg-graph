@@ -287,26 +287,26 @@ def calculate2013(result, N):
     print_pade_borel(result.eta, N, l0=2)
 
 
+if __name__ == "__main__":
+    N = 5
 
-N = 5
+    print "\ngStar\n"
+    print_pade(gStar_05, N, l0=1)
 
-print "\ngStar\n"
-print_pade(gStar_05, N, l0=1)
+    print "\ngamma^-1\n"
+    print_pade_minus(gamma_minus_05, N)
 
-print "\ngamma^-1\n"
-print_pade_minus(gamma_minus_05, N)
-
-print "\nnu^-1\n"
-print_pade_minus(nu_minus_05, N)
+    print "\nnu^-1\n"
+    print_pade_minus(nu_minus_05, N)
 
 
-print 2013
+    print 2013
 
-print "\n\nn=1"
-calculate2013(n1, N)
+    print "\n\nn=1"
+    calculate2013(n1, N)
 
-print "\n\nn=0"
-calculate2013(n0, N)
+    print "\n\nn=0"
+    calculate2013(n0, N)
 
-print "\n\nn=-1"
-calculate2013(nm1, N)
+    print "\n\nn=-1"
+    calculate2013(nm1, N)
