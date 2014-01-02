@@ -81,6 +81,7 @@ def resummation_pade(L, M, series_dict):
 
     return padeFunc_.subs(tau, 1)
 
+#FIXME : b!=0 !!!!
 func_template = """
 def func(x):
     tau = x/(1-x)
