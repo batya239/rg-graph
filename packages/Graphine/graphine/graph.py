@@ -132,7 +132,9 @@ class Graph(object):
         """
         immutable operation
         """
-        newEdges = copy.deepcopy(self._edges)
+        if not len(edgesToRemove):
+            return self
+        newEdges = Graph.dict_copy(self._edges)
         for edge in edgesToRemove:
             Graph._persDeleteEdge(newEdges, edge)
         return Graph(newEdges, externalVertex=self.externalVertex)
@@ -141,7 +143,7 @@ class Graph(object):
         """
         transactional changes graph structure
         """
-        newEdges = copy.deepcopy(self.allEdges())
+        newEdges = copy.copy(self.allEdges())
         map(lambda e: newEdges.remove(e), edgesToRemove)
         map(lambda e: newEdges.append(e), edgesToAdd)
         return Graph(newEdges, externalVertex=self.externalVertex)
@@ -209,25 +211,21 @@ class Graph(object):
         edges = map(lambda e: e.copy(vertex_transformation.mapping), unTransformedEdges)
 
         newRawEdges = copy.copy(self.allEdges())
-        markedVertexes = set()
+        marked_vertexes = set()
         for edge in edges:
             v1, v2 = edge.nodes
             if v1 != self.externalVertex and v2 != self.externalVertex:
                 newRawEdges.remove(edge)
-                markedVertexes.add(v1)
-                markedVertexes.add(v2)
-
-        newEdges = []
+                marked_vertexes.add(v1)
+                marked_vertexes.add(v2)
+        newEdges = list()
         currVertexTransformationMap = dict()
         for edge in newRawEdges:
-            v1, v2 = edge.nodes
             copy_map = {}
-            if v1 in markedVertexes:
-                currVertexTransformationMap[v1] = self._nextVertexIndex
-                copy_map[v1] = self._nextVertexIndex
-            if v2 in markedVertexes:
-                currVertexTransformationMap[v2] = self._nextVertexIndex
-                copy_map[v2] = self._nextVertexIndex
+            for v in edge.nodes:
+                if v in marked_vertexes:
+                    currVertexTransformationMap[v] = self._nextVertexIndex
+                    copy_map[v] = self._nextVertexIndex
             if len(copy_map):
                 newEdges.append(edge.copy(copy_map))
             else:
@@ -319,6 +317,13 @@ class Graph(object):
         if not isinstance(other, Graph):
             return False
         return self.toGraphState() == other.toGraphState() and self.vertices() == other.vertices()
+
+    @staticmethod
+    def dict_copy(some_dict):
+        copied = dict()
+        for (k, v) in some_dict.iteritems():
+            copied[k] = list(v)
+        return copied
 
     @staticmethod
     def fromStr(string,

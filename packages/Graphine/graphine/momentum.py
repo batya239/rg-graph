@@ -45,7 +45,7 @@ def xPickPassingExternalMomentum(graph, filters=list()):
         for e in edgesPair:
             vertices |= set(e.nodes)
         if len(vertices) == 3:
-            graph_with_momentum_passing = graph.deleteEdges(external_edges).addEdges(list(edgesPair))
+            graph_with_momentum_passing = graph.change(external_edges, list(edgesPair))
             is_valid = True
             for f in filters:
                 if not f(graph_with_momentum_passing):

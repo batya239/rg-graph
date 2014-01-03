@@ -38,7 +38,7 @@ class GraphTestCase(unittest.TestCase):
         """
 
         #creates Graph object from nickel string
-        g = gr.Graph.fromStr("123-24-5-45-5-")
+        g = gr.Graph.fromStr("123|24|5|45|5|")
 
         #find edges which node are 0 and 2
         e = g.edges(0, 2)[0]
@@ -58,10 +58,10 @@ class GraphTestCase(unittest.TestCase):
 
         #change graph edges: 1st arg -- edges to remove, 2nd -- edges to add
         newGraph = g.change((e,), newEdges)
-        self.assertEqual(str(newGraph), "e12-e3-45-46-7-67-7--::")
+        self.assertEqual(str(newGraph), "e12|e3|45|46|7|67|7||")
 
     def testIndexableEdges(self):
-        graph = gr.Graph(gs.GraphState.fromStr("e11-e-::"))
+        graph = gr.Graph(gs.GraphState.fromStr("e11|e|::"))
         edges = graph.allEdges()
         uniqueIndexes = set(map(lambda e: e.edge_id, edges))
         self.assertEqual(len(edges), len(uniqueIndexes))
@@ -75,12 +75,12 @@ class GraphTestCase(unittest.TestCase):
         self.assertSetEqual(set(graph.allEdges()), set(graphState.edges))
 
     def testGetRelevantSubGraphs(self):
-        self.doTestGetRelevantSubGraphs("e111-e-::", 0)
-        self.doTestGetRelevantSubGraphs("ee12-223-3-ee-::", 3)
-        self.doTestGetRelevantSubGraphs("ee12-e3-445-455-5--::", 5)
-        self.doTestGetRelevantSubGraphs("ee12-e22-e-::", 1)
+        self.doTestGetRelevantSubGraphs("e111|e|::", 0)
+        self.doTestGetRelevantSubGraphs("ee12|223|3|ee|::", 3)
+        self.doTestGetRelevantSubGraphs("ee12|e3|445|455|5||::", 5)
+        self.doTestGetRelevantSubGraphs("ee12|e22|e|::", 1)
 
-        graph = gr.Graph(gs.GraphState.fromStr("e14-2-344-4-e-::"))
+        graph = gr.Graph(gs.GraphState.fromStr("e14|2|344|4|e|::"))
         current = [g for g in
                    graph.xRelevantSubGraphs(twoEdgesFilter, gr.Representator.asList)]
         return graph_operations.isGraphConnected(current[1], graph, graph.allEdges())
@@ -97,41 +97,37 @@ class GraphTestCase(unittest.TestCase):
     def testShrinkToPointInBatch(self):
         self.doTestShrinkToPointInBatch([(-1, 0), (0, 1), (0, 2), (1, 2), (2, 3), (1, 3), (3, -1)],
                                         [[(0, 1), (0, 2), (1, 2)], [(1, 3)]],
-                                        'ee0-::')
+                                        'ee0|')
 
         self.doTestShrinkToPointInBatch([(-1, 0), (0, 1), (0, 2), (1, 2), (1, 2), (2, 3), (1, 3), (3, -1)],
                                         [[(0, 1), (0, 2), (1, 2)], [(1, 3)]],
-                                        'ee00-::')
+                                        'ee00|')
 
         self.doTestShrinkToPointInBatch([(-1, 0), (0, 1), (0, 2), (1, 2), (1, 2), (0, 3), (1, 3), (2, -1)],
                                         [[(2, 1), (3, 2), (1, 3)], [(0, 1), (0, 2)]],
-                                        'ee0-::')
+                                        'ee0|')
 
     def testShrinkToPoint(self):
-        #self.doTestShrinkToPoint([(-1, 0), (0, 1), (0, 2), (1, 2), (2, 3), (1, 3), (3, -1)],
-        #                         [(0, 1), (0, 2), (1, 2)],
-        #                         'e11-e-::')
-        #
-        #self.doTestShrinkToPoint([(-1, 0), (0, 1), (0, 1), (0, 1), (1, -1)],
-        #                         [(0, 1), (0, 1)],
-        #                         'ee0-::')
-        #
-        self.doTestShrinkToPoint([(-1, 0), (0, 1), (0, 2), (1, 2), (1, 3), (2, 3), (3, -1)],
-                                 [(0, 1), (2, 3)],
-                                 "e111-e-")
+        self.doTestShrinkToPoint([(-1, 0), (0, 1), (0, 2), (1, 2), (2, 3), (1, 3), (3, -1)],
+                                 [(0, 1), (0, 2), (1, 2)],
+                                 'e11|e|')
+
+        self.doTestShrinkToPoint([(-1, 0), (0, 1), (0, 1), (0, 1), (1, -1)],
+                                 [(0, 1), (0, 1)],
+                                 'ee0|')
 
     def testGetLoopCount(self):
-        self.assertEqual(gr.Graph.fromStr('e111-e-::').getLoopsCount(), 2)
-        self.assertEqual(gr.Graph.fromStr('ee11-ee-::').getLoopsCount(), 1)
-        self.assertEqual(gr.Graph.fromStr('111--::').getLoopsCount(), 2)
+        self.assertEqual(gr.Graph.fromStr('e111|e|::').getLoopsCount(), 2)
+        self.assertEqual(gr.Graph.fromStr('ee11|ee|::').getLoopsCount(), 1)
+        self.assertEqual(gr.Graph.fromStr('111||::').getLoopsCount(), 2)
 
     def testDeleteVertex(self):
-        self.doTestDeleteVertex("e12-223-3-e-::", "e1-2-e-::", 2, False)
-        self.doTestDeleteVertex("e12-34-34--e-::", "e12-3-3-e-::", 3, False)
-        self.doTestDeleteVertex("e112-3-e3--::", "e1-e22--::", 3, False)
-        self.doTestDeleteVertex("e12-223-3-e-::", "ee1-ee2-ee-::", 2, True)
-        self.doTestDeleteVertex("e12-34-34--e-::", "e12-e3-e3-e-::", 3, True)
-        self.doTestDeleteVertex("e112-3-e3--::", "ee1-e22-e-::", 3, True)
+        self.doTestDeleteVertex("e12|223|3|e|::", "e1|2|e|::", 2, False)
+        self.doTestDeleteVertex("e12|34|34||e|::", "e12|3|3|e|::", 3, False)
+        self.doTestDeleteVertex("e112|3|e3||::", "e1|e22||::", 3, False)
+        self.doTestDeleteVertex("e12|223|3|e|::", "ee1|ee2|ee|::", 2, True)
+        self.doTestDeleteVertex("e12|34|34||e|::", "e12|e3|e3|e|::", 3, True)
+        self.doTestDeleteVertex("e112|3|e3||::", "ee1|e22|e|::", 3, True)
 
     def doTestDeleteVertex(self, rawToDelete, rawExpected, vertexToDelete, transformEdgesToExternal):
         actual = gr.Graph.fromStr(rawToDelete).deleteVertex(vertexToDelete, transformEdgesToExternal)
