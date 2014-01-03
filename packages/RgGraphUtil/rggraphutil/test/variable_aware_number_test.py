@@ -31,7 +31,6 @@ class VariableAwareNumberAuxFunctionsTestCase(unittest.TestCase):
                                                                      v_number.VariableAwareNumber.create(varName, 2),
                                                                      v_number.VariableAwareNumber.create(varName, (3, 4)),
                                                                      v_number.VariableAwareNumber.create(varName, 2)])
-        print c1
         self.assertEquals(c1[0], 12)
         self.assertEquals(c1[1], 40.0)
         self.assertEquals(c1[2], 32.0)
@@ -39,7 +38,6 @@ class VariableAwareNumberAuxFunctionsTestCase(unittest.TestCase):
         c2 = v_number.VariableAwareNumber.getPolynomialCoefficients([v_number.VariableAwareNumber.create(varName, 3),
                                                                      v_number.VariableAwareNumber.create(varName, (2, 5)),
                                                                      v_number.VariableAwareNumber.create(varName, (3, 4))])
-        print c2
         self.assertEquals(len(c2), 3)
         self.assertEquals(c2[0], 18)
         self.assertEquals(c2[1], 69)
@@ -47,7 +45,6 @@ class VariableAwareNumberAuxFunctionsTestCase(unittest.TestCase):
         c3 = v_number.VariableAwareNumber.getPolynomialCoefficients([v_number.VariableAwareNumber.create(varName, (0, 3)),
                                                                      v_number.VariableAwareNumber.create(varName, (2, 5)),
                                                                      v_number.VariableAwareNumber.create(varName, (3, 4))])
-        print c3
         self.assertEquals(len(c3), 4)
         self.assertEquals(c3[0], 0)
         self.assertEquals(c3[1], 18)
