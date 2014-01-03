@@ -111,7 +111,7 @@ class PoleExtractorTest(unittest.TestCase):
                                     multiindex.MultiIndex({3: 1, 5: 1}): 1}, degree=eps_number.epsNumber((-3, 1)))
         pp = polynomial_product.PolynomialProduct([p1, p2, p3, p4])
         extracted = pole_extractor.extract_poles_and_eps_series(pp, 2)
-         print extracted
+        print extracted
         formatted_dict = formatter.formatPoleExtracting(extracted)
         print formatted_dict
 
