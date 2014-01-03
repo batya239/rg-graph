@@ -23,15 +23,15 @@ subgraphIRFilters = (filters.connected + filters.isRelevant(ir))
 
 class Phi4Test(unittest.TestCase):
     def testIRCondition(self):
-        self.doTestIRCondition("e12-34-34--e-", ["ee1-2-ee-::"])
-        self.doTestIRCondition("e112-e2--", ["eee1-2-eee-::"])
-        self.doTestIRCondition("e123-224-4-4-e-", ["eee1-2-eee-::"])
-        self.doTestIRCondition("e112-23-e4-45-55--", ['eee1-223-3-4-eee-::'])
+        self.doTestIRCondition("e12|34|34||e|", ["ee1|2|ee|::"])
+        self.doTestIRCondition("e112|e2||", ["eee1|2|eee|::"])
+        self.doTestIRCondition("e123|224|4|4|e|", ["eee1|2|eee|::"])
+        self.doTestIRCondition("e112|23|e4|45|55||", ['eee1|223|3|4|eee|::'])
 
     def testUVCondition3(self):
-        g = graphine.Graph(graph_state.GraphState.fromStr("e1234-e255-3--5--:000000oiio-00000000-00--00--:"))
+        g = graphine.Graph(graph_state.GraphState.fromStr("e1234|e255|3||5||::00_00_00_oi_io|00_00_00_00|00||00||"))
         uv = [str(x) for x in g.xRelevantSubGraphs(subgraphUVFilters, cutEdgesToExternal=True)]
-        self.assertEqual(uv, ['eee11-e-:0000000000-00-:'])
+        self.assertEqual(uv, ['eee11|e|::00_00_00_00_00|00|'])
 
     def doTestIRCondition(self, graphState, expectedGraphGraphs=list()):
         g = graphine.Graph(graph_state.GraphState.fromStr(graphState))

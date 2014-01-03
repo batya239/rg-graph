@@ -10,7 +10,6 @@ from rggraphenv import storage, graph_calculator, symbolic_functions
 
 DEBUG = False
 
-
 def _create_filter():
     class RelevanceCondition:
     # noinspection PyUnusedLocal
@@ -29,6 +28,8 @@ def _create_filter():
     #return graphine.filters.oneIrreducible + graphine.filters.noTadpoles + graphine.filters.isRelevant(
     return graphine.filters.oneIrreducible + graphine.filters.isRelevant(
         RelevanceCondition())
+
+_FILTER = _create_filter()
 
 
 def calculateGraphsValues(graphs, suppressException=False, useGraphCalculator=False):
@@ -63,19 +64,16 @@ def calculateGraphValue(graph, suppressException=False, useGraphCalculator=False
 def _adjust(graphAsList, externalVertex):
     adjustedEdges = []
     boundaryVertexes = set()
-    for e in graphAsList:
-        if externalVertex in e.nodes:
-            boundaryVertexes |= set(e.nodes)
-        else:
-            adjustedEdges.append(e)
-    boundaryVertexes.remove(externalVertex)
     adjustedExternalEdges = []
     hasFields = graphAsList[0].fields is not None
-    for v in boundaryVertexes:
-        adjustedExternalEdges.append(graph_state.Edge((externalVertex, v),
-                                                      external_node=externalVertex,
-                                                      colors=(0, 0),
-                                                      fields=const.EMPTY_NUMERATOR if hasFields else None))
+    for e in graphAsList:
+        if externalVertex in e.nodes:
+            if e.internal_nodes[0] not in boundaryVertexes:
+                boundaryVertexes |= set(e.internal_nodes)
+                adjustedExternalEdges.append(e.copy(colors=(0, 0),
+                                                    fields=const.EMPTY_NUMERATOR if hasFields else None))
+        else:
+            adjustedEdges.append(e)
     return adjustedEdges + adjustedExternalEdges, adjustedEdges, tuple(boundaryVertexes)
 
 
@@ -97,7 +95,8 @@ class GGraphReducer(object):
         """
         momentumPassing -- two external edges of graph in which external momentum passing
         """
-        self._fieldsAware = len(str(graph).split(":")[1]) != 0
+        graph_str = str(graph)
+        self._fieldsAware = ":" in graph_str and len(graph_str.split(":")[2]) != 0
         if isinstance(graph, graphine.Graph):
             if len(momentumPassing):
                 self._initGraph = graphine.momentum.passMomentOnGraph(graph, momentumPassing)
@@ -107,7 +106,7 @@ class GGraphReducer(object):
             raise TypeError('unsupported type of initial graph')
         self._iterationGraphs = [self._initGraph] if iterationGraphs is None else iterationGraphs
         self._iterationValues = [] if iterationValues is None else iterationValues
-        self._subGraphFilter = subGraphFilters if rawFilters else (_create_filter() + subGraphFilters)
+        self._subGraphFilter = subGraphFilters if rawFilters else (_FILTER + subGraphFilters)
         self._useGraphCalculator = useGraphCalculator
         self._isTadpole = None
 
@@ -189,7 +188,7 @@ class GGraphReducer(object):
         maximalSubGraphValue = storage.getGraph(subGraphInfo[1])
 
         if self._fieldsAware:
-            fs = str(subGraphInfo[1]).split(":")[1]
+            fs = str(subGraphInfo[1]).split(":")[2]
             if fs.count("i") % 2 == 0:
                 fields = const.EMPTY_NUMERATOR
             else:
@@ -339,9 +338,7 @@ class GGraphReducer(object):
             newEdge = graph_state.Edge(boundaryVertexes,
                                        external_node=self._initGraph.externalVertex,
                                        colors=lambda_number.to_rainbow(newLambdaNumber))
-            currentGraph = self.getCurrentIterationGraph()
-            currentGraph = currentGraph.deleteEdges(edges)
-            currentGraph = currentGraph.addEdge(newEdge)
+            currentGraph = self.getCurrentIterationGraph().change(edgesToRemove=edges, edgesToAdd=[newEdge])
             self._iterationGraphs.append(currentGraph)
             return True
 

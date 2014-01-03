@@ -9,8 +9,8 @@ import ir_uv
 __author__ = 'daddy-bear'
 
 
-uv = ir_uv.UVRelevanceCondition()
-ir = ir_uv.IRRelevanceCondition()
+uv = ir_uv.UV_RELEVANCE_CONDITION_4_DIM
+ir = ir_uv.IR_RELEVANCE_CONDITION_4_DIM
 
 subgraphUVFilters = (filters.oneIrreducible
                      + filters.noTadpoles
@@ -22,9 +22,9 @@ subgraphIRFilters = (filters.connected + filters.isRelevant(ir))
 
 class Phi4Test(unittest.TestCase):
     def testIRCondition(self):
-        self.doTestIRCondition("e12-34-34--e-", ["ee1-2-ee-::"])
-        self.doTestIRCondition("e112-e2--", ["eee1-2-eee-::"])
-        self.doTestIRCondition("e123-224-4-4-e-", ["eee1-2-eee-::"])
+        self.doTestIRCondition("e12|34|34||e|", ["ee1|2|ee|::"])
+        self.doTestIRCondition("e112|e2||", ["eee1|2|eee|::"])
+        self.doTestIRCondition("e123|224|4|4|e|", ["eee1|2|eee|::"])
 
     def doTestIRCondition(self, graphState, expectedGraphGraphs=list()):
         g = graphine.Graph(graph_state.GraphState.fromStr(graphState))

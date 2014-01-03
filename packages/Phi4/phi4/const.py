@@ -6,7 +6,8 @@ __author__ = 'dimas'
 
 ONE_LINE_WEIGHT = (1, 0)
 
-SPACE_DIM = 4
+SPACE_DIM_PHI4 = 4
+SPACE_DIM_PHI3 = 6
 EDGE_WEIGHT = -2
 
 NUMERATOR_INPUT = "i"

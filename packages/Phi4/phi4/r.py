@@ -63,7 +63,8 @@ def KRStar(initial_graph, k_operation, uv_sub_graph_filter, description="", use_
                       description=description,
                       use_graph_calculator=use_graph_calculator,
                       force=False)
-            return kr1
+            #TODO
+            return kr1.subs(symbolic_functions.p == 1)
         except common.CannotBeCalculatedError:
             pass
         iterator = graphine.Graph.batchInitEdgesColors(graphine.momentum.xArbitrarilyPassMomentum(initial_graph))
@@ -106,7 +107,8 @@ def KRStar(initial_graph, k_operation, uv_sub_graph_filter, description="", use_
                 krs += sub
             if DEBUG:
                 print "R*", graph, str(krs.evalf())
-            return krs
+            #TODO
+            return krs.subs(symbolic_functions.p == 1)
         except common.CannotBeCalculatedError:
             pass
     raise common.CannotBeCalculatedError(initial_graph)
@@ -340,7 +342,3 @@ def _has_momentum_quadratic_divergence(sub_graph, graph, excluded_edges):
                 return edge
 
     assert False
-
-
-def _is_graph_quadratic_divergence(graph):
-    return 2 == const.SPACE_DIM * graph.getLoopsCount() + const.EDGE_WEIGHT * len(graph.internalEdges())

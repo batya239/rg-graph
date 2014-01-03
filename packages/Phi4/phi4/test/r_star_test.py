@@ -109,10 +109,27 @@ class RStarTestCase(base_test_case.GraphStorageAwareTestCase):
     #def test_ee12_334_345_e_55_e_(self):
     #    self._do_test_krstar("ee12-334-345-e-55-e-",
     #                         "-(4./3)/2/e-(2./15)/2/2/e/e+11./5/2/2/2/e/e/e-32./15/2/2/2/2/e/e/e/e+4./5/2/2/2/2/2/e/e/e/e/e")
-
-    def test_ee12_234_35_45_e5_e_(self):
-        self._do_test_krstar("e123-e24-55-e45-e5--",
-                             "-1/378*(Pi**6+(831.60000000000006715)*zeta(3)**2-1890*zeta(5))*e**(-1)-zeta(5)*e**(-2)", use_graph_calculator=True)
+    #
+    #def test_ee12_234_35_45_e5_e_(self):
+    #    self._do_test_krstar("e112-34-e35-45-e5-e-",
+    #                         "-1/378*(Pi**6-(75.6000000000000042)*zeta(3)**2-1890*zeta(5))*e**(-1)-zeta(5)*e**(-2)", use_graph_calculator=True)
+    #
+    ##TODO
+    #def _test_e123_e24_55_e45_e5__(self):
+    #    self._do_test_krstar("e123-e24-55-e45-e5--",
+    #                         "-1/378*(Pi**6+(831.60000000000006715)*zeta(3)**2-1890*zeta(5))*e**(-1)-zeta(5)*e**(-2)", use_graph_calculator=True)
+    #
+    #def test_e123_e45_e45_445__e_(self):
+    #    self._do_test_krstar("e123-e45-e45-445--e-",
+    #                         "-zeta(5)*e**(-2)-1/378*(Pi**6+(1285.1999999999999664)*zeta(3)**2-1890*zeta(5))*e**(-1)", use_graph_calculator=True)
+    #
+    #def test_e112_34_e35_45_e5_e_(self):
+    #    self._do_test_krstar("e112-34-e35-45-e5-e-",
+    #                         "-1/378*(Pi**6-(75.6000000000000042)*zeta(3)**2-1890*zeta(5))*e**(-1)-zeta(5)*e**(-2)", use_graph_calculator=True)
+    #
+    #def test_e112_34_e35_45_e5_e_(self):
+    #    self._do_test_krstar("e112-34-e35-45-e5-e-",
+    #                         "-1/378*(Pi**6-(75.6000000000000042)*zeta(3)**2-1890*zeta(5))*e**(-1)-zeta(5)*e**(-2)", use_graph_calculator=True)
 
     def _do_test_krstar(self, graph_state_as_string, expected_result_as_string, use_graph_calculator=False):
         try:

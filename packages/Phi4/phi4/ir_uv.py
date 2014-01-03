@@ -16,7 +16,7 @@ def uvIndex(graph):
     nEdges = len(graph.allEdges()) - len(graph.edges(graph.externalVertex))
     nVertexes = len(graph.vertices()) - 1
     nLoop = nEdges - nVertexes + 1
-    index = nEdges * const.EDGE_WEIGHT + nLoop * const.SPACE_DIM
+    index = nEdges * const.EDGE_WEIGHT + nLoop * const.SPACE_DIM_PHI4
     return index
 
 
@@ -45,7 +45,8 @@ class UVRelevanceCondition(object):
         return subGraphUVIndex >= 0
 
 
-UV_RELEVANCE_CONDITION_4_DIM = UVRelevanceCondition(const.SPACE_DIM)
+UV_RELEVANCE_CONDITION_4_DIM = UVRelevanceCondition(const.SPACE_DIM_PHI4)
+UV_RELEVANCE_CONDITION_6_DIM = UVRelevanceCondition(const.SPACE_DIM_PHI3)
 
 
 class IRRelevanceCondition(object):
@@ -62,7 +63,7 @@ class IRRelevanceCondition(object):
         nEdges = len(edgesList) - len(externalEdges)
         nVertexes = len(subGraph.vertices()) - 1
         nLoop = nEdges - nVertexes + 1
-        subGraphIRIndex = nEdges * const.EDGE_WEIGHT + numeratorsCount(edgesList) + (nLoop + 1) * const.SPACE_DIM
+        subGraphIRIndex = nEdges * const.EDGE_WEIGHT + numeratorsCount(edgesList) + (nLoop + 1) * const.                                                                           SPACE_DIM_PHI4
         # invalid result for e12-e333-3-- (there is no IR subGraphs)
         if subGraphIRIndex > 0:
             return False

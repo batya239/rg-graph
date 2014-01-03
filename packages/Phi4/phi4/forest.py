@@ -48,7 +48,13 @@ def _generate_forests(co_sub_graph, graph):
     return forests
 
 
-def _calculate_delta_ir(forest, co_sub_graph, graph, k_operation, uv_sub_graph_filter, description="", use_graph_calculator=True):
+def _calculate_delta_ir(forest,
+                        co_sub_graph,
+                        graph,
+                        k_operation,
+                        uv_sub_graph_filter,
+                        description="",
+                        use_graph_calculator=True):
     forest_extension = [co_sub_graph] + forest
     sign = -1 if len(forest_extension) % 2 == 0 else 1
     f = forest_extension.pop()
@@ -60,9 +66,9 @@ def _calculate_delta_ir(forest, co_sub_graph, graph, k_operation, uv_sub_graph_f
         while len(forest_extension):
             curr_f = forest_extension.pop()
             delta_ir *= (-1) * r.KRStar(_remove_tails(prev_f.shrinkToPoint(curr_f.allEdges())),
-                                 k_operation, uv_sub_graph_filter,
-                                 description=description,
-                                 use_graph_calculator=use_graph_calculator)
+                                        k_operation, uv_sub_graph_filter,
+                                        description=description,
+                                        use_graph_calculator=use_graph_calculator)
             prev_f = curr_f
     return delta_ir
 
@@ -97,6 +103,7 @@ UN_COMPARABLE_EXCEPTION = UnComparableException()
 
 def _x_generate_forests(graph, co_sub_graph):
 
+    # noinspection PyUnusedLocal
     @filters.graphFilter
     def superGraphFilter(edges_list, _super_graph, _super_graph_edges):
         maybe_spinney_generator = graphine.Graph(edges_list, renumbering=False)

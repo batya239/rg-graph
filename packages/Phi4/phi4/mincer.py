@@ -1,5 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf8
+#
+#
+#    DEPRECATED SHIT
+#
+#
 import copy
 import itertools
 import os

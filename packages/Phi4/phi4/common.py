@@ -66,4 +66,4 @@ defaultGraphHasNotIRDivergenceFilter = [defaultGraphHasNotIRDivergence]
 
 
 def isPSquareGraph(graph):
-    return graph.getLoopsCount() * const.SPACE_DIM - 2 * graph.getAllInternalEdgesCount() == 2
+    return graph.getLoopsCount() * const.SPACE_DIM_PHI4 - 2 * graph.getAllInternalEdgesCount() == 2
