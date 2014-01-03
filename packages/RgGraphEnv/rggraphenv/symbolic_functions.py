@@ -90,27 +90,27 @@ def to_internal_code(expression_as_str):
 
 
 def pole_part(expr):
-    return expr.series(e == 0, 0).convert_to_poly(True)
+    return expr.series(e == 0, 0).convert_to_poly(no_order=True)
 
 
 #noinspection PyPep8Naming
-def G(alpha, beta, d=4-2*e):
+def G(alpha, beta, d=D):
     if alpha == 1 and beta == 1:
         return 1 / e
     return _raw_g(alpha, beta, d=d) / _g11(d=d)
 
 
 #noinspection PyPep8Naming
-def G1(alpha, beta):
-    return (G(alpha, beta) + G(alpha - 1, beta) - G(alpha, beta - 1))/2
+def G1(alpha, beta, d=D):
+    return (G(alpha, beta, d=d) + G(alpha - 1, beta, d=d) - G(alpha, beta - 1, d=d))/2
 
 
 #noinspection PyPep8Naming
-def G2(alpha, beta):
-    return (G(alpha, beta) - G(alpha - 1, beta) - G(alpha, beta - 1))/2
+def G2(alpha, beta, d=D):
+    return (G(alpha, beta, d=d) - G(alpha - 1, beta, d=d) - G(alpha, beta - 1, d=d))/2
 
 
-def _raw_g(alpha, beta, d=4-2*e):
+def _raw_g(alpha, beta, d=D):
     #noinspection PyUnresolvedReferences
     if (alpha + zero).is_equal(zero) or (beta + zero).is_equal(zero) \
         or (2 * (d/2 - 1) + 2 - alpha - beta + zero).is_equal(zero):
@@ -119,5 +119,5 @@ def _raw_g(alpha, beta, d=4-2*e):
            / (tgamma(alpha) * tgamma(beta) * tgamma(2 * (d/2 - 1) + 2 - alpha - beta))
 
 
-def _g11(d=4-2*e):
+def _g11(d=D):
     return _raw_g(1, 1, d=d) * e
