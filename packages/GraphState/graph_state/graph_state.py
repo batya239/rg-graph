@@ -157,6 +157,8 @@ class Edge(object):
 
         properties = kwargs.get('properties', None)
         if properties is None:
+            if 'properties_config' not in kwargs:
+                kwargs['properties_config'] = DEFAULT_PROPERTIES_CONFIG
             properties = graph_state_property.Properties.from_kwargs(**kwargs)
         swap = (nodes[0] > nodes[1])
         if properties is not None and self.is_external():
@@ -232,6 +234,10 @@ class Edge(object):
         updated_properties = None if properties_is_none else self._properties.update(**kwargs)
         if updated_properties is None:
             updated_properties = kwargs.get('properties', None)
+            if updated_properties is None:
+                if 'properties_config' not in kwargs:
+                    kwargs['properties_config'] = DEFAULT_PROPERTIES_CONFIG
+                updated_properties = graph_state_property.Properties.from_kwargs(**kwargs)
 
         return Edge(mapped_nodes,
                     external_node=mapped_external_node,
@@ -256,7 +262,7 @@ class GraphState(object):
     def __init__(self, edges, node_maps=None, default_properties=None):
         # Fields must be in every edge or defaultFields must be not None.
         properties_count = len([edge._properties for edge in edges if edge._properties])
-        assert properties_count == 0 or properties_count == len(edges) or default_properties is not None
+        assert properties_count == 0 or properties_count == len(edges) or default_properties is not None, ("properties_count =  %s, len(edges) = %s, default_properties = %s" % (properties_count, len(edges), default_properties))
 
         node_maps = (node_maps or nickel.Canonicalize([edge.nodes for edge in edges]).node_maps)
         self.sortings = []
@@ -336,6 +342,7 @@ class GraphState(object):
                 if r_property_line != '':
                     r_properties = reduce(lambda _list, line: _list + line.split(GraphState.SEP2), r_property_line.split(nickel.Nickel.SEP),
                                           list())[:-1]
+                    r_properties = filter(lambda p: len(p), r_properties)
                     externalizer = properties_config.externalizer(p_name)
                     un_transposed_properties[p_name] = map(lambda raw_prop: externalizer.deserialize(raw_prop), r_properties)
                 else:
