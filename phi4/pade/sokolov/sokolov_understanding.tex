@@ -16,6 +16,9 @@
 
 \newcommand{\comment}[1]{} % многострочные комментарии
 
+\usepackage{color}
+\definecolor{greenb}{rgb}{0.2,0.7,0.2}
+
 \begin{document}
 
 \title{Проверка результатов статьи \\ 
@@ -432,23 +435,23 @@ comparison.}
 ~~CE~~ & exact & ~~DS~~ & ~DS$^{-1}~ $ & ~Pad\'e~ & PB$_{[2/3]}$ &
 (PB$^{-1}$)$_{[2/3]}$ & (PB$^{-1}$)$_{[3/2]}$ &~5-loop RG~\\ \hline
 \multicolumn{9}{|c|}{$n=1$} \\ \hline
-$\gamma$ & 1.75 & ~~1.7145~ & ~~1.7304~ & ~~1.775~~ & ~1.6105~ & ~1.7746~ &
--- & ~1.790~ \\ \hline
-$\nu$    & 1 & ~~0.9067~ & ~~0.9204~ & ~0.959~ & ~0.8136~ & ~0.9652~ & -- &
+$\gamma$ & 1.75 & \colorbox{green}{~~1.7145~} & \fcolorbox{red}{greenb}{~~1.7304~\footnote{$N=3$}} & \colorbox{green}{~~1.775~~} & \colorbox{green}{~1.6105~} & \colorbox{green}{~1.7746~} &
+\colorbox{red}{--} & ~1.790~ \\ \hline
+$\nu$    & 1 & \colorbox{green}{~~0.9067~} & \fcolorbox{red}{greenb}{~~0.9204~\footnote{$N=3$}} & \colorbox{green}{~0.959~} & \colorbox{green}{~0.8136~} & \colorbox{green}{~0.9652~} & \colorbox{red}{--} &
 ~0.966~ \\ \hline
-$\eta$   & 0.25 & ~~0.1372~ &   &   &   &   &   & ~0.146~ \\ \hline
+$\eta$   & 0.25 & \colorbox{green}{~~0.1372~} & \colorbox{green}{~~}  &  \colorbox{red}{~~} &  \colorbox{red}{~~} &  \colorbox{green}{~~} & \colorbox{green}{~~}  & ~0.146~ \\ \hline
 \multicolumn{9}{|c|}{$n=0$} \\ \hline
-$\gamma$ & ~1.34375~(43/32) & ~~1.4115~ & ~~1.4740~ & ~~1.435~~ & ~1.3804~ &
-~1.4285~ & ~1.4429~ & ~1.449~ \\ \hline
-$\nu$    & 0.75 & ~~0.7250~ & ~~0.7399~ & ~~0.753~~ & ~0.7069~ & ~0.7514~ &
--- & ~0.774~ \\ \hline
-$\eta$   & 0.20833~(5/24) & ~~0.1204~ &   &   &   &   &   & ~0.128~ \\ \hline
+$\gamma$ & ~1.34375~(43/32) & \fcolorbox{red}{greenb}{~~1.4115~\footnote{$N=3$}} & \fcolorbox{red}{greenb}{~~1.4740~\footnote{$N=4$}} & \colorbox{green}{~~1.435~~} & \colorbox{green}{~1.3804~} &
+\colorbox{red}{~1.4285~} & \colorbox{red}{~1.4429~} & ~1.449~ \\ \hline
+$\nu$    & 0.75 &  \fcolorbox{red}{greenb}{~~0.7250~\footnote{$N=3$}} &  \fcolorbox{red}{greenb}{~~0.7399~\footnote{$N=3$}} & \colorbox{green}{~~0.753~~} & \colorbox{green}{~0.7069~} & \colorbox{green}{~0.7514~} &
+\colorbox{red}{--} & ~0.774~ \\ \hline
+$\eta$   & 0.20833~(5/24) & \colorbox{green}{~~0.1204~} & \colorbox{green}{~~}  & \colorbox{red}{~~}  & \colorbox{red}{~~}  &  \colorbox{green}{~~} &  \colorbox{green}{~~} & ~0.128~ \\ \hline
 \multicolumn{9}{|c|}{$n=-1$} \\ \hline
-$\gamma$ & ~1.15625~(37/32)& ~~1.1917~ & ~~1.1952~ & ~~1.192~~ & ~1.1641~ &
-~1.1843~ & -- & ~1.184~ \\ \hline
-$\nu$    & 0.625 & ~~0.6021~ & ~~0.6183~ & ~0.606~ & ~0.5945~ & ~0.6054~ &
-~0.6076~ & ~0.617~ \\ \hline
-$\eta$   & 0.15 & ~~0.0793~ &   &   &   &   &   & ~0.082~ \\ \hline
+$\gamma$ & ~1.15625~(37/32)& \fcolorbox{red}{greenb}{~~1.1917~\footnote{$N=4$}} & \fcolorbox{red}{greenb}{~~1.1952~\footnote{$N=4$}} & \colorbox{green}{~~1.192~~} & \colorbox{green}{~1.1641~} &
+\colorbox{green}{~1.1843~} & \colorbox{red}{--\footnote{Warning}} & ~1.184~ \\ \hline
+$\nu$    & 0.625 & \fcolorbox{red}{greenb}{~~0.6021~\footnote{$N=3$}} & \fcolorbox{red}{greenb}{~~0.6183~\footnote{$N=4$}} & \colorbox{green}{~0.606~} & \colorbox{green}{~0.5945~} & \colorbox{green}{~0.6054~} &
+\colorbox{green}{~0.6076~} & ~0.617~ \\ \hline
+$\eta$   & 0.15 & \colorbox{green}{~~0.0793~} & \colorbox{green}{~~}  & \colorbox{red}{~~}  & \colorbox{red}{~~}  &  \colorbox{green}{~~} & \colorbox{green}{~~}  & ~0.082~ \\ \hline
 \end{tabular}
 \end{table}
 
