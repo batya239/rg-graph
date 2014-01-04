@@ -6,6 +6,7 @@ __author__ = 'dima'
 import graph_state
 import graphine
 from sector import Sector
+from rggraphenv import abstract_graph_calculator
 
 
 def find_topology_result_converter(shrunk, graph):
@@ -23,8 +24,10 @@ class ScalarProductRuleKey(object):
         return hash(self._sp)
 
     def __eq__(self, other):
-        # noinspection PyProtectedMember
-        return self._sp == other._sp
+        if isinstance(other, ScalarProductRuleKey):
+            # noinspection PyProtectedMember
+            return self._sp == other._sp
+        raise AssertionError()
 
 
 class ScalarProduct(object):
@@ -46,9 +49,3 @@ class ScalarProduct(object):
         for i in xrange(self._power):
             result *= factor
         return result if self._sign == 1 else (- result)
-
-    def _apply_once(self, sector_linear_combinations, apply_rules):
-        pass
-
-    def as_key(self):
-        return ScalarProductRuleKey(self._propagator1, self._propagator2)

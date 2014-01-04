@@ -5,6 +5,7 @@ import pydot
 
 
 def generate_png_stream(nomenkl):
+    nomenkl = nomenkl.replace("-", "|")
     edges = nickel.Nickel(string=nomenkl).edges
     nickel_ = str(nickel.Canonicalize(edges))
     g = pydot.Dot(graph_type="graph")
@@ -39,7 +40,7 @@ def _cluster(nomenkl):
     font_size = "12"
     width = "0.1"
     nodes, lines = _prepare(nomenkl)
-    cluster = pydot.Cluster(nomenkl.replace('-', '_'), label=nomenkl)
+    cluster = pydot.Cluster(nomenkl.replace('|', '_'), label=nomenkl)
     for node in nodes:
         if nodes[node] == 'ext':
             cluster.add_node(pydot.Node(node, label='""', fontsize=font_size, width=width, color='white'))

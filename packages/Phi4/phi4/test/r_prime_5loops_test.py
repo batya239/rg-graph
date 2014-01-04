@@ -3,13 +3,14 @@
 import unittest
 import graph_state
 import common
-import mincer_graph_calculator
-import sympy
+import reduction
 import rggraphenv.graph_calculator as graph_calculator
 import r as r_prime
 import graphine.momentum as momentum
 import graphine
 import base_test_case
+import swiginac
+from rggraphenv import symbolic_functions
 
 
 __author__ = 'daddy-bear'
@@ -17,12 +18,12 @@ __author__ = 'daddy-bear'
 
 class RPrime5LoopsTestCase(base_test_case.GraphStorageAwareTestCase):
     def test5Loops(self):
-        graph_calculator.addCalculator(mincer_graph_calculator.MincerGraphCalculator())
+        graph_calculator.addCalculator(reduction.TwoAndThreeReductionCalculator())
         for gs, res in MS.items():
             self._compareRPrime(gs, res, True)
 
     def _compareRPrime(self, graphStateAsString, expected, useGraphCalculator=False):
-        g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr(graphStateAsString)))
+        g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStrOldStyle(graphStateAsString)))
 
         if len(g.edges(g.externalVertex)) == 2:
             withMomentumPassing = g,
@@ -37,8 +38,7 @@ class RPrime5LoopsTestCase(base_test_case.GraphStorageAwareTestCase):
                 actual = r_prime.KR1(graph, common.MSKOperation(), common.defaultSubgraphUVFilter,
                                      use_graph_calculator=useGraphCalculator)
                 sub = expected - actual
-                booleanExpression = expected == actual or abs((sub * g.e ** 5).evalf(
-                    subs={g.e: 1, g.p: 1})) < 1e-5
+                booleanExpression = expected == actual or abs((sub * g.e ** 5).evalf(subs={g.e: 1, g.p: 1})) < 1e-5
                 self.assertTrue(booleanExpression, "\nactual = " + str(actual) + "\nexpected = " + str(expected) + "\nsub = " + str(sub))
                 if booleanExpression:
                     calculated = True
@@ -54,17 +54,9 @@ def main():
     unittest.main()
 
 
-zeta = sympy.special.zeta_functions.zeta
+zeta = swiginac.zeta
 e = 2 * symbolic_functions.e
 MS = {
-    'ee12-e34-e34-44--': (-(1 - 2 * zeta(3)) / e - 5. / 3 / e ** 2 + 8. / 3 / e ** 3 - 4. / 3 / e ** 4),
-
-    'e111-e-': (-0.5 / e),
-    'ee11-ee-': (2. / e),
-    'ee11-22-ee-': (-4. / e ** 2),
-    'ee12-e22-e-': (1. / e - 2. / e / e),
-    'e112-22-e-': (-1. / 6 / e + 2. / 3 / e / e),
-
     'ee11-22-33-ee-': (8. / e ** 3),
     'ee11-23-e33-e-': (-2 / e ** 2 + 4. / e ** 3),
     'ee12-ee3-333--': (-3. / 4 / e + 2. / 3 / e ** 2),

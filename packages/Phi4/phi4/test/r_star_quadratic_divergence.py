@@ -7,7 +7,9 @@ import r
 import swiginac
 import unittest
 import rggraphenv
-import mincer_graph_calculator
+import reduction
+import diff_util
+from rggraphenv import symbolic_functions
 
 __author__ = 'dimas'
 
@@ -20,21 +22,22 @@ r.DEBUG = True
 
 class RStarQuadraticTestCase(base_test_case.GraphStorageAwareTestCase):
     def test_e112_22_e_(self):
-        self.do_test_rstar_quadratic_divergence("e112-22-e-", "1/6*e**(-2)-1/12*e**(-1)")
+        self.do_test_rstar_quadratic_divergence("e112|22|e|", "1/6*e**(-2)-1/12*e**(-1)")
 
     def test_e112_33_e33__(self):
-        self.do_test_rstar_quadratic_divergence("e112-33-e33--", "5/(32*e)+1/(16*e**2)-1/(8*e**3)")
+        self.do_test_rstar_quadratic_divergence("e112|33|e33||", "5/(32*e)+1/(16*e**2)-1/(8*e**3)")
 
     def test_e112_e3_333__(self):
-        self.do_test_rstar_quadratic_divergence("e112-e3-333--", "5/(32*e)-1/(32*e**2)")
+        self.do_test_rstar_quadratic_divergence("e112|e3|333||", "5/(32*e)-1/(32*e**2)")
 
     def test_e123_e23_33__(self):
-        self.do_test_rstar_quadratic_divergence("e123-e23-33--", "-13/(96*e)+7/(48*e**2)-1/(24*e**3)",
+        self.do_test_rstar_quadratic_divergence("e123|e23|33||", "-13/(96*e)+7/(48*e**2)-1/(24*e**3)",
                                                 use_graph_calculator=True)
 
     def do_test_rstar_quadratic_divergence(self, graph_state_as_str, expected_str, use_graph_calculator=False):
         if use_graph_calculator:
-                rggraphenv.graph_calculator.addCalculator(mincer_graph_calculator.MincerGraphCalculator())
+                rggraphenv.graph_calculator.addCalculator(
+                    reduction.ScalarProductTwoAndThreeLoopsGraphCalculator(diff_util.scalar_product_extractor))
         g = graphine.Graph.fromStr(graph_state_as_str,  initEdgesColor=True)
         actual = r.KRStar_quadratic_divergence(g, common.MS_K_OPERATION,
                                                common.defaultSubgraphUVFilter,

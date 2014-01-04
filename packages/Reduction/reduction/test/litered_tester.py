@@ -39,9 +39,9 @@ class LiteRedTester(object):
         self._sector_size = tested_reductor.evaluate_sector_size()
 
     def execute_math(self, sector):
-        code = _LITERED_TEMPLATE.format(sector.as_litered_representation(self._env_name),
+        code = _LITERED_TEMPLATE.format(*((sector.as_litered_representation(self._env_name),
                                         path.join(path.dirname(path.realpath(__file__)), path.pardir, self._env_path, self._env_name),
-                                        self._dir, LiteRedTester.DIMENSIONS)
+                                        self._dir) + LiteRedTester.DIMENSIONS))
         proc = subprocess.Popen("math", shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         proc.stdin.write(code)
         proc.stdin.close()

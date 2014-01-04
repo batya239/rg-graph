@@ -3,7 +3,6 @@
 import unittest
 import graph_state
 import swiginac
-import mincer_graph_calculator
 import graphine
 import rggraphenv.graph_calculator
 import base_test_case
@@ -22,33 +21,33 @@ EPS = swiginac.numeric(1e-5)
 
 
 class RStarTestCase(base_test_case.GraphStorageAwareTestCase):
-    #def test_e12_e234_33_4__(self):
-    #    self._do_test_krstar("e12-e234-33-4--", "(11./6-zeta(3))/2/e-13./3./4/e**2+10./3/8/e**3-4./3/16/e**4")
-    #
-    #def _test_e112_e3_e34_44_e_(self):
-    #    self._do_test_krstar("e112-e3-e34-44-e-", "0")
-    #
-    #def _test_e112_23_33_e_(self):
-    #    self._do_test_krstar("112-e23-e33--", "-2./3/2/e+2./3/4/e**2-2./3/8/e**3")
-    #
-    #def test_e112_e2__(self):
-    #    self._do_test_krstar("e112-e2--", "1/(2*e)-1/(2*e**2)")
-    #
-    #def test_e112_e33_3__(self):
-    #    self._do_test_krstar("e112-e33-3--", "-1/(3*e) - 1/(3*e**2) + 1/(3*e**3)")
-    #
-    #def test_e112_e3_33__(self):
-    #    self._do_test_krstar("e112-e3-33--", "1/(3*e**3)-1/(3*e**2)-1/(3*e)")
-    #
-    #def test_e112_23_e3__(self):
-    #    self._do_test_krstar("e112-23-e3--", "1/(6*e**3)-1/(2*e**2)+2/(3*e)")
-    #
-    #def test_e12_e223_3__(self):
-    #    self._do_test_krstar("e12-e223-3--", "1/(3*e**3)-2/(3*e**2)+1/(3*e)")
-    #
-    #def test_e1123_e23___(self):
-    #    self._do_test_krstar("e1123-e23---", "1/(3*e**3)-2/(3*e**2)+1/(3*e)")
-    #
+    def test_e12_e234_33_4__(self):
+        self._do_test_krstar("e12|e234|33|4||", "(11./6-zeta(3))/2/e-13./3./4/e**2+10./3/8/e**3-4./3/16/e**4")
+
+    def _test_e112_e3_e34_44_e_(self):
+        self._do_test_krstar("e112|e3|e34|44|e|", "0")
+
+    def _test_e112_23_33_e_(self):
+        self._do_test_krstar("112|e23|e33||", "-2./3/2/e+2./3/4/e**2-2./3/8/e**3")
+
+    def test_e112_e2__(self):
+        self._do_test_krstar("e112|e2||", "1/(2*e)-1/(2*e**2)")
+
+    def test_e112_e33_3__(self):
+        self._do_test_krstar("e112|e33|3||", "-1/(3*e) - 1/(3*e**2) + 1/(3*e**3)")
+
+    def test_e112_e3_33__(self):
+        self._do_test_krstar("e112|e3|33||", "1/(3*e**3)-1/(3*e**2)-1/(3*e)")
+
+    def test_e112_23_e3__(self):
+        self._do_test_krstar("e112|23|e3||", "1/(6*e**3)-1/(2*e**2)+2/(3*e)")
+
+    def test_e12_e223_3__(self):
+        self._do_test_krstar("e12|e223|3||", "1/(3*e**3)-2/(3*e**2)+1/(3*e)")
+
+    def test_e1123_e23___(self):
+        self._do_test_krstar("e1123|e23|||", "1/(3*e**3)-2/(3*e**2)+1/(3*e)")
+
     #def test_e112_e3_334_4__(self):
     #    self._do_test_krstar("e112-e3-334-4--",
     #                         "-5/(24*e**4)+5/(12*e**3)+1/(24*e**2)-1/(4*e)",
@@ -135,7 +134,6 @@ class RStarTestCase(base_test_case.GraphStorageAwareTestCase):
         try:
             if use_graph_calculator:
                 rggraphenv.graph_calculator.addCalculator(reduction.TwoAndThreeReductionCalculator())
-                #rggraphenv.graph_calculator.addCalculator(mincer_graph_calculator.MincerGraphCalculator())
             g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr(graph_state_as_string)))
             expected = symbolic_functions.evaluate(expected_result_as_string).evalf()
             actual = r.KRStar(g,

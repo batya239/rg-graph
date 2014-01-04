@@ -9,6 +9,7 @@ import common
 from rggraphenv import graph_calculator, symbolic_functions
 import r
 import base_test_case
+import reduction
 
 
 __author__ = 'daddy-bear'
@@ -84,7 +85,7 @@ class RPrimeTestCase(base_test_case.GraphStorageAwareTestCase):
         self.do_test_r1("e112|2|34|44|e|::", "-1/(4*e**2) + 1/(2*e**3) - 1/(4*e**4)")
 
     def test_e112_e3_e44_e44__(self):
-        self.do_test_r1("e112|e3|e44|e44||::", "-(4./3)/2/e-(2./15)/2/2/e/e+11./5/2/2/2/e/e/e-32./15/2/2/2/2/e/e/e/e+4./5/2/2/2/2/2/e/e/e/e/e")
+        self.do_test_r1("e112|e3|e44|e44||::", "((0.5-zeta(3))/2/e+1./2/2/e**2+2./2/2/2/e**3-4./2/2/2/2/e**4)")
 
     def test_e11_24_e33_44__(self):
         self.do_test_r1("e11|24|e33|44||::", "1/(3*e**2) + 1/(3*e**3) - 1/(3*e**4)")
@@ -120,44 +121,34 @@ class RPrimeTestCase(base_test_case.GraphStorageAwareTestCase):
         self.do_test_r1("e112|e3|333||", "5*p**2/(32*e)-p**2/(32*e**2)")
 
     ###WITH GRAPH CALCULATOR
-    #def test_e12_223_3_e_(self):
-    #    self.do_test_r1("e12-223-3-e-::", "1/(3*e) - 2/(3*e**2) + 1/(3*e**3)", use_graph_calculator=True)
-    #
-    #def test_e123_e23_33__(self):
-    #    self.do_test_r1("e123-e23-33--::", "-13*p**2/(96*e) + 7*p**2/(48*e**2) - 1*p**2/(24*e**3)", use_graph_calculator=True)
-    #
-    #def test_e12_e23_33__(self):
-    #    self.do_test_r1("e12-e23-33--::", "1/(6*e**3) - 0.5/e**2 + 2/(3*e)", use_graph_calculator=True)
-    #
-    #def test_e1123_2_e33__(self):
-    #    self.do_test_r1("e1123-2-e33--::", "p**2*(-1/(24*e**3) + 5/(48*e**2) + 1/(96*e))", use_graph_calculator=True)
-    #
-    ##WITH NUMERATORS
-    #def test_e1234_e255_3__5__(self):
-    #    self.do_test_r1("e1234-e255-3--5--:000000oiio-00000000-00--00--:", "1/12/e-1/12/(e**2)")
-    #
-    #def test_e1123_3_e4_44___(self):
-    #    self.do_test_r1("e1123-3-e4-44--", "-13/(36*e) + psi(2, 2)/(72*e) - psi(2, 1)/(72*e) - 5/(24*e**2) + 1/(3*e**3) - 1/(8*e**4)")
-    #
-    #def test_e1234_e2_3_44__(self):
-    #    self.do_test_r1("e1234-e2-3-44--", "psi(2, 2)/(24*e) - psi(2, 1)/(24*e) + 7/(6*e) - 19/(24*e**2) + 1/(4*e**3) - 1/(24*e**4)")
-    #
-    #def test_e112_33_e3__(self):
-    #    self.do_test_r1("e112-33-e3-e-", "1/3*e**(-3)-1/3*e**(-2)-1/3*e**(-1)")
-    #
-    #def test_ee12_e23_334_4_e_(self):
-    #    self.do_test_r1('ee12-e34-334-4-e-', "(5/2-2*zeta(3))/2/e-19/6/2/2/e**2+2/2/2/2/e**3-2/3/2/2/2/2/e**4", use_graph_calculator=True)
-    #
-    #def test_e112_23_3_e_(self):
-    #    self.do_test_r1("e112-23-3-e-", "(0.16666666666666666667)*e**(-3)-(0.5)*e**(-2)+(0.6666666666666666667)*e**(-1)", force=True, use_graph_calculator=True)
+    def test_e12_223_3_e_(self):
+        self.do_test_r1("e12|223|3|e|", "1/(3*e) - 2/(3*e**2) + 1/(3*e**3)", use_graph_calculator=True)
 
-    #def test_e123_22_4_455_e5__(self):
-    #    self.do_test_r1("e123-22-4-455-e5--", "(8./30)/e-(8./60)/e/e+34./120/e/e/e-16./80/e/e/e/e+8./160/e/e/e/e/e")
+    def test_e123_e23_33__(self):
+        self.do_test_r1("e123|e23|33||", "-13*p**2/(96*e) + 7*p**2/(48*e**2) - 1*p**2/(24*e**3)", use_graph_calculator=True)
+
+    def test_e12_e23_33__(self):
+        self.do_test_r1("e12|e23|33||", "1/(6*e**3) - 0.5/e**2 + 2/(3*e)", use_graph_calculator=True)
+
+    def test_e1123_2_e33__(self):
+        self.do_test_r1("e1123|2|e33||", "p**2*(-1/(24*e**3) + 5/(48*e**2) + 1/(96*e))", use_graph_calculator=True)
+
+    def test_e1123_3_e4_44___(self):
+        self.do_test_r1("e1123|3|e4|44||", "-13/(36*e) + psi(2, 2)/(72*e) - psi(2, 1)/(72*e) - 5/(24*e**2) + 1/(3*e**3) - 1/(8*e**4)")
+
+    def test_e1234_e2_3_44__(self):
+        self.do_test_r1("e1234|e2|3|44||", "psi(2, 2)/(24*e) - psi(2, 1)/(24*e) + 7/(6*e) - 19/(24*e**2) + 1/(4*e**3) - 1/(24*e**4)")
+
+    def test_e112_33_e3__(self):
+        self.do_test_r1("e112|33|e3|e|", "1/3*e**(-3)-1/3*e**(-2)-1/3*e**(-1)")
+
+    def test_ee12_e23_334_4_e_(self):
+        self.do_test_r1('ee12|e34|334|4|e|', "(5/2-2*zeta(3))/2/e-19/6/2/2/e**2+2/2/2/2/e**3-2/3/2/2/2/2/e**4", use_graph_calculator=True)
 
     def do_test_r1(self, graph_state_str, expected_result_as_string, use_graph_calculator=False, force=False):
         try:
             if use_graph_calculator:
-                graph_calculator.addCalculator(mincer_graph_calculator.MincerGraphCalculator())
+                graph_calculator.addCalculator(reduction.TwoAndThreeReductionCalculator())
             g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr(graph_state_str)))
             expected = symbolic_functions.evaluate(expected_result_as_string)
             actual = r.KR1(g, common.MSKOperation(), common.defaultSubgraphUVFilter,
