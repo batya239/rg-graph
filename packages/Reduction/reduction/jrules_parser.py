@@ -127,11 +127,11 @@ def _parse_rule(rule_string, j_suffix):
         sector_rule = sector.SectorRule(_parse_additional_condition(regex_result.groups()[1]),
                                         convert_rule(regex_result.groups()[2], j_suffix).replace("^", "**"))
         return sector.SectorRuleKey(_convert_sector_conditions(regex_result.groups()[0])), \
-               sector_rule
+            sector_rule
     if "Expand" in rule_string:
         rule = _parse_strange_rule(rule_string, j_suffix)
         return sector.SectorRuleKey(_convert_sector_conditions(rule_string[:rule_string.index("] :>")])), \
-               sector.SectorRule(None, rule.replace("^", "**"))
+            sector.SectorRule(None, rule.replace("^", "**"))
     raise ValueError("invalid rule: %s" % rule_string)
 
 

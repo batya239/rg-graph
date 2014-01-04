@@ -9,6 +9,7 @@ import rggraphenv.graph_calculator as graph_calculator
 import graphine.momentum as momentum
 import gfun_calculator
 import base_test_case
+import reduction
 
 
 # noinspection PyMethodOverriding
@@ -156,65 +157,23 @@ class SubGraphReducerTestCase(base_test_case.GraphStorageAwareTestCase):
         reducer = gfun_calculator.GGraphReducer(graph, momentumPassing)
         self.assertEquals(reducer.calculate(), ('G(1, 1)*G(1, 2-l*1)*G(1, 3-l*2)', (3, -3)))
 
-    # def testDiagramWithTBubbleLikeSubGraph(self):
-    #     try:
-    #         graph_calculator.addCalculator(mincer_graph_calculator.MincerGraphCalculator())
-    #         g = graphine.Graph.fromStr("e123-224-4-4-e-", initEdgesColor=True)
-    #         reducer = gfun_calculator.GGraphReducer(g, useGraphCalculator=True)
-    #         self.assertIsNotNone(reducer.calculate())
-    #     finally:
-    #         graph_calculator.dispose()
-    # 
-    # def testDiagramWithTBubbleLikeStructure(self):
-    #     try:
-    #         graph_calculator.addCalculator(mincer_graph_calculator.MincerGraphCalculator())
-    #         g = graphine.Graph.fromStr("e12-223-3-e-::", initEdgesColor=True)
-    #         reducer = gfun_calculator.GGraphReducer(g, useGraphCalculator=True)
-    #         self.assertIsNotNone(reducer.calculate())
-    #     finally:
-    #         graph_calculator.dispose()
-    # 
-    # def testDiagram5Loops(self):
-    #     try:
-    #         graph_calculator.addCalculator(mincer_graph_calculator.MincerGraphCalculator())
-    #         g = graphine.Graph.fromStr("e1123-34-34-e--", initEdgesColor=True)
-    #         reducer = gfun_calculator.GGraphReducer(g, useGraphCalculator=True)
-    #         calculated = reducer.calculate()
-    #         print calculated
-    #         print symbolic_functions.series(symbolic_functions.evaluate(calculated[0]), symbolic_functions.e, 0, 0).simplify_indexed().evalf()
-    #         self.assertIsNotNone(calculated)
-    #     finally:
-    #         graph_calculator.dispose()
-    # 
-    # def testDiagram5Loops2(self):
-    #     try:
-    #         graph_calculator.addCalculator(mincer_graph_calculator.MincerGraphCalculator())
-    #         g = graphine.Graph.fromStr("e12-e234-35-45-5--", initEdgesColor=True)
-    #         reducer = gfun_calculator.GGraphReducer(g, useGraphCalculator=True)
-    #         calculated = reducer.calculate()
-    #         print calculated
-    #         print symbolic_functions.series(symbolic_functions.evaluate(calculated[0]), symbolic_functions.e, 0, 0).simplify_indexed().evalf()
-    #         self.assertIsNotNone(calculated)
-    #     finally:
-    #         graph_calculator.dispose()
-    # 
-    # def testDiagramWithTBubbleLikeStructure2(self):
-    #     try:
-    #         graph_calculator.addCalculator(mincer_graph_calculator.MincerGraphCalculator())
-    #         g = graphine.Graph.fromStr("e123-e23-33--::", initEdgesColor=True)
-    #         reducer = gfun_calculator.GGraphReducer(g, useGraphCalculator=True)
-    #         self.assertIsNotNone(reducer.calculate())
-    #     finally:
-    #         graph_calculator.dispose()
-    # 
-    # def testDiagram5LoopsNotCalculated(self):
-    #     try:
-    #         graph_calculator.addCalculator(mincer_graph_calculator.MincerGraphCalculator())
-    #         g = graphine.Graph.fromStr("e112-34-345-e-55--", initEdgesColor=True)
-    #         reducer = gfun_calculator.GGraphReducer(g, useGraphCalculator=True)
-    #         self.assertIsNone(reducer.calculate())
-    #     finally:
-    #         # graph_calculator.dispose()
+    def testDiagramWithTBubbleLikeSubGraph(self):
+        try:
+            graph_calculator.addCalculator(reduction.TwoAndThreeReductionCalculator())
+            g = graphine.Graph.fromStr("e123|224|4|4|e|", initEdgesColor=True)
+            reducer = gfun_calculator.GGraphReducer(g, useGraphCalculator=True)
+            self.assertIsNotNone(reducer.calculate())
+        finally:
+            graph_calculator.dispose()
+
+    def testDiagramWithTBubbleLikeStructure(self):
+        try:
+            graph_calculator.addCalculator(reduction.TwoAndThreeReductionCalculator())
+            g = graphine.Graph.fromStr("e12|223|3|e|", initEdgesColor=True)
+            reducer = gfun_calculator.GGraphReducer(g, useGraphCalculator=True)
+            self.assertIsNotNone(reducer.calculate())
+        finally:
+            graph_calculator.dispose()
 
     def assertIsNotNone(self, value):
         assert value is not None

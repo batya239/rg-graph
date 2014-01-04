@@ -129,8 +129,8 @@ class _MergeResolver(object):
 
 
 def main():
-    uv = UVRelevanceCondition()
-    ir = IRRelevanceCondition()
+    uv = UV_RELEVANCE_CONDITION_4_DIM
+    ir = IR_RELEVANCE_CONDITION_4_DIM
 
     subGraphUVFilters = (filters.oneIrreducible
                          + filters.noTadpoles

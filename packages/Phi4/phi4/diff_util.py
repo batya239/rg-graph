@@ -100,6 +100,8 @@ def scalar_product_extractor(topology, graph):
     extracted_numerated_edges = list()
 
     for e1, e2 in zip(topology.allEdges(nickel_ordering=True), graph.allEdges(nickel_ordering=True)):
+        if e2.fields is None:
+            raise StopIteration()
         numerator = e2.fields if e2.fields == const.LEFT_NUMERATOR or e2.fields == const.RIGHT_NUMERATOR else None
         if numerator:
             extracted_numerated_edges.append((e1, numerator))
@@ -111,7 +113,6 @@ def scalar_product_extractor(topology, graph):
 
     yield reduction.ScalarProduct(extracted_numerated_edges[0].colors[1],
                                   extracted_numerated_edges[1].colors[1], sign=sign)
-
 
 
 

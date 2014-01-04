@@ -21,6 +21,9 @@ import scalar_product
 e = symbolic_functions.e
 
 
+DEBUG = False
+
+
 class ReductorHolder(object):
     def __init__(self, reductors):
         self._reductors = reductors
@@ -31,9 +34,9 @@ class ReductorHolder(object):
                 return True
         return False
 
-    def calculate(self, graph):
+    def calculate(self, graph, scalar_product_aware_function=None):
         for r in self._reductors:
-            v = r.calculate(graph)
+            v = r.calculate(graph, scalar_product_aware_function)
             if v is not None:
                 return v
 
@@ -65,8 +68,7 @@ def _enumerate_graph(graph, init_propagators, to_sector=True):
 
     def _enumerate_next_vertex(remaining_propagators, _graph, vertex, result):
         if vertex not in graph_vertices:
-            new_edges = map(lambda e_: e_.copy(colors=(propagator_indices[e_.colors.colors],
-                                                       e_.colors.colors) if len(e_.internal_nodes) == 2 else None),
+            new_edges = map(lambda e_: e_.copy(colors=graph_state.Rainbow((propagator_indices[e_.colors.colors], e_.colors)) if len(e_.internal_nodes) == 2 else None),
                             _graph.allEdges())
             result.add(graphine.Graph(new_edges, external_vertex, renumbering=False))
             return
@@ -106,7 +108,7 @@ def _enumerate_graph(graph, init_propagators, to_sector=True):
                         new_remaining_propagators.remove(remaining_propagator)
                         new_edges = copy.copy(_graph.allEdges())
                         new_edges.remove(not_enumerated[0])
-                        new_edges.append(not_enumerated[0].copy(colors=propagator))
+                        new_edges.append(not_enumerated[0].copy(colors=graph_state.Rainbow(propagator)))
                         new_graph = graphine.Graph(new_edges, externalVertex=external_vertex, renumbering=False)
                         _enumerate_next_vertex(new_remaining_propagators, new_graph, vertex + 1, result)
                 else:
@@ -114,7 +116,7 @@ def _enumerate_graph(graph, init_propagators, to_sector=True):
                     new_remaining_propagators.remove(remaining_propagator)
                     new_edges = copy.copy(_graph.allEdges())
                     new_edges.remove(not_enumerated[0])
-                    new_edges.append(not_enumerated[0].copy(colors=propagator))
+                    new_edges.append(not_enumerated[0].copy(colors=graph_state.Rainbow(propagator)))
                     new_graph = graphine.Graph(new_edges, externalVertex=external_vertex, renumbering=False)
                     _enumerate_next_vertex(new_remaining_propagators, new_graph, vertex, result)
 
@@ -295,6 +297,8 @@ class Reductor(object):
         sectors = a_sector.as_sector_linear_combinations()
         calculated_sectors = dict()
         while len(sectors):
+            if DEBUG:
+                print sectors
             raw_sectors = sectors.sectors_to_coefficient.keys()
             not_masters = list()
             for s in raw_sectors:
@@ -396,21 +400,21 @@ l = symbolic_functions.l
 
 THREE_LOOP_REDUCTOR = Reductor("loop3",
                                "loop3",
-                               [graphine.Graph.fromStr("e12-34-35-4-5-e-"),
-                                graphine.Graph.fromStr("e12-34-34-5-5-e-"),
-                                graphine.Graph.fromStr("e12-23-4-45-5-e-")],
+                               [graphine.Graph.fromStr("e12|34|35|4|5|e|"),
+                                graphine.Graph.fromStr("e12|34|34|5|5|e|"),
+                                graphine.Graph.fromStr("e12|23|4|45|5|e|")],
                                3,
-                               {graphine.Graph.fromStr("e12-34-34-5-5-e-"):
+                               {graphine.Graph.fromStr("e12|34|34|5|5|e|"):
                                     symbolic_functions.evaluate(
                                         "_g11()**(-3)*(exp(-3 * Euler * e))/(1-2*e)*(20 * zeta(5)"
                                         "+e *(68 * zeta(3)**2+(10 * Pi**6)/189)"
                                         "+e**2 *((34 * Pi **4 * zeta(3))/15-5 * Pi **2 * zeta(5)+450 *zeta(7))"
                                         "+e**3 *(-9072/5 * Z_5_3-2588*zeta(3)*zeta(5)-17* Pi **2 *zeta(3)**2+(6487*Pi**8)/10500))+Order(e**4)"),
-                                graphine.Graph.fromStr("e11-22-33-e-"): G(1, 1) ** 3,
-                                graphine.Graph.fromStr("e112-22-e-"): G(1, 1) * G(1, 1) * G(2 - 2 * l, 1),
-                                graphine.Graph.fromStr("e11-222-e-"): G(1, 1) * G(1, 1) * G(1 - l, 1),
-                                graphine.Graph.fromStr("e1111-e-"): G(1, 1) * G(1 - l, 1) * G(1 - 2 * l, 1),
-                                graphine.Graph.fromStr("e12-223-3-e-"):
+                                graphine.Graph.fromStr("e11|22|33|e|"): G(1, 1) ** 3,
+                                graphine.Graph.fromStr("e112|22|e|"): G(1, 1) * G(1, 1) * G(2 - 2 * l, 1),
+                                graphine.Graph.fromStr("e11|222|e|"): G(1, 1) * G(1, 1) * G(1 - l, 1),
+                                graphine.Graph.fromStr("e1111|e|"): G(1, 1) * G(1 - l, 1) * G(1 - 2 * l, 1),
+                                graphine.Graph.fromStr("e12|223|3|e|"):
                                     symbolic_functions.evaluate("_g11()**(-3)*exp(-3 * Euler * e )*("
                                                                 "1/(3 *e **3)+7/(3* e **2)"
                                                                 "+e **(-1)*(31/3-(Pi **2)/12)"
@@ -423,10 +427,10 @@ THREE_LOOP_REDUCTOR = Reductor("loop3",
 
 TWO_LOOP_REDUCTOR = Reductor("loop2",
                              "loop2",
-                             [graphine.Graph.fromStr("e12-23-3-e-")],
+                             [graphine.Graph.fromStr("e12|23|3|e|")],
                              2,
-                             {graphine.Graph.fromStr("e111-e-"): G(1, 1) * G(1 - l, 1),
-                              graphine.Graph.fromStr("e11-22-e-"): G(1, 1) ** 2})
+                             {graphine.Graph.fromStr("e111|e|"): G(1, 1) * G(1 - l, 1),
+                              graphine.Graph.fromStr("e11|22|e|"): G(1, 1) ** 2})
 
 
 def initialize(*reductors):
@@ -435,8 +439,8 @@ def initialize(*reductors):
         _MAIN_REDUCTION_HOLDER.set(ReductorHolder(reductors))
 
 
-def calculate(graph):
-    return _MAIN_REDUCTION_HOLDER.get().calculate(graph)
+def calculate(graph, scalar_product_aware_function=None):
+    return _MAIN_REDUCTION_HOLDER.get().calculate(graph, scalar_product_aware_function)
 
 
 def is_applicable(graph):
@@ -458,14 +462,31 @@ class TwoAndThreeReductionCalculator(abstract_graph_calculator.AbstractGraphCalc
         if result is None:
             return None
         return result.evaluate(substitute_sectors=True, _d=symbolic_functions.D, series_n=5, remove_o=True), \
-               TwoAndThreeReductionCalculator._calculate_p_factor(graph)
-
-    @staticmethod
-    def _calculate_p_factor(graph):
-        factor0 = 0
-        for e in graph.internalEdges():
-            factor0 += e.colors[0]
-        return factor0 - graph.getLoopsCount(), - graph.getLoopsCount()
+            reduction_util.calculate_graph_p_factor(graph)
 
     def dispose(self):
         pass
+
+
+class ScalarProductTwoAndThreeLoopsGraphCalculator(abstract_graph_calculator.AbstractGraphCalculator):
+    def __init__(self, scalar_product_extractor):
+        self._scalar_product_extractor = scalar_product_extractor
+
+    def get_label(self):
+        return "graphs with scalars products reduction calculator for 2 and 3 loops"
+
+    def init(self):
+        initialize(TWO_LOOP_REDUCTOR, THREE_LOOP_REDUCTOR)
+
+    def dispose(self):
+        pass
+
+    def calculate(self, graph):
+        result = calculate(graph, self._scalar_product_extractor)
+        if result is None:
+            return None
+        return result.evaluate(substitute_sectors=True, _d=symbolic_functions.D, series_n=5, remove_o=True), \
+            reduction_util.calculate_graph_p_factor(graph)
+
+    def is_applicable(self, graph):
+        return reductor.is_applicable(graph)

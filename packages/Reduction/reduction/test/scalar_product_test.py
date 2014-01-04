@@ -24,7 +24,7 @@ def _stupid_scalar_product_extractor(shrunk, initial_graph):
 
 class ScalarProductTest(unittest.TestCase):
     def test_tbubble(self):
-        g = graphine.Graph.fromStr('e12-23-3-e-:000000-io00-00-00-:', initEdgesColor=True)
+        g = graphine.Graph.fromStr('e12|23|3|e|::00_00_00|io_00|00|00|', initEdgesColor=True)
         res = reductor.TWO_LOOP_REDUCTOR.calculate(g,
                                                    scalar_product_aware_function=_stupid_scalar_product_extractor)
         self.assertIsNotNone(res)

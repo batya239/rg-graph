@@ -7,6 +7,13 @@ __author__ = 'dimas'
 import itertools
 
 
+def calculate_graph_p_factor(graph):
+    factor0 = 0
+    for e in graph.internalEdges():
+        factor0 += e.colors[0]
+    return factor0 - graph.getLoopsCount(), - graph.getLoopsCount()
+
+
 def find_topology_for_graph(graph, topologies, result_converter):
     target_graph_name = graph.getPresentableStr()
     for topology in topologies:

@@ -89,7 +89,9 @@ class Sector(object):
         raise NotImplementedError(type(other))
 
     def __eq__(self, other):
-        return self.propagators_weights == other.propagators_weights
+        if isinstance(other, Sector):
+            return self.propagators_weights == other.propagators_weights
+        raise AssertionError()
 
     def __hash__(self):
         return hash(self.propagators_weights)
@@ -137,17 +139,7 @@ class SectorLinearCombination(object):
         return self._additional_part
 
     def get_value(self, masters):
-        value = self._additional_part
-        for s, c in self._sectors_to_coefficient.items():
-            value += masters[s] * c
-        return value
-
-    def print_not_evaled_result(self, _d=6):
-        string = ""
-        e = symbolic_functions.e
-        for s, c in self._sectors_to_coefficient.items():
-           string += "+(" + str(c.subs(d == _d).simplify_indexed() if not isinstance(c, (int, float)) else c) + ")*" + str(s)
-        print "result d=" + str(_d) + "\n" + string
+        return reduce(lambda s, e: s + masters[e[0]] * e[1], self._sectors_to_coefficient.items(), self._additional_part)
 
     def substitute(self, sectors_to_value):
         new_additional_part = self._additional_part
@@ -320,15 +312,16 @@ class SectorRuleKey(object):
         return hash(self._initial_propagators_condition)
 
     def __eq__(self, other):
+        # noinspection PyProtectedMember
         return self._initial_propagators_condition == other._initial_propagators_condition
 
 
 class SectorRule(object):
-    def __init__(self, additional_condition, apply_formula, expection_condition=None):
+    def __init__(self, additional_condition, apply_formula, exception=None):
         """
         exception_condition -- yet another condition because LiteRed is so crazy
         """
-        self._exception_condition = expection_condition
+        self._exception_condition = exception
         self._additional_condition = additional_condition
         self._apply_formula = apply_formula
 
@@ -378,5 +371,6 @@ class LazySwiginacSum(object):
     def evaluate(self):
         return reduce(lambda a, b: a + b, self._args)
 
+    # noinspection PyProtectedMember
     def __add__(self, other):
         return LazySwiginacSum(self._args + other._args)
