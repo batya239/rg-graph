@@ -30,7 +30,7 @@ class Nickel(object):
     >>> n.string
     'e1-e-'
     """
-    SEP = '-'
+    SEP = '|'
     _SEP_ID = -600
     NODE_TO_CHAR = {_SEP_ID: SEP, LEG: 'e', 10: 'A', 11: 'B', 12: 'C',
                     13: 'D', 14: 'E', 15: 'F'}
