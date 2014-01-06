@@ -56,13 +56,14 @@ class Sector(object):
     def __sub__(self, other):
         return self.as_sector_linear_combinations() - other
 
+    def __rsub__(self, other):
+        return (- self) + other
+
     def __pow__(self, power, modulo=None):
         assert power == -1
         return Sector(map(lambda p: p * power, self._propagators_weights))
 
     __radd__ = __add__
-
-    __rsub__ = __sub__
 
     def __mul__(self, other):
         if isinstance(other, (float, int, swiginac.refcounted)):
@@ -202,9 +203,10 @@ class SectorLinearCombination(object):
     def __sub__(self, other):
         return self._do_add(other, -1)
 
-    __radd__ = __add__
+    def __rsub__(self, other):
+        return (- self) + other
 
-    __rsub__ = __sub__
+    __radd__ = __add__
 
     def __mul__(self, other):
         return self._do_mul_or_div(other, True)
