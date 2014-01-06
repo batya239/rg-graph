@@ -106,7 +106,7 @@ def resummation_pade_borel(L, M, series_dict, b=0):
 #    print func_template.format(pade=padeFunc_)
     exec(func_template.format(pade=padeFunc_))
     try:
-        output = integrate.quad(func, 0., 1., full_output=1)
+        output = integrate.quad(func, 0., 1., full_output=1, limit=100)
         result = output[0]
         if len(output)==4:
             warn = output[3]
@@ -137,7 +137,7 @@ n1 = results2013({0: 1, 1: 1. / 3, 2: 0.224812357, 3: 0.087897190, 4: 0.08644300
 
 #n=0
 n0 = results2013({0: 1, 1: 1. / 4, 2: 0.143242270, 3: 0.018272597, 4: 0.035251118, 5: -0.0634415},
-                 {0: 1, 1: -1. / 4, 2: -0.08742270, 3: 0.037723538, 4: -0.028548147, 5: 0.0754631},
+                 {0: 1, 1: -1. / 4, 2: -0.080742270, 3: 0.037723538, 4: -0.028548147, 5: 0.0754631},
                  {0: 1./2, 1: 1. / 8, 2: 0.0787857831, 3: 0.0211750671, 4: 0.028101050, 5: -0.0222040},
                  {0: 2., 1: -1. / 2, 2: -0.190143132, 3: 0.0416216976, 4: -0.071673308, 5: 0.136330},
                  {0: 0., 1: 0., 2: 0.0286589366, 3: 0.0409908542, 4: 0.027138940, 5: 0.0236106})
@@ -193,15 +193,22 @@ def print_pade_minus(series_dict, N, m0=0, l0=0):
             print "%10.4f" % (1/resummation_pade(L, M, series_dict)),
         print
 
+def format_result(result, inverse=False):
+    if inverse:
+        return "%9.4f" % (1/result)
+    else:
+        return "%9.4f" % result
 
-def print_pade_borel(series_dict, N, m0=0, l0=0):
-    print "Pade-Borel"
-    #for L, M  in [(1,4), (3,2), (4,1)]:
-    #    print (L,M), resummation_pade_borel(L, M, gamma_13_n1)
+def print_pade_borel(series_dict, N, m0=0, l0=0, inverse=False):
+    if inverse:
+        print "Pade-Borel-1"
+    else:
+        print "Pade-Borel"
     print " "*10,
     for i in range(l0, N + 1):
         print "%10d" % (i),
     print
+    warnings = list()
     for M in range(m0, N + 1):
         if l0 < N - M + 1:
             print "%10d" % M,
@@ -218,41 +225,24 @@ def print_pade_borel(series_dict, N, m0=0, l0=0):
                 print res,
             else:
                 if warn is not None:
-                    print "%9.4fW" % res,
+                    if "probably divergent" in warn:
+                        print "%sD" % format_result(res, inverse=inverse),
+                    elif "Extremely bad integrand" in warn:
+                        print "%sB" % format_result(res, inverse=inverse),
+                    else:
+                        print "%sW" % format_result(res, inverse=inverse),
+                        warnings.append(((L, M), warn))
                 else:
-                    print "%9.4f " % res,
+                    print "%s " % format_result(res, inverse=inverse),
         print
+    print
+    for warning in warnings:
+        print warning
+    print
 
 
 def print_pade_borel_minus(series_dict, N, m0=0, l0=0):
-    print "Pade-Borel-1"
-    print (2, 3), 1/resummation_pade_borel(2, 3, series_dict)[0]
-    print (3, 2), 1/resummation_pade_borel(3, 2, series_dict)[0]
-    print " "*10,
-    for i in range(l0, N + 1):
-        print "%10d" % (i),
-    print
-    for M in range(m0, N + 1):
-        if l0 < N - M + 1:
-            print "%10d" % M,
-        for L in range(l0, N - M + 1):
-        #        print M, L,
-            #FIXME : unknown exception
-            try:
-                res, warn = resummation_pade_borel(L, M, series_dict)
-            except:
-                res = "    Except"
-            if res is None:
-                print "      None",
-            elif isinstance(res, str):
-                print res,
-            else:
-                if warn is not None:
-                    print "%9.4fW" % (1/res),
-                else:
-                    print "%9.4f " % (1/res),
-        print
-
+    print_pade_borel(series_dict, N, m0=m0, l0=l0, inverse=True)
 
 
 def calculate2013(result, N):
