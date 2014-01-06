@@ -81,7 +81,7 @@ def evaluate(expression_as_str, line_tuple=None):
 
 
 def safe_integer_numerators(expression_as_str):
-    return re.sub('([\.\d]+)/', 'swiginac.numeric(\\1)/', expression_as_str)
+    return re.sub('([\.\d]+)/', 'swiginac.numeric(\'\\1\')/', expression_as_str)
     #return re.sub('([\.\d]+)/', '\\1./', expression_as_str)
 
 
