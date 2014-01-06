@@ -157,7 +157,7 @@ class ReductorResult(object):
                 c,
                 _d=_d,
                 series_n=series_n,
-                remove_o=remove_o)
+                remove_o=remove_o).normal()
         return sector.SectorLinearCombination(evaled_sectors_to_coefficients, evaled_additional_part)
 
     @staticmethod
