@@ -8,7 +8,7 @@ import itertools
 import swiginac
 import copy
 import reduction_util
-from rggraphenv import symbolic_functions, cas_variable_resolver
+from rggraphenv import symbolic_functions
 
 
 class Sector(object):
@@ -271,7 +271,7 @@ class SectorLinearCombination(object):
 
 ZERO_SECTOR_LINEAR_COMBINATION = SectorLinearCombination(rggraphutil.zeroDict())
 
-d = cas_variable_resolver.var("d")
+d = symbolic_functions.var("d")
 
 
 class NumeratorsReducingRuleKey(object):
