@@ -44,12 +44,14 @@ class Graph(object):
 
         renumbering - reordering edges using GraphState
         """
-        if isinstance(obj, list):
+        if isinstance(obj, (list, tuple)):
             self._edges = Graph._parseEdges(graph_state.GraphState(obj).edges if renumbering else obj)
         elif isinstance(obj, dict):
             self._edges = obj
         elif isinstance(obj, graph_state.GraphState):
             self._edges = Graph._parseEdges(obj.edges)
+        else:
+            raise AssertionError("unsupported obj type - %s" % type(obj))
         self._nextVertexIndex = max(self._edges.keys()) + 1
         self._externalVertex = externalVertex
         self._hash = None
@@ -342,7 +344,7 @@ class Graph(object):
         return g
 
     @staticmethod
-    def initEdgesColors(graph, zeroColor=(0, 0), unitColor=(1, 0)):
+    def initEdgesColors(graph, zeroColor=graph_state.Rainbow((0, 0)), unitColor=graph_state.Rainbow((1, 0))):
         edges = graph.allEdges()
         initedEdges = list()
         for e in edges:
@@ -389,7 +391,7 @@ class Graph(object):
         return Graph(initedEdges, externalVertex=graph.externalVertex, renumbering=False)
 
     @staticmethod
-    def batchInitEdgesColors(graphs, zeroColor=(0, 0), unitColor=(1, 0)):
+    def batchInitEdgesColors(graphs, zeroColor=graph_state.Rainbow((0, 0)), unitColor=graph_state.Rainbow((1, 0))):
         return map(lambda g: Graph.initEdgesColors(g, zeroColor, unitColor), graphs)
 
     @staticmethod
