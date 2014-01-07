@@ -14,6 +14,8 @@ def isGraph1Irreducible(edgesList, superGraph, superGraphEdges):
     stupid algorithm
     """
     for e in edgesList:
+        if e.is_external():
+            continue
         copiedEdges = copy.copy(edgesList)
         copiedEdges.remove(e)
         if not _isGraphConnected(copiedEdges, superGraph.externalVertex,
@@ -184,7 +186,7 @@ def _pickExternalEdges(edgesList, externalVertex=-1):
 
 def _createExternalEdge(innerVertex, externalVertex=-1, edgesCount=1,
                         hasColors=False, hasFields=False, defaultFields=None):
-    colors = (0, 0) if hasColors else None
+    colors = graph_state.Rainbow((0, 0)) if hasColors else None
     fields = defaultFields if hasFields else None
     e = graph_state.Edge((externalVertex, innerVertex),
                          external_node=externalVertex,
