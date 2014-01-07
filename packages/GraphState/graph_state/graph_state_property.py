@@ -50,6 +50,9 @@ class PropertiesConfig(object):
             kwargs['properties_config'] = self
         return graph_state.Edge(nodes, external_node, edge_id, **kwargs)
 
+    def graph_state_from_str(self, string):
+        return graph_state.GraphState.fromStr(string, properties_config=self)
+
     def new_properties(self, **kwargs):
         return Properties(self, **kwargs)
 
