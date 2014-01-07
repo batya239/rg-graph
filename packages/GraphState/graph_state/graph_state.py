@@ -90,7 +90,10 @@ class Rainbow(object):
             return Rainbow.fromObject(string)
 
     def __init__(self, colors):
-        self._colors = tuple(colors) if isinstance(colors, (list, set, tuple)) else (colors, )
+        if isinstance(colors, Rainbow):
+            self._colors = colors.colors
+        else:
+            self._colors = tuple(colors) if isinstance(colors, (list, set, tuple)) else (colors, )
 
     @property
     def colors(self):
@@ -103,6 +106,8 @@ class Rainbow(object):
         return self._colors[item]
 
     def __cmp__(self, other):
+        if isinstance(other, tuple):
+            return cmp(self.colors, other)
         return cmp(self.colors, other.colors)
 
     def __len__(self):
@@ -358,7 +363,7 @@ class GraphState(object):
 
         edges = []
         for nodes, props in itertools.izip(nickel_edges, transposed_properties):
-            edges.append(Edge(nodes) if props is None else Edge(nodes, **props))
+            edges.append(Edge(nodes, properties_config=properties_config) if props is None else Edge(nodes, **props))
         assert len(edges) == len(nickel_edges)
 
         return GraphState(edges)
