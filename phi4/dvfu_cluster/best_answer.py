@@ -4,11 +4,12 @@
 ## Ищем в папке лучший ответ
 ## (т.е. с мин. абс. погрешностью)
 
-import os, sys
+import os
 from uncertainties import ufloat
 import sympy, graphine, graph_state
 
 def symmetryCoefficient(graphstate):
+    # TODO: sym coeff <-- from uncertSeries.py
     edges = graphstate.edges
     unique_edges = dict()
     externalLegCount = 0
