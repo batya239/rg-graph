@@ -1,4 +1,4 @@
-\documentclass[aps,prb,preprint,showpacs,preprintnumbers,amsmath,amssymb]{revtex4}
+\documentclass[preprint,preprintnumbers,amsmath,amssymb]{revtex4}
 \usepackage{amsmath,amssymb,amsfonts}
 \usepackage{color,array}
 \usepackage{dsfont}
@@ -16,8 +16,13 @@
 
 \newcommand{\comment}[1]{} % многострочные комментарии
 
-\usepackage{color}
+\usepackage{xcolor}
 \definecolor{greenb}{rgb}{0.2,0.7,0.2}
+%% Команды для покраски клеток таблицы
+\newcommand{\red}[1]{\colorbox{red}{#1}}    % красим красным, например: \red{1.234}
+\newcommand{\green}[1]{\colorbox{green}{#1}}% красим зелёным, например: \green{1.234}
+% красим тёмно-зелёным с красной рамкой, например: \darkgreen{1.234}
+\newcommand{\darkgreen}[1]{\fcolorbox{red}{greenb}{#1}}
 
 \begin{document}
 
@@ -432,26 +437,30 @@ comparison.}
 
 \begin{tabular}{|*{9}{c|}}\hline
 \multicolumn{9}{|c|}{Critical exponents (CE) for various $n$.} \\ \hline
-~~CE~~ & exact & ~~DS~~ & ~DS$^{-1}~ $ & ~Pad\'e~ & PB$_{[2/3]}$ &
+~CE~ & exact & ~DS~ & ~DS$^{-1}~ $ & ~Pad\'e~ & PB$_{[2/3]}$ &
 (PB$^{-1}$)$_{[2/3]}$ & (PB$^{-1}$)$_{[3/2]}$ &~5-loop RG~\\ \hline
 \multicolumn{9}{|c|}{$n=1$} \\ \hline
-$\gamma$ & 1.75 & \colorbox{green}{~~1.7145~} & \fcolorbox{red}{greenb}{~~1.7304~\footnote{$N=3$}} & \colorbox{green}{~~1.775~~} & \colorbox{green}{~1.6105~} & \colorbox{green}{~1.7746~} &
-\colorbox{red}{--} & ~1.790~ \\ \hline
-$\nu$    & 1 & \colorbox{green}{~~0.9067~} & \fcolorbox{red}{greenb}{~~0.9204~\footnote{$N=3$}} & \colorbox{green}{~0.959~} & \colorbox{green}{~0.8136~} & \colorbox{green}{~0.9652~} & \colorbox{red}{--} &
+$\gamma$ & 1.75 & \green{~1.7145~} & \darkgreen{~1.7304~$^{N=3}$} & \green{~1.775~} & \green{~1.6105~} & \green{~1.7746~} &
+\red{--} & ~1.790~ \\ \hline
+$\nu$    & 1 & \green{~0.9067~} & \darkgreen{~0.9204~$^{N=3}$} & \green{~0.959~} & \green{~0.8136~} & \green{~0.9652~} & \red{--} &
 ~0.966~ \\ \hline
-$\eta$   & 0.25 & \colorbox{green}{~~0.1372~} & \colorbox{green}{~~}  &  \colorbox{red}{~~} &  \colorbox{red}{~~} &  \colorbox{green}{~~} & \colorbox{green}{~~}  & ~0.146~ \\ \hline
+$\eta$   & 0.25 & \green{~0.1372~} & \green{~}  &  \red{~} &  \red{~} &  \green{~} & \green{~}  & ~0.146~ \\ \hline
 \multicolumn{9}{|c|}{$n=0$} \\ \hline
-$\gamma$ & ~1.34375~(43/32) & \fcolorbox{red}{greenb}{~~1.4115~\footnote{$N=3$}} & \fcolorbox{red}{greenb}{~~1.4740~\footnote{$N=4$}} & \colorbox{green}{~~1.435~~} & \colorbox{green}{~1.3804~} &
-\colorbox{red}{~1.4285~} & \colorbox{red}{~1.4429~} & ~1.449~ \\ \hline
-$\nu$    & 0.75 &  \fcolorbox{red}{greenb}{~~0.7250~\footnote{$N=3$}} &  \fcolorbox{red}{greenb}{~~0.7399~\footnote{$N=3$}} & \colorbox{green}{~~0.753~~} & \colorbox{green}{~0.7069~} & \colorbox{green}{~0.7514~} &
-\colorbox{red}{--} & ~0.774~ \\ \hline
-$\eta$   & 0.20833~(5/24) & \colorbox{green}{~~0.1204~} & \colorbox{green}{~~}  & \colorbox{red}{~~}  & \colorbox{red}{~~}  &  \colorbox{green}{~~} &  \colorbox{green}{~~} & ~0.128~ \\ \hline
+$\gamma$ & ~1.34375~$\left(\frac{43}{32}\right)$ & \darkgreen{~1.4115~$^{N=3}$} & \darkgreen{~1.4740~$^{N=4}$} & \green{~1.435~} & \green{~1.3804~} &
+\red{~1.4285~} & \red{~1.4429~} & ~1.449~ \\ \hline
+$\nu$    & 0.75 &  \darkgreen{~0.7250~$^{N=3}$} &  \darkgreen{~0.7399~$^{N=3}$} & \green{~0.753~} & \green{~0.7069~} & \green{~0.7514~} &
+\red{--} & ~0.774~ \\ \hline
+$\eta$   & 0.20833~$\left(\frac{5}{24}\right)$ & \green{~0.1204~} & \green{~}  & \red{~}  & \red{~}  &  \green{~} &  \green{~} & ~0.128~ \\ \hline
 \multicolumn{9}{|c|}{$n=-1$} \\ \hline
-$\gamma$ & ~1.15625~(37/32)& \fcolorbox{red}{greenb}{~~1.1917~\footnote{$N=4$}} & \fcolorbox{red}{greenb}{~~1.1952~\footnote{$N=4$}} & \colorbox{green}{~~1.192~~} & \colorbox{green}{~1.1641~} &
-\colorbox{green}{~1.1843~} & \colorbox{red}{--\footnote{Warning}} & ~1.184~ \\ \hline
-$\nu$    & 0.625 & \fcolorbox{red}{greenb}{~~0.6021~\footnote{$N=3$}} & \fcolorbox{red}{greenb}{~~0.6183~\footnote{$N=4$}} & \colorbox{green}{~0.606~} & \colorbox{green}{~0.5945~} & \colorbox{green}{~0.6054~} &
-\colorbox{green}{~0.6076~} & ~0.617~ \\ \hline
-$\eta$   & 0.15 & \colorbox{green}{~~0.0793~} & \colorbox{green}{~~}  & \colorbox{red}{~~}  & \colorbox{red}{~~}  &  \colorbox{green}{~~} & \colorbox{green}{~~}  & ~0.082~ \\ \hline
+$\gamma$ & ~1.15625~$\left(\frac{37}{32}\right)$& \darkgreen{~1.1917~$^{N=4}$} & \darkgreen{~1.1952~$^{N=4}$} & \green{~1.192~} & \green{~1.1641~} &
+\green{~1.1843~} & \red{--$^{Warn}$} & ~1.184~ \\ \hline
+$\nu$    & 0.625 & \darkgreen{~0.6021~$^{N=3}$} & \darkgreen{~0.6183~$^{N=4}$} & \green{~0.606~} & \green{~0.5945~} & \green{~0.6054~} &
+\green{~0.6076~} & ~0.617~ \\ \hline
+$\eta$   & 0.15 & \green{~0.0793~} & \green{~}  & \red{~}  & \red{~}  &  \green{~} & \green{~}  & ~0.082~ \\ \hline
+\multicolumn{9}{|c|}{Легенда:} \\ \hline
+\green{~1.23~} & \multicolumn{8}{l|}{значение совпадает с результатом Соколова} \\ \hline
+\darkgreen{~1.23~} & \multicolumn{8}{l|}{понятно, как Соколов это получил (он взял только $N$ членов разложения)} \\ \hline
+\red{~1.23~} & \multicolumn{8}{l|}{значение НЕ совпадает с результатом Соколова} \\ \hline
 \end{tabular}
 \end{table}
 
