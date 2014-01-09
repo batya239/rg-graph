@@ -42,13 +42,14 @@ matched = []
 for a in diags:
     n = int(a[3][-1:])+1
     for d,c in mkompan.items():
-        if abs(c[0][0]-((-1)**n)*a[0]) < 1e-4 and abs(symmetryCoefficient(d) - a[2])< 0.01:
+        if abs(c[0][0]-((-1)**n)*a[0]) < c[1][0] and abs(symmetryCoefficient(d) - a[2])< 0.01:
             matched += [d]
             #print d
             #print "mkompan:",[-c[0][0],c[1][0]]
             #print "Sokolov:",a
             #print
             #count +=1
+            mkompan.pop(d)
         if a[3] == '5-7-2' and d == 'e112-23-e4-444--':
             print "mkompan:",[-c[0][0],c[1][0]]
             print "Sokolov:",a
