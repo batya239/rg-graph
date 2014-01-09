@@ -139,6 +139,9 @@ class ReductorResult(object):
         self._masters = masters
         self._final_sector_linear_combinations = final_sector_linear_combinations
 
+    def __str__(self):
+        return str(self._final_sector_linear_combinations)
+
     def evaluate(self, substitute_sectors=False, _d=None, series_n=-1, remove_o=True):
         if not substitute_sectors:
             return self._evaluate_unsubsituted(_d=_d, series_n=series_n, remove_o=remove_o)
@@ -247,9 +250,12 @@ class Reductor(object):
         for f in os.listdir(dir_path):
             if f.startswith("jRules"):
                 map(lambda (k, r): self._sector_rules[k].append(r),
-                    jrules_parser.x_parse_rules(os.path.join(dir_path, f), self._env_name))
-        for v in self._sector_rules.values():
-            v.reverse()
+                    jrules_parser.x_parse_rules(os.path.join(dir_path, f), self._env_name, parse_symmetry=False))
+            # elif f.startswith("jSymmetries"):
+            #     map(lambda (k, r): self._sector_rules[k].append(r),
+            #         jrules_parser.x_parse_rules(os.path.join(dir_path, f), self._env_name, parse_symmetry=True))
+        # for v in self._sector_rules.values():
+        #     pass #v.reverse()
 
     def _open_scalar_product_rules(self):
         self._scalar_product_rules = \
@@ -295,45 +301,64 @@ class Reductor(object):
         if a_sector is None:
             return None
         sectors = a_sector.as_sector_linear_combinations()
-        calculated_sectors = dict()
+        exist = set()
         while len(sectors):
             if DEBUG:
-                print sectors
-            raw_sectors = sectors.sectors_to_coefficient.keys()
+                print len(sectors), sectors.str_without_masters(self._masters.keys())
             not_masters = list()
+            raw_sectors = sectors.sectors_to_coefficient.keys()
             for s in raw_sectors:
-                is_break = False
-                s.as_rule_key()
                 if s.as_rule_key() in self._zero_sectors:
                     sectors = sectors.remove_sector(s)
-                    is_break = True
-                if is_break:
-                    continue
-                if s not in self._masters.keys():
+                elif s not in self._masters.keys():
                     not_masters.append(s)
 
             if not len(not_masters):
                 break
 
-            biggest = reduction_util.choose_max(not_masters)
-            is_updated = False
-            if biggest not in calculated_sectors:
-                key = biggest.as_rule_key()
-                current_rules = self._sector_rules.get(key, None)
-                assert current_rules
-                for rule in current_rules:
-                    if rule.is_applicable(biggest):
-                        new_sectors = rule.apply(biggest)
-                        calculated_sectors[biggest] = new_sectors
-                        sectors = sectors.replace_sector_to_sector_linear_combination(biggest, new_sectors)
-                        is_updated = True
-                        break
-            else:
-                is_updated = True
-                sectors = sectors.replace_sector_to_sector_linear_combination(biggest, calculated_sectors.get(biggest))
+            key_to_sector = rggraphutil.emptyListDict()
+            for s in not_masters:
+                key_to_sector[s.as_rule_key()].append(s)
+            minimal_key = min(key_to_sector.keys())
+            rules = self._sector_rules[minimal_key]
 
-            if not is_updated:
-                return None
+            current_sectors_to_reduce = set(key_to_sector[minimal_key])
+            n_exist = set()
+            while len(current_sectors_to_reduce):
+                s = current_sectors_to_reduce.pop()
+                is_updated = False
+                for rule in rules:
+                    if rule.is_applicable(s):
+                        new_sectors = rule.apply(s)
+                        # if sector.Sector(1,0,-1,0,1,1,1,1,1) in new_sectors.sectors_to_coefficient.keys():
+                        #     print "\n\n-----"
+                        #     print len(filter(lambda r: r.is_applicable(s), rules))
+                        #     print rule
+                        #     print rule._apply_formula.format(None, *s.propagators_weights)
+                        #     d = symbolic_functions.D
+                        #     Sector = sector.Sector
+                        #     qwe = eval(rule._apply_formula.format(None, *s.propagators_weights))
+                        #     print "asd", qwe.sectors_to_coefficient[sector.Sector(1,0,-1,0,1,1,1,1,1)]
+                        #     print s
+                        #     print "Qeewsector.Sector(1,0,-1,0,1,1,1,1,1)"
+                        #     print "\n\n-----"
+                        #     exit(1)
+                        n_exist.add(s)
+                        do_continue = False
+                        for x in new_sectors.sectors_to_coefficient.keys():
+                            if x in exist:
+                                do_continue = True
+                                break
+                        if do_continue:
+                            continue
+                        for n_s in new_sectors.sectors:
+                            if n_s not in self._masters.keys() and n_s.as_rule_key() == minimal_key:
+                                current_sectors_to_reduce.add(n_s)
+                        is_updated = True
+                        sectors = sectors.replace_sector_to_sector_linear_combination(s, new_sectors)
+                        break
+                assert is_updated, ("no rule for sector %s found" % s, exist)
+            exist = exist | n_exist
         return ReductorResult(sectors, self._masters)
 
     def _get_file_path(self, file_name):
@@ -397,6 +422,8 @@ _IS_INITIALIZED = ref.Ref.create(False)
 
 G = symbolic_functions.G
 l = symbolic_functions.l
+
+
 
 THREE_LOOP_REDUCTOR = Reductor("loop3",
                                "loop3",
@@ -489,4 +516,4 @@ class ScalarProductTwoAndThreeLoopsGraphCalculator(abstract_graph_calculator.Abs
             reduction_util.calculate_graph_p_factor(graph)
 
     def is_applicable(self, graph):
-        return reductor.is_applicable(graph)
+        return is_applicable(graph)

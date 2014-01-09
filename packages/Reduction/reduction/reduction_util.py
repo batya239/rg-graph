@@ -5,6 +5,7 @@ __author__ = 'dimas'
 
 
 import itertools
+import sector
 
 
 def calculate_graph_p_factor(graph):
@@ -41,17 +42,22 @@ def _compare(sector1, sector2):
     """
     Laporta comparator
     """
-    n1 = len(filter(lambda i: i > 0, sector1.propagators_weights))
-    n2 = len(filter(lambda i: i > 0, sector2.propagators_weights))
+
+    n1 = len(filter(lambda i: i != 0, sector1.propagators_weights))
+    n2 = len(filter(lambda i: i != 0, sector2.propagators_weights))
     sub = n1 - n2
     if sub != 0:
         return sub
-    md1 = reduce(lambda j, i: j + (i if i > 0 else 0), sector1.propagators_weights)
-    md2 = reduce(lambda j, i: j + (i if i > 0 else 0), sector2.propagators_weights)
-    sub = md1 - md2
-    if sub != 0:
-        return sub
+    # md1 = reduce(lambda j, i: j + (i if i > 0 else 0), sector1.propagators_weights)
+    # md2 = reduce(lambda j, i: j + (i if i > 0 else 0), sector2.propagators_weights)
+    # sub = md1 - md2
+    # if sub != 0:
+    #     return sub
     max1 = max(sector1.propagators_weights)
     max2 = max(sector2.propagators_weights)
     sub = max1 - max2
     return sub
+
+def _compare_key(sector_key1, sector_key2):
+    positive_cnt1 = reduce(lambda a, b: a + int(b == sector.SectorRuleKey.PROPAGATOR_CONDITION_POSITIVE), sector_key1.initial_propagators_condition, 0)
+    positive_cnt2 = reduce(lambda a, b: a + int(b == sector.SectorRuleKey.PROPAGATOR_CONDITION_POSITIVE), sector_key2.initial_propagators_condition, 0)

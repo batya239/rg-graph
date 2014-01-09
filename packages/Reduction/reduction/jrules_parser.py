@@ -6,6 +6,7 @@ __author__ = ['mkompan', 'dima']
 import re
 import sector
 import scalar_product
+from rggraphenv import symbolic_functions
 
 _SECTOR_REGEXP = re.compile("^\[(.*)\] /; (.*) -> (.*)$")
 _SECTOR_CONDITION_REGEXP = re.compile(".*n(.+)_\)\?(.+)")
@@ -19,6 +20,7 @@ _DEBUG = False
 
 
 def parse_scalar_products_reducing_rules(file_path, j_suffix):
+    import swiginac
     with open(file_path, 'r') as f:
         content = "".join(f.readlines())
         content = content.replace("\n", "")
@@ -39,7 +41,7 @@ def parse_scalar_products_reducing_rules(file_path, j_suffix):
                 else:
                     kp.append(0)
             key = scalar_product.ScalarProductRuleKey(*kp)
-            rules[key] = eval(raw_rule)
+            rules[key] = eval(symbolic_functions.safe_integer_numerators(raw_rule))
         return rules
 
 
@@ -118,18 +120,20 @@ def _parse_additional_condition(condition_string):
 
 
 def _replace_n(string):
-    return re.sub('n(\d+)', '{\\1}', string)
+    return re.sub('n(\d+)', '({\\1})', string)
 
 
-def _parse_rule(rule_string, j_suffix):
+def _parse_rule(rule_string, j_suffix, parse_symmetry=False):
     regex_result = _SECTOR_REGEXP.match(rule_string)
     if regex_result:
         sector_rule = sector.SectorRule(_parse_additional_condition(regex_result.groups()[1]),
-                                        convert_rule(regex_result.groups()[2], j_suffix).replace("^", "**"))
+                                        convert_rule(regex_result.groups()[2], j_suffix).replace("^", "**")[:-2] if parse_symmetry else convert_rule(regex_result.groups()[2], j_suffix).replace("^", "**"))
         return sector.SectorRuleKey(_convert_sector_conditions(regex_result.groups()[0])), \
             sector_rule
     if "Expand" in rule_string:
         rule = _parse_strange_rule(rule_string, j_suffix)
+        if parse_symmetry:
+            rule = rule[:-2]
         return sector.SectorRuleKey(_convert_sector_conditions(rule_string[:rule_string.index("] :>")])), \
             sector.SectorRule(None, rule.replace("^", "**"))
     raise ValueError("invalid rule: %s" % rule_string)
@@ -141,10 +145,14 @@ def read_raw_zero_sectors(file_path, j_suffix):
         return raw_zero_sectors, _create_zero_rules(raw_zero_sectors)
 
 
-def x_parse_rules(file_path, j_suffix):
-    j_rules_string = ''.join(map(lambda x: x.rstrip(), open(file_path).readlines()))[2:-1].split(', j')
+def x_parse_rules(file_path, j_suffix, parse_symmetry=False):
+    j_rules_string = ''.join(map(lambda x: x.rstrip(), open(file_path).readlines()))[2:-1].split(', {j' if parse_symmetry else ', j')
+    first = True
     for item in j_rules_string:
-        yield _parse_rule(item, j_suffix)
+        if parse_symmetry and first:
+            first = False
+            continue
+        yield _parse_rule(item, j_suffix, parse_symmetry)
 
 
 def parse_masters(file_path, j_suffix):

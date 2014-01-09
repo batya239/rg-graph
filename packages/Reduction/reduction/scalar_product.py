@@ -23,11 +23,19 @@ class ScalarProductRuleKey(object):
     def __hash__(self):
         return hash(self._sp)
 
+    def is_external_p_2(self):
+        return self._sp == frozenset([0])
+
     def __eq__(self, other):
         if isinstance(other, ScalarProductRuleKey):
             # noinspection PyProtectedMember
             return self._sp == other._sp
         raise AssertionError()
+
+    def __str__(self):
+        return "SPKEY(%s)" % self._sp
+
+    __repr__ = __str__
 
 
 class ScalarProduct(object):
@@ -44,8 +52,18 @@ class ScalarProduct(object):
                 if i[1] != 0 and j[1] != 0:
                     c = i[1] * j[1]
                     key = ScalarProductRuleKey(i[0], j[0])
-                    factor += rules[key] * c
+                    if key.is_external_p_2():
+                        factor += c
+                    else:
+                        factor += rules[key] * c
         result = sectors_linear_combinations
+        print "FACTOR", factor, type(factor)
         for i in xrange(self._power):
             result *= factor
+        print "FACTOR2", sectors_linear_combinations, result
         return result if self._sign == 1 else (- result)
+
+    def __str__(self):
+        return "SPK(p1=%s, p2=%s, power=%s, sign=%s)" % (self._propagator1, self._propagator2, self._power, self._sign)
+
+    __repr__ = __str__

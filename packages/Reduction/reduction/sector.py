@@ -45,7 +45,7 @@ class Sector(object):
         return SectorLinearCombination.singleton(self, -1)
 
     def __str__(self):
-        return "Sector" + str(self._propagators_weights)
+        return "Sector" + str(self._propagators_weights).replace(" ", "")
 
     def __repr__(self):
         return str(self)
@@ -90,9 +90,7 @@ class Sector(object):
         raise NotImplementedError(type(other))
 
     def __eq__(self, other):
-        if isinstance(other, Sector):
-            return self.propagators_weights == other.propagators_weights
-        raise AssertionError()
+        return self.propagators_weights == other.propagators_weights
 
     def __hash__(self):
         return hash(self.propagators_weights)
@@ -123,17 +121,23 @@ class Sector(object):
 class SectorLinearCombination(object):
     @staticmethod
     def _filter_zeros(some_dict):
-        to_remove = list()
+        new_dict = rggraphutil.zeroDict()
         for k, v in some_dict.items():
             if isinstance(v, swiginac.numeric) and v.to_double() == 0:
-                to_remove.append(k)
-        for k in to_remove:
-            del some_dict[k]
-        return some_dict
+                continue
+            if isinstance(v, (int, float)) and v == 0:
+                continue
+            new_dict[k] = v.normal() if isinstance(v, swiginac.refcounted) else v
+        return new_dict
 
     def __init__(self, sectors_to_coefficient, additional_part=0):
         self._additional_part = additional_part
         self._sectors_to_coefficient = SectorLinearCombination._filter_zeros(sectors_to_coefficient)
+
+    def str_without_masters(self, masters):
+        l = sorted(filter(lambda s: s not in masters, self.sectors_to_coefficient.keys()), cmp=reduction_util._compare)
+        l.reverse()
+        return str(l)
 
     @property
     def additional_part(self):
@@ -170,6 +174,8 @@ class SectorLinearCombination(object):
         return SectorLinearCombination(sectors_to_coefficient)
 
     def remove_sector(self, sector):
+        if sector not in self._sectors_to_coefficient:
+            return self
         new_sectors_to_coefficient = copy.copy(self._sectors_to_coefficient)
         del new_sectors_to_coefficient[sector]
         return SectorLinearCombination(new_sectors_to_coefficient, self._additional_part)
@@ -187,6 +193,10 @@ class SectorLinearCombination(object):
     @property
     def sectors_to_coefficient(self):
         return self._sectors_to_coefficient
+
+    @property
+    def sectors(self):
+        return self.sectors_to_coefficient.keys()
 
     def as_sector_linear_combinations(self):
         return self
@@ -232,6 +242,9 @@ class SectorLinearCombination(object):
         return reduce(lambda x, y: x * y, [inversed] * _power, 1)
 
     def __str__(self):
+        # l = sorted(self.sectors_to_coefficient.keys(), cmp=reduction_util._compare)
+        # l.reverse()
+        # return str(l)
         return str(self.additional_part) + "".join(
             map(lambda i: "+%s*%s" % (i[0], i[1]), self.sectors_to_coefficient.items()))
 
@@ -267,7 +280,7 @@ class SectorLinearCombination(object):
                     new_sector_to_coefficient[s1 * s2] += c1 * c2
                     if new_sector_to_coefficient[s1 * s2] == 0:
                         del new_sector_to_coefficient[s1 * s2]
-            return SectorLinearCombination(new_sector_to_coefficient)
+            return SectorLinearCombination(new_sector_to_coefficient) + self.additional_part * other + other.additional_part * self
         raise NotImplementedError("other type: %s, operation %s" % (type(other), "*" if do_mul else ":"))
 
 
@@ -296,6 +309,10 @@ class SectorRuleKey(object):
     def __init__(self, initial_propagators_condition):
         self._initial_propagators_condition = tuple(initial_propagators_condition)
 
+    @property
+    def initial_propagators_condition(self):
+        return self._initial_propagators_condition
+
     def is_applicable(self, sector):
         assert len(self._initial_propagators_condition) == len(sector.propagators_weights), \
             "%d != %d" % (len(self._initial_propagators_condition), len(sector.propagators_weights))
@@ -304,6 +321,9 @@ class SectorRuleKey(object):
             or condition is SectorRuleKey.PROPAGATOR_CONDITION_NOT_POSITIVE and weight > 0:
                 return False
         return True
+
+    def __cmp__(self, other):
+        return cmp(self.initial_propagators_condition, other.initial_propagators_condition)
 
     def __repr__(self):
         return "SectorRuleKey: " + str(self._initial_propagators_condition)
@@ -326,6 +346,15 @@ class SectorRule(object):
         self._exception_condition = exception
         self._additional_condition = additional_condition
         self._apply_formula = apply_formula
+        self._is_symmetry_rule = None
+
+    def complexity(self):
+        return len([m for m in re.finditer('Sector', self._apply_formula)])
+
+    def is_symmetry_rule(self):
+        if self._is_symmetry_rule is None:
+            self._is_symmetry_rule = self._apply_formula.find("Sector") == self._apply_formula.rfind("Sector")
+        return self._is_symmetry_rule
 
     def is_applicable(self, sector):
         if self._additional_condition:
@@ -341,7 +370,10 @@ class SectorRule(object):
 
         if self._apply_formula is None:
             return ZERO_SECTOR_LINEAR_COMBINATION
-        evaled = eval(self._apply_formula.format(None, *sector.propagators_weights)).as_sector_linear_combinations()
+        try:
+            evaled = eval(self._apply_formula.format(None, *sector.propagators_weights)).as_sector_linear_combinations()
+        except ValueError:
+            print 1
         return evaled
 
     def __str__(self):
