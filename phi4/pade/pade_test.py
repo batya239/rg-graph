@@ -64,6 +64,10 @@ def solve_pade_sympy(pade_num, pade_denom, series_dict, n, tau):
     return sympy.solve_linear_system(eqs2matrix(eqs, vars), *vars)
 
 
+def solve_pade_sympy_lob(pade_num, pade_denom, series_dict, n, tau, a=0):
+    return solve_pade_sympy(pade_num, pade_denom*(1+tau*a), series_dict, n, tau)
+
+
 def borel_transform(series_dict, b=0):
     return dict(map(lambda x: (x, series_dict[x] / sympy.gamma(x + b + 1).evalf()), series_dict))
 
@@ -83,19 +87,19 @@ def resummation_pade(L, M, series_dict):
 
 #FIXME : b!=0 !!!!
 func_template = """
-def func(x):
+def func(x,b):
     tau = x/(1-x)
-    res = math.exp(-tau) * ({pade})/(1-x)**2
+    res = tau**b*math.exp(-tau) * ({pade})/(1-x)**2
     return res
 """
 
 
-def resummation_pade_borel(L, M, series_dict, b=0):
+def resummation_pade_borel(L, M, series_dict, a=0, b=0):
     tau = sympy.var('tau')
     borel_dict = borel_transform(series_dict, b=b)
     padeNum, padeDenom = pade_aproximant(L, M, tau)
     padeFunc = padeNum / padeDenom
-    res = solve_pade_sympy(padeNum, padeDenom, borel_dict, L + M, tau)
+    res = solve_pade_sympy_lob(padeNum, padeDenom, borel_dict, L + M, tau, a=a)
     #    print res
     padeFunc_ = padeFunc
     for var, value in res.iteritems():
@@ -106,7 +110,7 @@ def resummation_pade_borel(L, M, series_dict, b=0):
 #    print func_template.format(pade=padeFunc_)
     exec(func_template.format(pade=padeFunc_))
     try:
-        output = integrate.quad(func, 0., 1., full_output=1, limit=100)
+        output = integrate.quad(func, 0., 1., args=(b,), full_output=1, limit=100)
         result = output[0]
         if len(output)==4:
             warn = output[3]
@@ -245,7 +249,7 @@ def print_pade_borel_minus(series_dict, N, m0=0, l0=0):
     print_pade_borel(series_dict, N, m0=m0, l0=l0, inverse=True)
 
 
-def calculate2013(result, N):
+def calculate2013(result, N, a=0, b=0):
 
     print "gamma"
 
