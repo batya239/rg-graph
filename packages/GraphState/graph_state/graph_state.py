@@ -146,6 +146,7 @@ class Edge(object):
 
     #if this attribute is True than any new Edge will be generated with unique edge_id
     CREATE_EDGES_INDEX = True
+    NEXT_EDGES_INDEX = 1
     MAKE_PROPERTY_EXTERNAL_METHOD_NAME = "make_external"
 
     def __init__(self, nodes, external_node=-1, edge_id=None, **kwargs):
@@ -174,7 +175,8 @@ class Edge(object):
             self.edge_id = edge_id
         else:
             if Edge.CREATE_EDGES_INDEX:
-                self.edge_id = id(self)
+                self.edge_id = Edge.NEXT_EDGES_INDEX
+                Edge.NEXT_EDGES_INDEX += 1
             else:
                 self.edge_id = None
 
