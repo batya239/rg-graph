@@ -40,7 +40,7 @@ class Series():
     """ Класс, обеспечивающий разложение в ряд по g с точностью до n-го порядка с учётом погрешности.
     """
 
-    def __init__(self, d={}, n=nLoops, name='g'):## FIXME: убрать отсюда nLoops
+    def __init__(self, n, d={}, name='g'):## FIXME: убрать отсюда r4Loops
         self.n = n
         self.gSeries = d
         self.name = name
@@ -73,7 +73,7 @@ class Series():
         else:
             print type(self), type(other)
             raise NotImplementedError
-        return Series(tmp, len(tmp), name=self.name)
+        return Series(len(tmp), tmp, name=self.name)
 
     def __radd__(self, other):
         return self + other
@@ -92,11 +92,11 @@ class Series():
                             tmp[i + j] += self.gSeries[i] * other.gSeries[j]
                         except  KeyError:
                             tmp[i + j] = self.gSeries[i] * other.gSeries[j]
-            res = Series(tmp, max(self.n, other.n), name=self.name)
+            res = Series(max(self.n, other.n), tmp, name=self.name)
         elif isinstance(other, (int, float, Variable, AffineScalarFunc)):
             for i in self.gSeries.keys():
                 tmp[i] = self.gSeries[i] * other
-            res = Series(tmp, self.n, name=self.name)
+            res = Series(self.n, tmp, name=self.name)
         else:
             print "\nother =", other, " type(other) =", type(other)
             raise NotImplementedError
@@ -112,7 +112,7 @@ class Series():
         """ Z.__invert__() = 1/Z
         1/(1+x)=Sum_i (-1)^i x^i
         """
-        res = Series({}, self.n, self.name)
+        res = Series(self.n, {}, self.name)
         #if self.gSeries[0] == 1:
         #    tmp = Series(self.gSeries[1:], n = self.n-1, name=self.name)
         #        for i in range(tmp.n):
@@ -139,7 +139,7 @@ class Series():
         elif isinstance(power, int) and power == 1:
             return self
         elif isinstance(power, int) and power == 0:
-            return Series({0: ufloat(1, 0)}, self.n, self.name)
+            return Series(self.n, {0: ufloat(1, 0)}, self.name)
         else:
             print "power =", power, " type(power) =", type(power)
             raise NotImplementedError
@@ -151,7 +151,7 @@ class Series():
         res = {}
         for i in range(len(self.gSeries) - 1):
             res[i] = (i + 1) * self.gSeries[i + 1]
-        return Series(res, self.n)
+        return Series(self.n, res)
 
     def __repr__(self):
         return self.gSeries
@@ -169,7 +169,7 @@ class Series():
         return len(self.gSeries)
 
     def subs(self, point):
-        res = Series({0: ufloat(0, 0)}, n=self.n, name=point.name)
+        res = Series(n=self.n, d={0: ufloat(0, 0)}, name=point.name)
         for i, c in self.gSeries.items():
             res += c * (point ** i)
         return res

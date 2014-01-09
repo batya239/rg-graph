@@ -81,12 +81,12 @@ for tVersion in dynamics.TVersions(dG):
     nLoops = dG.NLoops()
     # print variables
     # print conservations
-    # print nLoops
+    # print r4Loops
 
     # for sector in dynamics.xTreeElement2(sdtTree):
     #     print  "    (%s, (  ))," % (sector)
 
-#    sectorTree = dynamics.generateStaticSpeerTree(variables, conservations, nLoops, tree=sdtTree)
+#    sectorTree = dynamics.generateStaticSpeerTree(variables, conservations, r4Loops, tree=sdtTree)
     sectorTree = dynamics.generateDynamicSpeerTree(dG, tVersion, model, tree=sdtTree)
     sectorString = ""
 #    for sector in dynamics.xTreeElement2(sectorTree):
