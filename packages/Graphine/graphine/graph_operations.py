@@ -79,26 +79,12 @@ def isGraphConnected(edgesList, superGraph, superGraphEdges):
     return _is_graph_connected(edgesList, superGraph.externalVertex)
 
 
-def _default_external_edge_creation_strategy(adjacency_edges, vertex, externalVertex):
-    has_colors = adjacency_edges[0].colors is not None
-    has_fields = adjacency_edges[0].fields is not None
-    colors = graph_state.Rainbow((0, 0)) if has_colors else None
-    fields = graph_state.Fields.fromStr("00") if has_fields else None
-    return graph_state.Edge((externalVertex, vertex),
-                            external_node=externalVertex,
-                            colors=colors,
-                            fields=fields)
-
-
 def x_sub_graphs(edges_list, edges_map, external_vertex,
                  cut_edges_to_external=True,
-                 external_edge_creation_strategy=None,
                  start_size=2):
     """
     cut_edges_to_external - if True then all graphs from iterator has only 2 external edges
     """
-    if external_edge_creation_strategy is None:
-        external_edge_creation_strategy = _default_external_edge_creation_strategy
     external, inner = _pick_external_edges(edges_list, external_vertex)
     inner_length = len(inner)
 
@@ -110,9 +96,8 @@ def x_sub_graphs(edges_list, edges_map, external_vertex,
             for v in notExternalVertexes:
                 edges = edges_map.get(v, None)
                 if edges:
-                    externalEdges = filter(lambda e: len(e.internal_nodes) == 1, edges)
-                    subGraph = [external_edge_creation_strategy(edges_map[v], v, external_vertex)] * (len(edges) - len(externalEdges))
-                    subGraph += externalEdges
+                    subGraph = map(lambda e_: e_.copy(node_map={(set(e_.nodes)-set([v])).pop(): external_vertex}), filter(lambda e: not e.is_external(), edges))
+                    subGraph += filter(lambda e: e.is_external(), edges)
                     yield subGraph
 
         if inner_length:
@@ -129,8 +114,10 @@ def x_sub_graphs(edges_list, edges_map, external_vertex,
                             vSet = set(e.nodes)
                             for v in vSet:
                                 if v in subGraphVertexes:
-                                    factor = 2 if len(vSet) == 1 else 1
-                                    subGraph.append(external_edge_creation_strategy(edges_map[v], v, external_vertex))
+                                    if len(vSet) == 1:
+                                        subGraph += e.cut_tadpole()
+                                    else:
+                                        subGraph.append(e.copy({(set(e.nodes)-set([v])).pop(): external_vertex}))
                     for e in external:
                         v = e.internal_nodes[0]
                         if v in subGraphVertexes:

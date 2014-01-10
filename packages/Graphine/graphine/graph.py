@@ -246,15 +246,13 @@ class Graph(object):
                            filters=list(),
                            resultRepresentator=Representator.asGraph,
                            cutEdgesToExternal=True,
-                           external_edge_creation_strategy=None,
                            exact=True):
         allEdges = self.allEdges()
         simpleCache = dict()
         exactSubGraphIterator = graph_operations.x_sub_graphs(allEdges,
                                                               self._edges,
                                                               self.externalVertex,
-                                                              cut_edges_to_external=cutEdgesToExternal,
-                                                              external_edge_creation_strategy=external_edge_creation_strategy)
+                                                              cut_edges_to_external=cutEdgesToExternal)
         sgIterator = exactSubGraphIterator if exact else itertools.chain(exactSubGraphIterator, (allEdges,))
         for subGraphAsList in sgIterator:
             subGraphAsTuple = tuple(subGraphAsList)
