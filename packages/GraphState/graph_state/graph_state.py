@@ -103,7 +103,7 @@ class Rainbow(object):
         return self._colors
 
     def make_external(self, nodes, external_node):
-        return Rainbow((0,) * len(self.colors))
+        return self
 
     def __getitem__(self, item):
         return self._colors[item]
@@ -258,7 +258,8 @@ class Edge(object):
                     kwargs['properties_config'] = DEFAULT_PROPERTIES_CONFIG
                 updated_properties = graph_state_property.Properties.from_kwargs(**kwargs)
 
-        updated_properties = updated_properties.make_external(mapped_nodes, mapped_external_node)
+        if mapped_external_node in mapped_nodes:
+            updated_properties = updated_properties.make_external(mapped_nodes, mapped_external_node)
         return Edge(mapped_nodes,
                     external_node=mapped_external_node,
                     properties=updated_properties)
