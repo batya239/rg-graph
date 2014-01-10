@@ -102,6 +102,9 @@ class Rainbow(object):
         """
         return self._colors
 
+    def make_external(self, nodes, external_node):
+        return Rainbow((0,) * len(self.colors))
+
     def __getitem__(self, item):
         return self._colors[item]
 
@@ -216,6 +219,15 @@ class Edge(object):
             self._hash = hash(self.key())
         return self._hash
 
+    def cut_tadpole(self, external_node):
+        nodes_set = set(e.nodes)
+        assert len(nodes_set) == 1 and not self.is_external()
+        node = nodes_set.pop()
+        nodes1 = (node, external_node)
+        nodes2 = (external_node, node)
+        return tuple(map(lambda n: Edge(n, external_node=external_node, properties=updated_properties.make_external(n, external_node)), (nodes1, nodes2)))
+
+
     def copy(self, node_map=None, **kwargs):
         """
         Creates a copy of the object with possible change of nodes.
@@ -246,6 +258,7 @@ class Edge(object):
                     kwargs['properties_config'] = DEFAULT_PROPERTIES_CONFIG
                 updated_properties = graph_state_property.Properties.from_kwargs(**kwargs)
 
+        updated_properties = updated_properties.make_external(mapped_nodes, mapped_external_node)
         return Edge(mapped_nodes,
                     external_node=mapped_external_node,
                     properties=updated_properties)
