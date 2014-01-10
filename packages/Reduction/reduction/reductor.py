@@ -16,7 +16,6 @@ import sector
 import reduction_util
 import graph_state
 import scalar_product
-import two_and_three_loops
 
 
 e = symbolic_functions.e
@@ -433,48 +432,3 @@ def calculate(graph, scalar_product_aware_function=None):
 
 def is_applicable(graph):
     return _MAIN_REDUCTION_HOLDER.get().is_applicable(graph)
-
-
-class TwoAndThreeReductionCalculator(abstract_graph_calculator.AbstractGraphCalculator):
-    def get_label(self):
-        return "reduction calculator"
-
-    def init(self):
-        initialize(two_and_three_loops.TWO_LOOP_REDUCTOR, two_and_three_loops.THREE_LOOP_REDUCTOR)
-
-    def is_applicable(self, graph):
-        return is_applicable(graph)
-
-    def calculate(self, graph):
-        result = calculate(graph)
-        if result is None:
-            return None
-        return result.evaluate(substitute_sectors=True, _d=symbolic_functions.D, series_n=5, remove_o=True), \
-            reduction_util.calculate_graph_p_factor(graph)
-
-    def dispose(self):
-        pass
-
-
-class ScalarProductTwoAndThreeLoopsGraphCalculator(abstract_graph_calculator.AbstractGraphCalculator):
-    def __init__(self, scalar_product_extractor):
-        self._scalar_product_extractor = scalar_product_extractor
-
-    def get_label(self):
-        return "graphs with scalars products reduction calculator for 2 and 3 loops"
-
-    def init(self):
-        initialize(two_and_three_loops.TWO_LOOP_REDUCTOR, two_and_three_loops.THREE_LOOP_REDUCTOR)
-
-    def dispose(self):
-        pass
-
-    def calculate(self, graph):
-        result = calculate(graph, self._scalar_product_extractor)
-        if result is None:
-            return None
-        return result.evaluate(substitute_sectors=True, _d=symbolic_functions.D, series_n=5, remove_o=True), \
-            reduction_util.calculate_graph_p_factor(graph)
-
-    def is_applicable(self, graph):
-        return is_applicable(graph)
