@@ -13,28 +13,28 @@ class TestNickel(unittest.TestCase):
     def testNickelFromEdges(self):
         e = nickel.Nickel(edges=[[0, -1], [-1, 0]])
         self.assertEqual(e.nickel, [[-1, -1]])
-        self.assertEqual(e.string, 'ee-')
+        self.assertEqual(e.string, 'ee|')
 
-        s = nickel.Nickel(string='ee-')
+        s = nickel.Nickel(string='ee|')
         self.assertEqual(s.nickel, [[-1, -1]])
         self.assertEqual(s.edges, e.edges)
 
         ee = nickel.Nickel(edges=[[0, -1], [-1, 0], [2, 1], [1, 0]])
         self.assertEqual(ee.nickel, [[-1, -1, 1], [2], []])
-        self.assertEqual(ee.string, 'ee1-2--')
+        self.assertEqual(ee.string, 'ee1|2||')
 
-        ss = nickel.Nickel(string='ee1-2-')
+        ss = nickel.Nickel(string='ee1|2|')
         self.assertEqual(ss.nickel, [[-1, -1, 1], [2]])
         self.assertEqual(ss.edges, ee.edges)
 
-        s1 = nickel.Nickel(string='eE-')
+        s1 = nickel.Nickel(string='eE|')
         self.assertEqual(s1.nickel, [[-1, 14]])
         self.assertEqual(s1.edges, [[-1, 0], [0, 14]])
 
     def testNickelFromEdgeTuples(self):
         e = nickel.Nickel(edges=[(0, -1), (-1, 0)])
         self.assertEqual(e.nickel, [[-1, -1]])
-        self.assertEqual(e.string, 'ee-')
+        self.assertEqual(e.string, 'ee|')
 
         e = nickel.Nickel(edges=[(-1, 0), (0, 1), (1, -1)])
         self.assertEqual(e.nickel, [[-1, 1], [-1]])
@@ -57,9 +57,9 @@ class TestNickel(unittest.TestCase):
 
     def testVacuumBubble(self):
         n = nickel.Nickel(edges=[[0, 1], [0, 1]])
-        self.assertEqual('11--', n.string)
+        self.assertEqual('11||', n.string)
         n = nickel.Nickel(edges=[[0, 0]])
-        self.assertEqual('0-', n.string)
+        self.assertEqual('0|', n.string)
 
 
 class TestCanonicalize(unittest.TestCase):
@@ -211,20 +211,20 @@ class TestOrigNickel(unittest.TestCase):
         self.assertEqual(orig_str, str(c))
 
     def testOrigNickelCompare(self):
-        self._testStr('e12-e3-333--')
-        self._testStr('e123-e24-34-e4-e-')
-        self._testStr('e112-e2-33-44-56-e66-e-')
+        self._testStr('e12|e3|333||')
+        self._testStr('e123|e24|34|e4|e|')
+        self._testStr('e112|e2|33|44|56|e66|e|')
         # Vacuum loops.
-        self._testStr('111--')
-        self._testStr('123-23-3--')
-        self._testStr('112-3-33--')
+        self._testStr('111||')
+        self._testStr('123|23|3||')
+        self._testStr('112|3|33||')
 
     def testFromStr(self):
-        not_minimum = 'e1-3-e3--'
+        not_minimum = 'e1|3|e3||'
         n = nickel.Nickel(string=not_minimum)
         self.assertEqual(n.string, not_minimum)
         c = nickel.Canonicalize(nickel.Nickel(string=not_minimum).edges)
-        self.assertEqual('e1-2-3-e-', str(c))
+        self.assertEqual('e1|2|3|e|', str(c))
 
 
 if __name__ == "__main__":
