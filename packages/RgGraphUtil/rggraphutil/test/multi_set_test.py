@@ -40,5 +40,8 @@ class MultiSetTest(unittest.TestCase):
         self.assertEqual(s1, s2)
         self.assertEqual(hash(s1), hash(s2))
 
+    def assertIs(self, a, b):
+        self.assertTrue(a is b)
+
 if __name__ == "__main__":
     unittest.main()
