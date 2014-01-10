@@ -246,13 +246,15 @@ class Graph(object):
                            filters=list(),
                            resultRepresentator=Representator.asGraph,
                            cutEdgesToExternal=True,
+                           external_edge_creation_strategy=None,
                            exact=True):
         allEdges = self.allEdges()
         simpleCache = dict()
-        exactSubGraphIterator = graph_operations.xSubGraphs(allEdges,
-                                                            self._edges,
-                                                            self.externalVertex,
-                                                            cutEdgesToExternal=cutEdgesToExternal)
+        exactSubGraphIterator = graph_operations.x_sub_graphs(allEdges,
+                                                              self._edges,
+                                                              self.externalVertex,
+                                                              cut_edges_to_external=cutEdgesToExternal,
+                                                              external_edge_creation_strategy=external_edge_creation_strategy)
         sgIterator = exactSubGraphIterator if exact else itertools.chain(exactSubGraphIterator, (allEdges,))
         for subGraphAsList in sgIterator:
             subGraphAsTuple = tuple(subGraphAsList)
@@ -328,71 +330,8 @@ class Graph(object):
         return copied
 
     @staticmethod
-    def fromStr(string,
-                initEdgesColor=False,
-                zeroColor=(0, 0),
-                unitColor=(1, 0),
-                initFields=False,
-                fieldLines=None,
-                fieldValue=None,
-                noFieldValue=None):
-        g = Graph(graph_state.GraphState.fromStr(string))
-        if initEdgesColor:
-            g = Graph.initEdgesColors(g, zeroColor, unitColor)
-        if initFields:
-            g = Graph.initFields(g, fieldLines, fieldValue, noFieldValue)
-        return g
-
-    @staticmethod
-    def initEdgesColors(graph, zeroColor=graph_state.Rainbow((0, 0)), unitColor=graph_state.Rainbow((1, 0))):
-        edges = graph.allEdges()
-        initedEdges = list()
-        for e in edges:
-            if e.colors is None:
-                color = zeroColor if graph.externalVertex in e.nodes else unitColor
-                initedEdges.append(graph_state.Edge(e.nodes, graph.externalVertex, colors=color, fields=e.fields))
-            else:
-                initedEdges.append(e)
-        return Graph(initedEdges, externalVertex=graph.externalVertex, renumbering=False)
-
-    @staticmethod
-    def initFields(graph, fieldLines, fieldValue, noFieldValue):
-        """
-        numeratorLines is list of pair, where pair first is from pair second is to
-        """
-        fieldLines = list(fieldLines)
-        initedEdges = list()
-
-        for e in graph.allEdges():
-            nodes = e.nodes
-            if nodes in fieldLines:
-                fieldLines.remove(nodes)
-                initedEdges.append(graph_state.Edge(e.nodes,
-                                                    external_node=graph.externalVertex,
-                                                    fields=fieldValue,
-                                                    colors=e.colors,
-                                                    edge_id=e.edge_id))
-                continue
-            swapNodes = e.nodes[1], e.nodes[0]
-            if swapNodes in fieldLines:
-                fieldLines.remove(swapNodes)
-                initedEdges.append(graph_state.Edge(swapNodes,
-                                                    external_node=graph.externalVertex,
-                                                    fields=fieldValue,
-                                                    colors=e.colors,
-                                                    edge_id=e.edge_id))
-                continue
-            else:
-                initedEdges.append(graph_state.Edge(e.nodes,
-                                                    external_node=graph.externalVertex,
-                                                    fields=noFieldValue,
-                                                    colors=e.colors,
-                                                    edge_id=e.edge_id))
-        return Graph(initedEdges, externalVertex=graph.externalVertex, renumbering=False)
-
-    @staticmethod
-    def batchInitEdgesColors(graphs, zeroColor=graph_state.Rainbow((0, 0)), unitColor=graph_state.Rainbow((1, 0))):
-        return map(lambda g: Graph.initEdgesColors(g, zeroColor, unitColor), graphs)
+    def fromStr(string):
+        return Graph(graph_state.GraphState.fromStr(string))
 
     @staticmethod
     def _parseEdges(edgesIterable):

@@ -103,9 +103,11 @@ def xArbitrarilyPassMomentum(graph):
     external_vertex = graph.externalVertex
     external_edges = graph.edges(external_vertex)
     internal_vertices = graph.vertices() - set(reduce(lambda x, y: x | y, map(lambda x: set(x.nodes), external_edges), set())
-                                              - set([external_vertex])) - set([external_vertex])
+                                         - set([external_vertex])) - set([external_vertex])
 
     visited_vertices = set()
+    has_fields = graph.allEdges()[0].fields is not None
+    default_fields = graph_state.Fields.fromStr("00") if has_fields else None
     for e in external_edges:
         v = filter(lambda _v: _v != external_vertex, e.nodes)
 
@@ -117,10 +119,10 @@ def xArbitrarilyPassMomentum(graph):
         edges_to_remove.remove(e)
         _g = graph.deleteEdges(edges_to_remove)
         for v in internal_vertices:
-            yield _g.addEdge(graph_state.Edge((v, external_vertex), external_node=external_vertex, colors=(0, 0)))
+            yield _g.addEdge(graph_state.Edge((v, external_vertex), external_node=external_vertex, colors=(0, 0), fields=default_fields))
 
     #in-in
     _g = graph.deleteEdges(external_edges)
     for vs in itertools.combinations(internal_vertices, 2):
-        yield _g.addEdges([graph_state.Edge((vs[0], external_vertex), external_node=external_vertex, colors=(0, 0)),
-                          graph_state.Edge((vs[1], external_vertex), external_node=external_vertex, colors=(0, 0))])
+        yield _g.addEdges([graph_state.Edge((vs[0], external_vertex), external_node=external_vertex, colors=(0, 0), fields=default_fields),
+                           graph_state.Edge((vs[1], external_vertex), external_node=external_vertex, colors=(0, 0), fields=default_fields)])

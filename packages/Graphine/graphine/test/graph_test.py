@@ -58,7 +58,7 @@ class GraphTestCase(unittest.TestCase):
 
         #change graph edges: 1st arg -- edges to remove, 2nd -- edges to add
         newGraph = g.change((e,), newEdges)
-        self.assertEqual(str(newGraph), "e12|e3|45|46|7|67|7||")
+        self.assertEqual(str(newGraph), "e12|e3|45|46|7|67|7||::")
 
     def testIndexableEdges(self):
         graph = gr.Graph(gs.GraphState.fromStr("e11|e|::"))
@@ -148,13 +148,13 @@ class GraphTestCase(unittest.TestCase):
         graphState = gs.GraphState([gs.Edge(e) for e in edges])
         graph = gr.Graph(graphState)
         newGraph = graph.batchShrinkToPoint(self.prepareGraphs(subGraphs))
-        self.assertEquals(str(newGraph.toGraphState()), expectedGraphState)
+        self.assertEquals(str(newGraph.toGraphState())[:-2], expectedGraphState)
 
     def doTestShrinkToPoint(self, edges, subEdges, expectedGraphState):
         graphState = gs.GraphState([gs.Edge(e) for e in edges])
         graph = gr.Graph(graphState)
         newGraph = graph.shrinkToPoint([gs.Edge(e) for e in subEdges])
-        self.assertEquals(str(newGraph.toGraphState()), expectedGraphState)
+        self.assertEquals(str(newGraph.toGraphState())[:-2], expectedGraphState)
 
     # noinspection PyMethodOverriding
     def assertSetEqual(self, set1, set2):

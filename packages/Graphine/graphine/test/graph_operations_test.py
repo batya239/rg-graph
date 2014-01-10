@@ -31,7 +31,7 @@ class GraphOperationsTestCase(unittest.TestCase):
         subGraphs = [str(x) for x in g.xRelevantSubGraphs(filters=filters.connected + filters.oneIrreducible,
                                                           resultRepresentator=gr.Representator.asGraph,
                                                           cutEdgesToExternal=False)]
-        self.assertEqual(set(subGraphs), set(['e12|e2||', 'e12|2||', 'e12|e3|3||']))
+        self.assertEqual(set(subGraphs), set(['e12|e2||::', 'e12|2||::', 'e12|e3|3||::']))
 
     def testRelevantSubGraphsWithIndexRepresentator(self):
         g = gr.Graph.fromStr("e12|e23|3||")
