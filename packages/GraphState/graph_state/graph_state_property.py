@@ -72,10 +72,15 @@ class PropertiesConfig(object):
 
 
 class PropertyKey(object):
-    def __init__(self, name, is_directed, externalizer=FakePropertyExternalizer()):
+    def __init__(self, name, is_directed=False, is_edge_property=True, externalizer=FakePropertyExternalizer()):
         self._name = name
         self._is_directed = is_directed
         self._externalizer = externalizer
+        self._is_edge_property = is_edge_property
+
+    @property
+    def is_edge_property(self):
+        return self._is_edge_property
 
     @property
     def name(self):
@@ -93,12 +98,14 @@ class PropertyKey(object):
         assert isinstance(other, PropertyKey)
         return self.name == other.name and \
                self.is_directed == other.is_directed and \
-               self.externalizer == other.externalizer
+               self.externalizer == other.externalizer and \
+               self.is_edge_property == other.is_edge_property
 
     def __hash__(self):
         h = hash(self.name)
         h = 31 * h + hash(self.is_directed)
         h = 31 * h + hash(self.externalizer)
+        h = 31 * h + hash(self.is_edge_property)
         return h
 
 
@@ -120,6 +127,14 @@ class Properties(object):
         for p_name in properties_config.property_order:
             setattr(p, p_name, kwargs.get(p_name, None))
         return p
+
+    def is_none(self):
+        property_order = self._properties_config.property_order
+        for p_name in property_order:
+            v = getattr(self, p_name, None)
+            if v is not None:
+                return False
+        return True
 
     def has_property(self, name):
         return self._properties_config.has_property(name)

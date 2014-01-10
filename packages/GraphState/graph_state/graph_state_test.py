@@ -174,14 +174,14 @@ class TestGraphState(unittest.TestCase):
                  new_edge((0, 1)),
                  new_edge((1, -1)))
         state = graph_state.GraphState(edges)
-        self.assertEqual(str(state), 'e1|e|')
+        self.assertEqual(str(state), 'e1|e|::')
 
         decoded = graph_state.GraphState.fromStr(str(state))
         self.assertEqual(decoded.sortings[0], edges)
 
     def testToFromStr1(self):
         actual_state = graph_state.GraphState.fromStr("e1|e|")
-        self.assertEqual("e1|e|", str(actual_state))
+        self.assertEqual("e1|e|::", str(actual_state))
         edges = (new_edge((-1, 0)),
                  new_edge((0, 1)),
                  new_edge((1, -1)))
@@ -293,10 +293,10 @@ class TestOldStyle(unittest.TestCase):
 
     def testSimpleObjects(self):
         gs = graph_state.GraphState.fromStrOldStyle("e1-e-")
-        self.assertEqual(str(gs), "e1|e|")
+        self.assertEqual(str(gs), "e1|e|::")
 
         gs = graph_state.GraphState.fromStrOldStyle("e1-e-::")
-        self.assertEqual(str(gs), "e1|e|")
+        self.assertEqual(str(gs), "e1|e|::")
 
 if __name__ == "__main__":
     unittest.main()

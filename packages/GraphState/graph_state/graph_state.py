@@ -237,7 +237,7 @@ class Edge(object):
                 external_node = self.nodes[1]
             mapped_external_node = node_map.get(external_node, external_node)
 
-        properties_is_none = self._properties is None
+        properties_is_none = self._properties.is_none()
         updated_properties = None if properties_is_none else self._properties.update(**kwargs)
         if updated_properties is None:
             updated_properties = kwargs.get('properties', None)
@@ -269,14 +269,15 @@ class GraphState(object):
     def __init__(self, edges, node_maps=None, default_properties=None):
         # Fields must be in every edge or defaultFields must be not None.
         properties_count = len([edge._properties for edge in edges if edge._properties])
-        assert properties_count == 0 or properties_count == len(edges) or default_properties is not None, ("properties_count =  %s, len(edges) = %s, default_properties = %s" % (properties_count, len(edges), default_properties))
+        assert properties_count == 0 or properties_count == len(edges) or default_properties is not None, \
+            ("properties_count =  %s, len(edges) = %s, default_properties = %s" % (properties_count, len(edges), default_properties))
 
         node_maps = (node_maps or nickel.Canonicalize([edge.nodes for edge in edges]).node_maps)
         self.sortings = []
         for node_map in node_maps:
             mapped_edges = list()
             for edge in edges:
-                props = default_properties if edge._properties is None else edge._properties
+                props = default_properties if edge._properties.is_none() else edge._properties
                 mapped_edges.append(edge.copy(node_map=node_map, properties=props))
             mapped_edges.sort()
             self.sortings.append(tuple(mapped_edges))
