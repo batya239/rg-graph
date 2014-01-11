@@ -266,9 +266,6 @@ class Graph(object):
             if isValid:
                 yield resultRepresentator(subGraphAsList, self.externalVertex)
 
-    def graphStateSortedEdges(self):
-        return self.toGraphState().edges
-
     def toGraphState(self):
         if self._graphState is None:
             self._graphState = graph_state.GraphState(self.allEdges(nickel_ordering=False))
