@@ -6,6 +6,7 @@ __author__ = 'dima'
 from rggraphenv import symbolic_functions, abstract_graph_calculator
 import reductor
 import graphine
+import graph_state
 import reduction_util
 
 

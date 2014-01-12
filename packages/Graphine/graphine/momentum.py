@@ -9,6 +9,10 @@ import copy
 import itertools
 import graph_state
 
+new_edge = graph_state.COLORS_AND_ARROW_PROPERTIES_CONFIG.new_edge
+
+NULL_ARROW = graph_state.Arrow(graph_state.Arrow.NULL)
+
 oneIrreducible = filters.graphFilter(graph_operations.isGraph1Irreducible)
 vertexIrreducible = filters.graphFilter(graph_operations.isGraphVertexIrreducible)
 connected = filters.graphFilter(graph_operations.isGraphConnected)
@@ -106,8 +110,8 @@ def xArbitrarilyPassMomentum(graph):
                                          - set([external_vertex])) - set([external_vertex])
 
     visited_vertices = set()
-    has_fields = graph.allEdges()[0].fields is not None
-    default_fields = graph_state.Fields.fromStr("00") if has_fields else None
+    has_arrows = graph.allEdges()[0].arrow is not None
+    default_arrow = NULL_ARROW if has_arrows else None
     for e in external_edges:
         v = filter(lambda _v: _v != external_vertex, e.nodes)
 
@@ -119,10 +123,10 @@ def xArbitrarilyPassMomentum(graph):
         edges_to_remove.remove(e)
         _g = graph.deleteEdges(edges_to_remove)
         for v in internal_vertices:
-            yield _g.addEdge(graph_state.Edge((v, external_vertex), external_node=external_vertex, colors=(0, 0), fields=default_fields))
+            yield _g.addEdge(new_edge((v, external_vertex), external_node=external_vertex, colors=(0, 0), arrow=default_arrow))
 
     #in-in
     _g = graph.deleteEdges(external_edges)
     for vs in itertools.combinations(internal_vertices, 2):
-        yield _g.addEdges([graph_state.Edge((vs[0], external_vertex), external_node=external_vertex, colors=(0, 0), fields=default_fields),
-                           graph_state.Edge((vs[1], external_vertex), external_node=external_vertex, colors=(0, 0), fields=default_fields)])
+        yield _g.addEdges([new_edge((vs[0], external_vertex), external_node=external_vertex, colors=(0, 0), arrow=default_arrow),
+                           new_edge((vs[1], external_vertex), external_node=external_vertex, colors=(0, 0), arrow=default_arrow)])

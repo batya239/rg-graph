@@ -326,7 +326,7 @@ class Edge(object):
         """
         self._nodes = tuple(sorted(nodes))
         self.internal_nodes = tuple([node for node in self.nodes if node != external_node])
-
+        self.external_node = external_node
         properties = kwargs.get('properties', None)
         if properties is None:
             if 'properties_config' not in kwargs:
@@ -382,13 +382,13 @@ class Edge(object):
             self._hash = hash(self.key())
         return self._hash
 
-    def cut_tadpole(self, external_node):
-        nodes_set = set(e.nodes)
+    def cut_tadpole(self):
+        nodes_set = set(self.nodes)
         assert len(nodes_set) == 1 and not self.is_external()
         node = nodes_set.pop()
-        nodes1 = (node, external_node)
-        nodes2 = (external_node, node)
-        return tuple(map(lambda n: Edge(n, external_node=external_node, properties=updated_properties.make_external(n, external_node)), (nodes1, nodes2)))
+        nodes1 = (node, self.external_node)
+        nodes2 = (self.external_node, node)
+        return tuple(map(lambda n: Edge(n, external_node=self.external_node, properties=self._properties.make_external(n, self.external_node)), (nodes1, nodes2)))
 
     def copy(self, node_map=None, **kwargs):
         """
@@ -404,12 +404,7 @@ class Edge(object):
 
         mapped_nodes = [node_map.get(node, node) for node in self.nodes]
 
-        mapped_external_node = None
-        if len(self.internal_nodes) == 1:
-            external_node = self.nodes[0]
-            if external_node == self.internal_nodes[0]:
-                external_node = self.nodes[1]
-            mapped_external_node = node_map.get(external_node, external_node)
+        mapped_external_node = node_map.get(self.external_node, self.external_node)
 
         properties_is_none = self._properties.is_none()
         updated_properties = None if properties_is_none else self._properties.update(**kwargs)

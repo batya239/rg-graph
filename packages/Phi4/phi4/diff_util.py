@@ -4,7 +4,7 @@ import copy
 import graphine
 import const
 import graph_state
-import reduction
+import graph_util
 
 __author__ = 'dima'
 
@@ -57,12 +57,12 @@ def _do_diff(graph, comb):
         edge = comb[0][0]
         all_edges.remove(edge)
         new_vertex = graph.createVertexIndex()
-        all_edges.append(graph_state.Edge((edge.nodes[0], new_vertex),
-                                          colors=const.ONE_LINE_WEIGHT,
-                                          external_node=graph.externalVertex))
-        all_edges.append(graph_state.Edge((edge.nodes[1], new_vertex),
-                                          colors=const.ONE_LINE_WEIGHT,
-                                          external_node=graph.externalVertex))
+        all_edges.append(graph_util.new_edge((edge.nodes[0], new_vertex),
+                                             colors=const.ONE_LINE_WEIGHT,
+                                             external_node=graph.externalVertex))
+        all_edges.append(graph_util.new_edge((edge.nodes[1], new_vertex),
+                                             colors=const.ONE_LINE_WEIGHT,
+                                             external_node=graph.externalVertex))
         return C2, graphine.Graph(all_edges, externalVertex=graph.externalVertex, renumbering=False)
     else:
         #
@@ -72,48 +72,25 @@ def _do_diff(graph, comb):
             edge = c[0]
             all_edges.remove(edge)
             new_vertex = graph.createVertexIndex()
-            numerator = const.LEFT_NUMERATOR if comb[1] else const.RIGHT_NUMERATOR
-            new_edge1 = graph_state.Edge((edge.nodes[0], new_vertex),
-                                         external_node=graph.externalVertex,
-                                         colors=const.ONE_LINE_WEIGHT,
-                                         fields=numerator)
-            new_edge2 = graph_state.Edge((edge.nodes[1], new_vertex),
-                                         colors=const.ONE_LINE_WEIGHT,
-                                         external_node=graph.externalVertex)
+            numerator = graph_state.Arrow(graph_state.Arrow.LEFT_ARROW if comb[1] else graph_state.Arrow.RIGHT_ARROW)
+            new_edge1 = graph_util.new_edge((edge.nodes[0], new_vertex),
+                                            external_node=graph.externalVertex,
+                                            colors=const.ONE_LINE_WEIGHT,
+                                            arrow=numerator)
+            new_edge2 = graph_util.new_edge((edge.nodes[1], new_vertex),
+                                            colors=const.ONE_LINE_WEIGHT,
+                                            external_node=graph.externalVertex)
             all_edges.append(new_edge1)
             all_edges.append(new_edge2)
-        all_edges = map(_init_edge_fields, all_edges)
+        all_edges = map(_init_edge_arrow, all_edges)
         return C1, graphine.Graph(all_edges, externalVertex=graph.externalVertex, renumbering=False)
 
 
-def _init_edge_fields(e):
-    return e.copy(fields=const.EMPTY_NUMERATOR) if e.fields is None else e
+def _init_edge_arrow(e):
+    return e.copy(arrow=graph_state.Arrow(graph_state.Arrow.NULL)) if e.arrow is None else e
 
 
 def diff_p2(graph):
     assert len(graph.edges(graph.externalVertex)) == 2
     minimal_passing = _find_minimal_external_momentum_passing(graph)
     return map(lambda comb: _do_diff(graph, comb), itertools.combinations_with_replacement(minimal_passing, 2))
-
-
-def scalar_product_extractor(topology, graph):
-    extracted_numerated_edges = list()
-
-    for e1, e2 in zip(topology.allEdges(nickel_ordering=True), graph.allEdges(nickel_ordering=True)):
-        if e2.fields is None:
-            raise StopIteration()
-        numerator = e2.fields if e2.fields == const.LEFT_NUMERATOR or e2.fields == const.RIGHT_NUMERATOR else None
-        if numerator:
-            extracted_numerated_edges.append((e1, numerator))
-
-    assert len(extracted_numerated_edges) == 2, "graph must has only 2 numerated edges"
-    common_vertex = (set(extracted_numerated_edges[0][0].nodes) & set(extracted_numerated_edges[1][0].nodes)).pop()
-    adjusted_numerators = map(lambda (e, n): n if e.nodes[0] == common_vertex else -n, extracted_numerated_edges)
-    sign = -1 if adjusted_numerators[0] == adjusted_numerators[1] else 1
-
-    yield reduction.ScalarProduct(extracted_numerated_edges[0].colors[1],
-                                  extracted_numerated_edges[1].colors[1], sign=sign)
-
-
-
-

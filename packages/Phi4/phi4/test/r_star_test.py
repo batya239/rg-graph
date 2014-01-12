@@ -11,6 +11,7 @@ import r
 import forest
 from rggraphenv import symbolic_functions
 import reduction
+import graph_util
 
 __author__ = 'daddy-bear'
 
@@ -117,7 +118,7 @@ class RStarTestCase(base_test_case.GraphStorageAwareTestCase):
         try:
             if use_graph_calculator:
                 rggraphenv.graph_calculator.addCalculator(reduction.TwoAndThreeReductionCalculator())
-            g = graphine.Graph.initEdgesColors(graphine.Graph(graph_state.GraphState.fromStr(graph_state_as_string)))
+            g = graph_util.graph_from_str(graph_state_as_string, do_init_color=True)
             expected = symbolic_functions.evaluate(expected_result_as_string).evalf()
             actual = r.KRStar(g,
                               common.MSKOperation(),

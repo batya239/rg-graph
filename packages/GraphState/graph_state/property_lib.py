@@ -16,7 +16,7 @@ class Arrow(object):
 
     class Externalizer(graph_state_property.PropertyExternalizer):
         def deserialize(self, string):
-            return Arrow(int(string))
+            return Arrow(string)
 
     def __init__(self, value):
         assert value in Arrow._VALUES
@@ -50,7 +50,7 @@ class Arrow(object):
         return Arrow(Arrow.RIGHT_ARROW) if self.is_left() else Arrow(Arrow.LEFT_ARROW)
 
     def __hash__(self):
-        return self.value
+        return hash(self.value)
 
     def __eq__(self, other):
         return self.value == other.value

@@ -12,7 +12,7 @@ def lambda_number(number):
 
 
 def to_rainbow(number):
-    return number.a, number.b
+    return graph_state.Rainbow((number.a, number.b))
 
 
 def from_rainbow(edge):

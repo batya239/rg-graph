@@ -10,6 +10,7 @@ import gfun_calculator
 import rggraphenv.storage as storage
 import rggraphutil
 import forest
+import graph_util
 from rggraphenv import symbolic_functions
 
 __author__ = 'daddy-bear'
@@ -26,21 +27,37 @@ def _is_1uniting(edges_list, super_graph, super_graph_edges):
 
 
 #noinspection PyPep8Naming
-def KRStar_quadratic_divergence(initial_graph, k_operation, uv_sub_graph_filter,
-                                description="", use_graph_calculator=True):
+def KRStar_quadratic_divergence(initial_graph,
+                                k_operation,
+                                uv_sub_graph_filter,
+                                description="",
+                                use_graph_calculator=True,
+                                do_kr_star=True):
+    # try:
+    #     kr1 = KR1(initial_graph, k_operation, uv_sub_graph_filter, description, use_graph_calculator)
+    #     if DEBUG:
+    #         print "kr1 p2", initial_graph
+    #     return kr1
+    # except common.CannotBeCalculatedError:
+    #     pass
+
     diff = diff_util.diff_p2(initial_graph)
     result = 0
+    if DEBUG:
+        print "diff", diff, "initial", initial_graph
     for c, g in diff:
         r_star = None
         preferable, not_preferable = \
             graphine.momentum.arbitrarilyPassMomentumWithPreferable(g, common.defaultGraphHasNotIRDivergence)
+        from_r1 = True
         for _g in preferable:
             try:
                 r_star = KR1(_g, k_operation, uv_sub_graph_filter, description, use_graph_calculator)
                 break
             except common.CannotBeCalculatedError:
                 pass
-        if r_star is None:
+        if r_star is None and do_kr_star:
+            from_r1 = False
             for _g in not_preferable:
                 try:
                     r_star = KRStar(_g, k_operation, uv_sub_graph_filter, description, use_graph_calculator)
@@ -48,7 +65,9 @@ def KRStar_quadratic_divergence(initial_graph, k_operation, uv_sub_graph_filter,
                 except common.CannotBeCalculatedError:
                     pass
         if r_star is None:
-            raise common.CannotBeCalculatedError(g)
+            raise common.CannotBeCalculatedError(_g)
+        if DEBUG:
+            print "diff r1 ", g, _g, k_operation.calculate(c * r_star).evalf(), "from_r1", from_r1
         result += k_operation.calculate(c * r_star)
     return result
 
@@ -63,11 +82,10 @@ def KRStar(initial_graph, k_operation, uv_sub_graph_filter, description="", use_
                       description=description,
                       use_graph_calculator=use_graph_calculator,
                       force=False)
-            #TODO
             return kr1.subs(symbolic_functions.p == 1)
         except common.CannotBeCalculatedError:
             pass
-        iterator = graphine.Graph.batchInitEdgesColors(graphine.momentum.xArbitrarilyPassMomentum(initial_graph))
+        iterator = graph_util.batch_init_edges_colors(graphine.momentum.xArbitrarilyPassMomentum(initial_graph))
     for graph in iterator:
         try:
             evaluated = storage.getKR1(graph)
@@ -95,7 +113,7 @@ def KRStar(initial_graph, k_operation, uv_sub_graph_filter, description="", use_
                                 inside_krstar=True).subs(symbolic_functions.p == 1)
                 uv = ir_uv.uvIndex(shrunk)
                 if uv < 0:
-                    raise common.T0OperationNotDefined(shrunk)
+                    raise common.CannotBeCalculatedError(shrunk)
                 ir = forest.Delta_IR(spinney, graph, k_operation, uv_sub_graph_filter, description, use_graph_calculator)\
                     .subs(symbolic_functions.p == 1)
                 if DEBUG:
@@ -116,11 +134,8 @@ def KRStar(initial_graph, k_operation, uv_sub_graph_filter, description="", use_
 
 #noinspection PyPep8Naming
 def KR1(graph, k_operation, uv_sub_graph_filter, description="", use_graph_calculator=True, force=False, inside_krstar=False):
-    return _do_kr1(graph, k_operation, uv_sub_graph_filter,
-                   description=description,
-                   use_graph_calculator=use_graph_calculator,
-                   force=force,
-                   inside_krstar=inside_krstar)[0]
+    return _do_kr1(graph, k_operation, uv_sub_graph_filter, description=description, use_graph_calculator=use_graph_calculator,
+                   force=force, inside_krstar=inside_krstar)[0]
 
 
 def _do_kr1(raw_graph, k_operation, uv_subgraph_filter, description="", use_graph_calculator=True, force=False, inside_krstar=False):

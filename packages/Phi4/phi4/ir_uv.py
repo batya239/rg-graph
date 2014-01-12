@@ -26,7 +26,7 @@ def numeratorsCount(edgesList):
         if e.fields is None:
             break
         else:
-            if e.fields != const.EMPTY_NUMERATOR:
+            if e.arrow is not None and not e.arrow.is_null():
                 _numeratorsCount += 1
     return _numeratorsCount
 
