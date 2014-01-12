@@ -65,6 +65,7 @@ class RStarQuadraticTestCase(base_test_case.GraphStorageAwareTestCase):
                                                use_graph_calculator=use_graph_calculator).simplify_indexed()
         expected = symbolic_functions.evaluate(expected_str)
         sub = (actual - expected).simplify_indexed()
+
         self.assertTrue(expected == actual.simplify_indexed()
                         or swiginac.abs((sub * symbolic_functions.e ** 5).
                                         subs(symbolic_functions.e == 1)).compare(EPS) < 0,

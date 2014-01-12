@@ -139,7 +139,7 @@ class GGraphReducer(object):
         return self._iterationValues[-1] if len(self._iterationValues) else None
 
     def isSuccesfulDone(self):
-        return len(self.getCurrentIterationGraph().allEdges()) == 3
+        return len(self.getCurrentIterationGraph().allEdges()) == 3 and ("<" not in str(self.getCurrentIterationGraph()) and ">" not in str(self.getCurrentIterationGraph()))
 
     def calculate(self):
         """
@@ -152,7 +152,7 @@ class GGraphReducer(object):
             if self._isTadpole:
                 return "0", graph_state.Rainbow((0, 0))
 
-        if len(lastIteration.allEdges()) == 3 or str(lastIteration).startswith("ee"):
+        if (len(lastIteration.allEdges()) == 3 and ("<" not in str(self.getCurrentIterationGraph()) and ">" not in str(self.getCurrentIterationGraph()))) or str(lastIteration).startswith("ee"):
             self._putFinalValueToGraphStorage()
             return self.getFinalValue()
 
@@ -203,10 +203,9 @@ class GGraphReducer(object):
         else:
             arrow = None
 
-        newIteration = newIteration.change(subGraphInfo[0], [new_edge(subGraphInfo[2],
-                                                                      self._initGraph.externalVertex,
-                                                                      colors=graph_state.Rainbow(maximalSubGraphValue[0][1]),
-                                                                      arrow=arrow)])
+        edge = new_edge(subGraphInfo[2], self._initGraph.externalVertex,
+                        colors=graph_state.Rainbow(maximalSubGraphValue[0][1]), arrow=arrow)
+        newIteration = newIteration.change(subGraphInfo[0], [edge])
 
         newIterationGraphs = copy.copy(self._iterationGraphs)
         newIterationGraphs.append(newIteration)
