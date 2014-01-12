@@ -50,7 +50,17 @@ def _enumerate_graph(graph, init_propagators, to_sector=True):
     """
 
     empty_color = graph_state.Rainbow(("EMPTY",))
-    graph = graphine.Graph.initEdgesColors(graph, empty_color, empty_color)
+    def init_colors(graph, zeroColor=graph_state.Rainbow((0, 0)), unitColor=graph_state.Rainbow((1, 0))):
+        edges = graph.allEdges()
+        initedEdges = list()
+        for e in edges:
+            if e.colors is None:
+                color = zeroColor if graph.externalVertex in e.nodes else unitColor
+                initedEdges.append(graph_state.Edge(e.nodes, graph.externalVertex, colors=color))
+            else:
+                initedEdges.append(e)
+        return Graph(initedEdges, externalVertex=graph.externalVertex, renumbering=False)
+    graph = init_colors(graph, empty_color, empty_color)
 
     neg_init_propagators = dict()
     for p in init_propagators:

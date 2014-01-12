@@ -29,7 +29,7 @@ def init_colors(graph, zeroColor=graph_state.Rainbow((0, 0)), unitColor=graph_st
     for e in edges:
         if e.colors is None:
             color = zeroColor if graph.externalVertex in e.nodes else unitColor
-            initedEdges.append(new_edge(e.nodes, graph.externalVertex, colors=color, arrow=e.fields))
+            initedEdges.append(new_edge(e.nodes, graph.externalVertex, colors=color, arrow=e.arrow))
         else:
             initedEdges.append(e)
     return Graph(initedEdges, externalVertex=graph.externalVertex, renumbering=False)
