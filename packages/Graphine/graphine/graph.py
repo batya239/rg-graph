@@ -93,6 +93,9 @@ class Graph(object):
         self._nextVertexIndex += 1
         return to_return
 
+    def getGraphStatePropertiesConfig(self):
+        return self._edges.values()[0][0].properties_config
+
     def edges(self, vertex, vertex2=None):
         """
         returns all edges with one vertex equals vertex parameter
@@ -325,8 +328,8 @@ class Graph(object):
         return copied
 
     @staticmethod
-    def fromStr(string):
-        return Graph(graph_state.GraphState.fromStr(string))
+    def fromStr(string, properties_config=None):
+        return Graph(graph_state.GraphState.fromStr(string, properties_config=properties_config))
 
     @staticmethod
     def _parseEdges(edgesIterable):

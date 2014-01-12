@@ -5,18 +5,14 @@ __author__ = 'dima'
 import unittest
 import scalar_product
 import graphine
+import graph_state
 import reductor
+import two_and_three_loops
 
 
 def _stupid_scalar_product_extractor(shrunk, initial_graph):
-    def _edge_has_scalar_product(edge):
-        f = frozenset(edge.fields.pair)
-        if f == frozenset(("i", "o")):
-            return 1 if edge.fields.pair[0] == "i" else -1
-        return 0
-
     for e1, e2 in zip(shrunk.allEdges(nickel_ordering=True), initial_graph.allEdges(nickel_ordering=True)):
-        scalar_product_direction = _edge_has_scalar_product(e2)
+        scalar_product_direction = e2.arrow.as_numeric()
         if scalar_product_direction:
             sp = scalar_product.ScalarProduct(e1.colors[1], (1, 0, 0), power=1, sign=scalar_product_direction)
             yield sp
@@ -24,9 +20,9 @@ def _stupid_scalar_product_extractor(shrunk, initial_graph):
 
 class ScalarProductTest(unittest.TestCase):
     def test_tbubble(self):
-        g = graphine.Graph.fromStr('e12|23|3|e|::00_00_00|io_00|00|00|', initEdgesColor=True)
-        res = reductor.TWO_LOOP_REDUCTOR.calculate(g,
-                                                   scalar_product_aware_function=_stupid_scalar_product_extractor)
+        gs = graph_state.COLORS_AND_ARROW_PROPERTIES_CONFIG.graph_state_from_str("e12|23|3|e|:(0,0)_(1,0)_(1,0)|(1,0)_(1,0)|(1,0)|(0,0)|:0_0_0|>_0|0|0|")
+        g = graphine.Graph(gs)
+        res = two_and_three_loops.TWO_LOOP_REDUCTOR.calculate(g, scalar_product_aware_function=_stupid_scalar_product_extractor)
         self.assertIsNotNone(res)
 
 

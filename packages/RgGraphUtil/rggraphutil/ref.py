@@ -18,3 +18,13 @@ class Ref(object):
     @staticmethod
     def create(element=None):
         return Ref(element)
+
+
+class LazyRef(object):
+    def __init__(self, a_lambda):
+        self._lambda = a_lambda
+
+    def get(self):
+        if '_element' not in self.__dict__:
+            self._element = self._lambda()
+        return self._element

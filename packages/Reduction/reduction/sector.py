@@ -106,7 +106,6 @@ class Sector(object):
     @staticmethod
     def create_from_shrunk_topology(topology_graph, weights_graph, all_propagators_count):
         id_to_weight = dict()
-        weights_graph = graphine.util.init_graph_colors_with_default_values_if_need(weights_graph, graph_state.Rainbow((1, 0)), graph_state.Rainbow((2, 0)))
         for e1, e2 in itertools.izip(topology_graph.allEdges(nickel_ordering=True),
                                      weights_graph.allEdges(nickel_ordering=True)):
             if e1.colors:

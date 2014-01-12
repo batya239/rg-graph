@@ -26,6 +26,10 @@ class Properties(object):
             if p_name in kwargs:
                 setattr(self, p_name, kwargs[p_name])
 
+    @property
+    def properties_config(self):
+        return self._properties_config
+
     @staticmethod
     def from_kwargs(**kwargs):
         properties_config = kwargs.get('properties_config', None)
@@ -347,7 +351,7 @@ class Edge(object):
             return None
         elif self._properties.has_property(item):
             return getattr(self._properties, item)
-        return super(Edge, self).__getattr__(item)
+        return None
 
     def is_external(self):
         return len(self.internal_nodes) == 1
@@ -494,10 +498,12 @@ class GraphState(object):
         return self.SEP.join(serialized)
 
     @staticmethod
-    def fromStr(string, properties_config=DEFAULT_PROPERTIES_CONFIG):
+    def fromStr(string, properties_config=None):
         """
         creates GraphState object from nickel serialized string
         """
+        if properties_config is None:
+            properties_config = DEFAULT_PROPERTIES_CONFIG
         parts_count = 1 + properties_config.properties_count()
         splitted_string = string.split(GraphState.SEP, parts_count)
         splitted_len = len(splitted_string)
