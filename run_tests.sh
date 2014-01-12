@@ -36,6 +36,11 @@ cd packages/Polynomial
 ./setup.py install --user || exit 1
 cd $PWD_
 
+cd packages/Reduction
+./setup.py install --user || exit 1
+#./run_tests.sh || exit 1
+cd $PWD_
+
 cd packages/Phi4
 ./setup.py install --user || exit 1
 ./run_tests.sh || exit 1
