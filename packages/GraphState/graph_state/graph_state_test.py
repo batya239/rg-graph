@@ -116,11 +116,10 @@ class TestGraphState(unittest.TestCase):
         state = graph_state.GraphState(edges, default_properties=new_properties(colors=graph_state.Rainbow((1, 1)),
                                                                                 fields=graph_state.Fields.fromStr("qw")))
         for e in state.sortings[0]:
+            self.assertEqual(e.colors, graph_state.Rainbow((1, 1)))
             if -1 in e.nodes:
-                self.assertEqual(e.colors, graph_state.Rainbow((0, 0)))
                 self.assertEqual(e.fields, graph_state.Fields.fromStr("0w"))
             else:
-                self.assertEqual(e.colors, graph_state.Rainbow((1, 1)))
                 self.assertEqual(e.fields, graph_state.Fields.fromStr("qw"))
 
         edges = list([new_edge(e) for e in [(-1, 0), (-1, 1)]])
@@ -130,7 +129,7 @@ class TestGraphState(unittest.TestCase):
                                                                          fields=graph_state.Fields.fromStr("0w")))
         for e in state.sortings[0]:
             if len(e.internal_nodes) == 1:
-                self.assertEqual(e.colors, graph_state.Rainbow((0, 0)))
+                self.assertEqual(e.colors, graph_state.Rainbow((1, 1)))
                 self.assertEqual(e.fields, graph_state.Fields.fromStr("0w"))
             else:
                 self.assertEqual(e.colors, graph_state.Rainbow((2, 2)))
@@ -200,7 +199,7 @@ class TestGraphState(unittest.TestCase):
     def testToFromStrWithColors(self):
         edges = (new_edge((-1, 0), colors=graph_state.Rainbow((1, 7))),)
         state = graph_state.GraphState(edges)
-        self.assertEqual(str(state), "e|:(0, 0)|:")
+        self.assertEqual(str(state), "e|:(1, 7)|:")
 
         decoded = graph_state.GraphState.fromStr(str(state))
         self.assertEqual(decoded.sortings[0], edges)
@@ -278,7 +277,7 @@ class TestProperties(unittest.TestCase):
 class TestOldStyle(unittest.TestCase):
     def testFromOldStyleStrWithColors(self):
         gs = graph_state.GraphState.fromStrOldStyle("e1-e-::['(0,0)','(1,0)','(3,9)']")
-        self.assertEqual(str(gs), "e1|e|:(0, 0)_(1, 0)|(0, 0)|:")
+        self.assertEqual(str(gs), "e1|e|:(0, 0)_(1, 0)|(3, 9)|:")
 
     def testFromOldStyleStrWithFields(self):
         gs = graph_state.GraphState.fromStrOldStyle("e1-e-:00ab-00-:")
@@ -286,7 +285,7 @@ class TestOldStyle(unittest.TestCase):
 
     def testComplexObjects(self):
         gs = graph_state.GraphState.fromStrOldStyle("e1-e-:00ab-00-:['(0,0)','(1,0)','(3,9)']")
-        self.assertEqual(str(gs), "e1|e|:(0, 0)_(1, 0)|(0, 0)|:00_ab|00|")
+        self.assertEqual(str(gs), "e1|e|:(0, 0)_(1, 0)|(3, 9)|:00_ab|00|")
 
     def testSimpleObjects(self):
         gs = graph_state.GraphState.fromStrOldStyle("e1-e-")
