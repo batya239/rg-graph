@@ -3,6 +3,7 @@
 
 import itertools
 import nickel
+import graph_state
 import graph_state_property
 
 
@@ -14,6 +15,156 @@ def chain_from_iterables(iterables):
 
 if 'chain_from_iterables' not in itertools.__dict__:
     itertools.chain_from_iterables = chain_from_iterables
+
+
+class Properties(object):
+    def __init__(self, properties_config=None, **kwargs):
+        assert properties_config is not None
+        self._properties_config = properties_config
+        self._key = None
+        for p_name in self._properties_config.property_order:
+            if p_name in kwargs:
+                setattr(self, p_name, kwargs[p_name])
+
+    @staticmethod
+    def from_kwargs(**kwargs):
+        properties_config = kwargs.get('properties_config', None)
+        if properties_config is None:
+            return None
+        p = Properties(properties_config)
+        for p_name in properties_config.property_order:
+            setattr(p, p_name, kwargs.get(p_name, None))
+        return p
+
+    def is_none(self):
+        property_order = self._properties_config.property_order
+        for p_name in property_order:
+            v = getattr(self, p_name, None)
+            if v is not None:
+                return False
+        return True
+
+    def has_property(self, name):
+        return self._properties_config.has_property(name)
+
+    def make_external(self, nodes, external_node):
+        external_prop = Properties(properties_config=self._properties_config)
+        for p_name in self._properties_config.property_order:
+            v = getattr(self, p_name, None)
+            if Edge.MAKE_PROPERTY_EXTERNAL_METHOD_NAME in v.__class__.__dict__:
+                v = v.make_external(nodes, external_node)
+            setattr(external_prop, p_name, v)
+        return external_prop
+
+    def key(self):
+        if self._key is None:
+            raw_key = list()
+            for p_name in self._properties_config.property_order:
+                v = getattr(self, p_name, None)
+                raw_key.append(v)
+            self._key = tuple(raw_key)
+        return self._key
+
+    def update(self, **kwargs):
+        p = Properties(self._properties_config)
+        for p_name in self._properties_config.property_order:
+            value = kwargs.get(p_name, None)
+            if value is None:
+                value = getattr(self, p_name, None)
+            setattr(p, p_name, value)
+        return p
+
+    def __neg__(self):
+        neg_prop = Properties(properties_config=self._properties_config)
+        for p_name in self._properties_config.property_order:
+            self_v = getattr(self, p_name, None)
+            if self_v is None:
+                neg_v = None
+            else:
+                directed = self._properties_config.is_directed(p_name)
+                neg_v = -self_v if directed else self_v
+            setattr(neg_prop, p_name, neg_v)
+        return neg_prop
+
+    # noinspection PyProtectedMember
+    def __cmp__(self, other):
+        if isinstance(other, Properties):
+            assert self._properties_config is other._properties_config, "configs must be same to compare"
+            property_order = self._properties_config.property_order
+            for i in xrange(len(property_order)):
+                p_name = property_order[i]
+                self_v = getattr(self, p_name, None)
+                other_v = getattr(other, p_name, None)
+                if self_v is None:
+                    if other_v is None:
+                        continue
+                    else:
+                        return -1
+                if other_v is None:
+                    return 1
+                cmp_res = cmp(self_v, other_v)
+                if cmp_res:
+                    return cmp_res
+        raise AssertionError()
+
+    def __repr__(self):
+        property_order = self._properties_config.property_order
+        builder = list()
+        for i in xrange(len(property_order)):
+            p_name = property_order[i]
+            self_v = getattr(self, p_name, None)
+            builder.append("%s=%s" % (p_name, self_v))
+        return ", ".join(builder)
+
+    __str__ = __repr__
+
+
+class PropertiesConfig(object):
+    def __init__(self, property_order, property_directionality, property_externalizer):
+        self._property_order = property_order
+        self._property_directionality = property_directionality
+        self._property_externalizer = property_externalizer
+
+    @property
+    def property_order(self):
+        return self._property_order
+
+    def externalizer(self, p_name):
+        return self._property_externalizer[p_name]
+
+    def properties_count(self):
+        return len(self._property_order)
+
+    def is_directed(self, property_name):
+        return self._property_directionality[property_name]
+
+    def has_property(self, property_name):
+        return property_name in self._property_directionality
+
+    def new_edge(self, nodes, external_node=-1, edge_id=None, **kwargs):
+        if len(kwargs):
+            kwargs['properties_config'] = self
+        return graph_state.Edge(nodes, external_node, edge_id, **kwargs)
+
+    def graph_state_from_str(self, string):
+        return graph_state.GraphState.fromStr(string, properties_config=self)
+
+    def new_properties(self, **kwargs):
+        return Properties(self, **kwargs)
+
+    def __len__(self):
+        return self._property_directionality
+
+    @staticmethod
+    def create(*property_keys):
+        property_order = [None] * len(property_keys)
+        property_directionality = dict()
+        property_externalizer = dict()
+        for i, k in enumerate(property_keys):
+            property_order[i] = k.name
+            property_directionality[k.name] = k.is_directed
+            property_externalizer[k.name] = k.externalizer
+        return PropertiesConfig(property_order, property_directionality, property_externalizer)
 
 
 class Fields(object):
@@ -144,6 +295,14 @@ class Rainbow(object):
             return Rainbow(obj)
 
 
+DEFAULT_PROPERTIES_CONFIG = PropertiesConfig.create(graph_state_property.PropertyKey(name="colors",
+                                                                                     is_directed=False,
+                                                                                     externalizer=Rainbow.externalizer()),
+                                                    graph_state_property.PropertyKey(name="fields",
+                                                                                     is_directed=True,
+                                                                                     externalizer=Fields.externalizer()))
+
+
 class Edge(object):
     """Representation of an edge of a graph."""
 
@@ -168,7 +327,7 @@ class Edge(object):
         if properties is None:
             if 'properties_config' not in kwargs:
                 kwargs['properties_config'] = DEFAULT_PROPERTIES_CONFIG
-            properties = graph_state_property.Properties.from_kwargs(**kwargs)
+            properties = Properties.from_kwargs(**kwargs)
         swap = (nodes[0] > nodes[1])
         if properties is not None and self.is_external():
             properties = properties.make_external(nodes, external_node)
@@ -227,7 +386,6 @@ class Edge(object):
         nodes2 = (external_node, node)
         return tuple(map(lambda n: Edge(n, external_node=external_node, properties=updated_properties.make_external(n, external_node)), (nodes1, nodes2)))
 
-
     def copy(self, node_map=None, **kwargs):
         """
         Creates a copy of the object with possible change of nodes.
@@ -256,22 +414,13 @@ class Edge(object):
             if updated_properties is None:
                 if 'properties_config' not in kwargs:
                     kwargs['properties_config'] = DEFAULT_PROPERTIES_CONFIG
-                updated_properties = graph_state_property.Properties.from_kwargs(**kwargs)
+                updated_properties = Properties.from_kwargs(**kwargs)
 
         if mapped_external_node in mapped_nodes:
             updated_properties = updated_properties.make_external(mapped_nodes, mapped_external_node)
         return Edge(mapped_nodes,
                     external_node=mapped_external_node,
                     properties=updated_properties)
-
-
-DEFAULT_PROPERTIES_CONFIG = graph_state_property. \
-    PropertiesConfig.create(graph_state_property.PropertyKey(name="colors",
-                                                             is_directed=False,
-                                                             externalizer=Rainbow.externalizer()),
-                            graph_state_property.PropertyKey(name="fields",
-                                                             is_directed=True,
-                                                             externalizer=Fields.externalizer()))
 
 
 # noinspection PyProtectedMember

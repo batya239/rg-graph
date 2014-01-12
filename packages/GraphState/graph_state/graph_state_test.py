@@ -3,6 +3,7 @@
 
 import graph_state
 import graph_state_property
+import property_lib
 import unittest
 
 new_edge = graph_state.DEFAULT_PROPERTIES_CONFIG.new_edge
@@ -199,8 +200,7 @@ class TestGraphState(unittest.TestCase):
         self.assertEqual(decoded.sortings[0], edges)
 
     def testToFromStrWithColors(self):
-        edges = (new_edge((-1, 0),
-                                  colors=graph_state.Rainbow((1, 7))),)
+        edges = (new_edge((-1, 0), colors=graph_state.Rainbow((1, 7))),)
         state = graph_state.GraphState(edges)
         self.assertEqual(str(state), "e|:(1, 7)|:")
 
@@ -236,7 +236,7 @@ class TestProperties(unittest.TestCase):
         property_key = graph_state_property.PropertyKey(name='some_name',
                                                         is_directed=False,
                                                         externalizer=MyPropertyExternalizer())
-        config = graph_state_property.PropertiesConfig.create(property_key)
+        config = graph_state.PropertiesConfig.create(property_key)
 
         state = graph_state.GraphState.fromStr("e1|e|:(0,0)_(1,0)|(3,9)|", properties_config=config)
         es = set(map(lambda b: b.some_name, filter(lambda a: a.is_external(), state.edges)))
@@ -269,7 +269,7 @@ class TestProperties(unittest.TestCase):
         property_key = graph_state_property.PropertyKey(name='some_name',
                                                         is_directed=True,
                                                         externalizer=MyPropertyExternalizer())
-        config = graph_state_property.PropertiesConfig.create(property_key)
+        config = graph_state.PropertiesConfig.create(property_key)
 
         state = graph_state.GraphState.fromStr("e12|2|e|:(1,0)_(1,0)_(1,0)|(1,0)|(1,0)|", properties_config=config)
         e = state.edges[3]
