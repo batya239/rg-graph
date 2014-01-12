@@ -17,6 +17,27 @@ C1 = const.SPACE_DIM_PHI4 / D
 C2 = (const.SPACE_DIM_PHI4 - D) / D
 
 
+def combinations_with_replacement(iterable, r):
+    pool = tuple(iterable)
+    n = len(pool)
+    if not n and r:
+        return
+    indices = [0] * r
+    yield tuple(pool[i] for i in indices)
+    while True:
+        for i in reversed(range(r)):
+            if indices[i] != n - 1:
+                break
+        else:
+            return
+        indices[i:] = [indices[i] + 1] * (r - i)
+        yield tuple(pool[i] for i in indices)
+
+
+if 'combinations_with_replacement' not in itertools.__dict__:
+    itertools.combinations_with_replacement = combinations_with_replacement
+
+
 def _find_minimal_external_momentum_passing(graph):
     """
     BFS
