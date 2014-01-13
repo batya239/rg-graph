@@ -31,6 +31,7 @@ def parse_scalar_products_reducing_rules(file_path, j_suffix):
             raw_numerator = raw_numerator.strip()
             raw_numerator = raw_numerator.replace("j[%s," % j_suffix, "sector.Sector(")
             raw_numerator = raw_numerator.replace("]", ")")
+            raw_numerator = raw_numerator.replace("^", "**")
             raw_key, raw_rule = raw_numerator.split("->")
             raw_key = raw_key[1:-1]
             raw_kp = raw_key.split(",")

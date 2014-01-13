@@ -39,6 +39,7 @@ zeta = swiginac.zeta
 Euler = swiginac.Euler
 log = swiginac.log
 Order = swiginac.Order
+O = Order
 
 D = 4 - 2 * e
 

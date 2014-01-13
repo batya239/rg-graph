@@ -59,7 +59,7 @@ def _enumerate_graph(graph, init_propagators, to_sector=True):
                 initedEdges.append(graph_state.Edge(e.nodes, graph.externalVertex, colors=color))
             else:
                 initedEdges.append(e)
-        return Graph(initedEdges, externalVertex=graph.externalVertex, renumbering=False)
+        return graphine.Graph(initedEdges, externalVertex=graph.externalVertex, renumbering=False)
     graph = init_colors(graph, empty_color, empty_color)
 
     neg_init_propagators = dict()
