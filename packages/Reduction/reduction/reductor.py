@@ -230,6 +230,10 @@ class Reductor(object):
             self._save_masters()
 
     @property
+    def main_loops_condition(self):
+        return self._main_loop_count_condition
+
+    @property
     def env_name(self):
         """
         test only
