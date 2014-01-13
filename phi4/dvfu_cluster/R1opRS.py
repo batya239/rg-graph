@@ -172,7 +172,7 @@ def symmetryCoefficient(graph):
     return C
 
 
-maxNLoops = 5
+maxNLoops = 6
 
 resultsKR1 = dict()
 print "{"
