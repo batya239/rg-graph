@@ -28,17 +28,18 @@ def getDiags(diag):
 #CUR_DIR=`pwd`
 CUR_DIR = os.getcwd()
 #WORKDIR=$HOME'/work/rg-graph/phi_4_d2_s2/feynmanSDdotSF_mpi/'
-WORKDIR='/home/kirienko/work/rg-graph/phi_4_d2_s2/feynmanSDdotSF_mpi/'
+#WORKDIR='/home/kirienko/work/rg-graph/phi_4_d2_s2/feynmanSDdotSF_mpi/'
+WORKDIR='/net/n15/data/kirienko/'
 
 ## WARNING: применять с осторожностью:
 #rm -rf $WORKDIR/e*
-os.system('rm -rf %s/e*'%WORKDIR)
+#os.system('rm -rf %s/e*'%WORKDIR)
 
 print CUR_DIR
 print WORKDIR
 
 #cd '../graphs/'
-os.chdir(os.path.join('..','graphs'))
+#os.chdir(os.path.join('..','graphs'))
 #print os.getcwd()
 
 #for diag in $(for i  in `ls phi4/e?-[12345]*`; do awk '!/S/{print $1}' $i; done)
@@ -47,14 +48,15 @@ os.chdir(os.path.join('..','graphs'))
 #        python gen_sdN_mpi.py  $diag methods.feynmanSDdotSF_mpi _phi4_d2_s2
 #    done
 #fls = [ f for f in os.listdir('./phi4/') if int(f[3]) <= n ] 
-fls = [ f for f in os.listdir('./phi4/') if f[:4] == 'e2-6' ] 
+#fls = [ f for f in os.listdir('./phi4/') if f[:4] == 'e2-6' ] 
 diags = [ ]
-for d in [ open('./phi4/'+f).readlines()for f in fls ]:
-    diags.extend(d)
-diags = [ d.strip().split(' ')[0] for d in diags if d.strip()[-1] != 'S' ]
+#for d in [ open('./phi4/'+f).readlines()for f in fls ]:
+#    diags.extend(d)
+#diags = [ d.strip().split(' ')[0] for d in diags if d.strip()[-1] != 'S' ]
+diags = map(lambda x: x.strip(),open('e2-6loop.txt').readlines())
 print diags
 
-rc = Client(profile='test')
+rc = Client(profile='ssh')
 print rc.ids
 
 lview = rc.load_balanced_view()
