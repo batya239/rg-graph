@@ -3,7 +3,7 @@
 __author__ = 'dima'
 
 
-from rggraphenv import symbolic_functions, abstract_graph_calculator
+from rggraphenv import symbolic_functions
 import reductor
 import graphine
 import graph_state
@@ -47,48 +47,3 @@ TWO_LOOP_REDUCTOR = reductor.Reductor("loop2",
                              2,
                              {graphine.Graph.fromStr("e111|e|"): G(1, 1) * G(1 - l, 1),
                               graphine.Graph.fromStr("e11|22|e|"): G(1, 1) ** 2})
-
-
-class TwoAndThreeReductionCalculator(abstract_graph_calculator.AbstractGraphCalculator):
-    def get_label(self):
-        return "reduction calculator"
-
-    def init(self):
-        reductor.initialize(TWO_LOOP_REDUCTOR, THREE_LOOP_REDUCTOR)
-
-    def is_applicable(self, graph):
-        return reductor.is_applicable(graph)
-
-    def calculate(self, graph):
-        result = reductor.calculate(graph)
-        if result is None:
-            return None
-        return result.evaluate(substitute_sectors=True, _d=symbolic_functions.D, series_n=5, remove_o=True), \
-            reduction_util.calculate_graph_p_factor(graph)
-
-    def dispose(self):
-        pass
-
-
-class ScalarProductTwoAndThreeLoopsGraphCalculator(abstract_graph_calculator.AbstractGraphCalculator):
-    def __init__(self, scalar_product_extractor):
-        self._scalar_product_extractor = scalar_product_extractor
-
-    def get_label(self):
-        return "graphs with scalars products reduction calculator for 2 and 3 loops"
-
-    def init(self):
-        reductor.initialize(TWO_LOOP_REDUCTOR, THREE_LOOP_REDUCTOR)
-
-    def dispose(self):
-        pass
-
-    def calculate(self, graph):
-        result = reductor.calculate(graph, self._scalar_product_extractor)
-        if result is None:
-            return None
-        return result.evaluate(substitute_sectors=True, _d=symbolic_functions.D, series_n=5, remove_o=True), \
-            reduction_util.calculate_graph_p_factor(graph)
-
-    def is_applicable(self, graph):
-        return reductor.is_applicable(graph)
