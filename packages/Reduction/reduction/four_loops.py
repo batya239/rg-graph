@@ -15,13 +15,13 @@ masters = dict()
 
 #1row
 #M61
-masters["e12|34|35|6|67|67|e||"] = "(-10*zeta(5)/e+50*zeta(5)-10*zeta(3)**2-25*zeta(6)+e*(90*zeta(5)+50*zeta(3)**2+125*zeta(6)-30*zeta(3)*zeta(4)+19*zeta(7)/2)))+O(e**2)"
+masters["e12|34|35|6|67|67||e|"] = "(-10*zeta(5)/e+50*zeta(5)-10*zeta(3)**2-25*zeta(6)+e*(90*zeta(5)+50*zeta(3)**2+125*zeta(6)-30*zeta(3)*zeta(4)+19*zeta(7)/2))+O(e**2)"
 #M62
 masters["e12|34|56|56|57||7|e|"] = "(-10*zeta(5)/e+130*zeta(5)-10*zeta(3)**2-25*zeta(6)-70*zeta(7))+O(e)"
 #M63
 masters["e12|34|35|6|56|7|7|e|"] = "(-5*zeta(5)/e+45*zeta(5)-41*zeta(3)**2-25*zeta(6)/2+161*zeta(7)/2)+O(e)"
 #M51
-masters["e12|34|345|6|6|e6||"] = "(-5*zeta(5)/e+45*zeta(5)-17*zeta(3)**2-25*zeta(6)/2+e(-195*zeta(5)+153*zeta(3)**2+225*zeta(6)/2-51*zeta(3)*zeta(4)-85*zeta(7)/2))+O(e**2)"
+masters["e12|34|345|6|6|e6||"] = "(-5*zeta(5)/e+45*zeta(5)-17*zeta(3)**2-25*zeta(6)/2+e*(-195*zeta(5)+153*zeta(3)**2+225*zeta(6)/2-51*zeta(3)*zeta(4)-85*zeta(7)/2))+O(e**2)"
 
 #row2
 #M41
@@ -51,7 +51,7 @@ masters["e11|23|45|45|6|6|e|"] = "(20*zeta(5)/e-80*zeta(5)+68*zeta(3)**2+50*zeta
 
 #row4
 #M43
-masters["e123|e45|45|45|||"] = "(-5*zeta(5)/e+45*zeta(5)-17*zeta(3)**2-25*zeta(6)/2+e*(-195*zeta(5)+153*zeta(3)**2+225*zeta*(6)/2-51*zeta(3)*zeta(4)-225*zeta(7)/2))+O(e**2)"
+masters["e123|e45|45|45|||"] = "(-5*zeta(5)/e+45*zeta(5)-17*zeta(3)**2-25*zeta(6)/2+e*(-195*zeta(5)+153*zeta(3)**2+225*zeta(6)/2-51*zeta(3)*zeta(4)-225*zeta(7)/2))+O(e**2)"
 #M32
 masters["e11|23|334|4|e|"] = "(1/3/e**4+1/3/e**3+1/3/e**2+(-7/3+14*zeta(3)/3)/e-67/3+14*zeta(3)/3+7*zeta(4)" \
                              "+e*(-403/3+86*zeta(3)/3+7*zeta(4)+126*zeta(5))" \
@@ -112,12 +112,13 @@ masters["e11111|e|"] = "G(1,1)*G(1-l,1)*G(1-2*l,1)*G(1-3*l,1)"
 masters["e11|22|33|44|e|"] = "G(1,1)**4"
 
 topology = list()
-topology.append("e12|34|35|6|67|67|e||")
+topology.append("e12|34|35|6|67|67||e|")
 topology.append("e12|34|56|56|57||7|e|")
 topology.append("e12|34|35|6|56|7|7|e|")
+
 
 FOUR_LOOP_REDUCTOR = reductor.Reductor("p4",
                                        "loop4",
                                        map(lambda g: graphine.Graph.fromStr(g), topology),
                                        4,
-                                       dict(map(lambda g, v: (graphine.Graph.fromStr(g), symbolic_functions.evaluate(v)), masters.iteritems())))
+                                       dict(map(lambda (g, v): (graphine.Graph.fromStr(g), symbolic_functions.evaluate(v)), masters.iteritems())))
