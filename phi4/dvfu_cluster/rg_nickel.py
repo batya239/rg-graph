@@ -14,8 +14,8 @@ if len(sys.argv) < 4:
     exit()
 
 fileName = sys.argv[1]
-r2Loops = int(sys.argv[2]) ## FIXME: сделать r2Loops и r4Loops
-r4Loops = int(sys.argv[3]) ## FIXME: сделать r2Loops и r4Loops
+r2Loops = int(sys.argv[2]) 
+r4Loops = int(sys.argv[3]) 
 
 r1op = eval(open(fileName).read())
 
@@ -26,7 +26,7 @@ for nickel in r1op:
     uncert = ufloat(r1op[nickel][0], r1op[nickel][1])
     graph = graphine.Graph(graph_state.GraphState.fromStr("%s::" % nickel))
     graphLoopCount = graph.getLoopsCount()
-    if graphLoopCount > r4Loops:
+    if graphLoopCount > max(r2Loops,r4Loops):
         continue
     if len(graph.edges(graph.externalVertex)) == 2:
         #Z2 -= (-2 * g / 3) ** graphLoopCount * r1op[nickel] * symmetryCoefficient(graph)
@@ -42,8 +42,9 @@ for nickel in r1op:
     else:
         raise ValueError("invalid ext legs count: %s, %s" % (graphLoopCount, nickel))
 
-Z2 = Series(r4Loops, Z2_new)
+Z2 = Series(r2Loops, Z2_new)
 Z3 = Series(r4Loops, Z3_new)
+print
 print "Z2 = ", Z2
 print "Z3 = ", Z3
 
@@ -51,7 +52,7 @@ Zg = (Z3 / Z2 ** 2)
 print "Zg = ", Zg
 
 print
-g = Series({1: ufloat(1, 0)})
+g = Series(r4Loops, {1: ufloat(1, 0)})
 
 #beta = (-2 * g / (1 + g * sympy.ln(Zg).diff(g))).series(g, 0, r4Loops + 2).removeO()
 beta = (-2 * g / (1 + g * Zg.diff() / Zg))
@@ -68,12 +69,11 @@ beta1.gSeries.pop(1) ## equal to 'beta1 - g'
 #print "beta1 =",beta1
 
 gStar = Series(n=1, d={0: ufloat(0., 0.)}, name='τ')
-for i in range(1, r4Loops):
+for i in range(1, r4Loops+1):
     d = {1: ufloat(1., 0.)}
     d.update(dict(map(lambda x: (x, ufloat(0, 0.)), range(2, i + 1))))
     tau = Series(n=i, d=d, name='τ')
     #gStar = (tau - (beta1 - g).series(g, 0, i + 1).removeO().subs(g, gStar)).series(tau, 0, i + 1).removeO()
-    #FIXME : конструктор Series должен уметь принимать на вход объект Series и правильно его обрабатывать с точки зрения O(g)
     tmp = Series(n=i, d=beta1.gSeries)
     gStar = Series(n=i + 1, d=(tau - tmp.subs(gStar)).__repr__(), name='τ')#.series(tau, 0, i + 1).removeO()
 
@@ -81,7 +81,7 @@ print "g* = ", gStar
 
 #gStarS = tau + 0.716173621 * tau**2 + 0.095042867 * tau**3 + 0.086080396 * tau ** 4 - 0.204139 * tau ** 5
 gStarS = Series(n=6, d={1: 1, 2: 0.716173621, 3: 0.095042867, 4: 0.086080396, 5: -0.204139}, name='τ')
-print "g*_S = ", gStarS
+print "\ng*_S = ", gStarS
 
 #etaStar = eta.subs(g, gStar).series(tau, 0, r4Loops + 1)
 etaStar = eta.subs(gStar)
@@ -90,4 +90,4 @@ print "η* = ", etaStar
 
 #etaStarGS = eta.subs(g, gStarS).series(tau, 0, r4Loops + 1)
 etaStarGS = eta.subs(gStarS)
-print "η*_GS = ", etaStarGS
+print "\nη*_GS = ", etaStarGS

@@ -40,7 +40,7 @@ class Series():
     """ Класс, обеспечивающий разложение в ряд по g с точностью до n-го порядка с учётом погрешности.
     """
 
-    def __init__(self, n, d={}, name='g'):## FIXME: убрать отсюда r4Loops
+    def __init__(self, n, d={}, name='g'):
         self.n = n
         self.gSeries = d
         self.name = name

@@ -59,12 +59,13 @@ def getLastLine(fd):
         return ''
 
 
-dumpFile = 'res_best.txt'
+dumpFile = 'res_best_1.txt'
 #inPath = os.path.expanduser('~')+'/work/rg-graph/phi_4_d2_s2/feynmanSDdotSF_mpi'
 inPath = os.path.expanduser('~')+'/work/rg-graph/phi_4_d2_s2/archive_feynmanSDdotS_mpi'
 
 result = {}
 failed = 0
+spectrum = {'suave':0,'cuhre':0}
 
 ## Составляем список диаграмм
 dirs = [dir for dir in os.listdir(inPath) if os.path.isdir(os.path.join(inPath,dir))]
@@ -81,30 +82,33 @@ for dir in dirs:
             f = os.path.join(inPath,dir,f)
             lastLine = tail(f)
             if 'RESULT' in lastLine:
+                method = fileInfo[3]
                 res = lastLine.split('\t')
                 res = res[1].split('+-')
                 ans = ufloat(float(res[0]),float(res[1]))
                 if num not in numList.keys():
-                    numList.update({num:[ans]})
+                    numList.update({num:[(ans,method)]})
                 else:
-                    numList.update({fileInfo[1]:numList[num]+[ans]})
+                    numList.update({fileInfo[1]:numList[num]+[(ans,method)]})
             else:
                 print "No result for", f.split('/')[-1]
                 failed += 1
 
-        #print numList
+        print numList
         
         ## Выбираем для каждого кусочка лучший результат
         ans = ufloat(0.,0.)
         for d in sorted(numList.keys()):
-            minErr = min(map(lambda x: (x.s,x.n),numList[d]))
+            minErr = min(map(lambda x: (x[0].s,x[0].n,x[1]),numList[d]))
             ans += ufloat(minErr[1],minErr[0])
+            spectrum[minErr[2]] += 1
         #print ans
         ans = float(sympy.gamma(nloops(dir))/sym_coef(dir))*ans
         result.update({dir:[[ans.n],[ans.s]]})
         print  ans
 #print result
 print "Failed:",failed
+print spectrum
 fd = open(dumpFile,'w')
 fd.write(str(result))
 fd.close()

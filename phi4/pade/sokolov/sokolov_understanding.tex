@@ -441,22 +441,29 @@ comparison.}
 (PB$^{-1}$)$_{[2/3]}$ & (PB$^{-1}$)$_{[3/2]}$ &~5-loop RG~\\ \hline
 \multicolumn{9}{|c|}{$n=1$} \\ \hline
 $\gamma$ & 1.75 & \green{~1.7145~} & \darkgreen{~1.7304~$^{N=3}$} & \green{~1.775~} & \green{~1.6105~} & \green{~1.7746~} &
-\red{--} & ~1.790~ \\ \hline
+$\frac{\red{~~~--~~~}}{1.7815}$ & ~1.790~ \\ \hline
 $\nu$    & 1 & \green{~0.9067~} & \darkgreen{~0.9204~$^{N=3}$} & \green{~0.959~} & \green{~0.8136~} & \green{~0.9652~} & \red{--} &
 ~0.966~ \\ \hline
-$\eta$   & 0.25 & \green{~0.1372~} & \green{~}  &  \red{~} &  \red{~} &  \green{~} & \green{~}  & ~0.146~ \\ \hline
+$\eta$   & 0.25 & \green{~0.1372~} & \green{~}  & $\frac{\red{None}}{0.044}$ &  \red{~} &  \green{~} & \green{~}  & ~0.146~ \\ \hline
+%%%%%%%%%%
+%% n = 0 %
+%%%%%%%%%%
 \multicolumn{9}{|c|}{$n=0$} \\ \hline
 $\gamma$ & ~1.34375~$\left(\frac{43}{32}\right)$ & \darkgreen{~1.4115~$^{N=3}$} & \darkgreen{~1.4740~$^{N=4}$} & \green{~1.435~} & \green{~1.3804~} &
-\red{~1.4285~} & \red{~1.4429~} & ~1.449~ \\ \hline
+\green{~1.4285~} & \green{~1.4429~} & ~1.449~ \\ \hline
 $\nu$    & 0.75 &  \darkgreen{~0.7250~$^{N=3}$} &  \darkgreen{~0.7399~$^{N=3}$} & \green{~0.753~} & \green{~0.7069~} & \green{~0.7514~} &
-\red{--} & ~0.774~ \\ \hline
-$\eta$   & 0.20833~$\left(\frac{5}{24}\right)$ & \green{~0.1204~} & \green{~}  & \red{~}  & \red{~}  &  \green{~} &  \green{~} & ~0.128~ \\ \hline
+$\frac{\red{~~~--~~~}}{0.755}$ & ~0.774~ \\ \hline
+$\eta$   & 0.20833~$\left(\frac{5}{24}\right)$ & \green{~0.1204~} & \green{~}  & $\frac{\red{None}}{0.069}$ & \red{~}  &  \green{~} &  \green{~} & ~0.128~ \\ \hline
+%%%%%%%%%%
+%% n =-1 %
+%%%%%%%%%%
 \multicolumn{9}{|c|}{$n=-1$} \\ \hline
 $\gamma$ & ~1.15625~$\left(\frac{37}{32}\right)$& \darkgreen{~1.1917~$^{N=4}$} & \darkgreen{~1.1952~$^{N=4}$} & \green{~1.192~} & \green{~1.1641~} &
-\green{~1.1843~} & \red{--$^{Warn}$} & ~1.184~ \\ \hline
+\green{~1.1843~}\footnote{клетки, соответствующие значениям [2/3] и [3/2], перепутаны местами} 
+& $\frac{\red{~~~--~~~}}{1.202Warn}$\footnote{клетки, соответствующие значениям [2/3] и [3/2], перепутаны местами} & ~1.184~ \\ \hline
 $\nu$    & 0.625 & \darkgreen{~0.6021~$^{N=3}$} & \darkgreen{~0.6183~$^{N=4}$} & \green{~0.606~} & \green{~0.5945~} & \green{~0.6054~} &
 \green{~0.6076~} & ~0.617~ \\ \hline
-$\eta$   & 0.15 & \green{~0.0793~} & \green{~}  & \red{~}  & \red{~}  &  \green{~} & \green{~}  & ~0.082~ \\ \hline
+$\eta$   & 0.15 & \green{~0.0793~} & \green{~}  & $\frac{\red{None}}{0.055}$ & \red{~}  &  \green{~} & \green{~}  & ~0.082~ \\ \hline
 \multicolumn{9}{|c|}{Легенда:} \\ \hline
 \green{~1.23~} & \multicolumn{8}{l|}{значение совпадает с результатом Соколова} \\ \hline
 \darkgreen{~1.23~} & \multicolumn{8}{l|}{понятно, как Соколов это получил (он взял только $N$ членов разложения)} \\ \hline
@@ -472,12 +479,12 @@ is equal to 0.75.}
 \renewcommand{\tabcolsep}{0.4cm}
 \begin{tabular}{|*{7}{c|}}              \hline
               L/M & 0 & 1 & 2 & 3 & 4 & 5 \\ \hline
-              0 & 0.500 & 0.625 & 0.704 & 0.725 & 0.753 & 0.731 \\ \hline
-              1 & 0.667 & 0.838 & 0.733 & 0.639 & 0.741 &       \\ \hline
-              2 & 0.763 & 0.744 & 0.763 & 0.752 &       &       \\ \hline
-              3 & 0.740 & 0.755 & 0.754 &       &       &       \\ \hline
-              4 & 0.781 & 0.754 &       &       &       &       \\ \hline
-              5 & 0.706 &       &       &       &       &
+              0 & \green{0.500} & \green{0.625} & \green{0.704} & \green{0.725} & \green{0.753} & \green{0.731} \\ \hline
+              1 & \green{0.667} & \green{0.838} & \green{0.733} & \green{0.639} & \green{0.741} &       \\ \hline
+              2 & \green{0.763} & \green{0.744} & \green{0.763} & \green{0.752} &       &       \\ \hline
+              3 & \green{0.740} & \green{0.755} & \green{0.754} &       &       &       \\ \hline
+              4 & \green{0.781} & \green{0.754} &      &       &       &       \\ \hline
+              5 & \green{0.706} &       &      &       &       &
                \\ \hline
 \end{tabular}
 \end{table}
@@ -490,12 +497,12 @@ $\nu$ at $n = -1$. The exact $\nu$ value equals 0.625.}
 \begin{tabular}{|*{7}{c|}}
               \hline
               L/M & 0 & 1 & 2 & 3 & 4 & 5 \\ \hline
-              0 & 0.500 & 0.571 & 0.606 & 0.602 & 0.614 & 0.587 \\ \hline
-              1 & 0.583 & 0.640 & 0.603 & 0.605 & 0.606 &       \\ \hline
-              2 & 0.619 & 0.606 & 0.610 & 0.606 &       &       \\ \hline
-              3 & 0.600 & 0.609 & 0.607 &       &       &       \\ \hline
-              4 & 0.618 & 0.605 &       &       &       &       \\ \hline
-              5 & 0.577 &       &       &       &       &
+              0 & \green{0.500} & \green{0.571} & \green{0.606} & \green{0.602} & \green{0.614} & \green{0.587} \\ \hline
+              1 & \green{0.583} & \green{0.640} & \green{0.603} & \green{0.605} & \green{0.606} &      \\ \hline
+              2 & \green{0.619} & \green{0.606} & \green{0.610} & \green{0.606} &     &      \\ \hline
+              3 & \green{0.600} & \green{0.609} & \green{0.607} &      &     &      \\ \hline
+              4 & \green{0.618} & \green{0.605} &      &      &     &      \\ \hline
+              5 & \green{0.577} &       &      &      &     & 
                \\ \hline
 \end{tabular}
 \end{table}
@@ -508,12 +515,12 @@ at $n = 0$. The exact exponent value is 1.34375.}
 \begin{tabular}{|*{7}{c|}}
               \hline
               L/M & 0 & 1 & 2 & 3 & 4 & 5 \\ \hline
-              0 & 1.000 & 1.25  & 1.393 & 1.412 & 1.447 & 1.383 \\ \hline
-              1 & 1.333 & 1.585 & 1.414 & 1.374 & 1.424 &       \\ \hline
-              2 & 1.494 & 1.439 & 1.449 & 1.429 &       &       \\ \hline
-              3 & 1.414 & 1.448 & 1.441 &       &       &       \\ \hline
-              4 & 1.474 & 1.430 &       &       &       &       \\ \hline
-              5 & 1.326 &       &       &       &       &
+              0 & \green{1.000} & \green{1.25 } & \green{1.393} & \green{1.412} & \green{1.447} & \green{1.383} \\ \hline
+              1 & \green{1.333} & \green{1.585} & \green{1.414} & \green{1.374} & \green{1.424} &       \\ \hline
+              2 & \green{1.494} & \green{1.439} & \green{1.449} & \green{1.429} &       &       \\ \hline
+              3 & \green{1.414} & \green{1.448} & \green{1.441} &       &       &       \\ \hline
+              4 & \green{1.474} & \green{1.430} &       &       &       &       \\ \hline
+              5 & \green{1.326} &       &       &       &       &
                \\ \hline
 \end{tabular}
 \end{table}
@@ -526,12 +533,12 @@ Pad\'e approximants turn out to be spoilt by "dangerous" (positive axis) poles.}
 \renewcommand{\tabcolsep}{0.4cm}
 \begin{tabular}{|*{7}{c|}}\hline
 L/M& 0& 1 & 2 & 3 & 4 & 5\\ \hline
-0 & 0.5 & 0.6058 & 0.6555 & 0.6762 & 0.6888 & 0.6954 \\ \hline
-1 & 0.6667 & -- & 0.7170 & -- & 0.7145 & \\ \hline
-2 & 0.7634 & 0.7449 & -- & 0.7514& & \\ \hline
-3 & 0.7399 & 0.7538 & -- & & & \\ \hline
-4 & 0.7814 & 0.7549 & & & & \\ \hline
-5 & 0.7061 & & & & & \\ \hline
+0 & \green{~~0.5~~}&\green{ 0.6058} & \green{0.6555} & \green{0.6762} & \green{0.6888} & \green{0.6954} \\ \hline
+1 & \green{0.6667} & \red{~~~--~~~} & \green{0.7170} & \red{~~--~~} & \green{0.7145} & \\ \hline
+2 & \green{0.7634} &\green{ 0.7449} & \red{~~--~~} & \green{0.7514}& & \\ \hline
+3 & \green{0.7399} &\green{ 0.7538} & $\frac{\red{~~~--~~~}}{0.755}$ & & & \\ \hline
+4 & \green{0.7814} &\green{ 0.7549} & & & & \\ \hline
+5 & \green{0.7061} & & & & & \\ \hline
 \end{tabular}
 \end{table}
 
@@ -541,12 +548,12 @@ L/M& 0& 1 & 2 & 3 & 4 & 5\\ \hline
 \renewcommand{\tabcolsep}{0.4cm}
 \begin{tabular}{|*{7}{c|}}\hline
 L/M & 0 & 1 & 2 & 3 & 4 & 5\\ \hline
-0 & 0.5 & 0.5640 & 0.5903 & 0.5961 & 0.6012 & ~~~--~~~ \\ \hline
-1 & 0.5833 & -- & 0.5990 & -- & 0.6009 & \\ \hline
-2 & 0.6190 & 0.6072 & -- & 0.6054 & & \\ \hline
-3 & 0.6000 & 0.6086 & 0.6076 & & & \\ \hline
-4 & 0.6183 & 0.6059 & & & & \\ \hline
-5 & 0.5766 & & & & & \\ \hline
+0 & \green{~~0.5~} & \green{0.5640} & \green{0.5903} & \green{0.5961} & \green{0.6012} & $\frac{\red{~~~--~~~}}{0.6009}$ \\ \hline
+1 & \green{0.5833} & \red{~~~--~~~} & \green{0.5990} & \red{~~~--~~~} & \green{0.6009} & \\ \hline
+2 & \green{0.6190} & \green{0.6072} & $\frac{\red{~~~--~~~}}{0.6088}$ & \green{0.6054} & & \\ \hline
+3 & \green{0.6000} & \green{0.6086} & \green{0.6076} & & & \\ \hline
+4 & \green{0.6183} & \green{0.6059} & & & & \\ \hline
+5 & \green{0.5766} & & & & & \\ \hline
 \end{tabular}
 \end{table}
 
@@ -558,12 +565,12 @@ dangerous poles.}
 \renewcommand{\tabcolsep}{0.4cm}
 \begin{tabular}{|*{7}{c|}}\hline
 L/M & 0 & 1 & 2 & 3 & 4 & 5 \\ \hline
-0 & 1 & 1.3907 & 1.3055 & 1.3411 & 1.3622 & 1.3721 \\ \hline
-1 & 1.3333 & -- & 1.3946 & -- & 1.3907 & \\ \hline
-2 & 1.4942 & 1.4424 & -- & 1.4285 & & \\ \hline
-3 & 1.4145 & 1.4458 & 1.4429 & & & \\ \hline
-4 & 1.4740 & 1.4320 & & & & \\ \hline
-5 & 1.3264 & & & & & \\ \hline
+0 & \green{~~~1~~~} & $\frac{\red{1.3907}}{1.2116}$  & \green{1.3055} & \green{1.3411} & \green{1.3622} & \green{1.3721} \\ \hline
+1 & \green{1.3333} & \red{~~~--~~~} & \green{1.3946} & \red{~~~--~~~} & \green{1.3907} & \\ \hline
+2 & \green{1.4942} & \green{1.4424} & $\frac{\red{~~~--~~~}}{1.4461}$ & \green{1.4285} & & \\ \hline
+3 & \green{1.4145} & \green{1.4458} & \green{1.4429} & & & \\ \hline
+4 & \green{1.4740} & \green{1.4320} & & & & \\ \hline
+5 & \green{1.3264} & & & & & \\ \hline
 \end{tabular}
 \end{table}
 
