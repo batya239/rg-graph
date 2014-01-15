@@ -12,6 +12,8 @@ import sys
 import const
 
 
+#todo assumed that weight of any line is 1
+
 def uvIndex(graph):
     nEdges = len(graph.allEdges()) - len(graph.edges(graph.externalVertex))
     nVertexes = len(graph.vertices()) - 1

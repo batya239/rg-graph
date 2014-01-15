@@ -10,8 +10,13 @@ import copy
 import reduction_util
 import graphine
 import graph_state
+import re
+import lazy_value
 from rggraphenv import symbolic_functions
 
+
+import time
+import rggraphutil
 
 class Sector(object):
     SECTOR_TO_KEY = dict()
@@ -80,10 +85,10 @@ class Sector(object):
         if isinstance(other, (float, int, swiginac.refcounted)):
             return SectorLinearCombination.singleton(self, swiginac.numeric(1) / other)
         elif isinstance(other, SectorLinearCombination):
-            assert isinstance(other.additional_part, int) and other.additional_part == 0
+            #assert isinstance(other.additional_part, int) and other.additional_part == 0
             sector_to_coefficients = rggraphutil.zeroDict()
             for s, c in other.sectors_to_coefficient.items():
-                assert isinstance(c, int)
+                #assert isinstance(c, int)
                 sector_to_coefficients[self / s] = c
             combination = SectorLinearCombination(sector_to_coefficients)
             return combination
@@ -129,12 +134,21 @@ class SectorLinearCombination(object):
                 continue
             if isinstance(v, (int, float)) and v == 0:
                 continue
-            new_dict[k] = v.normal() if isinstance(v, swiginac.refcounted) else v
+            new_dict[k] = v
         return new_dict
 
-    def __init__(self, sectors_to_coefficient, additional_part=0):
-        self._additional_part = additional_part
-        self._sectors_to_coefficient = SectorLinearCombination._filter_zeros(sectors_to_coefficient)
+    @staticmethod
+    def check(some_dict):
+        new_dict = rggraphutil.zeroDict()
+        for k, v in some_dict.items():
+            if isinstance(v, lazy_value.Lazy):
+                return some_dict
+            new_dict[k] = lazy_value.LazyValue.create(v)
+        return new_dict
+
+    def __init__(self, sectors_to_coefficient, additional_part=0, force=False):
+        self._additional_part = lazy_value.LazyValue.create(additional_part)
+        self._sectors_to_coefficient = SectorLinearCombination.check(sectors_to_coefficient if force else SectorLinearCombination._filter_zeros(sectors_to_coefficient))
 
     def str_without_masters(self, masters):
         l = sorted(filter(lambda s: s not in masters, self.sectors_to_coefficient.keys()), cmp=reduction_util._compare)
@@ -147,6 +161,17 @@ class SectorLinearCombination(object):
 
     def get_value(self, masters):
         return reduce(lambda s, e: s + masters[e[0]] * e[1], self._sectors_to_coefficient.items(), self._additional_part)
+
+    def force_filter_zeros(self):
+        new_sectors_to_coefficient = rggraphutil.zeroDict()
+        for s, c in self.sectors_to_coefficient.iteritems():
+            evaled = c.evaluate()
+            if isinstance(evaled, swiginac.numeric) and evaled.to_double() == 0:
+                continue
+            elif isinstance(evaled, (int, float)) and evaled == 0:
+                continue
+            new_sectors_to_coefficient[s] = c
+        return SectorLinearCombination(new_sectors_to_coefficient, self.additional_part)
 
     def substitute(self, sectors_to_value):
         new_additional_part = self._additional_part
@@ -188,9 +213,8 @@ class SectorLinearCombination(object):
         del sectors_to_coefficient[sector]
         for s, _c in sector_linear_combination.sectors_to_coefficient.items():
             sectors_to_coefficient[s] += c * _c
-
         return SectorLinearCombination(sectors_to_coefficient,
-                                       self._additional_part + sector_linear_combination.additional_part * c)
+                                       self._additional_part + sector_linear_combination.additional_part * c, force=True)
 
     @property
     def sectors_to_coefficient(self):
@@ -233,12 +257,12 @@ class SectorLinearCombination(object):
             return 1
         assert modulo is None
         assert isinstance(power, int)
-        assert self._additional_part == 0
+        #assert self._additional_part == 0
         assert power < 0
         _power = abs(power)
         sectors_to_coefficient = rggraphutil.zeroDict()
         for s, c in self._sectors_to_coefficient.items():
-            assert isinstance(c, int) and abs(c) == 1
+            #assert isinstance(c, int)
             sectors_to_coefficient[s ** -1] = c
         inversed = SectorLinearCombination(sectors_to_coefficient)
         return reduce(lambda x, y: x * y, [inversed] * _power, 1)
@@ -247,8 +271,8 @@ class SectorLinearCombination(object):
         # l = sorted(self.sectors_to_coefficient.keys(), cmp=reduction_util._compare)
         # l.reverse()
         # return str(l)
-        return str(self.additional_part) + "".join(
-            map(lambda i: "+%s*%s" % (i[0], i[1]), self.sectors_to_coefficient.items()))
+        return str(self.additional_part) + "+zero" + "".join(
+            map(lambda i: "+%s*(%s)" % (i[0], symbolic_functions.safe_integer_numerators(i[1])), self.sectors_to_coefficient.items()))
 
     def _do_add(self, other, operation_sign):
         sectors_to_coefficient = copy.copy(self.sectors_to_coefficient)
@@ -259,18 +283,18 @@ class SectorLinearCombination(object):
             for s, c in other.sectors_to_coefficient.items():
                 sectors_to_coefficient[s] += operation_sign * c
             return SectorLinearCombination(sectors_to_coefficient, self.additional_part + other.additional_part)
-        elif isinstance(other, (int, float, swiginac.refcounted)):
+        elif isinstance(other, (int, float, swiginac.refcounted, lazy_value.Lazy)):
             return SectorLinearCombination(self.sectors_to_coefficient, additional_part=self.additional_part + other)
         else:
-            raise NotImplementedError(other)
+            raise NotImplementedError(type(other))
 
     def _do_mul_or_div(self, other, do_mul):
-        if isinstance(other, (int, float, swiginac.refcounted)):
+        if isinstance(other, (int, float, swiginac.refcounted, lazy_value.Lazy)):
             sectors_to_coefficient = rggraphutil.zeroDict()
             for s, c in self.sectors_to_coefficient.items():
                 sectors_to_coefficient[s] = c * other if do_mul else (
                     swiginac.numeric(c) / other if isinstance(c, int) else c / other)
-            additional_part = self.additional_part * other if do_mul else (swiginac.numeric(self.additional_part) / other
+            additional_part = self.additional_part * lazy_value.LazyValue.create(other) if do_mul else (swiginac.numeric(self.additional_part) / lazy_value.LazyValue.create(other)
                                                                            if isinstance(self.additional_part, int)
                                                                            else self.additional_part / other)
             return SectorLinearCombination(sectors_to_coefficient, additional_part)
@@ -282,11 +306,11 @@ class SectorLinearCombination(object):
                     new_sector_to_coefficient[s1 * s2] += c1 * c2
                     if new_sector_to_coefficient[s1 * s2] == 0:
                         del new_sector_to_coefficient[s1 * s2]
-            return SectorLinearCombination(new_sector_to_coefficient) + self.additional_part * other + other.additional_part * self
+            return SectorLinearCombination(new_sector_to_coefficient) + other * self.additional_part + self * other.additional_part
         raise NotImplementedError("other type: %s, operation %s" % (type(other), "*" if do_mul else ":"))
 
 
-ZERO_SECTOR_LINEAR_COMBINATION = SectorLinearCombination(rggraphutil.zeroDict())
+ZERO_SECTOR_LINEAR_COMBINATION = SectorLinearCombination(rggraphutil.zeroDict(), force=True)
 
 d = symbolic_functions.var("d")
 
@@ -305,7 +329,7 @@ class NumeratorsReducingRule(object):
 
 
 class SectorRuleKey(object):
-    PROPAGATOR_CONDITION_POSITIVE = "+"
+    PROPAGATOR_CONDITION_POSITIVE = "1"
     PROPAGATOR_CONDITION_NOT_POSITIVE = "0"
 
     def __init__(self, initial_propagators_condition):
@@ -348,6 +372,7 @@ class SectorRule(object):
         self._exception_condition = exception
         self._additional_condition = additional_condition
         self._apply_formula = apply_formula
+        self._a_lambda = None
         self._is_symmetry_rule = None
 
     def complexity(self):
@@ -372,11 +397,17 @@ class SectorRule(object):
 
         if self._apply_formula is None:
             return ZERO_SECTOR_LINEAR_COMBINATION
-        try:
-            evaled = eval(self._apply_formula.format(None, *sector.propagators_weights)).as_sector_linear_combinations()
-        except ValueError:
-            print 1
+
+        if self._a_lambda is None:
+            self.create_lambda(len(sector.propagators_weights))
+        evaled = self._a_lambda(*sector.propagators_weights).as_sector_linear_combinations()
         return evaled
+
+    def create_lambda(self, sector_size):
+        lambda_prefix = "lambda %s: " % ", ".join(map(lambda i: "n" + str(i), xrange(1, sector_size + 1)))
+        lambda_suffix = re.sub('{(\d+)}', 'n\\1', self._apply_formula)
+        self._a_lambda = eval(lambda_prefix + lambda_suffix)
+
 
     def __str__(self):
         return "SectorRule:\n\t%s\n\t%s" % (self._additional_condition, self._apply_formula)

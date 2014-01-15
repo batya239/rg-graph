@@ -25,7 +25,6 @@ def _create_filter():
                 # external node and 2 internals
             return len(vertexes) == 3
 
-    #return graphine.filters.oneIrreducible + graphine.filters.noTadpoles + graphine.filters.isRelevant(
     return graphine.filters.oneIrreducible + graphine.filters.isRelevant(
         RelevanceCondition())
 
@@ -154,6 +153,8 @@ class GGraphReducer(object):
 
         if (len(lastIteration.allEdges()) == 3 and ("<" not in str(self.getCurrentIterationGraph()) and ">" not in str(self.getCurrentIterationGraph()))) or str(lastIteration).startswith("ee"):
             self._putFinalValueToGraphStorage()
+            if DEBUG:
+                print "CALCULATED_GRAPH", self._initGraph, self.iterationGraphs, self.iterationValues
             return self.getFinalValue()
 
         relevantSubGraphs = [x for x in
@@ -181,11 +182,19 @@ class GGraphReducer(object):
             #     if res is not None:
             #             return res
             if self._useGraphCalculator:
-                result = graph_calculator.tryCalculate(subGraph, putValueToStorage=True)
-                if result is not None:
-                    res = self._doIterate(preprocessed)
-                    if res is not None:
-                        return res
+                can_calculate = False
+                if self._arrows_aware:
+                    _as = filter(lambda e: not e.arrow.is_null(), subGraph.allEdges())
+                    if len(_as) % 2 == 0:
+                        can_calculate = True
+                else:
+                    can_calculate = True
+                if can_calculate:
+                    result = graph_calculator.tryCalculate(subGraph, putValueToStorage=True)
+                    if result is not None:
+                        res = self._doIterate(preprocessed)
+                        if res is not None:
+                            return res
 
         return self._tryReduceChain2()
 

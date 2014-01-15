@@ -148,6 +148,7 @@ class ReductorResult(object):
     def __init__(self, final_sector_linear_combinations, masters):
         self._masters = masters
         self._final_sector_linear_combinations = final_sector_linear_combinations
+        print self._final_sector_linear_combinations
 
     def __str__(self):
         return str(self._final_sector_linear_combinations)
@@ -175,6 +176,7 @@ class ReductorResult(object):
 
     @staticmethod
     def _evaluate_coefficient(c, _d=None, series_n=-1, remove_o=True):
+        c = c.evaluate()
         if _d is None:
             return c
         if isinstance(c, (float, int)):
@@ -312,69 +314,81 @@ class Reductor(object):
                                                                                    self._topologies,
                                                                                    self._all_propagators_count))
 
-    def evaluate_sector(self, a_sector):
-        if a_sector is None:
+    def evaluate_sector(self, a_sectors):
+        if a_sectors is None:
             return None
-        sectors = a_sector.as_sector_linear_combinations()
-        exist = set()
-        while len(sectors):
-            if DEBUG:
-                print len(sectors), sectors.str_without_masters(self._masters.keys())
-            not_masters = list()
-            raw_sectors = sectors.sectors_to_coefficient.keys()
-            for s in raw_sectors:
-                if s.as_rule_key() in self._zero_sectors:
-                    sectors = sectors.remove_sector(s)
-                elif s not in self._masters.keys():
-                    not_masters.append(s)
-
-            if not len(not_masters):
-                break
-
-            key_to_sector = rggraphutil.emptyListDict()
-            for s in not_masters:
-                key_to_sector[s.as_rule_key()].append(s)
-            minimal_key = min(key_to_sector.keys())
-            rules = self._sector_rules[minimal_key]
-
-            current_sectors_to_reduce = set(key_to_sector[minimal_key])
-            n_exist = set()
-            while len(current_sectors_to_reduce):
-                s = current_sectors_to_reduce.pop()
+        import time
+        ms = time.time()
+        dfs_cache = dict()
+        _all = rggraphutil.Ref.create(0)
+        hits = rggraphutil.Ref.create(0)
+        def dfs(_sector, sector_rules, _all, hits):
+            cached = dfs_cache.get(_sector, None)
+            _all.set(_all.get() + 1)
+            if cached is not None:
+                hits.set(hits.get() + 1)
+                return cached
+            if _sector in self._zero_sectors:
+                res = 0
+            elif _sector in self._masters:
+                res = _sector.as_sector_linear_combinations()
+            else:
                 is_updated = False
-                for rule in rules:
-                    if rule.is_applicable(s):
-                        new_sectors = rule.apply(s)
-                        # if sector.Sector(1,0,-1,0,1,1,1,1,1) in new_sectors.sectors_to_coefficient.keys():
-                        #     print "\n\n-----"
-                        #     print len(filter(lambda r: r.is_applicable(s), rules))
-                        #     print rule
-                        #     print rule._apply_formula.format(None, *s.propagators_weights)
-                        #     d = symbolic_functions.D
-                        #     Sector = sector.Sector
-                        #     qwe = eval(rule._apply_formula.format(None, *s.propagators_weights))
-                        #     print "asd", qwe.sectors_to_coefficient[sector.Sector(1,0,-1,0,1,1,1,1,1)]
-                        #     print s
-                        #     print "Qeewsector.Sector(1,0,-1,0,1,1,1,1,1)"
-                        #     print "\n\n-----"
-                        #     exit(1)
-                        n_exist.add(s)
-                        do_continue = False
-                        for x in new_sectors.sectors_to_coefficient.keys():
-                            if x in exist:
-                                do_continue = True
-                                break
-                        if do_continue:
-                            continue
-                        for n_s in new_sectors.sectors:
-                            if n_s not in self._masters.keys() and n_s.as_rule_key() == minimal_key:
-                                current_sectors_to_reduce.add(n_s)
+                for rule in sector_rules:
+                    if rule.is_applicable(_sector):
+                        res = rule.apply(_sector)
+                        not_masters = dict()
+                        raw_sectors = res.sectors_to_coefficient.keys()
+                        for s in raw_sectors:
+                            if s.as_rule_key() in self._zero_sectors:
+                                res = res.remove_sector(s)
+                            elif s not in self._masters.keys():
+                                not_masters[s] = res.sectors_to_coefficient[s]
+                                res = res.remove_sector(s)
+
+                        if not len(not_masters):
+                            is_updated = True
+                            break
+
+                        key_to_sector = rggraphutil.emptyListDict()
+                        for s in not_masters.keys():
+                            key_to_sector[s.as_rule_key()].append(s)
+                        sorted_keys = sorted(key_to_sector.keys())
+                        for k in sorted_keys:
+                            cur_rules = self._sector_rules[k]
+                            cur_sectors = key_to_sector[k]
+                            for _s in cur_sectors:
+                                res += dfs(_s, cur_rules, _all, hits) * not_masters[_s]
                         is_updated = True
-                        sectors = sectors.replace_sector_to_sector_linear_combination(s, new_sectors)
                         break
-                assert is_updated, ("no rule for sector %s found" % s, exist)
-            exist = exist | n_exist
-        return ReductorResult(sectors, self._masters)
+                assert is_updated
+                pass
+            dfs_cache[_sector] = res
+            return res
+
+        a_sectors = a_sectors.as_sector_linear_combinations()
+        raw_sectors = a_sectors.sectors_to_coefficient.keys()
+        not_masters = dict()
+        for s in raw_sectors:
+            if s.as_rule_key() in self._zero_sectors:
+                a_sectors = a_sectors.remove_sector(s)
+            elif s not in self._masters.keys():
+                not_masters[s] = a_sectors.sectors_to_coefficient[s]
+                a_sectors = a_sectors.remove_sector(s)
+
+        key_to_sector = rggraphutil.emptyListDict()
+        for s in not_masters.keys():
+            key_to_sector[s.as_rule_key()].append(s)
+        sorted_keys = sorted(key_to_sector.keys())
+        for k in sorted_keys:
+            cur_rules = self._sector_rules[k]
+            cur_sectors = key_to_sector[k]
+            for _s in cur_sectors:
+                a_sectors += dfs(_s, cur_rules, _all, hits) * not_masters[_s]
+        #sectors = dfs(a_sectors, self._sector_rules[a_sectors.as_rule_key()], _all, hits)
+        if DEBUG:
+            print "time", (time.time()-ms), " cache hits", hits.get(), " all cache points", _all.get()
+        return ReductorResult(a_sectors, self._masters)
 
     def _get_file_path(self, file_name):
         dir_path = self._get_dir_path()

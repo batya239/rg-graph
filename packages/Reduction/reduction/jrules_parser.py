@@ -19,6 +19,11 @@ _NUMERATORS_REGEXP = re.compile("Toj[^\{]+\{([^\}]+)\}")
 _DEBUG = False
 
 
+def parse_master_sectors(file_path):
+    with open(file_path, 'r') as f:
+        pass
+
+
 def parse_scalar_products_reducing_rules(file_path, j_suffix):
     import swiginac
     with open(file_path, 'r') as f:

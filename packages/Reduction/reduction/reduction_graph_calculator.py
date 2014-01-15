@@ -23,7 +23,7 @@ class ReductionGraphCalculator(abstract_graph_calculator.AbstractGraphCalculator
             reductors = all_reductors
         else:
             reductors = filter(lambda r: r.main_loops_condition in self._reduction_loops, all_reductors)
-        reductor.initialize(reductors)
+        reductor.initialize(*reductors)
 
     def calculate(self, graph):
         result = reductor.calculate(graph)
@@ -53,7 +53,7 @@ class ScalarProductReductionGraphCalculator(abstract_graph_calculator.AbstractGr
             reductors = all_reductors
         else:
             reductors = filter(lambda r: r.main_loops_condition in self._reduction_loops, all_reductors)
-        reductor.initialize(reductors)
+        reductor.initialize(*reductors)
 
     def calculate(self, graph):
         result = reductor.calculate(graph, self._scalar_product_extractor)

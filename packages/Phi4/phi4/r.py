@@ -67,6 +67,7 @@ def KRStar_quadratic_divergence(initial_graph,
         if r_star is None:
             raise common.CannotBeCalculatedError(_g)
         if DEBUG:
+            print "diff2 r1", k_operation.calculate(r_star).evalf()
             print "diff r1 ", g, _g, k_operation.calculate(c * r_star).evalf(), "from_r1", from_r1
         result += k_operation.calculate(c * r_star)
     return result
@@ -276,7 +277,7 @@ def _do_r1(raw_graph, k_operation, uv_subgraph_filter, description="", use_graph
                 expression, two_tails_graph = \
                     gfun_calculator.calculateGraphValue(graph, useGraphCalculator=use_graph_calculator)
                 if DEBUG:
-                    print "R1 no UV", graph, expression
+                    print "R1 no UV", graph, expression.series(symbolic_functions.e==0, 0).evalf()
                 if not force:
                     storage.putGraphR1(two_tails_graph, expression, common.GFUN_METHOD_NAME_MARKER, description)
                 return expression, two_tails_graph
