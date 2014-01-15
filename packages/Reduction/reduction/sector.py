@@ -271,8 +271,8 @@ class SectorLinearCombination(object):
         # l = sorted(self.sectors_to_coefficient.keys(), cmp=reduction_util._compare)
         # l.reverse()
         # return str(l)
-        return str(self.additional_part) + "+zero" + "".join(
-            map(lambda i: "+%s*(%s)" % (i[0], symbolic_functions.safe_integer_numerators(i[1])), self.sectors_to_coefficient.items()))
+        return symbolic_functions.safe_integer_numerators(str(self.additional_part)) + "".join(
+            map(lambda i: "+%s*(%s)" % (i[0], symbolic_functions.safe_integer_numerators(str(i[1]))), self.sectors_to_coefficient.items()))
 
     def _do_add(self, other, operation_sign):
         sectors_to_coefficient = copy.copy(self.sectors_to_coefficient)
