@@ -56,15 +56,17 @@ def sectors(rvl):
 
 
 def reduce_symmetrical_sectors(ns_sectors, graph):
-    def note_sector(sector, graph):
-        assert(isinstance(graph, graphine.Graph))
+    def note_sector(sector, graph_edges):
         palette = map(lambda x: x[0], sector[1])
         edges_list = map(lambda x: graph_state.Edge(nodes=x[1].nodes, colors=palette.index(x[0])+1)
                          if x[0] in palette else graph_state.Edge(nodes=x[1].nodes, colors=0),
-                         enumerate(graph.allEdges()))
+                         enumerate(graph_edges))
         return graphine.Graph(edges_list)
 
-    sector_labels = map(lambda x: str(note_sector(x, graph)), ns_sectors)
+    assert(isinstance(graph, graphine.Graph))
+    g_edges = graph.allEdges(nickel_ordering=True)
+    sector_labels = map(lambda x: str(note_sector(x, g_edges)), ns_sectors)
+
     seen = set([])
-    return [(sector_labels.count(str(note_sector(s, graph))), s[1]) for s in ns_sectors
-            if str(note_sector(s, graph)) not in seen and not seen.add(str(note_sector(s, graph)))]
+    return [(sector_labels.count(str(note_sector(s, g_edges))), s[1]) for s in ns_sectors
+            if str(note_sector(s, g_edges)) not in seen and not seen.add(str(note_sector(s, g_edges)))]

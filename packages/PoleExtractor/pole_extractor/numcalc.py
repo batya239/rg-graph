@@ -8,26 +8,96 @@ import reduced_vl
 import itertools
 
 
+class PrecisionNumber:
+    def __init__(self, value, error=0):
+        self._num = (float(value), abs(float(error)))
+
+    def value(self):
+        return self._num[0]
+
+    def error(self):
+        return self._num[1]
+
+    def max(self):
+        return self.value() + self.error()
+
+    def min(self):
+        return self.value() - self.error()
+
+    def __add__(self, other):
+        if isinstance(other, float):
+            return PrecisionNumber(value=self.value() + other,
+                                   error=self.error())
+        elif isinstance(other, int):
+            return PrecisionNumber(value=self.value() + float(other),
+                                   error=self.error())
+        elif isinstance(other, PrecisionNumber):
+            return PrecisionNumber(value=self.value() + other.value(),
+                                   error=self.error() + other.error())
+
+    def __radd__(self, other):
+        return self.__add__(other)
+
+    def __mul__(self, other):
+        if isinstance(other, float):
+            return PrecisionNumber(value=self.value() * other,
+                                   error=self.error() * other)
+        elif isinstance(other, int):
+            return PrecisionNumber(value=self.value() * float(other),
+                                   error=self.error() * float(other))
+        elif isinstance(other, PrecisionNumber):
+            new_err = self.value() * other.error() + self.error() * other.value() + self.error() * other.error()
+            return PrecisionNumber(value=self.value() * other.value(),
+                                   error=new_err)
+
+    def __rmul__(self, other):
+        return self.__mul__(other)
+
+    def __str__(self):
+        return '[' + str(self.value()) + ' +- ' + str(self.error()) + ']'
+
+    def __repr__(self):
+        return str(self)
+
+    def __eq__(self, other):
+        if isinstance(other, float):
+            return self.min() <= other <= self.max()
+        elif isinstance(other, int):
+            return self.__eq__(float(other))
+        elif isinstance(other, PrecisionNumber):
+            if self.max() >= other.min() and other.max() >= self.min():
+                return True
+            elif other.max() >= self.min() and self.max() >= other.min():
+                return True
+            else:
+                return False
+
+    @staticmethod
+    def fromTuple(t):
+        return PrecisionNumber(value=t[0], error=t[1])
+
+
 class NumEpsExpansion():
     """
     Class representing Laurent eps-series.
     """
 
-    def __init__(self, exp=None):
+    def __init__(self, exp=None, precise=False):
         """
         """
+        self._precise = precise
         if exp is None:
             self._elements = dict()
             return
 
-        if not type(exp) == dict:
-            raise ValueError('Your argument is bad and you should feel bad.')
-        if not all(map(lambda x: len(x) == 2, exp.values())):
-            raise ValueError('Your argument is bad and you should feel bad.')
+        assert(type(exp) == dict)
 
         self._elements = dict()
         for k in exp.keys():
-            self._elements[k] = tuple(exp[k])
+            if isinstance(exp[k], list) or isinstance(exp[k], tuple):
+                self._elements[k] = PrecisionNumber.fromTuple(exp[k])
+            if isinstance(exp[k], PrecisionNumber):
+                self._elements[k] = exp[k]
 
     def keys(self):
         return self._elements.keys()
@@ -35,11 +105,102 @@ class NumEpsExpansion():
     def cut(self, toIndex):
         n_elements = dict()
         for k in self.keys():
-            if k <= toIndex:
+            if k < toIndex:
                 n_elements[k] = self[k]
+        return NumEpsExpansion(n_elements, precise=True)
+
+    def __getitem__(self, item):
+        assert(self._precise or item <= max(self.keys()))
+        if item in self.keys():
+            return self._elements[item]
+        else:
+            return PrecisionNumber(value=0.0)
+
+    def __str__(self):
+        result = ''
+        for k in sorted(self.keys()):
+            result += 'eps^(' + str(k) + ')' + str(self[k]) + ' + '
+        if not self._precise:
+            result += 'O[eps]^' + str(max(self.keys()) + 1) + '   '
+        return result[:-3]
+
+    def __repr__(self):
+        return str(self)
+
+    def __eq__(self, other):
+        if self._precise != other._precise:
+            return False
+        if sorted(self.keys()) != sorted(other.keys()):
+            return False
+        for k in self.keys():
+            if not self[k] == other[k]:
+                return False
+        return True
+
+    def __add__(self, other):
+        assert(isinstance(other, NumEpsExpansion))
+        res = dict()
+        result_precise = self._precise and other._precise
+        ks = list(set(self.keys() + other.keys()))
+
+        if result_precise:
+            for k in ks:
+                res[k] = self[k] + other[k]
+        else:
+            if self._precise:
+                max_index = max(other.keys())
+            elif other._precise:
+                max_index = max(self.keys())
             else:
-                n_elements[k] = (0.0, 0.0)
-        return NumEpsExpansion(n_elements)
+                max_index = min(max(self.keys()), max(other.keys()))
+            for k in ks:
+                if k <= max_index:
+                    res[k] = PrecisionNumber(value=0.0)
+                    if k in self.keys():
+                        res[k] += self[k]
+                    if k in other.keys():
+                        res[k] += other[k]
+        return NumEpsExpansion(res, precise=result_precise)
+
+    def __mul__(self, other):
+        res = dict()
+        if isinstance(other, float) or isinstance(other, int):
+            for k in self.keys():
+                res[k] = self[k] * float(other)
+            return NumEpsExpansion(res, precise=self._precise)
+        elif isinstance(other, NumEpsExpansion):
+            result_precise = self._precise and other._precise
+            if result_precise:
+                for k1 in self.keys():
+                    for k2 in other.keys():
+                        if k1 + k2 not in res.keys():
+                            res[k1 + k2] = PrecisionNumber(value=0)
+                        res[k1 + k2] += self[k1] * other[k2]
+            else:
+                if self._precise:
+                    length = max(other.keys()) - min(other.keys()) + 1
+                elif other._precise:
+                    length = max(self.keys()) - min(self.keys()) + 1
+                else:
+                    length = min(max(self.keys()) - min(self.keys()), max(other.keys()) - min(other.keys())) + 1
+                ks = range(min(self.keys()) + min(other.keys()), min(self.keys()) + min(other.keys()) + length)
+                res = {k: PrecisionNumber(value=0) for k in ks}
+                for k1 in self.keys():
+                    for k2 in other.keys():
+                        if k1 + k2 in res.keys():
+                            res[k1 + k2] += self[k1] * other[k2]
+            return NumEpsExpansion(res, precise=result_precise)
+
+    def __rmul__(self, other):
+        return self.__mul__(other)
+
+    def __pow__(self, power, modulo=None):
+        if not isinstance(power, int) or int < 1:
+            raise AttributeError("Sorry, we can't get non-natural powers")
+        result = NumEpsExpansion(self._elements, precise=self._precise)
+        for k in range(power - 1):
+            result = result * self
+        return result
 
     @staticmethod
     def gammaCoefficient(rvl, theory, max_index):
@@ -55,8 +216,7 @@ class NumEpsExpansion():
         d = rvl.loops()
         g21 = -deg
         g22 = -1
-        print '### ||' + str(g11) + ' + ' + str(g12) + '*eps||' \
-              + str(g21) + ' + ' + str(g22) + '*eps||^(' + str(d) + ')'
+
         g_coef_1 = get_gamma(g11, g12, max_index)
         g_coef_2 = get_gamma(g21, g22, max_index)
         for _ in itertools.repeat(None, d - 1):
@@ -77,84 +237,11 @@ class NumEpsExpansion():
             elif k not in e2.keys():
                 result_base[k] = e1[k]
             else:
-                if e1[k][1] < e2[k][1]:
+                if e1[k].error() < e2[k].error():
                     result_base[k] = e1[k]
                 else:
                     result_base[k] = e2[k]
         return NumEpsExpansion(exp=result_base)
-
-    def __getitem__(self, item):
-        return self._elements[item]
-
-    def __mul__(self, other):
-        if isinstance(other, NumEpsExpansion):
-            if self.keys() and other.keys():
-                ks = range(min(self.keys()) + min(other.keys()),
-                           1 + min(min(self.keys()) + max(other.keys()), max(self.keys()) + min(other.keys())))
-            else:
-                raise AttributeError("Don't try to multiply by an empty expansion.")
-            res = dict((k, [0.0, 0.0]) for k in ks)
-
-            for k1 in self.keys():
-                for k2 in other.keys():
-                    if k1 + k2 in ks:
-                        res[k1 + k2][0] += self[k1][0] * other[k2][0]
-                        res[k1 + k2][1] += abs(self[k1][1] * other[k2][0])
-                        res[k1 + k2][1] += abs(self[k1][0] * other[k2][1])
-                        res[k1 + k2][1] += abs(self[k1][1] * other[k2][1])
-        elif isinstance(other, float):
-            res = dict()
-            for k in self.keys():
-                res[k] = (self[k][0] * other, self[k][1] * abs(other))
-        elif isinstance(other, int):
-            res = dict()
-            for k in self.keys():
-                res[k] = (self[k][0] * float(other), self[k][1] * abs(float(other)))
-        else:
-            raise AttributeError('Can only multiply by a number or other expansion')
-
-        return NumEpsExpansion(res)
-
-    def __add__(self, other):
-        if self.keys() and other.keys():
-            ks = range(min(self.keys() + other.keys()), 1 + min(max(self.keys()), max(other.keys())))
-        elif not self.keys() and not other.keys():
-            raise AttributeError("Don't try to add 2 empty expansions.")
-        elif self.keys():
-            return NumEpsExpansion(self._elements)
-        elif other.keys():
-            return NumEpsExpansion(other._elements)
-
-        res = dict((k, [0.0, 0.0]) for k in ks)
-        for k in ks:
-            if k in self.keys():
-                res[k][0] += self[k][0]
-                res[k][1] += self[k][1]
-            if k in other.keys():
-                res[k][0] += other[k][0]
-                res[k][1] += other[k][1]
-
-        return NumEpsExpansion(res)
-
-    def __pow__(self, power, modulo=None):
-        if not isinstance(power, int) or int < 1:
-            raise AttributeError("Sorry, we can't get non-natural powers")
-        result = NumEpsExpansion(self._elements)
-        for k in range(power - 1):
-            result = result * self
-        return result
-
-    def __str__(self):
-        result = ''
-        for k in sorted(self.keys()):
-            result += 'eps^(' + str(k) + ')[' + str(self[k][0]) + '+-' + str(self[k][1]) + '] + '
-        return result[:-2]
-
-    def __repr__(self):
-        return str(self)
-
-    def __eq__(self, other):
-        return str(self) == str(other)
 
 
 def get_gamma(a, b, max_index):
@@ -282,8 +369,8 @@ def cuba_calculate(expansion):
             f.close()
 
             #compiling external C program
-            command = 'gcc -Wall -fopenmp -I' + wd + ' -o ' + binary + ' ' + source + ' -lm -lcuba -fopenmp'
-            subprocess.Popen([command], shell=True, stderr=subprocess.PIPE).communicate()
+            compile = 'gcc -Wall -fopenmp -I' + wd + ' -o ' + binary + ' ' + source + ' -lm -lcuba -fopenmp'
+            subprocess.Popen([compile], shell=True, stderr=subprocess.PIPE).communicate()
 
             #running external C program
             integrate = subprocess.Popen([binary], env={'OMP_NUM_THREADS': '4', 'CUBAVERBOSE': '0'},

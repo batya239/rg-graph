@@ -55,7 +55,7 @@ def term_factor_expansion(tf):
     assert(os.path.isfile(gen_filename(tf._diagram, rprime=True, momentum_derivative=tf._derivative)))
     e = get_expansion(tf._diagram, rprime=True, momentum_derivative=tf._derivative)
     if tf._k:
-        return e.cut(-1)
+        return e.cut(0)
     else:
         return e
 
@@ -90,11 +90,11 @@ def calculate_rprime(label, PHI_EXPONENT, verbose=1, force_update=False):
     if verbose > 1:
         print "Tau-counterterms:\n" + str(c_part)
 
-    c_part_exp = term_to_expansion(c_part)
+    c_part_exp = -1 * term_to_expansion(c_part)
     if verbose > 1:
         print "Tau-counterterms calculated:\n" + str(c_part_exp)
 
-    result = get_expansion(g, rprime=False, momentum_derivative=False) + c_part_exp * (-1.0)
+    result = get_expansion(g, rprime=False, momentum_derivative=False) + c_part_exp
     if verbose > 0:
         print "R' tau-part:\n" + str(result)
 
@@ -105,11 +105,11 @@ def calculate_rprime(label, PHI_EXPONENT, verbose=1, force_update=False):
         if verbose > 1:
             print "p^2-counterterms:\n" + str(p2_part)
 
-        p2_part_exp = term_to_expansion(p2_part)
+        p2_part_exp = -1 * term_to_expansion(p2_part)
         if verbose > 1:
             print "p^2-counterterms calculated:\n" + str(p2_part_exp)
 
-        result = get_expansion(g, rprime=False, momentum_derivative=True) + p2_part_exp * (-1.0)
+        result = get_expansion(g, rprime=False, momentum_derivative=True) + p2_part_exp
         if verbose > 0:
             print "R' p^2-part:\n" + str(result)
 
@@ -157,17 +157,24 @@ def calculate_diagram(label, theory, max_eps, zero_momenta=True, verbose=1, forc
             for k in sorted(s[1].keys()):
                 print "eps^{" + str(k) + "}: " + str(s[1][k])
 
-    num_expansion = numcalc.NumEpsExpansion()
+    num_expansion = numcalc.NumEpsExpansion({k: [0.0, 0.0] for k in range(max_eps + 1)}, precise=True)
     i = 0
-    for e in expansions:
-        if verbose > 0:
+    for e, s in zip(expansions, ss):
+        if 1 >= verbose > 0:
             i += 1
             print '\rcalculating ' + str(i) + ' sector of ' + str(len(expansions)) + '...',
-        num_expansion += numcalc.cuba_calculate(e[1])
-        if verbose > 0:
+
+        sector_expansion = numcalc.cuba_calculate(e[1])
+        num_expansion += sector_expansion
+
+        if 1 >= verbose > 0:
             print ' done!',
-    if verbose > 0:
+        elif verbose > 1:
+            print 'Sector: ' + str(s[0]) + ' * ' + str(s[1]) + '\nExpansion:\n' + str(sector_expansion)
+    if 1 >= verbose > 0:
         print "\rResult of numerical integration:\n" + str(num_expansion)
+    elif verbose > 1:
+        print "Result of numerical integration:\n" + str(num_expansion)
 
     gamma_coef = numcalc.NumEpsExpansion.gammaCoefficient(rvl,
                                                           theory=theory,
