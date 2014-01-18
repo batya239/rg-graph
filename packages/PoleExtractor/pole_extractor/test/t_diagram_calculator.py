@@ -7,7 +7,7 @@ import graphine
 import pole_extractor.diagram_calculator
 
 
-class TestBaseValues(unittest.TestCase):
+class TestBaseValuesPhi3(unittest.TestCase):
     def testOneLoop(self):
         e1 = pole_extractor.diagram_calculator.get_expansion(graphine.Graph.fromStr('e11-e-'),
                                                              rprime=False,
@@ -22,6 +22,13 @@ class TestBaseValues(unittest.TestCase):
         self.assertEqual(e2[-1], 0.5)
         self.assertEqual(e2[0], -0.75)
         self.assertEqual(e2[1], math.pi**2 / 12.0 + 0.25)
+
+        e3 = pole_extractor.diagram_calculator.get_expansion(graphine.Graph.fromStr('e12-e2--'),
+                                                             rprime=False,
+                                                             momentum_derivative=True)
+        self.assertEqual(e3[0], -1.0 / 12.0)
+        self.assertEqual(e3[1], 0.125)
+        self.assertEqual(e3[2], -math.pi**2 / 72.0 - 1.0 / 24.0)
 
     def testTwoLoops(self):
         e3 = pole_extractor.diagram_calculator.get_expansion(graphine.Graph.fromStr('e12-23-3-e-'),
@@ -54,7 +61,7 @@ class TestBaseValues(unittest.TestCase):
         self.assertEqual(e7[-1], 0.25)
 
 
-class TestRprValues(unittest.TestCase):
+class TestRprValuesPhi3(unittest.TestCase):
     def testOneLoop(self):
         e1 = pole_extractor.diagram_calculator.get_expansion(graphine.Graph.fromStr('e11-e-'),
                                                              rprime=True,
@@ -80,8 +87,8 @@ class TestRprValues(unittest.TestCase):
         e2 = pole_extractor.diagram_calculator.get_expansion(graphine.Graph.fromStr('e12-e3-33--'),
                                                              rprime=True,
                                                              momentum_derivative=True)
-        #self.assertEqual(e2[-2], -1.0 / 72.0)
-        #self.assertEqual(e2[-1], 11.0 / 432.0)
+        self.assertEqual(e2[-2], -1.0 / 72.0)
+        self.assertEqual(e2[-1], 11.0 / 432.0)
 
         e3 = pole_extractor.diagram_calculator.get_expansion(graphine.Graph.fromStr('e12-e3-34-4-e-'),
                                                              rprime=True,
