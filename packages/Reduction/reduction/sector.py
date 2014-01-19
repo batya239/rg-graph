@@ -160,7 +160,7 @@ class SectorLinearCombination(object):
         return self._additional_part
 
     def get_value(self, masters):
-        return reduce(lambda s, e: s + masters[e[0]] * e[1], self._sectors_to_coefficient.items(), self._additional_part)
+        return reduce(lambda s, e: s + masters[e[0]] * e[1].evaluate(), self._sectors_to_coefficient.items(), self._additional_part.evaluate())
 
     def force_filter_zeros(self):
         new_sectors_to_coefficient = rggraphutil.zeroDict()

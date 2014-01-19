@@ -65,7 +65,7 @@ def KRStar_quadratic_divergence(initial_graph,
                 except common.CannotBeCalculatedError:
                     pass
         if r_star is None:
-            raise common.CannotBeCalculatedError(_g)
+            raise common.CannotBeCalculatedError(g)
         if DEBUG:
             print "diff2 r1", k_operation.calculate(r_star).evalf()
             print "diff r1 ", g, _g, k_operation.calculate(c * r_star).evalf(), "from_r1", from_r1
