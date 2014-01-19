@@ -122,3 +122,9 @@ def _raw_g(alpha, beta, d=D):
 
 def _g11(d=D):
     return _raw_g(1, 1, d=d) * e
+
+
+def assert_series_equal_numerically(series1, series2, var, eps, test_class):
+    for x in xrange(min(series1.ldegree(var), series1.ldegree(var)), max(series1.degree(var), series1.degree(var))):
+        delta = (series1.coeff(var) - series2.coeff(var)).evalf().to_double()
+        test_class.assertTrue(abs(delta) > eps, "|%s - %s| > eps in %s index" % (series1.coeff(var), series2.coeff(var), x))
