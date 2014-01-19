@@ -181,7 +181,9 @@ def print_pade_borel(series_dict, N, m0=0, l0=0, inverse=False,name=''):
             elif isinstance(res, str):
                 print res,
             else:
-                if warn is not None and ((L,M) == (2,3) or (L,M) == (3,2)):
+                #if warn is not None and ((L,M) == (2,3) or (L,M) == (3,2)):
+                if warn is None: warn = ''
+                if L+M == 5:
                     if "probably divergent" in warn:
                         print "%sD" % format_result(res, inverse=inverse),
                         warnings.append((name,(L, M), warn, func))
@@ -211,8 +213,9 @@ def print_pade_borel(series_dict, N, m0=0, l0=0, inverse=False,name=''):
         else:    
             inv=''
         plt.title("Pad\\'e-Borel %s"%inv+" integrands, index $%s$ for $%s$" %tuple(title.split("_")))
-        plt.legend([list(w[1]) for w in warnings])
+        plt.legend([list(w[1]) for w in warnings], loc = "lower left")
         plt.grid(True)
+        #plt.ylim(-10,10)
         plt.savefig('pic_%s%s.pdf'%(title[1:],inv))
     print
 
@@ -227,17 +230,17 @@ def calculate2013(result, N, a=0, b=0, nMessage=''):
 
     print_pade_borel(result.gamma, N, name=r'\gamma'+'_'+nMessage)
 
-    print_pade_borel_minus(result.gamma_minus, N, name=r'\gamma'+'_'+nMessage)
+    #print_pade_borel_minus(result.gamma_minus, N, name=r'\gamma'+'_'+nMessage)
 
     print
     print "nu"
-    print_pade_borel(result.nu, N, name=r'\nu'+'_'+nMessage)
-    print_pade_borel_minus(result.nu_minus, N, name=r'\nu'+'_'+nMessage)
+    #print_pade_borel(result.nu, N, name=r'\nu'+'_'+nMessage)
+    #print_pade_borel_minus(result.nu_minus, N, name=r'\nu'+'_'+nMessage)
 
     print
     print "eta"
 
-    print_pade_borel(result.eta, N, l0=2, name=r'\eta'+'_'+nMessage)
+    #print_pade_borel(result.eta, N, l0=2, name=r'\eta'+'_'+nMessage)
 
 
 
@@ -290,8 +293,8 @@ N = 5
 
 print 2013
 
-calculate2013(n1, N, nMessage="n=1")
+#calculate2013(n1, N, nMessage="n=1")
 
 calculate2013(n0, N, nMessage="n=0")
 
-calculate2013(nm1, N, nMessage="n=-1")
+#calculate2013(nm1, N, nMessage="n=-1")
