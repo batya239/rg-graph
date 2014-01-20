@@ -59,7 +59,7 @@ def _find_minimal_external_momentum_passing(graph):
             new_dist = 1 + len(dist)
             if e_dist is None or len(e_dist) > new_dist:
                 #
-                # hack for fast
+                # optimization for fast work
                 #
                 if v == target_vertex and new_dist == 1:
                     return (e, e.nodes[0] == vertex),

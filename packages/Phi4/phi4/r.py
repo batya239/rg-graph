@@ -309,19 +309,25 @@ def _do_r1(raw_graph, k_operation, uv_subgraph_filter, description="", use_graph
     raise common.CannotBeCalculatedError(raw_graph)
 
 
-def shrink_to_point(graph, sub_graphs):
+def shrink_to_point(graph, sub_graphs_to_shrink):
     to_shrink = list()
     p2_counts = 0
     excluded_edges = set()
-    for sg in sub_graphs:
-        edge = _has_momentum_quadratic_divergence(sg, graph, excluded_edges)
-        if edge is not None:
-            excluded_edges.add(edge)
-            to_shrink.append(graphine.Graph([edge], graph.externalVertex, renumbering=False))
-            p2_counts += 1
-        to_shrink.append(sg)
-    shrunk = graph.batchShrinkToPoint(to_shrink)
-    return shrunk, p2_counts
+
+    for sub_graphs in itertools.permutations(sub_graphs_to_shrink):
+        try:
+            for sg in sub_graphs:
+                edge = _has_momentum_quadratic_divergence(sg, graph, excluded_edges)
+                if edge is not None:
+                    excluded_edges.add(edge)
+                    to_shrink.append(graphine.Graph([edge], graph.externalVertex, renumbering=False))
+                    p2_counts += 1
+                to_shrink.append(sg)
+            shrunk = graph.batchShrinkToPoint(to_shrink)
+            return shrunk, p2_counts
+        except common.CannotBeCalculatedError:
+            pass
+    raise common.CannotBeCalculatedError(graph)
 
 
 def _has_momentum_quadratic_divergence(sub_graph, graph, excluded_edges):
@@ -351,5 +357,4 @@ def _has_momentum_quadratic_divergence(sub_graph, graph, excluded_edges):
                 edge = list(raw_edges)[0]
                 if edge not in excluded_edges:
                     return edge
-
-    assert False
+    raise common.CannotBeCalculatedError(graph)

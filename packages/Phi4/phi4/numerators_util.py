@@ -44,6 +44,9 @@ def scalar_product_extractor(topology, graph):
         yield sp
 
 
+def create_calculator(*loops_counts):
+    return reduction.ScalarProductReductionGraphCalculator(scalar_product_extractor, *loops_counts)
+
 GRAPHS_WITH_SCALAR_PRODUCTS_CALCULATOR = reduction.ScalarProductReductionGraphCalculator(scalar_product_extractor)
 
 
