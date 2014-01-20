@@ -33,14 +33,6 @@ def KRStar_quadratic_divergence(initial_graph,
                                 description="",
                                 use_graph_calculator=True,
                                 do_kr_star=True):
-    # try:
-    #     kr1 = KR1(initial_graph, k_operation, uv_sub_graph_filter, description, use_graph_calculator)
-    #     if DEBUG:
-    #         print "kr1 p2", initial_graph
-    #     return kr1
-    # except common.CannotBeCalculatedError:
-    #     pass
-
     diff = diff_util.diff_p2(initial_graph)
     result = 0
     if DEBUG:
@@ -104,7 +96,7 @@ def KRStar(initial_graph, k_operation, uv_sub_graph_filter, description="", use_
                                                            resultRepresentator=graphine.Representator.asGraph)
             for spinney in spinneys_generators:
                 shrunk, p2Counts = shrink_to_point(graph, (spinney,))
-                if str(shrunk).startswith("ee0-::"):
+                if str(shrunk).startswith("ee0|:"):
                     continue
                 spinneyPart = R(spinney,
                                 k_operation,
@@ -324,6 +316,7 @@ def shrink_to_point(graph, sub_graphs):
     for sg in sub_graphs:
         edge = _has_momentum_quadratic_divergence(sg, graph, excluded_edges)
         if edge is not None:
+            excluded_edges.add(edge)
             to_shrink.append(graphine.Graph([edge], graph.externalVertex, renumbering=False))
             p2_counts += 1
         to_shrink.append(sg)
@@ -335,6 +328,8 @@ def _has_momentum_quadratic_divergence(sub_graph, graph, excluded_edges):
     external_edges = sub_graph.edges(sub_graph.externalVertex)
     if len(external_edges) != 2:
         return None
+
+    #TODO
     n_edges = len(sub_graph.allEdges()) - len(external_edges)
     n_vertexes = len(sub_graph.vertices()) - 1
     n_loop = n_edges - n_vertexes + 1
@@ -354,7 +349,7 @@ def _has_momentum_quadratic_divergence(sub_graph, graph, excluded_edges):
             if raw_edges not in external_edges:
                 assert len(raw_edges) == 1
                 edge = list(raw_edges)[0]
-                excluded_edges.add(edge)
-                return edge
+                if edge not in excluded_edges:
+                    return edge
 
     assert False
