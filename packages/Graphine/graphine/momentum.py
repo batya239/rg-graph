@@ -123,10 +123,18 @@ def xArbitrarilyPassMomentum(graph):
         edges_to_remove.remove(e)
         _g = graph.deleteEdges(edges_to_remove)
         for v in internal_vertices:
-            yield _g.addEdge(new_edge((v, external_vertex), external_node=external_vertex, colors=(0, 0), arrow=default_arrow))
+            if _check_valid(_g, v):
+                new_external_edge = new_edge((v, external_vertex), external_node=external_vertex, colors=(0, 0), arrow=default_arrow)
+                graph_to_yield = _g.addEdge(new_external_edge)
+                yield graph_to_yield
 
     #in-in
     _g = graph.deleteEdges(external_edges)
     for vs in itertools.combinations(internal_vertices, 2):
-        yield _g.addEdges([new_edge((vs[0], external_vertex), external_node=external_vertex, colors=(0, 0), arrow=default_arrow),
-                           new_edge((vs[1], external_vertex), external_node=external_vertex, colors=(0, 0), arrow=default_arrow)])
+        if _check_valid(_g, vs[0]) and _check_valid(_g, vs[1]):
+            yield _g.addEdges([new_edge((vs[0], external_vertex), external_node=external_vertex, colors=(0, 0), arrow=default_arrow),
+                               new_edge((vs[1], external_vertex), external_node=external_vertex, colors=(0, 0), arrow=default_arrow)])
+
+
+def _check_valid(graph, vertex):
+    return graph_operations.isGraphConnected(filter(lambda e: vertex not in e.nodes, graph.allEdges()), graph, None)
