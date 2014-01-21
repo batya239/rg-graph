@@ -151,15 +151,15 @@ class ResultChecker(object):
 
 
 def main():
-    checkers_configuration = ("no calculators checker", [numerators_util.create_calculator(2, 3, 4)]),#, \
-                             #("with 2 loops reduction checker", [numerators_util.create_calculator(2)]), \
-                             #("with 2, 3 loops reduction checker", [numerators_util.create_calculator(2, 3)]), \
-                             #("with 2-4 loops reduction checker", [numerators_util.create_calculator(2, 3, 34)])
+    checkers_configuration = ("no calculators checker", []), \
+                             ("with 2 loops reduction checker", [numerators_util.create_calculator(2)]), \
+                             ("with 2, 3 loops reduction checker", [numerators_util.create_calculator(2, 3)]), \
+                             ("with 2-4 loops reduction checker", [numerators_util.create_calculator(2, 3, 4)])
 
     for conf in checkers_configuration:
         checker = ResultChecker(conf[0], *conf[1])
         try:
-            checker.start(skip_4_tails=True)
+            checker.start()
         finally:
             checker.dispose()
 
