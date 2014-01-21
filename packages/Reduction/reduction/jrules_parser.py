@@ -178,12 +178,13 @@ def parse_propagators(file_path, loops_count):
     propagator_variables = ["p"]
     for i in xrange(1, loops_count + 1):
         propagator_variables.append("k%d" % i)
-    propagators = list()
+    propagators = dict()
     with open(file_path, 'r') as f:
         content = "".join(f.readlines())
         content = content.replace("\n", "")
         raw_result = _PROPAGATORS_REGEXP.findall(content)[0]
         raw_result = raw_result.split(",")
+        j = 0
         for i in xrange(1, len(raw_result), 2):
             raw_propagator = raw_result[i][:-1].replace(" ", "")
             propagator_as_list = list()
@@ -194,5 +195,6 @@ def parse_propagators(file_path, loops_count):
                     propagator_as_list.append(sign)
                 else:
                     propagator_as_list.append(0)
-            propagators.append(tuple(propagator_as_list))
+            propagators[j] = tuple(propagator_as_list)
+            j += 1
     return propagators

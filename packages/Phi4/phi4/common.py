@@ -42,7 +42,7 @@ MS_K_OPERATION = MSKOperation()
 GFUN_METHOD_NAME_MARKER = "g-functions"
 MS_SCHEME_NAME_MARKER = "ms-scheme"
 
-defaultSubgraphUVFilter = graphine.filters.isRelevant(ir_uv.UV_RELEVANCE_CONDITION_4_DIM)
+DEFAULT_SUBGRAPH_UV_FILTER = graphine.filters.isRelevant(ir_uv.UV_RELEVANCE_CONDITION_4_DIM)
 
 oneIrreducibleAndNoTadpoles = graphine.filters.oneIrreducible + graphine.filters.noTadpoles
 

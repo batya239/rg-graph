@@ -41,7 +41,15 @@ class ReductorHolder(object):
                 return v
 
 
-def _enumerate_graph(graph, init_propagators, to_sector=True):
+class StopSearchException(BaseException):
+    pass
+
+
+class RuleNotFoundException(BaseException):
+    pass
+
+
+def _enumerate_graph(graph, init_propagators, to_sector=True, only_one_result=False):
     """
     propagators - iterable of tuples (1, 0, -1) = q - k2
 
@@ -63,16 +71,16 @@ def _enumerate_graph(graph, init_propagators, to_sector=True):
     graph = init_colors(graph, empty_color, empty_color)
 
     neg_init_propagators = dict()
-    for p in init_propagators:
+    for p in init_propagators.values():
         neg_p = tuple(map(lambda q: -q, p))
         neg_init_propagators[p] = neg_p
 
     propagator_indices = dict()
-    for p in enumerate(init_propagators):
+    for p in init_propagators.items():
         propagator_indices[p[1]] = p[0]
         propagator_indices[neg_init_propagators[p[1]]] = p[0]
 
-    momentum_count = len(init_propagators[0])
+    momentum_count = len(init_propagators.values()[0])
     external_vertex = graph.externalVertex
     graph_vertices = graph.vertices()
 
@@ -81,6 +89,8 @@ def _enumerate_graph(graph, init_propagators, to_sector=True):
             new_edges = map(lambda e_: e_.copy(colors=graph_state.Rainbow((propagator_indices[e_.colors.colors], e_.colors)) if len(e_.internal_nodes) == 2 else None),
                             _graph.allEdges())
             result.add(graphine.Graph(new_edges, external_vertex, renumbering=False))
+            if only_one_result:
+                raise StopSearchException()
             return
         vertex_known_factor = [0] * momentum_count
         not_enumerated = list()
@@ -104,7 +114,7 @@ def _enumerate_graph(graph, init_propagators, to_sector=True):
                     return
             _enumerate_next_vertex(remaining_propagators, _graph, vertex + 1, result)
             return
-        for remaining_propagator in remaining_propagators:
+        for index, remaining_propagator in remaining_propagators.items():
             neg_propagator = neg_init_propagators[remaining_propagator]
             for propagator in (remaining_propagator, neg_propagator):
                 if len(not_enumerated) == 1:
@@ -115,7 +125,7 @@ def _enumerate_graph(graph, init_propagators, to_sector=True):
                             break
                     if is_zero:
                         new_remaining_propagators = copy.copy(remaining_propagators)
-                        new_remaining_propagators.remove(remaining_propagator)
+                        del new_remaining_propagators[index]
                         new_edges = copy.copy(_graph.allEdges())
                         new_edges.remove(not_enumerated[0])
                         new_edges.append(not_enumerated[0].copy(colors=graph_state.Rainbow(propagator)))
@@ -123,7 +133,7 @@ def _enumerate_graph(graph, init_propagators, to_sector=True):
                         _enumerate_next_vertex(new_remaining_propagators, new_graph, vertex + 1, result)
                 else:
                     new_remaining_propagators = copy.copy(remaining_propagators)
-                    new_remaining_propagators.remove(remaining_propagator)
+                    del new_remaining_propagators[index]
                     new_edges = copy.copy(_graph.allEdges())
                     new_edges.remove(not_enumerated[0])
                     new_edges.append(not_enumerated[0].copy(colors=graph_state.Rainbow(propagator)))
@@ -131,7 +141,13 @@ def _enumerate_graph(graph, init_propagators, to_sector=True):
                     _enumerate_next_vertex(new_remaining_propagators, new_graph, vertex, result)
 
     _result = set()
-    _enumerate_next_vertex(init_propagators, graph, 0, _result)
+    try:
+        propagators_copy = copy.copy(init_propagators)
+        if graph.getLoopsCount() == 4:
+            del propagators_copy[0]
+        _enumerate_next_vertex(propagators_copy, graph, 0, _result)
+    except StopSearchException:
+        pass
     if not to_sector:
         return _result
     else:
@@ -148,7 +164,6 @@ class ReductorResult(object):
     def __init__(self, final_sector_linear_combinations, masters):
         self._masters = masters
         self._final_sector_linear_combinations = final_sector_linear_combinations
-        print self._final_sector_linear_combinations
 
     def __str__(self):
         return str(self._final_sector_linear_combinations)
@@ -176,7 +191,6 @@ class ReductorResult(object):
 
     @staticmethod
     def _evaluate_coefficient(c, _d=None, series_n=-1, remove_o=True):
-        c = c.evaluate()
         if _d is None:
             return c
         if isinstance(c, (float, int)):
@@ -193,6 +207,8 @@ class Reductor(object):
     TOPOLOGIES_FILE_NAME = "topologies"
     MASTERS_FILE_NAME = "masters"
 
+    CALLS_COUNT = 0
+
     def __init__(self,
                  env_name,
                  env_path,
@@ -204,6 +220,7 @@ class Reductor(object):
         self._main_loop_count_condition = main_loop_count_condition
         self._propagators = jrules_parser.parse_propagators(self._get_file_path(self._env_name),
                                                             self._main_loop_count_condition)
+
         read_topologies = self._try_read_topologies()
         if read_topologies:
             self._topologies = read_topologies
@@ -267,11 +284,6 @@ class Reductor(object):
             if f.startswith("jRules"):
                 map(lambda (k, r): self._sector_rules[k].append(r),
                     jrules_parser.x_parse_rules(os.path.join(dir_path, f), self._env_name, parse_symmetry=False))
-            # elif f.startswith("jSymmetries"):
-            #     map(lambda (k, r): self._sector_rules[k].append(r),
-            #         jrules_parser.x_parse_rules(os.path.join(dir_path, f), self._env_name, parse_symmetry=True))
-        # for v in self._sector_rules.values():
-        #     pass #v.reverse()
 
     def _open_scalar_product_rules(self):
         self._scalar_product_rules = \
@@ -290,6 +302,7 @@ class Reductor(object):
         """
         scalar_product_aware_function(topology_shrunk, graph) returns iterable of scalar_product.ScalarProduct
         """
+        Reductor.CALLS_COUNT += 1
         if graph.getLoopsCount() != self._main_loop_count_condition:
             return None
         graph = Reductor.as_internal_graph(graph)
@@ -301,14 +314,33 @@ class Reductor(object):
             res = reduction_util.find_topology_for_graph(graph,
                                                          self._topologies,
                                                          scalar_product.find_topology_result_converter)
+            probably_calculable_sectors = list()
             if not res:
-                return None
-            s = sector.Sector.create_from_shrunk_topology(res[0], res[1], self._all_propagators_count)\
-                .as_sector_linear_combinations()
-            for sp in scalar_product_aware_function(*res):
-                s = sp.apply(s, self._scalar_product_rules)
-            return self.evaluate_sector(s)
+                str_graph = str(graph)
+                str_graph = str_graph[:str_graph.index(":")]
+                as_topologies = _enumerate_graph(graphine.Graph.fromStr(str_graph),
+                                              self._propagators,
+                                              to_sector=False)
+                for t in as_topologies:
+                    if len(as_topologies):
+                        res = reduction_util.find_topology_for_graph(graph,
+                                                                     (t,),
+                                                                     scalar_product.find_topology_result_converter)
+                        probably_calculable_sectors.append(res)
+            else:
+                probably_calculable_sectors.append(res)
 
+            for res in probably_calculable_sectors:
+                try:
+                    s = sector.Sector.create_from_shrunk_topology(res[0], res[1], self._all_propagators_count)\
+                        .as_sector_linear_combinations()
+                    for sp in scalar_product_aware_function(*res):
+                        s = sp.apply(s, self._scalar_product_rules)
+                    return self.evaluate_sector(s)
+                except RuleNotFoundException:
+                    pass
+            return None
+        
     def _try_calculate(self, graph):
         return self.evaluate_sector(sector.Sector.create_from_topologies_and_graph(graph,
                                                                                    self._topologies,
@@ -361,8 +393,8 @@ class Reductor(object):
                                 res += dfs(_s, cur_rules, _all, hits) * not_masters[_s]
                         is_updated = True
                         break
-                assert is_updated
-                pass
+                if not is_updated:
+                    raise RuleNotFoundException(_sector)
             dfs_cache[_sector] = res
             return res
 
@@ -385,7 +417,6 @@ class Reductor(object):
             cur_sectors = key_to_sector[k]
             for _s in cur_sectors:
                 a_sectors += dfs(_s, cur_rules, _all, hits) * not_masters[_s]
-        #sectors = dfs(a_sectors, self._sector_rules[a_sectors.as_rule_key()], _all, hits)
         if DEBUG:
             print "time", (time.time()-ms), " cache hits", hits.get(), " all cache points", _all.get()
         return ReductorResult(a_sectors, self._masters)

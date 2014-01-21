@@ -127,3 +127,46 @@ def generate_counterterms(graph, exclusion_groups, PHI_EXPONENT, momentum_deriva
         return filter(lambda x: 'p^2' not in x[1], result)
     else:
         return filter(lambda y: y is not None, map(lambda x: (x[0], x[1][:-1]) if 'p^2' in x[1] else None, result))
+
+
+def gen_cts(graph, exclusion_groups, PHI_EXPONENT, momentum_derivative=False):
+    """
+    """
+    def add_adjoining_edge(sg, g):
+        border_vertices = filter(lambda x: not x == sg.externalVertex,
+                                 sum([list(e.nodes) for e in sg.externalEdges()], []))
+        border_edges = filter(lambda x: x not in sg.allEdges(),
+                              sum([g.edges(v) for v in border_vertices], []))
+        return graphine.Graph(sg.allEdges() + [border_edges[0]], renumbering=False)
+
+    def exclude_sg(term, sg):
+        if 2 == sg.externalEdgesCount():
+            sg2 = add_adjoining_edge(sg, term[1][-1])
+            return [(term[0], term[1][:-1] +
+                    [RPrimeTermFactor(sg, k=True), term[1][-1].shrinkToPoint(sg.internalEdges())]),
+                    (-term[0], term[1][:-1] +
+                    [RPrimeTermFactor(sg, k=True, derivative=True), term[1][-1].shrinkToPoint(sg.internalEdges())]),
+                    (term[0], term[1][:-1] +
+                    [RPrimeTermFactor(sg, k=True, derivative=True), term[1][-1].shrinkToPoint(sg2.internalEdges())])]
+        else:
+            return [(term[0], term[1][:-1] +
+                    [RPrimeTermFactor(sg, k=True), term[1][-1].shrinkToPoint(sg.internalEdges())]), ]
+
+    def update_tails(graph, valency):
+        vs = graph.vertices() - {graph.externalVertex}
+        edges = []
+        for v in vs:
+            if len(graph.edges(v)) < valency:
+                edges += [graph_state.Edge((v, graph.externalVertex))] * (valency - len(graph.edges(v)))
+        return graphine.Graph(graph.allEdges() + edges)
+
+    result = []
+    for group in exclusion_groups:
+        counterterms = [(1, [graph, ]), ]
+        for subgraph in group:
+            counterterms = sum(map(lambda x: exclude_sg(x, subgraph), counterterms), [])
+            for ctm in counterterms:
+                if not momentum_derivative:
+                    ctm[1][-1] = update_tails(ctm[1][-1], PHI_EXPONENT)
+                result.append((ctm[0], ctm[1][:-1] + [RPrimeTermFactor(ctm[1][-1], derivative=momentum_derivative)]))
+    return result

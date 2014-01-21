@@ -58,6 +58,12 @@ class Arrow(object):
     def __str__(self):
         return str(self.value)
 
+
+class StringExternalizer(graph_state_property.PropertyExternalizer):
+    def deserialize(self, string):
+        return string
+
+
 COLORS_AND_ARROW_PROPERTIES_CONFIG = \
     graph_state.PropertiesConfig.create(graph_state_property.PropertyKey(name="colors",
                                                                          is_directed=False,

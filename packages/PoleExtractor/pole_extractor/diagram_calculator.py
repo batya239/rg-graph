@@ -86,7 +86,8 @@ def calculate_rprime(label, PHI_EXPONENT, verbose=1, force_update=False):
     if verbose > 1:
         print "Non-overlapping subgraph groupings:\n" + str(exclusion_groups)
 
-    c_part = rprime.generate_counterterms(g, exclusion_groups, PHI_EXPONENT)
+    #c_part = rprime.generate_counterterms(g, exclusion_groups, PHI_EXPONENT)
+    c_part = rprime.gen_cts(g, exclusion_groups, PHI_EXPONENT)
     if verbose > 1:
         print "Tau-counterterms:\n" + str(c_part)
 
@@ -101,7 +102,8 @@ def calculate_rprime(label, PHI_EXPONENT, verbose=1, force_update=False):
     update_expansion(g, rprime=True, momentum_derivative=False, e=result, force_update=force_update)
 
     if 2 == g.externalEdgesCount():
-        p2_part = rprime.generate_counterterms(g, exclusion_groups, PHI_EXPONENT, momentum_derivative=True)
+        #p2_part = rprime.generate_counterterms(g, exclusion_groups, PHI_EXPONENT, momentum_derivative=True)
+        p2_part = rprime.gen_cts(g, exclusion_groups, PHI_EXPONENT, momentum_derivative=True)
         if verbose > 1:
             print "p^2-counterterms:\n" + str(p2_part)
 

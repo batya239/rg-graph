@@ -57,12 +57,9 @@ class ScalarProduct(object):
                     else:
                         factor += rules[key] * c
         result = sectors_linear_combinations
-        print "FACTOR", factor
         for i in xrange(self._power):
             result *= factor
-        print "FACTOR2", sectors_linear_combinations, result
         result = result.force_filter_zeros()
-        print "FACTOR3", result
         return result if self._sign == 1 else (- result)
 
     def __str__(self):

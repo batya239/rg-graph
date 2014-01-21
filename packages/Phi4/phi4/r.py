@@ -33,14 +33,6 @@ def KRStar_quadratic_divergence(initial_graph,
                                 description="",
                                 use_graph_calculator=True,
                                 do_kr_star=True):
-    # try:
-    #     kr1 = KR1(initial_graph, k_operation, uv_sub_graph_filter, description, use_graph_calculator)
-    #     if DEBUG:
-    #         print "kr1 p2", initial_graph
-    #     return kr1
-    # except common.CannotBeCalculatedError:
-    #     pass
-
     diff = diff_util.diff_p2(initial_graph)
     result = 0
     if DEBUG:
@@ -65,7 +57,7 @@ def KRStar_quadratic_divergence(initial_graph,
                 except common.CannotBeCalculatedError:
                     pass
         if r_star is None:
-            raise common.CannotBeCalculatedError(_g)
+            raise common.CannotBeCalculatedError(g)
         if DEBUG:
             print "diff2 r1", k_operation.calculate(r_star).evalf()
             print "diff r1 ", g, _g, k_operation.calculate(c * r_star).evalf(), "from_r1", from_r1
@@ -104,7 +96,7 @@ def KRStar(initial_graph, k_operation, uv_sub_graph_filter, description="", use_
                                                            resultRepresentator=graphine.Representator.asGraph)
             for spinney in spinneys_generators:
                 shrunk, p2Counts = shrink_to_point(graph, (spinney,))
-                if str(shrunk).startswith("ee0-::"):
+                if str(shrunk).startswith("ee0|:"):
                     continue
                 spinneyPart = R(spinney,
                                 k_operation,
@@ -317,24 +309,32 @@ def _do_r1(raw_graph, k_operation, uv_subgraph_filter, description="", use_graph
     raise common.CannotBeCalculatedError(raw_graph)
 
 
-def shrink_to_point(graph, sub_graphs):
-    to_shrink = list()
-    p2_counts = 0
-    excluded_edges = set()
-    for sg in sub_graphs:
-        edge = _has_momentum_quadratic_divergence(sg, graph, excluded_edges)
-        if edge is not None:
-            to_shrink.append(graphine.Graph([edge], graph.externalVertex, renumbering=False))
-            p2_counts += 1
-        to_shrink.append(sg)
-    shrunk = graph.batchShrinkToPoint(to_shrink)
-    return shrunk, p2_counts
+def shrink_to_point(graph, sub_graphs_to_shrink):
+    for sub_graphs in itertools.permutations(sub_graphs_to_shrink):
+        try:
+            to_shrink = list()
+            p2_counts = 0
+            excluded_edges = set()
+            for sg in sub_graphs:
+                edge = _has_momentum_quadratic_divergence(sg, graph, excluded_edges)
+                if edge is not None:
+                    excluded_edges.add(edge)
+                    to_shrink.append(graphine.Graph([edge], graph.externalVertex, renumbering=False))
+                    p2_counts += 1
+                to_shrink.append(sg)
+            shrunk = graph.batchShrinkToPoint(to_shrink)
+            return shrunk, p2_counts
+        except common.CannotBeCalculatedError:
+            pass
+    raise common.CannotBeCalculatedError(graph)
 
 
 def _has_momentum_quadratic_divergence(sub_graph, graph, excluded_edges):
     external_edges = sub_graph.edges(sub_graph.externalVertex)
     if len(external_edges) != 2:
         return None
+
+    #TODO
     n_edges = len(sub_graph.allEdges()) - len(external_edges)
     n_vertexes = len(sub_graph.vertices()) - 1
     n_loop = n_edges - n_vertexes + 1
@@ -354,7 +354,6 @@ def _has_momentum_quadratic_divergence(sub_graph, graph, excluded_edges):
             if raw_edges not in external_edges:
                 assert len(raw_edges) == 1
                 edge = list(raw_edges)[0]
-                excluded_edges.add(edge)
-                return edge
-
-    assert False
+                if edge not in excluded_edges:
+                    return edge
+    raise common.CannotBeCalculatedError(graph)
