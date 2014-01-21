@@ -33,6 +33,7 @@ class ResultChecker(object):
     LOG = logging.getLogger("ResultChecker")
     LOG.setLevel(logging.DEBUG)
     LOG.addHandler(logging.StreamHandler())
+    LOG.addHandler(logging.FileHandler("5LOOPS_log.txt"))
 
     TWO_TAILS_OPERATION = ("KR1", r.KR1), ("KR_STAR", r.KRStar_quadratic_divergence)
     FOUR_TAILS_OPERATION = ("KR1", r.KR1), ("KR_STAR", r.KRStar)

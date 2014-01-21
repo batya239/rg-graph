@@ -20,7 +20,7 @@ class SixLoops2Tails(object):
     LOG = logging.getLogger("SixLoops2Tails")
     LOG.setLevel(logging.DEBUG)
     LOG.addHandler(logging.StreamHandler())
-    LOG.addHandler(logging.FileHandler("log.txt"))
+    LOG.addHandler(logging.FileHandler("6LOOPS_log.txt"))
 
     DESCRIPTION = "6 loops 2 tails"
 
