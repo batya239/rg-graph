@@ -207,6 +207,8 @@ class Reductor(object):
     TOPOLOGIES_FILE_NAME = "topologies"
     MASTERS_FILE_NAME = "masters"
 
+    CALLS_COUNT = 0
+
     def __init__(self,
                  env_name,
                  env_path,
@@ -300,6 +302,7 @@ class Reductor(object):
         """
         scalar_product_aware_function(topology_shrunk, graph) returns iterable of scalar_product.ScalarProduct
         """
+        Reductor.CALLS_COUNT += 1
         if graph.getLoopsCount() != self._main_loop_count_condition:
             return None
         graph = Reductor.as_internal_graph(graph)
@@ -328,12 +331,16 @@ class Reductor(object):
                 probably_calculable_sectors.append(res)
 
             for res in probably_calculable_sectors:
-                s = sector.Sector.create_from_shrunk_topology(res[0], res[1], self._all_propagators_count)\
-                    .as_sector_linear_combinations()
-                for sp in scalar_product_aware_function(*res):
-                    s = sp.apply(s, self._scalar_product_rules)
-                return self.evaluate_sector(s)
-
+                try:
+                    s = sector.Sector.create_from_shrunk_topology(res[0], res[1], self._all_propagators_count)\
+                        .as_sector_linear_combinations()
+                    for sp in scalar_product_aware_function(*res):
+                        s = sp.apply(s, self._scalar_product_rules)
+                    return self.evaluate_sector(s)
+                except RuleNotFoundException:
+                    pass
+            return None
+        
     def _try_calculate(self, graph):
         return self.evaluate_sector(sector.Sector.create_from_topologies_and_graph(graph,
                                                                                    self._topologies,

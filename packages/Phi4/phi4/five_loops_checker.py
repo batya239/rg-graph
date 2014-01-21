@@ -17,6 +17,8 @@ import graph_util
 import time
 import numerators_util
 import itertools
+import diff_util
+import reduction
 from rggraphenv import symbolic_functions, storage, theory, graph_calculator
 
 
@@ -94,6 +96,7 @@ class ResultChecker(object):
                 ResultChecker.kr_star_p2_checking(graph, value)
 
         ResultChecker.LOG.info("checker \"%s\" finished in %s" % (self._name, time.time() - ms))
+        ResultChecker.LOG.info("reduction calls %s" % reduction.Reductor.CALLS_COUNT)
 
     @staticmethod
     def kr_star_p2_checking(graph, expected_result):
@@ -102,6 +105,7 @@ class ResultChecker(object):
         """
         diff = diff_util.diff_p2(graph)
         result = 0
+        ResultChecker.LOG.info("PERFORM %s", graph)
         for c, g in diff:
             momentum_passed_graphs = graphine.momentum.arbitrarilyPassMomentumWithPreferable(g, common.defaultGraphHasNotIRDivergence)
             kr1_results = list()
@@ -121,7 +125,7 @@ class ResultChecker(object):
                         else:
                             raise AssertionError()
                     except common.CannotBeCalculatedError:
-                        ResultChecker.LOG.warning("CAN'T CALCULATE WITH %s %s" % (operation_name, g))
+                        ResultChecker.LOG.warning("CAN'T EVALUATE %s %s" % (operation_name, g))
             if len(kr1_results):
                 all_equal = True
                 for res1, res2 in pairwise(kr1_results):
@@ -133,7 +137,7 @@ class ResultChecker(object):
             else:
                 ResultChecker.LOG.warning("CAN'T CALCULATE %s" % graph)
                 return
-            result += k_operation.calculate(c * kr1_results[0])
+            result += common.MS_K_OPERATION.calculate(c * kr1_results[0])
         if symbolic_functions.check_series_equal_numerically(expected_result, result, symbolic_functions.e, ResultChecker.EPS):
             ResultChecker.LOG.info("OK %s", graph)
         else:
@@ -146,7 +150,7 @@ class ResultChecker(object):
 
 
 def main():
-    checkers_configuration = ("no calculators checker", []),#, \
+    checkers_configuration = ("no calculators checker", [numerators_util.create_calculator(2, 3, 4)]),#, \
                              #("with 2 loops reduction checker", [numerators_util.create_calculator(2)]), \
                              #("with 2, 3 loops reduction checker", [numerators_util.create_calculator(2, 3)]), \
                              #("with 2-4 loops reduction checker", [numerators_util.create_calculator(2, 3, 34)])
@@ -154,7 +158,7 @@ def main():
     for conf in checkers_configuration:
         checker = ResultChecker(conf[0], *conf[1])
         try:
-            checker.start()
+            checker.start(skip_4_tails=True)
         finally:
             checker.dispose()
 

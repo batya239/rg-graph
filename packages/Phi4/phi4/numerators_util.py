@@ -4,6 +4,7 @@ __author__ = 'dima'
 
 import reduction
 import graph_util
+import common
 from rggraphenv import graph_calculator
 
 
@@ -33,7 +34,11 @@ def scalar_product_extractor(topology, graph):
         yield sp
     else:
         assert len(extracted_numerated_edges) == 2, ("graph must has only 2 numerated edges, actual = %s, graph = %s" % (extracted_numerated_edges, graph))
-        common_vertex = (set(extracted_numerated_edges[0][0].nodes) & set(extracted_numerated_edges[1][0].nodes)).pop()
+        raw_common_vertex = set(extracted_numerated_edges[0][0].nodes) & set(extracted_numerated_edges[1][0].nodes)
+        if not len(raw_common_vertex):
+            #raise RuntimeError()
+            raise common.CannotBeCalculatedError(graph)
+        common_vertex = raw_common_vertex.pop()
         adjusted_numerators = map(lambda (e, n): n if e.nodes[0] == common_vertex else -n, extracted_numerated_edges)
         sign = -1 if adjusted_numerators[0] == adjusted_numerators[1] else 1
 
@@ -45,7 +50,7 @@ def scalar_product_extractor(topology, graph):
 
 
 def create_calculator(*loops_counts):
-    return reduction.ScalarProductReductionGraphCalculator(scalar_product_extractor, *loops_counts)
+    return reduction.ScalarProductReductionGraphCalculator(scalar_product_extractor, loops_counts)
 
 GRAPHS_WITH_SCALAR_PRODUCTS_CALCULATOR = reduction.ScalarProductReductionGraphCalculator(scalar_product_extractor)
 

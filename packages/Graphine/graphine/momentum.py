@@ -49,14 +49,16 @@ def xPickPassingExternalMomentum(graph, filters=list()):
         for e in edgesPair:
             vertices |= set(e.nodes)
         if len(vertices) == 3:
-            graph_with_momentum_passing = graph.change(external_edges, list(edgesPair))
-            is_valid = True
-            for f in filters:
-                if not f(graph_with_momentum_passing):
-                    is_valid = False
-                    break
-            if is_valid:
-                yield max(edgesPair), min(edgesPair)
+            tadpole = graph.deleteEdges(external_edges)
+            if _check_valid(tadpole, vertices - set((graph.externalVertex,))):
+                graph_with_momentum_passing = graph.change(external_edges, list(edgesPair))
+                is_valid = True
+                for f in filters:
+                    if not f(graph_with_momentum_passing):
+                        is_valid = False
+                        break
+                if is_valid:
+                    yield max(edgesPair), min(edgesPair)
 
 
 def _choose_external_edges_with_different_vertices(edges):
@@ -86,9 +88,9 @@ def arbitrarilyPassMomentumWithPreferable(graph, prefer_condition):
     preferred = list()
     not_preferred = list()
     for g in set([g for g in xArbitrarilyPassMomentum(graph)]):
-        if prefer_condition(g):
+        if prefer_condition(g) and g not in preferred:
             preferred.append(g)
-        else:
+        elif g not in not_preferred:
             not_preferred.append(g)
     return preferred, not_preferred
 
@@ -123,7 +125,7 @@ def xArbitrarilyPassMomentum(graph):
         edges_to_remove.remove(e)
         _g = graph.deleteEdges(edges_to_remove)
         for v in internal_vertices:
-            if _check_valid(_g, v):
+            if _check_valid(_g, (v, e.internal_nodes[0])):
                 new_external_edge = new_edge((v, external_vertex), external_node=external_vertex, colors=(0, 0), arrow=default_arrow)
                 graph_to_yield = _g.addEdge(new_external_edge)
                 yield graph_to_yield
@@ -131,10 +133,32 @@ def xArbitrarilyPassMomentum(graph):
     #in-in
     _g = graph.deleteEdges(external_edges)
     for vs in itertools.combinations(internal_vertices, 2):
-        if _check_valid(_g, vs[0]) and _check_valid(_g, vs[1]):
+        if _check_valid(_g, vs):
             yield _g.addEdges([new_edge((vs[0], external_vertex), external_node=external_vertex, colors=(0, 0), arrow=default_arrow),
                                new_edge((vs[1], external_vertex), external_node=external_vertex, colors=(0, 0), arrow=default_arrow)])
 
 
-def _check_valid(graph, vertex):
-    return graph_operations.isGraphConnected(filter(lambda e: vertex not in e.nodes, graph.allEdges()), graph, None)
+def _check_valid(graph, new_external_vertices):
+    for vertex in new_external_vertices:
+        if not graph_operations.isGraphConnected(filter(lambda e: vertex not in e.nodes, graph.allEdges()), graph, None):
+            return False
+    for vertex in graph.vertices():
+        components = graph_operations._get_connected_components(graph.allEdges(), graph.externalVertex,
+                                                                singularVertexes=(vertex,))
+        if len(components) == 1:
+            continue
+        else:
+            for component in components:
+                has_external = False
+                for new_external_vertex in new_external_vertices:
+                    if new_external_vertex in component:
+                        has_external = True
+                if not has_external:
+                    return False
+    return True
+
+# from graph import Graph
+# g = Graph.fromStr("ee11|22|34|e55|e55||", properties_config=graph_state.COLORS_AND_ARROW_PROPERTIES_CONFIG)
+# for xg in xArbitrarilyPassMomentum(g):
+#     print "XG", xg
+# "e112|33|344|e|55||"
