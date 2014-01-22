@@ -119,7 +119,7 @@ def KRStar(initial_graph, k_operation, uv_sub_graph_filter, description="", use_
             if DEBUG:
                 print "R*", graph, str(krs.evalf())
             #TODO
-            return krs.subs(symbolic_functions.p == 1)
+            return krs.subs(symbolic_functions.p == 1).normal()
         except common.CannotBeCalculatedError:
             pass
     raise common.CannotBeCalculatedError(initial_graph)
@@ -148,7 +148,7 @@ def _do_kr1(raw_graph, k_operation, uv_subgraph_filter, description="", use_grap
             r1 = _do_r1(graph, k_operation, uv_subgraph_filter, description, use_graph_calculator,
                         force=force,
                         inside_krstar=inside_krstar)
-            kr1 = k_operation.calculate(r1[0])
+            kr1 = k_operation.calculate(r1[0]).normal()
             if not force:
                 storage.putGraphKR1(r1[1], kr1, common.GFUN_METHOD_NAME_MARKER, description)
             return kr1, graph
@@ -223,7 +223,7 @@ def _do_r(raw_graph,
                 print "R", graph, r.subs(symbolic_functions.p == 1)\
                     .series(symbolic_functions.e == 0, 4)\
                     .simplify_indexed().evalf()
-            return r, graph
+            return r.normal(), graph
         except common.CannotBeCalculatedError:
             pass
     raise common.CannotBeCalculatedError(raw_graph)
@@ -272,7 +272,7 @@ def _do_r1(raw_graph, k_operation, uv_subgraph_filter, description="", use_graph
                     print "R1 no UV", graph, expression.series(symbolic_functions.e==0, 0).evalf()
                 if not force:
                     storage.putGraphR1(two_tails_graph, expression, common.GFUN_METHOD_NAME_MARKER, description)
-                return expression, two_tails_graph
+                return expression.normal(), two_tails_graph
 
             raw_r1 = gfun_calculator.calculateGraphValue(graph, useGraphCalculator=use_graph_calculator)[0]
             if DEBUG:
@@ -303,7 +303,7 @@ def _do_r1(raw_graph, k_operation, uv_subgraph_filter, description="", use_graph
                     print d
             if not force:
                 storage.putGraphR1(graph, raw_r1, common.GFUN_METHOD_NAME_MARKER, description)
-            return raw_r1, graph
+            return raw_r1.normal(), graph
         except common.CannotBeCalculatedError:
             pass
     raise common.CannotBeCalculatedError(raw_graph)
