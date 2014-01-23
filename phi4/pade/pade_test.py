@@ -98,7 +98,7 @@ def resummation_pade(L, M, series_dict, g=1):
 func_template = """
 def func(x,b,g):
     t = x/(1-x)
-    res = t**b*math.exp(-tau) * ({pade})/(1-x)**2
+    res = t**b*math.exp(-t) * ({pade})/(1-x)**2
     return res
 """
 
@@ -107,11 +107,13 @@ def pade_borel_polys(L, M, series_dict, t, a=0, b=0):
     padeNum, padeDenom = pade_aproximant(L, M, t)
 
     res = solve_pade_sympy_lob(padeNum, padeDenom, borel_dict, L + M, t, a=a)
-    #    print res
     padeNum_, padeDenom_ = padeNum, padeDenom
     for var, value in res.iteritems():
         var_ = sympy.var(str(var))
-        padeNum_, padeDenom_ = padeNum_.subs(var_, value), padeDenom_.subs(var_, value)
+        if not isinstance(padeNum_, (int, float)):
+            padeNum_ = padeNum_.subs(var_, value)
+        if not isinstance(padeDenom_, (int, float)):
+            padeDenom_ = padeDenom_.subs(var_, value)
     return padeNum_, padeDenom_
 
 
