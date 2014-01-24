@@ -5,6 +5,7 @@ import math
 
 import graphine
 import pole_extractor.diagram_calculator
+import pole_extractor.numcalc
 
 
 class TestBaseValuesPhi3(unittest.TestCase):
@@ -232,3 +233,82 @@ class TestRprValuesPhi4(unittest.TestCase):
         self.assertEqual(e13[-3], 1.0 / 3.0)
         self.assertEqual(e13[-2], -2.0 / 3.0)
         self.assertEqual(e13[-1], 1.0 / 3.0)
+
+
+class TestVacuumLoopsPhi3(unittest.TestCase):
+    """
+    Check that sum of diagrams adds up to sum of vacuum loops.
+    """
+    def testTwoLoops(self):
+        g2_2 = (('e12-e3-33--', 0.5), ('e12-23-3-e-', 0.5))
+        g3_2 = (('e12-e3-e4-44--', 1.5), ('e12-e3-34-4-e-', 3.0), ('e12-34-34-e-e-', 0.5))
+
+        vl = pole_extractor.diagram_calculator.get_expansion(graphine.Graph.fromStr('111--'),
+                                                             rprime=False,
+                                                             momentum_derivative=False) * (1.0 / 12.0)
+        vl *= pole_extractor.numcalc.NumEpsExpansion(exp={0: [-3.0, 0.0], 1: [2.0, 0.0]}, precise=True)
+        vl *= pole_extractor.numcalc.NumEpsExpansion(exp={0: [-2.0, 0.0], 1: [2.0, 0.0]}, precise=True)
+        d2 = pole_extractor.numcalc.NumEpsExpansion(exp={}, precise=True)
+        for l, c in g2_2:
+            d2 += pole_extractor.diagram_calculator.get_expansion(graphine.Graph.fromStr(l),
+                                                                  rprime=False,
+                                                                  momentum_derivative=False) * c
+        self.assertEqual(vl[-2], d2[-2])
+        self.assertEqual(vl[-1], d2[-1])
+        self.assertEqual(vl[0], d2[0])
+        self.assertEqual(vl[1], d2[1])
+        self.assertEqual(vl[2], d2[2])
+
+        vl *= pole_extractor.numcalc.NumEpsExpansion(exp={0: [-1.0, 0.0], 1: [2.0, 0.0]}, precise=True)
+        d3 = pole_extractor.numcalc.NumEpsExpansion(exp={}, precise=True)
+        for l, c in g3_2:
+            d3 += pole_extractor.diagram_calculator.get_expansion(graphine.Graph.fromStr(l),
+                                                                  rprime=False,
+                                                                  momentum_derivative=False) * c
+        self.assertEqual(vl[-2], d3[-2])
+        self.assertEqual(vl[-1], d3[-1])
+        self.assertEqual(vl[0], d3[0])
+        self.assertEqual(vl[1], d3[1])
+        self.assertEqual(vl[2], d3[2])
+
+    def testThreeLoops(self):
+        g0_3 = (('112-3-33--', 0.0625), ('123-23-3--', 1.0/24.0))
+        g2_3 = (('e12-23-4-45-5-e-', 0.5),  ('e12-34-35-e-55--', 0.25), ('e12-e3-44-55-5--', 0.25),
+                ('e12-23-4-e5-55--', 1.0),  ('e12-e3-45-45-5--', 0.5),  ('e12-34-35-4-5-e-', 1.0),
+                ('e12-34-34-5-5-e-', 0.25), ('e12-e3-34-5-55--', 0.5),  ('e12-33-44-5-5-e-', 0.125))
+        g3_3 = (('e12-e3-45-46-e-66--', 1.5),  ('e12-e3-34-5-e6-66--', 3.0),  ('e12-e3-45-45-6-6-e-', 1.5),
+                ('e12-34-56-e5-e6-6--', 1.0),  ('e12-33-45-6-e6-e6--', 1.5),  ('e12-23-4-e5-56-6-e-', 3.0),
+                ('e12-e3-e4-45-6-66--', 1.5),  ('e12-34-35-6-e6-e6--', 1.0),  ('e12-23-4-56-56-e-e-', 1.5),
+                ('e12-e3-e4-55-66-6--', 0.75), ('e12-e3-44-56-5-6-e-', 3.0),  ('e12-e3-34-5-56-6-e-', 3.0),
+                ('e12-e3-45-46-5-6-e-', 6.0),  ('e12-23-4-e5-e6-66--',  1.5), ('e12-e3-e4-56-56-6--', 1.5),
+                ('e12-34-35-6-e5-6-e-', 3.0),  ('e12-e3-44-55-6-6-e-', 0.75))
+
+        vl = pole_extractor.numcalc.NumEpsExpansion(exp={}, precise=True)
+        d2 = pole_extractor.numcalc.NumEpsExpansion(exp={}, precise=True)
+        d3 = pole_extractor.numcalc.NumEpsExpansion(exp={}, precise=True)
+
+        for l, c in g0_3:
+            vl += pole_extractor.diagram_calculator.get_expansion(graphine.Graph.fromStr(l),
+                                                                  rprime=False,
+                                                                  momentum_derivative=False) * c
+        for l, c in g2_3:
+            d2 += pole_extractor.diagram_calculator.get_expansion(graphine.Graph.fromStr(l),
+                                                                  rprime=False,
+                                                                  momentum_derivative=False) * c
+        for l, c in g3_3:
+            d3 += pole_extractor.diagram_calculator.get_expansion(graphine.Graph.fromStr(l),
+                                                                  rprime=False,
+                                                                  momentum_derivative=False) * c
+
+        vl *= pole_extractor.numcalc.NumEpsExpansion(exp={0: [-3.0, 0.0], 1: [3.0, 0.0]}, precise=True)
+        vl *= pole_extractor.numcalc.NumEpsExpansion(exp={0: [-2.0, 0.0], 1: [3.0, 0.0]}, precise=True)
+
+        self.assertEqual(vl[-3], d2[-3])
+        self.assertEqual(vl[-2], d2[-2])
+        self.assertEqual(vl[-1], d2[-1])
+
+        vl *= pole_extractor.numcalc.NumEpsExpansion(exp={0: [-1.0, 0.0], 1: [3.0, 0.0]}, precise=True)
+
+        self.assertEqual(vl[-3], d3[-3])
+        self.assertEqual(vl[-2], d3[-2])
+        self.assertEqual(vl[-1], d3[-1])
