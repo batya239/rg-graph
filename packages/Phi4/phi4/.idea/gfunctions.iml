@@ -2,19 +2,9 @@
 <module type="PYTHON_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$" />
-    <orderEntry type="jdk" jdkName="Python 2.7.5 (/System/Library/Frameworks/Python.framework/Versions/2.7/bin/python)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 2.7.2 (/System/Library/Frameworks/Python.framework/Versions/2.7/bin/python)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="mincer_adapter" />
-    <orderEntry type="module" module-name="rggraphutil" />
-    <orderEntry type="module" module-name="graphine" />
-    <orderEntry type="module" module-name="GFunctions" />
-    <orderEntry type="module" module-name="examples" />
-    <orderEntry type="module" module-name="rggraphenv" />
-    <orderEntry type="module" module-name="rggraph_webservice" />
-    <orderEntry type="module" module-name="PoleExtractor" />
-    <orderEntry type="module" module-name="polynomial" />
-    <orderEntry type="module" module-name="graph_state" />
-    <orderEntry type="module" module-name="litered" />
+    <orderEntry type="module" module-name="fun" />
   </component>
   <component name="PyDocumentationSettings">
     <option name="myDocStringFormat" value="Plain" />

@@ -43,7 +43,6 @@ class ReductionTest(unittest.TestCase):
                                                _d=symbolic_functions.D,
                                                series_n=4,
                                                remove_o=True)
-        print "asd", unsubstituted_actual.evaluate(_d=5)
         sub = (expected - actual).evalf().simplify_indexed()
         self.assertTrue(expected == actual.simplify_indexed() or swiginac.abs(
             (sub * symbolic_functions.e ** 5).subs(symbolic_functions.e == 1)).evalf().compare(10E-6) < 0,
