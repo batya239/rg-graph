@@ -43,7 +43,7 @@ Z2 = 1
 Z3 = 1
 
 for nickel in r1op:
-    graph = graphine.Graph(graph_state.GraphState.fromStr("%s::" % nickel))
+    graph = graphine.Graph(graph_state.GraphState.fromStrOldStyle("%s::" % nickel))
     graphLoopCount = graph.getLoopsCount()
     if graphLoopCount > nLoops:
         continue

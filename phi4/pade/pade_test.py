@@ -98,20 +98,36 @@ def resummation_pade(L, M, series_dict, g=1):
 func_template = """
 def func(x,b,g):
     t = x/(1-x)
-    res = t**b*math.exp(-tau) * ({pade})/(1-x)**2
+    res = t**b*math.exp(-t) * ({pade})/(1-x)**2
     return res
 """
+
+def pade_polys(L,M,series_dict, t):
+    padeNum, padeDenom = pade_aproximant(L, M, t)
+
+    res = solve_pade_sympy(padeNum, padeDenom, series_dict, L + M, t)
+    padeNum_, padeDenom_ = padeNum, padeDenom
+    for var, value in res.iteritems():
+        var_ = sympy.var(str(var))
+        if not isinstance(padeNum_, (int, float)):
+            padeNum_ = padeNum_.subs(var_, value)
+        if not isinstance(padeDenom_, (int, float)):
+            padeDenom_ = padeDenom_.subs(var_, value)
+    return padeNum_, padeDenom_
+
 
 def pade_borel_polys(L, M, series_dict, t, a=0, b=0):
     borel_dict = borel_transform(series_dict, b=b)
     padeNum, padeDenom = pade_aproximant(L, M, t)
 
     res = solve_pade_sympy_lob(padeNum, padeDenom, borel_dict, L + M, t, a=a)
-    #    print res
     padeNum_, padeDenom_ = padeNum, padeDenom
     for var, value in res.iteritems():
         var_ = sympy.var(str(var))
-        padeNum_, padeDenom_ = padeNum_.subs(var_, value), padeDenom_.subs(var_, value)
+        if not isinstance(padeNum_, (int, float)):
+            padeNum_ = padeNum_.subs(var_, value)
+        if not isinstance(padeDenom_, (int, float)):
+            padeDenom_ = padeDenom_.subs(var_, value)
     return padeNum_, padeDenom_
 
 
@@ -261,7 +277,7 @@ def calculate2013(result, N, a=0, b=0):
 
 
 
-
+beta_half = {1: -1.0, 2: 1.0, 3: -0.71617362, 4: 0.93076406, 5: -1.582398}
 
 gStar_05 = {1: 1, 2: 0.716173621, 3: 0.095042867, 4: 0.086080396, 5: -0.204139}
 gamma_minus_05 = {0: 1, 1: -1. / 3, 2: -0.113701246, 3: 0.024940678, 4: -0.039896059, 5: 0.0645212}

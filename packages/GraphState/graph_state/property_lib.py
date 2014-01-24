@@ -19,7 +19,7 @@ class Arrow(object):
             return Arrow(string)
 
     def __init__(self, value):
-        assert value in Arrow._VALUES
+        assert value in Arrow._VALUES, value
         self._value = value
 
     @property
@@ -61,13 +61,16 @@ class Arrow(object):
 
 class StringExternalizer(graph_state_property.PropertyExternalizer):
     def deserialize(self, string):
-        return string
+        return None if string == str(None) else string
 
 
-COLORS_AND_ARROW_PROPERTIES_CONFIG = \
+COLORS_ARROW_AND_MARKER_PROPERTIES_CONFIG = \
     graph_state.PropertiesConfig.create(graph_state_property.PropertyKey(name="colors",
                                                                          is_directed=False,
                                                                          externalizer=graph_state.Rainbow.externalizer()),
                                         graph_state_property.PropertyKey(name="arrow",
                                                                          is_directed=True,
-                                                                         externalizer=Arrow.Externalizer()))
+                                                                         externalizer=Arrow.Externalizer()),
+                                        graph_state_property.PropertyKey(name="marker",
+                                                                         is_directed=False,
+                                                                         externalizer=StringExternalizer()))

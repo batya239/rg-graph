@@ -478,12 +478,12 @@ class Reductor(object):
     @staticmethod
     def as_internal_graph(graph):
         new_edges = list()
-        if graph.getGraphStatePropertiesConfig() is graph_state.COLORS_AND_ARROW_PROPERTIES_CONFIG:
+        if graph.getGraphStatePropertiesConfig() is graph_state.COLORS_ARROW_AND_MARKER_PROPERTIES_CONFIG:
             return graph
         for e in graph.allEdges(nickel_ordering=True):
             colors = graph_state.Rainbow((1, 0)) if e.colors is None else e.colors
             arrow = graph_state.Arrow(graph_state.Arrow.NULL) if e.arrow is None else e.arrow
-            new_edges.append(graph_state.COLORS_AND_ARROW_PROPERTIES_CONFIG.new_edge(e.nodes, colors=colors, arrow=arrow))
+            new_edges.append(graph_state.COLORS_ARROW_AND_MARKER_PROPERTIES_CONFIG.new_edge(e.nodes, colors=colors, arrow=arrow, marker=e.marker))
         return graphine.Graph(new_edges)
 
 

@@ -10,6 +10,7 @@ __author__ = 'dima'
 
 from rggraphenv import symbolic_functions
 import itertools
+import const
 
 D = const.SPACE_DIM_PHI4 - 2 * symbolic_functions.e
 
@@ -69,15 +70,15 @@ def _find_minimal_external_momentum_passing(graph):
     return distances[target_vertex]
 
 
-def _do_diff(graph, comb):
-    all_edges = copy.copy(graph.allEdges())
+def _do_diff(graph, old_graph, comb):
     if comb[0] == comb[1]:
         #
         # (d_xi)^2
         #
-        edge = comb[0][0]
+        all_edges = copy.copy(old_graph.allEdges())
+        edge = comb[0][1][0]
         all_edges.remove(edge)
-        new_vertex = graph.createVertexIndex()
+        new_vertex = old_graph.createVertexIndex()
         all_edges.append(graph_util.new_edge((edge.nodes[0], new_vertex),
                                              colors=const.ONE_LINE_WEIGHT,
                                              external_node=graph.externalVertex))
@@ -89,18 +90,21 @@ def _do_diff(graph, comb):
         #
         # d_xi
         #
+        all_edges = copy.copy(graph.allEdges())
         for c in comb:
-            edge = c[0]
+            edge = c[0][0]
             all_edges.remove(edge)
             new_vertex = graph.createVertexIndex()
             numerator = graph_state.Arrow(graph_state.Arrow.LEFT_ARROW if comb[1] else graph_state.Arrow.RIGHT_ARROW)
             new_edge1 = graph_util.new_edge((edge.nodes[0], new_vertex),
                                             external_node=graph.externalVertex,
                                             colors=const.ONE_LINE_WEIGHT,
-                                            arrow=numerator)
+                                            arrow=numerator,
+                                            marker=const.MARKER_1)
             new_edge2 = graph_util.new_edge((edge.nodes[1], new_vertex),
                                             colors=const.ONE_LINE_WEIGHT,
-                                            external_node=graph.externalVertex)
+                                            external_node=graph.externalVertex,
+                                            marker=const.MARKER_1)
             all_edges.append(new_edge1)
             all_edges.append(new_edge2)
         all_edges = map(_init_edge_arrow, all_edges)
@@ -114,4 +118,12 @@ def _init_edge_arrow(e):
 def diff_p2(graph):
     assert len(graph.edges(graph.externalVertex)) == 2
     minimal_passing = _find_minimal_external_momentum_passing(graph)
-    return map(lambda comb: _do_diff(graph, comb), itertools.combinations_with_replacement(minimal_passing, 2))
+    new_graph_edges = map(lambda e: e.copy(marker=const.MARKER_0), graph.allEdges())
+    new_minimal_passing = list()
+    for e, b in minimal_passing:
+        new_graph_edges.remove(e.copy(marker=const.MARKER_0))
+        new_e = e.copy(marker=const.MARKER_1)
+        new_graph_edges.append(new_e)
+        new_minimal_passing.append((new_e, b))
+    new_graph = graphine.Graph(new_graph_edges, externalVertex=graph.externalVertex, renumbering=False)
+    return map(lambda comb: _do_diff(new_graph, graph, comb), itertools.combinations_with_replacement(zip(new_minimal_passing, minimal_passing), 2))
