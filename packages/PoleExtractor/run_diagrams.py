@@ -11,7 +11,6 @@ big_label = 'e12-e3-44-56-7-68-8-e8--'
 
 labels2tails = ('e12-e3-33--', 'e12-23-3-e-')
 labels3tails = ('e12-e3-e4-44--', 'e12-e3-34-4-e-', 'e12-34-34-e-e-')
-
 for l in labels2tails:
     dc.calculate_diagram(label=l,
                          theory=3,

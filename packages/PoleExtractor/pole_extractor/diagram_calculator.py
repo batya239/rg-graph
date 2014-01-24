@@ -52,8 +52,8 @@ def update_expansion(g, rprime, momentum_derivative, e, force_update=False):
 
 def term_factor_expansion(tf):
     assert(isinstance(tf, rprime.RPrimeTermFactor))
-    assert(os.path.isfile(gen_filename(tf._diagram, rprime=True, momentum_derivative=tf._derivative)))
-    e = get_expansion(tf._diagram, rprime=True, momentum_derivative=tf._derivative)
+    assert(os.path.isfile(gen_filename(tf._diagram, rprime=tf._rprime, momentum_derivative=tf._derivative)))
+    e = get_expansion(tf._diagram, rprime=tf._rprime, momentum_derivative=tf._derivative)
     if tf._k:
         return e.cut(0)
     else:
@@ -91,7 +91,7 @@ def calculate_rprime(label, PHI_EXPONENT, verbose=1, force_update=False):
     if verbose > 1:
         print "Tau-counterterms:\n" + str(c_part)
 
-    c_part_exp = -1 * term_to_expansion(c_part)
+    c_part_exp = term_to_expansion(c_part)
     if verbose > 1:
         print "Tau-counterterms calculated:\n" + str(c_part_exp)
 
@@ -107,7 +107,7 @@ def calculate_rprime(label, PHI_EXPONENT, verbose=1, force_update=False):
         if verbose > 1:
             print "p^2-counterterms:\n" + str(p2_part)
 
-        p2_part_exp = -1 * term_to_expansion(p2_part)
+        p2_part_exp = term_to_expansion(p2_part)
         if verbose > 1:
             print "p^2-counterterms calculated:\n" + str(p2_part_exp)
 
