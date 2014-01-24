@@ -52,18 +52,20 @@ def scalar_product_extractor(topology, graph):
 
 
 def resolve_scalar_product_sign(graph, extracted_numerated_edges):
-    momentum_passing = map(lambda e: e.nodes, filter(lambda e: e.marker == const.MARKER_0, graph.allEdges()))
+    momentum_passing = map(lambda e: e.nodes, filter(lambda e: e.marker == const.MARKER_1, graph.allEdges()))
+    print "resolve_scalar_product_sign"
+    momentum_passing.remove(extracted_numerated_edges[0][0].nodes)
     for j in xrange(2):
         current_node = extracted_numerated_edges[0][0].nodes
         current_vertex = current_node[j]
         sign = (1 if extracted_numerated_edges[0][1].is_left() else -1) * ((-1) ** j)
-        print "SIGN", sign
         while True:
             nodes_found = False
             for n in momentum_passing:
                 if n != current_node and current_vertex in n:
                     current_node = n
                     current_vertex = filter(lambda i: i != current_vertex, current_node)[0]
+                    momentum_passing.remove(current_node)
                     nodes_found = True
                     break
             if not nodes_found:
@@ -71,7 +73,6 @@ def resolve_scalar_product_sign(graph, extracted_numerated_edges):
             if current_node == extracted_numerated_edges[1][0].nodes:
                 sign *= (1 if extracted_numerated_edges[1][1].is_left() else -1)
                 sign *= 1 if current_vertex == current_node[0] else -1
-                print "SIGN", sign
                 return sign
 
 

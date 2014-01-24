@@ -5,6 +5,7 @@ import graphine
 import graph_state
 import common
 import lambda_number
+import const
 from rggraphenv import storage, graph_calculator, symbolic_functions
 
 DEBUG = False
@@ -224,7 +225,8 @@ class GGraphReducer(object):
         edge = new_edge(sub_graph_info[2],
                         self._initGraph.externalVertex,
                         colors=graph_state.Rainbow(iter_sub_graph_value[0][1]),
-                        arrow=arrow)
+                        arrow=arrow,
+                        const=const.MARKER_0 if arrow is None else const.MARKER_1)
 
         if edge.arrow is not None and not edge.arrow.is_null():
             new_used_arrows.append(edge)
@@ -290,7 +292,8 @@ class GGraphReducer(object):
                 newEdge = new_edge(boundaryVertexes,
                                    external_node=self._initGraph.externalVertex,
                                    colors=lambda_number.to_rainbow(new_lambda_number),
-                                   arrow=arrow)
+                                   arrow=arrow,
+                                   marker=const.MARKER_1)
             else:
                 newEdge = new_edge(boundaryVertexes,
                                    external_node=self._initGraph.externalVertex,
