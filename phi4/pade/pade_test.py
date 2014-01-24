@@ -102,6 +102,20 @@ def func(x,b,g):
     return res
 """
 
+def pade_polys(L,M,series_dict, t):
+    padeNum, padeDenom = pade_aproximant(L, M, t)
+
+    res = solve_pade_sympy(padeNum, padeDenom, series_dict, L + M, t)
+    padeNum_, padeDenom_ = padeNum, padeDenom
+    for var, value in res.iteritems():
+        var_ = sympy.var(str(var))
+        if not isinstance(padeNum_, (int, float)):
+            padeNum_ = padeNum_.subs(var_, value)
+        if not isinstance(padeDenom_, (int, float)):
+            padeDenom_ = padeDenom_.subs(var_, value)
+    return padeNum_, padeDenom_
+
+
 def pade_borel_polys(L, M, series_dict, t, a=0, b=0):
     borel_dict = borel_transform(series_dict, b=b)
     padeNum, padeDenom = pade_aproximant(L, M, t)
