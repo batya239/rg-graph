@@ -129,8 +129,7 @@ def _is_graph_connected(edgesList, externalVertex, additionalVertexes=set()):
     """
     graph as edges list
     """
-    return len(_get_connected_components(edgesList, externalVertex, additionalVertexes)) == 1
-
+    return len(_get_connected_components(edgesList, externalVertex, additionalVertexes)) == 1 if len(edgesList) else True
 
 def _get_connected_components(edgesList, externalVertex, additionalVertexes=set(), singularVertexes=set()):
     """

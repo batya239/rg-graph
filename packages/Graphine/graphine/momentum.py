@@ -9,7 +9,7 @@ import copy
 import itertools
 import graph_state
 
-new_edge = graph_state.COLORS_AND_ARROW_PROPERTIES_CONFIG.new_edge
+new_edge = graph_state.COLORS_ARROW_AND_MARKER_PROPERTIES_CONFIG.new_edge
 
 NULL_ARROW = graph_state.Arrow(graph_state.Arrow.NULL)
 

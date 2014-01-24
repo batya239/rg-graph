@@ -8,7 +8,8 @@ import lambda_number
 from rggraphenv import storage, graph_calculator, symbolic_functions
 
 DEBUG = False
-new_edge = graph_state.COLORS_AND_ARROW_PROPERTIES_CONFIG.new_edge
+new_edge = graph_state.COLORS_ARROW_AND_MARKER_PROPERTIES_CONFIG.new_edge
+
 
 def _create_filter():
     class RelevanceCondition:
@@ -170,7 +171,6 @@ class GGraphReducer(object):
         relevant_sub_graphs = relevant_sub_graphs[::-1]
         relevant_sub_graphs.sort(lambda y, x: - len(y) + len(x))
 
-        #e112|23|3|e|:(666, 0)_(1, 0)_(1, 0)_(1, 0)|(1, 0)_(1, 0)|(2, 0)|(777, 0)|:0_0_0_0|0_0|>|0|
         cached_preprocessed_subgraphs = list()
         for subGraphAsList in relevant_sub_graphs:
             adjustedSubGraph = _adjust(subGraphAsList, self._initGraph.externalVertex)

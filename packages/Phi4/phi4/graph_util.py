@@ -6,7 +6,7 @@ __author__ = 'dima'
 from graphine import Graph
 import graph_state
 
-new_edge = graph_state.COLORS_AND_ARROW_PROPERTIES_CONFIG.new_edge
+new_edge = graph_state.COLORS_ARROW_AND_MARKER_PROPERTIES_CONFIG.new_edge
 
 
 def graph_from_str(string,
@@ -15,7 +15,7 @@ def graph_from_str(string,
                    unitColor=(1, 0),
                    do_init_arrow=False,
                    arrow_lines=None):
-    g = Graph(graph_state.COLORS_AND_ARROW_PROPERTIES_CONFIG.graph_state_from_str(string))
+    g = Graph(graph_state.COLORS_ARROW_AND_MARKER_PROPERTIES_CONFIG.graph_state_from_str(string))
     if do_init_color:
         g = init_colors(g, zeroColor, unitColor)
     if do_init_arrow:
@@ -29,7 +29,7 @@ def init_colors(graph, zeroColor=graph_state.Rainbow((0, 0)), unitColor=graph_st
     for e in edges:
         if e.colors is None:
             color = zeroColor if graph.externalVertex in e.nodes else unitColor
-            initedEdges.append(new_edge(e.nodes, graph.externalVertex, colors=color, arrow=e.arrow))
+            initedEdges.append(new_edge(e.nodes, graph.externalVertex, colors=color, marker=e.marker, arrow=e.arrow))
         else:
             initedEdges.append(e)
     return Graph(initedEdges, externalVertex=graph.externalVertex, renumbering=False)
@@ -47,6 +47,7 @@ def init_arrow(graph, arrow_lines):
                                          external_node=graph.externalVertex,
                                          arrow=graph_state.Arrow(graph_state.Arrow.LEFT_ARROW),
                                          colors=e.colors,
+                                         marker=e.marker,
                                          edge_id=e.edge_id))
             continue
         swapNodes = e.nodes[1], e.nodes[0]
@@ -56,6 +57,7 @@ def init_arrow(graph, arrow_lines):
                                          external_node=graph.externalVertex,
                                          arrow=graph_state.Arrow(graph_state.Arrow.LEFT_ARROW),
                                          colors=e.colors,
+                                         marker=e.marker,
                                          edge_id=e.edge_id))
             continue
         else:
@@ -63,6 +65,7 @@ def init_arrow(graph, arrow_lines):
                                          external_node=graph.externalVertex,
                                          arrow=graph_state.Arrow(graph_state.Arrow.NULL),
                                          colors=e.colors,
+                                         marker=e.marker,
                                          edge_id=e.edge_id))
     return Graph(inited_edges, externalVertex=graph.externalVertex, renumbering=False)
 

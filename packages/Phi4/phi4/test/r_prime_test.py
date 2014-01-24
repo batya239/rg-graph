@@ -17,44 +17,44 @@ __author__ = 'daddy-bear'
 
 r.DEBUG = True
 
-EPS = swiginac.numeric(1e-5)
+EPS = swiginac.numeric(1e-4)
 
 
 class RPrimeTestCase(base_test_case.GraphStorageAwareTestCase):
     def test_one_loop_diagram(self):
         g = graph_util.init_colors(graphine.Graph(graph_state.GraphState.fromStr("e11|e|")))
         self.assertEquals(symbolic_functions.evaluate("1/e"),
-                          r.KR1(g, common.MSKOperation(), common.defaultSubgraphUVFilter).simplify_indexed())
+                          r.KR1(g, common.MSKOperation(), common.DEFAULT_SUBGRAPH_UV_FILTER).simplify_indexed())
 
     def test_eye(self):
         g = graph_util.init_colors(graphine.Graph(graph_state.GraphState.fromStr("e112|2|e|")))
         self.assertEquals(symbolic_functions.evaluate("1/(2*e) - 1/(2*e**2)"),
-                          r.KR1(g, common.MSKOperation(), common.defaultSubgraphUVFilter).simplify_indexed())
+                          r.KR1(g, common.MSKOperation(), common.DEFAULT_SUBGRAPH_UV_FILTER).simplify_indexed())
 
     def test_some_diagram(self):
         g = graph_util.init_colors(graphine.Graph(graph_state.GraphState.fromStr("e13|23|33|e|")))
         self.assertEquals(symbolic_functions.evaluate("2/(3*e) - 1/(2*e**2) + 1/(6*e**3)"),
-                          r.KR1(g, common.MSKOperation(), common.defaultSubgraphUVFilter).simplify_indexed())
+                          r.KR1(g, common.MSKOperation(), common.DEFAULT_SUBGRAPH_UV_FILTER).simplify_indexed())
 
     def test_e111_e_(self):
         g = graph_util.init_colors(graphine.Graph(graph_state.GraphState.fromStr("e111|e|")))
         self.assertEquals(symbolic_functions.evaluate("-p**2/(4*e)"),
-                          r.KR1(g, common.MSKOperation(), common.defaultSubgraphUVFilter).simplify_indexed())
+                          r.KR1(g, common.MSKOperation(), common.DEFAULT_SUBGRAPH_UV_FILTER).simplify_indexed())
 
     def test_e11_22_e_(self):
         g = graph_util.init_colors(graphine.Graph(graph_state.GraphState.fromStr("e11|22|e|")))
         self.assertEquals(symbolic_functions.evaluate("-1/e**2"),
-                          r.KR1(g, common.MSKOperation(), common.defaultSubgraphUVFilter).simplify_indexed())
+                          r.KR1(g, common.MSKOperation(), common.DEFAULT_SUBGRAPH_UV_FILTER).simplify_indexed())
 
     def test_e112_22_e_(self):
         g = graph_util.init_colors(graphine.Graph(graph_state.GraphState.fromStr("e112|22|e|")))
         self.assertEquals(symbolic_functions.evaluate("-1*p**2/(12*e) + p**2/(6*e**2)"),
-                          r.KR1(g, common.MSKOperation(), common.defaultSubgraphUVFilter).simplify_indexed())
+                          r.KR1(g, common.MSKOperation(), common.DEFAULT_SUBGRAPH_UV_FILTER).simplify_indexed())
 
     def test_e11_22_33_e_(self):
         g = graph_util.init_colors(graphine.Graph(graph_state.GraphState.fromStr("e11|22|33|e|")))
         self.assertEquals(symbolic_functions.evaluate("1/e**3"),
-                          r.KR1(g, common.MSKOperation(), common.defaultSubgraphUVFilter).simplify_indexed())
+                          r.KR1(g, common.MSKOperation(), common.DEFAULT_SUBGRAPH_UV_FILTER).simplify_indexed())
 
     def test_e11_23_e33__(self):
         self.do_test_r1("e11|23|e33||::", "-1/(2*e**2) + 1/(2*e**3)")
@@ -146,13 +146,16 @@ class RPrimeTestCase(base_test_case.GraphStorageAwareTestCase):
     def test_ee12_e23_334_4_e_(self):
         self.do_test_r1('ee12|e34|334|4|e|', "(5/2-2*zeta(3))/2/e-19/6/2/2/e**2+2/2/2/2/e**3-2/3/2/2/2/2/e**4", use_graph_calculator=True)
 
+    def test5loops(self):
+        self.do_test_r1("ee12|e34|345|45|5|e|", "(-(23./5*zeta(5)-21./10*zeta(4)-5.*zeta(3))/2/e-(12./5*zeta(4)+36./5*zeta(3))/4/e/e+24./5*zeta(3)/8/e/e/e)", use_graph_calculator=True)
+
     def do_test_r1(self, graph_state_str, expected_result_as_string, use_graph_calculator=False, force=False):
         try:
             if use_graph_calculator:
-                graph_calculator.addCalculator(reduction.TwoAndThreeReductionCalculator())
+                graph_calculator.addCalculator(reduction.ReductionGraphCalculator())
             g = graph_util.init_colors(graphine.Graph(graph_state.GraphState.fromStr(graph_state_str)))
             expected = symbolic_functions.evaluate(expected_result_as_string)
-            actual = r.KR1(g, common.MSKOperation(), common.defaultSubgraphUVFilter,
+            actual = r.KR1(g, common.MSKOperation(), common.DEFAULT_SUBGRAPH_UV_FILTER,
                            use_graph_calculator=use_graph_calculator).simplify_indexed()
             sub = (expected - actual).simplify_indexed()
             self.assertTrue(expected == actual or swiginac.abs(
