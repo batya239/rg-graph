@@ -52,7 +52,7 @@ Zg = (Z3 / Z2 ** 2)
 print "Zg = ", Zg
 
 print
-g = Series(r4Loops, {1: ufloat(1, 0)})
+g = Series(r2Loops, {1: ufloat(1, 0)})
 
 #beta = (-2 * g / (1 + g * sympy.ln(Zg).diff(g))).series(g, 0, r4Loops + 2).removeO()
 beta = (-2 * g / (1 + g * Zg.diff() / Zg))
