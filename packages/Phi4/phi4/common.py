@@ -34,8 +34,7 @@ class MSKOperation(AbstractKOperation):
         self._description = description
 
     def calculate(self, expression):
-        #TODO fix
-        return symbolic_functions.pole_part(expression).series(symbolic_functions.e == 0, 0).convert_to_poly(no_order=True)
+        return symbolic_functions.pole_part(expression)
 
 MS_K_OPERATION = MSKOperation()
 
