@@ -180,11 +180,12 @@ class GGraphReducer(object):
             preprocessed = (adjustedSubGraph[1], subGraph, adjustedSubGraph[2])
             cached_preprocessed_subgraphs.append(preprocessed)
             if storage.hasGraph(subGraph):
-                if DEBUG:
-                    print "sg", subGraph, lastIteration
                 res = self._do_iterate(preprocessed)
                 if res is not None:
                     return res
+            else:
+                if DEBUG:
+                    print "has not", subGraph, lastIteration
 
         if self._useGraphCalculator:
             for preprocessed in cached_preprocessed_subgraphs:
@@ -203,6 +204,12 @@ class GGraphReducer(object):
                             res = self._do_iterate(preprocessed)
                             if res is not None:
                                 return res
+                        else:
+                            if DEBUG:
+                                print "cant throw calculator1", preprocessed[1], lastIteration
+                    else:
+                        if DEBUG:
+                            print "cant throw calculator2", preprocessed[1], lastIteration
 
     def _do_iterate(self, sub_graph_info):
         assert len(sub_graph_info[2]) == 2, sub_graph_info[2]

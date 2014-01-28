@@ -53,7 +53,6 @@ def scalar_product_extractor(topology, graph):
 
 def resolve_scalar_product_sign(graph, extracted_numerated_edges):
     momentum_passing = map(lambda e: e.nodes, filter(lambda e: e.marker == const.MARKER_1, graph.allEdges()))
-    print "resolve_scalar_product_sign"
     momentum_passing.remove(extracted_numerated_edges[0][0].nodes)
     for j in xrange(2):
         current_node = extracted_numerated_edges[0][0].nodes

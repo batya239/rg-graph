@@ -24,5 +24,5 @@ def tryCalculate(graph, putValueToStorage=False):
 
 
 def dispose():
-    while len(_calculators) != 0:
+    while len(_calculators):
         _calculators.pop().dispose()

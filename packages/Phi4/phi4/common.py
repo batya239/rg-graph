@@ -9,7 +9,7 @@ __author__ = 'daddy-bear'
 
 
 class CannotBeCalculatedError(AssertionError):
-    def __init__(self, graph):
+    def __init__(self, graph, reason=None):
         self._graph = graph
 
     def __str__(self):

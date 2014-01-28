@@ -22,7 +22,8 @@ class SixLoops2Tails(object):
     LOG.addHandler(logging.StreamHandler())
     LOG.addHandler(logging.FileHandler("6LOOPS_log.txt"))
 
-    DESCRIPTION = "6 loops 2 tails"
+    DESCRIPTION\
+        = "6 loops 2 tails"
 
     def __init__(self, operation, calculator=None):
         self._operation = operation
@@ -67,6 +68,8 @@ class SixLoops2Tails(object):
 def main():
     try:
         storage.initStorage(theory.PHI4, symbolic_functions.to_internal_code, graphStorageUseFunctions=True)
+        # reductions_loops = None, (2,),(2, 3,),
+        # operations = r.KR1,
         reductions_loops = (None, (2,), (2, 3), (2, 3, 4))
         operations = (r.KR1, r.KRStar_quadratic_divergence)
 
@@ -79,6 +82,7 @@ def main():
             operation = config[0]
             master = SixLoops2Tails(operation, calculator)
             current_graphs = master.start(current_graphs)
+            master.dispose()
     finally:
         storage.closeStorage(revert=True, doCommit=False, commitMessage="6 loops 2 tails")
 

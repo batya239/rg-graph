@@ -39,6 +39,7 @@ class ReductorHolder(object):
             v = r.calculate(graph, scalar_product_aware_function)
             if v is not None:
                 return v
+        return None
 
 
 class StopSearchException(BaseException):
@@ -311,6 +312,7 @@ class Reductor(object):
                                                                                        self._topologies,
                                                                                        self._all_propagators_count))
         else:
+
             res = reduction_util.find_topology_for_graph(graph,
                                                          self._topologies,
                                                          scalar_product.find_topology_result_converter)
@@ -492,9 +494,8 @@ _IS_INITIALIZED = ref.Ref.create(False)
 
 
 def initialize(*reductors):
-    if not _IS_INITIALIZED.get():
-        _IS_INITIALIZED.set(True)
-        _MAIN_REDUCTION_HOLDER.set(ReductorHolder(reductors))
+    _IS_INITIALIZED.set(True)
+    _MAIN_REDUCTION_HOLDER.set(ReductorHolder(reductors))
 
 
 def calculate(graph, scalar_product_aware_function=None):

@@ -106,6 +106,7 @@ def KRStar(initial_graph, k_operation, uv_sub_graph_filter, description="", use_
                                 inside_krstar=True).subs(symbolic_functions.p == 1)
                 uv = ir_uv.uvIndex(shrunk)
                 if uv < 0:
+                    print "T0 not defined", shrunk, spinney, graph
                     raise common.CannotBeCalculatedError(shrunk)
                 ir = forest.Delta_IR(spinney, graph, k_operation, uv_sub_graph_filter, description, use_graph_calculator)\
                     .subs(symbolic_functions.p == 1)
