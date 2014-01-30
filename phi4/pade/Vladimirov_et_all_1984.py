@@ -20,7 +20,7 @@ from sympy import symbols, zeta, poly
 n, eps, eta = symbols('n eps eta')
 z3 = float(zeta(3))
 
-## d = 2
+## d = 3
 eta = (n+2)/(2*(n+8)**2)*(2*eps)**2 * \
       (1 + 2*eps/(4*(n+8)**2) * (-n*n+56*n+272) + (2*eps)**2/(16*(n+8)**4) * \
        (-5*n**4-230*n**3+1124*n**2+17920*n+46144-384*z3*(n+8)*(5*n+22)) )
