@@ -144,14 +144,14 @@ class Graph(object):
             Graph._persDeleteEdge(newEdges, edge)
         return Graph(newEdges, externalVertex=self.externalVertex)
 
-    def change(self, edgesToRemove=None, edgesToAdd=None):
+    def change(self, edgesToRemove=None, edgesToAdd=None, renumbering=True):
         """
         transactional changes graph structure
         """
         newEdges = copy.copy(self.allEdges())
         map(lambda e: newEdges.remove(e), edgesToRemove)
         map(lambda e: newEdges.append(e), edgesToAdd)
-        return Graph(newEdges, externalVertex=self.externalVertex)
+        return Graph(newEdges, externalVertex=self.externalVertex, renumbering=renumbering)
 
     def deleteVertex(self, vertex, transformEdgesToExternal=False):
         assert vertex != self.externalVertex
