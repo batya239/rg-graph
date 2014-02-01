@@ -4,6 +4,7 @@ import graphine
 import const
 import ir_uv
 from rggraphenv import symbolic_functions
+from rggraphutil import DisjointSet
 
 __author__ = 'daddy-bear'
 
@@ -67,3 +68,25 @@ defaultGraphHasNotIRDivergenceFilter = [defaultGraphHasNotIRDivergence]
 
 def isPSquareGraph(graph):
     return graph.getLoopsCount() * const.SPACE_DIM_PHI4 - 2 * graph.getAllInternalEdgesCount() == 2
+
+
+def graph_can_be_calculated_over_n_loops(graph):
+    """
+    ololoshki
+    """
+    assert graph.externalEdgesCount() == 2
+    disjoint_set = DisjointSet(graph.getBoundVertexes() | set([graph.externalVertex]))
+    for e in graph.allEdges():
+        n1, n2 = e.nodes
+        disjoint_set.union(n1, n2)
+    connected_vertices = disjoint_set.get_sets()
+    max_loops = 0
+    for vertices in connected_vertices:
+        edges = list()
+        for e in graph.allEdges():
+            if len(set(e.nodes) & vertices):
+                edges.append(e)
+        g = graphine.Graph(edges, externalVertex=graph.externalVertex)
+        if g.getLoopsCount() > max_loops:
+            max_loops = g.getLoopsCount()
+    return max_loops

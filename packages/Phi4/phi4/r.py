@@ -11,6 +11,7 @@ import rggraphenv.storage as storage
 import rggraphutil
 import forest
 import graph_util
+import swiginac
 from rggraphenv import symbolic_functions
 
 __author__ = 'daddy-bear'
@@ -38,29 +39,25 @@ def KRStar_quadratic_divergence(initial_graph,
     if DEBUG:
         print "diff", diff, "initial", initial_graph
     for c, g in diff:
+        _all = [x for x in graphine.momentum.xArbitrarilyPassMomentum(g)]
+        _all.sort(key=common.graph_can_be_calculated_over_n_loops)
         r_star = None
-        preferable, not_preferable = \
-            graphine.momentum.arbitrarilyPassMomentumWithPreferable(g, common.defaultGraphHasNotIRDivergence)
-        from_r1 = True
-        for _g in preferable:
+        for _g in _all:
+            if DEBUG:
+                print "try", _g
             try:
-                r_star = KR1(_g, k_operation, uv_sub_graph_filter, description, use_graph_calculator)
+                if common.defaultGraphHasNotIRDivergence(_g):
+                    r_star = KR1(_g, k_operation, uv_sub_graph_filter, description, use_graph_calculator)
+                else:
+                    r_star = KRStar(_g, k_operation, uv_sub_graph_filter, description, use_graph_calculator)
                 break
             except common.CannotBeCalculatedError:
                 pass
-        if r_star is None and do_kr_star:
-            from_r1 = False
-            for _g in not_preferable:
-                try:
-                    r_star = KRStar(_g, k_operation, uv_sub_graph_filter, description, use_graph_calculator)
-                    break
-                except common.CannotBeCalculatedError:
-                    pass
         if r_star is None:
             raise common.CannotBeCalculatedError(g)
         if DEBUG:
             print "diff2 r1", k_operation.calculate(r_star).evalf()
-            print "diff r1 ", g, _g, k_operation.calculate(c * r_star).evalf(), "from_r1", from_r1
+            print "diff r1 ", g, _g, k_operation.calculate(c * r_star).evalf()
         result += k_operation.calculate(c * r_star)
     return result
 
@@ -98,16 +95,19 @@ def KRStar(initial_graph, k_operation, uv_sub_graph_filter, description="", use_
                 shrunk, p2Counts = shrink_to_point(graph, (spinney,))
                 if str(shrunk).startswith("ee0|:"):
                     continue
+                # switch by uv index
+                uv = ir_uv.uvIndexTadpole(shrunk)
+                if uv < 0:
+                    print "T0 not defined", uv, shrunk, spinney, graph
+                    raise common.CannotBeCalculatedError(shrunk)
                 spinneyPart = R(spinney,
                                 k_operation,
                                 uv_sub_graph_filter,
                                 use_graph_calculator=use_graph_calculator,
                                 force=True,
                                 inside_krstar=True).subs(symbolic_functions.p == 1)
-                uv = ir_uv.uvIndex(shrunk)
-                if uv < 0:
-                    print "T0 not defined", shrunk, spinney, graph
-                    raise common.CannotBeCalculatedError(shrunk)
+                if isinstance(spinneyPart, swiginac.numeric) and spinneyPart.to_double() == 0:
+                    continue
                 ir = forest.Delta_IR(spinney, graph, k_operation, uv_sub_graph_filter, description, use_graph_calculator)\
                     .subs(symbolic_functions.p == 1)
                 if DEBUG:

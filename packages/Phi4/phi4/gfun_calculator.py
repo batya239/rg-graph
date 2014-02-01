@@ -51,13 +51,13 @@ def calculateGraphValue(graph, suppressException=False, useGraphCalculator=False
             graphReducer = GGraphReducer(g, useGraphCalculator=useGraphCalculator)
             break
         if graphReducer is None:
-            raise common.CannotBeCalculatedError(graph)
+            raise common.CannotBeCalculatedError(graph, reason="CALCULATOR")
     result = graphReducer.calculate()
     if not result:
         if suppressException:
             return None
         else:
-            raise common.CannotBeCalculatedError(graph)
+            raise common.CannotBeCalculatedError(graph, reason="CALCULATOR")
     evaluated = symbolic_functions.evaluate(result[0], result[1])
     return evaluated, graphReducer.iterationGraphs[0]
 

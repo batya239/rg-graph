@@ -14,11 +14,9 @@ import const
 
 #todo assumed that weight of any line is 1
 
-def uvIndex(graph):
+def uvIndexTadpole(graph):
     nEdges = len(graph.allEdges()) - len(graph.edges(graph.externalVertex))
-    nVertexes = len(graph.vertices()) - 1
-    nLoop = nEdges - nVertexes + 1
-    index = nEdges * const.EDGE_WEIGHT + nLoop * const.SPACE_DIM_PHI4
+    index = nEdges * const.EDGE_WEIGHT + numeratorsCount(graph.allEdges()) + (graph.getLoopsCount() + 1) * const.SPACE_DIM_PHI4
     return index
 
 
