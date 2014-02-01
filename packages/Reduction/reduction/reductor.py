@@ -177,14 +177,14 @@ class ReductorResult(object):
 
     def _evaluate_unsubsituted(self, _d=None, series_n=-1, remove_o=True):
         evaled_additional_part = ReductorResult._evaluate_coefficient(
-            self._final_sector_linear_combinations.additional_part,
+            self._final_sector_linear_combinations.additional_part.evaluate(),
             _d=_d,
             series_n=series_n,
             remove_o=remove_o)
         evaled_sectors_to_coefficients = rggraphutil.zeroDict()
         for s, c in self._final_sector_linear_combinations.sectors_to_coefficient.items():
             evaled_sectors_to_coefficients[s] = ReductorResult._evaluate_coefficient(
-                c,
+                c.evaluate(),
                 _d=_d,
                 series_n=series_n,
                 remove_o=remove_o).normal()
@@ -230,6 +230,7 @@ class Reductor(object):
                                       topologies,
                                       set())
             self._save_topologies()
+
         self._all_propagators_count = len(self._propagators)
         self._sector_rules = rggraphutil.emptyListDict()
         self._zero_sectors = list()
