@@ -12,7 +12,7 @@ eps = 0.5  # d = 3
 
 def func(t,a,b,k, eps):
     u = (sqrt(1+a*eps*t)-1)/(sqrt(1+a*eps*t)+1)
-    res = t**b * exp(-t) * u**k
+    res = t ** b * exp(-t) * u ** (k)
     return res
 
 def conformBorel(coeffs, eps):
@@ -33,4 +33,4 @@ import Vladimirov_et_all_1984, Kleinert_book
 print "Vladimirov:\teta =", sum(conformBorel(Vladimirov_et_all_1984.eta(1), eps))
 print "Kleinert:\teta =", sum(conformBorel(Kleinert_book.eta(1), eps))
 #print conformBorel(Kleinert_book.eta(1), eps)
-print "\nTest:\teta =", sum(conformBorel([0, 0, 0.0185, 0.0187, -0.0083, 0.0257], eps))/2
+print "\nTest (Kleinert 17.16):\teta =", sum(conformBorel([0, 0, 0.0185, 0.0187, -0.0083, 0.0257], eps * 2))
