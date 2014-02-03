@@ -43,8 +43,7 @@ class Properties(object):
     def is_none(self):
         property_order = self._properties_config.property_order
         for p_name in property_order:
-            v = getattr(self, p_name, None)
-            if v is not None:
+            if p_name in self.__dict__:
                 return False
         return True
 
@@ -434,6 +433,7 @@ class GraphState(object):
         assert properties_count == 0 or properties_count == len(edges) or default_properties is not None, \
             ("properties_count =  %s, len(edges) = %s, default_properties = %s" % (properties_count, len(edges), default_properties))
 
+        self._properties_config = None if edges[0]._properties is None else edges[0]._properties._properties_config
         node_maps = (node_maps or nickel.Canonicalize([edge.nodes for edge in edges]).node_maps)
         self.sortings = []
         for node_map in node_maps:
@@ -445,7 +445,6 @@ class GraphState(object):
             self.sortings.append(tuple(mapped_edges))
         min_edges = min(self.sortings)
         self.sortings = [edges for edges in self.sortings if edges == min_edges]
-        self._properties_config = None if edges[0]._properties is None else edges[0]._properties._properties_config
 
     @property
     def edges(self):
