@@ -9,6 +9,7 @@ from numpy import inf
 import scipy.integrate as integrate
 
 eps = 0.5  # d = 3
+#eps = 1.0  # d = 2
 
 def func(t,a,b,k, eps):
     u = (sqrt(1+a*eps*t)-1)/(sqrt(1+a*eps*t)+1)
@@ -33,4 +34,4 @@ import Vladimirov_et_all_1984, Kleinert_book
 print "Vladimirov:\teta =", sum(conformBorel(Vladimirov_et_all_1984.eta(1), eps))
 print "Kleinert:\teta =", sum(conformBorel(Kleinert_book.eta(1), eps))
 #print conformBorel(Kleinert_book.eta(1), eps)
-print "\nTest (Kleinert 17.16):\teta =", sum(conformBorel([0, 0, 0.0185, 0.0187, -0.0083, 0.0257], eps * 2))
+#print "\nTest (Kleinert 17.16):\teta =", sum(conformBorel([0, 0, 0.0185, 0.0187, -0.0083, 0.0257], eps * 2))
