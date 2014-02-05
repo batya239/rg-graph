@@ -63,28 +63,22 @@ def KRStar_quadratic_divergence(initial_graph,
 
 
 #noinspection PyPep8Naming
-def KRStar(initial_graph, k_operation, uv_sub_graph_filter, description="", use_graph_calculator=True, force=False):
+def KRStar(initial_graph, k_operation, uv_sub_graph_filter, description="", use_graph_calculator=True, force=False, minus_graph=False):
     if len(initial_graph.edges(initial_graph.externalVertex)) == 2:
         iterator = initial_graph,
     else:
-        try:
-            kr1 = KR1(initial_graph, k_operation, uv_sub_graph_filter,
-                      description=description,
-                      use_graph_calculator=use_graph_calculator,
-                      force=False)
-            return kr1.subs(symbolic_functions.p == 1)
-        except common.CannotBeCalculatedError:
-            pass
         iterator = graph_util.batch_init_edges_colors(graphine.momentum.xArbitrarilyPassMomentum(initial_graph))
     for graph in iterator:
         try:
-            evaluated = storage.getKR1(graph)
-            if evaluated and len(evaluated):
-                e = evaluated[0]
-                return e[0].subs(symbolic_functions.p == 1)
+            if not minus_graph:
+                evaluated = storage.getKR1(graph)
+                if evaluated and len(evaluated):
+                    e = evaluated[0]
+                    return e[0].subs(symbolic_functions.p == 1)
             krs = KR1(graph, k_operation, uv_sub_graph_filter, description, use_graph_calculator,
                       force=True,
-                      inside_krstar=True).subs(symbolic_functions.p == 1)
+                      inside_krstar=True,
+                      minus_graph=minus_graph).subs(symbolic_functions.p == 1)
             spinneys_generators = graph.xRelevantSubGraphs(filters=graphine.filters.oneIrreducible
                                                            + uv_sub_graph_filter
                                                            + _is_1uniting
@@ -119,20 +113,22 @@ def KRStar(initial_graph, k_operation, uv_sub_graph_filter, description="", use_
                 krs += sub
             if DEBUG:
                 print "R*", graph, str(krs.evalf())
-            #TODO
-            return krs.subs(symbolic_functions.p == 1).normal()
+            krs = krs.subs(symbolic_functions.p == 1).normal()
+            if not force and not minus_graph:
+                storage.putGraphKR1(graph, krs, common.GFUN_METHOD_NAME_MARKER, description)
+            return krs
         except common.CannotBeCalculatedError:
             pass
     raise common.CannotBeCalculatedError(initial_graph)
 
 
 #noinspection PyPep8Naming
-def KR1(graph, k_operation, uv_sub_graph_filter, description="", use_graph_calculator=True, force=False, inside_krstar=False):
+def KR1(graph, k_operation, uv_sub_graph_filter, description="", use_graph_calculator=True, force=False, inside_krstar=False, minus_graph=False):
     return _do_kr1(graph, k_operation, uv_sub_graph_filter, description=description, use_graph_calculator=use_graph_calculator,
-                   force=force, inside_krstar=inside_krstar)[0]
+                   force=force, inside_krstar=inside_krstar, minus_graph=minus_graph)[0]
 
 
-def _do_kr1(raw_graph, k_operation, uv_subgraph_filter, description="", use_graph_calculator=True, force=False, inside_krstar=False):
+def _do_kr1(raw_graph, k_operation, uv_subgraph_filter, description="", use_graph_calculator=True, force=False, inside_krstar=False, minus_graph=False):
     if len(raw_graph.edges(raw_graph.externalVertex)) == 2:
         if not force and not common.defaultGraphHasNotIRDivergence(raw_graph):
             raise AssertionError(str(raw_graph) + " - IR divergence")
@@ -148,7 +144,8 @@ def _do_kr1(raw_graph, k_operation, uv_subgraph_filter, description="", use_grap
         try:
             r1 = _do_r1(graph, k_operation, uv_subgraph_filter, description, use_graph_calculator,
                         force=force,
-                        inside_krstar=inside_krstar)
+                        inside_krstar=inside_krstar,
+                        minus_graph=minus_graph)
             kr1 = k_operation.calculate(r1[0]).normal()
             if not force:
                 storage.putGraphKR1(r1[1], kr1, common.GFUN_METHOD_NAME_MARKER, description)
@@ -248,7 +245,9 @@ def _two_tails_no_tadpoles(g):
     return g.deleteEdges(to_remove[0][1:] + to_remove[1][1:])
 
 
-def _do_r1(raw_graph, k_operation, uv_subgraph_filter, description="", use_graph_calculator=True, force=False, inside_krstar=False):
+def _do_r1(raw_graph, k_operation, uv_subgraph_filter, description="", use_graph_calculator=True, force=False, inside_krstar=False, minus_graph=False):
+    if minus_graph:
+        assert force
     if len(raw_graph.edges(raw_graph.externalVertex)) == 2:
         if not force and not common.defaultGraphHasNotIRDivergence(raw_graph):
             raise AssertionError(str(raw_graph) + " - IR divergence")
@@ -267,6 +266,8 @@ def _do_r1(raw_graph, k_operation, uv_subgraph_filter, description="", use_graph
                                                                      uv_subgraph_filter +
                                                                      common.oneIrreducibleAndNoTadpoles)))
             if not len(uv_subgraphs):
+                if minus_graph:
+                    return swiginac.numeric(0), None
                 expression, two_tails_graph = \
                     gfun_calculator.calculateGraphValue(graph, useGraphCalculator=use_graph_calculator)
                 if DEBUG:
@@ -275,7 +276,7 @@ def _do_r1(raw_graph, k_operation, uv_subgraph_filter, description="", use_graph
                     storage.putGraphR1(two_tails_graph, expression, common.GFUN_METHOD_NAME_MARKER, description)
                 return expression.normal(), two_tails_graph
 
-            raw_r1 = gfun_calculator.calculateGraphValue(graph, useGraphCalculator=use_graph_calculator)[0]
+            raw_r1 = swiginac.numeric(0) if minus_graph else gfun_calculator.calculateGraphValue(graph, useGraphCalculator=use_graph_calculator)[0]
             if DEBUG:
                 debug = []
                 print "R1 value", graph, symbolic_functions.series(raw_r1.subs(symbolic_functions.p == 1), symbolic_functions.e, 0, 0).convert_to_poly(True).evalf()
