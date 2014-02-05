@@ -121,4 +121,4 @@ FOUR_LOOP_REDUCTOR = reductor.Reductor("p4",
                                        "loop4",
                                        map(lambda g: graphine.Graph.fromStr(g), topology),
                                        4,
-                                       dict(map(lambda (g, v): (graphine.Graph.fromStr(g), symbolic_functions.evaluate(v)), masters.iteritems())))
+                                       dict(map(lambda (g, v): (graphine.Graph.fromStr(g), symbolic_functions.evaluate(v, strong_to_internal_code=True)), masters.iteritems())))
