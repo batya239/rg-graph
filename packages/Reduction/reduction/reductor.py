@@ -493,7 +493,7 @@ class Reductor(object):
             with open(file_path, 'w') as f:
                 for s, v in self._masters.iteritems():
                     f.write(
-                        str(s.propagators_weights) + ";" + symbolic_functions.safe_integer_numerators(str(v)) + "\n")
+                        str(s.propagators_weights) + ";" + symbolic_functions.safe_integer_numerators_strong(str(v)) + "\n")
         else:
             raise ValueError("file %s already exists" % file_path)
 
