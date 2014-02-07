@@ -1,2 +1,2 @@
-(1, 1, 0, 1, 1);e**(-2)
-(0, 1, 1, 1, 0);tgamma(3-3*e)**(-1)*tgamma(2-2*e)**2*e**(-2)*tgamma(e)**(-2)*tgamma(-1+2*e)*tgamma(1-e)**(-1)
+(1, 1, 0, 1, 1);e**(-swiginac.numeric('2'))
+(0, 1, 1, 1, 0);tgamma(swiginac.numeric('3')-swiginac.numeric('3')*e)**(-swiginac.numeric('1'))*tgamma(swiginac.numeric('2')-swiginac.numeric('2')*e)**swiginac.numeric('2')*e**(-swiginac.numeric('2'))*tgamma(e)**(-swiginac.numeric('2'))*tgamma(-swiginac.numeric('1')+swiginac.numeric('2')*e)*tgamma(swiginac.numeric('1')-e)**(-swiginac.numeric('1'))

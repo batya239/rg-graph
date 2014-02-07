@@ -47,6 +47,10 @@ p2 = p ** 2
 
 pe = p ** e
 
+CLN_ZERO = swiginac.numeric(0)
+CLN_ONE = swiginac.numeric(1)
+CLN_TWO = swiginac.numeric(2)
+
 
 def series(expression, x, x0, n, remove_order=False):
     res = expression.series(x == x0, n)
@@ -69,12 +73,12 @@ def evaluate_series(expression_as_string, line_tuple, only_pole_part=False):
 
 
 # noinspection PyUnusedLocal
-def evaluate(expression_as_str, line_tuple=None):
+def evaluate(expression_as_str, line_tuple=None, strong_to_internal_code=False):
     """
     expressionAsString like '('G(1, 1)*G(1, 1)*G(1, 3-l*2)*G(1, 4-l*3)'
     lineTuple like (4, -4) ~ 4 - 4 * l
     """
-    eps_part = eval(to_internal_code(expression_as_str))
+    eps_part = eval(to_internal_code(expression_as_str, strong=strong_to_internal_code))
     if not line_tuple:
         return eps_part
     line_part = p ** ((-2) * (line_tuple[0] + line_tuple[1] * l))
@@ -86,8 +90,15 @@ def safe_integer_numerators(expression_as_str):
     #return re.sub('([\.\d]+)/', '\\1./', expression_as_str)
 
 
-def to_internal_code(expression_as_str):
-    return safe_integer_numerators(expression_as_str)
+def safe_integer_numerators_strong(expression_as_str):
+    result = re.sub('([\(\+\*-/])([\d]+)([\)\+\*-/])', '\\1swiginac.numeric(\'\\2\')\\3', expression_as_str)
+    result = re.sub('([\(\+\*-/])([\d]+)', '\\1swiginac.numeric(\'\\2\')', result)
+    result = re.sub('([\d]+)([\(\+\*-/])', 'swiginac.numeric(\'\\1\')\\2', result)
+    return result
+
+
+def to_internal_code(expression_as_str, strong=False):
+    return safe_integer_numerators_strong(expression_as_str) if strong else safe_integer_numerators(expression_as_str)
 
 
 def pole_part(expr):
@@ -114,7 +125,7 @@ def G2(alpha, beta, d=D):
 def _raw_g(alpha, beta, d=D):
     #noinspection PyUnresolvedReferences
     if (alpha + zero).is_equal(zero) or (beta + zero).is_equal(zero) \
-        or (2 * (d/2 - 1) + 2 - alpha - beta + zero).is_equal(zero):
+        or (CLN_TWO * (d/CLN_TWO - CLN_ONE) + CLN_TWO - alpha - beta + zero).is_equal(zero):
         return 0
     return tgamma((d/2 - 1) + 1 - alpha) * tgamma((d/2 - 1) + 1 - beta) * tgamma(alpha + beta - (d/2 - 1) - 1) \
            / (tgamma(alpha) * tgamma(beta) * tgamma(2 * (d/2 - 1) + 2 - alpha - beta))

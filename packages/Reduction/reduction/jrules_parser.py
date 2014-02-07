@@ -47,7 +47,8 @@ def parse_scalar_products_reducing_rules(file_path, j_suffix):
                 else:
                     kp.append(0)
             key = scalar_product.ScalarProductRuleKey(*kp)
-            rules[key] = eval(symbolic_functions.safe_integer_numerators(raw_rule))
+            raw_rule = symbolic_functions.safe_integer_numerators(raw_rule)
+            rules[key] = eval(raw_rule)
         return rules
 
 
@@ -74,7 +75,14 @@ def convert_rule(rule_string, j_suffix):
     result = re.sub("j\[([^,]+),([^\]]+)\]", "j_\\1(\\2)", rule_string)
     result = re.sub("\s+", " ", result)
     result = result.replace("j_%s" % j_suffix, "Sector")
-    return _replace_n(result)
+    result = _replace_n(result)
+    result = re.sub('([\d]+)\\*', 'swiginac.numeric(str(\\1))*', result)
+    result = re.sub('\\*\\(\\{([\d]+)\\}\\)', '*swiginac.numeric(str({\\1}))', result)
+    result = result.replace(" ", "")
+    result = re.sub('([\(\+\*-/])([\d]+)','\\1swiginac.numeric(\'\\2\')', result)
+    result = re.sub('([\d]+)([\(\+\*-/])','swiginac.numeric(\'\\1\')\\2', result)
+    result = re.sub('([\(\+\*-/])([\d]+)([\)\+\*-/])','\\1swiginac.numeric(\'\\2\')\\3', result)
+    return result
 
 
 def _replace_zeros(rule_string, raw_zero_sectors):
@@ -98,6 +106,12 @@ def _parse_strange_rule(rule_string, j_suffix):
     _rule_string = re.sub("j\[([^,]+),([^\]]+)\]", "j_\\1(\\2)", _rule_string)
     _rule_string = _rule_string.replace("j_%s" % j_suffix, "Sector")
     _rule_string = _replace_n(_rule_string)
+    _rule_string = re.sub('([\d]+)\\*', 'swiginac.numeric(str(\\1))*', _rule_string)
+    _rule_string = re.sub('\\*\\(\\{([\d]+)\\}\\)', '*swiginac.numeric(str({\\1}))', _rule_string)
+    _rule_string = _rule_string.replace(" ", "")
+    _rule_string = re.sub('([\(\+\*-/])([\d]+)','\\1swiginac.numeric(\'\\2\')', _rule_string)
+    _rule_string = re.sub('([\d]+)([\(\+\*-/])','swiginac.numeric(\'\\1\')\\2', _rule_string)
+    _rule_string = re.sub('([\(\+\*-/])([\d]+)([\)\+\*-/])','\\1swiginac.numeric(\'\\2\')\\3', _rule_string)
     return _rule_string
 
 

@@ -144,8 +144,6 @@ def _enumerate_graph(graph, init_propagators, to_sector=True, only_one_result=Fa
     _result = set()
     try:
         propagators_copy = copy.copy(init_propagators)
-        if graph.getLoopsCount() == 4:
-            del propagators_copy[0]
         _enumerate_next_vertex(propagators_copy, graph, 0, _result)
     except StopSearchException:
         pass
@@ -218,7 +216,23 @@ class Reductor(object):
                  masters):
         self._env_name = env_name
         self._env_path = env_path
+        self._graph_topologies = topologies
         self._main_loop_count_condition = main_loop_count_condition
+        self._graph_masters = masters
+
+        self._propagators = None
+        self._topologies = None
+        self._zero_sectors = None
+        self._sector_rules = None
+        self._all_propagators_count = None
+        self._masters = None
+        self._scalar_product_rules = None
+
+        self._is_inited = False
+
+    def initIfNeed(self):
+        if self._is_inited:
+            return
         self._propagators = jrules_parser.parse_propagators(self._get_file_path(self._env_name),
                                                             self._main_loop_count_condition)
 
@@ -227,7 +241,7 @@ class Reductor(object):
             self._topologies = read_topologies
         else:
             self._topologies = reduce(lambda ts, t: ts | _enumerate_graph(t, self._propagators, to_sector=False),
-                                      topologies,
+                                      self._graph_topologies,
                                       set())
             self._save_topologies()
 
@@ -244,11 +258,12 @@ class Reductor(object):
             self._masters = dict()
             master_sectors = jrules_parser.parse_masters(self._get_file_path(self._env_name),
                                                          self._env_name)
-            for m, v in masters.items():
+            for m, v in self._graph_masters.items():
                 for enumerated in _enumerate_graph(m, self._propagators, to_sector=True):
                     if enumerated in master_sectors:
                         self._masters[enumerated] = v
             self._save_masters()
+        self._is_inited = True
 
     @property
     def main_loops_condition(self):
@@ -304,6 +319,7 @@ class Reductor(object):
         """
         scalar_product_aware_function(topology_shrunk, graph) returns iterable of scalar_product.ScalarProduct
         """
+        self.initIfNeed()
         Reductor.CALLS_COUNT += 1
         if graph.getLoopsCount() != self._main_loop_count_condition:
             return None
@@ -322,8 +338,8 @@ class Reductor(object):
                 str_graph = str(graph)
                 str_graph = str_graph[:str_graph.index(":")]
                 as_topologies = _enumerate_graph(graphine.Graph.fromStr(str_graph),
-                                              self._propagators,
-                                              to_sector=False)
+                                                 self._propagators,
+                                                 to_sector=False)
                 for t in as_topologies:
                     if len(as_topologies):
                         res = reduction_util.find_topology_for_graph(graph,
@@ -350,6 +366,7 @@ class Reductor(object):
                                                                                    self._all_propagators_count))
 
     def evaluate_sector(self, a_sectors):
+        self.initIfNeed()
         if a_sectors is None:
             return None
         import time
@@ -357,6 +374,8 @@ class Reductor(object):
         dfs_cache = dict()
         _all = rggraphutil.Ref.create(0)
         hits = rggraphutil.Ref.create(0)
+
+
         def dfs(_sector, sector_rules, _all, hits):
             cached = dfs_cache.get(_sector, None)
             _all.set(_all.get() + 1)
@@ -474,7 +493,7 @@ class Reductor(object):
             with open(file_path, 'w') as f:
                 for s, v in self._masters.iteritems():
                     f.write(
-                        str(s.propagators_weights) + ";" + symbolic_functions.safe_integer_numerators(str(v)) + "\n")
+                        str(s.propagators_weights) + ";" + symbolic_functions.safe_integer_numerators_strong(str(v)) + "\n")
         else:
             raise ValueError("file %s already exists" % file_path)
 
