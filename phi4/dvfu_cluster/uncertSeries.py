@@ -3,7 +3,6 @@
 
 __author__ = 'Yury Kirienko'
 
-import sys
 import math
 
 from uncertainties import ufloat, Variable, AffineScalarFunc
@@ -157,13 +156,28 @@ class Series():
         return self.gSeries
 
     def __str__(self):
+        """
+        Вывод результата, обрезанного с учётом погрешности, с указанием точности последней значащей цифры
+        """
         res = ''
         for g, c in self.gSeries.items():
-            if c != 0 and g <= self.n and isinstance(c, (Variable, AffineScalarFunc)):
-                res += "(%s ± %s) * %s**%s + " % (str(c.n), str(c.s), self.name, str(g))
+            if c != 0 and g == 0:
+                res += " %s + " % (c.format('S'))
+            elif c != 0 and g <= self.n and isinstance(c, (Variable, AffineScalarFunc)):
+                if c.s < 1e-14:
+                    res += "%s * %s**%s + " % (str(c.n), self.name, str(g))
+                else:
+                    res += " %s * %s**%s + " % (c.format('S'), self.name, str(g))
             elif c != 0 and g <= self.n and isinstance(c, (int, float)):
                 res += "%s * %s**%s + " % (str(c), self.name, str(g))
         return res[:-2]
+
+    def pprint(self):
+        res = ""
+        for g, c in self.gSeries.items():
+            if c != 0 and g <= self.n:
+                res += "(%s ± %s) * %s**%s + " % (str(c.n), str(c.s), self.name, str(g))
+        print res[:-2]
 
     def __len__(self):
         return len(self.gSeries)
@@ -175,16 +189,13 @@ class Series():
         return res
 
 
-"""
-Z1 = Series()
-Z2 = Series({0:ufloat(-4,0.3),1:ufloat(2,.002)},1)
-print "Z1 =",Z1
-print "Z2 =",Z2
-print "Z2.diff() =",Z2.diff()
-print "Z2 =",Z2
-print "1/Z2 =",1/Z2
-print "Z1*Z2 =",Z1*Z2
-print "Z2**2 =",Z2**2
-"""
-
-
+if __name__ == "__main__":
+    Z1 = Series(1)
+    Z2 = Series(2, {0: ufloat(-4, 0.3), 1: ufloat(2, .002)})
+    print "Z1 =", Z1
+    print "Z2 =", Z2
+    print "Z2.diff() =", Z2.diff()
+    print "Z2 =", Z2
+    print "1/Z2 =", 1 / Z2
+    print "Z1*Z2 =", Z1 * Z2
+    print "Z2**2 =", Z2 ** 2
