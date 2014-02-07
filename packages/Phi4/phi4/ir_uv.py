@@ -20,6 +20,12 @@ def uvIndexTadpole(graph):
     return index
 
 
+def uvIndex(graph):
+    nEdges = len(graph.allEdges()) - len(graph.edges(graph.externalVertex))
+    index = nEdges * const.EDGE_WEIGHT + numeratorsCount(graph.allEdges()) + graph.getLoopsCount() * const.SPACE_DIM_PHI4
+    return index
+
+
 def numeratorsCount(edgesList):
     _numeratorsCount = 0
     for e in edgesList:
