@@ -11,6 +11,7 @@ import rggraphenv.storage as storage
 import rggraphutil
 import forest
 import graph_util
+import graph_state
 import swiginac
 from rggraphenv import symbolic_functions
 
@@ -311,51 +312,34 @@ def _do_r1(raw_graph, k_operation, uv_subgraph_filter, description="", use_graph
     raise common.CannotBeCalculatedError(raw_graph)
 
 
-def shrink_to_point(graph, sub_graphs_to_shrink):
-    for sub_graphs in itertools.permutations(sub_graphs_to_shrink):
-        try:
-            to_shrink = list()
-            p2_counts = 0
-            excluded_edges = set()
-            for sg in sub_graphs:
-                edge = _has_momentum_quadratic_divergence(sg, graph, excluded_edges)
-                if edge is not None:
-                    excluded_edges.add(edge)
-                    to_shrink.append(graphine.Graph([edge], graph.externalVertex, renumbering=False))
-                    p2_counts += 1
-                to_shrink.append(sg)
-            shrunk = graph.batchShrinkToPoint(to_shrink)
-            return shrunk, p2_counts
-        except common.CannotBeCalculatedError:
-            pass
-    raise common.CannotBeCalculatedError(graph)
+def shrink_to_point(graph, sub_graphs):
+    to_shrink = list()
+    to_replace_by_edge = list()
+    p2_counts = 0
+    for sg in sub_graphs:
+        edge = _has_momentum_quadratic_divergence(sg)
+        if edge is not None:
+            to_replace_by_edge.append((edge, sg))
+            graph = graph.change(sg.internalEdges(), (edge,), renumbering=False)
+            p2_counts += 1
+        else:
+            to_shrink.append(sg)
+    shrunk = graph.batchShrinkToPoint(to_shrink)
+    return shrunk, p2_counts
 
 
-def _has_momentum_quadratic_divergence(sub_graph, graph, excluded_edges):
-    external_edges = sub_graph.edges(sub_graph.externalVertex)
-    if len(external_edges) != 2:
+NEGATIVE_WEIGHT_EDGE = graph_state.Rainbow((-1, 0))
+
+
+def _has_momentum_quadratic_divergence(sub_graph):
+    if sub_graph.externalEdgesCount() != 2:
         return None
 
-    #TODO
-    n_edges = len(sub_graph.allEdges()) - len(external_edges)
-    n_vertexes = len(sub_graph.vertices()) - 1
-    n_loop = n_edges - n_vertexes + 1
-    subgraph_uv_index = n_edges * (-2) + n_loop * 4
+    subgraph_uv_index = ir_uv.uvIndex(sub_graph)
     if subgraph_uv_index != 2:
         return None
 
-    border_vertexes = reduce(lambda x, y: x | y,
-                             map(lambda x: set(x.nodes),
-                                 sub_graph.edges(sub_graph.externalVertex))) - set([sub_graph.externalVertex])
+    border_vertexes = sub_graph.getBoundVertexes()
 
-    for bv in border_vertexes:
-        sub_graph_edges = sub_graph.edges(bv)
-        graph_edges = graph.edges(bv)
-        if len(sub_graph_edges) == len(graph_edges):
-            raw_edges = set(graph_edges) - set(sub_graph_edges)
-            if raw_edges not in external_edges:
-                assert len(raw_edges) == 1
-                edge = list(raw_edges)[0]
-                if edge not in excluded_edges:
-                    return edge
-    raise common.CannotBeCalculatedError(graph)
+    assert len(border_vertexes) == 2
+    return graph_util.new_edge(tuple(border_vertexes), colors=NEGATIVE_WEIGHT_EDGE)
