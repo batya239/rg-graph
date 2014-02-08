@@ -40,10 +40,34 @@ for l in g2_3:
                          force_update=True)
     print
 """
-for l in g0_3:
-    dc.calculate_diagram(label=l[0],
+#TODO: I might need to recalculate 2-looped 3-tails with bigger max_eps
+"""
+e12-34-34--e-::~p^2
+e12-23-4-e4--::~p^2
+e12-3-44-e4--::~p^2
+e12-e3-4-44--::~p^2
+e12-e3-34-4--::~p^2
+e12-e3-e4-45-5-e-::
+e12-e3-45-45-e-e-::
+e12-e3-34-5-e5-e-::
+e12-e3-e4-e5-55--::
+"""
+
+lls_p2 = ('e12-34-34--e-', 'e12-23-4-e4--', 'e12-3-44-e4--', 'e12-e3-4-44--', 'e12-e3-34-4--')
+lls = ('e12-e3-e4-45-5-e-', 'e12-e3-45-45-e-e-', 'e12-e3-34-5-e5-e-', 'e12-e3-e4-e5-55--')
+
+for l in lls_p2:
+    dc.calculate_diagram(label=l,
+                         theory=3,
+                         max_eps=4,
+                         zero_momenta=False,
+                         verbose=2,
+                         force_update=False)
+
+for l in lls:
+    dc.calculate_diagram(label=l,
                          theory=3,
                          max_eps=4,
                          zero_momenta=True,
                          verbose=2,
-                         force_update=True)
+                         force_update=False)

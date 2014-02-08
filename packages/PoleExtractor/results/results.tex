@@ -9,9 +9,60 @@
 \usepackage{color}
 \usepackage{tikz}
 \usetikzlibrary{intersections}
+\usetikzlibrary{snakes}
+%
+\input{diagram_commands}
+%
 \title{Результаты вычислений программы Pole Extractor}
 \author{Глеб Довженко.}
 \begin{document}
 \maketitle
-\paragraph{Теория $\varphi^3$:}
+%
+\section{Постановка задачи и обозначения.}
+%
+\paragraph{Задача.} Сосчитать константы ренормировки $Z_{i}$ и РГ-функции $\beta_{i}$, $\gamma_i$ для теорий $\varphi^3$, $\varphi^4$ в размерной регуляризации $d = 6-2\epsilon$, $d=4-2\epsilon$ соответственно. 
+%
+\paragraph{Обозначения.}
+\begin{itemize}
+\item Расходящиеся части (на примере $\varphi^3$):\\У 2-хвосток:
+\begin{gather}
+\textrm{Пр. расх.} \left\{ \diagram{e11-e-}{straight} \right\} \equiv  \diagram{e11-e-}{dots} + p^{2} \diagram{e11-e-}{wavy},\\
+\diagram{e11-e-}{dots} = \diagram{e11-e-}{straight} \Big|_{p=0,\ (\mu^2 / \tau) = 1}, \\
+\diagram{e11-e-}{wavy} = \partial_{p^{2}} \diagram{e11-e-}{straight} \Big|_{p \rightarrow \infty,\ (\mu^2 / \tau) = 1}.
+\end{gather}
+У 3-хвосток:
+\begin{gather}
+\textrm{Пр. расх.} \left\{ \diagram{e12-e3-e-}{straight} \right\} \equiv \diagram{e12-e3-e-}{dots} \ , \\
+\diagram{e12-e3-e-}{dots} = \diagram{e12-e3-e-}{straight} \Big|_{p=0,\ (\mu^2 / \tau) = 1}. 
+\end{gather}
+\item $Z$, $L$, $K$, $R^{\prime}$:\\Для теории $\varphi^3$:
+\begin{gather}
+Z_{1} = 1 + \left[ L_{2} \Gamma_{2} \right] = (Z_{\varphi})^{2}, \\
+Z_{3} = 1 - \left[ L_{3} \Gamma_{3} \right] = Z_{g}\cdot(Z_{\varphi})^{3},\\
+\left[ L_{2} \Gamma_{2} \right] = KR^{\prime} \ \diagram{undef2tails}{wavy} \ ,\\
+ \left[ L_{3} \Gamma_{3} \right] = KR^{\prime} \ \diagram{undef3tails}{dots} \ .
+\end{gather}
+\end{itemize}
+%
+\section{Теория $\varphi^3$.}
+%
+\paragraph{1 петля.} Чтобы сосчитать 1-петлевое приближение искомых величин, нужны только сильно связные 1-петлевые 2- и 3-хвостки.
+\begin{gather}
+\diagram{e12-e3-e-}{dots} = \frac{||3 - \epsilon||\epsilon||}{4},\\
+\diagram{e11-e-}{dots} = \frac{||3 - \epsilon||-1 + \epsilon||}{2},\\
+\diagram{e11-e-}{wavy} = \frac{||\epsilon||}{2} \cdot \left(\frac{||4 - \epsilon||}{3\cdot(3 -\epsilon)} - \frac{||3 - \epsilon||}{2} \right) .
+\end{gather}
+%
+\paragraph{2 петли.} Для 2-петлевого приближения нужны 1-петлевые 2-, 3-хвостки с точкой
+\begin{gather}
+\diagram{e12-e3-e3-e-}{dots} = \frac{||3 - \epsilon||1 + \epsilon||}{12\tau}, \\
+\diagram{e12-e3-e-}{dots} = \frac{||3 - \epsilon||0 + \epsilon||}{4},\\
+\diagram{e12-e2--}{wavy} = \frac{||1+\epsilon||}{12}\cdot \left( \frac{||4-\epsilon||}{6-2\epsilon} - ||3-\epsilon|| \right), 
+\end{gather}
+и сильно связные 2-петлевые 2- и 3-хвостки.
+\paragraph{3 петли.}
+\section{Теория $\varphi^4$.}
+\paragraph{1 петля.}
+\paragraph{2 петли.}
+\paragraph{3 петли.}
 \end{document}

@@ -29,6 +29,10 @@ def gen_filename(g, rprime, momentum_derivative):
     return fn
 
 
+def is_present(g, rprime, momentum_derivative):
+    return os.path.isfile(gen_filename(g, rprime, momentum_derivative))
+
+
 def get_expansion(g, rprime, momentum_derivative):
     f = open(gen_filename(g, rprime, momentum_derivative), 'rb')
     result = pickle.load(f)
@@ -68,7 +72,10 @@ def calculate_rprime(label, PHI_EXPONENT, verbose=1, force_update=False):
         mul_expansions = map(lambda x: reduce(lambda y, z: y * z, x[1]) * x[0], get_expansions)
         return reduce(lambda x, y: x + y, mul_expansions)
 
-    g = graphine.Graph.fromStr(label)
+    if isinstance(label, str):
+        g = graphine.Graph.fromStr(label)
+    elif isinstance(label, graphine.Graph):
+        g = label
     exclusion_groups = rprime.shrinking_groups(g, PHI_EXPONENT)
     if len(exclusion_groups) == 0:
         update_expansion(g, rprime=True,
@@ -86,7 +93,6 @@ def calculate_rprime(label, PHI_EXPONENT, verbose=1, force_update=False):
     if verbose > 1:
         print "Non-overlapping subgraph groupings:\n" + str(exclusion_groups)
 
-    #c_part = rprime.generate_counterterms(g, exclusion_groups, PHI_EXPONENT)
     c_part = rprime.gen_cts(g, exclusion_groups, PHI_EXPONENT)
     if verbose > 1:
         print "Tau-counterterms:\n" + str(c_part)
@@ -102,7 +108,6 @@ def calculate_rprime(label, PHI_EXPONENT, verbose=1, force_update=False):
     update_expansion(g, rprime=True, momentum_derivative=False, e=result, force_update=force_update)
 
     if 2 == g.externalEdgesCount():
-        #p2_part = rprime.generate_counterterms(g, exclusion_groups, PHI_EXPONENT, momentum_derivative=True)
         p2_part = rprime.gen_cts(g, exclusion_groups, PHI_EXPONENT, momentum_derivative=True)
         if verbose > 1:
             print "p^2-counterterms:\n" + str(p2_part)
@@ -119,7 +124,11 @@ def calculate_rprime(label, PHI_EXPONENT, verbose=1, force_update=False):
 
 
 def calculate_diagram(label, theory, max_eps, zero_momenta=True, verbose=1, force_update=False):
-    g = graphine.Graph.fromStr(label)
+    if isinstance(label, str):
+        g = graphine.Graph.fromStr(label)
+    elif isinstance(label, graphine.Graph):
+        g = label
+
     if verbose > 0:
         print "Graph: " + str(g)
 

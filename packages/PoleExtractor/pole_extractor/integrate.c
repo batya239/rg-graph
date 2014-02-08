@@ -25,7 +25,7 @@
 #define LAST 4
 #define SEED 0
 #define MINEVAL 0
-#define MAXEVAL 1E6
+#define MAXEVAL 1E7
 
 #define NSTART 1000
 #define NINCREASE 500

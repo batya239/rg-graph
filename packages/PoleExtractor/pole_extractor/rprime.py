@@ -39,7 +39,7 @@ class RPrimeTermFactor:
 def shrinking_groups(graph, PHI_EXPONENT):
     def intersect(graph1, graph2):
         return bool(graph1.vertices().difference({graph1.externalVertex, }).
-        intersection(graph2.vertices().difference({graph2.externalVertex, })))
+                    intersection(graph2.vertices().difference({graph2.externalVertex, })))
 
     def update_groupings(group, subgraphs):
         result = []
@@ -84,16 +84,17 @@ def gen_cts(graph, exclusion_groups, PHI_EXPONENT, momentum_derivative=False):
         if 2 == sg.externalEdgesCount():
             sg2 = add_adjoining_edge(sg, term[1][-1])
             return [(term[0], term[1][:-1] +
-                              [RPrimeTermFactor(sg, k=True), term[1][-1].shrinkToPoint(sg.internalEdges())]),
+                    [RPrimeTermFactor(sg, k=True), term[1][-1].shrinkToPoint(sg.internalEdges())]),
                     (-term[0], term[1][:-1] +
-                               [RPrimeTermFactor(sg, k=True, derivative=True),
-                                term[1][-1].shrinkToPoint(sg.internalEdges())]),
+                    [RPrimeTermFactor(sg, k=True, derivative=True),
+                    term[1][-1].shrinkToPoint(sg.internalEdges())]),
                     (term[0], term[1][:-1] +
-                              [RPrimeTermFactor(sg, k=True, derivative=True),
-                               term[1][-1].shrinkToPoint(sg2.internalEdges())])]
+                    [RPrimeTermFactor(sg, k=True, derivative=True),
+                    term[1][-1].shrinkToPoint(sg2.internalEdges())])]
         else:
             return [(term[0], term[1][:-1] +
-                              [RPrimeTermFactor(sg, k=True), term[1][-1].shrinkToPoint(sg.internalEdges())]), ]
+                    [RPrimeTermFactor(sg, k=True),
+                     term[1][-1].shrinkToPoint(sg.internalEdges())]), ]
 
     def update_tails(graph, valency):
         vs = graph.vertices() - {graph.externalVertex}
