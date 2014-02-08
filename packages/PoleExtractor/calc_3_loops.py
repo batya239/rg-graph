@@ -30,7 +30,7 @@ need_p0 = need_p2 + utils.get_diagrams(tails=3, loops=3)
 for diag in need_p0:
     diagram_calculator.calculate_diagram(label=diag[0],
                                          theory=3,
-                                         max_eps=4,
+                                         max_eps=3,
                                          zero_momenta=True,
                                          verbose=2,
                                          force_update=False)
@@ -38,7 +38,7 @@ for diag in need_p0:
 for diag in need_p2:
     diagram_calculator.calculate_diagram(label=diag[0],
                                          theory=3,
-                                         max_eps=4,
+                                         max_eps=3,
                                          zero_momenta=False,
                                          verbose=2,
                                          force_update=False)
