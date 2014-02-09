@@ -73,6 +73,27 @@ def shrinking_groups(graph, PHI_EXPONENT):
 def gen_cts(graph, exclusion_groups, PHI_EXPONENT, momentum_derivative=False):
     """
     """
+    def shrink_to_nothing(g, sg):
+        border_vertices = filter(lambda x: not x == sg.externalVertex,
+                                 sum([list(e.nodes) for e in sg.externalEdges()], []))
+        border_edges = filter(lambda x: x not in sg.allEdges() and x in g.internalEdges(),
+                              sum([g.edges(v) for v in border_vertices], []))
+
+        adj_edge = border_edges[0]
+        adj_vertex = filter(lambda x: x not in sg.vertices(), adj_edge.nodes)[0]
+
+        sg_adj = graphine.Graph(sg.allEdges() + [adj_edge], renumbering=False)
+
+        g_shrunk = g.shrinkToPoint(sg_adj.internalEdges())
+        shrunk_vertex = filter(lambda x: x not in g.vertices(), g_shrunk.vertices())[0]
+
+        es = [graph_state.Edge(nodes=tuple(map(lambda x: adj_vertex if x == shrunk_vertex else x, e.nodes)),
+                               fields=e.fields,
+                               colors=e.colors,
+                               edge_id=e.edge_id) for e in g_shrunk.edges(shrunk_vertex)]
+
+        return g_shrunk.change(edgesToRemove=g_shrunk.edges(shrunk_vertex), edgesToAdd=es, renumbering=False)
+
     def add_adjoining_edge(sg, g):
         border_vertices = filter(lambda x: not x == sg.externalVertex,
                                  sum([list(e.nodes) for e in sg.externalEdges()], []))
@@ -90,7 +111,8 @@ def gen_cts(graph, exclusion_groups, PHI_EXPONENT, momentum_derivative=False):
                     term[1][-1].shrinkToPoint(sg.internalEdges())]),
                     (term[0], term[1][:-1] +
                     [RPrimeTermFactor(sg, k=True, derivative=True),
-                    term[1][-1].shrinkToPoint(add_adjoining_edge(sg, term[1][-1]).internalEdges())])]
+                    #term[1][-1].shrinkToPoint(add_adjoining_edge(sg, term[1][-1]).internalEdges())])]
+                    shrink_to_nothing(term[1][-1], sg)])]
         else:
             return [(term[0], term[1][:-1] +
                     [RPrimeTermFactor(sg, k=True),
