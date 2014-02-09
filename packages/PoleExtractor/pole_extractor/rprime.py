@@ -73,7 +73,6 @@ def shrinking_groups(graph, PHI_EXPONENT):
 def gen_cts(graph, exclusion_groups, PHI_EXPONENT, momentum_derivative=False):
     """
     """
-
     def add_adjoining_edge(sg, g):
         border_vertices = filter(lambda x: not x == sg.externalVertex,
                                  sum([list(e.nodes) for e in sg.externalEdges()], []))
@@ -82,12 +81,8 @@ def gen_cts(graph, exclusion_groups, PHI_EXPONENT, momentum_derivative=False):
         return graphine.Graph(sg.allEdges() + [border_edges[0]], renumbering=False)
 
     def exclude_sg(term, sg):
-        print '### Graph: ' + str(term[1][-1].allEdges())
-        print '### Subgraph: ' + str(sg.allEdges())
         sys.stdout.flush()
         if 2 == sg.externalEdgesCount():
-            sg2 = add_adjoining_edge(sg, term[1][-1])
-            print '*** SG2: ' + str(sg2.internalEdges())
             return [(term[0], term[1][:-1] +
                     [RPrimeTermFactor(sg, k=True), term[1][-1].shrinkToPoint(sg.internalEdges())]),
                     (-term[0], term[1][:-1] +
@@ -95,7 +90,7 @@ def gen_cts(graph, exclusion_groups, PHI_EXPONENT, momentum_derivative=False):
                     term[1][-1].shrinkToPoint(sg.internalEdges())]),
                     (term[0], term[1][:-1] +
                     [RPrimeTermFactor(sg, k=True, derivative=True),
-                    term[1][-1].shrinkToPoint(sg2.internalEdges())])]
+                    term[1][-1].shrinkToPoint(add_adjoining_edge(sg, term[1][-1]).internalEdges())])]
         else:
             return [(term[0], term[1][:-1] +
                     [RPrimeTermFactor(sg, k=True),
@@ -114,8 +109,6 @@ def gen_cts(graph, exclusion_groups, PHI_EXPONENT, momentum_derivative=False):
         counterterms = [((-1) ** len(group), [graph, ]), ]
         for subgraph in group:
             counterterms = sum(map(lambda x: exclude_sg(x, subgraph), counterterms), [])
-            print '### Result: ' + str(counterterms)
-        print '###\n\n\n'
         for ctm in counterterms:
             if not momentum_derivative:
                 ctm[1][-1] = update_tails(ctm[1][-1], PHI_EXPONENT)
