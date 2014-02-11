@@ -39,18 +39,18 @@ if __name__ == "__main__":
     #print conformBorel(Kleinert_book.eta(1), eps)
     #print "\nTest (Kleinert 17.16):\teta =", sum(conformBorel([0, 0, 0.0185, 0.0187, -0.0083, 0.0257], eps * 2))
 
-    L = 6
+    L2, L4 = 5, 6
     beta = [0, -1.0, 1.0, -0.71617362, + 0.930764, -1.582398, 3.260219]
-    eta_g = [0., 0., 0.033966148, -0.00202253, 0.01139321, -0.0137366, 0.028233, -1.466e-05]#, 0.000202430]
-    beta = beta[:L + 1]
-    eta_g = eta_g[:L + 2]
-    print "beta =", beta
+    eta_g = [0., 0., 0.033966148, -0.00202253, 0.01139321, -0.0137366, 0.028233]#, -1.466e-05, 0.000202430]
+    beta = beta[:L4 + 2]
+    eta_g = eta_g[:L2 + 1]
+    #print "beta =", beta
     gStar = 1.75
     delta = 0.01
     for i in range(1000):
         g1 = sum(conformBorel(beta, gStar - delta))
         g2 = sum(conformBorel(beta, gStar + delta))
-        print "β(%.2f) = %.4f, β(%.2f) = %.4f" % (gStar - delta, g1, gStar + delta, g2)
+        #print "β(%.2f) = %.4f, β(%.2f) = %.4f" % (gStar - delta, g1, gStar + delta, g2)
         if g1 - g2 > 0:
             gStar -= delta
         else:
@@ -59,6 +59,6 @@ if __name__ == "__main__":
             break
     print "g* =", gStar
 
-    print "eta(g*) =", sum(conformBorel(eta_g, gStar))
-    print len(eta_g), "eta(g) =", eta_g
-    print len(beta), "beta =", beta
+    print "η(g*) =", sum(conformBorel(eta_g, gStar))
+    print len(beta), "β(g)/2 =", beta
+    print len(eta_g), "η(g)/2 =", eta_g

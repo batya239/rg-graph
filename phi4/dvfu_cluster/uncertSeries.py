@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf8
 
-__author__ = 'Yury Kirienko'
+__author__ = 'kirienko'
 
 import math
 
@@ -152,8 +152,16 @@ class Series():
             res[i] = (i + 1) * self.gSeries[i + 1]
         return Series(self.n, res)
 
-    def __repr__(self):
-        return self.gSeries
+    ## FIXME
+    #def __repr__(self):
+    #    return self.gSeries
+
+    ## FIXME
+    def _approx(self, other):
+        for k, v in self.gSeries.items():
+            if v != other.gSeries[k]:
+                return False
+        return True
 
     def __str__(self):
         """

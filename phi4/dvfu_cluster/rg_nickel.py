@@ -2,6 +2,7 @@
 # -*- coding: utf8
 __author__ = 'mkompan'
 
+import sys
 from uncertSeries import *
 import graphine
 import graph_state
@@ -14,8 +15,8 @@ if len(sys.argv) < 4:
     exit()
 
 fileName = sys.argv[1]
-r2Loops = int(sys.argv[2]) 
-r4Loops = int(sys.argv[3]) 
+r2Loops = int(sys.argv[2])
+r4Loops = int(sys.argv[3])
 
 r1op = eval(open(fileName).read())
 
@@ -26,7 +27,7 @@ for nickel in r1op:
     uncert = ufloat(r1op[nickel][0], r1op[nickel][1])
     graph = graphine.Graph(graph_state.GraphState.fromStr("%s::" % nickel))
     graphLoopCount = graph.getLoopsCount()
-    if graphLoopCount > max(r2Loops,r4Loops):
+    if graphLoopCount > max(r2Loops, r4Loops):
         continue
     if len(graph.edges(graph.externalVertex)) == 2:
         #Z2 -= (-2 * g / 3) ** graphLoopCount * r1op[nickel] * symmetryCoefficient(graph)
@@ -69,7 +70,7 @@ beta1.gSeries.pop(1) ## equal to 'beta1 - g'
 #print "beta1 =",beta1
 
 gStar = Series(n=1, d={0: ufloat(0., 0.)}, name='τ')
-for i in range(1, r4Loops+1):
+for i in range(1, r4Loops + 1):
     d = {1: ufloat(1., 0.)}
     d.update(dict(map(lambda x: (x, ufloat(0, 0.)), range(2, i + 1))))
     tau = Series(n=i, d=d, name='τ')
