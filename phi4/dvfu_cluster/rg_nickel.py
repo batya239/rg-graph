@@ -23,6 +23,15 @@ r1op = eval(open(fileName).read())
 Z2_new = {0: (1, 0)}
 Z3_new = {0: (1, 0)}
 
+def saveSeriesToFile(s,fd):
+    """"
+    save series s to file descriptor fd as variable v
+    """
+    f = open(fd,'a')
+    data = dict(map(lambda (k,v): [k,str(v)],s.gSeries.items()))
+    f.write("Series(%d,%s,'%s')\n"%(s.n,data,s.name))
+    f.close()
+
 for nickel in r1op:
     uncert = ufloat(r1op[nickel][0], r1op[nickel][1])
     graph = graphine.Graph(graph_state.GraphState.fromStr("%s::" % nickel))
@@ -56,7 +65,7 @@ print
 g = Series(r2Loops, {1: ufloat(1, 0)})
 
 #beta = (-2 * g / (1 + g * sympy.ln(Zg).diff(g))).series(g, 0, r4Loops + 2).removeO()
-beta = (-2 * g / (1 + g * Zg.diff() / Zg))
+beta = (-2 * g / (1 + g * (Zg.diff() / Zg)))
 print "\nbeta/2 = ", beta / 2
 
 #eta = (beta * sympy.ln(Z2).diff(g)).series(g, 0, r4Loops + 1).removeO()

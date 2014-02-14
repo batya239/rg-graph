@@ -5,7 +5,7 @@ __author__ = 'kirienko'
 
 import math
 
-from uncertainties import ufloat, Variable, AffineScalarFunc
+from uncertainties import ufloat, ufloat_fromstr, Variable, AffineScalarFunc
 from uncertainties import __version_info__ as uncert_version
 
 if uncert_version < (2, 4):
@@ -45,7 +45,10 @@ class Series():
         self.name = name
         for k, v in d.items():
             try:
-                self.gSeries[k] = ufloat(v[0], v[1])
+                if isinstance(v, (list,tuple)):
+                    self.gSeries[k] = ufloat(v[0], v[1])
+                elif isinstance(v,str):
+                    self.gSeries[k] = ufloat_fromstr(v)
             except:
                 pass
         for i in range(0, n):

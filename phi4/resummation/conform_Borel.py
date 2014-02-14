@@ -17,9 +17,9 @@ def func(t,a,b,k, eps):
     res = t ** b * exp(-t) * u ** (k)
     return res
 
-def conformBorel(coeffs, eps):
+def conformBorel(coeffs, eps, b = 2.5,):
     A = coeffs
-    a, b = 0.238659217, 3.5 # -- for d = 2
+    a, b = 0.238659217, b # -- for d = 2
     #a, b = 0.14777422, 3.5 # -- for d = 3
     B = [A[k]/gamma(k+b+1) for k in range(len(A))] ## образ Бореля-Лероя
     U = [B[0]] + \
@@ -67,7 +67,9 @@ if __name__ == "__main__":
     print len(eta_g), "η(g)/2 =", eta_g
 
 
-    from rg_nickel import Z2, Z3, beta
+    Z2   = eval(open('Z2.txt').read())
+    Z3   = eval(open('Z3.txt').read())
+    beta = eval(open('beta.txt').read())
 
     gamma2 = beta*Z2.diff()/Z2
     gamma4 = beta*Z3.diff()/Z3
@@ -75,26 +77,26 @@ if __name__ == "__main__":
     f4 = gamma4/(Series(3,{0:(2,0)})-gamma2)
     print "γ₂ = %s \nγ₄ = %s \nf2 = %s \nf4 = %s" %tuple(map(str,[gamma2,gamma4,f2,f4]))
 
-    ser = 1+f4-f2
-    #coeffs = map(lambda x: float(x.format('S').split("(")[0]),ser.gSeries.values())
-
-    #f2 = map(lambda x: float(x.format('S').split("(")[0]),f2.gSeries.values())[:6]
-    #f4 = map(lambda x: float(x.format('S').split("(")[0]),f4.gSeries.values())[:5]
+    #ser = 1+f4-f2
 
     for k in range(4,6):
-        _coeffs = ser.coeffs()[:k]
-        print "coeffs =", _coeffs
+        print "\nL = ",k
+        #_coeffs = ser.coeffs()[:k]
+        #print "coeffs =", _coeffs
+        _f2 = f2.coeffs()[:k+1]
+        _f4 = f4.coeffs()[:k]
 
         gStar = 0.75
         delta = 0.01
-        for i in range(1000):
-            g1 = sum(conformBorel(_coeffs, gStar - delta))
-            g2 = sum(conformBorel(_coeffs, gStar + delta))
-            #print "β(%.2f) = %.4f, β(%.2f) = %.4f" % (gStar - delta, g1, gStar + delta, g2)
-            if g1 - g2 < 0:
-                gStar -= delta
-            else:
+        for i in range(100):
+            g1 = 1+sum(conformBorel(_f4, gStar - delta,0))-sum(conformBorel(_f2, gStar - delta,-1.5))
+            g2 = 1+sum(conformBorel(_f4, gStar + delta,0))-sum(conformBorel(_f2, gStar + delta,-1.5))
+            #g2 = sum(conformBorel(_coeffs, gStar + delta))
+            print "β(%.2f) = %.5f, β(%.2f) = %.5f" % (gStar - delta, g1, gStar + delta, g2)
+            if abs(g1) > abs(g2):
                 gStar += delta
+            else:
+                gStar -= delta
             if g1 * g2 < 0:
                 break
         print "g* (%d)="%k, gStar
