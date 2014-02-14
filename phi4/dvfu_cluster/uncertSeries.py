@@ -112,22 +112,30 @@ class Series():
         1/(1+x)=Sum_i (-1)^i x^i
         """
         res = Series(self.n, {}, self.name)
+        if self.gSeries[0] == 1:
+            c = 1.
+            normedSeries = self - 1
+        elif self.gSeries[0] !=0:
+            c = 1./self.gSeries[0]
+            normedSeries = self/self.gSeries[0] - 1
+        else:
+            raise NotImplementedError("no constnt term in series: %s" % self.gSeries)
         #if self.gSeries[0] == 1:
         #    tmp = Series(self.gSeries[1:], n = self.n-1, name=self.name)
         #        for i in range(tmp.n):
         for i in range(len(self.gSeries)):
-            res += (-1) ** i * (self - 1) ** i
-        return res
+            res += (-1) ** i * normedSeries ** i
+        return res * c
 
     def __div__(self, other):
         """ Пока полагаем, что все степени g неотрицательны
         """
         if isinstance(other, Series):
             return self * other.__invert__()
-        elif isinstance(other, (int, float)):
-            return self * (float(1) / other)
+        elif isinstance(other, (int, float, Variable, AffineScalarFunc)):
+            return self * (1. / other)
         else:
-            raise NotImplementedError
+            raise NotImplementedError("type: %s; %s" % (type(other), other.__repr__()))
 
     def __rdiv__(self, other):
         return other * self.__invert__()
@@ -179,6 +187,12 @@ class Series():
             elif c != 0 and g <= self.n and isinstance(c, (int, float)):
                 res += "%s * %s**%s + " % (str(c), self.name, str(g))
         return res[:-2]
+
+    def coeffs(self):
+        """
+        Возвращает значения коэффициентов ряда (только достоверную часть)
+        """
+        return map(lambda x: float(x.format('S').split("(")[0]),self.gSeries.values())[:self.n+1]
 
     def pprint(self):
         res = ""

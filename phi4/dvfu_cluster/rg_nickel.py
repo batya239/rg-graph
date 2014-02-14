@@ -61,34 +61,35 @@ print "\nbeta/2 = ", beta / 2
 
 #eta = (beta * sympy.ln(Z2).diff(g)).series(g, 0, r4Loops + 1).removeO()
 eta = beta * Z2.diff() / Z2
-
 print "\neta =", eta
 
-#beta1 = (beta / g / 2 + 1).expand()
-beta1 = (-1 / (1 + g * Zg.diff() / Zg) + 1)
-beta1.gSeries.pop(1) ## equal to 'beta1 - g'
-#print "beta1 =",beta1
+if __name__ == "__main__":
+    #beta1 = (beta / g / 2 + 1).expand()
+    beta1 = (-1 / (1 + g * Zg.diff() / Zg) + 1)
+    beta1.gSeries.pop(1) ## equal to 'beta1 - g'
+    #print "beta1 =",beta1
 
-gStar = Series(n=1, d={0: ufloat(0., 0.)}, name='τ')
-for i in range(1, r4Loops + 1):
-    d = {1: ufloat(1., 0.)}
-    d.update(dict(map(lambda x: (x, ufloat(0, 0.)), range(2, i + 1))))
-    tau = Series(n=i, d=d, name='τ')
-    #gStar = (tau - (beta1 - g).series(g, 0, i + 1).removeO().subs(g, gStar)).series(tau, 0, i + 1).removeO()
-    tmp = Series(n=i, d=beta1.gSeries)
-    gStar = Series(n=i + 1, d=(tau - tmp.subs(gStar)).__repr__(), name='τ')#.series(tau, 0, i + 1).removeO()
+    gStar = Series(n=1, d={0: ufloat(0., 0.)}, name='τ')
+    for i in range(1, r4Loops + 1):
+        d = {1: ufloat(1., 0.)}
+        d.update(dict(map(lambda x: (x, ufloat(0, 0.)), range(2, i + 1))))
+        tau = Series(n=i, d=d, name='τ')
+        #gStar = (tau - (beta1 - g).series(g, 0, i + 1).removeO().subs(g, gStar)).series(tau, 0, i + 1).removeO()
+        tmp = Series(n=i, d=beta1.gSeries)
+        gStar = Series(n=i + 1, d=(tau - tmp.subs(gStar)).gSeries, name='τ')#.series(tau, 0, i + 1).removeO()
 
-print "g* = ", gStar
+    print "g*(τ) = ", gStar
+    """
+    #gStarS = tau + 0.716173621 * tau**2 + 0.095042867 * tau**3 + 0.086080396 * tau ** 4 - 0.204139 * tau ** 5
+    gStarS = Series(n=6, d={1: 1, 2: 0.716173621, 3: 0.095042867, 4: 0.086080396, 5: -0.204139}, name='τ')
+    print "\ng*_S = ", gStarS
 
-#gStarS = tau + 0.716173621 * tau**2 + 0.095042867 * tau**3 + 0.086080396 * tau ** 4 - 0.204139 * tau ** 5
-gStarS = Series(n=6, d={1: 1, 2: 0.716173621, 3: 0.095042867, 4: 0.086080396, 5: -0.204139}, name='τ')
-print "\ng*_S = ", gStarS
+    #etaStar = eta.subs(g, gStar).series(tau, 0, r4Loops + 1)
+    etaStar = eta.subs(gStar)
 
-#etaStar = eta.subs(g, gStar).series(tau, 0, r4Loops + 1)
-etaStar = eta.subs(gStar)
+    print "η* = ", etaStar
 
-print "η* = ", etaStar
-
-#etaStarGS = eta.subs(g, gStarS).series(tau, 0, r4Loops + 1)
-etaStarGS = eta.subs(gStarS)
-print "\nη*_GS = ", etaStarGS
+    #etaStarGS = eta.subs(g, gStarS).series(tau, 0, r4Loops + 1)
+    etaStarGS = eta.subs(gStarS)
+    print "\nη*_GS = ", etaStarGS
+    """
