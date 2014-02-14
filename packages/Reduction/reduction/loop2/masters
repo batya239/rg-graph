@@ -1,2 +1,2 @@
-(1, 1, 0, 1, 1);e**(-swiginac.numeric('2'))
-(0, 1, 1, 1, 0);tgamma(swiginac.numeric('3')-swiginac.numeric('3')*e)**(-swiginac.numeric('1'))*tgamma(swiginac.numeric('2')-swiginac.numeric('2')*e)**swiginac.numeric('2')*e**(-swiginac.numeric('2'))*tgamma(e)**(-swiginac.numeric('2'))*tgamma(-swiginac.numeric('1')+swiginac.numeric('2')*e)*tgamma(swiginac.numeric('1')-e)**(-swiginac.numeric('1'))
+e11|22|e|:('EMPTY',)_(0, (0, 1, 0))_(1, (-1, -1, 0))|(3, (0, 0, 1))_(4, (-1, 0, -1))|('EMPTY',)|:;(1, 1, 0, 1, 1);e**(-swiginac.numeric('2'))
+e111|e|:('EMPTY',)_(1, (-1, -1, 0))_(2, (0, 1, -1))_(3, (0, 0, 1))|('EMPTY',)|:;(0, 1, 1, 1, 0);tgamma(swiginac.numeric('3')-swiginac.numeric('3')*e)**(-swiginac.numeric('1'))*tgamma(swiginac.numeric('2')-swiginac.numeric('2')*e)**swiginac.numeric('2')*e**(-swiginac.numeric('2'))*tgamma(e)**(-swiginac.numeric('2'))*tgamma(-swiginac.numeric('1')+swiginac.numeric('2')*e)*tgamma(swiginac.numeric('1')-e)**(-swiginac.numeric('1'))

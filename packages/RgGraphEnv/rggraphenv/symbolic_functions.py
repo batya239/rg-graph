@@ -28,7 +28,7 @@ def var(names):
 
 p, e = var("p e")
 l = 1 - e
-Z_5_3 = var("Z_5_3")
+Z53 = var("Z53")
 
 exp = swiginac.exp
 zero = swiginac.numeric(0)

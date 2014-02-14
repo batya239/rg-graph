@@ -25,7 +25,7 @@ THREE_LOOP_REDUCTOR = reductor.Reductor("loop3",
                                         "_g11()**(-3)*(exp(-3 * Euler * e))/(1-2*e)*(20 * zeta(5)"
                                         "+e *(68 * zeta(3)**2+(10 * Pi**6)/189)"
                                         "+e**2 *((34 * Pi **4 * zeta(3))/15-5 * Pi **2 * zeta(5)+450 *zeta(7))"
-                                        "+e**3 *(-9072/5 * Z_5_3-2588*zeta(3)*zeta(5)-17* Pi **2 *zeta(3)**2+(6487*Pi**8)/10500))+Order(e**4)"),
+                                        "+e**3 *(-9072/5 * Z53-2588*zeta(3)*zeta(5)-17* Pi **2 *zeta(3)**2+(6487*Pi**8)/10500))+Order(e**4)"),
                                 graphine.Graph.fromStr("e11|22|33|e|"): G(1, 1) ** 3,
                                 graphine.Graph.fromStr("e112|22|e|"): G(1, 1) * G(1, 1) * G(2 - 2 * l, 1),
                                 graphine.Graph.fromStr("e11|222|e|"): G(1, 1) * G(1, 1) * G(1 - l, 1),

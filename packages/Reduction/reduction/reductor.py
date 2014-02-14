@@ -50,6 +50,13 @@ class RuleNotFoundException(BaseException):
     pass
 
 
+def _enumerated_graph_as_sector(g, initial_propagators_len):
+    raw_sector = [0] * initial_propagators_len
+    for e in g.internalEdges():
+        raw_sector[e.colors[0]] = 1
+    return sector.Sector(raw_sector)
+
+
 def _enumerate_graph(graph, init_propagators, to_sector=True, only_one_result=False):
     """
     propagators - iterable of tuples (1, 0, -1) = q - k2
@@ -150,13 +157,7 @@ def _enumerate_graph(graph, init_propagators, to_sector=True, only_one_result=Fa
     if not to_sector:
         return _result
     else:
-        sector_result = set()
-        for g in _result:
-            raw_sector = [0] * len(init_propagators)
-            for e in g.internalEdges():
-                raw_sector[e.colors[0]] = 1
-            sector_result.add(sector.Sector(raw_sector))
-        return sector_result
+        return set(map(lambda g: _enumerated_graph_as_sector(g, len(init_propagators)), _result))
 
 
 class ReductorResult(object):
@@ -226,6 +227,7 @@ class Reductor(object):
         self._sector_rules = None
         self._all_propagators_count = None
         self._masters = None
+        self._masters_graph = None
         self._scalar_product_rules = None
 
         self._is_inited = False
@@ -253,15 +255,18 @@ class Reductor(object):
         self._open_scalar_product_rules()
         read_masters = self._try_read_masters()
         if read_masters:
-            self._masters = read_masters
+            self._masters, self._masters_graph = read_masters
         else:
             self._masters = dict()
+            self._masters_graph = dict()
             master_sectors = jrules_parser.parse_masters(self._get_file_path(self._env_name),
                                                          self._env_name)
             for m, v in self._graph_masters.items():
-                for enumerated in _enumerate_graph(m, self._propagators, to_sector=True):
+                for enumerated_g in _enumerate_graph(m, self._propagators, to_sector=False):
+                    enumerated = _enumerated_graph_as_sector(enumerated_g, len(self._propagators))
                     if enumerated in master_sectors:
                         self._masters[enumerated] = v
+                        self._masters_graph[enumerated] = str(enumerated_g)
             self._save_masters()
         self._is_inited = True
 
@@ -481,10 +486,13 @@ class Reductor(object):
         if os.path.exists(file_path):
             with open(file_path, 'r') as f:
                 masters = dict()
+                masters_graphs = dict()
                 for s in f:
-                    raw_sector, raw_value = s.split(";")
-                    masters[sector.Sector(eval(raw_sector))] = symbolic_functions.evaluate(raw_value)
-                return masters
+                    raw_master_graph, raw_sector, raw_value = s.split(";")
+                    _sector = sector.Sector(eval(raw_sector))
+                    masters[_sector] = symbolic_functions.evaluate(raw_value)
+                    masters_graphs[_sector] = raw_master_graph
+                return masters, masters_graphs
         return None
 
     def _save_masters(self):
@@ -493,7 +501,11 @@ class Reductor(object):
             with open(file_path, 'w') as f:
                 for s, v in self._masters.iteritems():
                     f.write(
-                        str(s.propagators_weights) + ";" + symbolic_functions.safe_integer_numerators_strong(str(v)) + "\n")
+                        self._masters_graph[s] +
+                        ";" +
+                        str(s.propagators_weights) +
+                        ";" +
+                        symbolic_functions.safe_integer_numerators_strong(str(v)) + "\n")
         else:
             raise ValueError("file %s already exists" % file_path)
 
