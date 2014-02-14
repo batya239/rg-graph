@@ -5,36 +5,6 @@ import unittest
 from pole_extractor import numcalc
 
 
-class TestPrecisionNumbers(unittest.TestCase):
-    def testEq(self):
-        e1 = numcalc.PrecisionNumber(value=3, error=0.5)
-        e2 = numcalc.PrecisionNumber(value=4, error=0.6)
-        self.assertEqual(e1, e2)
-        self.assertEqual(e2, e1)
-        self.assertEqual(e1, 3)
-        self.assertEqual(e1, 3.2)
-        self.assertEqual(e2, 4.6)
-        self.assertEqual(e2, 4)
-
-    def testAdd(self):
-        e1 = numcalc.PrecisionNumber(value=3, error=0.5)
-        e2 = numcalc.PrecisionNumber(value=4, error=0.6)
-        self.assertEqual(e1 + e2, 6)
-        self.assertEqual(e1 + e2, 7)
-        self.assertEqual(e1 + e2, 8)
-        self.assertEqual(e1 + e2, numcalc.PrecisionNumber(value=10, error=2))
-        self.assertEqual(e1 + e2, numcalc.PrecisionNumber(value=8, error=0.01))
-        self.assertEqual(e1 + 2, 5)
-        self.assertEqual(2 + e1, 5)
-        self.assertEqual(e1 + 2.1, 5)
-        self.assertEqual(2.1 + e1, 5)
-
-    def testMul(self):
-        e1 = numcalc.PrecisionNumber(value=3, error=0.5)
-        e2 = numcalc.PrecisionNumber(value=4, error=0.6)
-        self.assertEqual(e1 * e2, 12)
-
-
 class TestNumEpsExpansion(unittest.TestCase):
     def testAdd(self):
         e1 = numcalc.NumEpsExpansion({0: [1.0, 0.0], 1: [2.0, 0.0], 2: [1.0, 0.0]}, precise=True)

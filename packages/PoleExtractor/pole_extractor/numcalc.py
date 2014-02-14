@@ -6,75 +6,7 @@ import os
 from sympy import mpmath
 import reduced_vl
 import itertools
-
-
-class PrecisionNumber:
-    def __init__(self, value, error=0):
-        self._num = (float(value), abs(float(error)))
-
-    def value(self):
-        return self._num[0]
-
-    def error(self):
-        return self._num[1]
-
-    def max(self):
-        return self.value() + self.error()
-
-    def min(self):
-        return self.value() - self.error()
-
-    def __add__(self, other):
-        if isinstance(other, float):
-            return PrecisionNumber(value=self.value() + other,
-                                   error=self.error())
-        elif isinstance(other, int):
-            return PrecisionNumber(value=self.value() + float(other),
-                                   error=self.error())
-        elif isinstance(other, PrecisionNumber):
-            return PrecisionNumber(value=self.value() + other.value(),
-                                   error=self.error() + other.error())
-
-    def __radd__(self, other):
-        return self.__add__(other)
-
-    def __mul__(self, other):
-        if isinstance(other, float):
-            return PrecisionNumber(value=self.value() * other,
-                                   error=self.error() * other)
-        elif isinstance(other, int):
-            return PrecisionNumber(value=self.value() * float(other),
-                                   error=self.error() * float(other))
-        elif isinstance(other, PrecisionNumber):
-            new_err = self.value() * other.error() + self.error() * other.value() + self.error() * other.error()
-            return PrecisionNumber(value=self.value() * other.value(),
-                                   error=new_err)
-
-    def __rmul__(self, other):
-        return self.__mul__(other)
-
-    def __str__(self):
-        return '[' + str(self.value()) + ' +- ' + str(self.error()) + ']'
-
-    def __repr__(self):
-        return str(self)
-
-    def __eq__(self, other):
-        if isinstance(other, float):
-            return self.min() <= other <= self.max()
-        elif isinstance(other, int):
-            return self.__eq__(float(other))
-        elif isinstance(other, PrecisionNumber):
-            if self.max() >= other.min() and other.max() >= self.min():
-                return True
-            elif other.max() >= self.min() and self.max() >= other.min():
-                return True
-            else:
-                return False
-
-    @staticmethod
-    def fromTuple(t):
-        return PrecisionNumber(value=t[0], error=t[1])
+import uncertainties
 
 
 class NumEpsExpansion():
@@ -95,8 +27,10 @@ class NumEpsExpansion():
         self._elements = dict()
         for k in exp.keys():
             if isinstance(exp[k], list) or isinstance(exp[k], tuple):
-                self._elements[k] = PrecisionNumber.fromTuple(exp[k])
-            if isinstance(exp[k], PrecisionNumber):
+                #self._elements[k] = PrecisionNumber.fromTuple(exp[k])
+                self._elements[k] = uncertainties.ufloat(exp[k][0], exp[k][1])
+            #if isinstance(exp[k], PrecisionNumber):
+            else:
                 self._elements[k] = exp[k]
 
     def keys(self):
@@ -114,12 +48,13 @@ class NumEpsExpansion():
         if item in self.keys():
             return self._elements[item]
         else:
-            return PrecisionNumber(value=0.0)
+            #return PrecisionNumber(value=0.0)
+            return uncertainties.ufloat(0.0, 0.0)
 
     def __str__(self):
         result = ''
         for k in sorted(self.keys()):
-            result += 'eps^(' + str(k) + ')' + str(self[k]) + ' + '
+            result += 'eps^(' + str(k) + ')[' + str(self[k]) + '] + '
         if not self._precise:
             result += 'O[eps]^' + str(max(self.keys()) + 1) + '   '
         return result[:-3]
@@ -153,9 +88,11 @@ class NumEpsExpansion():
                 max_index = max(self.keys())
             else:
                 max_index = min(max(self.keys()), max(other.keys()))
+
             for k in ks:
                 if k <= max_index:
-                    res[k] = PrecisionNumber(value=0.0)
+                    #res[k] = PrecisionNumber(value=0.0)
+                    res[k] = uncertainties.ufloat(0.0, 0.0)
                     if k in self.keys():
                         res[k] += self[k]
                     if k in other.keys():
@@ -174,7 +111,8 @@ class NumEpsExpansion():
                 for k1 in self.keys():
                     for k2 in other.keys():
                         if k1 + k2 not in res.keys():
-                            res[k1 + k2] = PrecisionNumber(value=0)
+                            #res[k1 + k2] = PrecisionNumber(value=0)
+                            res[k1 + k2] = uncertainties.ufloat(0.0, 0.0)
                         res[k1 + k2] += self[k1] * other[k2]
             else:
                 if self._precise:
@@ -184,7 +122,8 @@ class NumEpsExpansion():
                 else:
                     length = min(max(self.keys()) - min(self.keys()), max(other.keys()) - min(other.keys())) + 1
                 ks = range(min(self.keys()) + min(other.keys()), min(self.keys()) + min(other.keys()) + length)
-                res = {k: PrecisionNumber(value=0) for k in ks}
+                #res = {k: PrecisionNumber(value=0) for k in ks}
+                res = {k: uncertainties.ufloat(0.0, 0.0) for k in ks}
                 for k1 in self.keys():
                     for k2 in other.keys():
                         if k1 + k2 in res.keys():
@@ -369,8 +308,8 @@ def cuba_calculate(expansion):
             f.close()
 
             #compiling external C program
-            compile = 'gcc -Wall -fopenmp -I' + wd + ' -o ' + binary + ' ' + source + ' -lm -lcuba -fopenmp'
-            subprocess.Popen([compile], shell=True, stderr=subprocess.PIPE).communicate()
+            cmpl = 'gcc -Wall -fopenmp -I' + wd + ' -o ' + binary + ' ' + source + ' -lm -lcuba -fopenmp'
+            subprocess.Popen([cmpl], shell=True, stderr=subprocess.PIPE).communicate()
 
             #running external C program
             integrate = subprocess.Popen([binary], env={'OMP_NUM_THREADS': '4', 'CUBAVERBOSE': '0'},
