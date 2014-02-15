@@ -338,7 +338,7 @@ def cuba_calculate(expansion):
     return NumEpsExpansion(result)
 
 
-def parallel_cuba_calculate(expansion):
+def parallel_cuba_calculate(expansion, parallel_processes=200):
     """
     :param expansion:
     :return:
@@ -368,7 +368,8 @@ def parallel_cuba_calculate(expansion):
 
     wd = os.path.expanduser("~") + '/.pole_extractor'
     source = wd + '/' + 'integrate.c'
-    map(lambda x: shutil.rmtree(x), [s for s in os.listdir(wd) if '.jbf' in s])
+
+    map(lambda x: shutil.rmtree(wd + '/' + x), [s for s in os.listdir(wd) if '.jbf' in s])
 
     sub_folder_names = []
     sources = []
@@ -382,7 +383,7 @@ def parallel_cuba_calculate(expansion):
     for k in expansion.keys():
         for i in range(0, len(expansion[k]), split_size):
 
-            sub_folder_names.append(wd + '/.jbf' + str(job_num).zfill(4))
+            sub_folder_names.append(wd + '/.jbf' + str(job_num).zfill(3))
             sources.append(sub_folder_names[job_num] + '/' + 'integrate.c')
             headers.append(sub_folder_names[job_num] + '/' + 'integrate.h')
             binaries.append(sub_folder_names[job_num] + '/' + 'integrate')
@@ -395,8 +396,10 @@ def parallel_cuba_calculate(expansion):
                                                       expansion[k][i:i + split_size], k, results)))
             job_num += 1
 
-    map(lambda x: x.start(), jobs)
-    map(lambda x: x.join(), jobs)
+    for i in range(0, len(jobs), parallel_processes):
+        map(lambda x: x.start(), jobs[i:i + parallel_processes])
+        map(lambda x: x.join(), jobs[i:i + parallel_processes])
+        map(lambda x: shutil.rmtree(x), sub_folder_names[i:i + parallel_processes])
 
     while not results.empty():
         (k, (out, err)) = results.get()
@@ -414,5 +417,4 @@ def parallel_cuba_calculate(expansion):
             print str(out)
             print str(err)
 
-    map(lambda x: shutil.rmtree(x), sub_folder_names)
     return NumEpsExpansion(result)
