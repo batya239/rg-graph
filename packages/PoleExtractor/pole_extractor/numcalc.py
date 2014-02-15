@@ -7,6 +7,7 @@ from sympy import mpmath
 import reduced_vl
 import itertools
 import uncertainties
+import shutil
 
 
 class NumEpsExpansion():
@@ -333,4 +334,79 @@ def cuba_calculate(expansion):
             os.remove(binary)
             os.remove(header)
 
+    return NumEpsExpansion(result)
+
+
+def parallel_cuba_calculate(expansion):
+    """
+    :param expansion:
+    :return:
+
+    not actually parallel yet.
+    """
+
+    def run_integration(src_name, h_name, bin_name, integrand):
+        f = open(h_name, 'w')
+        header_str = str_for_cuba(integrand)
+        f.write(header_str)
+        f.close()
+
+        #compiling external C program
+        cmpl = 'gcc -Wall -fopenmp -I' + wd + ' -o ' + bin_name + ' ' + src_name + ' -lm -lcuba -fopenmp'
+        subprocess.Popen([cmpl], shell=True, stderr=subprocess.PIPE).communicate()
+
+        #running external C program
+        integrate = subprocess.Popen([bin_name], env={'OMP_NUM_THREADS': '4', 'CUBAVERBOSE': '0'},
+                                     shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        out, err = integrate.communicate()
+
+        return out, err
+
+    result = dict()
+    split_size = 2
+
+    wd = os.path.expanduser("~") + '/.pole_extractor'
+    source = wd + '/' + 'integrate.c'
+    sub_folder_names = []
+    sources = []
+    headers = []
+    binaries = []
+    job_num = 0
+
+    jobs = []
+
+    for k in expansion.keys():
+        for i in range(0, len(expansion[k]), split_size):
+
+            sub_folder_names.append(wd + '/.j' + str(job_num))
+            sources.append(sub_folder_names[job_num] + '/' + 'integrate.c')
+            headers.append(sub_folder_names[job_num] + '/' + 'integrate.h')
+            binaries.append(sub_folder_names[job_num] + '/' + 'integrate')
+
+            os.mkdir(sub_folder_names[-1])
+            shutil.copy(source, sources[-1])
+
+            jobs.append((k, run_integration(sources[job_num], headers[job_num],
+                                            binaries[job_num], expansion[k][i:i + split_size])))
+            job_num += 1
+
+    for job in jobs:
+        k = job[0]
+        out, err = job[1]
+        m = out.split(' ', 2)
+        try:
+            r = float(m[0])
+            e = float(m[1])
+            if k in result.keys():
+                result[k][0] += r
+                result[k][1] += e
+            else:
+                result[k] = [r, e]
+        except ValueError:
+            print 'Something went wrong during integration. Here\'s what CUBA said:'
+            print str(out)
+            print str(err)
+
+    map(lambda x: shutil.rmtree(x), sub_folder_names)
     return NumEpsExpansion(result)
