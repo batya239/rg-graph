@@ -1,6 +1,7 @@
 __author__ = 'gleb'
 
 import graphine
+import time
 
 from pole_extractor import reduced_vl
 from pole_extractor import numcalc
@@ -56,11 +57,15 @@ def calculate_diagram(label, theory, max_eps, zero_momenta=True, verbose=1):
                 print "eps^{" + str(k) + "}: " + str(s[1][k])
 
     for e, s in zip(expansions, ss):
+        t = time.clock()
         sector_expansion1 = numcalc.cuba_calculate(e[1])
+        dt1 = time.clock() - t
+        t = time.clock()
         sector_expansion2 = numcalc.parallel_cuba_calculate(e[1])
+        dt2 = time.clock() - t
 
-        print '### ' + str(sector_expansion1)
-        print '### ' + str(sector_expansion2)
+        print str(dt1) + ' ### ' + str(sector_expansion1)
+        print str(dt2) + ' ### ' + str(sector_expansion2)
 
 
 need_p2 = utils.get_diagrams(tails=2, loops=2)

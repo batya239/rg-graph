@@ -175,7 +175,7 @@ def calculate_diagram(label, theory, max_eps, zero_momenta=True, verbose=1, forc
             i += 1
             print '\rcalculating ' + str(i) + ' sector of ' + str(len(expansions)) + '...',
 
-        sector_expansion = numcalc.cuba_calculate(e[1])
+        sector_expansion = numcalc.parallel_cuba_calculate(e[1])
         num_expansion += sector_expansion
 
         if 1 >= verbose > 0:

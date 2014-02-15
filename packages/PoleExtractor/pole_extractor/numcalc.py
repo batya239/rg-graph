@@ -8,6 +8,7 @@ import reduced_vl
 import itertools
 import uncertainties
 import shutil
+import multiprocessing
 
 
 class NumEpsExpansion():
@@ -177,7 +178,7 @@ class NumEpsExpansion():
             elif k not in e2.keys():
                 result_base[k] = e1[k]
             else:
-                if e1[k].error() < e2[k].error():
+                if e1[k].std_dev < e2[k].std_dev:
                     result_base[k] = e1[k]
                 else:
                     result_base[k] = e2[k]
@@ -345,7 +346,7 @@ def parallel_cuba_calculate(expansion):
     not actually parallel yet.
     """
 
-    def run_integration(src_name, h_name, bin_name, integrand):
+    def run_integration(src_name, h_name, bin_name, integrand, k, result):
         f = open(h_name, 'w')
         header_str = str_for_cuba(integrand)
         f.write(header_str)
@@ -360,26 +361,28 @@ def parallel_cuba_calculate(expansion):
                                      shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         out, err = integrate.communicate()
-
-        return out, err
+        result.put((k, (out, err)))
 
     result = dict()
     split_size = 2
 
     wd = os.path.expanduser("~") + '/.pole_extractor'
     source = wd + '/' + 'integrate.c'
+    map(lambda x: shutil.rmtree(x), [s for s in os.listdir(wd) if '.jbf' in s])
+
     sub_folder_names = []
     sources = []
     headers = []
     binaries = []
     job_num = 0
 
+    results = multiprocessing.Queue()
     jobs = []
 
     for k in expansion.keys():
         for i in range(0, len(expansion[k]), split_size):
 
-            sub_folder_names.append(wd + '/.j' + str(job_num))
+            sub_folder_names.append(wd + '/.jbf' + str(job_num).zfill(4))
             sources.append(sub_folder_names[job_num] + '/' + 'integrate.c')
             headers.append(sub_folder_names[job_num] + '/' + 'integrate.h')
             binaries.append(sub_folder_names[job_num] + '/' + 'integrate')
@@ -387,13 +390,16 @@ def parallel_cuba_calculate(expansion):
             os.mkdir(sub_folder_names[-1])
             shutil.copy(source, sources[-1])
 
-            jobs.append((k, run_integration(sources[job_num], headers[job_num],
-                                            binaries[job_num], expansion[k][i:i + split_size])))
+            jobs.append(multiprocessing.Process(target=run_integration,
+                                                args=(sources[job_num], headers[job_num], binaries[job_num],
+                                                      expansion[k][i:i + split_size], k, results)))
             job_num += 1
 
-    for job in jobs:
-        k = job[0]
-        out, err = job[1]
+    map(lambda x: x.start(), jobs)
+    map(lambda x: x.join(), jobs)
+
+    while not results.empty():
+        (k, (out, err)) = results.get()
         m = out.split(' ', 2)
         try:
             r = float(m[0])
