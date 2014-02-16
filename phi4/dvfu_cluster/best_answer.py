@@ -65,10 +65,10 @@ inPath = os.path.expanduser('~')+'/work/rg-graph/phi_4_d2_s2/archive_feynmanSDdo
 
 result = {}
 failed = 0
-spectrum = {'suave':0,'cuhre':0}
 
 ## Составляем список диаграмм
 dirs = [dir for dir in os.listdir(inPath) if os.path.isdir(os.path.join(inPath,dir))]
+spectrum = dict(map(lambda x: (x,[]), dirs))
  
 for dir in dirs:
         print dir+" :",
@@ -101,7 +101,7 @@ for dir in dirs:
         for d in sorted(numList.keys()):
             minErr = min(map(lambda x: (x[0].s,x[0].n,x[1]),numList[d]))
             ans += ufloat(minErr[1],minErr[0])
-            spectrum[minErr[2]] += 1
+            spectrum[dir] += [minErr[2]]
         #print ans
         ans = float(sympy.gamma(nloops(dir))/sym_coef(dir))*ans
         result.update({dir:[[ans.n],[ans.s]]})
