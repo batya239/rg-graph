@@ -59,8 +59,8 @@ def getLastLine(fd):
         return ''
 
 
-dumpFile = 'res_best_1.txt'
-#inPath = os.path.expanduser('~')+'/work/rg-graph/phi_4_d2_s2/feynmanSDdotSF_mpi'
+dumpFile = 'res_best_5loops.txt'
+#inPath = os.path.expanduser('~')+'/work/rg-graph/phi_4_d2_s2/6loops'
 inPath = os.path.expanduser('~')+'/work/rg-graph/phi_4_d2_s2/archive_feynmanSDdotS_mpi'
 
 result = {}
@@ -71,7 +71,7 @@ dirs = [dir for dir in os.listdir(inPath) if os.path.isdir(os.path.join(inPath,d
 spectrum = dict(map(lambda x: (x,[]), dirs))
  
 for dir in dirs:
-        print dir+" :",
+        #print dir+" :",
         files = [f for f in os.listdir(os.path.join(inPath,dir)) if f[:3] == 'out' ]
         ## Разбиваем на группы по номерам
         numList = {}
@@ -94,7 +94,7 @@ for dir in dirs:
                 print "No result for", f.split('/')[-1]
                 failed += 1
 
-        print numList
+        #print numList
         
         ## Выбираем для каждого кусочка лучший результат
         ans = ufloat(0.,0.)
@@ -105,10 +105,18 @@ for dir in dirs:
         #print ans
         ans = float(sympy.gamma(nloops(dir))/sym_coef(dir))*ans
         result.update({dir:[[ans.n],[ans.s]]})
-        print  ans
-#print result
-print "Failed:",failed
-print spectrum
+        #print  ans
+print result
+#print "Failed:",failed
+#print spectrum
+
+sp = {'cuhre':0, 'suave':0}
+for k,v in spectrum.items():
+    print k, v
+    for i in v:
+        sp[i] += 1
+print sp
+
 fd = open(dumpFile,'w')
 fd.write(str(result))
 fd.close()

@@ -7,7 +7,7 @@
 EpsRel = '1e-8'
 EpsAbs = '1e-12'
 MaxPoints = '50000000'
-Method  = 'suave' ## one of: 'vegas', 'suave', 'divonne', 'cuhre'
+Method  = 'cuhre' ## one of: 'vegas', 'suave', 'divonne', 'cuhre'
 
 def method_num(method):
     if method   == 'vegas': return '0'
