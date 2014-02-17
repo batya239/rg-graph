@@ -383,7 +383,7 @@ def parallel_cuba_calculate(expansion, parallel_processes=200):
     for k in expansion.keys():
         for i in range(0, len(expansion[k]), split_size):
 
-            sub_folder_names.append(wd + '/.jbf' + str(job_num).zfill(3))
+            sub_folder_names.append(wd + '/.jbf' + str(job_num).zfill(5))
             sources.append(sub_folder_names[job_num] + '/' + 'integrate.c')
             headers.append(sub_folder_names[job_num] + '/' + 'integrate.h')
             binaries.append(sub_folder_names[job_num] + '/' + 'integrate')
