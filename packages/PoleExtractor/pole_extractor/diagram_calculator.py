@@ -136,6 +136,11 @@ def calculate_diagram(label, theory, max_eps, zero_momenta=True, verbose=1, forc
     if verbose > 1:
         print "Reduced v-loop: " + str(rvl)
 
+    gamma_coef = numcalc.NumEpsExpansion.gammaCoefficient(rvl,
+                                                          theory=theory,
+                                                          max_index=10)
+    to_index = max_eps - min(gamma_coef.keys())
+
     fi = feynman.FeynmanIntegrand.fromRVL(rvl, theory)
     if verbose > 0:
         print "Feynman integrand:\n" + str(fi)
@@ -160,7 +165,7 @@ def calculate_diagram(label, theory, max_eps, zero_momenta=True, verbose=1, forc
         for s in sector_expressions:
             print "{" + str(s[0][0]) + " * " + str(s[0][1]) + "}->\n" + str(s[1])
 
-    expansions = map(lambda x: (x[0], expansion.extract_poles(x[1]._integrand, max_eps)), sector_expressions)
+    expansions = map(lambda x: (x[0], expansion.extract_poles(x[1]._integrand, to_index)), sector_expressions)
     if verbose > 2:
         print "Analytical continuations:"
         for s in expansions:
@@ -168,7 +173,7 @@ def calculate_diagram(label, theory, max_eps, zero_momenta=True, verbose=1, forc
             for k in sorted(s[1].keys()):
                 print "eps^{" + str(k) + "}: " + str(s[1][k])
 
-    num_expansion = numcalc.NumEpsExpansion({k: [0.0, 0.0] for k in range(max_eps + 1)}, precise=True)
+    num_expansion = numcalc.NumEpsExpansion({k: [0.0, 0.0] for k in range(to_index + 1)}, precise=True)
     i = 0
     for e, s in zip(expansions, ss):
         if 1 >= verbose > 0:
@@ -187,9 +192,6 @@ def calculate_diagram(label, theory, max_eps, zero_momenta=True, verbose=1, forc
     elif verbose > 1:
         print "Result of numerical integration:\n" + str(num_expansion)
 
-    gamma_coef = numcalc.NumEpsExpansion.gammaCoefficient(rvl,
-                                                          theory=theory,
-                                                          max_index=max_eps)
     result = num_expansion * gamma_coef
 
     if verbose > 0:
