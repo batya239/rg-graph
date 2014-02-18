@@ -108,8 +108,8 @@ def pole_part(expr):
 #noinspection PyPep8Naming
 def G(alpha, beta, d=D):
     if alpha == 1 and beta == 1:
-        return 1 / e
-    return _raw_g(alpha, beta, d=d) / _g11(d=d)
+        return (1 / e) * _get_raw_g_pole(d=d)
+    return _raw_g(alpha, beta, d=d) / (_g11(d=d)) * _get_raw_g_pole(d=d)
 
 
 #noinspection PyPep8Naming
@@ -122,6 +122,30 @@ def G2(alpha, beta, d=D):
     return (G(alpha, beta, d=d) - G(alpha - 1, beta, d=d) - G(alpha, beta - 1, d=d))/2
 
 
+_RAW_G_POLE = dict()
+_G_11 = dict()
+
+
+class IsEqualWrapper(object):
+    def __init__(self, underlying):
+        self.underlying = underlying
+
+    def __hash__(self):
+        return hash(self.underlying)
+
+    def __eq__(self, other):
+        return self.underlying.is_equal(other.underlying)
+
+
+def _get_raw_g_pole(d=D):
+    wrapper = IsEqualWrapper(d)
+    pole = _RAW_G_POLE.get(wrapper)
+    if pole is None:
+        pole = series(_raw_g(1, 1, d=d), e, 0, 0).coeff(e**(-1))
+        _RAW_G_POLE[wrapper] = pole
+    return pole
+
+
 def _raw_g(alpha, beta, d=D):
     #noinspection PyUnresolvedReferences
     if (alpha + zero).is_equal(zero) or (beta + zero).is_equal(zero) \
@@ -132,7 +156,12 @@ def _raw_g(alpha, beta, d=D):
 
 
 def _g11(d=D):
-    return _raw_g(1, 1, d=d) * e
+    wrapper = IsEqualWrapper(d)
+    g11 = _G_11.get(wrapper, None)
+    if g11 is None:
+        g11 = _raw_g(1, 1, d=d) * e
+        _G_11[wrapper] = g11
+    return g11
 
 
 def check_series_equal_numerically(series1, series2, var, eps, test_class=None):
