@@ -25,7 +25,7 @@ Z3_new = {0: (1, 0)}
 
 def saveSeriesToFile(s,fd):
     """"
-    save series s to file descriptor fd as variable v
+    save series s to file descriptor fd
     """
     f = open(fd,'a')
     data = dict(map(lambda (k,v): [k,str(v)],s.gSeries.items()))
@@ -88,7 +88,7 @@ if __name__ == "__main__":
         gStar = Series(n=i + 1, d=(tau - tmp.subs(gStar)).gSeries, name='τ')#.series(tau, 0, i + 1).removeO()
 
     print "g*(τ) = ", gStar
-    """
+    
     #gStarS = tau + 0.716173621 * tau**2 + 0.095042867 * tau**3 + 0.086080396 * tau ** 4 - 0.204139 * tau ** 5
     gStarS = Series(n=6, d={1: 1, 2: 0.716173621, 3: 0.095042867, 4: 0.086080396, 5: -0.204139}, name='τ')
     print "\ng*_S = ", gStarS
@@ -101,4 +101,4 @@ if __name__ == "__main__":
     #etaStarGS = eta.subs(g, gStarS).series(tau, 0, r4Loops + 1)
     etaStarGS = eta.subs(gStarS)
     print "\nη*_GS = ", etaStarGS
-    """
+    
