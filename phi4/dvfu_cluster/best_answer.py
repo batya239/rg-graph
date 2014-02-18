@@ -4,7 +4,7 @@
 ## Ищем в папке лучший ответ
 ## (т.е. с мин. абс. погрешностью)
 
-import os
+import os, sys
 from uncertainties import ufloat
 import sympy, graphine, graph_state
 
@@ -59,15 +59,19 @@ def getLastLine(fd):
         return ''
 
 
-dumpFile = 'res_best_5loops.txt'
+dumpFile = 'res_best_6loops.txt'
 #inPath = os.path.expanduser('~')+'/work/rg-graph/phi_4_d2_s2/6loops'
-inPath = os.path.expanduser('~')+'/work/rg-graph/phi_4_d2_s2/archive_feynmanSDdotS_mpi'
+#inPath = os.path.expanduser('~')+'/work/rg-graph/phi_4_d2_s2/archive_feynmanSDdotS_mpi'
+inPath = os.path.expanduser('~')+'/work/rg-graph/phi_4_d2_s2/all_diags_6_5'
 
 result = {}
 failed = 0
 
 ## Составляем список диаграмм
-dirs = [dir for dir in os.listdir(inPath) if os.path.isdir(os.path.join(inPath,dir))]
+try:
+    dirs = [sys.argv[1]]
+except:
+    dirs = [dir for dir in os.listdir(inPath) if os.path.isdir(os.path.join(inPath,dir))]
 spectrum = dict(map(lambda x: (x,[]), dirs))
  
 for dir in dirs:
