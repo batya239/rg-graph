@@ -93,7 +93,7 @@ def safe_integer_numerators(expression_as_str):
 def safe_integer_numerators_strong(expression_as_str):
     result = re.sub('([\(\+\*-/])([\d]+)([\)\+\*-/])', '\\1swiginac.numeric(\'\\2\')\\3', expression_as_str)
     result = re.sub('([\(\+\*-/])([\d]+)', '\\1swiginac.numeric(\'\\2\')', result)
-    result = re.sub('([\d]+)([\(\+\*-/])', 'swiginac.numeric(\'\\1\')\\2', result)
+    result = re.sub('^([\d]+)([\(\+\*-/])', 'swiginac.numeric(\'\\1\')\\2', result)
     return result
 
 
