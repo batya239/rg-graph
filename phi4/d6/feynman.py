@@ -3,13 +3,18 @@
 __author__ = 'mkompan'
 
 import sys
+
 import graphine
+from reduction import reductor, sector, THREE_LOOP_REDUCTOR
+from rggraphenv import symbolic_functions
+
 import conserv
 import comb
 import d6
 from graph_state_builder_static import gs_builder
-from reduction import reductor, sector, THREE_LOOP_REDUCTOR
-from rggraphenv import symbolic_functions
+from two_and_three_loop_d6 import THREE_LOOP_REDUCTOR_D6
+
+
 e = symbolic_functions.e
 
 def xindex():
@@ -33,6 +38,7 @@ def gen_static_d(graph):
         for c in conservations:
             if c & i_set == c:
                 valid = False
+
                 break
         if valid:
             res.append(i)
@@ -74,35 +80,6 @@ def d6_reduction(graph_sector, det, d6_reductor):
     return ans
 
 
-G = symbolic_functions.G
-# d=6-2e
-l = 2 - symbolic_functions.e
-
-THREE_LOOP_REDUCTOR_D6 = reductor.Reductor("loop3",
-                               "loop3D6",
-                               [graphine.Graph.fromStr("e12|34|35|4|5|e|"),
-                                graphine.Graph.fromStr("e12|34|34|5|5|e|"),
-                                graphine.Graph.fromStr("e12|23|4|45|5|e|")],
-                               3,
-                               {graphine.Graph.fromStr("e12|34|34|5|5|e|"):
-                                    symbolic_functions.evaluate(
-                                        "Order(e**-5)"),
-                                graphine.Graph.fromStr("e11|22|33|e|"): G(1, 1) ** 3,
-                                graphine.Graph.fromStr("e112|22|e|"): G(1, 1) * G(1, 1) * G(2 - 2 * l, 1),
-                                graphine.Graph.fromStr("e11|222|e|"): G(1, 1) * G(1, 1) * G(1 - l, 1),
-                                graphine.Graph.fromStr("e1111|e|"): G(1, 1) * G(1 - l, 1) * G(1 - 2 * l, 1),
-                                graphine.Graph.fromStr("e12|223|3|e|"):
-                                    symbolic_functions.evaluate("1/1296*e**(-3)+7/15552*e**(-2)+313817/62208*e**(-1)"
-                                                                "+(15150437/414720+7/648*zeta(3))+(14441330803/74649600"
-                                                                "+49/7776*zeta(3)+7/38880*Pi**4)*e+(4071059940119/4478976000"
-                                                                "-3450385/31104*zeta(3)+7/24*zeta(5)+49/466560*Pi**4)*e**2"
-                                                                "+(1081922417840587/268738560000-113/648*zeta(3)**2"
-                                                                "-166621117/207360*zeta(3)+49/288*zeta(5)+13/17496*Pi**6"
-                                                                "-690077/373248*Pi**4)*e**3+(278092698777237551/16124313600000"
-                                                                "-791/7776*zeta(3)**2-158835899483/37324800*zeta(3)"
-                                                                "-150985/128*zeta(5)+91/209952*Pi**6+245/54*zeta(7)"
-                                                                "-166621117/12441600*Pi**4-113/19440*zeta(3)*Pi**4)*e**4"
-                                                                "+Order(e**5)")})
 
 
 
@@ -125,8 +102,6 @@ print "ans", ans
 
 other = 0
 for i,j in  ans._final_sector_linear_combinations._sectors_to_coefficient.items():
-
-    print i, j
     print i, j, ans._masters[i]
     if i == graph_sector:
         A = j
