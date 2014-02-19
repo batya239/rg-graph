@@ -6,7 +6,6 @@ __author__ = 'mkompan'
 
 import sympy
 import scipy.integrate as integrate
-import math
 import matplotlib.pyplot as plt
 import numpy as np
 

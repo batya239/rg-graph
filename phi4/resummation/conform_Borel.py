@@ -8,6 +8,8 @@ from math import sqrt, exp
 from numpy import inf
 import scipy.integrate as integrate
 from uncertSeries import Series
+import matplotlib.pyplot as plt
+
 
 eps = 0.5  # d = 3
 #eps = 1.0  # d = 2
@@ -30,19 +32,40 @@ def conformBorel(coeffs, eps, b = 2.5,):
     return [U[k]*integrate.quad(func, 0., inf, args=(a, b, k, eps), limit=100)[0] for k in range(len(U)) ]
 
 
+def plot(coeffs):
+    """
+    Plot resummed function f(L), where L -- number of loops
+    """
+    n = len(coeffs)
+    plt.clf()
+    L = range(2,n)
+    coeffs_by_loops = [coeffs[:k] for k in L]
+    points = [conformBorel(c,eps) for c in coeffs_by_loops]
+    plt.plot(L, points)
+    title = 'test'
+    plt.title(title)
+    plt.legend(['b = 2.5'], loc = "lower left")
+    plt.grid(True)
+    #plt.ylim(-10,10)
+    plt.savefig('pic_1.pdf')
+
 if __name__ == "__main__":
-    import Vladimirov_et_all_1984, Kleinert_book
-
-
-    print "Vladimirov:\teta =", sum(conformBorel(Vladimirov_et_all_1984.eta(1), eps))
-    print "Kleinert:\teta =", sum(conformBorel(Kleinert_book.eta(1), eps))
+    #import Vladimirov_et_all_1984, Kleinert_book
+    #print "Vladimirov:\teta =", sum(conformBorel(Vladimirov_et_all_1984.eta(1), eps))
+    #print "Kleinert:\teta =", sum(conformBorel(Kleinert_book.eta(1), eps))
     #print conformBorel(Kleinert_book.eta(1), eps)
     #print "\nTest (Kleinert 17.16):\teta =", sum(conformBorel([0, 0, 0.0185, 0.0187, -0.0083, 0.0257], eps * 2))
 
-    ## TODO: брать из rg_nikel.py
     L2, L4 = 5, 6
-    beta = [0, -1.0, 1.0, -0.71617362, + 0.930764, -1.582398, 3.260219] ## NB: in fact it's beta/2
-    eta_g = [0., 0., 0.033966148, -0.00202253, 0.01139321, -0.0137366, 0.028233]
+    Z2   = eval(open('Z2.txt').read())
+    Z3   = eval(open('Z3.txt').read())
+    beta = eval(open('beta.txt').read())
+    eta_g= eval(open('eta.txt').read())
+
+    beta = map(lambda x: x.n, beta.gSeries.values())
+    eta_g= map(lambda x: x.n,eta_g.gSeries.values())
+    #beta = [0, -1.0, 1.0, -0.71617362, + 0.930764, -1.582398, 3.260219] ## NB: in fact it's beta/2
+    #eta_g = [0., 0., 0.033966148, -0.00202253, 0.01139321, -0.0137366, 0.028233]
     #Z2 = [1, 0, -0.0084915370, -0.005323936, -0.002340342, -0.00135597, -0.0003502]
     #Z3 = [1, 1.0, 0.624930113, 0.4470878, 0.1735522, 0.283165]
     beta = beta[:L4 + 2]
@@ -67,9 +90,6 @@ if __name__ == "__main__":
     print len(eta_g), "η(g)/2 =", eta_g
 
 
-    Z2   = eval(open('Z2.txt').read())
-    Z3   = eval(open('Z3.txt').read())
-    beta = eval(open('beta.txt').read())
 
     gamma2 = beta*Z2.diff()/Z2
     gamma4 = beta*Z3.diff()/Z3
