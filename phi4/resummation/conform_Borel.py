@@ -40,11 +40,11 @@ def plot(coeffs):
     plt.clf()
     L = range(2,n)
     coeffs_by_loops = [coeffs[:k] for k in L]
-    points = [conformBorel(c,eps) for c in coeffs_by_loops]
+    points = [sum(conformBorel(c,eps)) for c in coeffs_by_loops]
     plt.plot(L, points)
     title = 'test'
     plt.title(title)
-    plt.legend(['b = 2.5'], loc = "lower left")
+    plt.legend(['b = 2.5'], loc = "lower right")
     plt.grid(True)
     #plt.ylim(-10,10)
     plt.savefig('pic_1.pdf')
@@ -88,9 +88,10 @@ if __name__ == "__main__":
     print "η(g*) =", sum(conformBorel(eta_g, gStar))
     print len(beta), "β(g)/2 =", beta
     print len(eta_g), "η(g)/2 =", eta_g
+    plot(eta_g)
 
-
-
+    # FIXME
+    """
     gamma2 = beta*Z2.diff()/Z2
     gamma4 = beta*Z3.diff()/Z3
     f2 = gamma2/(Series(6,{0:(2,0)})-gamma2)
@@ -133,4 +134,4 @@ if __name__ == "__main__":
         print _f2, _f4
         print "f2(g*) =", sum(conformBorel(_f2, gStar, b2))
         print "f4(g*) =", sum(conformBorel(_f4, gStar, b4))
-
+    """
