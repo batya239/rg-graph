@@ -3,7 +3,6 @@
 import os
 
 import conserv
-import dynamics
 
 __author__ = 'mkompan'
 
