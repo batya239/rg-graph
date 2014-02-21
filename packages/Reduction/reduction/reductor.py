@@ -7,7 +7,7 @@ import rggraphutil
 __author__ = 'dimas'
 
 import os
-from rggraphutil import ref
+from rggraphutil import ref, VariableAwareNumber
 from rggraphenv import abstract_graph_calculator
 import graphine
 
@@ -53,7 +53,7 @@ class RuleNotFoundException(BaseException):
 def _enumerated_graph_as_sector(g, initial_propagators_len):
     raw_sector = [0] * initial_propagators_len
     for e in g.internalEdges():
-        raw_sector[e.colors[0]] = 1
+        raw_sector[e.weight[0]] = 1
     return sector.Sector(raw_sector)
 
 
@@ -62,21 +62,21 @@ def _enumerate_graph(graph, init_propagators, to_sector=True, only_one_result=Fa
     propagators - iterable of tuples (1, 0, -1) = q - k2
 
     to_sector = True => return sector.Sector
-    to_sector = False => return graphine.Graph with corresponding colors
+    to_sector = False => return graphine.Graph with corresponding weight
     """
 
     empty_color = graph_state.Rainbow(("EMPTY",))
-    def init_colors(graph, zeroColor=graph_state.Rainbow((0, 0)), unitColor=graph_state.Rainbow((1, 0))):
+    def init_weight(graph, zeroColor=graph_state.Rainbow((0, 0)), unitColor=graph_state.Rainbow((1, 0))):
         edges = graph.allEdges()
         initedEdges = list()
         for e in edges:
-            if e.colors is None:
-                color = zeroColor if graph.externalVertex in e.nodes else unitColor
-                initedEdges.append(graph_state.Edge(e.nodes, graph.externalVertex, colors=color))
+            if e.weight is None:
+                color = zeroColor if graph.external_vertex in e.nodes else unitColor
+                initedEdges.append(graph_state.Edge(e.nodes, graph.external_vertex, colors=color))
             else:
                 initedEdges.append(e)
-        return graphine.Graph(initedEdges, externalVertex=graph.externalVertex, renumbering=False)
-    graph = init_colors(graph, empty_color, empty_color)
+        return graphine.Graph(initedEdges, external_vertex=graph.external_vertex, renumbering=False)
+    graph = init_weight(graph, empty_color, empty_color)
 
     neg_init_propagators = dict()
     for p in init_propagators.values():
@@ -89,12 +89,12 @@ def _enumerate_graph(graph, init_propagators, to_sector=True, only_one_result=Fa
         propagator_indices[neg_init_propagators[p[1]]] = p[0]
 
     momentum_count = len(init_propagators.values()[0])
-    external_vertex = graph.externalVertex
+    external_vertex = graph.external_vertex
     graph_vertices = graph.vertices()
 
     def _enumerate_next_vertex(remaining_propagators, _graph, vertex, result):
         if vertex not in graph_vertices:
-            new_edges = map(lambda e_: e_.copy(colors=graph_state.Rainbow((propagator_indices[e_.colors.colors], e_.colors)) if len(e_.internal_nodes) == 2 else None),
+            new_edges = map(lambda e_: e_.copy(color=graph_state.Rainbow((propagator_indices[e_.weight.weight], e_.weight)) if len(e_.internal_nodes) == 2 else None),
                             _graph.allEdges())
             result.add(graphine.Graph(new_edges, external_vertex, renumbering=False))
             if only_one_result:
@@ -103,7 +103,7 @@ def _enumerate_graph(graph, init_propagators, to_sector=True, only_one_result=Fa
         vertex_known_factor = [0] * momentum_count
         not_enumerated = list()
         for e in _graph.edges(vertex):
-            if e.colors is not empty_color:
+            if e.weight is not empty_color:
                 for i in xrange(momentum_count):
                     if vertex == e.nodes[0]:
                         vertex_known_factor[i] += e.colors[i]
@@ -137,7 +137,7 @@ def _enumerate_graph(graph, init_propagators, to_sector=True, only_one_result=Fa
                         new_edges = copy.copy(_graph.allEdges())
                         new_edges.remove(not_enumerated[0])
                         new_edges.append(not_enumerated[0].copy(colors=graph_state.Rainbow(propagator)))
-                        new_graph = graphine.Graph(new_edges, externalVertex=external_vertex, renumbering=False)
+                        new_graph = graphine.Graph(new_edges, external_vertex=external_vertex, renumbering=False)
                         _enumerate_next_vertex(new_remaining_propagators, new_graph, vertex + 1, result)
                 else:
                     new_remaining_propagators = copy.copy(remaining_propagators)
@@ -145,7 +145,7 @@ def _enumerate_graph(graph, init_propagators, to_sector=True, only_one_result=Fa
                     new_edges = copy.copy(_graph.allEdges())
                     new_edges.remove(not_enumerated[0])
                     new_edges.append(not_enumerated[0].copy(colors=graph_state.Rainbow(propagator)))
-                    new_graph = graphine.Graph(new_edges, externalVertex=external_vertex, renumbering=False)
+                    new_graph = graphine.Graph(new_edges, external_vertex=external_vertex, renumbering=False)
                     _enumerate_next_vertex(new_remaining_propagators, new_graph, vertex, result)
 
     _result = set()
@@ -316,7 +316,7 @@ class Reductor(object):
         if graph.getLoopsCount() != self._main_loop_count_condition:
             return False
         for e in graph.allEdges():
-            if e.colors[1] != 0:
+            if e.weight.b != 0:
                 return False
         return True
 
@@ -512,12 +512,12 @@ class Reductor(object):
     @staticmethod
     def as_internal_graph(graph):
         new_edges = list()
-        if graph.getGraphStatePropertiesConfig() is graph_state.COLORS_ARROW_AND_MARKER_PROPERTIES_CONFIG:
+        if graph.getGraphStatePropertiesConfig() is graph_state.WEIGHT_ARROW_AND_MARKER_PROPERTIES_CONFIG:
             return graph
         for e in graph.allEdges(nickel_ordering=True):
-            colors = graph_state.Rainbow((1, 0)) if e.colors is None else e.colors
+            weight = graph_state.Rainbow((1, 0)) if e.weight is None else e.weight
             arrow = graph_state.Arrow(graph_state.Arrow.NULL) if e.arrow is None else e.arrow
-            new_edges.append(graph_state.COLORS_ARROW_AND_MARKER_PROPERTIES_CONFIG.new_edge(e.nodes, colors=colors, arrow=arrow, marker=e.marker))
+            new_edges.append(graph_state.WEIGHT_ARROW_AND_MARKER_PROPERTIES_CONFIG.new_edge(e.nodes, weight=weight, arrow=arrow, marker=e.marker))
         return graphine.Graph(new_edges)
 
 

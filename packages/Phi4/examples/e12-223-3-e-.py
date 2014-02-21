@@ -4,6 +4,9 @@ __author__ = 'mkompan'
 import swiginac
 from phi4.symbolic_functions import e, l, series, G
 
+
+import multiprocessing
+
 gamma = swiginac.tgamma
 euler = swiginac.Euler
 pi = swiginac.Pi

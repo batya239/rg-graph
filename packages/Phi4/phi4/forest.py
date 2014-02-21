@@ -10,36 +10,31 @@ import r
 import graphine
 import ir_uv
 import graph_state
+import inject
+import const
 
 
 DEBUG = False
 
 
-def Delta_IR(co_sub_graph,
-             graph,
-             k_operation,
-             uv_sub_graph_filter,
-             description="", use_graph_calculator=True):
+def delta_ir(co_sub_graph, graph, r_operator):
     """
     stupid algorithm
     """
     delta_ir = 0
-    for forest in _generate_forests(co_sub_graph, graph):
+    for forest in _generate_forests(co_sub_graph, graph, r_operator):
         if DEBUG:
             print "\tFOREST gamma =", co_sub_graph.getPresentableStr(), \
                 ", graph =",  graph.getPresentableStr(), \
                 ", forest =", map(lambda f: f.getPresentableStr(), forest)
-        delta_ir += _calculate_delta_ir(forest, co_sub_graph, graph,
-                                        k_operation, uv_sub_graph_filter,
-                                        description=description,
-                                        use_graph_calculator=use_graph_calculator)
+        delta_ir += _calculate_delta_ir(forest, co_sub_graph, graph, r_operator)
     return delta_ir
 
 
-def _generate_forests(co_sub_graph, graph):
+def _generate_forests(co_sub_graph, graph, r_operator):
     forests = list()
     forests.append([])
-    forest_generators = [x for x in _x_generate_forests(graph, co_sub_graph)]
+    forest_generators = [x for x in _x_generate_forests(graph, co_sub_graph, r_operator)]
     for i in xrange(1, len(forest_generators) + 1):
         for comb in itertools.combinations(forest_generators, i):
             forest = _try_create_forest(comb)
@@ -51,24 +46,16 @@ def _generate_forests(co_sub_graph, graph):
 def _calculate_delta_ir(forest,
                         co_sub_graph,
                         graph,
-                        k_operation,
-                        uv_sub_graph_filter,
-                        description="",
-                        use_graph_calculator=True):
+                        r_operator):
     forest_extension = [co_sub_graph] + forest
     sign = -1 if len(forest_extension) % 2 == 0 else 1
     f = forest_extension.pop()
-    delta_ir = sign * r.KRStar(_remove_tails(graph.shrinkToPoint(f.allEdges())), k_operation, uv_sub_graph_filter,
-                               description=description,
-                               use_graph_calculator=use_graph_calculator)
+    delta_ir = sign * r_operator.kr_star(_remove_tails(graph.shrinkToPoint(f.allEdges())))
     if len(forest_extension):
         prev_f = f
         while len(forest_extension):
             curr_f = forest_extension.pop()
-            delta_ir *= (-1) * r.KRStar(_remove_tails(prev_f.shrinkToPoint(curr_f.allEdges())),
-                                        k_operation, uv_sub_graph_filter,
-                                        description=description,
-                                        use_graph_calculator=use_graph_calculator)
+            delta_ir *= (-1) * r_operator.kr_star(_remove_tails(prev_f.shrinkToPoint(curr_f.allEdges())))
             prev_f = curr_f
     return delta_ir
 
@@ -101,7 +88,7 @@ class UnComparableException(BaseException):
 UN_COMPARABLE_EXCEPTION = UnComparableException()
 
 
-def _x_generate_forests(graph, co_sub_graph):
+def _x_generate_forests(graph, co_sub_graph, r_operator):
 
     # noinspection PyUnusedLocal
     @filters.graphFilter
@@ -112,7 +99,7 @@ def _x_generate_forests(graph, co_sub_graph):
                and len(co_sub_graph.allEdges()) + 1 != len(maybe_spinney_generator.allEdges()) \
                and len(maybe_spinney_generator.allEdges()) + 1 != len(_super_graph_edges)
     return graph.xRelevantSubGraphs(filters.oneIrreducible +
-                                    filters.isRelevant(ir_uv.UV_RELEVANCE_CONDITION_4_DIM) +
+                                    r_operator.uv_filter +
                                     superGraphFilter,
                                     cutEdgesToExternal=False,
                                     resultRepresentator=graphine.Representator.asGraph)
@@ -124,6 +111,6 @@ def _remove_tails(graph):
     for v in with_deleted.vertices():
         edges_len = len(with_deleted.edges(v))
         if edges_len != 4:
-            to_add += map(lambda i: graph_state.Edge((v, -1), colors=(0, 0)), xrange(4 - edges_len))
+            to_add += map(lambda i: graph_state.Edge((v, graph.external_vertex), weight=const.ZERO_WEIGHT), xrange(4 - edges_len))
     return with_deleted.addEdges(to_add)
 

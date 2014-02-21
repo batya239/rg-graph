@@ -5,10 +5,19 @@ import itertools
 __author__ = 'daddy-bear'
 
 
+def eps_number(number):
+    return VariableAwareNumber.create("e", number)
+
+
+def lambda_number(number):
+    return VariableAwareNumber.create("l", number)
+
+
 class VariableAwareNumber:
     def __init__(self, varName, a, b=0):
         """Represents expression in form: a + varName*b
         """
+        assert isinstance(varName, str)
         self._a = a
         self._b = b
         self._varName = varName
@@ -51,6 +60,9 @@ class VariableAwareNumber:
     def varName(self):
         return self._varName
 
+    def subs(self, variable):
+        return self._a + variable * self._b
+
     def multiplyOnInt(self, other):
         if isinstance(other, int):
             return VariableAwareNumber(self.varName, self.a * other, self.b * other)
@@ -62,18 +74,21 @@ class VariableAwareNumber:
         return self.b == 0
 
     def __add__(self, other):
-        if isinstance(other, int):
-            return VariableAwareNumber(self.varName, self.a + other, self.b)
-        else:
-            return VariableAwareNumber(self.varName, self.a + other.a, self.b + other.b)
+        return self._do_add_or_sub(other, 1)
 
     __radd__ = __add__
 
     def __sub__(self, other):
+        return self._do_add_or_sub(other, -1)
+
+    def _do_add_or_sub(self, other, sign):
+        if isinstance(other, tuple):
+            assert len(other) == 2
+            return VariableAwareNumber(self.varName, self.a + sign * other[0], self.b + sign * other[1])
         if isinstance(other, int):
-            return VariableAwareNumber(self.varName, self.a - other, self.b)
+            return VariableAwareNumber(self.varName, self.a + sign * other, self.b)
         else:
-            return VariableAwareNumber(self.varName, self.a - other.a, self.b - other.b)
+            return VariableAwareNumber(self.varName, self.a + sign * other.a, self.b + sign * other.b)
 
     def __neg__(self):
         return VariableAwareNumber(self.varName, -self.a, -self.b)

@@ -19,12 +19,5 @@ class GraphStorageAwareTestCase(unittest.TestCase):
         t = time.time() - self.startTime
         print "TIME - %s: %.3f" % (self.id(), t)
 
-    @classmethod
-    def setUpClass(cls):
-        GraphStorageAwareTestCase.TIME = time.time()
 
-    @classmethod
-    def tearDownClass(cls):
-        t = time.time() - GraphStorageAwareTestCase.TIME
-        print "SUMMARY TIME : %.3f" % t
 

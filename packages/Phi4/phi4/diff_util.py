@@ -11,11 +11,17 @@ __author__ = 'dima'
 from rggraphenv import symbolic_functions
 import itertools
 import const
+import graphine
+import inject
 
-D = const.SPACE_DIM_PHI4 - 2 * symbolic_functions.e
 
-C1 = const.SPACE_DIM_PHI4 / D
-C2 = (const.SPACE_DIM_PHI4 - D) / D
+def c1():
+    return inject.instance("space_dimension") / inject.instance("dimension")
+
+
+def c2():
+    d = inject.instance("dimension")
+    return (inject.instance("space_dimension") - d) / d
 
 
 def combinations_with_replacement(iterable, r):
@@ -43,7 +49,7 @@ def _find_minimal_external_momentum_passing(graph):
     """
     BFS
     """
-    external_edges = graph.edges(graph.externalVertex)
+    external_edges = graph.edges(graph.external_vertex)
     start_vertex = external_edges[0].internal_nodes[0]
     target_vertex = external_edges[1].internal_nodes[0]
     queue = [start_vertex]
@@ -80,12 +86,12 @@ def _do_diff(graph, old_graph, comb):
         all_edges.remove(edge)
         new_vertex = old_graph.createVertexIndex()
         all_edges.append(graph_util.new_edge((edge.nodes[0], new_vertex),
-                                             colors=const.ONE_LINE_WEIGHT,
-                                             external_node=graph.externalVertex))
+                                             weight=const.UNIT_WEIGHT,
+                                             external_node=graph.external_vertex))
         all_edges.append(graph_util.new_edge((edge.nodes[1], new_vertex),
-                                             colors=const.ONE_LINE_WEIGHT,
-                                             external_node=graph.externalVertex))
-        return C2, graphine.Graph(all_edges, externalVertex=graph.externalVertex, renumbering=False)
+                                             weight=const.UNIT_WEIGHT,
+                                             external_node=graph.external_vertex))
+        return c2(), graphine.Graph(all_edges, external_vertex=graph.external_vertex, renumbering=False)
     else:
         #
         # d_xi
@@ -97,27 +103,23 @@ def _do_diff(graph, old_graph, comb):
             new_vertex = graph.createVertexIndex()
             numerator = graph_state.Arrow(graph_state.Arrow.LEFT_ARROW if comb[1] else graph_state.Arrow.RIGHT_ARROW)
             new_edge1 = graph_util.new_edge((edge.nodes[0], new_vertex),
-                                            external_node=graph.externalVertex,
-                                            colors=const.ONE_LINE_WEIGHT,
+                                            external_node=graph.external_vertex,
+                                            weight=const.UNIT_WEIGHT,
                                             arrow=numerator,
                                             marker=const.MARKER_1)
             new_edge2 = graph_util.new_edge((edge.nodes[1], new_vertex),
-                                            colors=const.ONE_LINE_WEIGHT,
-                                            external_node=graph.externalVertex,
+                                            weight=const.UNIT_WEIGHT,
+                                            external_node=graph.external_vertex,
                                             marker=const.MARKER_1)
             all_edges.append(new_edge1)
             all_edges.append(new_edge2)
-        all_edges = map(_init_edge_arrow, all_edges)
-        return C1, graphine.Graph(all_edges, externalVertex=graph.externalVertex, renumbering=False)
-
-
-def _init_edge_arrow(e):
-    return e.copy(arrow=graph_state.Arrow(graph_state.Arrow.NULL)) if e.arrow is None else e
+        all_edges = map(lambda e: e.copy(arrow=graph_state.Arrow(graph_state.Arrow.NULL)) if e.arrow is None else e, all_edges)
+        return c1(), graphine.Graph(all_edges, external_vertex=graph.external_vertex, renumbering=False)
 
 
 def diff_p2(graph):
-    assert len(graph.edges(graph.externalVertex)) == 2
-    minimal_passing = _find_minimal_external_momentum_passing(graph)
+    assert len(graph.edges(graph.external_vertex)) == 2
+    minimal_passing = graphine.util.find_shortest_momentum_flow(graph)
     new_graph_edges = map(lambda e: e.copy(marker=const.MARKER_0), graph.allEdges())
     new_minimal_passing = list()
     for e, b in minimal_passing:
@@ -125,5 +127,5 @@ def diff_p2(graph):
         new_e = e.copy(marker=const.MARKER_1)
         new_graph_edges.append(new_e)
         new_minimal_passing.append((new_e, b))
-    new_graph = graphine.Graph(new_graph_edges, externalVertex=graph.externalVertex, renumbering=False)
+    new_graph = graphine.Graph(new_graph_edges, external_vertex=graph.external_vertex, renumbering=False)
     return map(lambda comb: _do_diff(new_graph, graph, comb), itertools.combinations_with_replacement(zip(new_minimal_passing, minimal_passing), 2))

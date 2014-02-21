@@ -1,223 +1,133 @@
 #!/usr/bin/python
 # -*- coding: utf8
 import os
-from os import path
-
+import inject
 import graph_state
-import rggraphutil.ref as ref
-
 import graphine
-import common_storage
+import collections
+import symbolic_functions
+import swiginac
+import inject
+import rggraphutil.rg_graph_collections as rg_graph_collections
+from rggraphutil import VariableAwareNumber
+from subprocess import call
+from os import path
 
 
 __author__ = 'daddy-bear'
 
 
-_V_STORAGE_REF = ref.Ref.create()
-_R_STORAGE_REF = ref.Ref.create()
-_R1_STORAGE_REF = ref.Ref.create()
-_KR1_STORAGE_REF = ref.Ref.create()
-_IR_C_OPERATION_STORAGE_REF = ref.Ref.create()
-
 _STORAGE_PATH = "~/.rg-graph-storage/"
 #V means "VALUE" - it's graph value
-_V_STORAGE_FILE_NAME = "value_storage.py"
-_R_STORAGE_FILE_NAME = "r_storage.py"
-_R1_STORAGE_FILE_NAME = "rprime_storage.py"
-_KR1_STORAGE_FILE_NAME = "krprime_storage.py"
-_IR_C_OPERATION_STORAGE_FILE_NAME = "ir_c_operation_storage.py"
+V_STORAGE = ("value", "value_storage.py")
+R_STORAGE = ("r", "r_storage.py")
+R1_STORAGE = ("r1", "rprime_storage.py")
+KR1_STORAGE = ("kr1", "krprime_storage.py")
 
 
-def checkInitialized():
-    if not _V_STORAGE_REF.get() or not _R_STORAGE_REF.get() or not _R1_STORAGE_REF.get() or not _KR1_STORAGE_REF.get():
-        raise AssertionError
+class StorageSettings(object):
+    def __init__(self, theory_name, method_name, description):
+        self.method_name = method_name
+        self.description = description
+        self.theory_name = theory_name
 
 
-def initStorage(theoryName, exprSerializer, graphStorageUseFunctions=False):
-    _V_STORAGE_REF.set(_GraphValueStorage(theoryName, _STORAGE_PATH, _V_STORAGE_FILE_NAME, withFunctions=graphStorageUseFunctions))
-    _R_STORAGE_REF.set(_MercurialGraphOperationValuesStorage(theoryName, 1, _STORAGE_PATH, _R_STORAGE_FILE_NAME, exprSerializer))
-    _R1_STORAGE_REF.set(_MercurialGraphOperationValuesStorage(theoryName, 1, _STORAGE_PATH, _R1_STORAGE_FILE_NAME, exprSerializer))
-    _KR1_STORAGE_REF.set(_MercurialGraphOperationValuesStorage(theoryName, 1, _STORAGE_PATH, _KR1_STORAGE_FILE_NAME, exprSerializer))
-    _IR_C_OPERATION_STORAGE_REF.set(_MercurialGraphOperationValuesStorage(theoryName, 1, _STORAGE_PATH, _IR_C_OPERATION_STORAGE_FILE_NAME, exprSerializer))
+class StoragesHolder(object):
+    def __init__(self, settings, storages=(V_STORAGE, R_STORAGE, KR1_STORAGE, R1_STORAGE)):
+        self._settings = settings
+        self._storages = dict(map(lambda (n, file_name): (n, MercurialAwareStorage(settings.theory_name, _STORAGE_PATH, file_name)), storages))
+
+    def get_graph(self, graph, operation_name):
+        return self._storages[operation_name].get_graph(graph)
+
+    def put_graph(self, graph, expression, operation_name):
+        self._storages[operation_name].put_graph(graph, expression, self._settings.method_name, self._settings.description)
+
+    def close(self, revert=False, do_commit=False, commit_message=None):
+        if commit_message is None:
+            commit_message = "no commit message"
+        for name, storage in self._storages.items():
+            storage.close(revert, do_commit, name + " storage: [" + commit_message + "]")
+
+    @staticmethod
+    def instance():
+        return inject.instance(StoragesHolder)
 
 
-def is_enabled():
-    return _V_STORAGE_REF.get() and _R_STORAGE_REF.get() and _R1_STORAGE_REF.get() and _KR1_STORAGE_REF.get()
+class AbstractGraphOperationValuesStorage(object):
+    def put_graph(self, graph, expression, methodName, description=""):
+        pass
+
+    def get_graph(self, graph):
+        pass
 
 
-def putGraph(graph, expression, methodName, description=""):
-    _V_STORAGE_REF.get().putGraph(graph, expression, methodName, description)
+class AbstractGraphOperationValuesStorageBuilder(object):
+    def build(self, operation_name):
+        pass
 
 
-def getGraph(graph, defaultValue=None):
-    return _V_STORAGE_REF.get().getValue(graph, defaultValue)
+class MercurialAwareStorage(AbstractGraphOperationValuesStorage):
+    #noinspection PyUnusedLocal,PyUnresolvedReferences
+    def __init__(self, theoryName, storagePath, storageFileName):
+        storagePath = os.path.expanduser(storagePath)
+        if not os.path.exists(storagePath):
+            raise AssertionError("please checkout https://code.google.com/p/rg-graph-storage to ~/.rg-graph-storage/ firstly")
+        storage = rg_graph_collections.emptyListDict()
+        e = symbolic_functions.e
+        p = symbolic_functions.p
+        tgamma = swiginac.tgamma
+        psi = swiginac.psi
+        log = swiginac.log
+        zeta = swiginac.zeta
+        Pi = swiginac.Pi
+        Euler = swiginac.Euler
+        execfile(os.path.join(storagePath, storageFileName))
+        self._storage_file_name = storageFileName
+        self._storage_path = storagePath
+        self._underlying = MercurialAwareStorage._theory_filter(theoryName, storage)
+        self._flush_raw_storage = []
+        self._theoryName = theoryName
 
-
-def hasGraph(graph):
-    return _V_STORAGE_REF.get().hasGraph(graph)
-
-
-def putGraphR(graph, expression, methodName, description=""):
-    _R_STORAGE_REF.get().putGraph(graph, expression, methodName, description)
-
-
-def getR(graph, defaultValue=None):
-    return _R_STORAGE_REF.get().getValue(graph, defaultValue)
-
-
-def putGraphR1(graph, expression, methodName, description=""):
-    _R1_STORAGE_REF.get().putGraph(graph, expression, methodName, description)
-
-
-def getR1(graph, defaultValue=None):
-    return _R1_STORAGE_REF.get().getValue(graph, defaultValue)
-
-
-def putGraphKR1(graph, expression, methodName, description=""):
-    _KR1_STORAGE_REF.get().putGraph(graph, expression, methodName, description)
-
-
-def getKR1(graph, defaultValue=None):
-    return _KR1_STORAGE_REF.get().getValue(graph, defaultValue)
-
-
-def putDeltaIR(graph, expression, methodName, description=""):
-    _IR_C_OPERATION_STORAGE_REF.get().putGraph(graph, expression, methodName, description)
-
-
-def getDeltaIR(graph, defaultValue=None):
-    _IR_C_OPERATION_STORAGE_REF.get().getValue(graph, defaultValue)
-
-
-def closeStorage(revert=False, doCommit=False, commitMessage=None):
-    if commitMessage is None:
-        commitMessage = "no commit message"
-    _V_STORAGE_REF.get().close(revert, doCommit, "value storage: [" + commitMessage + "]")
-    _R_STORAGE_REF.get().close(revert, doCommit, "r storage: [" + commitMessage + "]")
-    _R1_STORAGE_REF.get().close(revert, doCommit, "r1 storage: [" + commitMessage + "]")
-    _KR1_STORAGE_REF.get().close(revert, doCommit, "kr1 storage [" + commitMessage + "]")
-    _IR_C_OPERATION_STORAGE_REF.get().close(revert, doCommit, "ir c operation storage [" + commitMessage + "]")
-
-
-class _MercurialGraphOperationValuesStorage(common_storage.AbstractMercurialAwareStorage):
-    def __init__(self, theoryName, theoryIndex, storagePath, storageFileName, exprSerializer):
-        super(_MercurialGraphOperationValuesStorage, self).__init__(theoryName, theoryIndex, storagePath, storageFileName)
-        self._exprSerializer = exprSerializer
-
-    def putGraph(self, graph, expression, methodName, description=""):
-        if self._checkExist(graph, methodName, description):
+    def put_graph(self, graph, expression, methodName, description=""):
+        if self.get_graph(graph) is not None:
             return
         value = (expression, methodName, description)
         gs = str(graph.toGraphState())
         self._underlying[gs].append(value)
-        self._flushRawStorage.append("\nstorage[\"" + gs + "\"].append(("
-                                     + self._exprSerializer(str(value[0].simplify_indexed()))
+
+        if isinstance(expression, tuple):
+            serialized = str("(" + symbolic_functions.safe_integer_numerators_strong(str(expression[0])) + ",VariableAwareNumber(\"l\"," + str(expression[1].a) + "," + str(expression[1].b) + "))")
+        else:
+            serialized = symbolic_functions.safe_integer_numerators_strong(str(expression))
+
+        self._flush_raw_storage.append("\nstorage[\"" + gs + "\"].append(("
+                                     + serialized
                                      + ", \"" + self._theoryName
                                      + "\", \"" + value[1]
                                      + "\", \"" + value[2] + "\"))")
 
-    def getValue(self, graph, defaultValue=None):
-        return self._underlying.get(str(graph.toGraphState()), defaultValue)
-
-    def _flush(self, storageFile):
-        for rawData in self._flushRawStorage:
-            storageFile.write(rawData)
-
-    def _checkExist(self, graph, methodName, description):
-        value = self.getValue(graph)
+    def get_graph(self, graph):
+        value = self._underlying.get(str(graph.toGraphState()), None)
         if value is None:
-            return False
-        for v in value:
-            if v[1] == methodName and v[2] == description:
-                return True
-        return False
+            return None
+        return value[0]
 
+    @staticmethod
+    def _theory_filter(theoryName, storage):
+        filtered = rg_graph_collections.emptyListDict()
+        for k, vs in storage.items():
+            filtered[k] = filter(lambda v: v[1] == theoryName, vs)
+        return filtered
 
-class _GraphValueStorage(common_storage.AbstractMercurialAwareStorage):
-    _FUNCTIONS_FOLDER_NAME = "fun"
-
-    def __init__(self, theoryName, storagePath, storageFileName, canCalculateGraphChecker=(lambda g: False), withFunctions=False):
-        super(_GraphValueStorage, self).__init__(theoryName, 2, storagePath, storageFileName)
-        self._funUnderlying = dict() if withFunctions else None
-        self._unCalculatedPos = set()
-        self._unCalculatedNeg = set()
-        self._canCalculateGraphCheckerWrapper = self.wrapChecker(canCalculateGraphChecker)
-        if withFunctions:
-            self._initFunctionsStorage(storagePath)
-
-    def _initFunctionsStorage(self, storagePath):
-        funStoragePath = path.join(path.expanduser(storagePath), _GraphValueStorage._FUNCTIONS_FOLDER_NAME)
-        prefix = "STORAGE_" + self._theoryName
-        if path.exists(funStoragePath):
-            for fileName in os.listdir(funStoragePath):
-                if fileName.startswith(prefix):
-                    functionName = "__" + fileName[len(prefix) + 1:-3]
-                    functionPath = path.join(funStoragePath, fileName)
-                    self._funUnderlying[functionName] = functionPath
-
-    def getValue(self, graph, defaultValue=None):
-        graphState = graph.toGraphState()
-        storageValue = self._underlying.get(str(graphState), None)
-        if storageValue is not None:
-            return storageValue
-        if self._funUnderlying:
-            for function in self._funUnderlying.items():
-                execfile(function[1])
-                result = eval(function[0] + "(graph)")
-                if result:
-                    #maybe we should save this result to file storage? Ohh Fuckin Yeahh!
-                    return [result]
-        if self._canCalculateGraphCheckerWrapper(graph, graphState):
-            return self.createUnCalculatedValue(graphState)
-        return defaultValue
-
-    def putGraph(self, graph, expression, methodName, description="", force=False):
-        assert isinstance(graph, graphine.Graph)
-        if not force and self.hasGraph(graph):
-            return
-        assert len(expression) == 2
-        pPower = expression[1]
-        assert isinstance(pPower, tuple) or isinstance(pPower, graph_state.Rainbow)
-        assert len(pPower) == 2
-        graphStateAsString = str(graph)
-        firstAsString = str(expression[0])
-        self._underlying[graphStateAsString].append((firstAsString, pPower, self._theoryName))
-        self._flushRawStorage.append("\nstorage[\"" + graphStateAsString + "\"].append((\"" + firstAsString
-                             + "\", " + str(pPower)
-                             + ", \"" + self._theoryName + "\", \"" + methodName + "\", \"" + description + "\"))")
-
-    def _flush(self, storageFile):
-        for rawData in self._flushRawStorage:
-            storageFile.write(rawData)
-
-    def hasGraph(self, graph):
-        graphState = graph.toGraphState()
-        hasInStorage = str(graphState) in self._underlying
-        if hasInStorage:
-            return True
-        if self._funUnderlying:
-            for function in self._funUnderlying.items():
-                execfile(function[1])
-                result = locals()[function[0]](graph)
-                if result:
-                    self.putGraph(graph, result, function[0], force=True)
-                    return True
-        return self._canCalculateGraphCheckerWrapper(graph, graphState)
-
-    def createUnCalculatedValue(self, graphState):
-        return "G(%s)" % str(graphState)
-
-    def wrapChecker(self, checker):
-        def wrapper(graph, graphState):
-            if graphState in self._unCalculatedPos:
-                return True
-            if graphState in self._unCalculatedNeg:
-                return False
-            if checker(graph):
-                self._unCalculatedPos.add(graphState)
-                return True
-            else:
-                self._unCalculatedNeg.add(graphState)
-                return False
-
-        return wrapper
+    def close(self, revert=False, do_commit=False, commit_message=None):
+        storage_file = open(os.path.join(self._storage_path, self._storage_file_name), "a")
+        for raw_data in self._flush_raw_storage:
+            storage_file.write(raw_data)
+        storage_file.close()
+        if revert:
+            call("cd " + self._storage_path + "; hg revert " + self._storage_file_name, shell=True)
+        if do_commit:
+            if commit_message is None:
+                raise ValueError("commit message must be specified")
+            call("cd " + self._storage_path + "; hg commit -m \"" + commit_message + "\"", shell=True)

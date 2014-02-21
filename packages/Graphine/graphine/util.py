@@ -4,6 +4,35 @@ import graph_state
 import graph
 
 
+def find_shortest_momentum_flow(graph):
+    assert graph.externalEdgesCount() == 2
+    external_edges = graph.edges(graph.external_vertex)
+    start_vertex = external_edges[0].internal_nodes[0]
+    target_vertex = external_edges[1].internal_nodes[0]
+    queue = [start_vertex]
+    distances = {start_vertex: ()}
+    while len(queue):
+        vertex = queue[0]
+        del queue[0]
+        dist = distances.get(vertex)
+        for e in graph.edges(vertex):
+            if len(e.internal_nodes) == 1:
+                continue
+            v = e.nodes[1 if e.nodes[0] == vertex else 0]
+            e_dist = distances.get(v)
+            new_dist = 1 + len(dist)
+            if e_dist is None or len(e_dist) > new_dist:
+                #
+                # optimization for fast work
+                #
+                if v == target_vertex and new_dist == 1:
+                    return (e, e.nodes[0] == vertex),
+                sign = e.nodes[0] == vertex
+                distances[v] = dist + ((e, sign),)
+                queue.append(v)
+    return distances[target_vertex]
+
+
 def init_graph_colors_with_default_values_if_need(g, default_internal_color, default_external_color):
     all_edges = g.allEdges(nickel_ordering=True)
     not_none_colors = 0
@@ -14,8 +43,8 @@ def init_graph_colors_with_default_values_if_need(g, default_internal_color, def
         return g
     assert not_none_colors == 0
     new_edges = map(lambda e: graph_state.Edge(e.nodes, colors=default_external_color if e.is_external() else default_internal_color), g.allEdges(nickel_ordering=True))
-    external_vertex = g.externalVertex
-    return graph.Graph(new_edges, externalVertex=external_vertex)
+    external_vertex = g.external_vertex
+    return graph.Graph(new_edges, external_vertex=external_vertex)
 
 
 def has_intersecting_by_vertexes_graphs(graphs):
@@ -26,7 +55,7 @@ def has_intersecting_by_vertexes_graphs(graphs):
         return False
     unique_vertices = set()
     for g in graphs:
-        internal_vertices = g.vertices() - set([g.externalVertex])
+        internal_vertices = g.vertices() - set([g.external_vertex])
         current_unique_vertices_size = len(unique_vertices)
         unique_vertices |= internal_vertices
         if len(unique_vertices) != current_unique_vertices_size + len(internal_vertices):
@@ -46,10 +75,10 @@ def merge(graph1, graph2):
     edges1 = graph1.allEdges(nickel_ordering=True)
     edges2 = graph2.allEdges(nickel_ordering=True)
     new_edges = list()
-    external_vertex = graph1.externalVertex
+    external_vertex = graph1.external_vertex
     for i in xrange(0, len(edges1)):
         new_edges.append(_merge_edge(edges1[i], edges2[i], external_vertex=external_vertex))
-    return graph.Graph(new_edges, externalVertex=external_vertex)
+    return graph.Graph(new_edges, external_vertex=external_vertex)
 
 
 def _merge_edge(e1, e2, external_vertex):

@@ -18,23 +18,23 @@ class Representator(object):
 
     # noinspection PyUnusedLocal
     @staticmethod
-    def asList(edgeList, externalVertex):
+    def asList(edgeList, external_vertex):
         return edgeList
 
     @staticmethod
-    def asGraph(edgeList, externalVertex):
-        return Graph(edgeList, externalVertex=externalVertex, renumbering=False)
+    def asGraph(edgeList, external_vertex):
+        return Graph(edgeList, external_vertex=external_vertex, renumbering=False)
 
     @staticmethod
-    def asMinimalGraph(edgeList, externalVertex):
-        return Graph(edgeList, externalVertex=externalVertex, renumbering=True)
+    def asMinimalGraph(edgeList, external_vertex):
+        return Graph(edgeList, external_vertex=external_vertex, renumbering=True)
 
 
 class Graph(object):
     """
     representation of graph
     """
-    def __init__(self, obj, externalVertex=-1, renumbering=True):
+    def __init__(self, obj, external_vertex=-1, renumbering=True):
         """
         constructor to create Graph
 
@@ -53,7 +53,7 @@ class Graph(object):
         else:
             raise AssertionError("unsupported obj type - %s" % type(obj))
         self._nextVertexIndex = max(self._edges.keys()) + 1
-        self._externalVertex = externalVertex
+        self._external_vertex = external_vertex
         self._hash = None
         self._loopsCount = None
         self._externalEdges = None
@@ -65,12 +65,12 @@ class Graph(object):
         self._vertices = None
 
     @property
-    def externalVertex(self):
-        return self._externalVertex
+    def external_vertex(self):
+        return self._external_vertex
 
     def externalEdges(self):
         if self._externalEdges is None:
-            self._externalEdges = self.edges(self.externalVertex)
+            self._externalEdges = self.edges(self.external_vertex)
         return self._externalEdges
 
     def externalEdgesCount(self):
@@ -79,7 +79,7 @@ class Graph(object):
     def internalEdges(self):
         res = list()
         for edge in self.allEdges():
-            if self.externalVertex not in edge.nodes:
+            if self.external_vertex not in edge.nodes:
                 res.append(edge)
         return res
 
@@ -128,7 +128,7 @@ class Graph(object):
         immutable operation
         """
         newEdges = self.allEdges() + edgesToAdd
-        return Graph(newEdges, externalVertex=self.externalVertex)
+        return Graph(newEdges, external_vertex=self.external_vertex)
 
     def addEdge(self, edge):
         return self.addEdges([edge])
@@ -142,7 +142,7 @@ class Graph(object):
         newEdges = Graph.dict_copy(self._edges)
         for edge in edgesToRemove:
             Graph._persDeleteEdge(newEdges, edge)
-        return Graph(newEdges, externalVertex=self.externalVertex)
+        return Graph(newEdges, external_vertex=self.external_vertex)
 
     def change(self, edgesToRemove=None, edgesToAdd=None, renumbering=True):
         """
@@ -151,17 +151,17 @@ class Graph(object):
         newEdges = copy.copy(self.allEdges())
         map(lambda e: newEdges.remove(e), edgesToRemove)
         map(lambda e: newEdges.append(e), edgesToAdd)
-        return Graph(newEdges, externalVertex=self.externalVertex, renumbering=renumbering)
+        return Graph(newEdges, external_vertex=self.external_vertex, renumbering=renumbering)
 
     def deleteVertex(self, vertex, transformEdgesToExternal=False):
-        assert vertex != self.externalVertex
+        assert vertex != self.external_vertex
         if transformEdgesToExternal:
             edges = self.edges(vertex)
             for e in edges:
-                if self.externalVertex in e.nodes:
+                if self.external_vertex in e.nodes:
                     raise AssertionError
             g = self.deleteEdges(edges)
-            nodeMap = {vertex: self.externalVertex}
+            nodeMap = {vertex: self.external_vertex}
             nEdges = map(lambda e: e.copy(nodeMap), edges)
             return g.addEdges(nEdges)
         else:
@@ -219,7 +219,7 @@ class Graph(object):
         marked_vertexes = set()
         for edge in edges:
             v1, v2 = edge.nodes
-            if v1 != self.externalVertex and v2 != self.externalVertex:
+            if v1 != self.external_vertex and v2 != self.external_vertex:
                 newRawEdges.remove(edge)
                 marked_vertexes.add(v1)
                 marked_vertexes.add(v2)
@@ -235,7 +235,7 @@ class Graph(object):
                 newEdges.append(edge.copy(copy_map))
             else:
                 newEdges.append(edge)
-        return Graph(newEdges, externalVertex=self.externalVertex, renumbering=False), \
+        return Graph(newEdges, external_vertex=self.external_vertex, renumbering=False), \
                self._nextVertexIndex, \
                vertex_transformation.add(VertexTransformation(currVertexTransformationMap))
 
@@ -254,7 +254,7 @@ class Graph(object):
         simpleCache = dict()
         exactSubGraphIterator = graph_operations.x_sub_graphs(allEdges,
                                                               self._edges,
-                                                              self.externalVertex,
+                                                              self.external_vertex,
                                                               cut_edges_to_external=cutEdgesToExternal)
         sgIterator = exactSubGraphIterator if exact else itertools.chain(exactSubGraphIterator, (allEdges,))
         for subGraphAsList in sgIterator:
@@ -267,7 +267,7 @@ class Graph(object):
                         isValid = False
                         break
             if isValid:
-                yield resultRepresentator(subGraphAsList, self.externalVertex)
+                yield resultRepresentator(subGraphAsList, self.external_vertex)
 
     def toGraphState(self):
         if self._graphState is None:
@@ -277,21 +277,21 @@ class Graph(object):
     def getBoundVertexes(self):
         if self._boundVertexes is None:
             self._boundVertexes = set()
-            for e in self.edges(self.externalVertex):
+            for e in self.edges(self.external_vertex):
                 self._boundVertexes.add(e.internal_nodes[0])
         return self._boundVertexes
 
     def getAllInternalEdgesCount(self):
         if self._allInternalEdgesCount is None:
             internalEdgesCount = 0
-            for v, e in self._edges:
+            for v, e in self._edges.items():
                 internalEdgesCount += len(e)
-            self._allInternalEdgesCount = internalEdgesCount / 2 - len(self._edges[self.externalVertex])
+            self._allInternalEdgesCount = internalEdgesCount / 2 - len(self._edges[self.external_vertex])
         return self._allInternalEdgesCount
 
     def getLoopsCount(self):
         if self._loopsCount is None:
-            externalLegsCount = len(self.edges(self.externalVertex))
+            externalLegsCount = len(self.edges(self.external_vertex))
             self._loopsCount = len(self.allEdges()) - externalLegsCount - (len(self.vertices()) -
                                                                            (1 if externalLegsCount != 0 else 0)) + 1
         return self._loopsCount
@@ -302,7 +302,7 @@ class Graph(object):
 
     def removeTadpoles(self):
         no_tadpoles = filter(lambda e: e.nodes[0] != e.nodes[1], self.allEdges())
-        return Graph(no_tadpoles, externalVertex=self.externalVertex)
+        return Graph(no_tadpoles, external_vertex=self.external_vertex)
 
     def __repr__(self):
         return str(self)

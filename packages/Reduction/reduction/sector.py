@@ -126,8 +126,8 @@ class Sector(object):
         id_to_weight = dict()
         for e1, e2 in itertools.izip(topology_graph.allEdges(nickel_ordering=True),
                                      weights_graph.allEdges(nickel_ordering=True)):
-            if e1.colors:
-                id_to_weight[e1.colors[0]] = e2.colors[0]
+            if not e1.is_external() and e2.weight:
+                id_to_weight[e1.colors[0]] = e2.weight.a
         propagators_weights = list()
         for i in xrange(all_propagators_count):
             weight = id_to_weight.get(i, None)
@@ -425,11 +425,7 @@ class SectorRule(object):
 
         if self._a_lambda is None:
             self.create_lambda(len(sector.propagators_weights))
-        try:
-            evaled = self._a_lambda(*sector.propagators_weights).as_sector_linear_combinations()
-        except RuntimeError as e:
-            print self._apply_formula
-            raise e
+        evaled = self._a_lambda(*sector.propagators_weights).as_sector_linear_combinations()
         return evaled
 
     def create_lambda(self, sector_size):

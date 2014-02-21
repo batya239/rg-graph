@@ -6,6 +6,7 @@ __author__ = 'dimas'
 
 import itertools
 import sector
+from rggraphutil import VariableAwareNumber
 
 
 def calculate_graph_p_factor(graph):
@@ -13,9 +14,9 @@ def calculate_graph_p_factor(graph):
     arrow_factor = 0
     for e in graph.internalEdges():
         arrow_factor += -1 if e.arrow is not None and not e.arrow.is_null() else 0
-        factor0 += e.colors[0]
+        factor0 += e.weight.a
     arrow_factor /= 2
-    return factor0 - graph.getLoopsCount() + arrow_factor, - graph.getLoopsCount()
+    return VariableAwareNumber("l", factor0 - graph.getLoopsCount() + arrow_factor, - graph.getLoopsCount())
 
 
 def find_topology_for_graph(graph, topologies, result_converter):

@@ -55,14 +55,14 @@ class ResultChecker(object):
         two_tails_expected = list()
         for state_str, value in MS.iteritems():
             state_str = str(graph_state.GraphState.fromStrOldStyle(state_str))[:-2]
-            graph = graph_util.graph_from_str(state_str, do_init_color=True)
+            graph = graph_util.graph_from_str(state_str, do_init_weight=True)
             if graph.externalEdgesCount() == 2:
                 two_tails_expected.append((graph, value))
                 continue
             if skip_4_tails:
                 continue
             ResultChecker.LOG.info("PERFORM %s", graph)
-            momentum_passed_graphs = graphine.momentum.arbitrarilyPassMomentumWithPreferable(graph, common.defaultGraphHasNotIRDivergence)
+            momentum_passed_graphs = graphine.momentum.arbitrarilyPassMomentumWithPreferable(graph, common.graph_has_not_ir_divergence)
             operations = ResultChecker.CALCULATED_OPERATIONS[graph.externalEdgesCount()]
             calculated_count, not_calculated_count, errors_count = 0, 0, 0
             for graphs, oper in zip(momentum_passed_graphs, operations):
@@ -108,7 +108,7 @@ class ResultChecker(object):
         result = 0
         ResultChecker.LOG.info("PERFORM %s", graph)
         for c, g in diff:
-            momentum_passed_graphs = graphine.momentum.arbitrarilyPassMomentumWithPreferable(g, common.defaultGraphHasNotIRDivergence)
+            momentum_passed_graphs = graphine.momentum.arbitrarilyPassMomentumWithPreferable(g, common.graph_has_not_ir_divergence)
             kr1_results = list()
             for graphs, oper in zip(momentum_passed_graphs, ResultChecker.FOUR_TAILS_OPERATION):
                 operation_name = oper[0]

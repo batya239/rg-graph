@@ -15,33 +15,33 @@ def isGraph1Irreducible(edgesList, superGraph, superGraphEdges):
             continue
         copiedEdges = copy.copy(edgesList)
         copiedEdges.remove(e)
-        if not _is_graph_connected(copiedEdges, superGraph.externalVertex,
-                                   additionalVertexes=set([v for v in e.nodes]) - set([superGraph.externalVertex])):
+        if not _is_graph_connected(copiedEdges, superGraph.external_vertex,
+                                   additionalVertexes=set([v for v in e.nodes]) - set([superGraph.external_vertex])):
             return False
     return True
 
 
 # noinspection PyUnusedLocal
 def isGraphVertexIrreducible(edgesList, superGraph, superGraphEdges):
-    subGraph = graph.Representator.asGraph(edgesList, superGraph.externalVertex)
-    if len(subGraph.vertices() - set([superGraph.externalVertex])) == 1:
+    subGraph = graph.Representator.asGraph(edgesList, superGraph.external_vertex)
+    if len(subGraph.vertices() - set([superGraph.external_vertex])) == 1:
         return True
     if len(subGraph.vertices()) == 2:
-        return len(subGraph.allEdges()) - len(subGraph.edges(subGraph.externalVertex)) > 0
+        return len(subGraph.allEdges()) - len(subGraph.edges(subGraph.external_vertex)) > 0
     for v in subGraph.vertices():
         for e in subGraph.edges(v):
             if e.nodes[0] == e.nodes[1]:
                 return False
-        if v is not superGraph.externalVertex:
+        if v is not superGraph.external_vertex:
             if len(subGraph.vertices()) == 2:
-                return len(subGraph.allEdges()) - len(subGraph.edges(subGraph.externalVertex)) > 0
+                return len(subGraph.allEdges()) - len(subGraph.edges(subGraph.external_vertex)) > 0
             else:
                 edges = copy.copy(edgesList)
                 for e in subGraph.edges(v):
                     edges.remove(e)
                 additionalVertexes = set(subGraph.vertices())
                 additionalVertexes.remove(v)
-                if not _is_graph_connected(edges, superGraph.externalVertex, additionalVertexes=additionalVertexes):
+                if not _is_graph_connected(edges, superGraph.external_vertex, additionalVertexes=additionalVertexes):
                     return False
     return True
 
@@ -55,7 +55,7 @@ def hasNoTadpolesInCounterTerm(edgesList, superGraph, superGraphEdges):
         if e in edges:
             edges.remove(e)
         singularVertexes |= set(e.nodes)
-    connectedComponents = _get_connected_components(edges, superGraph.externalVertex, singularVertexes=singularVertexes)
+    connectedComponents = _get_connected_components(edges, superGraph.external_vertex, singularVertexes=singularVertexes)
     for component in connectedComponents:
         allSingular = True
         for v in component:
@@ -67,7 +67,7 @@ def hasNoTadpolesInCounterTerm(edgesList, superGraph, superGraphEdges):
         containsExternal = False
         for v in component:
             for e in superGraph.edges(v):
-                if superGraph.externalVertex in e.nodes:
+                if superGraph.external_vertex in e.nodes:
                     containsExternal = True
         if not containsExternal:
             return False
@@ -76,7 +76,7 @@ def hasNoTadpolesInCounterTerm(edgesList, superGraph, superGraphEdges):
 
 # noinspection PyUnusedLocal
 def isGraphConnected(edgesList, superGraph, superGraphEdges):
-    return _is_graph_connected(edgesList, superGraph.externalVertex)
+    return _is_graph_connected(edgesList, superGraph.external_vertex)
 
 
 def x_sub_graphs(edges_list, edges_map, external_vertex,
@@ -125,24 +125,24 @@ def x_sub_graphs(edges_list, edges_map, external_vertex,
                     yield subGraph
 
 
-def _is_graph_connected(edgesList, externalVertex, additionalVertexes=set()):
+def _is_graph_connected(edgesList, external_vertex, additionalVertexes=set()):
     """
     graph as edges list
     """
-    return len(_get_connected_components(edgesList, externalVertex, additionalVertexes)) == 1 if len(edgesList) else True
+    return len(_get_connected_components(edgesList, external_vertex, additionalVertexes)) == 1 if len(edgesList) else True
 
-def _get_connected_components(edgesList, externalVertex, additionalVertexes=set(), singularVertexes=set()):
+def _get_connected_components(edgesList, external_vertex, additionalVertexes=set(), singularVertexes=set()):
     """
     graph as edges list
     """
-    if externalVertex in additionalVertexes:
-        additionalVertexes.remove(externalVertex)
+    if external_vertex in additionalVertexes:
+        additionalVertexes.remove(external_vertex)
     disjointSet = _DisjointSet(additionalVertexes)
 
     for e in edgesList:
         pair = e.nodes
-        if externalVertex in pair:
-            for v in set(pair) - set([externalVertex]):
+        if external_vertex in pair:
+            for v in set(pair) - set([external_vertex]):
                 disjointSet.addKey(v)
             continue
 
@@ -157,12 +157,12 @@ def _get_connected_components(edgesList, externalVertex, additionalVertexes=set(
     return disjointSet.getConnectedComponents()
 
 
-def _pick_external_edges(edgesList, externalVertex=-1):
+def _pick_external_edges(edgesList, external_vertex=-1):
     inner = []
     external = []
     for e in edgesList:
         v1, v2 = e.nodes
-        if v1 == externalVertex or v2 == externalVertex:
+        if v1 == external_vertex or v2 == external_vertex:
             external.append(e)
         else:
             inner.append(e)

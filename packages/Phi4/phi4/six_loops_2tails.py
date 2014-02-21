@@ -38,7 +38,7 @@ class SixLoops2Tails(object):
         not_calculated = list()
         for gs in graph_states_to_calculate:
             gs = str(graph_state.GraphState.fromStrOldStyle(gs))[:-2]
-            graph = graph_util.graph_from_str(gs, do_init_color=True)
+            graph = graph_util.graph_from_str(gs, do_init_weight=True)
             try:
                 SixLoops2Tails.LOG.info("start evaluate %s" % gs)
                 res = self._operation(graph,

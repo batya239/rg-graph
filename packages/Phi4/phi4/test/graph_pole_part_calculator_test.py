@@ -14,7 +14,7 @@ class GraphPolePartCalculatorTest(base_test_case.GraphStorageAwareTestCase):
         self.do_test("e112|e2||", "(-1/2)*e**(-2)+1/2*e**(-1)")
 
     def do_test(self, graph_as_srt, expected_pole_part_as_str):
-        g = graph_util.graph_from_str(graph_as_srt, do_init_color=True)
+        g = graph_util.graph_from_str(graph_as_srt, do_init_weight=True)
         pole = graph_pole_part_calculator.calculate_graph_pole_part(g)
         actual = pole.convert_to_poly(no_order=True)
         expected = symbolic_functions.evaluate(expected_pole_part_as_str)

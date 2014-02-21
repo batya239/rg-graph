@@ -20,7 +20,7 @@ class DiffUtilTest(unittest.TestCase):
 
     def do_p2_diff_test(self, graph_state, expected_graph_strings):
         expected_graph_strings = set(expected_graph_strings)
-        actual = diff_util.diff_p2(graph_util.graph_from_str(graph_state, do_init_color=True))
+        actual = diff_util.diff_p2(graph_util.graph_from_str(graph_state, do_init_weight=True))
         actual_graph_strings = set(map(lambda p: str(p[1]), actual))
         self.assertEqual(actual_graph_strings, expected_graph_strings)
 

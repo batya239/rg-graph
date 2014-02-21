@@ -20,7 +20,7 @@ def _stupid_scalar_product_extractor(shrunk, initial_graph):
 
 class ScalarProductTest(unittest.TestCase):
     def test_tbubble(self):
-        gs = graph_state.COLORS_AND_ARROW_PROPERTIES_CONFIG.graph_state_from_str("e12|23|3|e|:(0,0)_(1,0)_(1,0)|(1,0)_(1,0)|(1,0)|(0,0)|:0_0_0|>_0|0|0|")
+        gs = graph_state.WEIGHT_ARROW_AND_MARKER_PROPERTIES_CONFIG.graph_state_from_str("e12|23|3|e|:(0,0)_(1,0)_(1,0)|(1,0)_(1,0)|(1,0)|(0,0)|:0_0_0|>_0|0|0|:")
         g = graphine.Graph(gs)
         res = two_and_three_loops.TWO_LOOP_REDUCTOR.calculate(g, scalar_product_aware_function=_stupid_scalar_product_extractor)
         self.assertIsNotNone(res)

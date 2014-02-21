@@ -5,6 +5,8 @@
     <orderEntry type="jdk" jdkName="Python 2.7.2 (/System/Library/Frameworks/Python.framework/Versions/2.7/bin/python)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="fun" />
+    <orderEntry type="module" module-name="momentumrepr" />
+    <orderEntry type="module" module-name=".rg-graph-storage" />
   </component>
   <component name="PyDocumentationSettings">
     <option name="myDocStringFormat" value="Plain" />

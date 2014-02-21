@@ -5,6 +5,7 @@ __author__ = 'dima'
 
 import graph_state_property
 import graph_state
+from rggraphutil import VariableAwareNumber
 
 
 class Arrow(object):
@@ -64,10 +65,23 @@ class StringExternalizer(graph_state_property.PropertyExternalizer):
         return None if string == str(None) else string
 
 
-COLORS_ARROW_AND_MARKER_PROPERTIES_CONFIG = \
-    graph_state.PropertiesConfig.create(graph_state_property.PropertyKey(name="colors",
+class VariableAwareNumberExternalizer(graph_state_property.PropertyExternalizer):
+    def __init__(self, var_name):
+        self._var_name = var_name
+
+    def deserialize(self, string):
+        pair = eval(string)
+        assert len(pair) == 2
+        return VariableAwareNumber(self._var_name, pair[0], pair[1])
+
+    def serialize(self, obj):
+        return str((obj.a, obj.b))
+
+
+WEIGHT_ARROW_AND_MARKER_PROPERTIES_CONFIG = \
+    graph_state.PropertiesConfig.create(graph_state_property.PropertyKey(name="weight",
                                                                          is_directed=False,
-                                                                         externalizer=graph_state.Rainbow.externalizer()),
+                                                                         externalizer=VariableAwareNumberExternalizer("l")),
                                         graph_state_property.PropertyKey(name="arrow",
                                                                          is_directed=True,
                                                                          externalizer=Arrow.Externalizer()),
