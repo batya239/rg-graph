@@ -644,8 +644,8 @@ def generate_func_files(tree, generate_expr_for_sector, eps_order=0):
     files = collections.defaultdict(lambda: FunctionsFile(0))
     for sector in dynamics.xTreeElement2(tree):
         expr = generate_expr_for_sector(sector)
-        print sector
-        print expr
+#        print sector
+#        print expr
         #print eps_order
         extracted = pole_extractor.extract_poles_and_eps_series(expr, eps_order)
         #print extracted
