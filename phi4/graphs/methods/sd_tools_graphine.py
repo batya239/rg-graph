@@ -4,13 +4,43 @@ import collections
 import itertools
 import re
 from polynomial.polynomial_product import PolynomialProduct
-import dynamics
 import polynomial.sd_lib as sd_lib
 from polynomial import pole_extractor, formatter
 
 __author__ = 'mkompan'
 
 import comb
+import copy
+
+
+def xTreeElement(tree, parents=list()):
+    parents_ = copy.copy(parents)
+    if tree.node is not None:
+        parents_.append(tree.node)
+    if len(tree.branches) == 0:
+        yield parents_
+    else:
+        for branch in tree.branches:
+            for elem in xTreeElement(branch, parents_):
+                yield elem
+
+
+def xTreeElement2(tree, parents=list(), varMap=dict(), debug=False):
+    if len(tree.branches) == 0:
+        yield parents
+    else:
+        branchIds = [x if x not in varMap else varMap[x] for x in map(lambda x: x.node, tree.branches)]
+        for branch in tree.branches:
+            branchIds_ = copy.copy(branchIds)
+            branchIds_.remove(branch.node)
+            parents_ = copy.copy(parents) + [(branch.node if branch.node not in varMap else varMap[branch.node],
+                                              branchIds_)]
+            for elem in xTreeElement2(branch, parents_, varMap):
+                yield elem
+            if tree.node is None and debug:
+                print
+        if debug:
+            print
 
 
 def internal_edges_dict(graph):
@@ -364,7 +394,7 @@ def add_branches(tree, variables, conservations, graph, subgraphs, depth):
                 branches.append(var)
         print branches
         if len(branches) == 1:
-            raise ValueError("%s, %s , %s" % (branches, [x for x in dynamics.xTreeElement(tree)], parents_))
+            raise ValueError("%s, %s , %s" % (branches, [x for x in xTreeElement(tree)], parents_))
         elif len(branches) != 0:
             tree.setBranches(branches)
             #        print tree.node, branches
@@ -642,10 +672,10 @@ maxFunctionLength = 1000000
 
 def generate_func_files(tree, generate_expr_for_sector, eps_order=0):
     files = collections.defaultdict(lambda: FunctionsFile(0))
-    for sector in dynamics.xTreeElement2(tree):
+    for sector in xTreeElement2(tree):
         expr = generate_expr_for_sector(sector)
-        print sector
-        print expr
+#        print sector
+#        print expr
         #print eps_order
         extracted = pole_extractor.extract_poles_and_eps_series(expr, eps_order)
         #print extracted

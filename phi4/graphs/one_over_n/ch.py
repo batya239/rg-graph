@@ -74,9 +74,11 @@ def IKaz(a1, a2, a3, a4, a5):
             + swiginac.Order(e**5))
     return res
 
-print series(I135(1-e, 1-e, 1-e, 1-e, 1-e), e, 0, 2).expand()
 
-print series(IKaz(-1,-1,-1,-1,-1),e,0,2).expand()
+if __name__ == "__main__":
+    print series(I135(1-e, 1-e, 1-e, 1-e, 1-e), e, 0, 2).expand()
 
-print series(I135(1-e, 1-e, 1-e, 1-e, 1-e) -IKaz(-1,-1,-1,-1,-1),e,0,6).expand()
-print series(I135(1-e, 1-2*e, 1-8*e, 1-e, 1-e) -IKaz(-1,-2,-8,-1,-1),e,0,6).expand()
+    print series(IKaz(-1,-1,-1,-1,-1),e,0,2).expand()
+
+    print series(I135(1-e, 1-e, 1-e, 1-e, 1-e) -IKaz(-1,-1,-1,-1,-1),e,0,6).expand()
+    print series(I135(1-e, 1-2*e, 1-8*e, 1-e, 1-e) -IKaz(-1,-2,-8,-1,-1),e,0,6).expand()
