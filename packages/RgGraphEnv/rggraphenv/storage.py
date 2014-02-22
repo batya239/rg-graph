@@ -12,6 +12,7 @@ import rggraphutil.rg_graph_collections as rg_graph_collections
 from rggraphutil import VariableAwareNumber
 from subprocess import call
 from os import path
+import atexit
 
 
 __author__ = 'daddy-bear'
@@ -31,11 +32,26 @@ class StorageSettings(object):
         self.description = description
         self.theory_name = theory_name
 
+    def on_shutdown(self, revert=False, do_commit=False, commit_message=None):
+        self.revert = revert
+        self.do_commit = do_commit
+        self.commit_message = commit_message
+        return self
+
+    def assert_valid(self):
+        assert self.revert is not None
+        assert self.do_commit is not None
+
 
 class StoragesHolder(object):
     def __init__(self, settings, storages=(V_STORAGE, R_STORAGE, KR1_STORAGE, R1_STORAGE)):
+        settings.assert_valid()
         self._settings = settings
         self._storages = dict(map(lambda (n, file_name): (n, MercurialAwareStorage(settings.theory_name, _STORAGE_PATH, file_name)), storages))
+
+        @atexit.register
+        def dispose():
+            self.close(settings.revert, settings.do_commit, settings.commit_message)
 
     def get_graph(self, graph, operation_name):
         return self._storages[operation_name].get_graph(graph)

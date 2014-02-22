@@ -55,14 +55,14 @@ class ROperation(object):
     def kr_star_quadratic_divergence(self, graph):
         diff = diff_util.diff_p2(graph)
         result = 0
-        if DEBUG:
+        if ROperation.DEBUG:
             print "diff", diff, "initial", graph
         for c, g in diff:
             _all = [x for x in graphine.momentum.xArbitrarilyPassMomentum(g)]
             _all.sort(key=common.graph_can_be_calculated_over_n_loops)
             r_star = None
             for _g in _all:
-                if DEBUG:
+                if ROperation.DEBUG:
                     print "try", _g
                 try:
                     if common.graph_has_not_ir_divergence(_g):
@@ -74,7 +74,7 @@ class ROperation(object):
                     pass
             if r_star is None:
                 raise common.CannotBeCalculatedError(g)
-            if DEBUG:
+            if ROperation.DEBUG:
                 print "diff2 r1", self.k_operation.calculate(r_star).evalf()
                 print "diff r1 ", g, _g, self.k_operation.calculate(c * r_star).evalf()
             result += self.k_operation.calculate(c * r_star)
@@ -117,14 +117,14 @@ class ROperation(object):
                     if isinstance(spinneyPart, swiginac.numeric) and spinneyPart.to_double() == 0:
                         continue
                     ir = forest.delta_ir(spinney, graph, self).subs(symbolic_functions.p == 1)
-                    if DEBUG:
+                    if ROperation.DEBUG:
                         print "SPINNEY", spinney, str(spinneyPart.eval())
                         print "CS", shrunk, str(ir.simplify_indexed().evalf())
                     sub = self.k_operation.calculate(spinneyPart * ir)
-                    if DEBUG:
+                    if ROperation.DEBUG:
                         print "SPINNEY_PART", spinney, sub.simplify_indexed().evalf()
                     krs += sub
-                if DEBUG:
+                if ROperation.DEBUG:
                     print "R*", graph, str(krs.evalf())
                 krs = krs.subs(symbolic_functions.p == 1).normal()
                 if not force and not minus_graph:
@@ -179,7 +179,7 @@ class ROperation(object):
                 r = r1 - kr1
                 if not force:
                     storage.putGraphR(graph, r, common.GFUN_METHOD_NAME_MARKER, description)
-                if DEBUG:
+                if ROperation.DEBUG:
                     print "R", graph, r.subs(symbolic_functions.p == 1)\
                         .series(symbolic_functions.e == 0, 4)\
                         .simplify_indexed().evalf()
@@ -211,14 +211,14 @@ class ROperation(object):
                         return swiginac.numeric(0), None
                     expression, two_tails_graph = \
                         gfun_calculator.calculate_graph_value(graph)
-                    if DEBUG:
+                    if ROperation.DEBUG:
                         print "R1 no UV", graph, expression.series(symbolic_functions.e==0, 0).evalf()
                     if not force:
                         self.storage.put_graph(two_tails_graph, expression, "r1")
                     return expression.normal(), two_tails_graph
 
                 raw_r1 = swiginac.numeric(0) if minus_graph else gfun_calculator.calculate_graph_value(graph)[0]
-                if DEBUG:
+                if ROperation.DEBUG:
                     debug = []
                     print "R1 value", graph, symbolic_functions.series(raw_r1.subs(symbolic_functions.p == 1), symbolic_functions.e, 0, 0).convert_to_poly(True).evalf()
                 sign = 1
@@ -230,12 +230,12 @@ class ROperation(object):
                             r1 = reduce(lambda _e, g: _e * c_operation(g, force=force), comb, 1)
                             shrunk, p2_counts = ROperation.shrink_to_point(graph, comb)
                             value = gfun_calculator.calculate_graph_value(shrunk)
-                            if DEBUG:
+                            if ROperation.DEBUG:
                                 debug.append('\tc-operation ' + str(r1) + " " + str(comb) + "\n\tshrink "
                                              + str(shrunk) + " value " + str(value[0].subs(symbolic_functions.p == 1),))
                                 debug.append("\tsum " + str((r1 * value[0]).subs(symbolic_functions.p == 1).series(symbolic_functions.e == 0, 0).evalf()))
                             raw_r1 += sign * r1 * value[0] * (symbolic_functions.p2 ** (-p2_counts))
-                if DEBUG:
+                if ROperation.DEBUG:
                     print "R1", graph, "UV", uv_subgraphs
                     print "R1", graph, self.k_operation.calculate(raw_r1).subs(symbolic_functions.p == 1).evalf()
                     for d in debug:

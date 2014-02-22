@@ -3,21 +3,24 @@
 
 __author__ = 'dima'
 
-from rggraphenv import storage, theory, symbolic_functions
+from rggraphenv import storage, theory, symbolic_functions, StorageSettings, g_graph_calculator
 import phi4
 
-theory_name = "asd" #имя твоей теории, это маркер в сторадже, чтобы не загружать из других теорий значения
-storage.initStorage(theory_name, symbolic_functions.to_internal_code, graphStorageUseFunctions=True)
-phi4.gfun_calculator.DEBUG = True
+phi4.Configure()\
+        .with_k_operation(phi4.MSKOperation())\
+        .with_ir_filter(phi4.IRRelevanceCondition(phi4.SPACE_DIM_PHI4))\
+        .with_uv_filter(phi4.UVRelevanceCondition(phi4.SPACE_DIM_PHI4))\
+        .with_dimension(phi4.DIM_PHI4)\
+        .with_calculators(g_graph_calculator.GLoopCalculator(phi4.DIM_PHI4))\
+        .with_storage_holder(StorageSettings("phi4", "my_method_name", "my_description_to_method").on_shutdown(revert=True)).configure()
 
-g = phi4.graph_util.graph_from_str("e11|e|", do_init_color=True)
+r_operator = phi4.ROperation()
 
-r_star = phi4.r.KRStar(g,
-                       phi4.MSKOperation(),
-                       phi4.DEFAULT_SUBGRAPH_UV_FILTER,
-                       description="this graphs was calculated on feb 6 2014",
-                       use_graph_calculator=False)
-
+g = phi4.graph_util.graph_from_str("e11|e|", do_init_weight=True)
+r_star = r_operator.kr_star(g)
 print r_star
 
-close_storage = storage.closeStorage(revert=True, doCommit=False, commitMessage=None)
+#
+# On exit from your script yuo shouldn't invoke any close/dispose method for any object like graph_calculator, storage
+# It will be executed automatically
+#
