@@ -11,7 +11,7 @@ __author__ = 'mkompan'
 
 import comb
 import copy
-
+from graph_state_builder_msn import gs_builder, MSNIndex
 
 def xTreeElement(tree, parents=list()):
     parents_ = copy.copy(parents)
@@ -42,6 +42,29 @@ def xTreeElement2(tree, parents=list(), varMap=dict(), debug=False):
         if debug:
             print
 
+
+def apply_var_map(var, var_map):
+    if isinstance(var, (list, tuple)):
+        return [apply_var_map(x, var_map) for x in var]
+    else:
+        return var if var not in var_map else var_map[var]
+
+
+def xMSNTreeElement2(tree, parents=list(), varMap=dict(), coef=1, debug=False):
+    if debug:
+        print tree.master, tree.slaves, tree.branches, tree.coef, coef
+    if len(tree.branches) == 0:
+        yield parents, coef*tree.coef
+    else:
+        for branch in tree.branches:
+            parents_ = copy.copy(parents) + [(apply_var_map(branch.master, varMap),
+                                              apply_var_map(branch.slaves, varMap))]
+            for elem in xMSNTreeElement2(branch, parents_, varMap, coef=tree.coef*coef, debug=debug):
+                yield elem
+            if tree.master is None and debug:
+                print
+        if debug:
+            print
 
 def internal_edges_dict(graph):
     return dict(map(lambda x: (x.edge_id, x.nodes), graph.internalEdges()))
@@ -279,11 +302,31 @@ def find_excluded_edge_ids(graph_qi, subgraphs):
     return list(result)
 
 
+class MSNTree(object):
+    def __init__(self, master, slaves, parents, coef=1):
+        self.master = master
+        self.slaves = slaves
+        self.parents = parents
+        self.branches = list()
+        self.coef = coef
+
+    def setBranches(self, branches):
+        self.branches = list()
+        for branch in branches:
+            if isinstance(branch, Tree):
+                self.branches.append(branch)
+            else:
+                if self.node is None:
+                    self.branches.append(Tree(branch, self.parents))
+                else:
+                    self.branches.append(Tree(branch, self.parents + [self.node]))
+
 class Tree(object):
-    def __init__(self, node, parents):
+    def __init__(self, node, parents, coef=1):
         self.node = node
         self.parents = parents
         self.branches = list()
+        self.coef = coef
 
     def setBranches(self, branches):
         self.branches = list()
@@ -538,9 +581,41 @@ def gen_adoptive_tree(poly):
     add_adoptive_branches(tree, poly, [frozenset(get_ui(variables))], parents=list())
     return tree
 
+def graph_msn_index(graph, parents, branch, branches):
+    edges = graph.allEdges()
+    edges_msn = list()
+    master = None
+    slaves = list()
+    for edge in edges:
+        msn = ""
+        id = edge.edge_id
+        for master_, slaves_ in parents:
+            if id == master_:
+                msn += 'm'
+            elif id in slaves_:
+                msn += 's'
+            else:
+                msn += 'n'
+        if id == branch:
+            msn += 'm'
+            master = branch
+        elif id in branches:
+            msn += 's'
+            slaves.append(id)
+        else:
+            msn += 'n'
+        edges_msn.append(gs_builder.new_edge(edge.nodes, msn=MSNIndex(msn)))
+    gs = gs_builder.GraphState(edges_msn)
+    return gs, master, slaves
 
-def add_speer_branches(tree, variables, conservations, parents=list(), depth=0):
-#    print parents, depth
+def master_slaves(branch, branches):
+    branches_ = copy.copy(branches)
+    branches_.remove(branch)
+    return branch, branches
+
+
+def add_speer_branches(tree, variables, conservations, parents=list(), depth=0, graph=None):
+    print parents, depth
     if depth == 0:
         return
     else:
@@ -557,19 +632,48 @@ def add_speer_branches(tree, variables, conservations, parents=list(), depth=0):
         elif len(branches) == 1:
             raise ValueError("parents: %s, branches %s" % (parents, branches))
         else:
-            tree.setBranches(branches)
-            for branch in tree.branches:
-                add_speer_branches(branch, variables, conservations, parents=parents + [(branch.node, tuple(branches))],
-                                   depth=depth - 1)
+            branch_count = dict()
+            branch_vars = dict()
+            cnt = 0
+            for branch in branches:
+                if graph is not None:
+                    gs, master, slaves = graph_msn_index(graph, parents, branch, branches)
+                else:
+                    gs = cnt
+                    cnt += 1
+                    master, slaves = master_slaves(branch, branches)
+                print gs
+                if gs not in branch_count:
+                    branch_count[gs] = 0
+                    branch_vars[gs] = (master, slaves)
+                branch_count[gs] += 1
+            print branch_count
+            print branch_vars
 
 
-def gen_speer_tree(graph, depth=None):
-    tree = Tree(None, [])
+            for gs in branch_count:
+                master, slaves = branch_vars[gs]
+                branch_msn_tree = MSNTree(master,
+                                          slaves,
+                                          parents,
+                                          coef=branch_count[gs])
+                tree.branches.append(branch_msn_tree)
+
+                add_speer_branches(branch_msn_tree,
+                                   variables,
+                                   conservations,
+                                   parents=parents + [(master, tuple(branches))],
+                                   depth=depth - 1,
+                                   graph=graph)
+
+
+def gen_speer_tree(graph, depth=None, symmetries=False):
+    tree = MSNTree(None, None, [])
     variables = graph._qi.keys()
     if depth is None:
-        add_speer_branches(tree, variables, graph._cons, parents=list(), depth=graph.getLoopsCount())
+        add_speer_branches(tree, variables, graph._cons, parents=list(), depth=graph.getLoopsCount(), graph=graph if symmetries else None)
     else:
-        add_speer_branches(tree, variables, graph._cons, parents=list(), depth=depth)
+        add_speer_branches(tree, variables, graph._cons, parents=list(), depth=depth, graph=graph if symmetries else None)
     return tree
 
 
@@ -672,8 +776,8 @@ maxFunctionLength = 1000000
 
 def generate_func_files(tree, generate_expr_for_sector, eps_order=0):
     files = collections.defaultdict(lambda: FunctionsFile(0))
-    for sector in xTreeElement2(tree):
-        expr = generate_expr_for_sector(sector)
+    for sector, coef in xMSNTreeElement2(tree):
+        expr = generate_expr_for_sector(sector)*coef
 #        print sector
 #        print expr
         #print eps_order
@@ -685,7 +789,9 @@ def generate_func_files(tree, generate_expr_for_sector, eps_order=0):
             for expr, variables in formatted_dict[eps_order_]:
                 file_info = funcFileInfo(eps_order_, len(variables))
                 function_file = files[file_info]
-                function_file.add_function(generate_function_body(expr, variables, "// sector: %s" % sector))
+                function_file.add_function(generate_function_body(expr,
+                                                                  variables,
+                                                                  "// sector: %s, coef: %s" % (sector, coef)))
 
                 if len(function_file) > maxFunctionLength:
                     function_file.set_file_info(file_info)

@@ -21,6 +21,19 @@ def C4(lambdas_, n):
     return res
 
 
+def C4m(lambdas_, n):
+    if isinstance(lambdas_, int):
+        lambdas = [1]*lambdas_
+    else:
+        lambdas = lambdas_
+    res = tgamma(sum(lambdas) - 2 * n + n * e)/(tgamma(e)/tgamma(2)*e)**n
+    for lambd in lambdas:
+        if lambd != 0:
+            res = res / tgamma(lambd)
+    return res
+
+
+
 def C6(lambdas_, n):
     if isinstance(lambdas_, int):
         lambdas = [1]*lambdas_
@@ -33,12 +46,14 @@ def C6(lambdas_, n):
             res = res / tgamma(lambd)
     return res
 
-Cn = C4
+Cn = C4m
 
 graph = graphine.Graph(gs_builder.graph_state_from_str(sys.argv[1]))
 
 loops = graph.getLoopsCount()
 alpha = len(graph.internalEdges())
+if graph.externalEdgesCount() == 2:
+    alpha += 1
 
 graph_dir = "sd6loop/%s" % graph
 
@@ -72,7 +87,7 @@ expr = reduce(lambda x, y: x + y, map(lambda x: x[1] * e ** x[0], result.items()
 if alpha - loops * 2 <= 0:
     max_eps_power -= 1
 print (alpha - loops * (2 - e)).expand()
-final = series(expr * Cn(alpha,loops), e, 0, max_eps_power + 1).evalf()
+final = series(expr * Cn(alpha, loops), e, 0, max_eps_power + 1).evalf()
 print final
 
 results = {
