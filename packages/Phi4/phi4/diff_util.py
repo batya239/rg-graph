@@ -109,6 +109,7 @@ def _do_diff(graph, old_graph, comb):
                                             marker=const.MARKER_1)
             new_edge2 = graph_util.new_edge((edge.nodes[1], new_vertex),
                                             weight=const.UNIT_WEIGHT,
+                                            arrow=graph_state.Arrow(graph_state.Arrow.NULL),
                                             external_node=graph.external_vertex,
                                             marker=const.MARKER_1)
             all_edges.append(new_edge1)
