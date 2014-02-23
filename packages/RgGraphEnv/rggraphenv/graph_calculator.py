@@ -10,6 +10,8 @@ __author__ = 'daddy-bear'
 class GraphCalculatorManager(object):
     def __init__(self, *calculators):
         self._calculators = list(calculators)
+        for c in self._calculators:
+            c.init()
 
     def get_calculator_for_class(self, a_class):
         for c in self._calculators:
