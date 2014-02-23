@@ -615,7 +615,7 @@ def master_slaves(branch, branches):
 
 
 def add_speer_branches(tree, variables, conservations, parents=list(), depth=0, graph=None):
-    print parents, depth
+    # print parents, depth
     if depth == 0:
         return
     else:
@@ -642,13 +642,13 @@ def add_speer_branches(tree, variables, conservations, parents=list(), depth=0, 
                     gs = cnt
                     cnt += 1
                     master, slaves = master_slaves(branch, branches)
-                print gs
+                # print gs
                 if gs not in branch_count:
                     branch_count[gs] = 0
                     branch_vars[gs] = (master, slaves)
                 branch_count[gs] += 1
-            print branch_count
-            print branch_vars
+            # print branch_count
+            # print branch_vars
 
 
             for gs in branch_count:

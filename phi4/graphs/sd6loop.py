@@ -90,13 +90,7 @@ try:
 except OSError:
     pass
 
-print "sectors done"
-cnt = 0
-for x in sd_tools.xMSNTreeElement2(tree, debug=False):
-# for x in sd_tools.xMSNTreeElement2(tree, debug=True):
-    print x
-    cnt+=1
-print "cnt", cnt
+print "sectors done, count =", len([x for x in sd_tools.xMSNTreeElement2(tree, debug=False)])
 
 print expr
 
