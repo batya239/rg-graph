@@ -98,22 +98,32 @@ edges_map = edges_map_from_sector(graph_sector, THREE_LOOP_REDUCTOR_D6)
 print "edges_map", edges_map
 
 ans = d6_reduction(graph_sector, det, THREE_LOOP_REDUCTOR_D6)
+print
 print "ans", ans
+print
+print symbolic_functions.series(ans.evaluate(substitute_sectors=True, _d=6-2*e),e,0,7).expand()
+print
 
-other = 0
-for i,j in  ans._final_sector_linear_combinations._sectors_to_coefficient.items():
-    print i, j, ans._masters[i]
-    if i == graph_sector:
-        A = j
-    else:
-        other += ans._masters[i]*j
+ans_ = ans.evaluate(substitute_sectors=True, _d=6-2*e)
 
-#fake lambdas, if propagator weights == (0,1) => (0,1,2) and Gamma(\lambda_i)==1, so only sum(lambdas) is important
 lambdas = list(graph_sector.propagators_weights)
 for i in range(3):
     lambdas[i] += 1
-print THREE_LOOP_REDUCTOR._masters[graph_sector]
-res = ((d6.C6(lambdas, 3)/d6.C4(graph_sector.propagators_weights,3)*THREE_LOOP_REDUCTOR._masters[graph_sector]-other)/A).evaluate()
+print
+print symbolic_functions.series(THREE_LOOP_REDUCTOR._masters[graph_sector],e,0,7).expand()
+
+print
+print
+print symbolic_functions.series(d6.C6(lambdas, 3)/d6.C4(graph_sector.propagators_weights,3),e,0,7).expand()
+print
 
 
-print symbolic_functions.series(res.subs(symbolic_functions.var('d')==6-2*e),e,0,6).expand()
+
+z = (d6.C6(lambdas, 3)/d6.C4(graph_sector.propagators_weights,3)*THREE_LOOP_REDUCTOR._masters[graph_sector]-ans_)
+
+res = -z.coeff(symbolic_functions.UNKNOWN, 0)/z.coeff(symbolic_functions.UNKNOWN, 1)
+
+print
+print
+print
+print symbolic_functions.series(res,e,0,6).expand()
