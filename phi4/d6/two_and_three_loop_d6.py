@@ -7,7 +7,7 @@ from reduction import reductor, reduction_util
 from rggraphenv import symbolic_functions
 from rggraphenv import abstract_graph_calculator
 
-G = symbolic_functions.G_d6
+G = lambda x,y : symbolic_functions.G(x,y, 6-2*symbolic_functions.e)
 # d=6-2e
 l = 2 - symbolic_functions.e
 
@@ -46,7 +46,6 @@ TWO_LOOP_REDUCTOR_D6 = reductor.Reductor("loop2",
                              {graphine.Graph.fromStr("e111|e|"): G(1, 1) * G(1 - l, 1),
                               graphine.Graph.fromStr("e11|22|e|"): G(1, 1) ** 2})
 
-#TWO_LOOP_REDUCTOR_D6.init = TWO_LOOP_REDUCTOR_D6.initIfNeed
 
 class ReductionGraphCalculator(abstract_graph_calculator.AbstractGraphCalculator):
     def __init__(self, *reduction_loops):
@@ -57,7 +56,6 @@ class ReductionGraphCalculator(abstract_graph_calculator.AbstractGraphCalculator
 
     def init(self):
         all_reductors = (TWO_LOOP_REDUCTOR_D6, THREE_LOOP_REDUCTOR_D6)
-#        all_reductors = (TWO_LOOP_REDUCTOR_D6, THREE_LOOP_REDUCTOR_D6, FOUR_LOOP_REDUCTOR_D6)
         if not len(self._reduction_loops):
             reductors = all_reductors
         else:
@@ -77,6 +75,8 @@ class ReductionGraphCalculator(abstract_graph_calculator.AbstractGraphCalculator
     def dispose(self):
         pass
 
+
+
 reduction_calculator_2loop = ReductionGraphCalculator(2)
-reduction_calculator_3loop = ReductionGraphCalculator(3)
-reduction_calculator_23loop = ReductionGraphCalculator(2,3)
+# reduction_calculator_3loop = ReductionGraphCalculator(3)
+# reduction_calculator_23loop = ReductionGraphCalculator(2, 3)

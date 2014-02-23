@@ -75,8 +75,8 @@ else:
     expr = D
     print expr
 
-print C_
-print D_
+print "len(C) = ", len(C_)
+print "len(D) = ", len(D_)
 
 
 delta = polynomial.poly(map(lambda x: (1, (x,)), D.getVarsIndexes()))
@@ -92,7 +92,7 @@ except OSError:
 
 print "sectors done, count =", len([x for x in sd_tools.xMSNTreeElement2(tree, debug=False)])
 
-print expr
+#print expr
 
 for functions_file in sd_tools.generate_func_files(tree, lambda x: sd_lib.sectorDiagram(expr, x, delta_arg=delta)[0][0].simplify(), eps_order):
     print os.path.join(dir, "%s.c" % functions_file.get_file_name(str(graph))), functions_file.file_info, len(functions_file.functions), functions_file.functions_count

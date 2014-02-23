@@ -1,53 +1,48 @@
 #!/usr/bin/python
 # -*- coding: utf8
-import graphine
-import rggraphenv
+
 
 __author__ = 'mkompan'
 
 
-from rggraphenv import storage, theory, symbolic_functions
+import sys
+from rggraphenv import storage, theory, symbolic_functions, StorageSettings, g_graph_calculator
 import phi4
-from two_and_three_loop_d6 import reduction_calculator_3loop, reduction_calculator_2loop, reduction_calculator_23loop
-
-theory_name = "phi3" #имя твоей теории, это маркер в сторадже, чтобы не загружать из других теорий значения
-DEFAULT_SUBGRAPH_UV_FILTER = graphine.filters.isRelevant(phi4.ir_uv.UV_RELEVANCE_CONDITION_6_DIM)
-
-# #noinspection PyPep8Naming
-# def G_d6(alpha, beta, d=6-2*e):
-#     if alpha == 1 and beta == 1:
-#         return -1 / e /6
-#     return _raw_g(alpha, beta, d=d) / _g11_d6(d=d)
-
-# def _g11(d=6-2*e):
-#     return _raw_g(1, 1, d=d) * (-6*e)
+#from two_and_three_loop_d6 import reduction_calculator_3loop, reduction_calculator_2loop, reduction_calculator_23loop
+from two_and_three_loop_d6 import reduction_calculator_2loop
 
 
-#FIXME: IRFILETR!!
+SPACE_DIM_PHI3 = 6
+DIM_PHI3 = 6-2*symbolic_functions.e
+phi4.Configure()\
+        .with_k_operation(phi4.MSKOperation())\
+        .with_ir_filter(phi4.IRRelevanceCondition(SPACE_DIM_PHI3))\
+        .with_uv_filter(phi4.UVRelevanceCondition(SPACE_DIM_PHI3))\
+        .with_dimension(DIM_PHI3)\
+        .with_calculators(g_graph_calculator.GLoopCalculator(DIM_PHI3), reduction_calculator_2loop)\
+        .with_storage_holder(StorageSettings("phi3", "my_method_name", "my_description_to_method").on_shutdown(revert=True)).configure()
 
-storage.initStorage(theory_name, symbolic_functions.to_internal_code, graphStorageUseFunctions=True)
+r_operator = phi4.ROperation()
+r_operator.set_debug(True)
 
-
-#когда я редукцию там пофиксю слегка, то всавлю код сюда же, который ее задействует
-
-
-g = phi4.graph_util.graph_from_str("e12|e2|e|", do_init_color=True)
-g = phi4.graph_util.graph_from_str("e11|e|", do_init_color=True)
-#g = phi4.graph_util.graph_from_str("e12|23|3|e|", do_init_color=True)
-
-phi4.r.DEBUG = True
-rggraphenv.graph_calculator.addCalculator(reduction_calculator_2loop)
-
-r_star = phi4.r.KRStar(g,
-                       phi4.MSKOperation(),
-                       DEFAULT_SUBGRAPH_UV_FILTER,
-                       description="this graphs was calculated on feb 6 2014",
-                       use_graph_calculator=True)
-e = symbolic_functions.e
-print "\n\nKR*(%s) = %s\n\n" % (g, r_star)
-print symbolic_functions.safe_integer_numerators_strong(str(r_star))
-
-close_storage = storage.closeStorage(revert=True, doCommit=False, commitMessage=None)
+#g = phi4.graph_util.graph_from_str("e11|e|", do_init_weight=True)
+#g = phi4.graph_util.graph_from_str("e12|e3|33||", do_init_weight=True)  #??
+#g = phi4.graph_util.graph_from_str("e12|e2||", do_init_weight=True)
+#g = phi4.graph_util.graph_from_str("e12|e3|34|4|e|", do_init_weight=True)
+g = phi4.graph_util.graph_from_str("e12|e3|e4|44||", do_init_weight=True)
+r_star = r_operator.kr_star(g)
+print r_star
 
 
-
+# print
+# print r_operator.kr1(g)
+#
+# l = 2 - symbolic_functions.e
+# G = symbolic_functions.G
+# d = DIM_PHI3
+# e = symbolic_functions.e
+# series = symbolic_functions.series
+# print G(1, 1, d)
+# print series(G(1 + e, 1, d=d), e, 0, 0)
+# print series(G(1, 1, d) * G(3 - l, 1, d=d), e, 0, 0).evalf()
+# print series(G(1, 1, d) * G(3 - l, 1, d=d) - G(1, 1, d) * G(1, 1, d), e, 0, 0).evalf()
