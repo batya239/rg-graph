@@ -53,7 +53,7 @@ class RuleNotFoundException(BaseException):
 def _enumerated_graph_as_sector(g, initial_propagators_len):
     raw_sector = [0] * initial_propagators_len
     for e in g.internalEdges():
-        raw_sector[e.weight[0]] = 1
+        raw_sector[e.colors[0]] = 1
     return sector.Sector(raw_sector)
 
 
@@ -94,7 +94,7 @@ def _enumerate_graph(graph, init_propagators, to_sector=True, only_one_result=Fa
 
     def _enumerate_next_vertex(remaining_propagators, _graph, vertex, result):
         if vertex not in graph_vertices:
-            new_edges = map(lambda e_: e_.copy(color=graph_state.Rainbow((propagator_indices[e_.weight.weight], e_.weight)) if len(e_.internal_nodes) == 2 else None),
+            new_edges = map(lambda e_: e_.copy(colors=graph_state.Rainbow((propagator_indices[e_.colors], e_.colors)) if not e_.is_external() else None),
                             _graph.allEdges())
             result.add(graphine.Graph(new_edges, external_vertex, renumbering=False))
             if only_one_result:
@@ -103,7 +103,7 @@ def _enumerate_graph(graph, init_propagators, to_sector=True, only_one_result=Fa
         vertex_known_factor = [0] * momentum_count
         not_enumerated = list()
         for e in _graph.edges(vertex):
-            if e.weight is not empty_color:
+            if e.colors is not empty_color:
                 for i in xrange(momentum_count):
                     if vertex == e.nodes[0]:
                         vertex_known_factor[i] += e.colors[i]
