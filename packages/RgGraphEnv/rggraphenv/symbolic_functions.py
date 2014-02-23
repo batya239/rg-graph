@@ -61,28 +61,13 @@ def subs(expression, z, z0):
     return expression.subs(z == z0)
 
 
-# noinspection PyUnusedLocal
-def evaluate_series(expression_as_string, line_tuple, only_pole_part=False):
-    """
-    expressionAsString like '('G(1, 1)*G(1, 1)*G(1, 3-l*2)*G(1, 4-l*3)'
-    lineTuple like (4, -4) ~ 4 - 4 * l
-    """
-    #expansion
-    _series = evaluate(expression_as_string, line_tuple).series(e == 0, 0)
-    return _series.convert_to_poly(True) if only_pole_part else _series
-
-
-# noinspection PyUnusedLocal
-def evaluate(expression_as_str, line_tuple=None, strong_to_internal_code=False):
+def evaluate(expression_as_str, strong_to_internal_code=False):
     """
     expressionAsString like '('G(1, 1)*G(1, 1)*G(1, 3-l*2)*G(1, 4-l*3)'
     lineTuple like (4, -4) ~ 4 - 4 * l
     """
     eps_part = eval(to_internal_code(expression_as_str, strong=strong_to_internal_code))
-    if not line_tuple:
-        return eps_part
-    line_part = p ** ((-2) * (line_tuple[0] + line_tuple[1] * l))
-    return eps_part * line_part
+    return eps_part
 
 
 def safe_integer_numerators(expression_as_str):

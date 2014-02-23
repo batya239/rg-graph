@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf8
 import os
-import inject
 import graph_state
 import graphine
 import collections

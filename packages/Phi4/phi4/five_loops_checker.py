@@ -19,7 +19,9 @@ import numerators_util
 import itertools
 import diff_util
 import reduction
-from rggraphenv import symbolic_functions, storage, theory, graph_calculator
+import const
+import configure
+from rggraphenv import symbolic_functions, theory, g_graph_calculator, StorageSettings
 
 
 def pairwise(iterable):
@@ -44,9 +46,15 @@ class ResultChecker(object):
 
     def __init__(self, name, *graph_calculators_to_use):
         self._name = name
-        storage.initStorage(theory.PHI4, symbolic_functions.to_internal_code, graphStorageUseFunctions=True)
-        for c in graph_calculators_to_use:
-            graph_calculator.addCalculator(c)
+        graph_calculators_to_use = (g_graph_calculator.GLoopCalculator(const.DIM_PHI4)) + tuple(*graph_calculators_to_use)
+        configure.Configure()\
+            .with_k_operation(phi4.MSKOperation())\
+            .with_ir_filter(phi4.IRRelevanceCondition(phi4.SPACE_DIM_PHI4))\
+            .with_uv_filter(phi4.UVRelevanceCondition(phi4.SPACE_DIM_PHI4))\
+            .with_dimension(phi4.DIM_PHI4)\
+            .with_calculators(*graph_calculators_to_use)\
+            .with_storage_holder(StorageSettings("phi4", "main method", "5 loops checking").on_shutdown(revert=True)).configure()
+        self.operator = r.ROperation()
 
     def start(self, skip_2_tails=False, skip_4_tails=False):
         ResultChecker.LOG.info("start checking \"%s\"" % self._name)
@@ -143,11 +151,6 @@ class ResultChecker(object):
             ResultChecker.LOG.info("OK %s", graph)
         else:
             ResultChecker.LOG.error("P2 WRONG RESULT %s ACTUAL=(%s), EXPECTED=(%s)" % (graph, result, expected_result))
-
-    @staticmethod
-    def dispose():
-        storage.closeStorage(revert=True, doCommit=False, commitMessage="5loops checking 4 tails")
-        graph_calculator.dispose()
 
 
 def main():

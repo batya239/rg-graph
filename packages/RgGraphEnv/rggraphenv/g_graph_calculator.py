@@ -5,7 +5,7 @@ __author__ = 'dima'
 
 import abstract_graph_calculator
 import symbolic_functions
-
+import swiginac
 
 G, G1, G2 = symbolic_functions.G, symbolic_functions.G1, symbolic_functions.G2
 
@@ -14,6 +14,7 @@ class GLoopCalculator(abstract_graph_calculator.AbstractGraphCalculator):
 
     def __init__(self, dimension):
         self._dimension = dimension
+        self._lambda = dimension / swiginac.numeric("2") - swiginac.numeric("1")
 
     def get_label(self):
         return "loop calculator for dim = %s" % self._dimension
@@ -50,8 +51,8 @@ class GLoopCalculator(abstract_graph_calculator.AbstractGraphCalculator):
                     t = alpha
                     alpha = beta
                     beta = t
-                return sign * symbolic_functions.G1(alpha.subs(symbolic_functions.l), beta.subs(symbolic_functions.l), d=self._dimension), alpha + beta - (1, 1)
+                return sign * symbolic_functions.G1(alpha.subs(self._lambda), beta.subs(self._lambda), d=self._dimension), alpha + beta - (1, 1)
             else:
                 sign = 1 if not_empty_numerator_edge.arrow == other_edge.arrow else -1
-                return sign * symbolic_functions.G2(alpha.subs(symbolic_functions.l), beta.subs(symbolic_functions.l), d=self._dimension), alpha + beta - (2, 1)
-        return G(alpha.subs(symbolic_functions.l), beta.subs(symbolic_functions.l), d=self._dimension), alpha + beta - (1, 1)
+                return sign * symbolic_functions.G2(alpha.subs(self._lambda), beta.subs(self._lambda), d=self._dimension), alpha + beta - (2, 1)
+        return G(alpha.subs(self._lambda), beta.subs(self._lambda), d=self._dimension), alpha + beta - (1, 1)

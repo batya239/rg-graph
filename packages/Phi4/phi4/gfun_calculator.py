@@ -6,6 +6,7 @@ import graph_state
 import common
 import const
 import inject
+import swiginac
 from rggraphenv import storage, graph_calculator, symbolic_functions
 from rggraphutil import VariableAwareNumber
 
@@ -33,7 +34,11 @@ def calculate_graph_value(graph, suppressException=False):
             return None
         else:
             raise common.CannotBeCalculatedError(graph)
-    return result[0] * symbolic_functions.p ** (-2 * result[1].subs(symbolic_functions.l)), graph_reducer.iteration_graphs[0]
+    return result[0] * symbolic_functions.p ** (-2 * result[1].subs(get_lambda())), graph_reducer.iteration_graphs[0]
+
+
+def get_lambda():
+    return inject.instance("dimension") / swiginac.numeric("2") - swiginac.numeric("1")
 
 
 def create_filter():

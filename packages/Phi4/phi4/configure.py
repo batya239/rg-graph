@@ -42,17 +42,15 @@ class Configure(object):
         return self
 
     def configure(self):
-        this = self
-
         def injector(binder):
-            binder.bind(rggraphenv.GraphCalculatorManager, this._calculators_holder)
-            binder.bind(rggraphenv.StoragesHolder, this._storage_holder)
-            binder.bind(common.AbstractKOperation, this._k_operation)
-            binder.bind("uv_filter", this._uv_filter)
-            binder.bind("ir_filter", this._ir_filter)
-            binder.bind("k_operation", this._k_operation)
-            binder.bind("dimension", this._dimension)
-            binder.bind("space_dimension", this._space_dimension)
+            binder.bind(rggraphenv.GraphCalculatorManager, self._calculators_holder)
+            binder.bind(rggraphenv.StoragesHolder, self._storage_holder)
+            binder.bind(common.AbstractKOperation, self._k_operation)
+            binder.bind("uv_filter", self._uv_filter)
+            binder.bind("ir_filter", self._ir_filter)
+            binder.bind("k_operation", self._k_operation)
+            binder.bind("dimension", self._dimension)
+            binder.bind("space_dimension", self._space_dimension)
 
         inject.configure(injector)
 
