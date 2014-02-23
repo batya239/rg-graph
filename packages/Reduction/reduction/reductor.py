@@ -94,7 +94,7 @@ def _enumerate_graph(graph, init_propagators, to_sector=True, only_one_result=Fa
 
     def _enumerate_next_vertex(remaining_propagators, _graph, vertex, result):
         if vertex not in graph_vertices:
-            new_edges = map(lambda e_: e_.copy(colors=graph_state.Rainbow((propagator_indices[e_.colors], e_.colors)) if not e_.is_external() else None),
+            new_edges = map(lambda e_: e_.copy(colors=graph_state.Rainbow((propagator_indices[e_.colors], e_.colors.colors)) if not e_.is_external() else None),
                             _graph.allEdges())
             result.add(graphine.Graph(new_edges, external_vertex, renumbering=False))
             if only_one_result:
