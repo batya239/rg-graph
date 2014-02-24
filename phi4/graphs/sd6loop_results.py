@@ -32,15 +32,12 @@ def C4m(lambdas_, n):
             res = res / tgamma(lambd)
     return res
 
-
-
-def C6(lambdas_, n):
+def C4s(lambdas_, n):
     if isinstance(lambdas_, int):
         lambdas = [1]*lambdas_
     else:
         lambdas = lambdas_
-
-    res = tgamma(sum(lambdas) - 3 * n + n * e) * tgamma(4 - 2 * e) ** n / tgamma(e - 1) ** n / tgamma(2 - e) ** (2 * n) / (-6 * e) ** n
+    res = tgamma(sum(lambdas) - 2 * n + n * e)
     for lambd in lambdas:
         if lambd != 0:
             res = res / tgamma(lambd)

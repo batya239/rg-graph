@@ -30,10 +30,13 @@ r_operator.set_debug(True)
 #g = phi4.graph_util.graph_from_str("e12|e2||", do_init_weight=True)
 #g = phi4.graph_util.graph_from_str("e12|e3|34|4|e|", do_init_weight=True)
 #g = phi4.graph_util.graph_from_str("e12|e3|e4|44||", do_init_weight=True)
-#g = phi4.graph_util.graph_from_str("e12|23|3|e|", do_init_weight=True)
-g = phi4.graph_util.graph_from_str("e12|34|34|e|e|", do_init_weight=True)
+g = phi4.graph_util.graph_from_str("e12|23|3|e|", do_init_weight=True)
+#g = phi4.graph_util.graph_from_str("e12|34|34|e|e|", do_init_weight=True)
 r_star = r_operator.kr_star(g)
 print r_star
+
+print
+print r_star.evalf().expand()
 
 
 # print
