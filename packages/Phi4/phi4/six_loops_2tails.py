@@ -11,8 +11,13 @@ import common
 import r
 import itertools
 import time
+import configure
 import numerators_util
-from rggraphenv import symbolic_functions, graph_calculator, storage, theory
+import ir_uv
+import const
+import smtplib
+from rggraphenv import symbolic_functions, graph_calculator, storage, theory, g_graph_calculator, StorageSettings, StoragesHolder
+from email.mime.text import MIMEText
 
 
 class SixLoops2Tails(object):
@@ -22,18 +27,22 @@ class SixLoops2Tails(object):
     LOG.addHandler(logging.StreamHandler())
     LOG.addHandler(logging.FileHandler("6LOOPS_log.txt"))
 
-    DESCRIPTION\
-        = "6 loops 2 tails"
-
-    def __init__(self, operation, calculator=None):
-        self._operation = operation
-        self._calculator = calculator
-        if calculator is not None:
-            graph_calculator.addCalculator(calculator)
+    def __init__(self, do_r_star=False, calculators=tuple(), calculated_mappings=dict()):
+        self._calculator = calculators[0].get_label() if len(calculators) else None
+        self._calculated_mappings = calculated_mappings
+        graph_calculators_to_use = (g_graph_calculator.GLoopCalculator(const.DIM_PHI4),) + tuple(calculators)
+        configure.Configure()\
+            .with_k_operation(common.MSKOperation())\
+            .with_ir_filter(ir_uv.IRRelevanceCondition(const.SPACE_DIM_PHI4))\
+            .with_uv_filter(ir_uv.UVRelevanceCondition(const.SPACE_DIM_PHI4))\
+            .with_dimension(const.DIM_PHI4)\
+            .with_calculators(*graph_calculators_to_use)\
+            .with_storage_holder(StorageSettings("phi4", "main method", "6 loops 2 tails").on_shutdown(revert=True)).configure()
+        operator = r.ROperation()
+        self._operation = operator.kr_star if do_r_star else operator.kr1
 
     def start(self, graph_states_to_calculate):
-        SixLoops2Tails.LOG.info("start calculation using %s graph_calculator, %s operation"
-                                           % (self._calculator, self._operation.__name__))
+        SixLoops2Tails.LOG.info("start calculation using %s graph_calculator, %s operation" % (self._calculator, self._operation.__name__))
         ms = time.time()
         not_calculated = list()
         for gs in graph_states_to_calculate:
@@ -41,12 +50,9 @@ class SixLoops2Tails(object):
             graph = graph_util.graph_from_str(gs, do_init_weight=True)
             try:
                 SixLoops2Tails.LOG.info("start evaluate %s" % gs)
-                res = self._operation(graph,
-                                      common.MS_K_OPERATION,
-                                      common.DEFAULT_SUBGRAPH_UV_FILTER,
-                                      description=SixLoops2Tails.DESCRIPTION,
-                                      use_graph_calculator=True)
+                res = self._operation(graph)
                 SixLoops2Tails.LOG.info("kr1[%s] = %s" % (gs, res))
+                self._calculated_mappings[gs] = res
             except common.CannotBeCalculatedError:
                 SixLoops2Tails.LOG.warning("can't calculate %s used %s graph_calculator, %s operation"
                                            % (gs, self._calculator, self._operation.__name__))
@@ -62,29 +68,38 @@ class SixLoops2Tails(object):
 
     # noinspection PyMethodMayBeStatic
     def dispose(self):
-        graph_calculator.dispose()
+        configure.Configure.clear()
+
+
+def email(calculated_mappings):
+    string = "\n\n".join(map(lambda (g, v): str(g) + " = " + str(v), calculated_mappings.items()))
+    msg = MIMEText(string)
+    me = "epiq.bear@gmail.com"
+    they = ["batya239@gmail.com", "mkompan@gmail.com"]
+    msg['Subject'] = '6 loops answers'
+    msg['From'] = me
+    msg['To'] = ", ".join(they)
+    s = smtplib.SMTP('smtp.gmail.com', port=465)
+    s.sendmail(me, they, msg.as_string())
+    s.quit()
 
 
 def main():
-    try:
-        storage.initStorage(theory.PHI4, symbolic_functions.to_internal_code, graphStorageUseFunctions=True)
-        # reductions_loops = None, (2,),(2, 3,),
-        # operations = r.KR1,
-        reductions_loops = (None, (2,), (2, 3), (2, 3, 4))
-        operations = (r.KR1, r.KRStar_quadratic_divergence)
+    reductions_loops = (None, (2,), (2, 3), (2, 3, 4))
+    operations = (False, True)
 
-        current_graphs = SIX_LOOPS
-        for config in itertools.product(operations, reductions_loops):
-            if config[1] is None:
-                calculator = None
-            else:
-                calculator = numerators_util.create_calculator(*config[1])
-            operation = config[0]
-            master = SixLoops2Tails(operation, calculator)
-            current_graphs = master.start(current_graphs)
-            master.dispose()
-    finally:
-        storage.closeStorage(revert=True, doCommit=False, commitMessage="6 loops 2 tails")
+    calculated_mappings = dict()
+    current_graphs = SIX_LOOPS
+    for config in itertools.product(operations, reductions_loops):
+        if config[1] is None:
+            calculator = tuple()
+        else:
+            calculator = (numerators_util.create_calculator(*config[1]),)
+        operation = config[0]
+        master = SixLoops2Tails(operation, calculator, calculated_mappings)
+        current_graphs = master.start(current_graphs)
+        master.dispose()
+    email(calculated_mappings)
 
 SIX_LOOPS = (
     "e112-23-34-45-55-e-::",

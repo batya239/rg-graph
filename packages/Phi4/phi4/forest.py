@@ -12,6 +12,7 @@ import ir_uv
 import graph_state
 import inject
 import const
+import graph_util
 
 
 DEBUG = False
@@ -107,10 +108,13 @@ def _x_generate_forests(graph, co_sub_graph, r_operator):
 
 def _remove_tails(graph):
     with_deleted = graph.deleteEdges(graph.externalEdges())
+    graph_str = str(graph)
+    arrows_aware = ":" in graph_str and len(graph_str.split(":")[2]) != 0
+    arrow = graph_state.Arrow(graph_state.Arrow.NULL) if arrows_aware else None
     to_add = []
     for v in with_deleted.vertices():
         edges_len = len(with_deleted.edges(v))
         if edges_len != 4:
-            to_add += map(lambda i: graph_state.Edge((v, graph.external_vertex), weight=const.ZERO_WEIGHT), xrange(4 - edges_len))
+            to_add += map(lambda i: graph_util.new_edge((v, graph.external_vertex), weight=const.ZERO_WEIGHT, arrow=arrow), xrange(4 - edges_len))
     return with_deleted.addEdges(to_add)
 

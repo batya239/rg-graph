@@ -288,4 +288,8 @@ class ROperation(object):
         border_vertexes = sub_graph.getBoundVertexes()
 
         assert len(border_vertexes) == 2
-        return graph_util.new_edge(tuple(border_vertexes), weight=ROperation.NEGATIVE_WEIGHT_EDGE)
+
+        graph_str = str(sub_graph)
+        arrows_aware = ":" in graph_str and len(graph_str.split(":")[2]) != 0
+        arrow = graph_state.Arrow(graph_state.Arrow.NULL) if arrows_aware else None
+        return graph_util.new_edge(tuple(border_vertexes), weight=ROperation.NEGATIVE_WEIGHT_EDGE, arrow=arrow)
