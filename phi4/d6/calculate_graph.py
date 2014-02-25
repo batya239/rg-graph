@@ -38,7 +38,12 @@ r_operator = phi4.ROperation()
 gs_string = sys.argv[1]
 g = phi4.graph_util.graph_from_str(gs_string, do_init_weight=True)
 
-r_star = r_operator.kr_star(g)
+try:
+    r_star = r_operator.kr_star(g)
+except phi4.common.CannotBeCalculatedError:
+    print "quadratic:"
+    r_star = r_operator.kr_star_quadratic_divergence(g)
+
 print "'%s': '%s'," % (str(g).split(':')[0], r_star)
 
 
