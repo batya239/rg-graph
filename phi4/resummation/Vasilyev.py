@@ -10,6 +10,8 @@
 __author__ = 'kirienko'
 
 from sympy import symbols, zeta, poly, pi
+import sympy
+
 
 n, u, e = symbols('n u e')
 
@@ -20,22 +22,66 @@ def z(k):
 Pi = pi.evalf()
 g = u
 
-def gamma(k):
+
+def convert_to_list(expr):
+    expr_as_list = poly(expr.expand()).all_coeffs()
+    expr_as_list.reverse()
+    return expr_as_list
+
+
+def gamma(n_=1):
+    """
+    5 loops
+    """
+    n = float(n_)
     _gamma = u**2 *(n+2)/36 - u**3 * (n+2)*(n+8)/432 + \
     5*u**4*(n+2)/5184* (-n**2+18*n+100) - \
     u**5*(n+2)/186624 * (39*n**3 + 296*n**2+22752*n+77056 - \
     48* z(3) * (n**3-6*n**2+64*n+184) + 1152*z(4)*(5*n+22))
-    gamma_k = poly(_gamma.subs(n,k).expand()).all_coeffs()
-    gamma_k.reverse()
-    gamma_k = [2*g for g in gamma_k]
-    return gamma_k
+    return _gamma
 
-def uStar(eps):
-    return float(eps)/3 + eps**2 * 17./81 + float(eps**3)/27 * (709./648 - 4*z(3)) + \
-        float(eps**4)/81 * (10909./11664 -106./9 * z(3) - 6*z(4) + 40*z(5))
 
-def beta(k):
-    _beta =  (-2*e)*g+(8./3+1./3*n)*g**2+(-14./3-n)*g**3\
+def uStar(e, n_=1):
+    '''
+    5 loops
+    '''
+
+    n = float(n_)
+    return ((6 * (8 + n) ** (-1)) * e + (36 * (14 + 3 * n) * (8 + n) ** (-3)) * e ** 2 + (-3 * (
+    -4544 + 5952 * zeta(3) * n - 110 * n ** 2 + 33 * n ** 3 + 480 * zeta(3) * n ** 2 + 16896 * zeta(3) - 1760 * n) * (
+                                                                                         8 + n) ** (-5)) * e ** 3 + (
+           1. / 5 * (2648960 + 19200 * zeta(5) * n ** 4 - 23808 * Pi ** 4 * n ** 2 - 18927360 * zeta(
+               3) * n + 263920 * n ** 2 - 27920 * n ** 3 - 2272 * Pi ** 4 * n ** 3 + 114278400 * zeta(
+               5) + 202560 * zeta(3) * n ** 3 - 108544 * Pi ** 4 * n - 2136960 * zeta(3) * n ** 2 + 62361600 * zeta(
+               5) * n - 34805760 * zeta(3) + 30240 * zeta(
+               3) * n ** 4 + 1546560 * n - 80 * Pi ** 4 * n ** 4 - 13350 * n ** 4 + 11462400 * zeta(
+               5) * n ** 2 - 25 * n ** 5 - 180224 * Pi ** 4 + 835200 * zeta(5) * n ** 3) * (8 + n) ** (-7)) * e ** 4 + (
+           -1. / 840 * (6665379840 + 7793856000 * zeta(5) * n ** 4 + 7032788582400 * zeta(7) * n + 843978240 * zeta(
+               5) * n ** 5 + 913231872 * Pi ** 4 * n ** 2 + 434049638400 * zeta(
+               3) * n - 1132588800 * n ** 2 + 24595200 * zeta(
+               5) * n ** 6 - 1939865600 * Pi ** 6 * n - 674805841920 * zeta(
+               3) ** 2 - 238815360 * n ** 3 + 71318016 * Pi ** 4 * n ** 3 - 49109760 * zeta(
+               3) ** 2 * n ** 5 - 2860245319680 * zeta(5) - 8022551040 * zeta(3) * n ** 3 + 275607360000 * zeta(
+               7) * n ** 3 - 1384266240 * zeta(
+               3) ** 2 * n ** 4 - 615219200 * Pi ** 6 * n ** 2 + 3453714432 * Pi ** 4 * n + 1994330419200 * zeta(
+               7) * n ** 2 + 80616775680 * zeta(3) * n ** 2 + 9577337978880 * zeta(7) - 1451520 * zeta(
+               3) ** 2 * n ** 6 - 99737600 * Pi ** 6 * n ** 3 - 162864414720 * zeta(
+               3) ** 2 * n ** 2 - 8684800 * Pi ** 6 * n ** 4 - 45360 * zeta(
+               3) * n ** 7 - 380800 * Pi ** 6 * n ** 5 + 5201280 * zeta(3) * n ** 6 - 2032076390400 * zeta(
+               5) * n + 497871360 * zeta(7) * n ** 5 - 185270400 * zeta(3) * n ** 5 + 610087403520 * zeta(
+               3) - 6400 * Pi ** 6 * n ** 6 - 21703127040 * zeta(3) ** 2 * n ** 3 + 18670176000 * zeta(
+               7) * n ** 4 - 3401919360 * zeta(
+               3) * n ** 4 + 2654023680 * n - 7382592 * Pi ** 4 * n ** 4 - 2437939200 * Pi ** 6 + 196907760 * n ** 4 - 437146214400 * zeta(
+               5) * n ** 2 - 1471680 * Pi ** 4 * n ** 5 + 56513520 * n ** 5 - 63504 * Pi ** 4 * n ** 6 + 4359979008 * Pi ** 4 + 397530 * n ** 6 - 553420062720 * zeta(
+               3) ** 2 * n + 4095 * n ** 7 - 7549516800 * zeta(5) * n ** 3) * (8 + n) ** (-9)) * e ** 5).evalf()
+
+
+def beta1(n_=1):
+    """
+    5 loops
+    """
+    n = float(n_)
+    _beta =  (8./3+1./3*n)*g**2+(-14./3-n)*g**3\
             +(370./27+11./72*n**2+20./9*z(3)*n+88./9*z(3)+461./108*n)*g**4\
             +(-24581./486+176./1215*Pi**4+5./3888*n**3-14./9*z(3)*n**2-395./243*n**2-1528./81*z(3)*n
               -4664./81*z(3)-2200./81*n*z(5)+62./1215*Pi**4*n-10057./486*n-80./81*n**2*z(5)
@@ -46,13 +92,19 @@ def beta(k):
               +7466./243*n**2*z(5)+25774./27*z(7)+55028./81*z(5)+446./81*z(3)**2*n-355./30618*Pi**6*n**2
               +686./27*n**2*z(7)+305./243*n**3*z(5)-59./81*z(3)**2*n**2-1565./15309*Pi**6*n-7./2160*Pi**4*n**3
               -2./27*z(3)**2*n**3+13./62208*n**4-1./432*z(3)*n**4-347./4860*Pi**4*n**2)*g**6
-    _beta_k = poly(_beta.subs(e,1).subs(n,k).expand()).all_coeffs()
-    _beta_k.reverse()
-    return _beta_k
+    return _beta
+
+def beta(k):
+    _beta =  (-2*e)*g+beta1(k)
+    return _beta
 
 
 if __name__ == "__main__":
+    print "gamma = ", gamma(1)
+    print "u* =", uStar(e, 1)
+    print "beta1 =", beta1(1)
 
-    print "gamma = ",gamma(1)
-    print "u* =", uStar(1)
-    print "beta =", beta(1)
+    print
+    print "eta(n=1) = ", convert_to_list(2*gamma(1).subs(u, uStar(e,1)).series(e,0,6 ).removeO())
+    # for loops in range(2,6):
+    #     print "loops = %s\n eta(n=1, e=1) = " %loops, 2*gamma(1).subs(u, uStar(e,1)).series(e,0,loops+1 ).removeO().subs(e,1)
