@@ -23,20 +23,24 @@ phi4.Configure()\
         .with_storage_holder(StorageSettings("phi3", "my_method_name", "my_description_to_method").on_shutdown(revert=True)).configure()
 
 r_operator = phi4.ROperation()
-r_operator.set_debug(True)
+# r_operator.set_debug(True)
 
 #g = phi4.graph_util.graph_from_str("e11|e|", do_init_weight=True)
 #g = phi4.graph_util.graph_from_str("e12|e3|33||", do_init_weight=True)  #??
 #g = phi4.graph_util.graph_from_str("e12|e2||", do_init_weight=True)
 #g = phi4.graph_util.graph_from_str("e12|e3|34|4|e|", do_init_weight=True)
 #g = phi4.graph_util.graph_from_str("e12|e3|e4|44||", do_init_weight=True)
-g = phi4.graph_util.graph_from_str("e12|23|3|e|", do_init_weight=True)
+#g = phi4.graph_util.graph_from_str("e12|23|3|e|", do_init_weight=True)
 #g = phi4.graph_util.graph_from_str("e12|34|34|e|e|", do_init_weight=True)
-r_star = r_operator.kr_star(g)
-print r_star
+#g = phi4.graph_util.graph_from_str("e12|34|34|5|5|e|", do_init_weight=True)
+#g = phi4.graph_util.graph_from_str("e12|23|4|45|5|e|", do_init_weight=True)
 
-print
-print r_star.evalf().expand()
+gs_string = sys.argv[1]
+g = phi4.graph_util.graph_from_str(gs_string, do_init_weight=True)
+
+r_star = r_operator.kr_star(g)
+print "'%s': '%s'," % (str(g).split(':')[0], r_star)
+
 
 
 # print

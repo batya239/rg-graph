@@ -148,6 +148,9 @@ if __name__ == "__main__":
     print "\n2*gamma_f (n=1)= ", substitute_r(2*gamma_f, ri).subs(n == 1).evalf().expand()
 
     gstar = calculate_gstar(substitute_r(beta, ri), loops4)
+    print
+    print "gstar(n) = ", gstar
+    print
     print gstar.subs(n == 1)
 
 
