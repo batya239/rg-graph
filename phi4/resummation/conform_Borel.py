@@ -165,7 +165,7 @@ if __name__ == "__main__":
     print len(beta_half), "β(g)/2 =", beta_half
     print len(eta_g), "η(g)/2 =", eta_g
     #plot(eta_g,beta_half, '$\eta = \eta(L)$', 'pic_eta.pdf')
-    plotBeta(beta_half, '$\\beta/2 = \\beta/2(L)$', 'pic_beta.pdf')
+    plotBeta(beta_half, '$g^* = g^*(L)$', 'pic_beta.pdf')
 
 
     # FIXME
