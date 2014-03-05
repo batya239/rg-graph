@@ -114,14 +114,14 @@ class Graph(object):
 
     def allEdges(self, nickel_ordering=False):
         if nickel_ordering:
-            return self.toGraphState().edges
+            return copy.copy(self.toGraphState().edges)
         if self._allEdges is None:
             wrapped_result = set()
             for edges in self._edges.values():
                 for e in edges:
                     wrapped_result.add(_IdAwareEdgeDelegate(e))
             self._allEdges = map(lambda ei: ei.edge, wrapped_result)
-        return self._allEdges
+        return copy.copy(self._allEdges)
 
     def addEdges(self, edgesToAdd):
         """

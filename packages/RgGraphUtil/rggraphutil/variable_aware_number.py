@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf8
 import itertools
+import swiginac
 
 __author__ = 'daddy-bear'
 
@@ -61,7 +62,7 @@ class VariableAwareNumber:
         return self._varName
 
     def subs(self, variable):
-        return self._a + variable * self._b
+        return swiginac.numeric(str(self._a)) + variable * swiginac.numeric(str(self._b))
 
     def multiplyOnInt(self, other):
         if isinstance(other, int):

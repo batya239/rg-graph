@@ -19,6 +19,9 @@ class Ref(object):
     def create(element=None):
         return Ref(element)
 
+    def __str__(self):
+        return "Ref(%s)" % self.element
+
 
 class LazyRef(object):
     def __init__(self, a_lambda):

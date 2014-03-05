@@ -1,4 +1,4 @@
-#!/usr/bin/python
+  #!/usr/bin/python
 # -*- coding: utf8 -*-
 
 import itertools
@@ -185,9 +185,9 @@ class Fields(object):
 
     def make_external(self, nodes, external_node):
         if external_node is nodes[0]:
-            return Fields((Fields.EXTERNAL, self.pair[1]))
-        else:
             return Fields((self.pair[0], Fields.EXTERNAL))
+        else:
+            return Fields((Fields.EXTERNAL, self.pair[1]))
 
     @property
     def pair(self):
@@ -490,6 +490,12 @@ class GraphState(object):
                 serialized.append(''.join(fields_chars_with_sep))
 
         return self.SEP.join(serialized)
+
+    def topology_str(self):
+        base_str = str(self)
+        if ":" in base_str:
+            base_str = base_str[:base_str.index(":")]
+        return base_str
 
     @staticmethod
     def fromStr(string, properties_config=None):
