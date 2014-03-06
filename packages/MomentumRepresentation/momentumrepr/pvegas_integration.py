@@ -149,6 +149,16 @@ def parse_pvegas_output(output):
         std_dev = eval(regex.groups()[0])
     return res, std_dev
 
+def parse_cuba_output(output):
+    """SUAVE RESULT:	6.99999999999988 +- 0.00000004572840	p = -999.000"""
+    regex = re.match(".*RESULT:.(.*) \+- (.*).p.*", output.splitlines()[-1])
+    # print "---"
+    # print output.splitlines()[-1]
+    if regex is not None:
+        res = eval(regex.groups()[0])
+        std_dev = eval(regex.groups()[1])
+    return res, std_dev
+
 
 def generate_integrands(integrand_iterator, directory, graph_name):
     subprocess.call(["rm","-rf", directory])
@@ -180,6 +190,22 @@ def execute_pvegas(directory, chdir=True):
             err[get_eps_from_filename(filename)] += term[1]
     return res, err
 
+def execute_cuba(directory, chdir=True):
+    if chdir:
+        os.chdir(directory)
+    res = collections.defaultdict(lambda :0)
+    err = collections.defaultdict(lambda :0)
+    for filename in os.listdir("."):
+        if filename[-3:] == "run":
+            process = subprocess.Popen(["./%s" % filename, "1", "200000", "1e-4", "1e-5"], stdout=subprocess.PIPE)
+            output = process.communicate()[0]
+            print output
+            term = parse_cuba_output(output)
+            res[get_eps_from_filename(filename)] += term[0]
+            err[get_eps_from_filename(filename)] += term[1]
+    return res, err
+
+
 
 def compile_pvegas(directory, chdir=True):
 
@@ -191,6 +217,19 @@ def compile_pvegas(directory, chdir=True):
     ret_val = subprocess.call(["scons", "-f", "SConstruct.pvegas"])
     if ret_val != 0:
         raise Exception("scons failed, ret_val = %s" % ret_val)
+
+
+def compile_cuba(directory, chdir=True):
+
+    path_to_code = __file__.replace("pvegas_integration.py", "scons/")
+    for filename in ["SConstruct.cuba", "common.py", "scons_config.py", "cubaCodeTemplate.py"]:
+        shutil.copyfile("%s%s" %(path_to_code, filename), "%s/%s" % (directory, filename))
+    if chdir:
+        os.chdir(directory)
+    ret_val = subprocess.call(["scons", "-f", "SConstruct.cuba"])
+    if ret_val != 0:
+        raise Exception("scons failed, ret_val = %s" % ret_val)
+
 
 
 if __name__ == "__main__":
@@ -206,7 +245,9 @@ if __name__ == "__main__":
     integrand_iterator = [term1, term2 ]
     generate_integrands(integrand_iterator, directory, str(graph))
 
-    compile_pvegas(directory, chdir=True)
-    print execute_pvegas(directory, chdir=False)
+    # compile_pvegas(directory, chdir=True)
+    # print execute_pvegas(directory, chdir=False)
+    compile_cuba(directory, chdir=True)
+    print execute_cuba(directory, chdir=False)
 
 
