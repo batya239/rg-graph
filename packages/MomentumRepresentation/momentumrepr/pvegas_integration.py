@@ -151,6 +151,11 @@ def parse_pvegas_output(output):
 
 
 def generate_integrands(integrand_iterator, directory, graph_name):
+    subprocess.call(["rm","-rf", directory])
+    try:
+        os.makedirs(directory)
+    except OSError:
+        pass
     for functions_file in generate_func_files(integrand_iterator):
         base_filename = os.path.join(directory, functions_file.get_file_name(graph_name))
         f = open("%s.c" % base_filename, "w")

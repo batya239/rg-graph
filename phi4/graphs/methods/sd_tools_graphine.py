@@ -777,7 +777,8 @@ maxFunctionLength = 1000000
 def generate_func_files(tree, generate_expr_for_sector, eps_order=0):
     files = collections.defaultdict(lambda: FunctionsFile(0))
     for sector, coef in xMSNTreeElement2(tree):
-        expr = generate_expr_for_sector(sector)*coef
+        #expr = generate_expr_for_sector(sector)*coef
+        expr = generate_expr_for_sector(sector, coef)
 #        print sector
 #        print expr
         #print eps_order
