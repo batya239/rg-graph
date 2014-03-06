@@ -97,7 +97,7 @@ class ScalarProductEnumerator(object):
                         other_index = i
                 used_vars = enumerator.used_variables[order][index_mapping[other_index]]
 
-                fake_var = "sp%s(" % ScalarProductEnumerator.next_fake_variable_index() + ",".join(map(lambda v: str(v), used_vars)) + ")"
+                fake_var = "sp%s" % ScalarProductEnumerator.next_fake_variable_index()
                 fake_var = symbolic_functions.var(fake_var)
 
                 substitutor[p] = SubstitutedScalarProduct(expression=enumerator.scalar_products[order][index_mapping[other_index]],
