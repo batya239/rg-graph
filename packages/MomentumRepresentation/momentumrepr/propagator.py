@@ -6,6 +6,7 @@ import graph_state
 import itertools
 import graphine
 import collections
+import scalar_product
 from rggraphenv import symbolic_functions
 
 
@@ -17,7 +18,7 @@ def subs_external_propagators_is_zero(graph):
     return graphine.Graph(new_edges)
 
 
-Stretcher = collections.namedtuple("Stretcher", ["indices", "var_index", "divergence_index"])
+Stretcher = collections.namedtuple("Stretcher", ["is_all_propagator", "indices", "var_index", "divergence_index"])
 
 StretchVariable = collections.namedtuple("StretchVariable", ["var", "divergence"])
 
@@ -37,6 +38,8 @@ class MomentumFlow(object):
             self._stretchers = tuple()
         self._external_momentas = tuple(external_momentas)
         self._loop_momentas = tuple(loop_momentas)
+        self._expr = None
+        self._unsubs_expr = None
 
     @property
     def stretcher_var(self):
@@ -73,19 +76,51 @@ class MomentumFlow(object):
                 return False
         return True
 
-    def generate_expression(self):
-        result = symbolic_functions.CLN_ZERO
-        for index, coefficient in enumerate(self.external_momentas):
-            if coefficient != 0:
-                result += coefficient * symbolic_functions.var("q%s" % index)
-        for index, coefficient in enumerate(self.loop_momentas):
-            if coefficient != 0:
-                v = symbolic_functions.var("k%s" % index)
-                for stretcher in self._stretchers:
-                    if index in stretcher.indices:
-                        v *= symbolic_functions.var("a%s" % index)
-                result += coefficient * v
-        return result
+    def generate_expression(self, stretch_indices=None):
+        if self._expr is None:
+            result = symbolic_functions.CLN_ZERO
+            for index, coefficient in enumerate(self.external_momentas):
+                if coefficient != 0:
+                    result += coefficient * symbolic_functions.var("q%s" % index)
+            for index, coefficient in enumerate(self.loop_momentas):
+                if coefficient != 0:
+                    v = symbolic_functions.var("k%s" % index)
+                    for stretcher in self._stretchers:
+                        if not stretcher.is_all_propagator and index in stretcher.indices:
+                            v *= symbolic_functions.var("a%s" % stretcher.var_index)
+                    result += coefficient * v
+            self._expr = result
+
+        all_propagator_stretchers = symbolic_functions.CLN_ONE
+        for stretcher in self._stretchers:
+            if stretcher.is_all_propagator:
+                if stretch_indices is not None and stretcher.var_index not in stretch_indices:
+                    continue
+                all_propagator_stretchers *= symbolic_functions.var("a%s" % stretcher.var_index)
+
+        return self._expr, all_propagator_stretchers ** 2
+
+    def generate_unsubstituted_expression(self, stretch_indices=None):
+        assert self.is_zero_external_momenta()
+        if self._unsubs_expr is None:
+            result = list()
+            for index, coefficient in enumerate(self.loop_momentas):
+                if coefficient != 0:
+                    v = symbolic_functions.var("k%s" % index)
+                    for stretcher in self._stretchers:
+                        if not stretcher.is_all_propagator and index in stretcher.indices:
+                            v *= symbolic_functions.var("a%s" % stretcher.var_index)
+                    result.append((index, coefficient * v))
+            self._unsubs_expr = result
+
+        all_propagator_stretchers = symbolic_functions.CLN_ONE
+        for stretcher in self._stretchers:
+            if stretcher.is_all_propagator:
+                if stretch_indices is not None and stretcher.var_index not in stretch_indices:
+                    continue
+                all_propagator_stretchers *= symbolic_functions.var("a%s" % stretcher.var_index)
+
+        return self._unsubs_expr, all_propagator_stretchers ** 2
 
     def get_external_momentas(self):
         external_momentas = set()
@@ -113,6 +148,13 @@ class MomentumFlow(object):
             if coefficient != 0:
                 internal_momentas.add(index)
         return internal_momentas
+
+    def get_not_all_propagators_stretchers_indices(self):
+        indices = set()
+        for s in self._stretchers:
+            if not s.is_all_propagator:
+                indices.add(s.var_index)
+        return indices
 
     @staticmethod
     def empty(external_lines_count, loops_count):
@@ -174,13 +216,14 @@ class MomentumFlow(object):
         return MomentumFlow(new_external_momentas, new_loop_momentas, self.stretchers)
 
     def __str__(self):
-        return str("(%s)" % self.generate_expression())
+        return str("(%s, %s)" % self.generate_expression())
 
     __repr__ = __str__
 
 
 class StandartPropagator(object):
     def __init__(self, momentum_flow, has_mass=True):
+        assert isinstance(momentum_flow, MomentumFlow)
         self._momentum_flow = momentum_flow
         self._has_mass = has_mass
 
@@ -195,15 +238,33 @@ class StandartPropagator(object):
     def to_propagators_sum(self):
         return PropagatorsSum((self, ))
 
-    def get_momentum(self):
-        return self.momentum_flow.generate_expression()
+    def get_momentum(self, stretch_indices=None):
+        return self.momentum_flow.generate_expression(stretch_indices)
 
-    def energy_expression(self):
-        result = self.get_momentum() ** 2
+    def energy_expression(self, stretch_indices=None, scalar_products_substitutor=None):
+        indices_to_modulus, stretcher = self.momentum_flow.generate_unsubstituted_expression(stretch_indices)
+
+        result = symbolic_functions.CLN_ZERO
+        for q1, q2 in itertools.product(indices_to_modulus, repeat=2):
+            i1 = q1[0]
+            i2 = q2[0]
+            m1 = q1[1]
+            m2 = q2[1]
+            if i1 == i2:
+                result += m1 * m2
+            else:
+                result += m1 * m2 * scalar_products_substitutor[frozenset([i1, i2])].fake_variable
+        # result **= 2
         if self._has_mass:
             result += symbolic_functions.CLN_ONE
-            # result += symbolic_functions.var("tau")
-        return result
+        return result * stretcher
+
+    def get_scalar_products(self):
+        not_null_momentas = list()
+        for i, c in enumerate(self._momentum_flow.loop_momentas):
+            if c != 0:
+                not_null_momentas.append(i)
+        return set(map(lambda c: frozenset(c), itertools.combinations(not_null_momentas, 2)))
 
     def subs_external_momenta_is_zero(self):
         return StandartPropagator(self._momentum_flow.subs_external_momenta_is_zero(), self._has_mass)

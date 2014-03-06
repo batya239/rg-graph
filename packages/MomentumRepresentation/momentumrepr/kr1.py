@@ -8,10 +8,11 @@ import uv
 import graphine
 import propagator
 import time_versions
-import graph_util
-import diff_util
+import graph_util_mr
+import diff_util_mr
 import representation
 import propagator
+import configure_mr
 import map_reduce_wrapper
 import integration
 from rggraphutil import emptyListDict
@@ -25,24 +26,29 @@ def kr1_log_divergence(graph_state_as_str):
 
 
 def kr1_d_p2(graph_state_as_str):
-    return kr1_with_some_additional_lambda_operation(graph_state_as_str, diff_util.D_p2)
+    return kr1_with_some_additional_lambda_operation(graph_state_as_str, diff_util_mr.D_p2)
 
 
 def kr1_d_iw(graph_state_as_str):
-    return kr1_with_some_additional_lambda_operation(graph_state_as_str, diff_util.D_i_omega)
+    return kr1_with_some_additional_lambda_operation(graph_state_as_str, diff_util_mr.D_i_omega)
 
 
 def kr1_with_some_additional_lambda_operation(graph_state_as_str, additional_lambda=None):
     def integral_producer_lambda(graph_with_tv, coeff):
-        base_integrand = integration.get_base_integrand(graph_with_tv) * coeff
+        if configure_mr.Configure.debug():
+            print "\n\n\nGraph: %s" % graph_with_tv.graph
+            print "Coefficient:", coeff
+            print "Time version: %s" % (graph_with_tv.time_version,)
+        base_integrand, angles = integration.get_base_integrand_and_angles(graph_with_tv)
+        # base_integrand *= coeff
         loop_momentum_vars = integration.get_loop_momentum_vars(graph_with_tv)
         stretch_vars = integration.get_stretch_vars(graph_with_tv)
-        angles = integration.get_angles(graph_with_tv)
-        return integration.construct_integrand(base_integrand, loop_momentum_vars, stretch_vars, angles)
+        # angles = integration.get_angles(graph_with_tv)
+        return integration.construct_integrand(base_integrand, loop_momentum_vars, stretch_vars, angles, coeff)
 
-    graph = graph_util.from_str(graph_state_as_str)
+    graph = graph_util_mr.from_str(graph_state_as_str)
     graph = map_reduce_wrapper.MapReduceAlgebraWrapper(graph)
-    graph = graph.apply(diff_util.D_minus_tau)
+    graph = graph.apply(diff_util_mr.D_minus_tau)
     if additional_lambda is not None:
         graph = graph.apply(additional_lambda)
     graph = graph.apply(representation.enumerate_propagators)
@@ -52,14 +58,13 @@ def kr1_with_some_additional_lambda_operation(graph_state_as_str, additional_lam
     return integrals
 
 
-
 def kr1_stretching(graph):
-    uv_subgraphs = graph.xRelevantSubGraphs(one_irreducible + no_tadpoles + uv.uv_condition)
+    uv_subgraphs = [x for x in graph.xRelevantSubGraphs(one_irreducible + no_tadpoles + uv.uv_condition)]
     graphs_and_time_versions = time_versions.find_time_versions(graph)
 
     with_stretching = list()
-    stretchers_for_edges = emptyListDict()
     for graph_and_tv in graphs_and_time_versions:
+        stretchers_for_edges = emptyListDict()
         g = graph_and_tv.graph
         for uv_graph in uv_subgraphs:
             add_stretching(g, uv_graph, graph_and_tv.edges_cross_sections, stretchers_for_edges)
@@ -69,7 +74,8 @@ def kr1_stretching(graph):
             stretchers = stretchers_for_edges[RefEqualityWrapper(e)]
             _e = e
             for s in stretchers:
-                _e = _e.copy(flow=_e.flow.stretch(s))
+                new_flow = _e.flow.stretch(s)
+                _e = _e.copy(flow=new_flow, propagator=propagator.StandartPropagator(new_flow, True))
             new_edges.append(_e)
 
         with_stretching.append(graph_and_tv.set_graph(graphine.Graph(new_edges, g.external_vertex)))
@@ -82,15 +88,19 @@ def add_stretching(graph, uv_sub_graph, cross_sections, stretchers_for_edges):
     base_uv_index = uv.uv_index(uv_sub_graph)
 
     cross_sections_number = 0
+    intersect_cross_sections = list()
     for cs in cross_sections:
+        cross_sections_conj = list()
         intersect = False
         sub_graph_edges = set(uv_sub_graph.allEdges())
         for e in cs:
             if e in sub_graph_edges:
                 intersect = True
-                break
+            else:
+                cross_sections_conj.append(e)
         if intersect:
             cross_sections_number += 1
+            intersect_cross_sections.append(cross_sections_conj)
 
     assert cross_sections_number - cross_sections_base_number >= 0
     uv_index = base_uv_index - 2 * (cross_sections_number - cross_sections_base_number)
@@ -109,7 +119,11 @@ def add_stretching(graph, uv_sub_graph, cross_sections, stretchers_for_edges):
     stretcher_index = propagator.MomentumFlow.get_next_stretcher_index()
 
     for e in uv_sub_graph.internalEdges():
-        stretchers_for_edges[RefEqualityWrapper(e)].append(propagator.Stretcher(frozenset(stretcher_indices), stretcher_index, uv_index))
+        stretchers_for_edges[RefEqualityWrapper(e)].append(propagator.Stretcher(False, frozenset(stretcher_indices), stretcher_index, uv_index))
+
+    for conj in intersect_cross_sections:
+        for e in conj:
+            stretchers_for_edges[RefEqualityWrapper(e)].append(propagator.Stretcher(True, None, stretcher_index, uv_index))
 
 
 class RefEqualityWrapper(object):
@@ -122,3 +136,6 @@ class RefEqualityWrapper(object):
     def __eq__(self, other):
         assert isinstance(other, RefEqualityWrapper)
         return self.underlying is other.underlying
+
+    def __str__(self):
+        return str(self.underlying)

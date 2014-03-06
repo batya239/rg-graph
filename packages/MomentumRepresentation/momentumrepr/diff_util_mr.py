@@ -7,20 +7,20 @@ import itertools
 import graphine
 import inject
 import swiginac
-import configure
+import configure_mr
 import graphine
 import copy
-import graph_util
+import graph_util_mr
 import graph_state
 from rggraphenv import symbolic_functions
 
 
 def construct_graph_with_markers(graph, minimal_passing):
-    new_graph_edges = map(lambda e: e.copy(marker=graph_util.MARKER_0), graph.allEdges())
+    new_graph_edges = map(lambda e: e.copy(marker=graph_util_mr.MARKER_0), graph.allEdges())
     new_minimal_passing = list()
     for e, b in minimal_passing:
-        new_graph_edges.remove(e.copy(marker=graph_util.MARKER_0))
-        new_e = e.copy(marker=graph_util.MARKER_1)
+        new_graph_edges.remove(e.copy(marker=graph_util_mr.MARKER_0))
+        new_e = e.copy(marker=graph_util_mr.MARKER_1)
         new_graph_edges.append(new_e)
         new_minimal_passing.append((new_e, b))
     return graphine.Graph(new_graph_edges, external_vertex=graph.external_vertex, renumbering=False), new_minimal_passing
@@ -30,11 +30,11 @@ CLN_FOUR = swiginac.numeric("4")
 
 
 def c1():
-    return CLN_FOUR / configure.Configure.dimension()
+    return CLN_FOUR / configure_mr.Configure.dimension()
 
 
 def c2():
-    return CLN_FOUR / configure.Configure.dimension()
+    return CLN_FOUR / configure_mr.Configure.dimension()
 
 
 def c3():
@@ -72,21 +72,21 @@ def _do_diff(graph, comb):
         all_edges_3edges.remove(edge)
         new_vertex1, new_vertex2 = graph.createVertexIndex(), graph.createVertexIndex()
         numerator = graph_state.Arrow(graph_state.Arrow.LEFT_ARROW)
-        all_edges_3edges.append(graph_util.new_edge((edge.nodes[0], new_vertex1),
+        all_edges_3edges.append(graph_util_mr.new_edge((edge.nodes[0], new_vertex1),
                                                     flow=edge.flow,
                                                     fields=edge.fields,
                                                     propagator=edge.propagator,
                                                     arrow=numerator,
                                                     marker=edge.marker,
                                                     external_node=graph.external_vertex))
-        all_edges_3edges.append(graph_util.new_edge((new_vertex1, new_vertex2),
+        all_edges_3edges.append(graph_util_mr.new_edge((new_vertex1, new_vertex2),
                                                     flow=edge.flow,
                                                     fields=edge.fields,
                                                     propagator=edge.propagator,
                                                     arrow=numerator,
                                                     marker=edge.marker,
                                                     external_node=graph.external_vertex))
-        all_edges_3edges.append(graph_util.new_edge((new_vertex2, edge.nodes[1]),
+        all_edges_3edges.append(graph_util_mr.new_edge((new_vertex2, edge.nodes[1]),
                                                     flow=edge.flow,
                                                     fields=edge.fields,
                                                     propagator=edge.propagator,
@@ -101,13 +101,13 @@ def _do_diff(graph, comb):
         edge = comb[0][0]
         all_edges_2edges.remove(edge)
         new_vertex = graph.createVertexIndex()
-        all_edges_2edges.append(graph_util.new_edge((edge.nodes[0], new_vertex),
+        all_edges_2edges.append(graph_util_mr.new_edge((edge.nodes[0], new_vertex),
                                                     flow=edge.flow,
                                                     fields=edge.fields,
                                                     propagator=edge.propagator,
                                                     marker=edge.marker,
                                                     external_node=graph.external_vertex))
-        all_edges_2edges.append(graph_util.new_edge((new_vertex, edge.nodes[1]),
+        all_edges_2edges.append(graph_util_mr.new_edge((new_vertex, edge.nodes[1]),
                                                     flow=edge.flow,
                                                     fields=edge.fields,
                                                     propagator=edge.propagator,
@@ -126,14 +126,14 @@ def _do_diff(graph, comb):
             all_edges.remove(edge)
             new_vertex = graph.createVertexIndex()
             numerator = graph_state.Arrow(graph_state.Arrow.LEFT_ARROW if comb[1] else graph_state.Arrow.RIGHT_ARROW)
-            new_edge1 = graph_util.new_edge((edge.nodes[0], new_vertex),
+            new_edge1 = graph_util_mr.new_edge((edge.nodes[0], new_vertex),
                                             external_node=graph.external_vertex,
                                             flow=edge.flow,
                                             fields=edge.fields,
                                             propagator=edge.propagator,
                                             marker=edge.marker,
                                             arrow=numerator)
-            new_edge2 = graph_util.new_edge((edge.nodes[1], new_vertex),
+            new_edge2 = graph_util_mr.new_edge((edge.nodes[1], new_vertex),
                                             external_node=graph.external_vertex,
                                             flow=edge.flow,
                                             fields=edge.fields,
@@ -161,12 +161,12 @@ def D_i_omega(graph):
         new_edges = copy.copy(graph.allEdges())
         new_edges.remove(e)
         next_vertex = graph.createVertexIndex()
-        new_edges.append(graph_util.new_edge((e.nodes[0], next_vertex),
+        new_edges.append(graph_util_mr.new_edge((e.nodes[0], next_vertex),
                                              fields=e.fields,
                                              flow=e.flow,
                                              marker=e.marker,
                                              propagator=e.propagator))
-        new_edges.append(graph_util.new_edge((next_vertex, e.nodes[1]),
+        new_edges.append(graph_util_mr.new_edge((next_vertex, e.nodes[1]),
                                              fields=e.fields,
                                              flow=e.flow,
                                              marker=e.marker,
@@ -184,11 +184,11 @@ def D_minus_tau(graph):
         new_edges = copy.copy(graph_edges)
         new_edges.remove(e)
         next_vertex = graph.createVertexIndex()
-        new_edges.append(graph_util.new_edge((e.nodes[0], next_vertex),
+        new_edges.append(graph_util_mr.new_edge((e.nodes[0], next_vertex),
                                              fields=e.fields,
                                              flow=e.flow,
                                              propagator=e.propagator))
-        new_edges.append(graph_util.new_edge((next_vertex, e.nodes[1]),
+        new_edges.append(graph_util_mr.new_edge((next_vertex, e.nodes[1]),
                                              fields=e.fields,
                                              flow=e.flow,
                                              propagator=e.propagator))
@@ -199,9 +199,9 @@ def D_minus_tau(graph):
 def main():
     import representation
     import graphine
-    import configure
-    configure.Configure().with_dimension(symbolic_functions.D).configure()
-    g = representation.enumerate_propagators(graphine.Graph(graph_util.from_str("e11|e|:00_Aa_aa|00|:::")))
+    import configure_mr
+    configure_mr.Configure().with_dimension(symbolic_functions.D).configure()
+    g = representation.enumerate_propagators(graphine.Graph(graph_util_mr.from_str("e11|e|:00_Aa_aa|00|:::")))
     print g
     print D_omega(g)
     print D_p2(g)

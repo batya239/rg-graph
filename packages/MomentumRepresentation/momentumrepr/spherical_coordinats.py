@@ -8,7 +8,7 @@ import rggraphutil
 import collections
 import scalar_product
 import inject
-import configure
+import configure_mr
 import swiginac
 from rggraphenv import symbolic_functions
 
@@ -57,12 +57,12 @@ class ScalarProductEnumerator(object):
         if isinstance(scalar_products_expression, (list, tuple, set)):
             if None in scalar_products_expression:
                 scalar_products_expression.remove(None)
-            pairs = reduce(lambda s, p: s | set(p.momentum_pairs()), scalar_products_expression, set())
+            pairs = scalar_products_expression
         else:
             pairs = scalar_products_expression.momentum_pairs()
         pairs = filter(lambda p: len(p) == 2, pairs)
 
-        dimension = configure.Configure.dimension()
+        dimension = configure_mr.Configure.dimension()
 
         mapped_pairs = rggraphutil.emptySetDict()
         for p in pairs:
@@ -95,9 +95,14 @@ class ScalarProductEnumerator(object):
                 for i in p:
                     if i != index:
                         other_index = i
+                used_vars = enumerator.used_variables[order][index_mapping[other_index]]
+
+                fake_var = "sp%s(" % ScalarProductEnumerator.next_fake_variable_index() + ",".join(map(lambda v: str(v), used_vars)) + ")"
+                fake_var = symbolic_functions.var(fake_var)
+
                 substitutor[p] = SubstitutedScalarProduct(expression=enumerator.scalar_products[order][index_mapping[other_index]],
-                                                          variables=enumerator.used_variables[order][index_mapping[other_index]],
-                                                          fake_variable=symbolic_functions.var("sp%s" % ScalarProductEnumerator.next_fake_variable_index()))
+                                                          variables=used_vars,
+                                                          fake_variable=fake_var)
                 dimensioned_omegas.append(DimensionedOmega(omega=enumerator.scalar_products[order][index_mapping[other_index]],
                                                            dimension=dimension - 2 - order))
 

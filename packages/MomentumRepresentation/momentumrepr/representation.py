@@ -7,30 +7,30 @@ import graphine
 import graph_state
 import copy
 import graphine
-import graph_util
+import graph_util_mr
 import momentum_enumeration
 import swiginac
-import configure
+import configure_mr
 
 CLN_FOUR = swiginac.numeric("4")
 
 
 def c1():
-    return CLN_FOUR / configure.Configure.dimension()
+    return CLN_FOUR / configure_mr.Configure.dimension()
 
 
 def c2():
-    d = configure.Configure.dimension()
+    d = configure_mr.Configure.dimension()
     return (CLN_FOUR - d) / d
 
 
 def initial_graph_edge_transformation(graph):
     new_edges = list()
     for e in graph.allEdges():
-        if e.fields == graph_util.aa:
+        if e.fields == graph_util_mr.aa:
             next_vertex = graph.createVertexIndex()
-            new_edges.append(e.copy({e.nodes[1]: next_vertex}, fields=graph_util.aA))
-            new_edges.append(e.copy({e.nodes[0]: next_vertex}, fields=graph_util.Aa))
+            new_edges.append(e.copy({e.nodes[1]: next_vertex}, fields=graph_util_mr.aA))
+            new_edges.append(e.copy({e.nodes[0]: next_vertex}, fields=graph_util_mr.Aa))
         else:
             new_edges.append(e)
     return graphine.Graph(new_edges)

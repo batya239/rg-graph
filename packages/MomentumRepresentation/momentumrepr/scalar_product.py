@@ -136,6 +136,7 @@ def substitute_scalar_product(graph):
     sp = extract_scalar_products(graph)
     if sp is None:
         return symbolic_functions.CLN_ONE
+    assert False
     substitutor, dimensioned_omegas = spherical_coordinats.ScalarProductEnumerator.enumerate(sp, graph.getLoopsCount())
     substituted_scalar_products = sp.substitute(substitutor)
     return substituted_scalar_products

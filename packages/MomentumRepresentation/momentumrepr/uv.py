@@ -3,7 +3,7 @@
 __author__ = 'dima'
 
 
-import configure
+import configure_mr
 import graphine
 
 
@@ -14,5 +14,5 @@ def uv_condition(edgesList, superGraph, superGraphEdges):
 
 
 def uv_index(graph):
-    _uv_index = - graph.getAllInternalEdgesCount() * 2 + graph.getLoopsCount() * (2 + configure.Configure.space_dimension_int())
+    _uv_index = - graph.getAllInternalEdgesCount() * 2 + graph.getLoopsCount() * (2 + configure_mr.Configure.space_dimension_int())
     return _uv_index

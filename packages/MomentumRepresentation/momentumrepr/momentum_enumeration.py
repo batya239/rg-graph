@@ -8,7 +8,7 @@ import graph_state
 import copy
 import graphine
 import itertools
-import graph_util
+import graph_util_mr
 import uv
 from rggraphutil import Ref
 

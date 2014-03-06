@@ -4,13 +4,15 @@ __author__ = 'dima'
 
 
 import itertools
-import graph_util
+import graph_util_mr
 import rggraphutil
 import graphine
 import momentum_enumeration
 import scalar_product
 import spherical_coordinats
 import collections
+import scalar_product
+import spherical_coordinats
 from rggraphenv import symbolic_functions
 
 
@@ -25,17 +27,21 @@ def substitute_time_versions(graph):
 
 
 def substitute(graph_with_time_version):
+    sps = reduce(lambda s, e: s | e.propagator.get_scalar_products(), graph_with_time_version.graph.allEdges(), set())
+
+    substitutor = spherical_coordinats.ScalarProductEnumerator.enumerate(sps, graph_with_time_version.graph.getLoopsCount())[0]
+
     v = symbolic_functions.CLN_ONE
     for cs in graph_with_time_version.edges_cross_sections:
-        v /= reduce(lambda _v,  e: _v + e.propagator.energy_expression(), cs, symbolic_functions.CLN_ZERO)
-    return v
+        indices = reduce(lambda s, e: s | e.flow.get_not_all_propagators_stretchers_indices(), cs, set())
+        v /= reduce(lambda _v,  e: _v + e.propagator.energy_expression(indices, substitutor), cs, symbolic_functions.CLN_ZERO)
+    return v, substitutor.values()
 
 
 class GraphAndTimeVersion(object):
-    def __init__(self, graph, time_version, edges_cross_sections=None):
+    def __init__(self, graph, time_version):
         self._graph = graph
         self._time_version = time_version
-        self._edges_cross_sections = edges_cross_sections
 
     @property
     def graph(self):
@@ -47,12 +53,10 @@ class GraphAndTimeVersion(object):
 
     @property
     def edges_cross_sections(self):
-        if self._edges_cross_sections is None:
-            self._edges_cross_sections = find_cross_sections_for_time_version(self.time_version, self.graph)
-        return self._edges_cross_sections
+        return find_cross_sections_for_time_version(self.time_version, self.graph)
 
     def set_graph(self, graph):
-        return GraphAndTimeVersion(graph, self.time_version, self.edges_cross_sections)
+        return GraphAndTimeVersion(graph, self.time_version)
 
     def __eq__(self, other):
         assert isinstance(other, GraphAndTimeVersion)
@@ -68,16 +72,16 @@ class GraphAndTimeVersion(object):
 
 
 def find_time_versions(graph):
-    return map(lambda tv: GraphAndTimeVersion(graph, tv), find_raw_time_versions(graph))
+    return sorted(map(lambda tv: GraphAndTimeVersion(graph, tv), find_raw_time_versions(graph)))
 
 
 def find_raw_time_versions(graph):
     def find_restrictions(g):
         restrictions = list()
         for e in g.allEdges():
-            if e.fields == graph_util.Aa:
+            if e.fields == graph_util_mr.Aa:
                 restrictions.append(e.nodes)
-            elif e.fields == graph_util.aA:
+            elif e.fields == graph_util_mr.aA:
                 restrictions.append(rggraphutil.swap_pair(e.nodes))
             elif not e.is_external():
                 raise AssertionError()
@@ -122,22 +126,3 @@ def _find_edges(graph, from_set, to_set):
             for _v in e.nodes:
                 if _v != v and _v in to_set:
                     yield e
-
-
-def main():
-    graph = graphine.Graph(graph_util.from_str("e11|e|:00_Aa_Aa|00|:::"))
-    graph = momentum_enumeration.attach_propagators(momentum_enumeration.choose_minimal_momentum_flow(graph))
-    print graph
-    print find_raw_time_versions(graph)
-    print find_edges_cross_sections(graph)
-    print substitute_time_versions(graph)
-    graph = graphine.Graph(graph_util.from_str("e11|e|:00_Aa_aA|00|:::"))
-    graph = momentum_enumeration.attach_propagators(momentum_enumeration.choose_minimal_momentum_flow(graph))
-    print graph
-    print find_raw_time_versions(graph)
-    print find_edges_cross_sections(graph)
-    print substitute_time_versions(graph)
-
-
-if __name__ == "__main__":
-    main()
