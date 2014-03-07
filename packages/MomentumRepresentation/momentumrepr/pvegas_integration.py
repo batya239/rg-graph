@@ -16,7 +16,7 @@ double func_t_{fileIdx}(double k[DIMENSION])
 {{
 double f=0;
 {resultingFunctions}
-printf(\"w1->%.8f, k1->%.8f, k0->%.8f, a0->%.8f = %.8f\\n\", k[0], k[1], k[2], k[3], f);
+//printf(\"w1->%.8f, k1->%.8f, k0->%.8f, a0->%.8f = %.8f\\n\", k[0], k[1], k[2], k[3], f);
 return f;
 }}
 """
@@ -194,6 +194,9 @@ def execute_pvegas(directory, chdir=True):
             term = parse_pvegas_output(output)
             res[get_eps_from_filename(filename)] += term[0]
             err[get_eps_from_filename(filename)] += term[1]
+# FIXME:
+    if chdir:
+        os.chdir(DEFAULT_PWD)
     return res, err
 
 def execute_cuba(directory, chdir=True):
@@ -209,6 +212,8 @@ def execute_cuba(directory, chdir=True):
             term = parse_cuba_output(output)
             res[get_eps_from_filename(filename)] += term[0]
             err[get_eps_from_filename(filename)] += term[1]
+    if chdir:
+        os.chdir(DEFAULT_PWD)
     return res, err
 
 
@@ -221,6 +226,8 @@ def compile_pvegas(directory, chdir=True):
     if chdir:
         os.chdir(directory)
     ret_val = subprocess.call(["scons", "-f", "SConstruct.pvegas"])
+    if chdir:
+        os.chdir(DEFAULT_PWD)
     if ret_val != 0:
         raise Exception("scons failed, ret_val = %s" % ret_val)
 
@@ -236,13 +243,28 @@ def compile_cuba(directory, chdir=True):
     if chdir:
         os.chdir(directory)
     ret_val = subprocess.call(["scons", "-f", "SConstruct.cuba"])
+    if chdir:
+        os.chdir(DEFAULT_PWD)
     if ret_val != 0:
         raise Exception("scons failed, ret_val = %s" % ret_val)
 
 
+DEFAULT_PWD = None
+
+def set_default_pwd(pwd=None):
+    global DEFAULT_PWD
+    if pwd is None:
+        p1 = subprocess.Popen("pwd", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out = p1.communicate()[0]
+        DEFAULT_PWD = out.rstrip()
+    else:
+        DEFAULT_PWD = pwd
+
+set_default_pwd()
 
 if __name__ == "__main__":
 
+    set_default_pwd()
     graph = "asdasd"
     directory = os.path.join("tmp/", str(graph))
     try:
@@ -258,7 +280,7 @@ if __name__ == "__main__":
     # compile_pvegas(directory, chdir=True)
     # print execute_pvegas(directory, chdir=False)
     compile_cuba(directory, chdir=True)
-    print execute_cuba(directory, chdir=False)
+    print execute_cuba(directory, chdir=True)
 
 
 def cuba_integrate(integrand_series, integrations, scalar_products_functions):
@@ -278,7 +300,7 @@ def cuba_integrate(integrand_series, integrations, scalar_products_functions):
         term = integrandInfo(integrand_series_c, _vars, sps, '// fucking shit')
         generate_integrands([term], directory, str(graph))
         compile_cuba(directory, chdir=True)
-        return execute_cuba(directory, chdir=False)[0]
+        return execute_cuba(directory, chdir=True)[0]
         # term = integrandInfo({0: "1", 1: "3"}, ('k1', 'k2', 'k3'), ('k1k2 = k3',), '// fucking shit')
     print "Integration done in %s ms" % (time.time() - ms)
     return answer
