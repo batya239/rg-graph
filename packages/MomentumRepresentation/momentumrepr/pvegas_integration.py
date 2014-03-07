@@ -284,23 +284,22 @@ if __name__ == "__main__":
 
 
 def cuba_integrate(integrand_series, integrations, scalar_products_functions):
-    graph = "asdasd"
+    an_id = id(integrand_series)
+    graph = str(an_id)
     directory = os.path.join("tmp/", str(graph))
-    answer = dict()
     print "Start integration: %s\nIntegration: %s\nScalar functions: %s" % (integrand_series, integrations, scalar_products_functions)
-    print "ID: %s" % id(integrand_series)
+    print "Integration ID: %s" % an_id
     ms = time.time()
-    for degree, integrand in integrand_series.items():
-        sps = list()
-        for sp_function in scalar_products_functions:
-            sps.append("%s = %s" % (sp_function.sign, sp_function.body))
-        _vars = map(lambda v: str(v.var), integrations)
+    sps = list()
+    for sp_function in scalar_products_functions:
+        sps.append("%s = %s" % (sp_function.sign, sp_function.body))
+    _vars = map(lambda v: str(v.var), integrations)
 
-        integrand_series_c = dict(map(lambda (p, v) : (p, v.printc()), integrand_series.items()))
-        term = integrandInfo(integrand_series_c, _vars, sps, '// fucking shit')
-        generate_integrands([term], directory, str(graph))
-        compile_cuba(directory, chdir=True)
-        return execute_cuba(directory, chdir=True)[0]
-        # term = integrandInfo({0: "1", 1: "3"}, ('k1', 'k2', 'k3'), ('k1k2 = k3',), '// fucking shit')
+    integrand_series_c = dict(map(lambda (p, v) : (p, v.printc()), integrand_series.items()))
+    term = integrandInfo(integrand_series_c, _vars, sps, '// fucking shit')
+    generate_integrands([term], directory, str(graph))
+    compile_cuba(directory, chdir=True)
+    exec_res = execute_cuba(directory, chdir=True)
     print "Integration done in %s ms" % (time.time() - ms)
-    return answer
+    return exec_res[0]
+    # term = integrandInfo({0: "1", 1: "3"}, ('k1', 'k2', 'k3'), ('k1k2 = k3',), '// fucking shit')
