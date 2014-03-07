@@ -5,6 +5,7 @@ import os
 import re
 import shutil
 import subprocess
+import time
 
 __author__ = 'mkompan'
 
@@ -15,6 +16,7 @@ double func_t_{fileIdx}(double k[DIMENSION])
 {{
 double f=0;
 {resultingFunctions}
+printf(\"w1->%.8f, k1->%.8f, k0->%.8f, a0->%.8f = %.8f\\n\", k[0], k[1], k[2], k[3], f);
 return f;
 }}
 """
@@ -38,6 +40,7 @@ double func{idx}_t_{fileIdx}(double k[DIMENSION])
 functionsCodeTemplate = """
 #include <math.h>
 #define DIMENSION {dims}
+#define Pi 3.14159265358979323846
 
 {functions}
 
@@ -141,6 +144,7 @@ def get_eps_from_filename(filename):
 
 
 def parse_pvegas_output(output):
+    print output
     regex = re.match("result = (.*)", output.splitlines()[-4])
     if regex is not None:
         res = eval(regex.groups()[0])
@@ -183,8 +187,10 @@ def execute_pvegas(directory, chdir=True):
     err = collections.defaultdict(lambda :0)
     for filename in os.listdir("."):
         if filename[-3:] == "run":
-            process = subprocess.Popen(["./%s" % filename, "100000", "2", "2"], stdout=subprocess.PIPE)
-            output = process.communicate()[0]
+            process = subprocess.Popen(["./%s" % filename, "100000", "2", "2"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            output, stderr = process.communicate()
+            print output
+            print stderr
             term = parse_pvegas_output(output)
             res[get_eps_from_filename(filename)] += term[0]
             err[get_eps_from_filename(filename)] += term[1]
@@ -221,7 +227,10 @@ def compile_pvegas(directory, chdir=True):
 
 def compile_cuba(directory, chdir=True):
 
-    path_to_code = __file__.replace("pvegas_integration.py", "scons/")
+    if "pvegas_integration.pyc" in __file__:
+        path_to_code = __file__.replace("pvegas_integration.pyc", "scons/")
+    else:
+        path_to_code = __file__.replace("pvegas_integration.py", "scons/")
     for filename in ["SConstruct.cuba", "common.py", "scons_config.py", "cubaCodeTemplate.py"]:
         shutil.copyfile("%s%s" %(path_to_code, filename), "%s/%s" % (directory, filename))
     if chdir:
@@ -233,6 +242,7 @@ def compile_cuba(directory, chdir=True):
 
 
 if __name__ == "__main__":
+
     graph = "asdasd"
     directory = os.path.join("tmp/", str(graph))
     try:
@@ -251,3 +261,24 @@ if __name__ == "__main__":
     print execute_cuba(directory, chdir=False)
 
 
+def cuba_integrate(integrand_series, integrations, scalar_products_functions):
+    graph = "asdasd"
+    directory = os.path.join("tmp/", str(graph))
+    answer = dict()
+    print "Start integration: %s\nIntegration: %s\nScalar functions: %s" % (integrand_series, integrations, scalar_products_functions)
+    print "ID: %s" % id(integrand_series)
+    ms = time.time()
+    for degree, integrand in integrand_series.items():
+        sps = list()
+        for sp_function in scalar_products_functions:
+            sps.append("%s = %s" % (sp_function.sign, sp_function.body))
+        _vars = map(lambda v: str(v.var), integrations)
+
+        integrand_series_c = dict(map(lambda (p, v) : (p, v.printc()), integrand_series.items()))
+        term = integrandInfo(integrand_series_c, _vars, sps, '// fucking shit')
+        generate_integrands([term], directory, str(graph))
+        compile_cuba(directory, chdir=True)
+        return execute_cuba(directory, chdir=False)[0]
+        # term = integrandInfo({0: "1", 1: "3"}, ('k1', 'k2', 'k3'), ('k1k2 = k3',), '// fucking shit')
+    print "Integration done in %s ms" % (time.time() - ms)
+    return answer

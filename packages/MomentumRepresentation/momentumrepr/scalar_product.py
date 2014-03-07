@@ -3,6 +3,7 @@ __author__ = 'dima'
 
 import itertools
 import spherical_coordinats
+from rggraphutil import zeroDict
 from rggraphenv import symbolic_functions
 
 
@@ -30,10 +31,10 @@ class ScalarProduct(ScalarProductAlgebraElement):
     def resolve_flows(flow1, flow2):
         assert not flow1.is_external()
         assert not flow2.is_external()
-        unordered_pairs_to_coefficient = dict()
+        unordered_pairs_to_coefficient = zeroDict()
         for p in itertools.product(enumerate(flow1.loop_momentas),  enumerate(flow2.loop_momentas)):
             if p[0][1] != 0 and p[1][1] != 0:
-                unordered_pairs_to_coefficient[frozenset((p[0][0], p[1][0]))] = p[0][1] * p[1][1]
+                unordered_pairs_to_coefficient[frozenset((p[0][0], p[1][0]))] += p[0][1] * p[1][1]
         return unordered_pairs_to_coefficient
 
     def momentum_pairs(self):
@@ -43,7 +44,10 @@ class ScalarProduct(ScalarProductAlgebraElement):
         result = symbolic_functions.CLN_ZERO
         for p, c in self._unordered_pairs.items():
             if len(p) == 2:
-                result += substitutor[p] * symbolic_functions.cln(c)
+                r = symbolic_functions.cln(c)
+                for i in p:
+                    r *= symbolic_functions.var("k%s" % i)
+                result += substitutor[p] * r
             elif len(p) == 1:
                 result += symbolic_functions.var("k%s" % (list(p))[0]) ** 2 * symbolic_functions.cln(c)
             else:

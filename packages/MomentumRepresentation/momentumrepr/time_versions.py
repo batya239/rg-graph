@@ -84,7 +84,7 @@ def find_raw_time_versions(graph):
             elif e.fields == graph_util_mr.aA:
                 restrictions.append(rggraphutil.swap_pair(e.nodes))
             elif not e.is_external():
-                raise AssertionError()
+                raise AssertionError(e)
         return restrictions
 
     def is_acceptable(restrictions, time_sequence):

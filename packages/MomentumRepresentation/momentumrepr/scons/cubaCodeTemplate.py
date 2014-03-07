@@ -30,6 +30,7 @@ static int Integrand(const int *ndim, const double xx[],
 #define NBATCH 1000
 #define GRIDNO 0
 #define STATEFILE NULL
+#define Pi 3.1415926535897932384626433832795028841971
 
 #define NNEW 1000
 #define FLATNESS 25.

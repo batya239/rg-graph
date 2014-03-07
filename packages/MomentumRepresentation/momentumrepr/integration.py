@@ -71,14 +71,19 @@ def construct_integrand(base_integrand, loop_momentum_vars, stretch_vars, angles
 
     for angle in angles:
         free_sphere_dimension -= symbolic_functions.CLN_ONE
+        expression = angle.expression
         for v in angle.variables:
-            angle_integrations.add(Integration(var=v, a=symbolic_functions.CLN_ZERO, b=symbolic_functions.Pi))
-        scalar_products_functions.append(ScalarProductFunction(angle.fake_variable, angle.expression))
+            expression = expression.subs(v == swiginac.Pi * v)
+            angle_integrations.add(Integration(var=v, a=symbolic_functions.CLN_ZERO, b=symbolic_functions.CLN_ONE))
+        scalar_products_functions.append(ScalarProductFunction(angle.fake_variable, expression))
     integrations += list(angle_integrations)
 
     for angle_integration in angle_integrations:
         integrand_e *= (swiginac.sin(angle_integration.var)) ** (dimension - 2)
+        integrand_e *= swiginac.Pi
+        integrand_e = integrand_e.subs(angle_integration.var == (angle_integration.var * swiginac.Pi))
         integrand_e *= spherical_coordinats.sphere_square(dimension - 1) / spherical_coordinats.sphere_square(dimension)
+        print "Angle integration:", swiginac.Pi * (swiginac.sin(angle_integration.var)) ** (dimension - 2) * spherical_coordinats.sphere_square(dimension - 1) / spherical_coordinats.sphere_square(dimension)
 
     for loop_var in loop_momentum_vars:
         integrand_e *= loop_var ** (dimension - symbolic_functions.CLN_ONE)
@@ -89,6 +94,7 @@ def construct_integrand(base_integrand, loop_momentum_vars, stretch_vars, angles
 
 
     integrand_a = integrand_a.normal()
+    print "Integrand(a):", integrand_a
     for s_v in stretch_vars:
         var = s_v.var
         divergence = s_v.divergence
@@ -97,12 +103,15 @@ def construct_integrand(base_integrand, loop_momentum_vars, stretch_vars, angles
                      * integrand_a.diff(var, divergence + 1).normal()
         integrations.append(Integration(var=var, a=symbolic_functions.CLN_ZERO, b=symbolic_functions.CLN_ONE))
 
-    integrand_series = integrand_e.series(symbolic_functions.e == 0,
-                                        configure_mr.Configure.target_loops_count() + 1 - len(loop_momentum_vars)).normal()
+    print "Integrand(e):", integrand_e
+    print "D(a)Integrand(a):", integrand_a
+
+    integrand_series = integrand_e.series(symbolic_functions.e == 0, 1).normal()
+                                         # configure_mr.Configure.target_loops_count() + 1 - len(loop_momentum_vars)).normal()
     integrand_series_map = dict()
-    for degree in xrange(integrand_series.ldegree(symbolic_functions.e), integrand_series.degree(symbolic_functions.e) + 1):
+    for degree in xrange(integrand_series.ldegree(symbolic_functions.e), integrand_series.degree(symbolic_functions.e)):
         if degree == 0:
-            integrand_series_map[degree] = integrand_series.subs(symbolic_functions.e == 0).normal() * integrand_a
+            integrand_series_map[degree] = integrand_e.subs(symbolic_functions.e == 0).normal() * integrand_a
         else:
             integrand_series_map[degree] = integrand_series.coeff(symbolic_functions.e ** degree).normal() * integrand_a
         print "Integrand by series: %s = %s" % (degree, integrand_series_map[degree])

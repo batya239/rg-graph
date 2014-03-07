@@ -6,6 +6,7 @@ import graph_state
 import itertools
 import graphine
 import collections
+import swiginac
 import scalar_product
 from rggraphenv import symbolic_functions
 
