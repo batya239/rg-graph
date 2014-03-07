@@ -87,9 +87,9 @@ def construct_integrand(base_integrand, loop_momentum_vars, stretch_vars, angles
 
     for loop_var in loop_momentum_vars:
         integrand_e *= loop_var ** (dimension - symbolic_functions.CLN_ONE)
-        integrand_a = integrand_a.subs(loop_var == (loop_var / (symbolic_functions.CLN_ONE - loop_var)))
-        integrand_e = integrand_e.subs(loop_var == (loop_var / (symbolic_functions.CLN_ONE - loop_var)))
-        integrand_a *= (symbolic_functions.CLN_ONE - loop_var) ** (-2)
+        integrand_a = integrand_a.subs(loop_var == ((symbolic_functions.CLN_ONE - loop_var) / loop_var))
+        integrand_e = integrand_e.subs(loop_var == ((symbolic_functions.CLN_ONE - loop_var) / loop_var))
+        integrand_a *= loop_var ** (-2)
         integrations.append(Integration(var=loop_var, a=symbolic_functions.CLN_ZERO, b=symbolic_functions.CLN_ONE))
 
 
@@ -106,11 +106,24 @@ def construct_integrand(base_integrand, loop_momentum_vars, stretch_vars, angles
     print "Integrand(e):", integrand_e
     print "D(a)Integrand(a):", integrand_a
 
+    contribution_1_1 = integrand_a
+    for sp in scalar_products_functions:
+        contribution_1_1 = contribution_1_1.subs(sp.sign==0.5)
+    for i in integrations:
+        if str(i.var).startswith("k"):
+            print i.var
+            contribution_1_1 = (contribution_1_1).normal().subs(i.var==1)
+        else:
+            contribution_1_1 = contribution_1_1.subs(i.var==0.5)
+
+    print "Evaled D_a integrand", contribution_1_1
+
     integrand_series = integrand_e.series(symbolic_functions.e == 0, 1).normal()
                                          # configure_mr.Configure.target_loops_count() + 1 - len(loop_momentum_vars)).normal()
     integrand_series_map = dict()
     for degree in xrange(integrand_series.ldegree(symbolic_functions.e), integrand_series.degree(symbolic_functions.e)):
         if degree == 0:
+            print "Eps=0", integrand_e.subs(symbolic_functions.e == 0).normal()
             integrand_series_map[degree] = integrand_e.subs(symbolic_functions.e == 0).normal() * integrand_a
         else:
             integrand_series_map[degree] = integrand_series.coeff(symbolic_functions.e ** degree).normal() * integrand_a

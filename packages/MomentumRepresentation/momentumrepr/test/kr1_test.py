@@ -53,11 +53,11 @@ class Kr1Test(unittest.TestCase):
         self.assertTrue(abs(res[0] - 0.125) < 1E-3, res)
         self.assertTrue(abs(res[1] + 0.0625) < 1E-4, res)
 
-    def test_bubble_d_p2(self):
-        graph_state_str = "e11|e|:0A_aA_aA|00|::::"
-        res = self.kr1(kr1.kr1_d_p2, graph_state_str)
-        self.assertTrue(abs(res[0] + 0.0625) < 1E-4, res)
-        self.assertTrue(abs(res[1] - 0.03125) < 1E-5, res)
+    # def test_bubble_d_p2(self):
+    #     graph_state_str = "e11|e|:0A_aA_aA|00|::::"
+    #     res = self.kr1(kr1.kr1_d_p2, graph_state_str)
+    #     self.assertTrue(abs(res[0] + 0.0625) < 1E-4, res)
+    #     self.assertTrue(abs(res[1] - 0.03125) < 1E-5, res)
 
     def kr1(self, operation, graph_state_as_str):
         answer = zeroDict()

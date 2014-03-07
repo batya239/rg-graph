@@ -287,8 +287,21 @@ def cuba_integrate(integrand_series, integrations, scalar_products_functions):
     an_id = id(integrand_series)
     graph = str(an_id)
     directory = os.path.join("tmp/", str(graph))
-    print "Start integration: %s\nIntegration: %s\nScalar functions: %s" % (integrand_series, integrations, scalar_products_functions)
+    zero_contribution = integrand_series[0]
+    evaled_zero_contribution = zero_contribution
     print "Integration ID: %s" % an_id
+    for sp in scalar_products_functions:
+        evaled_zero_contribution = evaled_zero_contribution.subs(sp.sign==0.5)
+    for i in integrations:
+        if str(i.var).startswith("k"):
+            evaled_zero_contribution = (evaled_zero_contribution).subs(i.var==0.99999)
+        else:
+            evaled_zero_contribution = evaled_zero_contribution.subs(i.var==0.5)
+    print "Evaled zero:", evaled_zero_contribution.evalf()
+    print "Printc zero:\"\n%s\n\"" % zero_contribution.printc()
+
+
+    print "Start integration: %s\nIntegration: %s\nScalar functions: %s" % (integrand_series, integrations, scalar_products_functions)
     ms = time.time()
     sps = list()
     for sp_function in scalar_products_functions:
