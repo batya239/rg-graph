@@ -16,7 +16,6 @@ from rggraphutil import zeroDict
 
 configure_mr.Configure().with_dimension(symbolic_functions.cln(4) - symbolic_functions.e).with_target_loops_count(3).with_debug(True).configure()
 
-
 def kr11(operation, graph_state_as_str):
     answer = zeroDict()
     for integrand in operation(graph_state_as_str):
@@ -24,5 +23,5 @@ def kr11(operation, graph_state_as_str):
             answer[d] += a
     return answer
 
-graph_state_str = "e12|e3|e4|44|:0A_aA_aA|00_aA|00_Aa|aA_aA|::::"
-print kr11(kr1.kr1_log_divergence, graph_state_str)
+graph_state_str = "e12|23|3|e|:0A_aA_aA|aA_aA|aA|00|::::"
+print kr11(kr1.kr1_d_iw, graph_state_str)

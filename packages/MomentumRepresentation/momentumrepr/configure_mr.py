@@ -6,11 +6,22 @@ import inject
 
 
 class Configure(object):
+    INTEGRATION_ALGORITHM_CODES = {
+        "vegas": 0,
+        "suave": 1,
+        "devonne": 2,
+        "cuhre": 3
+    }
+
     def __init__(self):
         self._dimension = None
         self._space_dimension_int = None
         self._target_loops_count = None
         self._debug = False
+        self._integration_algorithm = Configure.INTEGRATION_ALGORITHM_CODES["suave"]
+        self._maximum_points_number = 2000
+        self._relative_error = 10e-4
+        self._absolute_error = 10e-5
 
     def with_dimension(self, dimension):
         self._dimension = dimension
@@ -25,12 +36,35 @@ class Configure(object):
         self._debug = debug
         return self
 
+    def with_integration_algorithm(self, integration_algorithm):
+        code = Configure.INTEGRATION_ALGORITHM_CODES.get(integration_algorithm, None)
+        if code is None:
+            raise Exception("no integration algorithm for name - %s" % integration_algorithm)
+        self._integration_algorithm = code
+        return self
+
+    def with_maximum_points_number(self, maximum_points_number):
+        self._maximum_points_number = maximum_points_number
+        return self
+
+    def with_relative_error(self, relative_error):
+        self._relative_error = relative_error
+        return self
+
+    def with_absolute_error(self, absolute_error):
+        self._absolute_error = absolute_error
+        return self
+
     def configure(self):
         def injector(binder):
             binder.bind("dimension", self._dimension)
             binder.bind("space_dimension_int", self._space_dimension_int)
             binder.bind("target_loops_count", self._target_loops_count)
             binder.bind("debug", self._debug)
+            binder.bind("integration_algorithm", self._integration_algorithm)
+            binder.bind("maximum_points_number", self._maximum_points_number)
+            binder.bind("relative_error", self._relative_error)
+            binder.bind("absolute_error", self._absolute_error)
 
         inject.configure(injector)
 
@@ -49,6 +83,22 @@ class Configure(object):
     @classmethod
     def space_dimension_int(cls):
         return inject.instance("space_dimension_int")
+
+    @classmethod
+    def integration_algorithm(cls):
+        return inject.instance("integration_algorithm")
+
+    @classmethod
+    def maximum_points_number(cls):
+        return inject.instance("maximum_points_number")
+
+    @classmethod
+    def relative_error(cls):
+        return inject.instance("relative_error")
+
+    @classmethod
+    def absolute_error(cls):
+        return inject.instance("absolute_error")
 
     @classmethod
     def clear(cls):

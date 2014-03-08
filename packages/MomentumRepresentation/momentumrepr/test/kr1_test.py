@@ -11,7 +11,7 @@ import propagator
 import representation
 import swiginac_integration
 import scipy_integration
-import pvegas_integration
+import cuba_integration
 from rggraphenv import symbolic_functions
 from rggraphutil import zeroDict
 
@@ -62,7 +62,7 @@ class Kr1Test(unittest.TestCase):
     def kr1(self, operation, graph_state_as_str):
         answer = zeroDict()
         for integrand in operation(graph_state_as_str):
-            for d, a in pvegas_integration.cuba_integrate(*integrand).items():
+            for d, a in cuba_integration.cuba_integrate(*integrand).items():
                 answer[d] += a
         return answer
 

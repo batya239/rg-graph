@@ -83,7 +83,7 @@ def construct_integrand(base_integrand, loop_momentum_vars, stretch_vars, angles
         integrand_e *= swiginac.Pi
         integrand_e = integrand_e.subs(angle_integration.var == (angle_integration.var * swiginac.Pi))
         integrand_e *= spherical_coordinats.sphere_square(dimension - 1) / spherical_coordinats.sphere_square(dimension)
-        print "Angle integration:", swiginac.Pi * (swiginac.sin(angle_integration.var)) ** (dimension - 2) * spherical_coordinats.sphere_square(dimension - 1) / spherical_coordinats.sphere_square(dimension)
+        print "Angle integration:", swiginac.Pi * (swiginac.sin(swiginac.Pi * angle_integration.var)) ** (dimension - 2) * spherical_coordinats.sphere_square(dimension - 1) / spherical_coordinats.sphere_square(dimension)
 
     for loop_var in loop_momentum_vars:
         integrand_e *= loop_var ** (dimension - symbolic_functions.CLN_ONE)
@@ -105,18 +105,6 @@ def construct_integrand(base_integrand, loop_momentum_vars, stretch_vars, angles
 
     print "Integrand(e):", integrand_e
     print "D(a)Integrand(a):", integrand_a
-
-    contribution_1_1 = integrand_a
-    for sp in scalar_products_functions:
-        contribution_1_1 = contribution_1_1.subs(sp.sign==0.5)
-    for i in integrations:
-        if str(i.var).startswith("k"):
-            print i.var
-            contribution_1_1 = (contribution_1_1).normal().subs(i.var==1)
-        else:
-            contribution_1_1 = contribution_1_1.subs(i.var==0.5)
-
-    print "Evaled D_a integrand", contribution_1_1
 
     integrand_series = integrand_e.series(symbolic_functions.e == 0, 1).normal()
                                          # configure_mr.Configure.target_loops_count() + 1 - len(loop_momentum_vars)).normal()

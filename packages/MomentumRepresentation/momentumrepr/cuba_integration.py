@@ -6,6 +6,9 @@ import re
 import shutil
 import subprocess
 import time
+import configure_mr
+import atexit
+from rggraphutil import zeroDict
 
 __author__ = 'mkompan'
 
@@ -135,6 +138,7 @@ def generate_func_files(integrand_iterator, generate_function_body_=generate_fun
             function_file.set_file_info(file_info)
             yield function_file
 
+
 def get_eps_from_filename(filename):
     regex = re.match(".*_V\d+_E(.*)\.run", filename)
     if regex is not None:
@@ -142,16 +146,6 @@ def get_eps_from_filename(filename):
     else:
         raise NotImplementedError("HZ %s" % filename)
 
-
-def parse_pvegas_output(output):
-    print output
-    regex = re.match("result = (.*)", output.splitlines()[-4])
-    if regex is not None:
-        res = eval(regex.groups()[0])
-    regex = re.match("std_dev = (.*)", output.splitlines()[-3])
-    if regex is not None:
-        std_dev = eval(regex.groups()[0])
-    return res, std_dev
 
 def parse_cuba_output(output):
     """SUAVE RESULT:	6.99999999999988 +- 0.00000004572840	p = -999.000"""
@@ -161,7 +155,8 @@ def parse_cuba_output(output):
     if regex is not None:
         res = eval(regex.groups()[0])
         std_dev = eval(regex.groups()[1])
-    return res, std_dev
+        return res, std_dev
+    raise AssertionError()
 
 
 def generate_integrands(integrand_iterator, directory, graph_name):
@@ -180,33 +175,18 @@ def generate_integrands(integrand_iterator, directory, graph_name):
         f.close()
 
 
-def execute_pvegas(directory, chdir=True):
-    if chdir:
-        os.chdir(directory)
-    res = collections.defaultdict(lambda :0)
-    err = collections.defaultdict(lambda :0)
-    for filename in os.listdir("."):
-        if filename[-3:] == "run":
-            process = subprocess.Popen(["./%s" % filename, "100000", "2", "2"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            output, stderr = process.communicate()
-            print output
-            print stderr
-            term = parse_pvegas_output(output)
-            res[get_eps_from_filename(filename)] += term[0]
-            err[get_eps_from_filename(filename)] += term[1]
-# FIXME:
-    if chdir:
-        os.chdir(DEFAULT_PWD)
-    return res, err
-
 def execute_cuba(directory, chdir=True):
     if chdir:
         os.chdir(directory)
-    res = collections.defaultdict(lambda :0)
-    err = collections.defaultdict(lambda :0)
+    res = collections.defaultdict(lambda: 0)
+    err = collections.defaultdict(lambda: 0)
     for filename in os.listdir("."):
         if filename[-3:] == "run":
-            process = subprocess.Popen(["./%s" % filename, "1", "200000", "1e-4", "1e-5"], stdout=subprocess.PIPE)
+            code = str(configure_mr.Configure.integration_algorithm())
+            points = str(configure_mr.Configure.maximum_points_number())
+            rel_err = str(configure_mr.Configure.relative_error())
+            abs_err = str(configure_mr.Configure.absolute_error())
+            process = subprocess.Popen(["./%s" % filename, code, points, rel_err, abs_err], stdout=subprocess.PIPE)
             output = process.communicate()[0]
             print output
             term = parse_cuba_output(output)
@@ -217,27 +197,12 @@ def execute_cuba(directory, chdir=True):
     return res, err
 
 
-
-def compile_pvegas(directory, chdir=True):
-
-    path_to_code = __file__.replace("pvegas_integration.py", "scons/")
-    for filename in ["SConstruct.pvegas", "common.py", "scons_config.py", "pvegasCodeTemplate.py"]:
-        shutil.copyfile("%s%s" %(path_to_code, filename), "%s/%s" % (directory, filename))
-    if chdir:
-        os.chdir(directory)
-    ret_val = subprocess.call(["scons", "-f", "SConstruct.pvegas"])
-    if chdir:
-        os.chdir(DEFAULT_PWD)
-    if ret_val != 0:
-        raise Exception("scons failed, ret_val = %s" % ret_val)
-
-
 def compile_cuba(directory, chdir=True):
 
     if "pvegas_integration.pyc" in __file__:
         path_to_code = __file__.replace("pvegas_integration.pyc", "scons/")
     else:
-        path_to_code = __file__.replace("pvegas_integration.py", "scons/")
+        path_to_code = __file__.replace("cuba_integration.py", "scons/")
     for filename in ["SConstruct.cuba", "common.py", "scons_config.py", "cubaCodeTemplate.py"]:
         shutil.copyfile("%s%s" %(path_to_code, filename), "%s/%s" % (directory, filename))
     if chdir:
@@ -251,6 +216,7 @@ def compile_cuba(directory, chdir=True):
 
 DEFAULT_PWD = None
 
+
 def set_default_pwd(pwd=None):
     global DEFAULT_PWD
     if pwd is None:
@@ -262,7 +228,36 @@ def set_default_pwd(pwd=None):
 
 set_default_pwd()
 
+@atexit.register
+def on_shutdown():
+    subprocess.call(["rm","-rf", "tmp/"])
+
+
+def cuba_integrate(integrand_series, integrations, scalar_products_functions):
+    an_id = id(integrand_series)
+    graph = str(an_id)
+    directory = os.path.join("tmp/", str(graph))
+    print "Integration ID: %s" % an_id
+
+    print "Start integration: %s\nIntegration: %s\nScalar functions: %s" % (integrand_series, integrations, scalar_products_functions)
+    ms = time.time()
+    sps = list()
+    for sp_function in scalar_products_functions:
+        sps.append("%s = %s" % (sp_function.sign, sp_function.body))
+    _vars = map(lambda v: str(v.var), integrations)
+
+    integrand_series_c = dict(map(lambda (p, v) : (p, v.printc()), integrand_series.items()))
+    term = integrandInfo(integrand_series_c, _vars, sps, '// fucking shit')
+    generate_integrands([term], directory, str(graph))
+    compile_cuba(directory, chdir=True)
+    exec_res = execute_cuba(directory, chdir=True)
+    print "Integration done in %s ms" % (time.time() - ms)
+    return exec_res[0]
+    # term = integrandInfo({0: "1", 1: "3"}, ('k1', 'k2', 'k3'), ('k1k2 = k3',), '// fucking shit')
+
+
 if __name__ == "__main__":
+    configure_mr.Configure().with_integration_algorithm("vegas").with_maximum_points_number(2000).with_absolute_error(10e-5).with_relative_error(10e-5).configure()
 
     set_default_pwd()
     graph = "asdasd"
@@ -281,38 +276,3 @@ if __name__ == "__main__":
     # print execute_pvegas(directory, chdir=False)
     compile_cuba(directory, chdir=True)
     print execute_cuba(directory, chdir=True)
-
-
-def cuba_integrate(integrand_series, integrations, scalar_products_functions):
-    an_id = id(integrand_series)
-    graph = str(an_id)
-    directory = os.path.join("tmp/", str(graph))
-    zero_contribution = integrand_series[0]
-    evaled_zero_contribution = zero_contribution
-    print "Integration ID: %s" % an_id
-    for sp in scalar_products_functions:
-        evaled_zero_contribution = evaled_zero_contribution.subs(sp.sign==0.5)
-    for i in integrations:
-        if str(i.var).startswith("k"):
-            evaled_zero_contribution = (evaled_zero_contribution).subs(i.var==0.99999)
-        else:
-            evaled_zero_contribution = evaled_zero_contribution.subs(i.var==0.5)
-    print "Evaled zero:", evaled_zero_contribution.evalf()
-    print "Printc zero:\"\n%s\n\"" % zero_contribution.printc()
-
-
-    print "Start integration: %s\nIntegration: %s\nScalar functions: %s" % (integrand_series, integrations, scalar_products_functions)
-    ms = time.time()
-    sps = list()
-    for sp_function in scalar_products_functions:
-        sps.append("%s = %s" % (sp_function.sign, sp_function.body))
-    _vars = map(lambda v: str(v.var), integrations)
-
-    integrand_series_c = dict(map(lambda (p, v) : (p, v.printc()), integrand_series.items()))
-    term = integrandInfo(integrand_series_c, _vars, sps, '// fucking shit')
-    generate_integrands([term], directory, str(graph))
-    compile_cuba(directory, chdir=True)
-    exec_res = execute_cuba(directory, chdir=True)
-    print "Integration done in %s ms" % (time.time() - ms)
-    return exec_res[0]
-    # term = integrandInfo({0: "1", 1: "3"}, ('k1', 'k2', 'k3'), ('k1k2 = k3',), '// fucking shit')

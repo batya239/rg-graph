@@ -9,7 +9,7 @@ import propagator
 import representation
 import swiginac_integration
 import scipy_integration
-import pvegas_integration
+import cuba_integration
 from rggraphenv import symbolic_functions
 from rggraphutil import zeroDict
 
@@ -20,7 +20,7 @@ configure_mr.Configure().with_dimension(symbolic_functions.cln(4) - symbolic_fun
 def kr11(operation, graph_state_as_str):
     answer = zeroDict()
     for integrand in operation(graph_state_as_str):
-        for d, a in pvegas_integration.cuba_integrate(*integrand).items():
+        for d, a in cuba_integration.cuba_integrate(*integrand).items():
             answer[d] += a
     return answer
 
