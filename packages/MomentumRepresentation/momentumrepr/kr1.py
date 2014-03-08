@@ -21,19 +21,21 @@ no_tadpoles = graphine.filters.noTadpoles
 one_irreducible = graphine.filters.oneIrreducible
 
 
-def kr1_log_divergence(graph_state_as_str):
-    return kr1_with_some_additional_lambda_operation(graph_state_as_str)
+def kr1_log_divergence(graph_state_as_str, integration_operation=None):
+    return kr1_with_some_additional_lambda_operation(graph_state_as_str, integration_operation=integration_operation)
 
 
-def kr1_d_p2(graph_state_as_str):
-    return kr1_with_some_additional_lambda_operation(graph_state_as_str, diff_util_mr.D_p2)
+def kr1_d_p2(graph_state_as_str, integration_operation=None):
+    return kr1_with_some_additional_lambda_operation(graph_state_as_str, diff_util_mr.D_p2, integration_operation=integration_operation)
 
 
-def kr1_d_iw(graph_state_as_str):
-    return kr1_with_some_additional_lambda_operation(graph_state_as_str, diff_util_mr.D_i_omega)
+def kr1_d_iw(graph_state_as_str, integration_operation=None):
+    return kr1_with_some_additional_lambda_operation(graph_state_as_str, diff_util_mr.D_i_omega, integration_operation=integration_operation)
 
 
-def kr1_with_some_additional_lambda_operation(graph_state_as_str, additional_lambda=None):
+def kr1_with_some_additional_lambda_operation(graph_state_as_str,
+                                              additional_lambda=None,
+                                              integration_operation=None):
     def integral_producer_lambda(graph_with_tv, coeff):
         if configure_mr.Configure.debug():
             print "\n\n\nGraph: %s" % graph_with_tv.graph
@@ -55,7 +57,15 @@ def kr1_with_some_additional_lambda_operation(graph_state_as_str, additional_lam
     graph = graph.apply(propagator.subs_external_propagators_is_zero)
     graph = graph.apply(kr1_stretching)
     integrals = graph.map_with_coefficients(integral_producer_lambda)
-    return integrals
+
+    if integration_operation is None:
+        return integrals
+
+    answer_dict = zeroDict()
+    for i in integrals:
+        for d, a in cuba_integration.cuba_integrate(*i).items():
+            answer_dict[d] += a
+    return answer_dict
 
 
 def kr1_stretching(graph):
