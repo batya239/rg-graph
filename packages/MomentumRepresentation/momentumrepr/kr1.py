@@ -63,7 +63,7 @@ def kr1_with_some_additional_lambda_operation(graph_state_as_str,
 
     answer_dict = zeroDict()
     for i in integrals:
-        for d, a in cuba_integration.cuba_integrate(*i).items():
+        for d, a in integration_operation(*i).items():
             answer_dict[d] += a
     return answer_dict
 

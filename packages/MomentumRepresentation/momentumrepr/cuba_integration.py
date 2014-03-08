@@ -199,8 +199,8 @@ def execute_cuba(directory, chdir=True):
 
 def compile_cuba(directory, chdir=True):
 
-    if "pvegas_integration.pyc" in __file__:
-        path_to_code = __file__.replace("pvegas_integration.pyc", "scons/")
+    if "cuba_integration.pyc" in __file__:
+        path_to_code = __file__.replace("cuba_integration.pyc", "scons/")
     else:
         path_to_code = __file__.replace("cuba_integration.py", "scons/")
     for filename in ["SConstruct.cuba", "common.py", "scons_config.py", "cubaCodeTemplate.py"]:
