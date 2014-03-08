@@ -15,7 +15,7 @@ import propagator
 import configure_mr
 import map_reduce_wrapper
 import integration
-from rggraphutil import emptyListDict
+from rggraphutil import emptyListDict, zeroDict
 
 no_tadpoles = graphine.filters.noTadpoles
 one_irreducible = graphine.filters.oneIrreducible
