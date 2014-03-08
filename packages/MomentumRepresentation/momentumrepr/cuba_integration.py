@@ -230,7 +230,8 @@ set_default_pwd()
 
 @atexit.register
 def on_shutdown():
-    subprocess.call(["rm","-rf", "tmp/"])
+    if configure_mr.Configure.delete_integration_tmp_dir_on_shutdown():
+        subprocess.call(["rm","-rf", "tmp/"])
 
 
 def cuba_integrate(integrand_series, integrations, scalar_products_functions):

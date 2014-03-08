@@ -22,6 +22,7 @@ class Configure(object):
         self._maximum_points_number = 2000
         self._relative_error = 10e-4
         self._absolute_error = 10e-5
+        self._delete_integration_tmp_dir_on_shutdown = False
 
     def with_dimension(self, dimension):
         self._dimension = dimension
@@ -55,6 +56,9 @@ class Configure(object):
         self._absolute_error = absolute_error
         return self
 
+    def with_delete_integration_tmp_dir_on_shutdown(self, delete_integration_tmp_dir_on_shutdown):
+        self._delete_integration_tmp_dir_on_shutdown = delete_integration_tmp_dir_on_shutdown
+
     def configure(self):
         def injector(binder):
             binder.bind("dimension", self._dimension)
@@ -65,6 +69,7 @@ class Configure(object):
             binder.bind("maximum_points_number", self._maximum_points_number)
             binder.bind("relative_error", self._relative_error)
             binder.bind("absolute_error", self._absolute_error)
+            binder.bind("delete_integration_tmp_dir_on_shutdown", self._delete_integration_tmp_dir_on_shutdown)
 
         inject.configure(injector)
 
@@ -99,6 +104,10 @@ class Configure(object):
     @classmethod
     def absolute_error(cls):
         return inject.instance("absolute_error")
+
+    @classmethod
+    def delete_integration_tmp_dir_on_shutdown(cls):
+        return inject.instance("delete_integration_tmp_dir_on_shutdown")
 
     @classmethod
     def clear(cls):
