@@ -72,6 +72,11 @@ def kr1_stretching(graph):
     uv_subgraphs = [x for x in graph.xRelevantSubGraphs(one_irreducible + no_tadpoles + uv.uv_condition)]
     graphs_and_time_versions = time_versions.find_time_versions(graph)
 
+    print "Graph:", graph
+    for g_tv in graphs_and_time_versions:
+        print "Time version:", g_tv.time_version
+    print "\n"
+
     with_stretching = list()
     for graph_and_tv in graphs_and_time_versions:
         stretchers_for_edges = emptyListDict()
