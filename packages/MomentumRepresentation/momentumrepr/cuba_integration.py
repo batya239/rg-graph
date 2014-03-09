@@ -248,13 +248,13 @@ def cuba_integrate(integrand_series, integrations, scalar_products_functions):
     _vars = map(lambda v: str(v.var), integrations)
 
     integrand_series_c = dict(map(lambda (p, v): (p, v.printc()), integrand_series.items()))
-    term = integrandInfo(integrand_series_c, _vars, sps, '// fucking shit')
+    term = integrandInfo(integrand_series_c, _vars, sps, '')
     generate_integrands([term], directory, str(graph))
     compile_cuba(directory, chdir=True)
     exec_res = execute_cuba(directory, chdir=True)
-    print "Integration done in %s ms" % (time.time() - ms)
+    print "Integration done in %s s" % (time.time() - ms)
     print "Result", exec_res
-    return exec_res[0]
+    return exec_res
     # term = integrandInfo({0: "1", 1: "3"}, ('k1', 'k2', 'k3'), ('k1k2 = k3',), '// fucking shit')
 
 
@@ -274,7 +274,5 @@ if __name__ == "__main__":
     integrand_iterator = [term1, term2 ]
     generate_integrands(integrand_iterator, directory, str(graph))
 
-    # compile_pvegas(directory, chdir=True)
-    # print execute_pvegas(directory, chdir=False)
     compile_cuba(directory, chdir=True)
     print execute_cuba(directory, chdir=True)
