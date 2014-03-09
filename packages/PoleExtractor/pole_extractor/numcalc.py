@@ -3,6 +3,7 @@ __author__ = 'gleb'
 import polynomial
 import subprocess
 import os
+import types
 from sympy import mpmath
 import reduced_vl
 import itertools
@@ -19,19 +20,18 @@ class NumEpsExpansion():
     def __init__(self, exp=None, precise=False):
         """
         """
+        assert(isinstance(exp, (dict, types.NoneType)))
+
         self._precise = precise
+
         if exp is None:
             self._elements = dict()
             return
 
-        assert(type(exp) == dict)
-
         self._elements = dict()
         for k in exp.keys():
             if isinstance(exp[k], list) or isinstance(exp[k], tuple):
-                #self._elements[k] = PrecisionNumber.fromTuple(exp[k])
                 self._elements[k] = uncertainties.ufloat(exp[k][0], exp[k][1])
-            #if isinstance(exp[k], PrecisionNumber):
             else:
                 self._elements[k] = exp[k]
 
@@ -50,7 +50,6 @@ class NumEpsExpansion():
         if item in self.keys():
             return self._elements[item]
         else:
-            #return PrecisionNumber(value=0.0)
             return uncertainties.ufloat(0.0, 0.0)
 
     def __str__(self):
@@ -70,7 +69,8 @@ class NumEpsExpansion():
         if sorted(self.keys()) != sorted(other.keys()):
             return False
         for k in self.keys():
-            if not self[k] == other[k]:
+            if max(self[k].n - self[k].s, other[k].n - other[k].s) > \
+                    min(self[k].n + self[k].s, other[k].n + other[k].s):
                 return False
         return True
 
@@ -93,7 +93,6 @@ class NumEpsExpansion():
 
             for k in ks:
                 if k <= max_index:
-                    #res[k] = PrecisionNumber(value=0.0)
                     res[k] = uncertainties.ufloat(0.0, 0.0)
                     if k in self.keys():
                         res[k] += self[k]
@@ -113,7 +112,6 @@ class NumEpsExpansion():
                 for k1 in self.keys():
                     for k2 in other.keys():
                         if k1 + k2 not in res.keys():
-                            #res[k1 + k2] = PrecisionNumber(value=0)
                             res[k1 + k2] = uncertainties.ufloat(0.0, 0.0)
                         res[k1 + k2] += self[k1] * other[k2]
             else:
@@ -124,7 +122,6 @@ class NumEpsExpansion():
                 else:
                     length = min(max(self.keys()) - min(self.keys()), max(other.keys()) - min(other.keys())) + 1
                 ks = range(min(self.keys()) + min(other.keys()), min(self.keys()) + min(other.keys()) + length)
-                #res = {k: PrecisionNumber(value=0) for k in ks}
                 res = {k: uncertainties.ufloat(0.0, 0.0) for k in ks}
                 for k1 in self.keys():
                     for k2 in other.keys():
@@ -136,7 +133,7 @@ class NumEpsExpansion():
         return self.__mul__(other)
 
     def __pow__(self, power, modulo=None):
-        if not isinstance(power, int) or int < 1:
+        if not isinstance(power, int) or power < 1:
             raise AttributeError("Sorry, we can't get non-natural powers")
         result = NumEpsExpansion(self._elements, precise=self._precise)
         for k in range(power - 1):
@@ -196,57 +193,25 @@ def get_gamma(a, b, max_index):
         for i in list(xrange(0, len(expansion))):
             result[i] = [float(expansion[i]), 1E-10]
     elif 0 == a:
-        result = {0: [-0.5772156649, 1E-10],
-                  -1: [1.0000000000, 1E-10],
-                  1: [0.9890559953, 1E-10],
-                  2: [-0.9074790760, 1E-10],
-                  3: [0.9817280868, 1E-10],
-                  4: [-0.9819950689, 1E-10],
-                  5: [0.9931491146, 1E-10],
-                  6: [-0.9960017604, 1E-10],
-                  7: [0.9981056937, 1E-10],
-                  8: [-0.9990252676, 1E-10],
-                  9: [0.9995156560, 1E-10],
-                  10: [-0.9997565975, 1E-10]}
+        result = {0: [-0.5772156649, 1E-10], -1: [1.0000000000, 1E-10], 1: [0.9890559953, 1E-10],
+                  2: [-0.9074790760, 1E-10], 3: [0.9817280868, 1E-10], 4: [-0.9819950689, 1E-10],
+                  5: [0.9931491146, 1E-10], 6: [-0.9960017604, 1E-10], 7: [0.9981056937, 1E-10],
+                  8: [-0.9990252676, 1E-10], 9: [0.9995156560, 1E-10], 10: [-0.9997565975, 1E-10]}
     elif -1 == a:
-        result = {0: [-0.4227843350, 1E-10],
-                  -1: [-1.0000000000, 1E-10],
-                  1: [-1.4118403304, 1E-10],
-                  2: [-0.5043612543, 1E-10],
-                  3: [-1.4860893411, 1E-10],
-                  4: [-0.5040942722, 1E-10],
-                  5: [-1.4972433868, 1E-10],
-                  6: [-0.5012416264, 1E-10],
-                  7: [-1.4993473202, 1E-10],
-                  8: [-0.5003220526, 1E-10],
-                  9: [-1.4998377086, 1E-10],
-                  10: [-0.5000811111, 1E-10]}
+        result = {0: [-0.4227843350, 1E-10], -1: [-1.0000000000, 1E-10], 1: [-1.4118403304, 1E-10],
+                  2: [-0.5043612543, 1E-10], 3: [-1.4860893411, 1E-10], 4: [-0.5040942722, 1E-10],
+                  5: [-1.4972433868, 1E-10], 6: [-0.5012416264, 1E-10], 7: [-1.4993473202, 1E-10],
+                  8: [-0.5003220526, 1E-10], 9: [-1.4998377086, 1E-10], 10: [-0.5000811111, 1E-10]}
     elif -2 == a:
-        result = {0: [0.4613921675, 1E-10],
-                  -1: [0.5000000000, 1E-10],
-                  1: [0.9366162489, 1E-10],
-                  2: [0.7204887516, 1E-10],
-                  3: [1.1032890464, 1E-10],
-                  4: [0.8036916593, 1E-10],
-                  5: [1.1504675231, 1E-10],
-                  6: [0.8258545747, 1E-10],
-                  7: [1.1626009475, 1E-10],
-                  8: [0.8314615000, 1E-10],
-                  9: [1.1656496043, 1E-10],
-                  10: [0.8328653577, 1E-10]}
+        result = {0: [0.4613921675, 1E-10], -1: [0.5000000000, 1E-10], 1: [0.9366162489, 1E-10],
+                  2: [0.7204887516, 1E-10], 3: [1.1032890464, 1E-10], 4: [0.8036916593, 1E-10],
+                  5: [1.1504675231, 1E-10], 6: [0.8258545747, 1E-10], 7: [1.1626009475, 1E-10],
+                  8: [0.8314615000, 1E-10], 9: [1.1656496043, 1E-10], 10: [0.8328653577, 1E-10]}
     elif -3 == a:
-        result = {0: [-0.2093529447, 1E-10],
-                  -1: [-0.1666666666, 1E-10],
-                  1: [-0.3819897312, 1E-10],
-                  2: [-0.3674928276, 1E-10],
-                  3: [-0.4902606246, 1E-10],
-                  4: [-0.4313174280, 1E-10],
-                  5: [-0.5272616503, 1E-10],
-                  6: [-0.4510387417, 1E-10],
-                  7: [-0.5378798964, 1E-10],
-                  8: [-0.4564471321, 1E-10],
-                  9: [-0.5406989121, 1E-10],
-                  10: [-0.4578547566, 1E-10]}
+        result = {0: [-0.2093529447, 1E-10], -1: [-0.1666666666, 1E-10], 1: [-0.3819897312, 1E-10],
+                  2: [-0.3674928276, 1E-10], 3: [-0.4902606246, 1E-10], 4: [-0.4313174280, 1E-10],
+                  5: [-0.5272616503, 1E-10], 6: [-0.4510387417, 1E-10], 7: [-0.5378798964, 1E-10],
+                  8: [-0.4564471321, 1E-10], 9: [-0.5406989121, 1E-10], 10: [-0.4578547566, 1E-10]}
 
     ks = result.keys()
     for k in ks:
@@ -310,7 +275,7 @@ def cuba_calculate(expansion):
             f.close()
 
             #compiling external C program
-            cmpl = 'gcc -Wall -fopenmp -I' + wd + ' -o ' + binary + ' ' + source + ' -lm -lcuba -fopenmp'
+            cmpl = 'gcc -Wall -I' + wd + ' -o ' + binary + ' ' + source + ' -lm -lcuba'
             subprocess.Popen([cmpl], shell=True, stderr=subprocess.PIPE).communicate()
 
             #running external C program
@@ -338,7 +303,7 @@ def cuba_calculate(expansion):
     return NumEpsExpansion(result)
 
 
-def parallel_cuba_calculate(expansion, parallel_processes=200):
+def parallel_cuba_calculate(expansion, parallel_processes=20):
     """
     :param expansion:
     :return:
@@ -353,7 +318,7 @@ def parallel_cuba_calculate(expansion, parallel_processes=200):
         f.close()
 
         #compiling external C program
-        cmpl = 'gcc -Wall -fopenmp -I' + wd + ' -o ' + bin_name + ' ' + src_name + ' -lm -lcuba -fopenmp'
+        cmpl = 'gcc -Wall -I ' + wd + ' -o ' + bin_name + ' ' + src_name + ' -lm -lcuba'
         subprocess.Popen([cmpl], shell=True, stderr=subprocess.PIPE).communicate()
 
         #running external C program
@@ -363,24 +328,24 @@ def parallel_cuba_calculate(expansion, parallel_processes=200):
         out, err = integrate.communicate()
         result.put((k, (out, err)))
 
-    result = dict()
-    split_size = 2
-
+    split_size = 10
+    max_jobs = 100
     wd = os.path.expanduser("~") + '/.pole_extractor'
     source = wd + '/' + 'integrate.c'
 
-    map(lambda x: shutil.rmtree(wd + '/' + x), [s for s in os.listdir(wd) if '.jbf' in s])
-
+    result = dict()
     sub_folder_names = []
     sources = []
     headers = []
     binaries = []
-    job_num = 0
-
-    results = multiprocessing.Queue()
     jobs = []
+    job_num = 0
+    results = multiprocessing.Queue()
+
+    map(lambda x: shutil.rmtree(wd + '/' + x), [s for s in os.listdir(wd) if '.jbf' in s])
 
     for k in expansion.keys():
+        result[k] = uncertainties.ufloat(0.0, 0.0)
         for i in range(0, len(expansion[k]), split_size):
 
             sub_folder_names.append(wd + '/.jbf' + str(job_num).zfill(5))
@@ -396,25 +361,23 @@ def parallel_cuba_calculate(expansion, parallel_processes=200):
                                                       expansion[k][i:i + split_size], k, results)))
             job_num += 1
 
-    for i in range(0, len(jobs), parallel_processes):
-        map(lambda x: x.start(), jobs[i:i + parallel_processes])
-        map(lambda x: x.join(), jobs[i:i + parallel_processes])
-        map(lambda x: shutil.rmtree(x), sub_folder_names[i:i + parallel_processes])
+            if len(jobs) == max_jobs or i + split_size >= len(expansion[k]):
+                for j in range(0, len(jobs), parallel_processes):
+                    map(lambda x: x.start(), jobs[j:j + parallel_processes])
+                    map(lambda x: x.join(), jobs[j:j + parallel_processes])
+                    #map(lambda x: shutil.rmtree(x),
+                    #    sub_folder_names[job_num - max_jobs + j:job_num - max_jobs + j + parallel_processes])
 
-    while not results.empty():
-        (k, (out, err)) = results.get()
-        m = out.split(' ', 2)
-        try:
-            r = float(m[0])
-            e = float(m[1])
-            if k in result.keys():
-                result[k][0] += r
-                result[k][1] += e
-            else:
-                result[k] = [r, e]
-        except ValueError:
-            print 'Something went wrong during integration. Here\'s what CUBA said:'
-            print str(out)
-            print str(err)
+                del jobs[:]
+
+                while not results.empty():
+                    (k, (out, err)) = results.get()
+                    m = out.split(' ', 2)
+                    try:
+                        result[k] += uncertainties.ufloat(float(m[0]), float(m[1]))
+                    except ValueError:
+                        print 'Something went wrong during integration. Here\'s what CUBA said:'
+                        print str(out)
+                        print str(err)
 
     return NumEpsExpansion(result)
