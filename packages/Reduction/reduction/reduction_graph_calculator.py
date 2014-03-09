@@ -15,7 +15,7 @@ class ReductionGraphCalculator(abstract_graph_calculator.AbstractGraphCalculator
         self._reduction_loops = reduction_loops
 
     def get_label(self):
-        return "reduction calculator for 2-4 loops"
+        return "reduction calculator for %s loops" % str(self._reduction_loops)
 
     def init(self):
         all_reductors = (TWO_LOOP_REDUCTOR, THREE_LOOP_REDUCTOR, FOUR_LOOP_REDUCTOR)
@@ -29,7 +29,7 @@ class ReductionGraphCalculator(abstract_graph_calculator.AbstractGraphCalculator
         result = reductor.calculate(graph)
         if result is None:
             return None
-        return result.evaluate(substitute_sectors=True, _d=symbolic_functions.D, series_n=5, remove_o=True), \
+        return result.evaluate(substitute_sectors=True, _d=symbolic_functions.d_phi4, series_n=5, remove_o=True), \
             reduction_util.calculate_graph_p_factor(graph)
 
     def is_applicable(self, graph):
@@ -45,7 +45,7 @@ class ScalarProductReductionGraphCalculator(abstract_graph_calculator.AbstractGr
         self._reduction_loops = reduction_loops
 
     def get_label(self):
-        return "graphs with scalars products reduction calculator for 2-4 loops"
+        return "graphs with scalars products reduction calculator for %s loops" % str(self._reduction_loops)
 
     def init(self):
         all_reductors = (TWO_LOOP_REDUCTOR, THREE_LOOP_REDUCTOR, FOUR_LOOP_REDUCTOR)
@@ -59,7 +59,7 @@ class ScalarProductReductionGraphCalculator(abstract_graph_calculator.AbstractGr
         result = reductor.calculate(graph, self._scalar_product_extractor)
         if result is None:
             return None
-        return result.evaluate(substitute_sectors=True, _d=symbolic_functions.D, series_n=5, remove_o=True), \
+        return result.evaluate(substitute_sectors=True, _d=symbolic_functions.d_phi4, series_n=5, remove_o=True), \
             reduction_util.calculate_graph_p_factor(graph)
 
     def is_applicable(self, graph):

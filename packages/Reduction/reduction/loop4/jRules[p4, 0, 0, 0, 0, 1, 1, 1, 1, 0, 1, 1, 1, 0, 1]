@@ -3,7 +3,6 @@
     (n8_)?Positive, (n9_)?NonPositive, (n10_)?Positive, (n11_)?Positive, 
     (n12_)?Positive, (n13_)?NonPositive, (n14_)?Positive] /; 
     !(n5 == 1 || n9 == 0) -> 
-  (n13*j[p4, -1 + n1, n2, n3, n4, -1 + n5, n6, n7, n8, 1 + n9, n10, n11, n12, 
   (n13*j[p4, -1 + n1, n2, n3, n4, -1 + n5, n6, n7, n8, 1 + n9, n10, n11, n12,
       1 + n13, n14])/(-1 + n5) + j[p4, -1 + n1, n2, n3, n4, n5, n6, n7, n8,
     1 + n9, n10, n11, n12, n13, n14] + 

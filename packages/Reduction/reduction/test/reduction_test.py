@@ -41,7 +41,7 @@ class ReductionTest(unittest.TestCase):
             return
         expected = symbolic_functions.evaluate(expected_value_string)
         actual = unsubstituted_actual.evaluate(substitute_sectors=True,
-                                               _d=symbolic_functions.D,
+                                               _d=symbolic_functions.d_phi4,
                                                series_n=4,
                                                remove_o=True)
         sub = (expected - actual).evalf().simplify_indexed()

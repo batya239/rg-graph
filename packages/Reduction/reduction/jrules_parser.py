@@ -72,7 +72,7 @@ def _create_zero_rules(raw_zero_sectors):
 
 
 def convert_rule(rule_string, j_suffix):
-    result = re.sub("j\[([^,]+),([^\]]+)\]", "j_\\1(\\2)", rule_string)
+    result = re.sub("j\[([^,\]]+),([^\]]+)\]", "j_\\1(\\2)", rule_string)
     result = re.sub("\s+", " ", result)
     result = result.replace("j_%s" % j_suffix, "Sector")
     result = _replace_n(result)

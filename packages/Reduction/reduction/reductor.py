@@ -328,42 +328,29 @@ class Reductor(object):
         Reductor.CALLS_COUNT += 1
         if graph.getLoopsCount() != self._main_loop_count_condition:
             return None
-        graph = Reductor.as_internal_graph(graph)
-        if not scalar_product_aware_function:
-            return self.evaluate_sector(sector.Sector.create_from_topologies_and_graph(graph,
-                                                                                       self._topologies,
-                                                                                       self._all_propagators_count))
-        else:
 
+        probably_calculable_sectors = set()
+        str_graph = str(graph)
+        str_graph = str_graph[:str_graph.index(":")]
+        as_topologies = _enumerate_graph(graphine.Graph.fromStr(str_graph),
+                                         self._propagators,
+                                         to_sector=False)
+        for t in as_topologies:
             res = reduction_util.find_topology_for_graph(graph,
-                                                         self._topologies,
+                                                         (t,),
                                                          scalar_product.find_topology_result_converter)
-            probably_calculable_sectors = list()
-            if not res:
-                str_graph = str(graph)
-                str_graph = str_graph[:str_graph.index(":")]
-                as_topologies = _enumerate_graph(graphine.Graph.fromStr(str_graph),
-                                                 self._propagators,
-                                                 to_sector=False)
-                for t in as_topologies:
-                    if len(as_topologies):
-                        res = reduction_util.find_topology_for_graph(graph,
-                                                                     (t,),
-                                                                     scalar_product.find_topology_result_converter)
-                        probably_calculable_sectors.append(res)
-            else:
-                probably_calculable_sectors.append(res)
+            probably_calculable_sectors.add(res)
 
-            for res in probably_calculable_sectors:
-                try:
-                    s = sector.Sector.create_from_shrunk_topology(res[0], res[1], self._all_propagators_count)\
-                        .as_sector_linear_combinations()
+        for res in probably_calculable_sectors:
+            try:
+                s = sector.Sector.create_from_shrunk_topology(res[0], res[1], self._all_propagators_count).as_sector_linear_combinations()
+                if scalar_product_aware_function:
                     for sp in scalar_product_aware_function(*res):
                         s = sp.apply(s, self._scalar_product_rules)
-                    return self.evaluate_sector(s)
-                except RuleNotFoundException:
-                    pass
-            return None
+                return self.evaluate_sector(s)
+            except RuleNotFoundException:
+                pass
+        return None
         
     def _try_calculate(self, graph):
         return self.evaluate_sector(sector.Sector.create_from_topologies_and_graph(graph,
