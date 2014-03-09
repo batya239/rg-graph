@@ -23,7 +23,11 @@ class FakePropertyExternalizer(PropertyExternalizer):
 
 
 class PropertyKey(object):
-    def __init__(self, name, is_directed=False, is_edge_property=True, externalizer=FakePropertyExternalizer()):
+    def __init__(self,
+                 name,
+                 is_directed=False,
+                 is_edge_property=True,
+                 externalizer=FakePropertyExternalizer()):
         self._name = name
         self._is_directed = is_directed
         self._externalizer = externalizer

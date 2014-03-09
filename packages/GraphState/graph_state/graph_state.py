@@ -110,6 +110,24 @@ class Properties(object):
                     return cmp_res
         raise AssertionError()
 
+    @staticmethod
+    def cmp_by_index(p1, p2, index):
+        assert isinstance(p1, Properties), ("unexpected type %s" % type(p1))
+        assert isinstance(p2, Properties), ("unexpected type %s" % type(p2))
+        assert p1._properties_config is p2._properties_config, "configs must be same to compare"
+        property_order = p1._properties_config.property_order
+        p_name = property_order[index]
+        p1_v = getattr(p1, p_name, None)
+        p2_v = getattr(p2, p_name, None)
+        if p1_v is None:
+            return 0 if p2_v is None else -1
+        if p2_v is None:
+            return 1
+        return cmp(p1_v, p2_v)
+
+    def __len__(self):
+        return len(self._properties_config.property_order)
+
     def __repr__(self):
         property_order = self._properties_config.property_order
         builder = list()
@@ -156,7 +174,7 @@ class PropertiesConfig(object):
         return Properties(self, **kwargs)
 
     def __len__(self):
-        return self._property_directionality
+        return len(self._property_order)
 
     @staticmethod
     def create(*property_keys):
@@ -185,9 +203,9 @@ class Fields(object):
 
     def make_external(self, nodes, external_node):
         if external_node is nodes[0]:
-            return Fields((self.pair[0], Fields.EXTERNAL))
-        else:
             return Fields((Fields.EXTERNAL, self.pair[1]))
+        else:
+            return Fields((self.pair[0], Fields.EXTERNAL))
 
     @property
     def pair(self):
@@ -408,17 +426,21 @@ class Edge(object):
         properties_is_none = self._properties.is_none()
         updated_properties = None if properties_is_none else self._properties.update(**kwargs)
         if updated_properties is None:
-            updated_properties = kwargs.get('properties', None)
-            if updated_properties is None:
-                if 'properties_config' not in kwargs:
-                    kwargs['properties_config'] = DEFAULT_PROPERTIES_CONFIG
-                updated_properties = Properties.from_kwargs(**kwargs)
+            if 'properties_config' not in kwargs:
+                kwargs['properties_config'] = DEFAULT_PROPERTIES_CONFIG
+            updated_properties = Properties.from_kwargs(**kwargs)
 
         if mapped_external_node in mapped_nodes:
             updated_properties = updated_properties.make_external(mapped_nodes, mapped_external_node)
         return Edge(mapped_nodes,
                     external_node=mapped_external_node,
                     properties=updated_properties)
+
+    @staticmethod
+    def cmp_by_property_index(e1, e2, index):
+        return Properties.cmp_by_index(e1._properties, e2._properties, index)
+
+
 
 
 # noinspection PyProtectedMember
@@ -427,10 +449,10 @@ class GraphState(object):
     SEP2 = "_"
     NICKEL_SEP = nickel.Nickel.SEP
 
-    def __init__(self, edges, node_maps=None, default_properties=None):
+    def __init__(self, edges, node_maps=None):
         # Fields must be in every edge or defaultFields must be not None.
         properties_count = len([edge._properties for edge in edges if edge._properties])
-        assert properties_count == 0 or properties_count == len(edges) or default_properties is not None, \
+        assert properties_count == 0 or properties_count == len(edges), \
             ("properties_count =  %s, len(edges) = %s, default_properties = %s" % (properties_count, len(edges), default_properties))
 
         self._properties_config = None if edges[0]._properties is None else edges[0]._properties._properties_config
@@ -439,12 +461,16 @@ class GraphState(object):
         for node_map in node_maps:
             mapped_edges = list()
             for edge in edges:
-                props = default_properties if edge._properties.is_none() else edge._properties
+                props = edge._properties
                 mapped_edges.append(edge.copy(node_map=node_map, properties=props))
             mapped_edges.sort()
             self.sortings.append(tuple(mapped_edges))
-        min_edges = min(self.sortings)
-        self.sortings = [edges for edges in self.sortings if edges == min_edges]
+
+        for index in xrange(len(self._properties_config)):
+            if len(self.sortings) == 1:
+                break
+            cmp_ = lambda e1, e2: Edge.cmp_by_property_index(e1, e2, index)
+            self.sortings = GraphState._find_min_elements_(self.sortings, cmp_)
 
     @property
     def edges(self):
@@ -590,3 +616,27 @@ class GraphState(object):
     def _raw_old_colors_tokenizer(raw_old_colors):
         for raw_color in eval(raw_old_colors):
             yield str(raw_color)
+
+    @staticmethod
+    def _find_min_elements_(lists_of_edges, cmp_):
+        _min = list()
+        for edges in lists_of_edges:
+            if not len(_min):
+                _min.append(edges)
+            else:
+                current_min_edges = _min[0]
+                new_edges_is_new_min = False
+                is_equal = True
+                for e_c, e_m in itertools.izip(edges, current_min_edges):
+                    r = cmp_(e_c, e_m)
+                    if r < 0:
+                        new_edges_is_new_min = True
+                        break
+                    elif r > 0:
+                        is_equal = False
+                        break
+                if new_edges_is_new_min:
+                    _min = [edges]
+                elif is_equal:
+                    _min.append(edges)
+        return _min
