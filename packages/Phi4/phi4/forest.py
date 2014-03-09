@@ -5,6 +5,7 @@ __author__ = 'dimas'
 
 
 from graphine import filters
+from rggraphenv import symbolic_functions
 import itertools
 import r
 import graphine
@@ -15,20 +16,27 @@ import const
 import graph_util
 
 
-DEBUG = False
+DEBUG = True
 
 
-def delta_ir(co_sub_graph, graph, r_operator):
+def delta_ir(co_sub_graph, graph, shrunk, r_operator):
     """
     stupid algorithm
     """
     delta_ir = 0
+    if DEBUG:
+        debug_line = "D_IR(%s)=" % shrunk.getPresentableStr()
     for forest in _generate_forests(co_sub_graph, graph, r_operator):
         if DEBUG:
             print "\tFOREST gamma =", co_sub_graph.getPresentableStr(), \
                 ", graph =",  graph.getPresentableStr(), \
                 ", forest =", map(lambda f: f.getPresentableStr(), forest)
-        delta_ir += _calculate_delta_ir(forest, co_sub_graph, graph, r_operator)
+        add, d_add = _calculate_delta_ir(forest, co_sub_graph, graph, r_operator)
+        delta_ir += add
+        if DEBUG:
+            debug_line += "+" + d_add
+    if DEBUG:
+        print debug_line
     return delta_ir
 
 
@@ -49,16 +57,22 @@ def _calculate_delta_ir(forest,
                         graph,
                         r_operator):
     forest_extension = [co_sub_graph] + forest
-    sign = -1 if len(forest_extension) % 2 == 0 else 1
+    sign = symbolic_functions.CLN_MINUS_ONE if len(forest_extension) % 2 == 0 else symbolic_functions.CLN_ONE
     f = forest_extension.pop()
     delta_ir = sign * r_operator.kr_star(_remove_tails(graph.shrinkToPoint(f.allEdges())))
+    if DEBUG:
+        debug_line = "(%s)*kr_star(%s)" % (sign, _remove_tails(graph.shrinkToPoint(f.allEdges())).getPresentableStr())
+    else:
+        debug_line = None
     if len(forest_extension):
         prev_f = f
         while len(forest_extension):
             curr_f = forest_extension.pop()
-            delta_ir *= (-1) * r_operator.kr_star(_remove_tails(prev_f.shrinkToPoint(curr_f.allEdges())))
+            delta_ir *= symbolic_functions.CLN_MINUS_ONE * r_operator.kr_star(_remove_tails(prev_f.shrinkToPoint(curr_f.allEdges())))
+            if DEBUG:
+                debug_line += "*(-kr_star(%s))" % _remove_tails(prev_f.shrinkToPoint(curr_f.allEdges())).getPresentableStr()
             prev_f = curr_f
-    return delta_ir
+    return delta_ir, debug_line
 
 
 def _try_create_forest(sub_graphs):
@@ -117,4 +131,3 @@ def _remove_tails(graph):
         if edges_len != 4:
             to_add += map(lambda i: graph_util.new_edge((v, graph.external_vertex), weight=const.ZERO_WEIGHT, arrow=arrow), xrange(4 - edges_len))
     return with_deleted.addEdges(to_add)
-

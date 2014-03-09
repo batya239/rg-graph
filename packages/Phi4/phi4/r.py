@@ -47,37 +47,36 @@ class ROperation(object):
                           inside_krstar=inside_krstar)[0]
 
     def r1(self, graph, force=False):
-        return _do_r1(graph, force)[0]
+        return self._do_r1(graph, force)[0]
 
     def kr1(self, graph, force=False, inside_krstar=False, minus_graph=False):
         return self._do_kr1(graph, force=force, inside_krstar=inside_krstar, minus_graph=minus_graph)[0]
 
     def kr_star_quadratic_divergence(self, graph):
         diff = diff_util.diff_p2(graph)
-        result = 0
         if ROperation.DEBUG:
-            print "diff", diff, "initial", graph
+            debug_line = "KR_STAR(%s)=" % graph.getPresentableStr()
+        result = symbolic_functions.CLN_ZERO
         for c, g in diff:
             _all = [x for x in graphine.momentum.xArbitrarilyPassMomentum(g)]
             _all.sort(key=common.graph_can_be_calculated_over_n_loops)
             r_star = None
             for _g in _all:
-                if ROperation.DEBUG:
-                    print "try", _g
                 try:
                     if common.graph_has_not_ir_divergence(_g):
                         r_star = self.kr1(_g)
                     else:
                         r_star = self.kr_star(_g)
+                    result += self.k_operation.calculate(c * r_star)
                     break
                 except common.CannotBeCalculatedError:
                     pass
             if r_star is None:
                 raise common.CannotBeCalculatedError(g)
             if ROperation.DEBUG:
-                print "diff2 r1", self.k_operation.calculate(r_star).evalf()
-                print "diff r1 ", g, _g, self.k_operation.calculate(c * r_star).evalf()
-            result += self.k_operation.calculate(c * r_star)
+                debug_line += "+(%s)*KR_STAR(%s)" % (c, _g.getPresentableStr())
+        if ROperation.DEBUG:
+            print debug_line
         return result
 
     def kr_star(self, initial_graph, force=False, minus_graph=False):
@@ -91,19 +90,17 @@ class ROperation(object):
                     evaluated = self.storage.get_graph(graph, "kr1")
                     if evaluated and len(evaluated):
                         e = evaluated[0]
-                        return e.subs(symbolic_functions.p == 1)
+                        return e#.subs(symbolic_functions.p == 1)
                 krs = self.kr1(graph,
                                force=True,
                                inside_krstar=True,
-                               minus_graph=minus_graph).subs(symbolic_functions.p == 1)
-                spinneys_generators = graph.xRelevantSubGraphs(filters=graphine.filters.oneIrreducible
-                                                               + self.uv_filter
-                                                               + _is_1uniting
-                                                               + graphine.filters.vertexIrreducible,
+                               minus_graph=minus_graph)#.subs(symbolic_functions.p == 1)
+
+                spinneys_generators = graph.xRelevantSubGraphs(filters=self.uv_filter + _is_1uniting,
                                                                cutEdgesToExternal=False,
                                                                resultRepresentator=graphine.Representator.asGraph)
                 for spinney in spinneys_generators:
-                    shrunk, p2Counts = ROperation.shrink_to_point(graph, (spinney,))
+                    shrunk, p2_counts = ROperation.shrink_to_point(graph, (spinney,))
                     if str(shrunk).startswith("ee0|:"):
                         continue
                     # switch by uv index
@@ -111,22 +108,22 @@ class ROperation(object):
                     if uv < 0:
                         print "T0 not defined", uv, shrunk, spinney, graph
                         raise common.CannotBeCalculatedError(shrunk)
-                    spinneyPart = self.r(spinney,
-                                         force=True,
-                                         inside_krstar=True).subs(symbolic_functions.p == 1)
-                    if isinstance(spinneyPart, swiginac.numeric) and spinneyPart.to_double() == 0:
+                    spinney_part = self.r(spinney,
+                                          force=True,
+                                          inside_krstar=True)#.subs(symbolic_functions.p == 1)
+                    if isinstance(spinney_part, swiginac.numeric) and spinney_part.to_double() == 0:
                         continue
-                    ir = forest.delta_ir(spinney, graph, self).subs(symbolic_functions.p == 1)
+                    ir = forest.delta_ir(spinney, graph, shrunk, self)#.subs(symbolic_functions.p == 1)
                     if ROperation.DEBUG:
-                        print "SPINNEY", spinney, str(spinneyPart.eval())
+                        print "SPINNEY", spinney, str(spinney_part.eval())
                         print "CS", shrunk, str(ir.simplify_indexed().evalf())
-                    sub = self.k_operation.calculate(spinneyPart * ir)
+                    sub = self.k_operation.calculate(spinney_part * ir * symbolic_functions.p2 ** (-p2_counts))
                     if ROperation.DEBUG:
                         print "SPINNEY_PART", spinney, sub.simplify_indexed().evalf()
                     krs += sub
                 if ROperation.DEBUG:
                     print "R*", graph, str(krs.evalf())
-                krs = krs.subs(symbolic_functions.p == 1).normal()
+                krs = krs#.subs(symbolic_functions.p == 1).normal()
                 if not force and not minus_graph:
                     self.storage.put_graph(graph, krs, "kr1")
                 return krs
@@ -208,7 +205,7 @@ class ROperation(object):
                                                                      graph.xRelevantSubGraphs(self.uv_filter + common.one_irreducible_and_no_tadpoles)))
                 if not len(uv_subgraphs):
                     if minus_graph:
-                        return swiginac.numeric(0), None
+                        return swiginac.numeric("0"), None
                     expression, two_tails_graph = \
                         gfun_calculator.calculate_graph_value(graph)
                     if ROperation.DEBUG:
@@ -217,7 +214,7 @@ class ROperation(object):
                         self.storage.put_graph(two_tails_graph, expression, "r1")
                     return expression.normal(), two_tails_graph
 
-                raw_r1 = swiginac.numeric(0) if minus_graph else gfun_calculator.calculate_graph_value(graph)[0]
+                raw_r1 = swiginac.numeric("0") if minus_graph else gfun_calculator.calculate_graph_value(graph)[0]
                 if ROperation.DEBUG:
                     debug = []
                     print "R1 value", graph, symbolic_functions.series(raw_r1.subs(symbolic_functions.p == 1), symbolic_functions.e, 0, 0).convert_to_poly(True).evalf()
@@ -227,7 +224,7 @@ class ROperation(object):
                     sign *= -1
                     for comb in itertools.combinations(uv_subgraphs, i):
                         if i == 1 or not graphine.util.has_intersecting_by_vertexes_graphs(comb):
-                            r1 = reduce(lambda _e, g: _e * c_operation(g, force=force), comb, 1)
+                            r1 = reduce(lambda _e, g: _e * c_operation(g, force=force), comb, swiginac.numeric("1"))
                             shrunk, p2_counts = ROperation.shrink_to_point(graph, comb)
                             value = gfun_calculator.calculate_graph_value(shrunk)
                             if ROperation.DEBUG:

@@ -21,6 +21,7 @@ import diff_util
 import reduction
 import const
 import configure
+import phi4
 from rggraphenv import symbolic_functions, theory, g_graph_calculator, StorageSettings
 
 
@@ -37,16 +38,9 @@ class ResultChecker(object):
     LOG.addHandler(logging.StreamHandler())
     LOG.addHandler(logging.FileHandler("5LOOPS_log.txt"))
 
-    TWO_TAILS_OPERATION = ("KR1", r.KR1), ("KR_STAR", r.KRStar_quadratic_divergence)
-    FOUR_TAILS_OPERATION = ("KR1", r.KR1), ("KR_STAR", r.KRStar)
-
-    CALCULATED_OPERATIONS = dict({2: TWO_TAILS_OPERATION, 4: FOUR_TAILS_OPERATION})
-
-    DESCRIPTION = "5 loops checking"
-
     def __init__(self, name, *graph_calculators_to_use):
         self._name = name
-        graph_calculators_to_use = (g_graph_calculator.GLoopCalculator(const.DIM_PHI4)) + tuple(*graph_calculators_to_use)
+        graph_calculators_to_use = (g_graph_calculator.GLoopCalculator(const.DIM_PHI4),) + tuple(graph_calculators_to_use)
         configure.Configure()\
             .with_k_operation(phi4.MSKOperation())\
             .with_ir_filter(phi4.IRRelevanceCondition(phi4.SPACE_DIM_PHI4))\
@@ -55,6 +49,13 @@ class ResultChecker(object):
             .with_calculators(*graph_calculators_to_use)\
             .with_storage_holder(StorageSettings("phi4", "main method", "5 loops checking").on_shutdown(revert=True)).configure()
         self.operator = r.ROperation()
+        self.two_tails_op = ("KR1", self.operator.kr1), ("KR_STAR", self.operator.kr_star_quadratic_divergence)
+        self.four_tails_op = ("KR1", self.operator.kr1), ("KR_STAR", self.operator.kr_star)
+        self.ops = dict({2: self.two_tails_op, 4: self.four_tails_op})
+
+    @classmethod
+    def dispose(cls):
+        configure.Configure.clear()
 
     def start(self, skip_2_tails=False, skip_4_tails=False):
         ResultChecker.LOG.info("start checking \"%s\"" % self._name)
@@ -71,7 +72,7 @@ class ResultChecker(object):
                 continue
             ResultChecker.LOG.info("PERFORM %s", graph)
             momentum_passed_graphs = graphine.momentum.arbitrarilyPassMomentumWithPreferable(graph, common.graph_has_not_ir_divergence)
-            operations = ResultChecker.CALCULATED_OPERATIONS[graph.externalEdgesCount()]
+            operations = self.ops[graph.externalEdgesCount()]
             calculated_count, not_calculated_count, errors_count = 0, 0, 0
             for graphs, oper in zip(momentum_passed_graphs, operations):
                 operation_name = oper[0]
@@ -102,13 +103,12 @@ class ResultChecker(object):
         if not skip_2_tails:
             two_tails_expected.sort(cmp=lambda p1, p2: cmp(p1[0].getLoopsCount(), p2[0].getLoopsCount()))
             for graph, value in two_tails_expected:
-                ResultChecker.kr_star_p2_checking(graph, value)
+                self.kr_star_p2_checking(graph, value)
 
         ResultChecker.LOG.info("checker \"%s\" finished in %s" % (self._name, time.time() - ms))
         ResultChecker.LOG.info("reduction calls %s" % reduction.Reductor.CALLS_COUNT)
 
-    @staticmethod
-    def kr_star_p2_checking(graph, expected_result):
+    def kr_star_p2_checking(self, graph, expected_result):
         """
         used only for checking -- for any subgraph
         """
@@ -118,17 +118,13 @@ class ResultChecker(object):
         for c, g in diff:
             momentum_passed_graphs = graphine.momentum.arbitrarilyPassMomentumWithPreferable(g, common.graph_has_not_ir_divergence)
             kr1_results = list()
-            for graphs, oper in zip(momentum_passed_graphs, ResultChecker.FOUR_TAILS_OPERATION):
+            for graphs, oper in zip(momentum_passed_graphs, self.four_tails_op):
                 operation_name = oper[0]
                 operation_fun = oper[1]
                 for g in graphs:
                     try:
                         ResultChecker.LOG.info("TRY %s", g)
-                        kr1 = operation_fun(g,
-                                            common.MS_K_OPERATION,
-                                            common.DEFAULT_SUBGRAPH_UV_FILTER,
-                                            description=ResultChecker.DESCRIPTION,
-                                            use_graph_calculator=True)
+                        kr1 = operation_fun(g)
                         if kr1 is not None:
                             kr1_results.append(kr1)
                         else:
@@ -146,7 +142,7 @@ class ResultChecker(object):
             else:
                 ResultChecker.LOG.warning("CAN'T CALCULATE %s" % graph)
                 return
-            result += common.MS_K_OPERATION.calculate(c * kr1_results[0])
+            result += phi4.MSKOperation().calculate(c * kr1_results[0])
         if symbolic_functions.check_series_equal_numerically(expected_result, result, symbolic_functions.e, ResultChecker.EPS):
             ResultChecker.LOG.info("OK %s", graph)
         else:
@@ -154,7 +150,10 @@ class ResultChecker(object):
 
 
 def main():
-    checkers_configuration = ("with 2-4 loops reduction checker", [numerators_util.create_calculator(2, 3, 4)]),
+    checkers_configuration = ("with 0 loops reduction checker", [numerators_util.create_calculator(1)]),\
+                             ("with 2 loops reduction checker", [numerators_util.create_calculator(2)]),\
+                             ("with 2-3 loops reduction checker", [numerators_util.create_calculator(2, 3)]),\
+                             ("with 2-4 loops reduction checker", [numerators_util.create_calculator(2, 3, 4)])
 
     for conf in checkers_configuration:
         checker = ResultChecker(conf[0], *conf[1])

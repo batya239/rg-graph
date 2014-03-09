@@ -39,7 +39,7 @@ class SixLoops2Tails(object):
             .with_calculators(*graph_calculators_to_use)\
             .with_storage_holder(StorageSettings("phi4", "main method", "6 loops 2 tails").on_shutdown(revert=True)).configure()
         operator = r.ROperation()
-        self._operation = operator.kr_star if do_r_star else operator.kr1
+        self._operation = operator.kr_star_quadratic_divergence if do_r_star else operator.kr1
 
     def start(self, graph_states_to_calculate):
         SixLoops2Tails.LOG.info("start calculation using %s graph_calculator, %s operation" % (self._calculator, self._operation.__name__))
@@ -85,7 +85,7 @@ def email(calculated_mappings):
 
 
 def main():
-    reductions_loops = (None, (2,), (2, 3), (2, 3, 4))
+    reductions_loops = (2, 3, 4),
     operations = (False, True)
 
     calculated_mappings = dict()

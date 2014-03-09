@@ -15,10 +15,12 @@ class Configure(object):
         self._storage_holder = None
         self._dimension = None
         self._space_dimension = None
+        self._space_dimension_int = None
 
     def with_dimension(self, dimension):
         self._dimension = dimension
         self._space_dimension = dimension.subs(rggraphenv.symbolic_functions.e == 0)
+        self._space_dimension_int = self._space_dimension.to_int()
         return self
 
     def with_calculators(self, *calculators):
@@ -51,6 +53,7 @@ class Configure(object):
             binder.bind("k_operation", self._k_operation)
             binder.bind("dimension", self._dimension)
             binder.bind("space_dimension", self._space_dimension)
+            binder.bind("space_dimension_int", self._space_dimension_int)
 
         inject.configure(injector)
 

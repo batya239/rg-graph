@@ -30,4 +30,4 @@ def calculate_graph_pole_part(graph,
                        description=description,
                        use_graph_calculator=use_graph_calculator,
                        minus_graph=True)
-    return kr_star - co_part + symbolic_functions.Order(1)
+    return (kr_star - co_part + symbolic_functions.Order(1)).normal()

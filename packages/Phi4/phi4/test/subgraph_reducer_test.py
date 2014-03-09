@@ -30,8 +30,8 @@ class SubGraphReducerTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         def config(binder):
-            binder.bind(rggraphenv.StoragesHolder, rggraphenv.StoragesHolder(rggraphenv.StorageSettings("phi4", "test", "test")))
-            binder.bind(rggraphenv.GraphCalculatorManager, rggraphenv.GraphCalculatorManager(rggraphenv.GLoopCalculator(dimension=symbolic_functions.D)))
+            binder.bind(rggraphenv.StoragesHolder, rggraphenv.StoragesHolder(rggraphenv.StorageSettings("phi4", "test", "test").on_shutdown(revert=True)))
+            binder.bind(rggraphenv.GraphCalculatorManager, rggraphenv.GraphCalculatorManager(rggraphenv.GLoopCalculator(dimension=symbolic_functions.D + 2)))
         inject.configure(config)
         SubGraphReducerTestCase.time = time.time()
 

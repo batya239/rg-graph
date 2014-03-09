@@ -14,6 +14,48 @@ DEBUG = False
 new_edge = graph_state.WEIGHT_ARROW_AND_MARKER_PROPERTIES_CONFIG.new_edge
 
 
+class LazyVal(object):
+
+    def __init__(self, underlying):
+        self.undelying = underlying
+
+    def __mul__(self, other):
+        if isinstance(other, (swiginac.refcounted, int, float)):
+            other = LazyVal(other)
+        if isinstance(other, LazyVal):
+            return LazyProd((self, other))
+        if isinstance(other, LazyProd):
+            return LazyProd((self, ) + other.values)
+        raise AssertionError()
+
+    __rmul__ = __mul__
+
+    def get(self):
+        return self.undelying
+
+
+class LazyProd(object):
+    def __init__(self, values):
+        self.values = values
+
+    def get(self):
+        return reduce(lambda a, b: a * b.get(), self.values,  swiginac.numeric("1"))
+
+    def __mul__(self, other):
+        if isinstance(other, (swiginac.refcounted, int, float)):
+            other = LazyVal(other)
+        if isinstance(other, LazyVal):
+            return LazyProd(self.values + (other, ))
+        if isinstance(other, LazyProd):
+            return LazyProd(self.values + other.values)
+        raise AssertionError()
+
+    __rmul__ = __mul__
+
+UNIT = LazyVal(swiginac.numeric("1"))
+ZERO = LazyVal(swiginac.numeric("0"))
+
+
 def calculate_graphs_values(graphs, suppressException=False):
     return reduce(lambda e, g: e * calculate_graph_value(g, suppressException)[0], graphs, 1)
 
@@ -34,7 +76,7 @@ def calculate_graph_value(graph, suppressException=False):
             return None
         else:
             raise common.CannotBeCalculatedError(graph)
-    return result[0] * symbolic_functions.p ** (-2 * result[1].subs(get_lambda())), graph_reducer.iteration_graphs[0]
+    return result[0] * symbolic_functions.p ** (-symbolic_functions.CLN_TWO * result[1].subs(get_lambda())), graph_reducer.iteration_graphs[0]
 
 
 def get_lambda():
@@ -121,13 +163,12 @@ class GGraphReducer(object):
         if self._is_tadpole is None:
             self._is_tadpole = str(last_iteration).startswith("ee")
             if self._is_tadpole:
-                return 0, const.ZERO_WEIGHT
+                return ZERO, const.ZERO_WEIGHT
 
         if (len(last_iteration.allEdges()) == 3 and ("<" not in str(self.get_current_iteration_graph()) and ">" not in str(self.get_current_iteration_graph()))) or str(last_iteration).startswith("ee"):
-            self._put_final_value_to_graph_storage()
             if DEBUG:
                 print "CALCULATED_GRAPH", self._init_graph, self.iteration_graphs, self.iteration_values
-            return self.get_final_value()
+            return self._put_final_value_to_graph_storage()
 
         res_red = self._try_reduce_chain()
         if res_red is not None:
@@ -146,15 +187,16 @@ class GGraphReducer(object):
             subGraph = graphine.Graph(adjusted_sub_graph[0],
                                       external_vertex=self._init_graph.external_vertex)
             preprocessed = (adjusted_sub_graph[1], subGraph, adjusted_sub_graph[2])
-            cached_preprocessed_subgraphs.append(preprocessed)
             if inject.instance(storage.StoragesHolder).get_graph(subGraph, 'value'):
                 res = self._do_iterate(preprocessed)
                 if res is not None:
                     return res
             else:
+                cached_preprocessed_subgraphs.append(preprocessed)
                 if DEBUG:
                     print "has not", subGraph, last_iteration
 
+        cached_preprocessed_subgraphs.reverse()
         for preprocessed in cached_preprocessed_subgraphs:
             if self._arrows_aware:
                 _as = filter(lambda e: not e.arrow.is_null(), preprocessed[1].allEdges())
@@ -166,18 +208,17 @@ class GGraphReducer(object):
             else:
                 can_calculate = True
             if can_calculate:
-                result = inject.instance(graph_calculator.GraphCalculatorManager).\
-                    try_calculate(preprocessed[1], put_value_to_storage=True)
+                result = inject.instance(graph_calculator.GraphCalculatorManager).try_calculate(preprocessed[1], put_value_to_storage=True)
                 if result is not None:
                     res = self._do_iterate(preprocessed)
                     if res is not None:
                         return res
                 else:
                     if DEBUG:
-                        print "cant through calculator1", preprocessed[1], last_iteration
+                        print "cant through calculator1", preprocessed[1], preprocessed[1].getLoopsCount(), last_iteration
             else:
                 if DEBUG:
-                    print "cant through calculator2", preprocessed[1], last_iteration
+                    print "cant through calculator2", preprocessed[1], preprocessed[1].getLoopsCount(), last_iteration
 
     def _do_iterate(self, sub_graph_info):
         assert len(sub_graph_info[2]) == 2, sub_graph_info[2]
@@ -296,8 +337,8 @@ class GGraphReducer(object):
     def get_final_value(self):
         assert self.is_succesful_done()
         if str(self.get_current_iteration_graph()).startswith("ee"):
-            return 0, const.ZERO_WEIGHT
-        g_value = reduce(lambda x, v: x * v, self._iteration_values, 1)
+            return symbolic_functions.CLN_ZERO, const.ZERO_WEIGHT
+        g_value = reduce(lambda x, v: x * v, self._iteration_values, UNIT)
         inner_edge = None
         for e in self._iteration_graphs[-1].allEdges():
             if self._init_graph.external_vertex not in e.nodes:
@@ -310,7 +351,10 @@ class GGraphReducer(object):
         return g_value, inner_edge.weight
 
     def _put_final_value_to_graph_storage(self):
-        inject.instance(storage.StoragesHolder).put_graph(self._init_graph, self.get_final_value(), "value")
+        raw_v = self.get_final_value()
+        v = raw_v[0].get(), raw_v[1]
+        inject.instance(storage.StoragesHolder).put_graph(self._init_graph, v, "value")
+        return v
 
     @staticmethod
     def _adjust(graphAsList, external_vertex):

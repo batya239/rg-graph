@@ -59,10 +59,6 @@ def graph_has_not_ir_divergence(graph):
 graph_has_not_ir_divergence_filter = [graph_has_not_ir_divergence]
 
 
-def isPSquareGraph(graph):
-    return graph.getLoopsCount() * const.SPACE_DIM_PHI4 - 2 * graph.getAllInternalEdgesCount() == 2
-
-
 def graph_can_be_calculated_over_n_loops(graph):
     """
     ololoshki

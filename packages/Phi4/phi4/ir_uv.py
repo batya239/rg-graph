@@ -17,13 +17,15 @@ import inject
 
 def uvIndexTadpole(graph):
     nEdges = len(graph.allEdges()) - len(graph.edges(graph.external_vertex))
-    index = nEdges * const.EDGE_WEIGHT + numeratorsCount(graph.allEdges()) + (graph.getLoopsCount() + 1) * inject.instance("space_dimension")
+    assert_right_edges(graph.allEdges())
+    index = nEdges * const.EDGE_WEIGHT + numeratorsCount(graph.allEdges()) + (graph.getLoopsCount() + 1) * inject.instance("space_dimension_int")
     return index
 
 
 def uvIndex(graph):
     nEdges = len(graph.allEdges()) - len(graph.edges(graph.external_vertex))
-    index = nEdges * const.EDGE_WEIGHT + numeratorsCount(graph.allEdges()) + graph.getLoopsCount() * inject.instance("space_dimension")
+    assert_right_edges(graph.allEdges())
+    index = nEdges * const.EDGE_WEIGHT + numeratorsCount(graph.allEdges()) + graph.getLoopsCount() * inject.instance("space_dimension_int")
     return index
 
 
@@ -48,6 +50,7 @@ class UVRelevanceCondition(object):
         nEdges = len(edgesList) - len(subGraph.edges(subGraph.external_vertex))
         nVertexes = len(subGraph.vertices()) - 1
         nLoop = nEdges - nVertexes + 1
+        assert_right_edges(edgesList)
         subGraphUVIndex = nEdges * const.EDGE_WEIGHT + numeratorsCount(edgesList) + nLoop * self._space_dim
         return subGraphUVIndex >= 0
 
@@ -69,6 +72,7 @@ class IRRelevanceCondition(object):
         nEdges = len(edgesList) - len(externalEdges)
         nVertexes = len(subGraph.vertices()) - 1
         nLoop = nEdges - nVertexes + 1
+        assert_right_edges(edgesList)
         subGraphIRIndex = nEdges * const.EDGE_WEIGHT + numeratorsCount(edgesList) + (nLoop + 1) * self._space_dim
         # invalid result for e12-e333-3-- (there is no IR subGraphs)
         if subGraphIRIndex > 0:
@@ -129,3 +133,12 @@ class _MergeResolver(object):
                 countWith2Tails += 1
 
         return countWith2Tails > 1
+
+def assert_right_edges(edges):
+    for e in edges:
+        if e.is_external():
+            continue
+        assert e.weight
+        assert e.weight.b == 0
+        assert e.weight.a == 1
+
