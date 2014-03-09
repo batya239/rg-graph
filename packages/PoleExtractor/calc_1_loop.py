@@ -85,3 +85,12 @@ for r in (True, False):
                                                                 4: [0.010380483, 1E-8], 5: [-0.0051902415, 1E-8],
                                                                 6: [0.0032098552, 1E-8], 7: [-0.0016049276, 1E-8],
                                                                 8: [0.00089015921, 1E-8]}))
+
+    diagram_calculator.set_expansion(g=graphine.Graph.fromStr('ee12|ee2|ee|'),
+                                     rprime=r,
+                                     momentum_derivative=False,
+                                     e=numcalc.NumEpsExpansion({0: [0.25, 1E-8], 1: [-0.25, 1E-8],
+                                                                2: [0.411234, 1E-8], 3: [-0.411234, 1E-8],
+                                                                4: [0.473516, 1E-8], 5: [-0.473516, 1E-8],
+                                                                6: [0.492776, 1E-8], 7: [-0.492776, 1E-8],
+                                                                8: [0.498117, 1E-8]}))

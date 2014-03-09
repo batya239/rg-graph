@@ -3,7 +3,6 @@ __author__ = 'gleb'
 import graphine
 from graphine import filters
 import graph_state
-import sys
 
 
 class RPrimeTermFactor:
@@ -94,15 +93,7 @@ def gen_cts(graph, exclusion_groups, PHI_EXPONENT, momentum_derivative=False):
 
         return g_shrunk.change(edgesToRemove=g_shrunk.edges(shrunk_vertex), edgesToAdd=es, renumbering=False)
 
-    def add_adjoining_edge(sg, g):
-        border_vertices = filter(lambda x: not x == sg.externalVertex,
-                                 sum([list(e.nodes) for e in sg.externalEdges()], []))
-        border_edges = filter(lambda x: x not in sg.allEdges(),
-                              sum([g.edges(v) for v in border_vertices], []))
-        return graphine.Graph(sg.allEdges() + [border_edges[0]], renumbering=False)
-
     def exclude_sg(term, sg):
-        sys.stdout.flush()
         if 2 == sg.externalEdgesCount():
             return [(term[0], term[1][:-1] +
                     [RPrimeTermFactor(sg, k=True), term[1][-1].shrinkToPoint(sg.internalEdges())]),
@@ -111,7 +102,6 @@ def gen_cts(graph, exclusion_groups, PHI_EXPONENT, momentum_derivative=False):
                     term[1][-1].shrinkToPoint(sg.internalEdges())]),
                     (term[0], term[1][:-1] +
                     [RPrimeTermFactor(sg, k=True, derivative=True),
-                    #term[1][-1].shrinkToPoint(add_adjoining_edge(sg, term[1][-1]).internalEdges())])]
                     shrink_to_nothing(term[1][-1], sg)])]
         else:
             return [(term[0], term[1][:-1] +
@@ -134,6 +124,6 @@ def gen_cts(graph, exclusion_groups, PHI_EXPONENT, momentum_derivative=False):
         for ctm in counterterms:
             if not momentum_derivative:
                 ctm[1][-1] = update_tails(ctm[1][-1], PHI_EXPONENT)
-            result.append((ctm[0], ctm[1][:-1] +
-                                   [RPrimeTermFactor(ctm[1][-1], rprime=False, derivative=momentum_derivative)]))
+            result.append((ctm[0], ctm[1][:-1] + [RPrimeTermFactor(ctm[1][-1], rprime=False,
+                                                                   derivative=momentum_derivative)]))
     return result

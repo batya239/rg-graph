@@ -1,8 +1,12 @@
 __author__ = 'gleb'
 
+import datetime
+import sys
+import itertools
+import os
+
 import graphine
 import graph_state
-import itertools
 
 
 def tau_differentiate(g, no_tails=False):
@@ -60,3 +64,25 @@ def get_diagrams(tails=0, loops=0):
         result = tau_differentiate(result)
 
     return result
+
+
+def dispatch_log_message(msg, ts=True):
+    """
+    """
+    assert(isinstance(msg, str))
+
+    if ts:
+        time = datetime.datetime.now()
+        timestamp = '### ' + ':'.join(map(lambda x: str(x), [time.hour, time.minute, time.second])) + ' '
+    else:
+        timestamp = ''
+
+    f = open(sys.argv[0] + '.log', 'a')
+    f.write(timestamp + msg + '\n')
+    f.close()
+
+
+def clear_log():
+    fname = sys.argv[0] + '.log'
+    if os.path.isfile(fname):
+        os.remove(sys.argv[0] + '.log')

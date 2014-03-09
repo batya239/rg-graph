@@ -106,8 +106,8 @@ def construct_integrand(base_integrand, loop_momentum_vars, stretch_vars, angles
     print "Integrand(e):", integrand_e
     print "D(a)Integrand(a):", integrand_a
 
-    integrand_series = integrand_e.series(symbolic_functions.e == 0, 1).normal()
-                                         # configure_mr.Configure.target_loops_count() + 1 - len(loop_momentum_vars)).normal()
+    integrand_series = integrand_e.series(symbolic_functions.e == 0,
+                                          configure_mr.Configure.target_loops_count() + 1 - len(loop_momentum_vars)).normal()
     integrand_series_map = dict()
     for degree in xrange(integrand_series.ldegree(symbolic_functions.e), integrand_series.degree(symbolic_functions.e)):
         if degree == 0:
