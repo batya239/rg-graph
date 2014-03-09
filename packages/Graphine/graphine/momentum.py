@@ -8,9 +8,15 @@ __author__ = 'daddy-bear'
 import copy
 import itertools
 import graph_state
+import graph
 from rggraphutil import VariableAwareNumber
 
 new_edge = graph_state.WEIGHT_ARROW_AND_MARKER_PROPERTIES_CONFIG.new_edge
+
+
+def from_str(graph_as_str):
+    return graph.Graph.fromStr(graph_as_str, graph_state.WEIGHT_ARROW_AND_MARKER_PROPERTIES_CONFIG)
+
 
 NULL_ARROW = graph_state.Arrow(graph_state.Arrow.NULL)
 ZERO_WEIGHT = VariableAwareNumber("l", 0, 0)

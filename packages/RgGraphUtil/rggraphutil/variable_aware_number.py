@@ -14,7 +14,7 @@ def lambda_number(number):
     return VariableAwareNumber.create("l", number)
 
 
-class VariableAwareNumber:
+class VariableAwareNumber(object):
     def __init__(self, varName, a, b=0):
         """Represents expression in form: a + varName*b
         """

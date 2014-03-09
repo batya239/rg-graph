@@ -23,7 +23,7 @@ subGraph = gr.Graph(subGraphState)
 
 @filters.graphFilter
 def twoEdgesFilter(edgesList, superGraph, superGraphEdges):
-    externalVertex = superGraph.externalVertex
+    externalVertex = superGraph.external_vertex
     notExternalEdges = list()
     for e in edgesList:
         if externalVertex not in set(e.nodes):
