@@ -7,6 +7,7 @@ __author__ = 'mkompan'
 
 import graph_state
 from nickel import LEG
+from graph_state_builder_with_fields import MAIN_GRAPH_CONFIG as gs_builder
 
 
 def sortString(string_):
@@ -162,7 +163,7 @@ lines = ['aA', 'Aa']
 #vertices = set(map(sortString, ['Aaaa']))
 vertices = set(map(sortString, ['aAa', 'AAa']))
 
-from graph_util_mr import MAIN_GRAPH_CONFIG as gs_builder
+
 
 edges = gs_builder.graph_state_from_str(sys.argv[1]).edges
 #print edges
