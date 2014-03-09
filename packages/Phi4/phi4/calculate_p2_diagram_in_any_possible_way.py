@@ -15,7 +15,7 @@ import ir_uv
 import const
 import graph_util
 import sys
-from rggraphenv import StorageSettings, StoragesHolder, g_graph_calculator
+from rggraphenv import StorageSettings, StoragesHolder, g_graph_calculator, symbolic_functions
 
 
 def kr_star_quadratic_divergence(r_operator, graph):
@@ -37,7 +37,7 @@ def kr_star_quadratic_divergence(r_operator, graph):
         print "Coefficient", c
         print "R_stars:\n"
         for v in r_star_values:
-            print "\t", v
+            print "\t", v.subs(symbolic_functions.p == 1).evalf()
         print "----"
         result.append((c, r_star_values))
 
