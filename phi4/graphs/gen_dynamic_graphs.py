@@ -64,19 +64,24 @@ def DynamicGraphs(edges, externalFields, lines, vertices):
     graphs = set()
     externalEdges, internalEdges = splitEdges(edges)
 
+
     if len(externalEdges) == len(externalFields):
         for extLegs in itertools.permutations(externalFields):
+            new_ext_edges = list()
             xExtLegs = iter(extLegs)
 
             for edge in externalEdges:
-                edge.fields = graph_state.Fields(('0', xExtLegs.next()))
+                edge_ = gs_builder.new_edge(edge.nodes, fields=graph_state.Fields(('0', xExtLegs.next())))
+                new_ext_edges.append(edge_)
 
             for fields in xSelections(lines, len(internalEdges)):
+                new_edges = list()
                 xFields = iter(fields)
 
                 for edge in internalEdges:
-                    edge.fields = graph_state.Fields([x for x in xFields.next()])
-                edges_ = graph_state.GraphState(edges).edges
+                    edge_ = gs_builder.new_edge(edge.nodes, fields=graph_state.Fields([x for x in xFields.next()]))
+                    new_edges.append(edge_)
+                edges_ = graph_state.GraphState(new_edges+new_ext_edges).edges
                 if len(set(extractVertices(edges_).values()) - vertices) == 0:
                     graphs.add(graph_state.GraphState(edges_))
         return graphs
@@ -151,21 +156,27 @@ def xChains(edges, forwardProp, backwardProp):
                     yield chain
 
 externalFields = [x for x in sys.argv[2]]
-lines = ['aA', 'Aa', 'aa']
-#lines = ['aA', 'Aa']
-vertices = set(map(sortString, ['Aaaa']))
-#vertices = set(map(sortString, ['aAa', 'AAa']))
 
-edges = graph_state.GraphState.fromStr(sys.argv[1]).edges
+#lines = ['aA', 'Aa', 'aa']
+lines = ['aA', 'Aa']
+#vertices = set(map(sortString, ['Aaaa']))
+vertices = set(map(sortString, ['aAa', 'AAa']))
+
+from graph_util_mr import MAIN_GRAPH_CONFIG as gs_builder
+
+edges = gs_builder.graph_state_from_str(sys.argv[1]).edges
+#print edges
 
 for graph in DynamicGraphs(edges, externalFields, lines, vertices):
+    # print graph
     try:
         externalEdges, internalEdges = splitEdges(graph.edges)
         graphTimeChains = set([tuple(x) for x in xChains(internalEdges, ['aA'], ['Aa'])])
     except TimeChainError:
+        # print "time loop:", graph
         continue
 
-    print graph
+    print str(graph)+"::::"
 
 
 
