@@ -42,7 +42,7 @@ def kr_star_quadratic_divergence(r_operator, graph):
         result.append((c, r_star_values))
 
     print "\n\n\n"
-    mul_result = map(lambda c, r_star_values: map(lambda r_star_value: c * r_star_value, r_star_values), result)
+    mul_result = map(lambda (c, r_star_values): map(lambda r_star_value: c * r_star_value, r_star_values), result)
     for comb in itertools.product(*mul_result):
         print "Combination:", comb
         print "Result:", reduce(lambda s, r: s + r, comb, 0).normal().expand()
