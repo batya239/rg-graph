@@ -3,7 +3,6 @@
 __author__ = 'dima'
 
 import graph_state
-import propagator
 import graphine
 
 

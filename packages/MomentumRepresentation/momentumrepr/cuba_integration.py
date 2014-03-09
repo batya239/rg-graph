@@ -238,10 +238,10 @@ def cuba_integrate(integrand_series, integrations, scalar_products_functions):
     an_id = id(integrand_series)
     graph = str(an_id)
     directory = os.path.join("tmp/", str(graph))
-    print "Integration ID: %s" % an_id
-
-    print "Start integration: %s\nIntegration: %s\nScalar functions: %s" % (integrand_series, integrations, scalar_products_functions)
-    ms = time.time()
+    if configure_mr.Configure.debug():
+        print "Integration ID: %s" % an_id
+        print "Start integration: %s\nIntegration: %s\nScalar functions: %s" % (integrand_series, integrations, scalar_products_functions)
+        ms = time.time()
     sps = list()
     for sp_function in scalar_products_functions:
         sps.append("%s = %s" % (sp_function.sign, sp_function.body))
@@ -252,27 +252,7 @@ def cuba_integrate(integrand_series, integrations, scalar_products_functions):
     generate_integrands([term], directory, str(graph))
     compile_cuba(directory, chdir=True)
     exec_res = execute_cuba(directory, chdir=True)
-    print "Integration done in %s s" % (time.time() - ms)
-    print "Result", exec_res
+    if configure_mr.Configure.debug():
+        print "Integration done in %s s" % (time.time() - ms)
+        print "Result", exec_res
     return exec_res
-    # term = integrandInfo({0: "1", 1: "3"}, ('k1', 'k2', 'k3'), ('k1k2 = k3',), '// fucking shit')
-
-
-if __name__ == "__main__":
-    configure_mr.Configure().with_integration_algorithm("vegas").with_maximum_points_number(2000).with_absolute_error(10e-5).with_relative_error(10e-5).configure()
-
-    set_default_pwd()
-    graph = "asdasd"
-    directory = os.path.join("tmp/", str(graph))
-    try:
-        os.makedirs(directory)
-    except OSError:
-        pass
-    term1 = integrandInfo({0: "1", 1: "3"}, ('k1', 'k2', 'k3'), ('k1k2 = k3',), '// comment term1')
-    term2 = integrandInfo({0: "2", 1: "4"}, ('k1', 'k2', 'k3'), ('k1k2 = k3',), '// comment term2')
-
-    integrand_iterator = [term1, term2 ]
-    generate_integrands(integrand_iterator, directory, str(graph))
-
-    compile_cuba(directory, chdir=True)
-    print execute_cuba(directory, chdir=True)

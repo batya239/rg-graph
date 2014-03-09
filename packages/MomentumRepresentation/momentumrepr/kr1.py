@@ -42,10 +42,8 @@ def kr1_with_some_additional_lambda_operation(graph_state_as_str,
             print "Coefficient:", coeff
             print "Time version: %s" % (graph_with_tv.time_version,)
         base_integrand, angles = integration.get_base_integrand_and_angles(graph_with_tv)
-        # base_integrand *= coeff
         loop_momentum_vars = integration.get_loop_momentum_vars(graph_with_tv)
         stretch_vars = integration.get_stretch_vars(graph_with_tv)
-        # angles = integration.get_angles(graph_with_tv)
         return integration.construct_integrand(base_integrand, loop_momentum_vars, stretch_vars, angles, coeff)
 
     graph = graph_util_mr.from_str(graph_state_as_str)
@@ -70,9 +68,11 @@ def kr1_with_some_additional_lambda_operation(graph_state_as_str,
             print "Current answer[%s]: %s, delta %s" % (d, answer_dict[d], a)
 
         for d, a in integration_std_dev.items():
-            std_dev_dict[d] += a**2
+            std_dev_dict[d] += a ** 2
+
     for d, a in std_dev_dict.items():
-        std_dev_dict[d] = a**0.5
+        std_dev_dict[d] = a ** 0.5
+
     return answer_dict, std_dev_dict
 
 
