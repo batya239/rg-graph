@@ -65,6 +65,7 @@ def kr1_with_some_additional_lambda_operation(graph_state_as_str,
     for i in integrals:
         for d, a in integration_operation(*i).items():
             answer_dict[d] += a
+            print "Current answer[%s]: %s, delta %s" % (d, answer_dict[d], a)
     return answer_dict
 
 
@@ -75,7 +76,6 @@ def kr1_stretching(graph):
     print "Graph:", graph
     for g_tv in graphs_and_time_versions:
         print "Time version:", g_tv.time_version
-    print "\n"
 
     with_stretching = list()
     for graph_and_tv in graphs_and_time_versions:
@@ -93,7 +93,14 @@ def kr1_stretching(graph):
                 _e = _e.copy(flow=new_flow, propagator=propagator.StandartPropagator(new_flow, True))
             new_edges.append(_e)
 
-        with_stretching.append(graph_and_tv.set_graph(graphine.Graph(new_edges, g.external_vertex)))
+        new_graph_with_stretching = graphine.Graph(new_edges, g.external_vertex)
+
+
+        print "New graph with stretching:", new_graph_with_stretching
+        print "Stretchers for edges", stretchers_for_edges
+        with_stretching.append(graph_and_tv.set_graph(new_graph_with_stretching))
+
+    print "\n"
 
     return with_stretching
 

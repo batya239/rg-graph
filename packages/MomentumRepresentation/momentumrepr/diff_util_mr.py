@@ -194,17 +194,3 @@ def D_minus_tau(graph):
                                              propagator=e.propagator))
         new_graphs.append(graphine.Graph(new_edges))
     return new_graphs
-
-
-def main():
-    import representation
-    import graphine
-    import configure_mr
-    configure_mr.Configure().with_dimension(symbolic_functions.D).configure()
-    g = representation.enumerate_propagators(graphine.Graph(graph_util_mr.from_str("e11|e|:00_Aa_aa|00|:::")))
-    print g
-    print D_omega(g)
-    print D_p2(g)
-
-if __name__ == "__main__":
-    main()

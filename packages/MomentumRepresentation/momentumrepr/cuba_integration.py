@@ -188,7 +188,7 @@ def execute_cuba(directory, chdir=True):
             abs_err = str(configure_mr.Configure.absolute_error())
             process = subprocess.Popen(["./%s" % filename, code, points, rel_err, abs_err], stdout=subprocess.PIPE)
             output = process.communicate()[0]
-            print output
+            # print output
             term = parse_cuba_output(output)
             res[get_eps_from_filename(filename)] += term[0]
             err[get_eps_from_filename(filename)] += term[1]
@@ -247,12 +247,13 @@ def cuba_integrate(integrand_series, integrations, scalar_products_functions):
         sps.append("%s = %s" % (sp_function.sign, sp_function.body))
     _vars = map(lambda v: str(v.var), integrations)
 
-    integrand_series_c = dict(map(lambda (p, v) : (p, v.printc()), integrand_series.items()))
+    integrand_series_c = dict(map(lambda (p, v): (p, v.printc()), integrand_series.items()))
     term = integrandInfo(integrand_series_c, _vars, sps, '// fucking shit')
     generate_integrands([term], directory, str(graph))
     compile_cuba(directory, chdir=True)
     exec_res = execute_cuba(directory, chdir=True)
     print "Integration done in %s ms" % (time.time() - ms)
+    print "Result", exec_res
     return exec_res[0]
     # term = integrandInfo({0: "1", 1: "3"}, ('k1', 'k2', 'k3'), ('k1k2 = k3',), '// fucking shit')
 

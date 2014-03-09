@@ -16,7 +16,9 @@ def subs_external_propagators_is_zero(graph):
     for e in graph.allEdges():
         new_edges.append(e.copy(flow=e.flow.subs_external_momenta_is_zero(),
                                 propagator=e.propagator.subs_external_momenta_is_zero()))
-    return graphine.Graph(new_edges)
+    new_graph = graphine.Graph(new_edges)
+    print "1 before: %s, \nafter: %s" % (graph, new_graph)
+    return new_graph
 
 
 Stretcher = collections.namedtuple("Stretcher", ["is_all_propagator", "indices", "var_index", "divergence_index"])
@@ -216,6 +218,10 @@ class MomentumFlow(object):
         new_loop_momentas = map(lambda c: - c, self.loop_momentas)
         return MomentumFlow(new_external_momentas, new_loop_momentas, self.stretchers)
 
+    def __cmp__(self, other):
+        print "DIMA, MUDAK"
+        return 0
+
     def __str__(self):
         return str("(%s, %s)" % self.generate_expression())
 
@@ -289,6 +295,10 @@ class StandartPropagator(object):
 
     def __eq__(self, other):
         return self.momentum_flow == other.momentum_flow and self.has_mass == other.has_mass
+
+    def __cmp__(self, other):
+        print "DIMA, MUDAK"
+        return 0
 
 
 class PropagatorsSum(object):
