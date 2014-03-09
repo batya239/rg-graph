@@ -11,29 +11,29 @@ import swiginac
 
 
 class MapReduceAlgebraWrapper(object):
-    def __init__(self, graph_to_coefficient):
-        if not isinstance(graph_to_coefficient, dict):
+    def __init__(self, mappings):
+        if not isinstance(mappings, dict):
             d = zeroDict()
-            d[graph_to_coefficient] = symbolic_functions.CLN_ONE
-            graph_to_coefficient = d
-        self._graph_to_coefficient = graph_to_coefficient
+            d[mappings] = symbolic_functions.CLN_ONE
+            mappings = d
+        self._mappings = mappings
 
     def apply(self, function_lambda):
-        new_graph_to_coefficient = zeroDict()
+        new_mappings = zeroDict()
         for g, c in self.x_items():
             obj = function_lambda(g)
             if isinstance(obj, (list, tuple)):
                 for _g in obj:
-                    new_graph_to_coefficient[_g] += symbolic_functions.CLN_ONE * c
+                    new_mappings[_g] += symbolic_functions.CLN_ONE * c
             elif isinstance(obj, dict):
                 for _g, _c in obj.items():
-                    new_graph_to_coefficient[_g] += _c * c
+                    new_mappings[_g] += _c * c
             else:
-                new_graph_to_coefficient[obj] += c * symbolic_functions.CLN_ONE
-        return MapReduceAlgebraWrapper(new_graph_to_coefficient)
+                new_mappings[obj] += c * symbolic_functions.CLN_ONE
+        return MapReduceAlgebraWrapper(new_mappings)
 
     def reduce(self, reduce_lambda, start_value, initial_transform_lambda=lambda a: a):
-        return reduce(reduce_lambda, map(initial_transform_lambda, self._graph_to_coefficient.items()), start_value)
+        return reduce(reduce_lambda, map(initial_transform_lambda, self._mappings.items()), start_value)
 
     def map(self, map_lambda):
         return MapReduceAlgebraWrapper(dict(map(lambda (e, c): map_lambda(e), c, self.x_items())))
@@ -42,7 +42,7 @@ class MapReduceAlgebraWrapper(object):
         return map(lambda (e, c): map_lambda(e, c), self.x_items())
 
     def x_items(self):
-        return self._graph_to_coefficient.iteritems()
+        return self._mappings.iteritems()
 
     def __str__(self):
         sb = "\n---\n"
@@ -53,10 +53,10 @@ class MapReduceAlgebraWrapper(object):
 
     def __mul__(self, other):
         if isinstance(other, (int, float, swiginac.refcounted)):
-            new_graph_to_coefficient = zeroDict()
+            new_mappings = zeroDict()
             for g, c in self.x_items():
-                new_graph_to_coefficient[g] = c * other
-            return MapReduceAlgebraWrapper(new_graph_to_coefficient)
+                new_mappings[g] = c * other
+            return MapReduceAlgebraWrapper(new_mappings)
         raise AssertionError()
 
     def __add__(self, other):
@@ -67,7 +67,7 @@ class MapReduceAlgebraWrapper(object):
 
     def _add_or_sub(self, other, is_add):
         assert isinstance(other, MapReduceAlgebraWrapper)
-        new_graph_to_coefficient = copy.copy(self._graph_to_coefficient)
+        new_mappings = copy.copy(self._mappings)
         for g, c in other.x_items():
-            new_graph_to_coefficient[g] += c if is_add else -c
-        return MapReduceAlgebraWrapper(new_graph_to_coefficient)
+            new_mappings[g] += c if is_add else -c
+        return MapReduceAlgebraWrapper(new_mappings)

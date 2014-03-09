@@ -4,13 +4,13 @@ import unittest
 
 from graph_state import graph_state as gs
 import graph as gr
-import filters
 import graph_operations as go
+import filters
 
 
 class ExternalVertexAware(object):
-    def __init__(self, externalVertex):
-        self.externalVertex = externalVertex
+    def __init__(self, external_vertex):
+        self.external_vertex = external_vertex
 
 
 class GraphOperationsTestCase(unittest.TestCase):
