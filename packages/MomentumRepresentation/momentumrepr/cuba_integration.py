@@ -6,6 +6,7 @@ import re
 import shutil
 import subprocess
 import time
+from uncertainties import ufloat
 import configure_mr
 import atexit
 from rggraphutil import zeroDict
@@ -190,11 +191,10 @@ def execute_cuba(directory, chdir=True):
             output = process.communicate()[0]
             # print output
             term = parse_cuba_output(output)
-            res[get_eps_from_filename(filename)] += term[0]
-            err[get_eps_from_filename(filename)] += term[1]
+            res[get_eps_from_filename(filename)] += ufloat(*term)
     if chdir:
         os.chdir(DEFAULT_PWD)
-    return res, err
+    return res
 
 
 def compile_cuba(directory, chdir=True):

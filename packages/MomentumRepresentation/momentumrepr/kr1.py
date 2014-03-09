@@ -60,20 +60,12 @@ def kr1_with_some_additional_lambda_operation(graph_state_as_str,
         return integrals
 
     answer_dict = zeroDict()
-    std_dev_dict = zeroDict()
     for i in integrals:
-        integration_answer, integration_std_dev = integration_operation(*i)
+        integration_answer = integration_operation(*i)
         for d, a in integration_answer.items():
             answer_dict[d] += a
             print "Current answer[%s]: %s, delta %s" % (d, answer_dict[d], a)
-
-        for d, a in integration_std_dev.items():
-            std_dev_dict[d] += a ** 2
-
-    for d, a in std_dev_dict.items():
-        std_dev_dict[d] = a ** 0.5
-
-    return answer_dict, std_dev_dict
+    return answer_dict
 
 
 def kr1_stretching(graph):

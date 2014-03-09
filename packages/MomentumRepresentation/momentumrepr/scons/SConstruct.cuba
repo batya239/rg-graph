@@ -28,7 +28,7 @@ objs = [s[:-1] + 'o' for s in obj_src]
 func = set()
 for i in obj_src:
     func.add(tuple(i[:-2].split('V')[1].split('_E')))
-print func
+# print func
 
 headers = [s[:-1] + 'h' for s in obj_src]
 
@@ -49,10 +49,10 @@ for e in func:
     pvegasFile = name + "_0_" + curName + "c"
     f = open(pvegasFile, 'w')
     f.write('#define DIMENSION %s' % e[0])
-    print region
-    print includes
-    print os.path.join(cubaPath,'cuba.h')
-    print functions
+    # print region
+    # print includes
+    # print os.path.join(cubaPath,'cuba.h')
+    # print functions
     f.write(coreCubaCodeTemplate.format(
         region=region,
         includes=includes,
