@@ -16,7 +16,7 @@ import const
 import graph_util
 
 
-DEBUG = True
+DEBUG = False
 
 
 def delta_ir(co_sub_graph, graph, shrunk, r_operator):
