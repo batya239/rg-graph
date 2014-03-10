@@ -1,11 +1,15 @@
 __author__ = 'gleb'
 
 import itertools
+import math
+import copy
+
 import polynomial
 from polynomial import sd_lib
 from polynomial import polynomial_product
-import math
-import copy
+import graph_state
+import graphine
+
 import reduced_vl
 
 
@@ -36,8 +40,10 @@ class FeynmanIntegrand:
         Calculates integrand of Feynman's interpretation if rvl is on zero momenta,
         and d/dp^2 of integrand if rvl is not.
         """
-        assert (isinstance(rvl, reduced_vl.ReducedVacuumLoop))
-        assert (theory in (3, 4))
+        if not isinstance(rvl, reduced_vl.ReducedVacuumLoop):
+            raise TypeError(':param rvl: should be ReducedVacuumLoop, not ' + str(type(rvl)))
+        if theory not in (3, 4):
+            raise ValueError(':param theory: should equal 3 or 4 for phi^3 and phi^4 accordingly, not ' + str(theory))
 
         deg = 0 - int(not rvl.zero_momenta())
         if 3 == theory:
@@ -61,6 +67,61 @@ class FeynmanIntegrand:
             integrand *= polynomial.poly(FeynmanIntegrand.determinant(edges, loops + 1, laws_for_c))
 
         return FeynmanIntegrand(integrand, d_arg)
+
+    @staticmethod
+    def fromRVL_w_symmetries(rvl, theory):
+        """
+        Calculates integrand of Feynman's interpretation if rvl is on zero momenta,
+        and d/dp^2 of integrand if rvl is not.
+        """
+        def note_c_monomial(graph, monomial):
+            g = copy.copy(graph)
+            new_edges = []
+            for i, edge in enumerate(g.allEdges(nickel_ordering=True)):
+                if i in monomial:
+                    new_v = g.createVertexIndex()
+                    new_edges.append(graph_state.Edge(nodes=(edge.nodes[0], new_v)))
+                    new_edges.append(graph_state.Edge(nodes=(edge.nodes[1], new_v)))
+                else:
+                    new_edges.append(edge)
+            return graphine.Graph(new_edges)
+
+        if not isinstance(rvl, reduced_vl.ReducedVacuumLoop):
+            raise TypeError(':param rvl: should be ReducedVacuumLoop, not ' + str(type(rvl)))
+        if theory not in (3, 4):
+            raise ValueError(':param theory: should equal 3 or 4 for phi^3 and phi^4 accordingly, not ' + str(theory))
+        if rvl.zero_momenta():
+            raise ValueError(':param rvl: rvl.zero_momenta() should be False, this func is for p^2-parts only')
+
+        deg = 0 - int(not rvl.zero_momenta())
+        if 3 == theory:
+            deg -= 3
+        elif 4 == theory:
+            deg -= 2
+
+        loops = rvl.loops()
+        edges = rvl.edges()
+        cons_laws = rvl.conservation_laws(exclude_ext_edges=True)
+
+        coef = reduce(lambda x, y: x * y, map(lambda z: math.factorial(z - 1), rvl.edges_weights()))
+        integrand = polynomial.poly(FeynmanIntegrand.determinant(edges, loops, cons_laws), degree=(deg, 1))
+        d_arg = polynomial.poly(map(lambda x: (1, [x]), edges))
+
+        laws_for_c = rvl.internal_conservation_laws()
+
+        num_base = sum(map(lambda x: [x[0]] * (x[1] - 1), rvl.edges_with_weights()), [])
+        c_base = FeynmanIntegrand.determinant(edges, loops + 1, laws_for_c)
+        noted_graphs = map(lambda x: (x[1] + copy.copy(num_base), note_c_monomial(rvl.graph(), x[1])), c_base)
+        labels = map(lambda x: x[1], noted_graphs)
+
+        new_base = []
+        seen = set([])
+        for base, label in noted_graphs:
+            if str(label) not in seen:
+                seen.add(str(label))
+                new_base.append((label, (labels.count(label), base)))
+        new_cs = map(lambda x: (x[0], polynomial.poly([x[1]], c=(coef**(-1) * 2**(-loops)))), new_base)
+        return map(lambda x: (x[0], FeynmanIntegrand(x[1] * integrand, d_arg)), new_cs)
 
     def sector_decomposition(self, sector):
         result = copy.deepcopy(self)

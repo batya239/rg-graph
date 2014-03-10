@@ -86,6 +86,7 @@ def calculate_diagram(label, theory, max_eps, zero_momenta=True, force_update=Fa
 
     verbose = True
     log = True
+    update = True
 
     begin = datetime.datetime.now()
 
@@ -136,7 +137,87 @@ def calculate_diagram(label, theory, max_eps, zero_momenta=True, force_update=Fa
             print '\rCalculated: ' + str(i + 1) + '   ',
 
     result = num_expansion * gamma_coef
-    update_expansion(g, rprime=False, momentum_derivative=not zero_momenta, e=result, force_update=force_update)
+
+    if update:
+        update_expansion(g, rprime=False, momentum_derivative=not zero_momenta, e=result, force_update=force_update)
+
+    delta = datetime.datetime.now() - begin
+    time_msg = 'Overall time:\n' + str(int(delta.seconds) / 60) + \
+               ' minutes ' + str(int(delta.seconds) % 60) + ' seconds'
+    if log:
+        utils.dispatch_log_message(time_msg)
+
+    if verbose:
+        print '\nAll done!\n' + str(result)
+        print time_msg + '\n'
+
+    return result
+
+
+def calculate_diagram_w_symmetries(label, theory, max_eps):
+    """
+    """
+    if isinstance(label, str):
+        g = graphine.Graph.fromStr(label)
+    elif isinstance(label, graphine.Graph):
+        g = label
+    else:
+        raise TypeError('param :label: should be str or graphine.Graph')
+
+    verbose = True
+    log = True
+
+    begin = datetime.datetime.now()
+
+    if log:
+        utils.dispatch_log_message('\n\n\n', ts=False)
+        utils.dispatch_log_message('Starting to calculate diagram ' + str(g))
+    if verbose:
+        print 'Graph:\n' + str(g)
+
+    rvl = reduced_vl.ReducedVacuumLoop.fromGraphineGraph(g, zero_momenta=False)
+    gamma_coef = numcalc.NumEpsExpansion.gammaCoefficient(rvl, theory=theory, max_index=10)
+
+    to_index = max_eps - min(gamma_coef.keys())
+
+    fis = feynman.FeynmanIntegrand.fromRVL_w_symmetries(rvl, theory)
+
+    if log:
+        utils.dispatch_log_message('Integrands:\n' + '\n'.join(map(lambda x: str(x), fis)))
+    if verbose:
+        print 'Integrands:\n' + '\n'.join(map(lambda x: str(x), fis))
+
+    num_expansion = numcalc.NumEpsExpansion({k: [0.0, 0.0] for k in range(to_index + 1)}, precise=True)
+
+    for diag, f_repr in fis:
+        rvl = reduced_vl.ReducedVacuumLoop.fromGraphineGraph(diag, zero_momenta=False)
+        ns = reduced_vl.all_SD_sectors(rvl)
+        ss = reduced_vl.reduce_symmetrical_sectors(ns, diag)
+        if log:
+            utils.dispatch_log_message('Non-symmetrical sectors (' + str(len(ss)) + '):\n' +
+                                       '\n'.join(map(lambda x: str(x[0]) + ' * ' + str(x[1]), ss)))
+        if verbose:
+            print 'All sectors: ' + str(len(ns)) + '\nNon-symmetrical sectors: ' + str(len(ss))
+
+        sector_expressions = map(lambda x: (x, f_repr.sector_decomposition(x)), ss)
+        expansions = map(lambda x: (x[0], feynman.extract_poles(x[1]._integrand, to_index)), sector_expressions)
+
+        if verbose:
+            print 'Calculated: 0',
+
+        for i, (e, s) in enumerate(zip(expansions, sector_expressions)):
+            sector_expansion = numcalc.parallel_cuba_calculate(e[1])
+            num_expansion += sector_expansion
+            if log:
+                utils.dispatch_log_message('\nCalculated sector:\n' + str(e[0][0]) + ' * ' + str(e[0][1]))
+                utils.dispatch_log_message('With integrand:\n' + str(s[1]), ts=False)
+                utils.dispatch_log_message('With expansion length: ' + str(sum([len(e[1][k]) for k in e[1].keys()])),
+                                           ts=False)
+                utils.dispatch_log_message('With result:\n' + str(sector_expansion), ts=False)
+            if verbose:
+                print '\rCalculated: ' + str(i + 1) + '   ',
+
+    result = num_expansion * gamma_coef
 
     delta = datetime.datetime.now() - begin
     time_msg = 'Overall time:\n' + str(int(delta.seconds) / 60) + \
