@@ -1,5 +1,6 @@
 __author__ = 'gleb'
 
+import copy
 import itertools
 
 import _conserv as conserv
@@ -15,7 +16,8 @@ class ReducedVacuumLoop:
     dictionary.
     """
 
-    def __init__(self, e_weights, cons_laws, loops, zero_momenta=True):
+    def __init__(self, graph, e_weights, cons_laws, loops, zero_momenta=True):
+        self._graph = graphine.Graph(graph.allEdges())
         self._ew_dict = e_weights
         self._cons_laws = cons_laws
         self._loops = loops
@@ -54,6 +56,9 @@ class ReducedVacuumLoop:
     def zero_momenta(self):
         return self._zero_momenta
 
+    def graph(self):
+        return self._graph
+
     @staticmethod
     def fromGraphineGraph(graphine_graph, zero_momenta=True):
         assert (isinstance(graphine_graph, graphine.Graph))
@@ -76,7 +81,8 @@ class ReducedVacuumLoop:
                              tuple(sorted(map(lambda y: law[1] if y == law[0] else y, x))), n_pair_cls)
         edges_weights = {e: internal_edges_nums.count(e) for e in internal_edges_nums}
         n_pair_cls = tuple(set(filter(lambda x: 0 != len(x), n_pair_cls)))
-        return ReducedVacuumLoop(e_weights=edges_weights,
+        return ReducedVacuumLoop(graph=graphine_graph,
+                                 e_weights=edges_weights,
                                  cons_laws=n_pair_cls,
                                  loops=graphine_graph.getLoopsCount(),
                                  zero_momenta=zero_momenta)
@@ -143,11 +149,7 @@ def all_SD_sectors(rvl):
 
 
 def reduce_symmetrical_sectors(ns_sectors, graph):
-    """
-    """
     def note_sector(sector, graph_edges):
-        """
-        """
         palette = map(lambda x: x[0], sector[1])
         edges_list = map(lambda x: graph_state.Edge(nodes=x[1].nodes, colors=palette.index(x[0])+1)
                          if x[0] in palette else graph_state.Edge(nodes=x[1].nodes, colors=0),

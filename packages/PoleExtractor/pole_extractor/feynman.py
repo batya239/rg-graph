@@ -72,15 +72,6 @@ class FeynmanIntegrand:
         return result
 
 
-def integrand_sector(integrand, sector):
-    assert(isinstance(integrand, FeynmanIntegrand))
-
-    _i_ = sd_lib.sectorDiagram(integrand._integrand, sector[1], integrand._delta_argument)[0][0]
-    _i_ *= (polynomial.poly([(1, []), ], degree=1, c=sector[0])).toPolyProd()
-
-    return FeynmanIntegrand(_i_.simplify(), None)
-
-
 def ac_principal_part(polyprod, pole_var, pole_degree_a, pole_degree_b):
     """
     part of analytical continuation function. returns 1st of 3 parts of resulting eps expansion.

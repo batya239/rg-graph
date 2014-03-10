@@ -85,9 +85,13 @@ def calculate_diagram(label, theory, max_eps, zero_momenta=True, force_update=Fa
         raise TypeError('param :label: should be str or graphine.Graph')
 
     verbose = True
-    utils.dispatch_log_message('\n\n\n', ts=False)
-    utils.dispatch_log_message('Starting to calculate diagram ' + str(g))
+    log = True
+
     begin = datetime.datetime.now()
+
+    if log:
+        utils.dispatch_log_message('\n\n\n', ts=False)
+        utils.dispatch_log_message('Starting to calculate diagram ' + str(g))
     if verbose:
         print 'Graph:\n' + str(g)
 
@@ -97,44 +101,48 @@ def calculate_diagram(label, theory, max_eps, zero_momenta=True, force_update=Fa
     to_index = max_eps - min(gamma_coef.keys())
 
     fi = feynman.FeynmanIntegrand.fromRVL(rvl, theory)
-    utils.dispatch_log_message('Integrand:\n' + str(fi))
+
+    if log:
+        utils.dispatch_log_message('Integrand:\n' + str(fi))
     if verbose:
         print 'Integrand:\n' + str(fi)
 
     ns = reduced_vl.all_SD_sectors(rvl)
     ss = reduced_vl.reduce_symmetrical_sectors(ns, g)
-    utils.dispatch_log_message('Non-symmetrical sectors (' + str(len(ss)) + '):\n' +
-                               '\n'.join(map(lambda x: str(x[0]) + ' * ' + str(x[1]), ss)))
+    if log:
+        utils.dispatch_log_message('Non-symmetrical sectors (' + str(len(ss)) + '):\n' +
+                                   '\n'.join(map(lambda x: str(x[0]) + ' * ' + str(x[1]), ss)))
     if verbose:
         print 'All sectors: ' + str(len(ns)) + '\nNon-symmetrical sectors: ' + str(len(ss))
 
     sector_expressions = map(lambda x: (x, fi.sector_decomposition(x)), ss)
-    #sector_expressions = map(lambda x: (x, feynman.integrand_sector(fi, x)), ss)
     expansions = map(lambda x: (x[0], feynman.extract_poles(x[1]._integrand, to_index)), sector_expressions)
 
     num_expansion = numcalc.NumEpsExpansion({k: [0.0, 0.0] for k in range(to_index + 1)}, precise=True)
 
     if verbose:
         print 'Calculated: 0',
-        i = 0
 
-    for e, s in zip(expansions, sector_expressions):
+    for i, (e, s) in enumerate(zip(expansions, sector_expressions)):
         sector_expansion = numcalc.parallel_cuba_calculate(e[1])
         num_expansion += sector_expansion
-        utils.dispatch_log_message('\nCalculated sector:\n' + str(e[0][0]) + ' * ' + str(e[0][1]))
-        utils.dispatch_log_message('With integrand:\n' + str(s[1]), ts=False)
-        utils.dispatch_log_message('With expansion length: ' + str(sum([len(e[1][k]) for k in e[1].keys()])), ts=False)
-        utils.dispatch_log_message('With result:\n' + str(sector_expansion), ts=False)
+        if log:
+            utils.dispatch_log_message('\nCalculated sector:\n' + str(e[0][0]) + ' * ' + str(e[0][1]))
+            utils.dispatch_log_message('With integrand:\n' + str(s[1]), ts=False)
+            utils.dispatch_log_message('With expansion length: ' + str(sum([len(e[1][k]) for k in e[1].keys()])),
+                                       ts=False)
+            utils.dispatch_log_message('With result:\n' + str(sector_expansion), ts=False)
         if verbose:
-            i += 1
-            print '\rCalculated: ' + str(i) + '   ',
+            print '\rCalculated: ' + str(i + 1) + '   ',
 
     result = num_expansion * gamma_coef
     update_expansion(g, rprime=False, momentum_derivative=not zero_momenta, e=result, force_update=force_update)
 
     delta = datetime.datetime.now() - begin
-    time_msg = 'Overall time:\n' + str(int(delta.seconds) / 60) + ' minutes ' + str(int(delta.seconds) % 60) + ' seconds'
-    utils.dispatch_log_message(time_msg)
+    time_msg = 'Overall time:\n' + str(int(delta.seconds) / 60) + \
+               ' minutes ' + str(int(delta.seconds) % 60) + ' seconds'
+    if log:
+        utils.dispatch_log_message(time_msg)
 
     if verbose:
         print '\nAll done!\n' + str(result)
