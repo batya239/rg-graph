@@ -3,6 +3,7 @@ __author__ = 'dima'
 
 import itertools
 import spherical_coordinats
+import graph_util_mr
 from rggraphutil import zeroDict
 from rggraphenv import symbolic_functions
 
@@ -24,6 +25,8 @@ class ScalarProductAlgebraElement(object):
 class ScalarProduct(ScalarProductAlgebraElement):
     def __init__(self, flow1, flow2, sign):
         assert sign is not None
+        self._flow1 = flow1
+        self._flow2 = flow2
         self._unordered_pairs = ScalarProduct.resolve_flows(flow1, flow2)
         self._sign = sign
 
@@ -38,20 +41,25 @@ class ScalarProduct(ScalarProductAlgebraElement):
         return unordered_pairs_to_coefficient
 
     def momentum_pairs(self):
-        return self._unordered_pairs.keys()
+        return set(self._unordered_pairs.keys())
 
     def substitute(self, substitutor):
         result = symbolic_functions.CLN_ZERO
-        for p, c in self._unordered_pairs.items():
-            if len(p) == 2:
-                r = symbolic_functions.cln(c)
-                for i in p:
-                    r *= symbolic_functions.var("k%s" % i)
-                result += substitutor[p] * r
-            elif len(p) == 1:
-                result += symbolic_functions.var("k%s" % (list(p))[0]) ** 2 * symbolic_functions.cln(c)
-            else:
-                raise AssertionError(len(p))
+        for p in itertools.product(enumerate(self._flow1.loop_momentas),  enumerate(self._flow2.loop_momentas)):
+            if p[0][1] != 0 and p[1][1] != 0:
+                k = frozenset((p[0][0], p[1][0]))
+                r = p[0][1] * p[1][1]
+                if len(k) == 2:
+                    r *= symbolic_functions.var("k%s" % p[0][0])
+                    r *= self._flow1.get_stretcher_for_var_index(p[0][0])
+                    r *= symbolic_functions.var("k%s" % p[1][0])
+                    r *= self._flow2.get_stretcher_for_var_index(p[1][0])
+                    r *= substitutor[k].fake_variable
+                elif len(k) == 1:
+                    r *= symbolic_functions.var("k%s" % (list(k))[0]) ** 2
+                else:
+                    raise AssertionError(k)
+                result += r
         return result * self._sign
 
     def __str__(self):
@@ -67,7 +75,7 @@ class _Sum(ScalarProductAlgebraElement):
     def momentum_pairs(self):
         pairs = set()
         for e in self._elements:
-            pairs |= set(e.momentum_pairs())
+            pairs |= e.momentum_pairs()
         return pairs
 
     def substitute(self, substitutor):
@@ -81,7 +89,7 @@ class _Prod(ScalarProductAlgebraElement):
     def momentum_pairs(self):
         pairs = set()
         for e in self._elements:
-            pairs |= set(e.momentum_pairs())
+            pairs |= e.momentum_pairs()
         return pairs
 
     def substitute(self, substitutor):
@@ -109,16 +117,16 @@ def extract_scalar_products(graph):
                            sign=sign)
         return sp
     else:
-        raise AssertionError()
+        raise AssertionError(str(graph))
 
 
 def resolve_scalar_product_sign(graph, extracted_numerated_edges):
-    momentum_passing = map(lambda e: e.nodes, filter(lambda e: e.marker == const.MARKER_1, graph.allEdges()))
-    momentum_passing.remove(extracted_numerated_edges[0][0].nodes)
+    momentum_passing = map(lambda e: e.nodes, filter(lambda e: e.marker == graph_util_mr.MARKER_1, graph.allEdges()))
+    momentum_passing.remove(extracted_numerated_edges[0].nodes)
     for j in xrange(2):
-        current_node = extracted_numerated_edges[0][0].nodes
+        current_node = extracted_numerated_edges[0].nodes
         current_vertex = current_node[j]
-        sign = (1 if extracted_numerated_edges[0][1].is_left() else -1) * ((-1) ** j)
+        sign = (1 if extracted_numerated_edges[0].arrow.is_left() else -1) * ((-1) ** j)
         while True:
             nodes_found = False
             for n in momentum_passing:
@@ -130,19 +138,7 @@ def resolve_scalar_product_sign(graph, extracted_numerated_edges):
                     break
             if not nodes_found:
                 break
-            if current_node == extracted_numerated_edges[1][0].nodes:
-                sign *= (1 if extracted_numerated_edges[1][1].is_left() else -1)
+            if current_node == extracted_numerated_edges[1].nodes:
+                sign *= (1 if extracted_numerated_edges[1].arrow.is_left() else -1)
                 sign *= 1 if current_vertex == current_node[0] else -1
                 return sign
-
-
-def substitute_scalar_product(graph):
-    sp = extract_scalar_products(graph)
-    if sp is None:
-        return symbolic_functions.CLN_ONE
-    assert False
-    substitutor, dimensioned_omegas = spherical_coordinats.ScalarProductEnumerator.enumerate(sp, graph.getLoopsCount())
-    substituted_scalar_products = sp.substitute(substitutor)
-    return substituted_scalar_products
-
-

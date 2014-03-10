@@ -19,10 +19,8 @@ Integration = collections.namedtuple("Integration", ["var", "a", "b"])
 ScalarProductFunction = collections.namedtuple("ScalarProductFunction", ["sign", "body"])
 
 
-
 def get_base_integrand_and_angles(graph_with_time_version):
     v, scalar_products = time_versions.substitute(graph_with_time_version)
-    v *= scalar_product.substitute_scalar_product(graph_with_time_version.graph)
     return v, scalar_products
 
 
@@ -40,18 +38,6 @@ def get_stretch_vars(graph_with_time_version):
     for e in graph.allEdges():
         stretch_vars |= e.flow.get_stretch_vars()
     return stretch_vars
-
-
-def get_angles(graph_with_time_version):
-    graph = graph_with_time_version.graph
-    sp = scalar_product.extract_scalar_products(graph)
-    if sp is None:
-        return tuple()
-    substitutor, dimensioned_omegas = spherical_coordinats.ScalarProductEnumerator.enumerate(sp, graph.getLoopsCount())
-    variables = set()
-    for s in substitutor.values():
-        variables |= set(s.variables)
-    return variables
 
 
 def construct_integrand(base_integrand, loop_momentum_vars, stretch_vars, angles, coeff):

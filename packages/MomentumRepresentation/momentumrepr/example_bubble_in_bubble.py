@@ -6,7 +6,6 @@ import configure_mr
 import graph_util_mr
 import kr1
 import propagator
-import representation
 import cuba_integration
 from rggraphenv import symbolic_functions
 from rggraphutil import zeroDict

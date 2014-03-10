@@ -58,6 +58,7 @@ class Configure(object):
 
     def with_delete_integration_tmp_dir_on_shutdown(self, delete_integration_tmp_dir_on_shutdown):
         self._delete_integration_tmp_dir_on_shutdown = delete_integration_tmp_dir_on_shutdown
+        return self
 
     def configure(self):
         def injector(binder):

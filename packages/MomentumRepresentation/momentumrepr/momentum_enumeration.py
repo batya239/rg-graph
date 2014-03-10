@@ -150,17 +150,3 @@ def choose_minimal_momentum_flow(graph):
         return graphs.sort(key=lambda e: e.flow.size())[0]
 
     return None
-
-
-def attach_propagators(graph, has_mass=True):
-    return graphine.Graph(map(lambda e: e.copy(propagator=propagator.StandartPropagator(e.flow, has_mass=has_mass)), graph.allEdges()))
-
-
-def main():
-    import graphine
-    print choose_minimal_momentum_flow(graphine.Graph.fromStr("e112|e2|ee|")).get()
-    print choose_minimal_momentum_flow(graphine.Graph.fromStr("ee11|ee|")).get()
-    print choose_minimal_momentum_flow(graphine.Graph.fromStr("e12|23|3|e|")).get()
-
-if __name__ == "__main__":
-    main()

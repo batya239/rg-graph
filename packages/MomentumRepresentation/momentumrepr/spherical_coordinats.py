@@ -21,11 +21,7 @@ from rggraphenv import symbolic_functions
 cos = swiginac.cos
 sin = swiginac.sin
 
-DimensionedOmega = collections.namedtuple("DimensionedOmega", ["omega", "dimension"])
-
-
-SubstitutedScalarProduct = \
-    collections.namedtuple("SubstitutedScalarProduct", ["expression", "variables", "fake_variable"])
+SubstitutedScalarProduct = collections.namedtuple("SubstitutedScalarProduct", ["expression", "variables", "fake_variable"])
 
 
 def sphere_square(dimension):
@@ -81,7 +77,6 @@ class ScalarProductEnumerator(object):
         enumerator = ScalarProductEnumerator(loops_count, dimension)
 
         substitutor = dict()
-        dimensioned_omegas = list()
         #
         # mapped pairs -- momentum index to primitive scalar product
         #
@@ -103,10 +98,7 @@ class ScalarProductEnumerator(object):
                 substitutor[p] = SubstitutedScalarProduct(expression=enumerator.scalar_products[order][index_mapping[other_index]],
                                                           variables=used_vars,
                                                           fake_variable=fake_var)
-                dimensioned_omegas.append(DimensionedOmega(omega=enumerator.scalar_products[order][index_mapping[other_index]],
-                                                           dimension=dimension - 2 - order))
-
-        return substitutor, dimensioned_omegas
+        return substitutor
 
 
     @property
@@ -148,12 +140,7 @@ class ScalarProductEnumerator(object):
                 current_scalar_products[j] = current_expression
                 current_used_variables[j] = set(used_vars_i_j)
 
-
     def next_omega(self):
         omega = symbolic_functions.var("w%s" % self._next_omega_index)
         self._next_omega_index += 1
         return omega
-
-
-if __name__ == "__main__":
-    main()
