@@ -142,8 +142,8 @@ def _do_diff(graph, comb):
                                             arrow=graph_state.Arrow(graph_state.Arrow.NULL))
             all_edges.append(new_edge1)
             all_edges.append(new_edge2)
-            all_edges = map(lambda e: e.copy(arrow=graph_state.Arrow(graph_state.Arrow.NULL)) if e.arrow is None else e, all_edges)
-            return [(graphine.Graph(all_edges, external_vertex=graph.external_vertex, renumbering=False), c1())]
+        all_edges = map(lambda e: e.copy(arrow=graph_state.Arrow(graph_state.Arrow.NULL)) if e.arrow is None else e, all_edges)
+        return [(graphine.Graph(all_edges, external_vertex=graph.external_vertex), c1())]
 
 
 def D_p2(graph):

@@ -16,25 +16,22 @@ import spherical_coordinats
 from rggraphenv import symbolic_functions
 
 
-def substitute_time_versions(graph):
-    value = symbolic_functions.CLN_ZERO
-    for cross_sections in find_edges_cross_sections(graph):
-        v = symbolic_functions.CLN_ONE
-        for cs in cross_sections:
-            v /= reduce(lambda _v,  e: _v + e.propagator.energy_expression(), cs, symbolic_functions.CLN_ZERO)
-        value += v
-    return value
-
-
 def substitute(graph_with_time_version):
-    sps = reduce(lambda s, e: s | e.propagator.get_scalar_products(), graph_with_time_version.graph.allEdges(), set())
+    _scalar_product = scalar_product.extract_scalar_products(graph_with_time_version.graph)
 
-    substitutor = spherical_coordinats.ScalarProductEnumerator.enumerate(sps, graph_with_time_version.graph.getLoopsCount())[0]
+    sps = set() if _scalar_product is None else _scalar_product.momentum_pairs()
+    sps = reduce(lambda s, e: s | e.flow.get_raw_scalar_products(), graph_with_time_version.graph.allEdges(), sps)
+
+    substitutor = spherical_coordinats.ScalarProductEnumerator.enumerate(sps, graph_with_time_version.graph.getLoopsCount())
 
     v = symbolic_functions.CLN_ONE
     for cs in graph_with_time_version.edges_cross_sections:
         indices = reduce(lambda s, e: s | e.flow.get_not_all_propagators_stretchers_indices(), cs, set())
-        v /= reduce(lambda _v,  e: _v + e.propagator.energy_expression(indices, substitutor), cs, symbolic_functions.CLN_ZERO)
+        v /= reduce(lambda _v,  e: _v + e.flow.energy_expression(indices, substitutor), cs, symbolic_functions.CLN_ZERO)
+
+    if _scalar_product is not None:
+        v *= _scalar_product.substitute(substitutor)
+
     return v, substitutor.values()
 
 
@@ -100,10 +97,6 @@ def find_raw_time_versions(graph):
             time_versions.append(perm)
 
     return time_versions
-
-
-def find_edges_cross_sections(graph):
-    return map(lambda tv: find_cross_sections_for_time_version(time_version, graph), find_raw_time_versions(graph))
 
 
 def find_cross_sections_for_time_version(time_version, graph):

@@ -14,10 +14,12 @@ from rggraphenv import symbolic_functions
 def subs_external_propagators_is_zero(graph):
     new_edges = list()
     for e in graph.allEdges():
-        new_edges.append(e.copy(flow=e.flow.subs_external_momenta_is_zero(),
-                                propagator=e.propagator.subs_external_momenta_is_zero()))
+        try:
+            new_edges.append(e.copy(flow=e.flow.subs_external_momenta_is_zero()))
+        except AttributeError as e:
+            print graph
+            exit(1)
     new_graph = graphine.Graph(new_edges)
-    print "1 before: %s, \nafter: %s" % (graph, new_graph)
     return new_graph
 
 
@@ -79,30 +81,6 @@ class MomentumFlow(object):
                 return False
         return True
 
-    def generate_expression(self, stretch_indices=None):
-        if self._expr is None:
-            result = symbolic_functions.CLN_ZERO
-            for index, coefficient in enumerate(self.external_momentas):
-                if coefficient != 0:
-                    result += coefficient * symbolic_functions.var("q%s" % index)
-            for index, coefficient in enumerate(self.loop_momentas):
-                if coefficient != 0:
-                    v = symbolic_functions.var("k%s" % index)
-                    for stretcher in self._stretchers:
-                        if not stretcher.is_all_propagator and index in stretcher.indices:
-                            v *= symbolic_functions.var("a%s" % stretcher.var_index)
-                    result += coefficient * v
-            self._expr = result
-
-        all_propagator_stretchers = symbolic_functions.CLN_ONE
-        for stretcher in self._stretchers:
-            if stretcher.is_all_propagator:
-                if stretch_indices is not None and stretcher.var_index not in stretch_indices:
-                    continue
-                all_propagator_stretchers *= symbolic_functions.var("a%s" % stretcher.var_index)
-
-        return self._expr, all_propagator_stretchers ** 2
-
     def generate_unsubstituted_expression(self, stretch_indices=None):
         assert self.is_zero_external_momenta()
         if self._unsubs_expr is None:
@@ -158,6 +136,36 @@ class MomentumFlow(object):
             if not s.is_all_propagator:
                 indices.add(s.var_index)
         return indices
+
+    def get_stretcher_for_var_index(self, index):
+        stretch_expr = symbolic_functions.CLN_ONE
+        for s in self._stretchers:
+            if not s.is_all_propagator and index in s.indices:
+                stretch_expr *= symbolic_functions.var("a%s" % s.var_index)
+        return stretch_expr
+
+    def energy_expression(self, stretch_indices=None, scalar_products_substitutor=None):
+        indices_to_modulus, stretcher = self.generate_unsubstituted_expression(stretch_indices)
+
+        result = symbolic_functions.CLN_ZERO
+        for q1, q2 in itertools.product(indices_to_modulus, repeat=2):
+            i1 = q1[0]
+            i2 = q2[0]
+            m1 = q1[1]
+            m2 = q2[1]
+            if i1 == i2:
+                result += m1 * m2
+            else:
+                result += m1 * m2 * scalar_products_substitutor[frozenset([i1, i2])].fake_variable
+        result += symbolic_functions.CLN_ONE
+        return result * stretcher
+
+    def get_raw_scalar_products(self):
+        not_null_momentas = list()
+        for i, c in enumerate(self.loop_momentas):
+            if c != 0:
+                not_null_momentas.append(i)
+        return set(map(lambda c: frozenset(c), itertools.combinations(not_null_momentas, 2)))
 
     @staticmethod
     def empty(external_lines_count, loops_count):
@@ -219,101 +227,38 @@ class MomentumFlow(object):
         return MomentumFlow(new_external_momentas, new_loop_momentas, self.stretchers)
 
     def __cmp__(self, other):
-        print "DIMA, MUDAK"
-        return 0
+        if other is None:
+            return 1
+        c = cmp(self.external_momentas, other.external_momentas)
+        if c != 0:
+            return c
+        return cmp(self.external_momentas, other.external_momentas)
+
+    def _generate_expression_for_str(self, stretch_indices=None):
+        if self._expr is None:
+            result = symbolic_functions.CLN_ZERO
+            for index, coefficient in enumerate(self.external_momentas):
+                if coefficient != 0:
+                    result += coefficient * symbolic_functions.var("q%s" % index)
+            for index, coefficient in enumerate(self.loop_momentas):
+                if coefficient != 0:
+                    v = symbolic_functions.var("k%s" % index)
+                    for stretcher in self._stretchers:
+                        if not stretcher.is_all_propagator and index in stretcher.indices:
+                            v *= symbolic_functions.var("a%s" % stretcher.var_index)
+                    result += coefficient * v
+            self._expr = result
+
+        all_propagator_stretchers = symbolic_functions.CLN_ONE
+        for stretcher in self._stretchers:
+            if stretcher.is_all_propagator:
+                if stretch_indices is not None and stretcher.var_index not in stretch_indices:
+                    continue
+                all_propagator_stretchers *= symbolic_functions.var("a%s" % stretcher.var_index)
+
+        return self._expr, all_propagator_stretchers ** 2
 
     def __str__(self):
-        return str("(%s, %s)" % self.generate_expression())
+        return str("(%s, %s)" % self._generate_expression_for_str())
 
     __repr__ = __str__
-
-
-class StandartPropagator(object):
-    def __init__(self, momentum_flow, has_mass=True):
-        assert isinstance(momentum_flow, MomentumFlow)
-        self._momentum_flow = momentum_flow
-        self._has_mass = has_mass
-
-    @property
-    def has_mass(self):
-        return self._has_mass
-
-    @property
-    def momentum_flow(self):
-        return self._momentum_flow
-
-    def to_propagators_sum(self):
-        return PropagatorsSum((self, ))
-
-    def get_momentum(self, stretch_indices=None):
-        return self.momentum_flow.generate_expression(stretch_indices)
-
-    def energy_expression(self, stretch_indices=None, scalar_products_substitutor=None):
-        indices_to_modulus, stretcher = self.momentum_flow.generate_unsubstituted_expression(stretch_indices)
-
-        result = symbolic_functions.CLN_ZERO
-        for q1, q2 in itertools.product(indices_to_modulus, repeat=2):
-            i1 = q1[0]
-            i2 = q2[0]
-            m1 = q1[1]
-            m2 = q2[1]
-            if i1 == i2:
-                result += m1 * m2
-            else:
-                result += m1 * m2 * scalar_products_substitutor[frozenset([i1, i2])].fake_variable
-        # result **= 2
-        if self._has_mass:
-            result += symbolic_functions.CLN_ONE
-        return result * stretcher
-
-    def get_scalar_products(self):
-        not_null_momentas = list()
-        for i, c in enumerate(self._momentum_flow.loop_momentas):
-            if c != 0:
-                not_null_momentas.append(i)
-        return set(map(lambda c: frozenset(c), itertools.combinations(not_null_momentas, 2)))
-
-    def subs_external_momenta_is_zero(self):
-        return StandartPropagator(self._momentum_flow.subs_external_momenta_is_zero(), self._has_mass)
-
-    def __str__(self):
-        return "P(%s)" % self.momentum_flow
-
-    __repr__ = __str__
-
-    def __add__(self, other):
-        if isinstance(other, StandartPropagator):
-            return PropagatorsSum((self, other))
-        if isinstance(other, PropagatorsSum):
-            return PropagatorsSum((self,) + other.propagators)
-
-    def __hash__(self):
-        return hash(self.momentum_flow) + 31 * hash(self.has_mass)
-
-    def __neg__(self):
-        return StandartPropagator(- self.momentum_flow, has_mass=self.has_mass)
-
-    def __eq__(self, other):
-        return self.momentum_flow == other.momentum_flow and self.has_mass == other.has_mass
-
-    def __cmp__(self, other):
-        print "DIMA, MUDAK"
-        return 0
-
-
-class PropagatorsSum(object):
-    def __init__(self, propagators):
-        self._propagators = frozenset(propagators)
-
-    @property
-    def propagators(self):
-        return self._propagators
-
-    def subs_external_momenta_is_zero(self):
-        return PropagatorsSum(map(lambda p: p.subs_external_momenta_is_zero(), self._propagators))
-
-    def __hash__(self):
-        return hash(self.propagators)
-
-    def __eq__(self, other):
-        return self.propagators == other.propagators

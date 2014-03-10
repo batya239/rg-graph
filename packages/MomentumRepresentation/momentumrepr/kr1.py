@@ -10,11 +10,11 @@ import propagator
 import time_versions
 import graph_util_mr
 import diff_util_mr
-import representation
 import propagator
 import configure_mr
 import map_reduce_wrapper
 import integration
+import momentum_enumeration
 from rggraphutil import emptyListDict, zeroDict
 
 no_tadpoles = graphine.filters.noTadpoles
@@ -51,7 +51,7 @@ def kr1_with_some_additional_lambda_operation(graph_state_as_str,
     graph = graph.apply(diff_util_mr.D_minus_tau)
     if additional_lambda is not None:
         graph = graph.apply(additional_lambda)
-    graph = graph.apply(representation.enumerate_propagators)
+    graph = graph.apply(momentum_enumeration.choose_minimal_momentum_flow)
     graph = graph.apply(propagator.subs_external_propagators_is_zero)
     graph = graph.apply(kr1_stretching)
     integrals = graph.map_with_coefficients(integral_producer_lambda)
@@ -89,7 +89,7 @@ def kr1_stretching(graph):
             _e = e
             for s in stretchers:
                 new_flow = _e.flow.stretch(s)
-                _e = _e.copy(flow=new_flow, propagator=propagator.StandartPropagator(new_flow, True))
+                _e = _e.copy(flow=new_flow)
             new_edges.append(_e)
 
         new_graph_with_stretching = graphine.Graph(new_edges, g.external_vertex)
