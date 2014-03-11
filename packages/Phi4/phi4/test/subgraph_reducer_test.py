@@ -31,7 +31,7 @@ class SubGraphReducerTestCase(unittest.TestCase):
     def setUpClass(cls):
         def config(binder):
             binder.bind(rggraphenv.StoragesHolder, rggraphenv.StoragesHolder(rggraphenv.StorageSettings("phi4", "test", "test").on_shutdown(revert=True)))
-            binder.bind(rggraphenv.GraphCalculatorManager, rggraphenv.GraphCalculatorManager(rggraphenv.GLoopCalculator(dimension=symbolic_functions.D + 2)))
+            binder.bind(rggraphenv.GraphCalculatorManager, rggraphenv.GraphCalculatorManager(rggraphenv.GLoopCalculator(dimension=symbolic_functions.d_phi4)))
         inject.configure(config)
         SubGraphReducerTestCase.time = time.time()
 
@@ -44,7 +44,8 @@ class SubGraphReducerTestCase(unittest.TestCase):
     def testTadpole(self):
         state = from_str("ee11||:(0, 0)_(0, 0)_(1, 0)_(1, 0)||::")
         reducer = gfun_calculator.GGraphReducer(graphine.Graph(state))
-        self.assertEqual(reducer.calculate(), (0, VariableAwareNumber("l", 0)))
+        res = reducer.calculate()
+        self.assertEqual((res[0].get(), res[1]) , (0, VariableAwareNumber("l", 0)))
 
     def test4LoopDiagram(self):
         g = graph_util.init_weight(graphine.Graph(from_str("e112|34|e33|4||")))
