@@ -26,8 +26,7 @@ class SubGraphReducerTestCase(unittest.TestCase):
     holder = None
     time = None
 
-    @classmethod
-    def setUpClass(cls):
+    def setUp(self):
         def config(binder):
             binder.bind(rggraphenv.StoragesHolder, rggraphenv.StoragesHolder(
                 rggraphenv.StorageSettings("phi4", "test", "test").on_shutdown(revert=True)))
@@ -37,9 +36,9 @@ class SubGraphReducerTestCase(unittest.TestCase):
         inject.configure(config)
         SubGraphReducerTestCase.time = time.time()
 
-    @classmethod
-    def tearDownClass(cls):
+    def tearDown(self):
         inject.instance(rggraphenv.StoragesHolder).close(revert=True)
+        inject.clear()
         t = time.time() - SubGraphReducerTestCase.time
         print "SUMMARY TIME : %.3f" % t
 
