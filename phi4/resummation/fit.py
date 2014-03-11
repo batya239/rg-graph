@@ -26,13 +26,13 @@ from matplotlib import pyplot as plt
 # plt.legend()
 # plt.show()
 
-def fit_function(x, a, b, c, x_0):
-    print "a = %f, b = %f, c = %f, x_0 = %f" %(a,b,c, x_0)
-    return a * np.exp(- b * (x - x_0)) + c
+def fit_function(x, a, b, c):
+    #print "a = %f, b = %f, c = %f" %(a,b,c)
+    return a * np.exp(- b * x) + c
     #return a * x**2 + b * x + c
 
 
-xn = numpy.array([2., 3., 4., 5., 6.])
+xn = numpy.array([2., 3., 4., 5., 6., 7.])
 
 ## gStar = 1.88, b = 2 :
 yn = numpy.array([0.0352112221332348, 0.0683704891587855, 0.0961859612147154, 0.117221076107934, 0.134028757600961])
@@ -40,9 +40,14 @@ yn = numpy.array([0.0352112221332348, 0.0683704891587855, 0.0961859612147154, 0.
 ## gStar = 1.75, b = 3.5 :
 #yn = np.array([0.0253157644796685,0.0275588371775547,0.0234783671009914, 0.0183011773880176, 0.0142419335344348])
 
-print xn, yn
+## d=3, gStar = 1.4, b = 0, n=2:
+yn = np.array([0.0215089163240000, 0.0236312270400059, 0.0282861479588983, 0.0286564987164177, 0.0307618580783721, 0.0308927685196124])
+## d=3, gStar = 1.4, b = 0, n=0 :
+yn = np.array([0.0134947282922813, 0.0201103220223199, 0.0243844966934112, 0.0268016448409201, 0.0285373430232447, 0.0297038092975389])
+## d=3, gStar = 1.4, b = 2, n=0 :
+yn = np.array([0.0104909408725579, 0.0177854215169812, 0.0225186499190577, 0.0254872697134519, 0.0274989560904286, 0.0289072863376955])
 
-popt, pcov = curve_fit(fit_function, xn, yn)
+print xn, yn
 
 #print popt
 
@@ -60,7 +65,10 @@ x = numpy.arange(2,20,0.1)
 plt.figure()
 #plt.plot(xn,S, 'r--')
 plt.plot(xn, yn, 'ko', label="$\\eta = \\eta(L)$")
-plt.plot(x, fit_function(x, *popt), 'r-', label="$\\eta(x) = a * e^{- b\ x} + c$")
+for j in [5,6,7]:
+    popt, pcov = curve_fit(fit_function, xn[:j], yn[:j])
+    a,b,c = popt
+    plt.plot(x, fit_function(x, *popt), '-', label="$n=%d:  \\eta(x) = %.2f * e^{- %.2f\ x} + %.5f$"%(j,a,b,c))
 plt.legend(loc = 'lower right')
 plt.grid(True)
 #plt.xticks()

@@ -29,46 +29,46 @@ def func(t,a,b,k, eps):
     res = t ** b * np.exp(-t) * u ** (k)
     return res
 
-def fit_exp(x, a, b, c, x_0):
+def fit_exp(x, a, b, c):
     #print "a = %f, b = %f, c = %f, x_0 = %f" %(a,b,c, x_0)
-    return a*np.exp(-b*(x-x_0)) + c
+    return a*np.exp(-b*x) + c
 
 def fit_hyperbola(x, a, b, c, x_0):
     #print "a = %f, b = %f, c = %f, x_0 = %f" %(a,b,c, x_0)
-    return a/(x-x_0)**b + 1.75
+    return a/(x-x_0)**b + c
 
-def conformBorel(coeffs, eps, b = 2.5,):
+def conformBorel(coeffs, eps, b = 0.0, loops = 5):
     #if len(coeffs)<=2:
     #    return coeffs
     A = coeffs
-    n = 2
+    n = 0 ## <-- какую степень заряда выносить
     A = A[n:]
 
-    a, b = 0.238659217, b # -- for d = 2
-    #a, b = 0.14777422, 3.5 # -- for d = 3
+    #a, b = 0.238659217, b # -- for d = 2
+    a, b = 0.14777422, b # -- for d = 3
     #B = [A[k]/gamma(k+b+1) for k in range(len(A))] ## образ Бореля-Лероя
     #U = [B[0]] + \
     #    [sum([B[m] * (4/a)**m * binomial(k+m-1,k-m) for m in range(1,k+1)]) for k in range(1,len(B))]
     #print "U =",U
     #return [x*eps**k for k,x in enumerate(A[:4])]+[U[k]*integrate.quad(func, 0., np.inf, args=(a, b, k, eps), limit=100)[0] for k in range(4,len(U)) ]
     ####################
-    L=2
-    print "A =", A
+    L=loops+1-n
+    #print "A =", A, " len(A)=%d, L=%d"%(len(A),L)
     #B = A[2:]
     B = [A[k]/gamma(k+b+1) for k in range(L)] ## образ Бореля-Лероя
-    print "B =",B
+    #print "B =",B
     U = [sum([B[m] * (4/a)**m * binomial(k+m-1,k-m) for m in range(L)]) for k in range(L)]
-    print "U =",U
+    #print "U =",U
 
     #return #[x*eps**(k+n) for k,x in enumerate(A[:2])]+[eps**4*U[k]*integrate.quad(func, 0., np.inf, args=(a, b, k, eps), limit=100)[0] for k in range(2) ]
     return [eps**n*U[k]*integrate.quad(func, 0., np.inf, args=(a, b, k, eps), limit=100)[0] for k in range(L) ]
 
-def findZero(beta_half, gStar = 1.75, delta = 0.01):
+def findZero(beta_half, gStar = 1.40, delta = 0.01):
     _gStar = gStar
-    #print "β/2 =", beta_half
+    print "β/2 =", beta_half
     for i in range(1000):
-        g1 = sum(conformBorel(beta_half, _gStar - delta))
-        g2 = sum(conformBorel(beta_half, _gStar + delta))
+        g1 = sum(conformBorel(beta_half, _gStar - delta,loops = len(beta_half)-1))
+        g2 = sum(conformBorel(beta_half, _gStar + delta,loops = len(beta_half)-1))
         #print "β(%.2f) = %.4f, β(%.2f) = %.4f" % (_gStar - delta, g1, _gStar + delta, g2)
         if abs(g1) > abs(g2):
             _gStar += delta
@@ -134,13 +134,17 @@ def plotBeta(beta_half, name, fileName):
 
     L = range(2,n-1)
     plots = []
-    gStar_by_loops = [findZero(b) for b in [beta_half[:i] for i in range(4,8)]]
+    gStar_by_loops = [findZero(b) for b in [beta_half[:i] for i in range(4,9)]]
     points = gStar_by_loops
     print "L = ",L ,",  points =",points
     xn, yn = np.array(L),np.array(points, dtype = 'float32')
     x = np.arange(2,10,0.1)
-    popt_hyp, pcov = curve_fit(fit_hyperbola, xn, yn)
-    plt.plot(x, fit_hyperbola(x, *popt_hyp), '--', label="$g(x) = a/(x-x_0)^b +c$")
+    #popt_hyp, pcov = curve_fit(fit_hyperbola, xn, yn)
+    #popt_exp, pcov = curve_fit(fit_exp, xn, yn)
+    #a,b,c,x_0 = popt_hyp
+    #plt.plot(x, fit_hyperbola(x, *popt_hyp), '--', label="$g(x) = %.2f/(x-%.2f)^{%.3f} + %.2f$"%(a,x_0,b,c,))
+    #a,b,c = popt_exp
+    #plt.plot(x, fit_exp(x, *popt_exp), '--', label="$g(x) = %.2f * e^{-%.2f*x} + %.2f$"%(a,b,c,))
     plots.append(plt.plot(L, points, 'ro', label = '$g^* = g^*(L)$'))
     title = name
     plt.title(title, fontdict = font)
@@ -168,63 +172,20 @@ if __name__ == "__main__":
     eta_g= map(lambda x: x.n,eta_g.gSeries.values())
     #beta_half = [0, -1.0, 1.0, -0.71617362, + 0.930764, -1.582398, 3.260219] ## NB: in fact it's beta/2
     #eta_g = [0., 0., 0.033966148, -0.00202253, 0.01139321, -0.0137366, 0.028233] = [0, -1.0, 1.0, -0.71617362, + 0.930764, -1.582398, 3.260219] ## NB: in fact it's beta/2
+    ### For d=3, from Nickel, 1978
+    beta_half = [0.,-1., 1., -0.4224965707, 0.3510695978, -0.3765268283, 0.49554795, -0.749689]
+    eta_g = [0.,0., 0.0109739369, 0.0009142223, 0.0017962229, -0.00065370, 0.00138781, -0.0016977]
     #Z2 = [1, 0, -0.0084915370, -0.005323936, -0.002340342, -0.00135597, -0.0003502]
     #Z3 = [1, 1.0, 0.624930113, 0.4470878, 0.1735522, 0.283165]
 
-    beta_half = [b/2 for b in beta[:L4+2]]
-    eta_g = eta_g[:L2 + 1]
+    #beta_half = [b/2 for b in beta[:L4+2]]
+    #eta_g = eta_g[:L2 + 1]
     #gStar = findZero(beta_half)
     #print "g* =", gStar
 
-    print "η(g*) =", sum(conformBorel(eta_g, 1.88,b=0))
+    #print "η(g*) =", sum(conformBorel(eta_g, 1.4,b=0,loops=5))
+    print "η(g*) =", [sum(conformBorel(eta_g, 1.4,b=0,loops=l)) for l in [1,2,3,4,5,6]]
     #print len(beta_half), "β(g)/2 =", beta_half
     #print len(eta_g), "η(g)/2 =", eta_g
     #plot(eta_g,beta_half, '$\eta = \eta(L)$', 'pic_eta.pdf')
-    #plotBeta(beta_half, '$g^* = g^*(L)$', 'pic_beta.pdf')
-
-
-    # FIXME
-    """
-    gamma2 = beta*Z2.diff()/Z2
-    gamma4 = beta*Z3.diff()/Z3
-    f2 = gamma2/(Series(6,{0:(2,0)})-gamma2)
-    f4 = gamma4/(Series(3,{0:(2,0)})-gamma2)
-    print "γ₂ = %s \nγ₄ = %s \nf2 = %s \nf4 = %s" %tuple(map(str,[gamma2,gamma4,f2,f4]))
-
-    #ser = 1+f4-f2
-
-    for k2, k4 in [(4, 4), (5, 5), (6, 5)]:
-        print "\nL = ", k2, k4
-        #_coeffs = ser.coeffs()[:k]
-        #print "coeffs =", _coeffs
-        _f2 = f2.coeffs()[:k2]
-        _f4 = f4.coeffs()[:k4]
-
-        gStar = 0.75
-        delta = 0.01
-        # b = 2.5
-        # b2 = b
-        # b4 = b
-        b2 = 1.
-        b4 = 2.5
-        print "b2=%s, b4=%s" % (b2,b4)
-        for i in range(1000):
-            g1 = 1+sum(conformBorel(_f4, gStar - delta, b4))-sum(conformBorel(_f2, gStar - delta, b2))
-            g2 = 1+sum(conformBorel(_f4, gStar + delta, b4))-sum(conformBorel(_f2, gStar + delta, b2))
-            #g2 = sum(conformBorel(_coeffs, gStar + delta))
-            if i%100 == 0:
-                print "β(%.2f) = %.5f, β(%.2f) = %.5f" % (gStar - delta, g1, gStar + delta, g2)
-            if abs(g1) > abs(g2):
-                gStar += delta
-            else:
-                gStar -= delta
-            if g1 * g2 < 0:
-                break
-        print "β(%.2f) = %.5f, β(%.2f) = %.5f" % (gStar - delta, g1, gStar + delta, g2)
-        print "g* (%d)=" % k4, gStar
-        _f2 = f2.coeffs()[:k2]
-        _f4 = f4.coeffs()[:k4]
-        print _f2, _f4
-        print "f2(g*) =", sum(conformBorel(_f2, gStar, b2))
-        print "f4(g*) =", sum(conformBorel(_f4, gStar, b4))
-    """
+    plotBeta(beta_half, '$g^* = g^*(L),\quad b=0.$', 'pic_beta_d3_b0.pdf')
