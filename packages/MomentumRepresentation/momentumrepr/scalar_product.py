@@ -25,6 +25,7 @@ class ScalarProductAlgebraElement(object):
 class ScalarProduct(ScalarProductAlgebraElement):
     def __init__(self, flow1, flow2, sign):
         assert sign is not None
+        # assert sign == 1
         self._flow1 = flow1
         self._flow2 = flow2
         self._unordered_pairs = ScalarProduct.resolve_flows(flow1, flow2)
@@ -49,11 +50,11 @@ class ScalarProduct(ScalarProductAlgebraElement):
             if p[0][1] != 0 and p[1][1] != 0:
                 k = frozenset((p[0][0], p[1][0]))
                 r = p[0][1] * p[1][1]
+                r *= self._flow1.get_stretcher_for_var_index(p[0][0])
+                r *= self._flow2.get_stretcher_for_var_index(p[1][0])
                 if len(k) == 2:
                     r *= symbolic_functions.var("k%s" % p[0][0])
-                    r *= self._flow1.get_stretcher_for_var_index(p[0][0])
                     r *= symbolic_functions.var("k%s" % p[1][0])
-                    r *= self._flow2.get_stretcher_for_var_index(p[1][0])
                     r *= substitutor[k].fake_variable
                 elif len(k) == 1:
                     r *= symbolic_functions.var("k%s" % (list(k))[0]) ** 2

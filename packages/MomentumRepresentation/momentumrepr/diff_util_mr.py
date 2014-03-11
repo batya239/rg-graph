@@ -73,26 +73,23 @@ def _do_diff(graph, comb):
         new_vertex1, new_vertex2 = graph.createVertexIndex(), graph.createVertexIndex()
         numerator = graph_state.Arrow(graph_state.Arrow.LEFT_ARROW)
         all_edges_3edges.append(graph_util_mr.new_edge((edge.nodes[0], new_vertex1),
-                                                    flow=edge.flow,
-                                                    fields=edge.fields,
-                                                    propagator=edge.propagator,
-                                                    arrow=numerator,
-                                                    marker=edge.marker,
-                                                    external_node=graph.external_vertex))
+                                                       flow=edge.flow,
+                                                       fields=edge.fields,
+                                                       arrow=numerator,
+                                                       marker=edge.marker,
+                                                       external_node=graph.external_vertex))
         all_edges_3edges.append(graph_util_mr.new_edge((new_vertex1, new_vertex2),
-                                                    flow=edge.flow,
-                                                    fields=edge.fields,
-                                                    propagator=edge.propagator,
-                                                    arrow=numerator,
-                                                    marker=edge.marker,
-                                                    external_node=graph.external_vertex))
+                                                       flow=edge.flow,
+                                                       fields=edge.fields,
+                                                       arrow=numerator,
+                                                       marker=edge.marker,
+                                                       external_node=graph.external_vertex))
         all_edges_3edges.append(graph_util_mr.new_edge((new_vertex2, edge.nodes[1]),
-                                                    flow=edge.flow,
-                                                    fields=edge.fields,
-                                                    propagator=edge.propagator,
-                                                    arrow=graph_state.Arrow(graph_state.Arrow.NULL),
-                                                    marker=edge.marker,
-                                                    external_node=graph.external_vertex))
+                                                       flow=edge.flow,
+                                                       fields=edge.fields,
+                                                       arrow=graph_state.Arrow(graph_state.Arrow.NULL),
+                                                       marker=edge.marker,
+                                                       external_node=graph.external_vertex))
         to_return = list()
         all_edges_3edges = map(lambda e: e.copy(arrow=graph_state.Arrow(graph_state.Arrow.NULL)) if e.arrow is None else e, all_edges_3edges)
         to_return.append((graphine.Graph(all_edges_3edges, external_vertex=graph.external_vertex), c2()))
@@ -102,18 +99,13 @@ def _do_diff(graph, comb):
         all_edges_2edges.remove(edge)
         new_vertex = graph.createVertexIndex()
         all_edges_2edges.append(graph_util_mr.new_edge((edge.nodes[0], new_vertex),
-                                                    flow=edge.flow,
-                                                    fields=edge.fields,
-                                                    propagator=edge.propagator,
-                                                    marker=edge.marker,
-                                                    external_node=graph.external_vertex))
+                                                       flow=edge.flow,
+                                                       fields=edge.fields,
+                                                       external_node=graph.external_vertex))
         all_edges_2edges.append(graph_util_mr.new_edge((new_vertex, edge.nodes[1]),
-                                                    flow=edge.flow,
-                                                    fields=edge.fields,
-                                                    propagator=edge.propagator,
-                                                    marker=edge.marker,
-                                                    external_node=graph.external_vertex))
-        all_edges_2edges = map(lambda e: e.copy(arrow=graph_state.Arrow(graph_state.Arrow.NULL)) if e.arrow is None else e, all_edges_2edges)
+                                                       flow=edge.flow,
+                                                       fields=edge.fields,
+                                                       external_node=graph.external_vertex))
         to_return.append((graphine.Graph(all_edges_2edges, external_vertex=graph.external_vertex), c3()))
         return to_return
     else:
@@ -127,23 +119,22 @@ def _do_diff(graph, comb):
             new_vertex = graph.createVertexIndex()
             numerator = graph_state.Arrow(graph_state.Arrow.LEFT_ARROW if comb[1] else graph_state.Arrow.RIGHT_ARROW)
             new_edge1 = graph_util_mr.new_edge((edge.nodes[0], new_vertex),
-                                            external_node=graph.external_vertex,
-                                            flow=edge.flow,
-                                            fields=edge.fields,
-                                            propagator=edge.propagator,
-                                            marker=edge.marker,
-                                            arrow=numerator)
-            new_edge2 = graph_util_mr.new_edge((edge.nodes[1], new_vertex),
-                                            external_node=graph.external_vertex,
-                                            flow=edge.flow,
-                                            fields=edge.fields,
-                                            propagator=edge.propagator,
-                                            marker=edge.marker,
-                                            arrow=graph_state.Arrow(graph_state.Arrow.NULL))
+                                               external_node=graph.external_vertex,
+                                               flow=edge.flow,
+                                               fields=edge.fields,
+                                               marker=edge.marker,
+                                               arrow=numerator)
+            new_edge2 = graph_util_mr.new_edge((new_vertex, edge.nodes[1]),
+                                               external_node=graph.external_vertex,
+                                               flow=edge.flow,
+                                               fields=edge.fields,
+                                               marker=edge.marker,
+                                               arrow=graph_state.Arrow(graph_state.Arrow.NULL))
             all_edges.append(new_edge1)
             all_edges.append(new_edge2)
         all_edges = map(lambda e: e.copy(arrow=graph_state.Arrow(graph_state.Arrow.NULL)) if e.arrow is None else e, all_edges)
-        return [(graphine.Graph(all_edges, external_vertex=graph.external_vertex), c1())]
+        new_graph = graphine.Graph(all_edges, external_vertex=graph.external_vertex)
+        return [(new_graph, c1())]
 
 
 def D_p2(graph):
@@ -162,15 +153,13 @@ def D_i_omega(graph):
         new_edges.remove(e)
         next_vertex = graph.createVertexIndex()
         new_edges.append(graph_util_mr.new_edge((e.nodes[0], next_vertex),
-                                             fields=e.fields,
-                                             flow=e.flow,
-                                             marker=e.marker,
-                                             propagator=e.propagator))
+                                                external_node=graph.external_vertex,
+                                                fields=e.fields,
+                                                flow=e.flow))
         new_edges.append(graph_util_mr.new_edge((next_vertex, e.nodes[1]),
-                                             fields=e.fields,
-                                             flow=e.flow,
-                                             marker=e.marker,
-                                             propagator=e.propagator))
+                                                external_node=graph.external_vertex,
+                                                fields=e.fields,
+                                                flow=e.flow))
         new_graphs.append(graphine.Graph(new_edges))
     return new_graphs
 
@@ -184,13 +173,19 @@ def D_minus_tau(graph):
         new_edges = copy.copy(graph_edges)
         new_edges.remove(e)
         next_vertex = graph.createVertexIndex()
+        non_empty_arrow = e.arrow
+        empty_arrow = None if non_empty_arrow is None else graph_state.Arrow(graph_state.Arrow.NULL)
         new_edges.append(graph_util_mr.new_edge((e.nodes[0], next_vertex),
-                                             fields=e.fields,
-                                             flow=e.flow,
-                                             propagator=e.propagator))
+                                                external_node=graph.external_vertex,
+                                                fields=e.fields,
+                                                flow=e.flow,
+                                                marker=e.marker,
+                                                arrow=non_empty_arrow))
         new_edges.append(graph_util_mr.new_edge((next_vertex, e.nodes[1]),
-                                             fields=e.fields,
-                                             flow=e.flow,
-                                             propagator=e.propagator))
+                                                external_node=graph.external_vertex,
+                                                fields=e.fields,
+                                                flow=e.flow,
+                                                marker=e.marker,
+                                                arrow=empty_arrow))
         new_graphs.append(graphine.Graph(new_edges))
     return new_graphs

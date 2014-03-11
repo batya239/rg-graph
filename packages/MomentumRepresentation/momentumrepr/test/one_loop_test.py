@@ -21,6 +21,9 @@ class OneLoopTest(unittest.TestCase):
             with_dimension(symbolic_functions.d_percolation).\
             with_target_loops_count(2).\
             with_debug(False).\
+            with_absolute_error(10e-10).\
+            with_relative_error(10e-10).\
+            with_maximum_points_number(1200000).\
             with_delete_integration_tmp_dir_on_shutdown(True).\
             configure()
 

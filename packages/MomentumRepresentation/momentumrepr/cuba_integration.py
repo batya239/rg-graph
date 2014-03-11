@@ -236,6 +236,18 @@ def on_shutdown():
 
 def cuba_integrate(integrand_series, integrations, scalar_products_functions):
     an_id = id(integrand_series)
+    for i in integrations:
+        if "a" in str(i.var):
+            return {0: 0}
+
+    # has_a = False
+    # for i in integrations:
+    #     if "a" in str(i.var):
+    #         has_a = True
+    #         break
+    # if not has_a:
+    #     return {0: 0}
+
     graph = str(an_id)
     directory = os.path.join("tmp/", str(graph))
     if configure_mr.Configure.debug():

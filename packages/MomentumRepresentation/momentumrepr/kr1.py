@@ -51,6 +51,8 @@ def kr1_with_some_additional_lambda_operation(graph_state_as_str,
     graph = graph.apply(diff_util_mr.D_minus_tau)
     if additional_lambda is not None:
         graph = graph.apply(additional_lambda)
+    graph = graph.apply(GraphDashKey.as_key)
+    graph = graph.apply(GraphDashKey.to_graph)
     graph = graph.apply(momentum_enumeration.choose_minimal_momentum_flow)
     graph = graph.apply(propagator.subs_external_propagators_is_zero)
     graph = graph.apply(kr1_stretching)
@@ -64,17 +66,12 @@ def kr1_with_some_additional_lambda_operation(graph_state_as_str,
         integration_answer = integration_operation(*i)
         for d, a in integration_answer.items():
             answer_dict[d] += a
-            print "Current answer[%s]: %s, delta %s" % (d, answer_dict[d], a)
     return answer_dict
 
 
 def kr1_stretching(graph):
     uv_subgraphs = [x for x in graph.xRelevantSubGraphs(one_irreducible + no_tadpoles + uv.uv_condition)]
     graphs_and_time_versions = time_versions.find_time_versions(graph)
-
-    print "Graph:", graph
-    for g_tv in graphs_and_time_versions:
-        print "Time version:", g_tv.time_version
 
     with_stretching = list()
     for graph_and_tv in graphs_and_time_versions:
@@ -94,14 +91,30 @@ def kr1_stretching(graph):
 
         new_graph_with_stretching = graphine.Graph(new_edges, g.external_vertex)
 
-
-        print "New graph with stretching:", new_graph_with_stretching
-        print "Stretchers for edges", stretchers_for_edges
         with_stretching.append(graph_and_tv.set_graph(new_graph_with_stretching))
 
-    print "\n"
-
     return with_stretching
+
+
+class GraphDashKey(object):
+    def __init__(self, graph):
+        splitted = str(graph).split(":")
+        self.key = (splitted[0], splitted[1])
+        self.graph = graph
+
+    def __hash__(self):
+        return hash(self.key)
+
+    def __eq__(self, other):
+        return self.key == other.key
+
+    @staticmethod
+    def as_key(graph):
+        return GraphDashKey(graph)
+
+    @staticmethod
+    def to_graph(key):
+        return key.graph
 
 
 def add_stretching(graph, uv_sub_graph, cross_sections, stretchers_for_edges):
