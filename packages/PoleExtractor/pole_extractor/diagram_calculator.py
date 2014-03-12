@@ -142,8 +142,16 @@ def calculate_diagram(label, theory, max_eps, zero_momenta=True, force_update=Fa
         update_expansion(g, rprime=False, momentum_derivative=not zero_momenta, e=result, force_update=force_update)
 
     delta = datetime.datetime.now() - begin
-    time_msg = 'Overall time:\n' + str(int(delta.seconds) / 60) + \
-               ' minutes ' + str(int(delta.seconds) % 60) + ' seconds'
+    time_msg = 'Overall time:\n'
+    hours = int(delta.seconds) / 3600
+    minutes = (int(delta.seconds) % 3600) / 60
+    seconds = (int(delta.seconds) % 3600) % 60
+    for num, name in zip((hours, minutes, seconds), (' hour ', ' minute ', ' second ')):
+        if num > 0:
+            time_msg += str(num) + name
+            if num > 1:
+                time_msg = time_msg[:-1] + 's '
+
     if log:
         utils.dispatch_log_message(time_msg)
 
@@ -154,7 +162,7 @@ def calculate_diagram(label, theory, max_eps, zero_momenta=True, force_update=Fa
     return result
 
 
-def calculate_diagram_w_symmetries(label, theory, max_eps):
+def calculate_p2_w_symmetries(label, theory, max_eps):
     """
     """
     if isinstance(label, str):
@@ -180,26 +188,28 @@ def calculate_diagram_w_symmetries(label, theory, max_eps):
 
     to_index = max_eps - min(gamma_coef.keys())
 
-    fis = feynman.FeynmanIntegrand.fromRVL_w_symmetries(rvl, theory)
+    #fi = feynman.FeynmanIntegrand.fromRVL(rvl, theory)
+    f_integrands = feynman.FeynmanIntegrand.fromRVL_w_symmetries(rvl, theory)
 
     if log:
-        utils.dispatch_log_message('Integrands:\n' + '\n'.join(map(lambda x: str(x), fis)))
+        utils.dispatch_log_message('Integrands:\n' + '\n'.join(map(lambda x: str(x[1]), f_integrands)))
     if verbose:
-        print 'Integrands:\n' + '\n'.join(map(lambda x: str(x), fis))
+        print 'Integrands:\n' + '\n'.join(map(lambda x: str(x[1]), f_integrands))
 
     num_expansion = numcalc.NumEpsExpansion({k: [0.0, 0.0] for k in range(to_index + 1)}, precise=True)
 
-    for diag, f_repr in fis:
-        rvl = reduced_vl.ReducedVacuumLoop.fromGraphineGraph(diag, zero_momenta=False)
+    begin2 = datetime.datetime.now()
+
+    for rvl, fi in f_integrands:
         ns = reduced_vl.all_SD_sectors(rvl)
-        ss = reduced_vl.reduce_symmetrical_sectors(ns, diag)
+        ss = reduced_vl.reduce_symmetrical_sectors(ns, rvl.graph())
         if log:
             utils.dispatch_log_message('Non-symmetrical sectors (' + str(len(ss)) + '):\n' +
                                        '\n'.join(map(lambda x: str(x[0]) + ' * ' + str(x[1]), ss)))
         if verbose:
             print 'All sectors: ' + str(len(ns)) + '\nNon-symmetrical sectors: ' + str(len(ss))
 
-        sector_expressions = map(lambda x: (x, f_repr.sector_decomposition(x)), ss)
+        sector_expressions = map(lambda x: (x, fi.sector_decomposition(x)), ss)
         expansions = map(lambda x: (x[0], feynman.extract_poles(x[1]._integrand, to_index)), sector_expressions)
 
         if verbose:
@@ -216,12 +226,16 @@ def calculate_diagram_w_symmetries(label, theory, max_eps):
                 utils.dispatch_log_message('With result:\n' + str(sector_expansion), ts=False)
             if verbose:
                 print '\rCalculated: ' + str(i + 1) + '   ',
+        if verbose:
+            print
 
     result = num_expansion * gamma_coef
 
     delta = datetime.datetime.now() - begin
+    delta2 = datetime.datetime.now() - begin2
     time_msg = 'Overall time:\n' + str(int(delta.seconds) / 60) + \
-               ' minutes ' + str(int(delta.seconds) % 60) + ' seconds'
+               ' minutes ' + str(int(delta.seconds) % 60) + ' seconds\nTime w/out conslaws: ' + \
+               str(int(delta2.seconds) / 60) + ' minutes ' + str(int(delta2.seconds) % 60)
     if log:
         utils.dispatch_log_message(time_msg)
 

@@ -101,27 +101,37 @@ class FeynmanIntegrand:
 
         loops = rvl.loops()
         edges = rvl.edges()
-        cons_laws = rvl.conservation_laws(exclude_ext_edges=True)
-
-        coef = reduce(lambda x, y: x * y, map(lambda z: math.factorial(z - 1), rvl.edges_weights()))
-        integrand = polynomial.poly(FeynmanIntegrand.determinant(edges, loops, cons_laws), degree=(deg, 1))
-        d_arg = polynomial.poly(map(lambda x: (1, [x]), edges))
-
         laws_for_c = rvl.internal_conservation_laws()
 
-        num_base = sum(map(lambda x: [x[0]] * (x[1] - 1), rvl.edges_with_weights()), [])
         c_base = FeynmanIntegrand.determinant(edges, loops + 1, laws_for_c)
-        noted_graphs = map(lambda x: (x[1] + copy.copy(num_base), note_c_monomial(rvl.graph(), x[1])), c_base)
-        labels = map(lambda x: x[1], noted_graphs)
 
-        new_base = []
+        noted_graphs = map(lambda x: note_c_monomial(rvl.graph(), x[1]), c_base)
+        labels = map(lambda x: str(x), noted_graphs)
+
+        new_graphs = []
         seen = set([])
-        for base, label in noted_graphs:
-            if str(label) not in seen:
-                seen.add(str(label))
-                new_base.append((label, (labels.count(label), base)))
-        new_cs = map(lambda x: (x[0], polynomial.poly([x[1]], c=(coef**(-1) * 2**(-loops)))), new_base)
-        return map(lambda x: (x[0], FeynmanIntegrand(x[1] * integrand, d_arg)), new_cs)
+        for graph in noted_graphs:
+            if not str(graph) in seen:
+                seen.add(str(graph))
+                new_graphs.append((labels.count(str(graph)), graph))
+
+        coef = reduce(lambda x, y: x * y, map(lambda z: math.factorial(z - 1), rvl.edges_weights()))
+        result = []
+        for sym_c, graph in new_graphs:
+            vl = reduced_vl.ReducedVacuumLoop.fromGraphineGraph(graph, zero_momenta=False)
+            loops = vl.loops()
+            edges = vl.edges()
+            cons_laws = vl.conservation_laws(exclude_ext_edges=True)
+
+            integrand = polynomial.poly([(1, sum(map(lambda x: [x[0]] * (x[1] - 1), vl.edges_with_weights()), []))],
+                                        c=(sym_c * coef**(-1) * 2**(-loops)))
+
+            integrand *= polynomial.poly(FeynmanIntegrand.determinant(edges, loops, cons_laws), degree=(deg, 1))
+            d_arg = polynomial.poly(map(lambda x: (1, [x]), edges))
+
+            result.append((copy.copy(vl), FeynmanIntegrand(copy.copy(integrand), copy.copy(d_arg))))
+
+        return result
 
     def sector_decomposition(self, sector):
         result = copy.deepcopy(self)
