@@ -6,10 +6,12 @@ import sys
 from uncertSeries import *
 import graphine
 import graph_state
+from On_structures import On
 
-usage_message = "\nrg_nickel.py usage:\n\n$ python rg_nickel.py KR1_file r2 r4 \
+usage_message = "\nrg_nickel.py usage:\n\n$ python rg_nickel.py KR1_file r2 r4 [n = 1]\
                 \nwhere\n\tKR1_file -- file that contains dictionary of KR'-operations over diagrams,\
-                \n\tr2 -- number of loops for 2-tails,\n\tr4 -- number of loops for 4-tails."
+                \n\tr2 -- number of loops for 2-tails,\n\tr4 -- number of loops for 4-tails,\
+                \n\tn -- number of field components.\n"
 if len(sys.argv) < 4:
     print usage_message
     exit()
@@ -17,6 +19,10 @@ if len(sys.argv) < 4:
 fileName = sys.argv[1]
 r2Loops = int(sys.argv[2])
 r4Loops = int(sys.argv[3])
+try:
+    n = int(sys.argv[4])
+except:
+    n = 1
 
 r1op = eval(open(fileName).read())
 
@@ -41,14 +47,14 @@ for nickel in r1op:
     if len(graph.edges(graph.externalVertex)) == 2:
         #Z2 -= (-2 * g / 3) ** graphLoopCount * r1op[nickel] * symmetryCoefficient(graph)
         if graphLoopCount in Z2_new:
-            Z2_new[graphLoopCount] += float(-(-2. / 3) ** graphLoopCount * symmetryCoefficient(graph)) * uncert
+            Z2_new[graphLoopCount] += float(-(-2. / 3) ** graphLoopCount * symmetryCoefficient(graph)) * uncert * On(graph,n)
         else:
-            Z2_new[graphLoopCount] = float(-(-2. / 3) ** graphLoopCount * symmetryCoefficient(graph)) * uncert
+            Z2_new[graphLoopCount] = float(-(-2. / 3) ** graphLoopCount * symmetryCoefficient(graph)) * uncert * On(graph,n)
     elif len(graph.edges(graph.externalVertex)) == 4:
         if graphLoopCount in Z3_new:
-            Z3_new[graphLoopCount] += float(-(-2. / 3) ** graphLoopCount * symmetryCoefficient(graph)) * uncert
+            Z3_new[graphLoopCount] += float(-(-2. / 3) ** graphLoopCount * symmetryCoefficient(graph)) * uncert * On(graph,n)
         else:
-            Z3_new[graphLoopCount] = float(-(-2. / 3) ** graphLoopCount * symmetryCoefficient(graph)) * uncert
+            Z3_new[graphLoopCount] = float(-(-2. / 3) ** graphLoopCount * symmetryCoefficient(graph)) * uncert * On(graph,n)
     else:
         raise ValueError("invalid ext legs count: %s, %s" % (graphLoopCount, nickel))
 

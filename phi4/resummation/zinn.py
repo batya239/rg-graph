@@ -41,7 +41,7 @@ def conformBorel(coeffs, eps, b = 0.0, loops = 5):
     #if len(coeffs)<=2:
     #    return coeffs
     A = coeffs
-    n = 0 ## <-- какую степень заряда выносить
+    n = 2 ## <-- какую степень заряда выносить
     A = A[n:]
 
     #a, b = 0.238659217, b # -- for d = 2
@@ -53,8 +53,8 @@ def conformBorel(coeffs, eps, b = 0.0, loops = 5):
     #return [x*eps**k for k,x in enumerate(A[:4])]+[U[k]*integrate.quad(func, 0., np.inf, args=(a, b, k, eps), limit=100)[0] for k in range(4,len(U)) ]
     ####################
     L=loops+1-n
-    #print "A =", A, " len(A)=%d, L=%d"%(len(A),L)
-    #B = A[2:]
+    print "A =", A, " len(A)=%d, L=%d"%(len(A),L)
+    B = A[2:]
     B = [A[k]/gamma(k+b+1) for k in range(L)] ## образ Бореля-Лероя
     #print "B =",B
     U = [sum([B[m] * (4/a)**m * binomial(k+m-1,k-m) for m in range(L)]) for k in range(L)]
@@ -69,7 +69,7 @@ def findZero(beta_half, gStar = 1.40, delta = 0.01):
     for i in range(1000):
         g1 = sum(conformBorel(beta_half, _gStar - delta,loops = len(beta_half)-1))
         g2 = sum(conformBorel(beta_half, _gStar + delta,loops = len(beta_half)-1))
-        #print "β(%.2f) = %.4f, β(%.2f) = %.4f" % (_gStar - delta, g1, _gStar + delta, g2)
+        print "β(%.2f) = %.4f, β(%.2f) = %.4f" % (_gStar - delta, g1, _gStar + delta, g2)
         if abs(g1) > abs(g2):
             _gStar += delta
         else:
@@ -117,7 +117,7 @@ def plot(coeffs, beta_half, name, fileName):
     plt.grid(True)
     plt.xticks(L)
     plt.xlabel('Number of loops')
-    plt.savefig(fileName)
+    plt.show(fileName)
 
 def plotBeta(beta_half, name, fileName):
     """
@@ -187,5 +187,5 @@ if __name__ == "__main__":
     print "η(g*) =", [sum(conformBorel(eta_g, 1.4,b=0,loops=l)) for l in [1,2,3,4,5,6]]
     #print len(beta_half), "β(g)/2 =", beta_half
     #print len(eta_g), "η(g)/2 =", eta_g
-    #plot(eta_g,beta_half, '$\eta = \eta(L)$', 'pic_eta.pdf')
-    plotBeta(beta_half, '$g^* = g^*(L),\quad b=0.$', 'pic_beta_d3_b0.pdf')
+    plot(eta_g,beta_half, '$\eta = \eta(L)$', 'pic_eta_d3.pdf')
+    #plotBeta(beta_half, '$g^* = g^*(L),\quad b=0.$', 'pic_beta_d3_b0.pdf')
