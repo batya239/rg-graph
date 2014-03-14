@@ -40,21 +40,21 @@ def saveSeriesToFile(s,fd):
 
 for nickel in r1op:
     uncert = ufloat(r1op[nickel][0], r1op[nickel][1])
-    graph = graphine.Graph(graph_state.GraphState.fromStr("%s::" % nickel))
+    graph = graphine.Graph(graph_state.GraphState.fromStr(nickel))
     graphLoopCount = graph.getLoopsCount()
     if graphLoopCount > max(r2Loops, r4Loops):
         continue
-    if len(graph.edges(graph.externalVertex)) == 2:
+    if len(graph.edges(graph.external_vertex)) == 2:
         #Z2 -= (-2 * g / 3) ** graphLoopCount * r1op[nickel] * symmetryCoefficient(graph)
         if graphLoopCount in Z2_new:
-            Z2_new[graphLoopCount] += float(-(-2. / 3) ** graphLoopCount * symmetryCoefficient(graph)) * uncert * On(graph,n)
+            Z2_new[graphLoopCount] += float(-(-2. / 3) ** graphLoopCount  * On(graph,n) * symmetryCoefficient(graph)) * uncert
         else:
-            Z2_new[graphLoopCount] = float(-(-2. / 3) ** graphLoopCount * symmetryCoefficient(graph)) * uncert * On(graph,n)
-    elif len(graph.edges(graph.externalVertex)) == 4:
+            Z2_new[graphLoopCount] = float(-(-2. / 3) ** graphLoopCount * On(graph,n) * symmetryCoefficient(graph)) * uncert
+    elif len(graph.edges(graph.external_vertex)) == 4:
         if graphLoopCount in Z3_new:
-            Z3_new[graphLoopCount] += float(-(-2. / 3) ** graphLoopCount * symmetryCoefficient(graph)) * uncert * On(graph,n)
+            Z3_new[graphLoopCount] += float(-(-2. / 3) ** graphLoopCount * On(graph,n) * symmetryCoefficient(graph)) * uncert
         else:
-            Z3_new[graphLoopCount] = float(-(-2. / 3) ** graphLoopCount * symmetryCoefficient(graph)) * uncert * On(graph,n)
+            Z3_new[graphLoopCount] = float(-(-2. / 3) ** graphLoopCount * On(graph,n) * symmetryCoefficient(graph)) * uncert
     else:
         raise ValueError("invalid ext legs count: %s, %s" % (graphLoopCount, nickel))
 
@@ -107,4 +107,3 @@ if __name__ == "__main__":
     #etaStarGS = eta.subs(g, gStarS).series(tau, 0, r4Loops + 1)
     etaStarGS = eta.subs(gStarS)
     print "\nη*_GS = ", etaStarGS
-    

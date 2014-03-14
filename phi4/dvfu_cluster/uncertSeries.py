@@ -15,7 +15,7 @@ if uncert_version < (2, 4):
 def internalEdges(graph):
     res = list()
     for edge in graph.allEdges():
-        if graph.externalVertex not in edge.nodes:
+        if graph.external_vertex not in edge.nodes:
             res.append(edge)
     return res
 
@@ -28,7 +28,7 @@ def symmetryCoefficient(graph):
             unique_edges[idx] += 1
         else:
             unique_edges[idx] = 1
-    C = float(math.factorial(len(graph.edges(graph.externalVertex)))) / len(graph.toGraphState().sortings)
+    C = float(math.factorial(len(graph.edges(graph.external_vertex)))) / len(graph.toGraphState().sortings)
 
     for idxE in unique_edges:
         C = C / float(math.factorial(unique_edges[idxE]))

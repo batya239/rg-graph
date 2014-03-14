@@ -38,8 +38,6 @@ def fit_hyperbola(x, a, b, c, x_0):
     return a/(x-x_0)**b + 1.75
 
 def conformBorel(coeffs, eps, b = 2.5,):
-    #if len(coeffs)<=2:
-    #    return coeffs
     A = coeffs
     a, b = 0.238659217, b # -- for d = 2
     #a, b = 0.14777422, 3.5 # -- for d = 3
@@ -91,13 +89,13 @@ def plot(coeffs, beta_half, name, fileName):
         #plots.append(plt.plot(L, points, 'o-', label = 'b = %.1f'%(b_0+i)))
         xn, yn = np.array(L),np.array(points, dtype = 'float32')
         x = np.arange(2,10,0.1)
-        popt, pcov = curve_fit(fit_exp, xn, yn)
-        print "approximation: %f*exp(-%f*(x+(%f))) + %f"%(popt[0],popt[1],popt[3],popt[2])
-        plt.plot(x, fit_exp(x, *popt), 'r-', label="Fitted Curve")
-        #plots.append(plt.plot(L, points, 'o-', label = 'g* = %.1f'%(gStar+0.1*i)))
+        #popt, pcov = curve_fit(fit_exp, xn, yn)
+        #print "approximation: %f*exp(-%f*(x+(%f))) + %f"%(popt[0],popt[1],popt[3],popt[2])
+        #plt.plot(x, fit_exp(x, *popt), 'r-', label="Fitted Curve")
+        plots.append(plt.plot(L, points, 'o-', label = 'g* = %.2f'%(gStar+0.1*i)))
     title = name
     plt.title(title, fontdict = font)
-    #plt.legend(loc = "upper left")
+    plt.legend(loc = "upper left")
     plt.text(L[-2], points[0],'g* =%.2f'%gStar, fontdict = font)
     plt.grid(True)
     plt.xticks(L)
@@ -144,10 +142,11 @@ if __name__ == "__main__":
     #print "\nTest (Kleinert 17.16):\teta =", sum(conformBorel([0, 0, 0.0185, 0.0187, -0.0083, 0.0257], eps * 2))
 
     L2, L4 = 6, 5
+    N = 1 # 1, 0 -1
     Z2   = eval(open('Z2.txt').read())
     Z3   = eval(open('Z3.txt').read())
-    beta = eval(open('beta.txt').read())
-    eta_g= eval(open('eta.txt').read())
+    beta = eval(open('beta_n%d.txt'%N).read())
+    eta_g= eval(open('eta_n%d.txt'%N).read())
 
     beta = map(lambda x: x.n, beta.gSeries.values())
     eta_g= map(lambda x: x.n,eta_g.gSeries.values())
@@ -164,8 +163,8 @@ if __name__ == "__main__":
     print "η(g*) =", sum(conformBorel(eta_g, gStar))
     print len(beta_half), "β(g)/2 =", beta_half
     print len(eta_g), "η(g)/2 =", eta_g
-    #plot(eta_g,beta_half, '$\eta = \eta(L)$', 'pic_eta.pdf')
-    plotBeta(beta_half, '$g^* = g^*(L)$', 'pic_beta.pdf')
+    plot(eta_g,beta_half, '$\eta = \eta(L), n = %d$'%N, 'pic_eta_n%d.pdf'%N)
+    #plotBeta(beta_half, '$g^* = g^*(L), n = %d$'%n, 'pic_beta_n%d.pdf'%n)
 
 
     # FIXME
