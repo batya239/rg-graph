@@ -20,9 +20,10 @@ import itertools
 import diff_util
 import reduction
 import const
+import inject
 import configure
 import phi4
-from rggraphenv import symbolic_functions, theory, g_graph_calculator, StorageSettings
+from rggraphenv import symbolic_functions, theory, g_graph_calculator, StorageSettings, StoragesHolder
 
 
 def pairwise(iterable):
@@ -38,7 +39,7 @@ class ResultChecker(object):
     LOG.addHandler(logging.StreamHandler())
     LOG.addHandler(logging.FileHandler("5LOOPS_log.txt"))
 
-    def __init__(self, name, *graph_calculators_to_use):
+    def __init__(self, name, up_to_loops_count, *graph_calculators_to_use):
         self._name = name
         graph_calculators_to_use = (g_graph_calculator.GLoopCalculator(const.DIM_PHI4),) + tuple(graph_calculators_to_use)
         configure.Configure()\
@@ -52,9 +53,11 @@ class ResultChecker(object):
         self.two_tails_op = ("KR1", self.operator.kr1), ("KR_STAR", self.operator.kr_star_quadratic_divergence)
         self.four_tails_op = ("KR1", self.operator.kr1), ("KR_STAR", self.operator.kr_star)
         self.ops = dict({2: self.two_tails_op, 4: self.four_tails_op})
+        self.up_to_loops_count = up_to_loops_count
 
     @classmethod
     def dispose(cls):
+        inject.instance(StoragesHolder).close()
         configure.Configure.clear()
 
     def start(self, skip_2_tails=False, skip_4_tails=False):
@@ -70,6 +73,8 @@ class ResultChecker(object):
                 continue
             if skip_4_tails:
                 continue
+            if graph.getLoopsCount() != self.up_to_loops_count:
+                continue
             ResultChecker.LOG.info("PERFORM %s", graph)
             momentum_passed_graphs = graphine.momentum.arbitrarilyPassMomentumWithPreferable(graph, common.graph_has_not_ir_divergence)
             operations = self.ops[graph.externalEdgesCount()]
@@ -80,12 +85,9 @@ class ResultChecker(object):
                 for g in graphs:
                     try:
                         ResultChecker.LOG.info("TRY %s", g)
-                        kr1 = operation_fun(g,
-                                            common.MS_K_OPERATION,
-                                            common.DEFAULT_SUBGRAPH_UV_FILTER,
-                                            description=ResultChecker.DESCRIPTION,
-                                            use_graph_calculator=True)
+                        kr1 = operation_fun(g)
                         if kr1 is not None:
+                            print kr1
                             if symbolic_functions.check_series_equal_numerically(kr1, value, symbolic_functions.e, ResultChecker.EPS):
                                 ResultChecker.LOG.info("%s OK %s" % (operation_name, g))
                                 calculated_count += 1
@@ -103,6 +105,8 @@ class ResultChecker(object):
         if not skip_2_tails:
             two_tails_expected.sort(cmp=lambda p1, p2: cmp(p1[0].getLoopsCount(), p2[0].getLoopsCount()))
             for graph, value in two_tails_expected:
+                if graph.getLoopsCount() != self.up_to_loops_count:
+                    continue
                 self.kr_star_p2_checking(graph, value)
 
         ResultChecker.LOG.info("checker \"%s\" finished in %s" % (self._name, time.time() - ms))
@@ -115,8 +119,8 @@ class ResultChecker(object):
         diff = diff_util.diff_p2(graph)
         result = 0
         ResultChecker.LOG.info("PERFORM %s", graph)
-        for c, g in diff:
-            momentum_passed_graphs = graphine.momentum.arbitrarilyPassMomentumWithPreferable(g, common.graph_has_not_ir_divergence)
+        for c, dg in diff:
+            momentum_passed_graphs = graphine.momentum.arbitrarilyPassMomentumWithPreferable(dg, common.graph_has_not_ir_divergence)
             kr1_results = list()
             for graphs, oper in zip(momentum_passed_graphs, self.four_tails_op):
                 operation_name = oper[0]
@@ -124,8 +128,9 @@ class ResultChecker(object):
                 for g in graphs:
                     try:
                         ResultChecker.LOG.info("TRY %s", g)
-                        kr1 = operation_fun(g)
+                        kr1 = inject.instance("k_operation").calculate(c * operation_fun(g))
                         if kr1 is not None:
+                            print kr1, g
                             kr1_results.append(kr1)
                         else:
                             raise AssertionError()
@@ -137,12 +142,14 @@ class ResultChecker(object):
                     if not symbolic_functions.check_series_equal_numerically(res1, res2, symbolic_functions.e, ResultChecker.EPS):
                         all_equal = False
                 if not all_equal:
-                    ResultChecker.LOG.error("KR1 OR KR STAR WRONG RESULT %s" % g)
+                    ResultChecker.LOG.error("KR1 OR KR STAR WRONG RESULT %s IN %s" % (dg, graph))
+                    for r in kr1_results:
+                        print r
                     return
             else:
                 ResultChecker.LOG.warning("CAN'T CALCULATE %s" % graph)
                 return
-            result += phi4.MSKOperation().calculate(c * kr1_results[0])
+            result += kr1_results[0]
         if symbolic_functions.check_series_equal_numerically(expected_result, result, symbolic_functions.e, ResultChecker.EPS):
             ResultChecker.LOG.info("OK %s", graph)
         else:
@@ -156,7 +163,7 @@ def main():
                              ("with 2-4 loops reduction checker", [numerators_util.create_calculator(2, 3, 4)])
 
     for conf in checkers_configuration:
-        checker = ResultChecker(conf[0], *conf[1])
+        checker = ResultChecker(conf[0], 5, *conf[1])
         try:
             checker.start(skip_4_tails=True)
         finally:

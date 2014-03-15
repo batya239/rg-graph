@@ -62,16 +62,12 @@ class IRRelevanceCondition(object):
     def isRelevant(self, edgesList, superGraph, superGraphEdges):
         subGraph = graphine.Representator.asGraph(edgesList, superGraph.external_vertex)
 
-        externalEdges = subGraph.edges(subGraph.external_vertex)
-        borderNodes = reduce(lambda x, y: x | y,
-                             map(lambda x: set(x.nodes), externalEdges)) - \
-                             set([superGraph.external_vertex])
+        borderNodes = subGraph.getBoundVertexes()
 
         if len(borderNodes) > 2:
             return False
-        nEdges = len(edgesList) - len(externalEdges)
-        nVertexes = len(subGraph.vertices()) - 1
-        nLoop = nEdges - nVertexes + 1
+        nEdges = subGraph.getAllInternalEdgesCount()
+        nLoop = subGraph.getLoopsCount()
         assert_right_edges(edgesList)
         subGraphIRIndex = nEdges * const.EDGE_WEIGHT + numeratorsCount(edgesList) + (nLoop + 1) * self._space_dim
         # invalid result for e12-e333-3-- (there is no IR subGraphs)
@@ -134,11 +130,11 @@ class _MergeResolver(object):
 
         return countWith2Tails > 1
 
+
 def assert_right_edges(edges):
     for e in edges:
         if e.is_external():
             continue
-        assert e.weight
-        assert e.weight.b == 0
-        assert e.weight.a == 1
-
+        if e.weight:
+            assert e.weight.b == 0, e
+            assert e.weight.a == 1, e

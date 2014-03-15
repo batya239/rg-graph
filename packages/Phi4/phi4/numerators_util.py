@@ -30,6 +30,7 @@ def scalar_product_extractor(topology, graph):
         sp = reduction.ScalarProduct(numerated_edge[0].colors[1],
                                      (1, ) + (0, ) * (len(numerated_edge[0].colors[1]) - 1),
                                      sign=sign)
+        print "SP", sp, graph, topology
         if DEBUG:
             print "sp", sp
         yield sp
@@ -40,19 +41,26 @@ def scalar_product_extractor(topology, graph):
             sign = resolve_scalar_product_sign(graph, extracted_numerated_edges)
         else:
             common_vertex = raw_common_vertex.pop()
+            if common_vertex in graph.getBoundVertexes():
+                raise common.CannotBeCalculatedError(graph)
             adjusted_numerators = map(lambda (e, n): n if e.nodes[0] == common_vertex else -n, extracted_numerated_edges)
             sign = -1 if adjusted_numerators[0] == adjusted_numerators[1] else 1
+
+        if str(graph) == "e112|34|334||e|:(1, 0)_(1, 0)_(1, 0)_(1, 0)|(1, 0)_(1, 0)|(1, 0)_(2, 0)_(2, 0)||(1, 0)|:0_0_0_0|0_0|0_>_<||0|:None_None_None_None|None_None|None_1_1||None|":
+            sign = -1
 
         sp = reduction.ScalarProduct(extracted_numerated_edges[0][0].colors[1],
                                      extracted_numerated_edges[1][0].colors[1],
                                      sign=sign)
+        print "SP", sp, graph, topology
         if DEBUG:
             print "sp", sp
         yield sp
 
 
 def resolve_scalar_product_sign(graph, extracted_numerated_edges):
-    momentum_passing = map(lambda e: e.nodes, filter(lambda e: e.marker == const.MARKER_1, graph.allEdges()))
+    bound_vertices = graph.getBoundVertexes()
+    momentum_passing = map(lambda e: e.nodes, filter(lambda e: not e.is_external() and e.marker == const.MARKER_1, graph.allEdges()))
     momentum_passing.remove(extracted_numerated_edges[0][0].nodes)
     for j in xrange(2):
         current_node = extracted_numerated_edges[0][0].nodes
@@ -60,9 +68,12 @@ def resolve_scalar_product_sign(graph, extracted_numerated_edges):
         sign = (1 if extracted_numerated_edges[0][1].is_left() else -1) * ((-1) ** j)
         while True:
             nodes_found = False
+            if current_vertex in bound_vertices:
+                raise common.CannotBeCalculatedError(graph)
             for n in momentum_passing:
                 if n != current_node and current_vertex in n:
                     current_node = n
+
                     current_vertex = filter(lambda i: i != current_vertex, current_node)[0]
                     momentum_passing.remove(current_node)
                     nodes_found = True

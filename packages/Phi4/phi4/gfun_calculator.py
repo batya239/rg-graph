@@ -234,13 +234,18 @@ class GGraphReducer(object):
             if len(_as) % 2 == 0:
                 arrow = graph_state.Arrow(graph_state.Arrow.NULL)
             else:
-                arrow = graph_state.Arrow(graph_state.Arrow.LEFT_ARROW) if sub_graph_info[1].allEdges(nickel_ordering=True)[0].weight.a == GGraphReducer.START_ID else graph_state.Arrow(graph_state.Arrow.RIGHT_ARROW)
+                arrow_direction = 1
+                if sub_graph_info[1].allEdges(nickel_ordering=True)[0].marker == GGraphReducer.START_ID:
+                    arrow_direction *= -1
+                if sub_graph_info[2][0] < sub_graph_info[2][1]:
+                    arrow_direction *= -1
+                arrow = graph_state.Arrow(graph_state.Arrow.LEFT_ARROW) if arrow_direction == 1 else graph_state.Arrow(graph_state.Arrow.RIGHT_ARROW)
         else:
             arrow = None
 
         edge = new_edge(sub_graph_info[2],
                         self._init_graph.external_vertex,
-                        weight=iter_sub_graph_value[0][1],
+                        weight=iter_sub_graph_value[1],
                         arrow=arrow,
                         const=const.MARKER_0 if arrow is None else const.MARKER_1)
 
@@ -252,7 +257,7 @@ class GGraphReducer(object):
         new_iteration_graphs = copy.copy(self._iteration_graphs)
         new_iteration_graphs.append(new_iteration)
         new_iteration_values = copy.copy(self._iteration_values)
-        new_iteration_values.append(iter_sub_graph_value[0][0])
+        new_iteration_values.append(iter_sub_graph_value[0])
 
         new_reducer = GGraphReducer(self._init_graph,
                                     raw_filters=True,
@@ -292,10 +297,8 @@ class GGraphReducer(object):
                         else:
                             arrow = - edges[0].arrow
                     else:
-                        adjusted_arrows = list()
-                        for e in edges:
-                            adjusted_arrows.append(e.arrow if v in e.nodes else (- e.arrow))
-                        propagator_arrow_diff_sign = -1 if adjusted_arrows[0] == adjusted_arrows[1] else 1
+                        ar0, ar1 = map(lambda e: e.arrow if v == e.nodes[0] else -e.arrow, edges)
+                        propagator_arrow_diff_sign = 1 if ar1 != ar0 else -1
                 elif arrow.is_null() and not edges[1].arrow.is_null():
                     if boundary_vertexes[1] == edges[1].nodes[1]:
                         arrow = edges[1].arrow
@@ -314,6 +317,7 @@ class GGraphReducer(object):
                                    external_node=self._init_graph.external_vertex,
                                    weight=new_lambda_number)
             newIterationGraphs = self._iteration_graphs + [self.get_current_iteration_graph().change(edges, [newEdge])]
+
             newReducer = GGraphReducer(self._init_graph,
                                        raw_filters=True,
                                        sub_graph_filters=self._sub_graph_filter,
@@ -362,8 +366,10 @@ class GGraphReducer(object):
         boundaryVertexes = list()
         boundaryEdges = list()
         adjustedExternalEdges = []
-        has_arrows = graphAsList[0].arrow is not None
+        has_arrows = False
         for e in graphAsList:
+            if e.arrow is not None and not e.arrow.is_null():
+                has_arrows = not has_arrows
             if external_vertex in e.nodes:
                 if e.internal_nodes[0] not in boundaryVertexes:
                     boundaryVertexes.append(e.internal_nodes[0])
@@ -371,7 +377,9 @@ class GGraphReducer(object):
 
             else:
                 adjustedEdges.append(e)
+        assert len(boundaryEdges) == 2
+        boundaryEdges = boundaryEdges if boundaryEdges[0].internal_nodes[0] < boundaryEdges[1].internal_nodes[0] else reversed(boundaryEdges)
         for e, _id in zip(boundaryEdges, (GGraphReducer.START_ID, GGraphReducer.END_ID)):
-            adjustedExternalEdges.append(e.copy(weight=VariableAwareNumber("l", _id, 0) if has_arrows else const.ZERO_WEIGHT,
+            adjustedExternalEdges.append(e.copy(marker=_id if has_arrows else None,
                                                 arrow=graph_state.Arrow(graph_state.Arrow.NULL) if has_arrows else None))
         return adjustedEdges + adjustedExternalEdges, adjustedEdges, (tuple(boundaryVertexes))
