@@ -1,7 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf8
 import itertools
-import swiginac
+try:
+    import swiginac
+except ImportError:
+    pass
 
 __author__ = 'daddy-bear'
 
@@ -60,6 +63,9 @@ class VariableAwareNumber(object):
     @property
     def varName(self):
         return self._varName
+
+    # def make_external(self, nodes, external_node):
+    #     return VariableAwareNumber(self._varName, 0, 0)
 
     def subs(self, variable):
         return swiginac.numeric(str(self._a)) + variable * swiginac.numeric(str(self._b))

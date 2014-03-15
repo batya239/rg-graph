@@ -50,7 +50,7 @@ class StoragesHolder(object):
 
         @atexit.register
         def dispose():
-            self.close(settings.revert, settings.do_commit, settings.commit_message)
+            self.close()
 
     def get_graph(self, graph, operation_name):
         return self._storages[operation_name].get_graph(graph)
@@ -58,7 +58,10 @@ class StoragesHolder(object):
     def put_graph(self, graph, expression, operation_name):
         self._storages[operation_name].put_graph(graph, expression, self._settings.method_name, self._settings.description)
 
-    def close(self, revert=False, do_commit=False, commit_message=None):
+    def close(self):
+        revert = self._settings.revert
+        do_commit = self._settings.do_commit
+        commit_message = self._settings.commit_message
         if commit_message is None:
             commit_message = "no commit message"
         for name, storage in self._storages.items():
@@ -108,7 +111,7 @@ class MercurialAwareStorage(AbstractGraphOperationValuesStorage):
         if self.get_graph(graph) is not None:
             return
         value = (expression, methodName, description)
-        gs = str(graph.toGraphState())
+        gs = str(graph)
         self._underlying[gs].append(value)
 
         if isinstance(expression, tuple):
@@ -123,10 +126,10 @@ class MercurialAwareStorage(AbstractGraphOperationValuesStorage):
                                      + "\", \"" + value[2] + "\"))")
 
     def get_graph(self, graph):
-        value = self._underlying.get(str(graph.toGraphState()), None)
+        value = self._underlying.get(str(graph), None)
         if value is None:
             return None
-        return value[0]
+        return value[0][0]
 
     @staticmethod
     def _theory_filter(theoryName, storage):
