@@ -96,6 +96,20 @@ def _enumerate_graph(graph, init_propagators, to_sector=True, only_one_result=Fa
         if vertex not in graph_vertices:
             new_edges = map(lambda e_: e_.copy(colors=graph_state.Rainbow((propagator_indices[e_.colors], e_.colors.colors)) if not e_.is_external() else None),
                             _graph.allEdges())
+            has_momentums = rggraphutil.emptyListDict()
+            for e in _graph.allEdges():
+                if not e.is_external():
+                    for i, c in enumerate(e.colors):
+                        if c != 0:
+                            has_momentums[i].append(e)
+            if set(has_momentums.keys()) != set(range(graph.getLoopsCount() + 1)):
+                return
+            for i, es in has_momentums.iteritems():
+                if not graphine.graph_operations.isGraphConnected(es, _graph, _graph.allEdges()):
+                    return
+                if not graphine.graph_operations.isGraphVertexIrreducible(es, _graph, _graph.allEdges()):
+                    return
+
             result.add(graphine.Graph(new_edges, external_vertex, renumbering=False))
             if only_one_result:
                 raise StopSearchException()
@@ -214,12 +228,16 @@ class Reductor(object):
                  env_path,
                  topologies,
                  main_loop_count_condition,
-                 masters):
+                 masters,
+                 external_momentum_sign,
+                 loop_momentum_sign):
         self._env_name = env_name
         self._env_path = env_path
         self._graph_topologies = topologies
         self._main_loop_count_condition = main_loop_count_condition
         self._graph_masters = masters
+        self._external_momentum_sign = external_momentum_sign
+        self._loop_momentum_sign = loop_momentum_sign
 
         self._propagators = None
         self._topologies = None
@@ -236,7 +254,9 @@ class Reductor(object):
         if self._is_inited:
             return
         self._propagators = jrules_parser.parse_propagators(self._get_file_path(self._env_name),
-                                                            self._main_loop_count_condition)
+                                                            self._main_loop_count_condition,
+                                                            self._loop_momentum_sign,
+                                                            self._external_momentum_sign)
 
         read_topologies = self._try_read_topologies()
         if read_topologies:
@@ -310,7 +330,8 @@ class Reductor(object):
     def _open_scalar_product_rules(self):
         self._scalar_product_rules = \
             jrules_parser.parse_scalar_products_reducing_rules(self._get_file_path(self._env_name),
-                                                               self._env_name)
+                                                               self._env_name,
+                                                               self._loop_momentum_sign)
 
     def is_applicable(self, graph):
         if graph.getLoopsCount() != self._main_loop_count_condition:
@@ -325,9 +346,9 @@ class Reductor(object):
         scalar_product_aware_function(topology_shrunk, graph) returns iterable of scalar_product.ScalarProduct
         """
         self.initIfNeed()
-        Reductor.CALLS_COUNT += 1
         if graph.getLoopsCount() != self._main_loop_count_condition:
             return None
+        Reductor.CALLS_COUNT += 1
 
         probably_calculable_sectors = set()
         str_graph = str(graph)
@@ -347,11 +368,11 @@ class Reductor(object):
                 if scalar_product_aware_function:
                     for sp in scalar_product_aware_function(*res):
                         s = sp.apply(s, self._scalar_product_rules)
-                return self.evaluate_sector(s)
+                v = self.evaluate_sector(s)
+                return v
             except RuleNotFoundException:
                 pass
-        return None
-        
+
     def _try_calculate(self, graph):
         return self.evaluate_sector(sector.Sector.create_from_topologies_and_graph(graph,
                                                                                    self._topologies,
@@ -375,7 +396,7 @@ class Reductor(object):
                 hits.set(hits.get() + 1)
                 return cached
             if _sector in self._zero_sectors:
-                res = 0
+                res = symbolic_functions.CLN_ZERO
             elif _sector in self._masters:
                 res = _sector.as_sector_linear_combinations()
             else:

@@ -24,7 +24,7 @@ def parse_master_sectors(file_path):
         pass
 
 
-def parse_scalar_products_reducing_rules(file_path, j_suffix):
+def parse_scalar_products_reducing_rules(file_path, j_suffix, loop_momentum_sign):
     import swiginac
     with open(file_path, 'r') as f:
         content = "".join(f.readlines())
@@ -42,12 +42,12 @@ def parse_scalar_products_reducing_rules(file_path, j_suffix):
             raw_kp = raw_key.split(",")
             kp = list()
             for p in raw_kp:
-                if p.startswith("k"):
+                if p.startswith(loop_momentum_sign):
                     kp.append(int(p[1:]))
                 else:
                     kp.append(0)
             key = scalar_product.ScalarProductRuleKey(*kp)
-            raw_rule = symbolic_functions.safe_integer_numerators(raw_rule)
+            raw_rule = symbolic_functions.safe_integer_numerators_strong(raw_rule)
             rules[key] = eval(raw_rule)
         return rules
 
@@ -188,10 +188,10 @@ def parse_masters(file_path, j_suffix):
         return sectors
 
 
-def parse_propagators(file_path, loops_count):
-    propagator_variables = ["p"]
+def parse_propagators(file_path, loops_count, loop_momentum_sign, external_momentum_sign):
+    propagator_variables = [external_momentum_sign]
     for i in xrange(1, loops_count + 1):
-        propagator_variables.append("k%d" % i)
+        propagator_variables.append(loop_momentum_sign + str(i))
     propagators = dict()
     with open(file_path, 'r') as f:
         content = "".join(f.readlines())

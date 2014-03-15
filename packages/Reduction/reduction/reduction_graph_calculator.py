@@ -59,8 +59,9 @@ class ScalarProductReductionGraphCalculator(abstract_graph_calculator.AbstractGr
         result = reductor.calculate(graph, self._scalar_product_extractor)
         if result is None:
             return None
-        return result.evaluate(substitute_sectors=True, _d=symbolic_functions.d_phi4, series_n=5, remove_o=True), \
-            reduction_util.calculate_graph_p_factor(graph)
+        r = result.evaluate(substitute_sectors=True, _d=symbolic_functions.d_phi4, series_n=5,
+                                          remove_o=True)
+        return r, reduction_util.calculate_graph_p_factor(graph)
 
     def is_applicable(self, graph):
         return reductor.is_applicable(graph)

@@ -39,11 +39,11 @@ THREE_LOOP_REDUCTOR = reductor.Reductor("loop3",
                                                                 "+e **2 *(19/(3)-(103 *Pi **2)/12+(289 *zeta(3))/3 +(35 *Pi **4)/96-(7 * Pi **2 * zeta(3))/12+(599 *zeta(5))/5)"
                                                                 "+e **3 *(-3953/3-(235 *Pi **2)/12+(1729 * zeta(3))/3 +(967 *Pi **4)/480-(49 *Pi **2 * zeta(3))/12+(4193* zeta(5))/5+(108481* Pi **6)/362880-(599 *zeta(3)**2)/6)"
                                                                 "+e **4 *(-31889/3-(19 * Pi **2)/12+10213 * zeta(3)/3+5263 * Pi **4/480-289 * Pi **2 * zeta(3)/12+20609 * zeta(5)/5+108481 * Pi **6/51840 -4193* zeta(3)**2/6-1553* Pi **4 *zeta(3)/480-599 *Pi **2* zeta(5)/20+13593*zeta(7)/7)"
-                                                                ")+Order(e**5)")})
+                                                                ")+Order(e**5)")}, "p", "k")
 
 TWO_LOOP_REDUCTOR = reductor.Reductor("loop2",
                              "loop2",
                              [graphine.Graph.fromStr("e12|23|3|e|")],
                              2,
                              {graphine.Graph.fromStr("e111|e|"): G(1, 1) * G(1 - l, 1),
-                              graphine.Graph.fromStr("e11|22|e|"): G(1, 1) ** 2})
+                              graphine.Graph.fromStr("e11|22|e|"): G(1, 1) ** 2}, "p", "k")

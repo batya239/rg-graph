@@ -6,7 +6,7 @@ __author__ = 'dima'
 import graph_state
 import graphine
 from sector import Sector
-from rggraphenv import abstract_graph_calculator
+from rggraphenv import abstract_graph_calculator, symbolic_functions
 
 
 def find_topology_result_converter(shrunk, graph):
@@ -46,11 +46,11 @@ class ScalarProduct(object):
         self._sign = sign
 
     def apply(self, sectors_linear_combinations, rules):
-        factor = 0
+        factor = symbolic_functions.CLN_ZERO
         for i in enumerate(self._propagator1):
             for j in enumerate(self._propagator2):
                 if i[1] != 0 and j[1] != 0:
-                    c = i[1] * j[1]
+                    c = symbolic_functions.cln(i[1] * j[1])
                     key = ScalarProductRuleKey(i[0], j[0])
                     if key.is_external_p_2():
                         factor += c

@@ -76,6 +76,7 @@ class LazyValue(Lazy):
     def create(o, current_depth=-1):
         if isinstance(o, Lazy):
             return o
+        assert not isinstance(o, (int, tuple))
         return LazyValue(o, current_depth + 1)
 
 

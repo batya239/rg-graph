@@ -13,10 +13,11 @@ def calculate_graph_p_factor(graph):
     factor0 = 0
     arrow_factor = 0
     for e in graph.internalEdges():
-        arrow_factor += -1 if e.arrow is not None and not e.arrow.is_null() else 0
+        arrow_factor += 1 if e.arrow is not None and not e.arrow.is_null() else 0
         factor0 += e.weight.a
     arrow_factor /= 2
-    return VariableAwareNumber("l", factor0 - graph.getLoopsCount() + arrow_factor, - graph.getLoopsCount())
+    f = VariableAwareNumber("l", factor0 - graph.getLoopsCount() - arrow_factor, - graph.getLoopsCount())
+    return f
 
 
 def find_topology_for_graph(graph, topologies, result_converter):

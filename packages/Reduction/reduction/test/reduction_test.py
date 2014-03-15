@@ -10,6 +10,7 @@ import graphine
 import sector
 import swiginac
 import two_and_three_loops
+import four_loops
 import graph_state
 from rggraphenv import symbolic_functions
 
@@ -19,7 +20,7 @@ reductor.DEBUG = True
 
 class ReductionTest(unittest.TestCase):
     def setUp(self):
-        reductor.initialize(two_and_three_loops.THREE_LOOP_REDUCTOR, two_and_three_loops.TWO_LOOP_REDUCTOR)
+        reductor.initialize(two_and_three_loops.THREE_LOOP_REDUCTOR, two_and_three_loops.TWO_LOOP_REDUCTOR, four_loops.FOUR_LOOP_REDUCTOR)
 
     def test_tbubble(self):
         self.do_test("e12|23|3|e|:(0, 0)_(1, 0)|(1, 0)_(1, 0)|(1, 0)|(1, 0)|(0, 0)|::",
@@ -33,6 +34,9 @@ class ReductionTest(unittest.TestCase):
         self.do_test("e12|23|3|e|:(0, 0)_(1, 0)_(1, 0)|(1, 0)_(1, 0)|(2, 0)|(0, 0)|::",
                      "4.5-(2.5)*e**(-1)+(8.292851526664017019)*e**2+(13.759548533622894061)*e**3+(6.3185121284363485687)*e+(0.5)*e**(-2)")
 
+    def test_4_loops_diagram(self):
+        self.do_test("e112|23|33|e|:(0, 0)_(1, 0)_(1, 0)_(1, 0)|(1, 0)_(1, 0)|(1, 0)_(2, 0)|(0, 0)|::", "0")
+
     def do_test(self, graph_as_string, expected_value_string):
         g = graphine.Graph.fromStr(graph_as_string, graph_state.WEIGHT_ARROW_AND_MARKER_PROPERTIES_CONFIG)
         unsubstituted_actual = reductor.calculate(g)
@@ -44,11 +48,7 @@ class ReductionTest(unittest.TestCase):
                                                _d=symbolic_functions.d_phi4,
                                                series_n=4,
                                                remove_o=True)
-        sub = (expected - actual).evalf().simplify_indexed()
-        self.assertTrue(expected == actual.simplify_indexed() or swiginac.abs(
-            (sub * symbolic_functions.e ** 5).subs(symbolic_functions.e == 1)).evalf().compare(10E-6) < 0,
-                        "\nactual = " + str(actual.simplify_indexed().evalf()) +
-                        "\nexpected = " + str(expected) + "\nsub = " + str(sub.evalf()))
+        symbolic_functions.check_series_equal_numerically(actual, expected, symbolic_functions.e, 10E-6, self)
 
 
 if __name__ == "__main__":
