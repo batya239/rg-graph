@@ -173,9 +173,3 @@ def _check_valid(graph, new_external_vertices):
                 if not has_external:
                     return False
     return True
-
-# from graph import Graph
-# g = Graph.fromStr("ee11|22|34|e55|e55||", properties_config=graph_state.COLORS_AND_ARROW_PROPERTIES_CONFIG)
-# for xg in xArbitrarilyPassMomentum(g):
-#     print "XG", xg
-# "e112|33|344|e|55||"

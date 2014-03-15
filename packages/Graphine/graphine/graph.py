@@ -286,7 +286,7 @@ class Graph(object):
             internalEdgesCount = 0
             for v, e in self._edges.items():
                 internalEdgesCount += len(e)
-            self._allInternalEdgesCount = internalEdgesCount / 2 - len(self._edges[self.external_vertex])
+            self._allInternalEdgesCount = internalEdgesCount / 2 - len(self._edges.get(self.external_vertex, tuple()))
         return self._allInternalEdgesCount
 
     def getLoopsCount(self):
