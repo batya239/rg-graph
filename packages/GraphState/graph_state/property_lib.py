@@ -59,6 +59,8 @@ class Arrow(object):
     def __str__(self):
         return str(self.value)
 
+    __repr__ = __str__
+
 
 class StringExternalizer(graph_state_property.PropertyExternalizer):
     def deserialize(self, string):
