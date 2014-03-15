@@ -171,15 +171,6 @@ class RPrimeWithCalculatorTestCase(unittest.TestCase):
     def test5loops(self):
         self.do_test_r1("ee12|e34|345|45|5|e|", "(-(23./5*zeta(5)-21./10*zeta(4)-5.*zeta(3))/2/e-(12./5*zeta(4)+36./5*zeta(3))/4/e/e+24./5*zeta(3)/8/e/e/e)")
 
-    # def test6Loops(self):
-    #     self.do_test_r1("e112|e3|445|455|5||", "e")
-    #
-    # def test61Loops(self):
-    #     self.operator.set_debug(True)
-    #     import gfun_calculator
-    #     gfun_calculator.DEBUG = True
-    #     self.do_test_r1("e112|23|33|e|", "(-1/3/e+1/6/e**2-1/12/e**3)*p**2")
-
     def setUp(self):
         self.start_time = time.time()
         configure.Configure()\

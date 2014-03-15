@@ -37,7 +37,7 @@ class SubGraphReducerTestCase(unittest.TestCase):
         SubGraphReducerTestCase.time = time.time()
 
     def tearDown(self):
-        inject.instance(rggraphenv.StoragesHolder).close(revert=True)
+        inject.instance(rggraphenv.StoragesHolder).close()
         inject.clear()
         t = time.time() - SubGraphReducerTestCase.time
         print "SUMMARY TIME : %.3f" % t
@@ -173,6 +173,14 @@ class SubGraphReducerTestCase(unittest.TestCase):
 
         self.assertEquals(res[1], VariableAwareNumber("l", 4, -4))
         self.assertTrue(res[0].is_equal(-G1(2, 1) * G(1, 1) * G1(3 - l, 1) * G2(4 - 3 * l, 2)))
+
+    def testWithNumerators6(self):
+        graph = graph_util.graph_from_str(
+            "e112|33|e4|45|56|6||:(0, 0)_(1, 0)_(1, 0)_(1, 0)|(1, 0)_(1, 0)|(0, 0)_(1, 0)|(1, 0)_(1, 0)|(1, 0)_(1, 0)|(1, 0)||:0_0_0_0|0_0|0_>|0_0|0_0|<||:None_None_None_1|None_None|None_1|None_None|None_1|1||")
+        reducer = gfun_calculator.GGraphReducer(graph)
+        res = reducer.calculate()
+        self.assertEquals(res[1], VariableAwareNumber("l", 5, -5))
+        self.assertTrue(res[0].is_equal(G(1, 1) ** 2 * G1(2, 1) * G1(3 - l, 1) * G(5 - 4 * l, 1)))
 
     def testReducingE11_22_E_(self):
         graph = graph_util.init_weight(graphine.Graph(from_str("e11|22|e|")))
