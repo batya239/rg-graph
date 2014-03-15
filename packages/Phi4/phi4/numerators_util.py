@@ -44,10 +44,9 @@ def scalar_product_extractor(topology, graph):
             if common_vertex in graph.getBoundVertexes():
                 raise common.CannotBeCalculatedError(graph)
             adjusted_numerators = map(lambda (e, n): n if e.nodes[0] == common_vertex else -n, extracted_numerated_edges)
-            sign = -1 if adjusted_numerators[0] == adjusted_numerators[1] else 1
-
-        if str(graph) == "e112|34|334||e|:(1, 0)_(1, 0)_(1, 0)_(1, 0)|(1, 0)_(1, 0)|(1, 0)_(2, 0)_(2, 0)||(1, 0)|:0_0_0_0|0_0|0_>_<||0|:None_None_None_None|None_None|None_1_1||None|":
-            sign = -1
+            sign = 1 if adjusted_numerators[0] != adjusted_numerators[1] else -1
+            if extracted_numerated_edges[0][0].nodes.index(common_vertex) == extracted_numerated_edges[1][0].nodes.index(common_vertex):
+                sign *= -1
 
         sp = reduction.ScalarProduct(extracted_numerated_edges[0][0].colors[1],
                                      extracted_numerated_edges[1][0].colors[1],

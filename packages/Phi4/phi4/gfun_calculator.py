@@ -275,6 +275,8 @@ class GGraphReducer(object):
         else:
             edges, v = edges_and_vertex
             assert len(edges) == 2
+            if self._arrows_aware:
+                edges = list(reversed(edges)) if edges[0].arrow is not None and edges[0].arrow.is_null() else edges
             boundary_vertexes = []
             new_lambda_number = None
             for e in edges:
@@ -299,11 +301,8 @@ class GGraphReducer(object):
                     else:
                         ar0, ar1 = map(lambda e: e.arrow if v == e.nodes[0] else -e.arrow, edges)
                         propagator_arrow_diff_sign = 1 if ar1 != ar0 else -1
-                elif arrow.is_null() and not edges[1].arrow.is_null():
-                    if boundary_vertexes[1] == edges[1].nodes[1]:
-                        arrow = edges[1].arrow
-                    else:
-                        arrow = - edges[1].arrow
+                else:
+                    assert edges[1].arrow.is_null()
                 if propagator_arrow_diff_sign:
                     new_lambda_number -= 1
                     new_iteration_values.append(propagator_arrow_diff_sign)

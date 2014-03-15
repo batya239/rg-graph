@@ -43,20 +43,20 @@ class RStarQuadraticTestCase(base_test_case.GraphStorageAwareTestCase):
     def tearDown(self):
         t = time.time() - self.start_time
         print "TIME - %s: %.3f" % (self.id(), t)
-        StoragesHolder.instance().close(revert=True)
+        StoragesHolder.instance().close()
         configure.Configure.clear()
 
-    # def test_e112_22_e_(self):
-    #     self.do_test_rstar_quadratic_divergence("e112|22|e|", "1/6*e**(-2)-1/12*e**(-1)")
-    #
-    # def test_e112_33_e33__(self):
-    #     self.do_test_rstar_quadratic_divergence("e112|33|e33||", "5/(32*e)+1/(16*e**2)-1/(8*e**3)")
-    #
-    # def test_e112_e3_333__(self):
-    #     self.do_test_rstar_quadratic_divergence("e112|e3|333||", "5/(32*e)-1/(32*e**2)")
-    #
-    # def test_e112_23_33_e__(self):
-    #     self.do_test_rstar_quadratic_divergence("e112|23|33|e|", "-1/(3*e)+1/(6*e**2)-1/(12*e**3)")
+    def test_e112_22_e_(self):
+        self.do_test_rstar_quadratic_divergence("e112|22|e|", "1/6*e**(-2)-1/12*e**(-1)")
+
+    def test_e112_33_e33__(self):
+        self.do_test_rstar_quadratic_divergence("e112|33|e33||", "5/(32*e)+1/(16*e**2)-1/(8*e**3)")
+
+    def test_e112_e3_333__(self):
+        self.do_test_rstar_quadratic_divergence("e112|e3|333||", "5/(32*e)-1/(32*e**2)")
+
+    def test_e112_23_33_e__(self):
+        self.do_test_rstar_quadratic_divergence("e112|23|33|e|", "-1/(3*e)+1/(6*e**2)-1/(12*e**3)")
 
     def do_test_rstar_quadratic_divergence(self, graph_state_as_str, expected_str):
         g = graph_util.graph_from_str(graph_state_as_str, do_init_weight=True)
@@ -80,7 +80,7 @@ class RStarQuadraticWithCalculatorsTestCase(base_test_case.GraphStorageAwareTest
     def tearDown(self):
         t = time.time() - self.start_time
         print "TIME - %s: %.3f" % (self.id(), t)
-        StoragesHolder.instance().close(revert=True)
+        StoragesHolder.instance().close()
         configure.Configure.clear()
 
     # def test_e123_e23_33__(self):
@@ -89,9 +89,9 @@ class RStarQuadraticWithCalculatorsTestCase(base_test_case.GraphStorageAwareTest
     # def test_5loops_diagram(self):
     #     self.do_test_rstar_quadratic_divergence("e123|e24|34|44||", "((1./5*zeta(3)-347./480)/2/e+(39./40)/4/e/e-1./2/8/e/e/e+2./15/16/e/e/e/e)")
 
-    def test_5loops_diagram2(self):
-        self.operator.set_debug(True)
-        self.do_test_rstar_quadratic_divergence("e112|34|334|4|e|", "((3/5*zeta(3)-331/480)/2/e+(77/120)/4/e/e-23/30/8/e/e/e+2/5/16/e/e/e/e)")
+    # def test_5loops_diagram2(self):
+    #     self.operator.set_debug(True)
+    #     self.do_test_rstar_quadratic_divergence("e112|34|334|4|e|", "((3/5*zeta(3)-331/480)/2/e+(77/120)/4/e/e-23/30/8/e/e/e+2/5/16/e/e/e/e)")
 
     # def test_5loops_diagram3(self):
     #     self.do_test_rstar_quadratic_divergence("e123|e23|44|44||", "(-(6./5*zeta(3)-277./240)/2/e-(11./60)/4/e/e-7./15/8/e/e/e+4./15/16/e/e/e/e)")
