@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf8
 
+## Borel transform with conformal mapping
+
 __author__ = 'kirienko'
 
 from sympy import gamma, binomial
@@ -11,9 +13,6 @@ from scipy.optimize import curve_fit
 from uncertSeries import Series
 import matplotlib.pyplot as plt
 
-
-eps = 0.5  # d = 3
-#eps = 1.0  # d = 2
 
 def func(t,a,b,k, eps):
     """
@@ -29,30 +28,40 @@ def func(t,a,b,k, eps):
     res = t ** b * np.exp(-t) * u ** (k)
     return res
 
-def fit_exp(x, a, b, c, x_0):
-    #print "a = %f, b = %f, c = %f, x_0 = %f" %(a,b,c, x_0)
-    return a*np.exp(-b*(x-x_0)) + c
 
-def fit_hyperbola(x, a, b, c, x_0):
-    #print "a = %f, b = %f, c = %f, x_0 = %f" %(a,b,c, x_0)
-    return a/(x-x_0)**b + 1.75
-
-def conformBorel(coeffs, eps, b = 2.5,):
+def conformBorel(coeffs, b = 2, loops = 6, dim = 2):
     A = coeffs
-    a, b = 0.238659217, b # -- for d = 2
-    #a, b = 0.14777422, 3.5 # -- for d = 3
+    print "Initial coeffs:", A
+    if dim is 2:
+        a, b = 0.238659217,b # -- for d = 2
+        eps = 1.0  # d = 2
+    elif dim is 3:
+        a, b = 0.14777422, b # -- for d = 3
+        eps = 0.5  # d = 3
+    else:
+        raise "Dimension must be either 2 or 3"
+
+    n = 1 ## <-- какую степень заряда выносить
+    L = loops+1
+    A = A[n:L]
+
+    print "A =", A, " len(A)=%d, L=%d"%(len(A),L)
     B = [A[k]/gamma(k+b+1) for k in range(len(A))] ## образ Бореля-Лероя
-    U = [B[0]] + \
-        [sum([B[m] * (4/a)**m * binomial(k+m-1,k-m) for m in range(1,k+1)]) for k in range(1,len(B))]
-    return [U[k]*integrate.quad(func, 0., np.inf, args=(a, b, k, eps), limit=100)[0] for k in range(len(U)) ]
+    # B = [A[k]/gamma(k+b+1) for k in range(L)] ## образ Бореля-Лероя
+    print "B =",B, " len(B)=%d, L=%d"%(len(B),L)
+    # U = [sum([B[m] * (4/a)**m * binomial(k+m-1,k-m) for m in range(1,k+1)]) for k in range(1,len(B))]
+    U = [sum([B[m] * (4/a)**m * binomial(k+m-1,k-m) for m in range(len(B))]) for k in range(len(B))]
+    print "U =",U, " len(U)=%d, L=%d"%(len(U),L)
+    # return [U[k]*integrate.quad(func, 0., np.inf, args=(a, b, k, eps), limit=100)[0] for k in range(len(U)) ]
+    return [eps**n*U[k]*integrate.quad(func, 0., np.inf, args=(a, b, k, eps), limit=100)[0] for k in range(len(U)) ]
 
 def findZero(beta_half, gStar = 1.75, delta = 0.01):
     _gStar = gStar
-    #print "β/2 =", beta_half
+    print "β/2 =", beta_half
     for i in range(1000):
         g1 = sum(conformBorel(beta_half, _gStar - delta))
         g2 = sum(conformBorel(beta_half, _gStar + delta))
-        #print "β(%.2f) = %.4f, β(%.2f) = %.4f" % (_gStar - delta, g1, _gStar + delta, g2)
+        print "β(%.2f) = %.4f, β(%.2f) = %.4f" % (_gStar - delta, g1, _gStar + delta, g2)
         if abs(g1) > abs(g2):
             _gStar += delta
         else:
@@ -61,11 +70,12 @@ def findZero(beta_half, gStar = 1.75, delta = 0.01):
             break
     return _gStar
 
+## FIXME: to clean up
 def plot(coeffs, beta_half, name, fileName):
-    """
+    '''
     Plot resummed function f(L), where L -- number of loops.
     Syntax: plot(coeffs, g*, title, fileName_to_save)
-    """
+    '''
     font = {'family' : 'serif',
             'color'  : 'darkred',
             'weight' : 'normal',
@@ -101,12 +111,11 @@ def plot(coeffs, beta_half, name, fileName):
     plt.xticks(L)
     plt.xlabel('Number of loops')
     plt.savefig(fileName)
-
 def plotBeta(beta_half, name, fileName):
-    """
+    '''
     Plot resummed function f(L), where L -- number of loops.
     Syntax: plot(coeffs, g*, title, fileName_to_save)
-    """
+    '''
     font = {'family' : 'serif',
             'color'  : 'darkred',
             'weight' : 'normal',
@@ -157,14 +166,12 @@ if __name__ == "__main__":
 
     beta_half = [b/2 for b in beta[:L4+2]]
     eta_g = eta_g[:L2 + 1]
-    gStar = findZero(beta_half)
-    print "g* =", gStar
+    # gStar = findZero(beta_half)
+    # print "g* =", gStar
 
-    print "η(g*) =", sum(conformBorel(eta_g, gStar))
-    print len(beta_half), "β(g)/2 =", beta_half
-    print len(eta_g), "η(g)/2 =", eta_g
-    plot(eta_g,beta_half, '$\eta = \eta(L), n = %d$'%N, 'pic_eta_n%d.pdf'%N)
-    #plotBeta(beta_half, '$g^* = g^*(L), n = %d$'%n, 'pic_beta_n%d.pdf'%n)
+    print "η(g*):\n", sum(conformBorel(eta_g, 1.88))
+    # print "η(g*) =", sum(conformBorel(eta_g, gStar))
+    # print len(beta_half), "β(g)/2 =", beta_half
 
 
     # FIXME

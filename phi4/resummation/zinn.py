@@ -10,7 +10,7 @@ import scipy.integrate as integrate
 from scipy.optimize import curve_fit
 from uncertSeries import Series
 import matplotlib.pyplot as plt
-
+from conform_Borel import conformBorel, findZero
 
 # eps = 0.5  # d = 3
 eps = 1.0  # d = 2
@@ -36,47 +36,6 @@ def fit_exp(x, a, b, c):
 def fit_hyperbola(x, a, b, c, x_0):
     #print "a = %f, b = %f, c = %f, x_0 = %f" %(a,b,c, x_0)
     return a/(x-x_0)**b + c
-
-def conformBorel(coeffs, eps, b = 2.0, loops = 6):
-    #if len(coeffs)<=2:
-    #    return coeffs
-    A = coeffs
-    n = 0 ## <-- какую степень заряда выносить
-    A = A[n:]
-
-    a, b = 0.238659217, b # -- for d = 2
-    #a, b = 0.14777422, b # -- for d = 3
-    #B = [A[k]/gamma(k+b+1) for k in range(len(A))] ## образ Бореля-Лероя
-    #U = [B[0]] + \
-    #    [sum([B[m] * (4/a)**m * binomial(k+m-1,k-m) for m in range(1,k+1)]) for k in range(1,len(B))]
-    #print "U =",U
-    #return [x*eps**k for k,x in enumerate(A[:4])]+[U[k]*integrate.quad(func, 0., np.inf, args=(a, b, k, eps), limit=100)[0] for k in range(4,len(U)) ]
-    ####################
-    L = loops+1-n
-    #print "A =", A, " len(A)=%d, L=%d"%(len(A),L)
-    B = A[2:]
-    B = [A[k]/gamma(k+b+1) for k in range(L)] ## образ Бореля-Лероя
-    #print "B =",B
-    U = [sum([B[m] * (4/a)**m * binomial(k+m-1,k-m) for m in range(L)]) for k in range(L)]
-    #print "U =",U
-
-    #return #[x*eps**(k+n) for k,x in enumerate(A[:2])]+[eps**4*U[k]*integrate.quad(func, 0., np.inf, args=(a, b, k, eps), limit=100)[0] for k in range(2) ]
-    return [eps**n*U[k]*integrate.quad(func, 0., np.inf, args=(a, b, k, eps), limit=100)[0] for k in range(L) ]
-
-def findZero(beta_half, gStar = 1.75, delta = 0.01):
-    _gStar = gStar
-    print "β/2 =", beta_half
-    for i in range(1000):
-        g1 = sum(conformBorel(beta_half, _gStar - delta,loops = len(beta_half)-1))
-        g2 = sum(conformBorel(beta_half, _gStar + delta,loops = len(beta_half)-1))
-        # print "β(%.2f) = %.4f, β(%.2f) = %.4f" % (_gStar - delta, g1, _gStar + delta, g2)
-        if abs(g1) > abs(g2):
-            _gStar += delta
-        else:
-            _gStar -= delta
-        if g1 * g2 < 0:
-            break
-    return _gStar
 
 def plot(coeffs, beta_half, name, fileName):
     """
