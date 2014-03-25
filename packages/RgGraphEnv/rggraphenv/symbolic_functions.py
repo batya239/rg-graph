@@ -93,8 +93,8 @@ def to_internal_code(expression_as_str, strong=False):
     return safe_integer_numerators_strong(expression_as_str) if strong else safe_integer_numerators(expression_as_str)
 
 
-def pole_part(expr):
-    return expr.series(e == 0, 0).convert_to_poly(no_order=True)
+def pole_part(expr, remove_order=True):
+    return expr.series(e == 0, 0).convert_to_poly(no_order=remove_order)
 
 
 #noinspection PyPep8Naming
