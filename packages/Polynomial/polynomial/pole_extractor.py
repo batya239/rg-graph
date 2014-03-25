@@ -30,6 +30,11 @@ class LogarithmAndPolyProd(object):
     def getVarsIndexes(self):
         return self.log.polynomialProduct.getVarsIndexes() | self.poly_prod.getVarsIndexes()
 
+    def __str__(self):
+        return formatter.format(self, formatter.HUMAN)
+
+    __repr__ = __str__
+
 VarInfo = collections.namedtuple("VarInfo", ["var_index", "a", "b"])
 
 
@@ -83,7 +88,7 @@ def _extract_poles(poly_prod, order):
         current_result = rggraphutil.emptyListDict()
         for o, poly_prods in result.iteritems():
             for _poly_prod in poly_prods:
-                npp = polynomial_product.PolynomialProduct(filter(lambda p: p != param[1], _poly_prod.polynomials)) * param[2]
+                npp = _poly_prod / param[1].changeConst(1)
                 current_result[o - 1] += _pole_part(npp, param[0])
                 _update_dict_with_other(current_result, _ac_part(npp, param[0], _order), o)
                 current_result[o] += tail_part(npp, param[0])
@@ -122,11 +127,11 @@ def _ac_part(poly_prod, var_info, order):
 
 def tail_part(poly_prod, var_info):
     stretch_var_name = "t%d" % var_info.var_index
-    stretched = poly_prod.stretch(stretch_var_name, (var_info.var_index,))
-    stretched_diff = stretched.diff(stretch_var_name, var_info.a)
+    stretched_diff = poly_prod.diff(stretch_var_name, var_info.a)
+    stretched_diff = map(lambda _pp: _pp.stretch(stretch_var_name, (var_info.var_index,)), stretched_diff)
     a_ = var_info.a - 1
     main_part = \
-        map(lambda _pp: _pp * _var_in_power(var_info.var_index, eps_number.epsNumber((-var_info.a, var_info.b))),
+        map(lambda _pp: _pp * _var_in_power(var_info.var_index, eps_number.epsNumber((0, var_info.b))),
             stretched_diff)
     if a_ == 0:
         return main_part

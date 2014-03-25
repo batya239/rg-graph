@@ -31,7 +31,7 @@ def _prepareMonomials(monomials):
     return monomials if len(monomials) != 0 else None
 
 
-class Polynomial:
+class Polynomial(object):
     def __init__(self, monomials, degree=1, c=1, doPrepare=True):
         """
         monomials -- dictionary MultiIndex->int
@@ -88,6 +88,13 @@ class Polynomial:
                 nMonomials[m[0]] = m[1]
         return Polynomial(nMonomials, self.degree, self.c, doPrepare=False)
 
+    def isProportional(self, other_polynomial):
+        if self.monomials != other_polynomial.monomials:
+            return None
+        if self.degree != other_polynomial.degree:
+            return None
+        return self.c / other_polynomial.c
+
     def changeVarToPolynomial(self, varIndex, polynomial):
         """
         polynomial should be Polynomial type
@@ -118,7 +125,6 @@ class Polynomial:
         except TypeError as e:
             print c, type(c), isinstance(c, int)
             raise e
-
 
     def _inPowerOf(self, power):
         if self.degree.b <> 0 or self.c.b <> 0 or not isinstance(self.degree.a, int) or self.degree.a < 0:

@@ -249,9 +249,21 @@ class PolynomialProduct(object):
         elif isinstance(other, polynomial.Polynomial):
             return self * other.toPolyProd()
         else:
-            raise NotImplementedError, "multiplication on type (%s) not implemented" % type(other)
+            raise NotImplementedError("multiplication on type (%s) not implemented" % type(other))
 
     __rmul__ = __mul__
+
+    def __div__(self, other):
+        assert isinstance(other, polynomial.Polynomial)
+        for p in self.polynomials:
+            proportionality_c = p.isProportional(other)
+            if proportionality_c is not None:
+                if len(self.polynomials) == 1:
+                    return polynomial.PP_ONE * proportionality_c
+                n_polynomials = copy.copy(self.polynomials)
+                n_polynomials.remove(p)
+                return PolynomialProduct(n_polynomials) * proportionality_c
+        raise NotImplementedError()
 
     def __len__(self):
         return len(self.polynomials)
