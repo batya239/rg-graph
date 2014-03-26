@@ -48,7 +48,8 @@ def kr1_with_some_additional_lambda_operation(graph_state_as_str,
 
     graph = graph_util_mr.from_str(graph_state_as_str)
     graph = map_reduce_wrapper.MapReduceAlgebraWrapper(graph)
-    graph = graph.apply(diff_util_mr.D_minus_tau)
+    if configure_mr.Configure.do_d_tau():
+        graph = graph.apply(diff_util_mr.D_minus_tau)
     if additional_lambda is not None:
         graph = graph.apply(additional_lambda)
     graph = graph.apply(GraphDashKey.as_key)

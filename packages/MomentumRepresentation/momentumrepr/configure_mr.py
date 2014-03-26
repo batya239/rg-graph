@@ -23,6 +23,7 @@ class Configure(object):
         self._relative_error = 10e-4
         self._absolute_error = 10e-5
         self._delete_integration_tmp_dir_on_shutdown = False
+        self._do_d_tau = True
 
     def with_dimension(self, dimension):
         self._dimension = dimension
@@ -60,6 +61,10 @@ class Configure(object):
         self._delete_integration_tmp_dir_on_shutdown = delete_integration_tmp_dir_on_shutdown
         return self
 
+    def with_do_d_tau(self, do_d_tau):
+        self._do_d_tau = do_d_tau
+        return self
+
     def configure(self):
         def injector(binder):
             binder.bind("dimension", self._dimension)
@@ -71,6 +76,7 @@ class Configure(object):
             binder.bind("relative_error", self._relative_error)
             binder.bind("absolute_error", self._absolute_error)
             binder.bind("delete_integration_tmp_dir_on_shutdown", self._delete_integration_tmp_dir_on_shutdown)
+            binder.bind("do_d_tau", self._do_d_tau)
 
         inject.configure(injector)
 
@@ -109,6 +115,10 @@ class Configure(object):
     @classmethod
     def delete_integration_tmp_dir_on_shutdown(cls):
         return inject.instance("delete_integration_tmp_dir_on_shutdown")
+
+    @classmethod
+    def do_d_tau(cls):
+        return inject.instance("do_d_tau")
 
     @classmethod
     def clear(cls):
