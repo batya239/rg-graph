@@ -54,13 +54,13 @@ def conformBorel(coeffs, eps, b = 2, loops = 6, n = 1, dim = 2):
     # print "U =",U, " len(U)=%d, L=%d"%(len(U),L)
     return [eps**n*U[k]*integrate.quad(func, 0., np.inf, args=(a, b, k, eps), limit=100)[0] for k in range(L) ]
 
-def findZero(beta_half, gStar = 1.75, delta = 0.01):
-    _gStar = gStar
-    # print "β/2 =", beta_half
+def findZero(beta_half, gStar = 1.75, delta = 0.01, b = 2):
+    _gStar, _b = gStar, b
+    #print "β/2 =", beta_half
     for i in range(1000):
-        g1 = sum(conformBorel(beta_half, _gStar - delta, loops = len(beta_half)-1, n = 1))
-        g2 = sum(conformBorel(beta_half, _gStar + delta, loops = len(beta_half)-1, n = 1))
-        # print "β(%.2f) = %.4f, β(%.2f) = %.4f" % (_gStar - delta, g1, _gStar + delta, g2)
+        g1 = sum(conformBorel(beta_half, _gStar - delta, loops = len(beta_half)-1, n = 1, b = _b))
+        g2 = sum(conformBorel(beta_half, _gStar + delta, loops = len(beta_half)-1, n = 1, b = _b))
+        #print "β(%.2f) = %.4f, β(%.2f) = %.4f" % (_gStar - delta, g1, _gStar + delta, g2)
         if abs(g1) > abs(g2):
             _gStar += delta
         else:
@@ -68,78 +68,6 @@ def findZero(beta_half, gStar = 1.75, delta = 0.01):
         if g1 * g2 < 0:
             break
     return _gStar
-
-## FIXME: to clean up
-def plot(coeffs, beta_half, name, fileName):
-    '''
-    Plot resummed function f(L), where L -- number of loops.
-    Syntax: plot(coeffs, g*, title, fileName_to_save)
-    '''
-    font = {'family' : 'serif',
-            'color'  : 'darkred',
-            'weight' : 'normal',
-            'size'   : 16,
-            }
-    plt.clf()
-    b_0 = 0
-    n = len(coeffs)
-
-    L = range(2,n)
-    coeffs_by_loops = [coeffs[:k+1] for k in L]
-    plots = []
-    gStar_by_loops = [findZero(b) for b in [beta_half[:i] for i in range(4,8)]]
-    if len(coeffs_by_loops) > len(gStar_by_loops):##
-        gStar_by_loops.append(gStar_by_loops[-1])
-
-    for i in range(4): ## loop over b: b=b_0+i
-        points = [sum(conformBorel(c,gStar_by_loops[j],b=b_0+i)) for j,c in enumerate(coeffs_by_loops)]
-        #points = [sum(conformBorel(c,1.75,b=b_0+i)) for j,c in enumerate(coeffs_by_loops)]
-        print "i = %d, g* = %f, \t"%(i,gStar),points
-        #plots.append(plt.plot(L, points, 'o-', label = 'b = %.1f'%(b_0+i)))
-        xn, yn = np.array(L),np.array(points, dtype = 'float32')
-        x = np.arange(2,10,0.1)
-        #popt, pcov = curve_fit(fit_exp, xn, yn)
-        #print "approximation: %f*exp(-%f*(x+(%f))) + %f"%(popt[0],popt[1],popt[3],popt[2])
-        #plt.plot(x, fit_exp(x, *popt), 'r-', label="Fitted Curve")
-        plots.append(plt.plot(L, points, 'o-', label = 'g* = %.2f'%(gStar+0.1*i)))
-    title = name
-    plt.title(title, fontdict = font)
-    plt.legend(loc = "upper left")
-    plt.text(L[-2], points[0],'g* =%.2f'%gStar, fontdict = font)
-    plt.grid(True)
-    plt.xticks(L)
-    plt.xlabel('Number of loops')
-    plt.savefig(fileName)
-def plotBeta(beta_half, name, fileName):
-    '''
-    Plot resummed function f(L), where L -- number of loops.
-    Syntax: plot(coeffs, g*, title, fileName_to_save)
-    '''
-    font = {'family' : 'serif',
-            'color'  : 'darkred',
-            'weight' : 'normal',
-            'size'   : 16,
-            }
-    plt.clf()
-    n = len(beta_half)
-
-    L = range(2,n-1)
-    plots = []
-    gStar_by_loops = [findZero(b) for b in [beta_half[:i] for i in range(4,8)]]
-    points = gStar_by_loops
-    print "L = ",L ,",  points =",points
-    xn, yn = np.array(L),np.array(points, dtype = 'float32')
-    x = np.arange(2,10,0.1)
-    popt_hyp, pcov = curve_fit(fit_hyperbola, xn, yn)
-    plt.plot(x, fit_hyperbola(x, *popt_hyp), '--', label="$g(x) = a/(x-x_0)^b +c$")
-    plots.append(plt.plot(L, points, 'ro', label = '$g^* = g^*(L)$'))
-    title = name
-    plt.title(title, fontdict = font)
-    plt.legend(loc = "upper right")
-    plt.grid(True)
-    plt.xticks(L)
-    plt.xlabel('Number of loops')
-    plt.savefig(fileName)
 
 
 if __name__ == "__main__":
@@ -168,8 +96,8 @@ if __name__ == "__main__":
     gStar = findZero(beta_half)
     print "g* =", gStar
 
-    print "η(g*):\n", sum(conformBorel(eta_g, 1.88))
-    # print "η(g*) =", sum(conformBorel(eta_g, gStar))
+    #print "η(g*):\n", sum(conformBorel(eta_g, 1.88))
+    print "η(g*):\n", sum(conformBorel(eta_g, gStar))
     # print len(beta_half), "β(g)/2 =", beta_half
 
 

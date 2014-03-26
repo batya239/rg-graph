@@ -36,7 +36,7 @@ def plot(coeffs, beta_half, name, fileName):
     L = range(2,n)
     coeffs_by_loops = [coeffs[:k+1] for k in L]
     plots = []
-    gStar_by_loops = [findZero(b) for b in [beta_half[:i] for i in range(4,8)]]
+    gStar_by_loops = [findZero(b) for b in [beta_half[:i+1] for i in range(4,8)]]
     if len(coeffs_by_loops) > len(gStar_by_loops):##
         gStar_by_loops.append(gStar_by_loops[-1])
 
@@ -60,7 +60,7 @@ def plot(coeffs, beta_half, name, fileName):
     plt.xlabel('Number of loops')
     plt.show(fileName)
 
-def plotBeta(beta_half, name, fileName):
+def plotBeta(beta_half, name, fileName, b_0):
     """
     Plot resummed function f(L), where L -- number of loops.
     Syntax: plot(coeffs, g*, title, fileName_to_save)
@@ -70,30 +70,32 @@ def plotBeta(beta_half, name, fileName):
             'weight' : 'normal',
             'size'   : 16,
             }
-    plt.clf()
+    #plt.clf()
     n = len(beta_half)
 
     L = range(2,n-1)
     plots = []
-    gStar_by_loops = [findZero(b) for b in [beta_half[:i] for i in range(4,9)]]
+    gStar_by_loops = [findZero(beta, b = b_0) for beta in [beta_half[:i] for i in range(4,8)]]
     points = gStar_by_loops
     print "L = ",L ,",  points =",points
     xn, yn = np.array(L),np.array(points, dtype = 'float32')
     x = np.arange(2,10,0.1)
     #popt_hyp, pcov = curve_fit(fit_hyperbola, xn, yn)
-    #popt_exp, pcov = curve_fit(fit_exp, xn, yn)
+    popt_exp, pcov = curve_fit(fit_exp, xn, yn)
     #a,b,c,x_0 = popt_hyp
     #plt.plot(x, fit_hyperbola(x, *popt_hyp), '--', label="$g(x) = %.2f/(x-%.2f)^{%.3f} + %.2f$"%(a,x_0,b,c,))
-    #a,b,c = popt_exp
-    #plt.plot(x, fit_exp(x, *popt_exp), '--', label="$g(x) = %.2f * e^{-%.2f*x} + %.2f$"%(a,b,c,))
-    plots.append(plt.plot(L, points, 'ro', label = '$g^* = g^*(L)$'))
-    title = name
+    a,b,c = popt_exp
+    plt.plot(x, fit_exp(x, *popt_exp), '--', label="$g(x) = %.2f * e^{-%.2f*x} + %.2f,\ b=%.1f$"%(a,b,c,b_0))
+    plots.append(plt.plot(L, points, 'o', label = '$g^* = g^*(L)$'))
+    #plots.append(plt.plot(L, points, 'o-', label = '$g^* = g^*(L),\ b = %.1f$'%b_0))
+    title = name# + ',   $b = %s$'%b_0
     plt.title(title, fontdict = font)
     plt.legend(loc = "upper right")
     plt.grid(True)
     plt.xticks(L)
     plt.xlabel('Number of loops')
-    plt.savefig(fileName)
+    #plt.show(fileName)
+    return plt
 
 
 if __name__ == "__main__":
@@ -124,5 +126,8 @@ if __name__ == "__main__":
     # print "η(g*) =", [sum(conformBorel(eta_g, 1.4,b=0,loops=l)) for l in [1,2,3,4,5,6]]
     #print len(beta_half), "β(g)/2 =", beta_half
     #print len(eta_g), "η(g)/2 =", eta_g
-    plot(eta_g,beta_half, '$\eta = \eta(L), n = %d$'%N, 'pic_eta_d3_n%d.pdf'%N)
-    #plotBeta(beta_half, '$g^* = g^*(L),\quad b=0.$', 'pic_beta_d3_b0.pdf')
+    #plot(eta_g,beta_half, '$\eta = \eta(L), n = %d$'%N, 'pic_eta_d3_n%d.pdf'%N)
+    plt1 = plotBeta(beta_half, '$g^* = g^*(L)$', 'pic_beta_d3_b0.pdf', b_0 = 4.5)
+    plt1 = plotBeta(beta_half, '$g^* = g^*(L)$', 'pic_beta_d3_b0.pdf', b_0 = 5.5)
+    plt2 = plotBeta(beta_half, '$g^* = g^*(L)$', 'pic_beta_d3_b0.pdf', b_0 = 6.5)
+    plt2.show()
