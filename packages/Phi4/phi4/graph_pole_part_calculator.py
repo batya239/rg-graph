@@ -6,28 +6,60 @@ __author__ = 'dima'
 import graphine
 import r
 import common
-from rggraphenv import symbolic_functions
+import inject
+import configure
+from rggraphenv import symbolic_functions, abstract_graph_calculator
 
 
-def calculate_graph_pole_part(graph,
-                              k_operation=common.MS_K_OPERATION,
-                              uv_filter=common.DEFAULT_SUBGRAPH_UV_FILTER,
-                              description="graph pole part calculator",
-                              use_graph_calculator=True):
+DEBUG = False
+
+
+def calculate_graph_pole_part(graph):
     """
+    can be used only for \phi4
+
     calculates some inversion of KR*
     """
-    assert graph.externalEdgesCount() == 2
-    tadpole = graph.deleteEdges(graph.externalEdges())
-    kr_star = r.KRStar(tadpole,
-                       k_operation,
-                       uv_filter,
-                       description=description,
-                       use_graph_calculator=use_graph_calculator)
-    co_part = r.KRStar(graph,
-                       k_operation,
-                       uv_filter,
-                       description=description,
-                       use_graph_calculator=use_graph_calculator,
-                       minus_graph=True)
-    return (kr_star - co_part + symbolic_functions.Order(1)).normal()
+    if DEBUG:
+        print "calculate graph via pole part: %s, loops count: %s" % (graph, graph.getLoopsCount())
+    try:
+        r_operation = r.ROperation()
+        assert graph.externalEdgesCount() == 2
+        tadpole = graph.deleteEdges(graph.externalEdges())
+        tails_count = 0
+        for v in tadpole.vertices():
+            d = 4 - len(tadpole.edges(v))
+            if d < 0:
+                return None
+            tails_count += d
+        if tails_count != 4:
+
+            return None
+
+        kr_star = r_operation.kr_star(tadpole)
+        co_part = r_operation.kr_star(graph, minus_graph=True)
+        return common.MSKOperation().calculate(kr_star - co_part + symbolic_functions.Order(1))
+    except common.CannotBeCalculatedError:
+        return None
+
+
+class GraphPolePartCalculator(abstract_graph_calculator.AbstractGraphCalculator):
+    def get_label(self):
+        return "graph pole part calculator"
+
+    def is_applicable(self, graph):
+        if graph.getLoopsCount() != 5:
+            return False
+        for e in graph.allEdges():
+            if e.weight != 1:
+                return False
+        return True
+
+    def init(self):
+        pass
+
+    def calculate(self, graph):
+        return calculate_graph_pole_part(graph)
+
+    def dispose(self):
+        pass

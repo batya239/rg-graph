@@ -4,14 +4,35 @@ import unittest
 import graph_util
 import graph_pole_part_calculator
 import base_test_case
-from rggraphenv import symbolic_functions
+import time
+import configure
+import ir_uv
+import const
+import common
+from rggraphenv import symbolic_functions, g_graph_calculator, StorageSettings, StoragesHolder
 
 
-class GraphPolePartCalculatorTest(base_test_case.GraphStorageAwareTestCase):
+class GraphPolePartCalculatorTest(unittest.TestCase):
     EPS = 10E-6
 
+    def setUp(self):
+        self.start_time = time.time()
+        configure.Configure()\
+            .with_k_operation(common.MSKOperation())\
+            .with_ir_filter(ir_uv.IRRelevanceCondition(const.SPACE_DIM_PHI4))\
+            .with_uv_filter(ir_uv.UVRelevanceCondition(const.SPACE_DIM_PHI4))\
+            .with_dimension(const.DIM_PHI4)\
+            .with_calculators(g_graph_calculator.GLoopCalculator(const.DIM_PHI4))\
+            .with_storage_holder(StorageSettings("phi4", "test", "test").on_shutdown(revert=True)).configure()
+
+    def tearDown(self):
+        t = time.time() - self.start_time
+        print "TIME - %s: %.3f" % (self.id(), t)
+        StoragesHolder.instance().close()
+        configure.Configure.clear()
+
     def test_dotted_watermelon(self):
-        self.do_test("e112|e2||", "(-1/2)*e**(-2)+1/2*e**(-1)")
+        self.do_test("e112|e2||", "2*e**(-1)*log(p)-1/2*e**(-2)+1/2*e**(-1)")
 
     def do_test(self, graph_as_srt, expected_pole_part_as_str):
         g = graph_util.graph_from_str(graph_as_srt, do_init_weight=True)
