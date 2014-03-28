@@ -96,8 +96,8 @@ if __name__ == "__main__":
     print "g*(τ) = ", gStar
     
     #gStarS = tau + 0.716173621 * tau**2 + 0.095042867 * tau**3 + 0.086080396 * tau ** 4 - 0.204139 * tau ** 5
-    gStarS = Series(n=6, d={1: 1, 2: 0.716173621, 3: 0.095042867, 4: 0.086080396, 5: -0.204139}, name='τ')
-    print "\ng*_S = ", gStarS
+    # gStarS = Series(n=6, d={1: 1, 2: 0.716173621, 3: 0.095042867, 4: 0.086080396, 5: -0.204139}, name='τ')
+    # print "\ng*_S = ", gStarS
 
     #etaStar = eta.subs(g, gStar).series(tau, 0, r4Loops + 1)
     etaStar = eta.subs(gStar)
@@ -105,5 +105,5 @@ if __name__ == "__main__":
     print "η* = ", etaStar
 
     #etaStarGS = eta.subs(g, gStarS).series(tau, 0, r4Loops + 1)
-    etaStarGS = eta.subs(gStarS)
-    print "\nη*_GS = ", etaStarGS
+    # etaStarGS = eta.subs(gStarS)
+    # print "\nη*_GS = ", etaStarGS
