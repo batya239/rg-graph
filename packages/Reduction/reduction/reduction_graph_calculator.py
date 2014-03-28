@@ -64,6 +64,7 @@ class ScalarProductReductionGraphCalculator(abstract_graph_calculator.AbstractGr
                             series_n=5,
                             remove_o=False)
         if reductor.DEBUG:
+            print "V(%s)=%s" % (graph, result.evaluate(substitute_sectors=False))
             print "V(%s)=%s, %s" % (graph, r, reduction_util.calculate_graph_p_factor(graph))
         return r, reduction_util.calculate_graph_p_factor(graph)
 
