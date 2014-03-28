@@ -9,6 +9,7 @@ import common
 import inject
 import configure
 from rggraphenv import symbolic_functions, abstract_graph_calculator
+from rggraphutil import VariableAwareNumber
 
 
 DEBUG = False
@@ -43,6 +44,17 @@ def calculate_graph_pole_part(graph):
         return None
 
 
+def calculate_graph_p_factor(graph):
+    factor0 = 0
+    arrow_factor = 0
+    for e in graph.internalEdges():
+        arrow_factor += 1 if e.arrow is not None and not e.arrow.is_null() else 0
+        factor0 += e.weight.a
+    arrow_factor /= 2
+    f = VariableAwareNumber("l", factor0 - graph.getLoopsCount() - arrow_factor, - graph.getLoopsCount())
+    return f
+
+
 class GraphPolePartCalculator(abstract_graph_calculator.AbstractGraphCalculator):
     def get_label(self):
         return "graph pole part calculator"
@@ -59,7 +71,10 @@ class GraphPolePartCalculator(abstract_graph_calculator.AbstractGraphCalculator)
         pass
 
     def calculate(self, graph):
-        return calculate_graph_pole_part(graph)
+        eps_part = calculate_graph_pole_part(graph)
+        if not eps_part:
+            return None
+        return eps_part, calculate_graph_p_factor(graph)
 
     def dispose(self):
         pass
