@@ -28,7 +28,7 @@ from matplotlib import pyplot as plt
 
 def fit_function(x, a, b, c, x_0):
     print "a = %f, b = %f, c = %f, x_0 = %f" %(a,b,c, x_0)
-    return a * np.exp( b * (x + x_0)) + 0.20#c
+    return -a * np.exp( b * (x + x_0)) + 0.20#c
     #return a * x**2 + b * x + c
 
 
@@ -60,7 +60,7 @@ x = numpy.arange(2,20,0.1)
 plt.figure()
 #plt.plot(xn,S, 'r--')
 plt.plot(xn, yn, 'ko', label="$\\eta = \\eta(L)$")
-plt.plot(x, fit_function(x, *popt), 'r-', label="$\\eta(x) = a * e^{- b\ x} + c$")
+plt.plot(x, fit_function(x, *popt), '-', label="$\\eta(x) = a * e^{- b\ x} + c$")
 plt.legend(loc = 'lower right')
 plt.grid(True)
 #plt.xticks()

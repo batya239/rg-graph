@@ -213,6 +213,13 @@ class Series():
             res += c * (point ** i)
         return res
 
+    def save(self):
+        """Save value to file"""
+        slov = ''
+        for k,v in self.gSeries.items():
+            slov += "%d: '%s', "%(k,v)
+        print "Series(%d, {%s}, '%s')"%(self.n,slov,self.name)
+
 
 if __name__ == "__main__":
     Z1 = Series(1)
