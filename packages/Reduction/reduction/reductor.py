@@ -107,7 +107,7 @@ def _enumerate_graph(graph, init_propagators, to_sector=True, only_one_result=Fa
             for i, es in has_momentums.iteritems():
                 if not graphine.graph_operations.isGraphConnected(es, _graph, _graph.allEdges()):
                     return
-                if not graphine.graph_operations.isGraphVertexIrreducible(es, _graph, _graph.allEdges()):
+                if i != 0 and not graphine.graph_operations.isGraphVertexIrreducible(es, _graph, _graph.allEdges()):
                     return
 
             result.add(graphine.Graph(new_edges, external_vertex, renumbering=False))
