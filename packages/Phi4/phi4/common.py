@@ -11,11 +11,19 @@ __author__ = 'daddy-bear'
 
 
 class CannotBeCalculatedError(StandardError):
-    def __init__(self, graph):
+    DEBUG = False
+
+    def __init__(self, graph, reason=None):
+        if reason is not None and CannotBeCalculatedError.DEBUG:
+            print "Can't calculate %s, reason \"%s\"" % (graph, reason)
         self._graph = graph
 
     def __str__(self):
         return "cannot calculate " + str(self._graph)
+
+    @classmethod
+    def set_debug(cls, debug):
+        CannotBeCalculatedError.DEBUG = debug
 
 
 class T0OperationNotDefined(CannotBeCalculatedError):
@@ -36,7 +44,7 @@ class MSKOperation(AbstractKOperation):
         self._description = description
 
     def calculate(self, expression):
-        return symbolic_functions.pole_part(expression)
+        return symbolic_functions.pole_part(expression, remove_order=False).expand().normal().series(symbolic_functions.e == 0, 0)
 
     def __str__(self):
         return self._description

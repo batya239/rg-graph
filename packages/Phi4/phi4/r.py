@@ -15,8 +15,10 @@ import graph_util
 import graph_state
 import swiginac
 import inject
+import graph_pole_part_calculator
 from rggraphenv import symbolic_functions
 from rggraphutil import VariableAwareNumber
+from reduction import reductor
 
 __author__ = 'daddy-bear'
 
@@ -66,7 +68,11 @@ class ROperation(object):
 
     @classmethod
     def set_debug(cls, debug):
+        forest.DEBUG = debug
         ROperation.DEBUG = debug
+        reductor.DEBUG = debug
+        gfun_calculator.DEBUG = debug
+        graph_pole_part_calculator.DEBUG = debug
 
     def __init__(self):
         self.storage = inject.instance(rggraphenv.storage.StoragesHolder)
@@ -116,24 +122,12 @@ class ROperation(object):
         if len(initial_graph.edges(initial_graph.external_vertex)) == 2:
             iterator = initial_graph,
         else:
-            iterator = graph_util.batch_init_edges_weight(graphine.momentum.xArbitrarilyPassMomentum(initial_graph))
+            iterator = [x for x in graph_util.batch_init_edges_weight(graphine.momentum.xArbitrarilyPassMomentum(initial_graph))]
         for graph in iterator:
             try:
-                if not minus_graph:
-                    evaluated = self.storage.get_graph((graph, force, "star"), "kr1")
-                    if evaluated is not None:
-                        return evaluated#.subs(symbolic_functions.p == 1)
-
-                # ir_sgs = [x for x in graph.xRelevantSubGraphs(filters=self.ir_filter,
-                #                                               cutEdgesToExternal=False,
-                #                                               resultRepresentator=graphine.Representator.asList)]
-                # for ir_sg in ir_sgs:
-                #     print ir_sgs
-                #     es = list(graph.allEdges())
-                #     for e in ir_sg:
-                #         es.remove(e)
-                #     if not graphine.graph_operations.isGraph1Irreducible(es, graph, None):
-                #         raise common.CannotBeCalculatedError(graph)
+                evaluated = self.storage.get_graph((graph, force, minus_graph, "star"), "kr1")
+                if evaluated is not None:
+                    return evaluated
 
                 spinneys_generators = [x for x in graph.xRelevantSubGraphs(filters=self.uv_filter + _is_1uniting + _no_hanging_parts,
                                                                            cutEdgesToExternal=False,
@@ -152,7 +146,7 @@ class ROperation(object):
                 krs = self.kr1(graph,
                                force=True,
                                inside_krstar=True,
-                               minus_graph=minus_graph)#.subs(symbolic_functions.p == 1)
+                               minus_graph=minus_graph)
 
                 for spinney in spinneys_generators:
                     # switch by uv index
@@ -167,18 +161,18 @@ class ROperation(object):
                         debug_line += "+K(R(%s)*Delta_IR(%s))" % (spinney, shrunk)
                     spinney_part = self.r(spinney,
                                           force=True,
-                                          inside_krstar=True)#.subs(symbolic_functions.p == 1)
+                                          inside_krstar=True)
                     if isinstance(spinney_part, swiginac.numeric) and spinney_part.to_double() == 0:
                         continue
-                    ir = forest.delta_ir(spinney, graph, shrunk, self)#.subs(symbolic_functions.p == 1)
+                    ir = forest.delta_ir(spinney, graph, shrunk, self)
                     assert p2_counts == 0
                     sub = self.k_operation.calculate(spinney_part * ir)
                     krs += sub
                 if ROperation.DEBUG:
                     print debug_line
-                krs = krs.normal()#.subs(symbolic_functions.p == 1).normal()
-                if not minus_graph:
-                    self.storage.put_graph((graph, force, "star"), krs, "kr1")
+                    print "KR_Star(%s) = %s" % (graph, krs.normal())
+                krs = self.k_operation.calculate(krs)
+                self.storage.put_graph((graph, force, minus_graph, "star"), krs, "kr1")
                 return krs
             except common.CannotBeCalculatedError:
                 pass
@@ -192,13 +186,13 @@ class ROperation(object):
         else:
             iterator = graphine.momentum.xPassExternalMomentum(raw_graph, common.graph_has_not_ir_divergence_filter)
         for graph in iterator:
-            evaluated = self.storage.get_graph((graph, force, inside_krstar, "1"), "kr1")
+            evaluated = self.storage.get_graph((graph, force, inside_krstar, minus_graph, "1"), "kr1")
             if evaluated is not None:
                 return evaluated, graph
             try:
                 r1 = self._do_r1(graph, force=force, inside_krstar=inside_krstar, minus_graph=minus_graph)
                 kr1 = self.k_operation.calculate(r1[0]).normal()
-                self.storage.put_graph((r1[1], force, inside_krstar, "1"), kr1, "kr1")
+                self.storage.put_graph((r1[1], force, inside_krstar, minus_graph, "1"), kr1, "kr1")
                 return kr1, graph
             except common.CannotBeCalculatedError:
                 pass
@@ -221,8 +215,9 @@ class ROperation(object):
                     kr1 = self.kr_star(graph)
                 else:
                     kr1 = self._do_kr1(graph, force=True, inside_krstar=inside_krstar)[0]
-                r = r1 - kr1
+                r = r1 - symbolic_functions.series(kr1, symbolic_functions.e, 0, 0, True)
                 r = r.normal()
+                print raw_graph, r
                 self.storage.put_graph((graph, force, inside_krstar), r, "r")
                 return r, graph
             except common.CannotBeCalculatedError:
@@ -239,7 +234,7 @@ class ROperation(object):
         else:
             iterator = graphine.momentum.xPassExternalMomentum(raw_graph, common.graph_has_not_ir_divergence_filter)
         for graph in iterator:
-            evaluated = self.storage.get_graph((graph, force, inside_krstar), "r1")
+            evaluated = self.storage.get_graph((graph, force, inside_krstar, minus_graph), "r1")
             if evaluated is not None:
                 return evaluated, graph
             try:
@@ -251,7 +246,7 @@ class ROperation(object):
                     expression, two_tails_graph = \
                         gfun_calculator.calculate_graph_value(graph)
                     if ROperation.DEBUG:
-                         print "R1(%s)=V(%s)" % (graph, graph)
+                        print "R1(%s)=V(%s)" % (graph, graph)
                     self.storage.put_graph((two_tails_graph, force, inside_krstar), expression, "r1")
                     return expression.normal(), two_tails_graph
 
@@ -265,6 +260,7 @@ class ROperation(object):
                     for comb in itertools.combinations(uv_subgraphs, i):
                         if i == 1 or not graphine.util.has_intersecting_by_vertexes_graphs(comb):
                             r1 = reduce(lambda _e, g: _e * c_operation(g, force=force), comb, symbolic_functions.CLN_ONE)
+                            r1 = symbolic_functions.series(r1, symbolic_functions.e, symbolic_functions.CLN_ZERO, 0, True)
                             shrunk, p2_counts = ROperation.shrink_to_point(graph, comb)
                             value = gfun_calculator.calculate_graph_value(shrunk)
                             if ROperation.DEBUG:
@@ -273,7 +269,7 @@ class ROperation(object):
                 if ROperation.DEBUG:
                     print debug_line
                 raw_r1 = raw_r1.normal()
-                self.storage.put_graph((graph, force, inside_krstar), raw_r1, "r1")
+                self.storage.put_graph((graph, force, inside_krstar, minus_graph), raw_r1, "r1")
                 return raw_r1, graph
             except common.CannotBeCalculatedError:
                 pass

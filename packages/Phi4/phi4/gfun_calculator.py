@@ -75,7 +75,10 @@ def calculate_graph_value(graph, suppressException=False):
         if suppressException:
             return None
         else:
-            raise common.CannotBeCalculatedError(graph)
+            raise common.CannotBeCalculatedError(graph, "graph can't be calculated")
+    if DEBUG:
+        print "V(%s)=(%s)*p(-2(%s))" % (graph, common.MSKOperation().calculate(result[0]), result[1])
+        print "V(%s)=%s" % (graph, common.MSKOperation().calculate(result[0] * symbolic_functions.p ** (-symbolic_functions.CLN_TWO * result[1].subs(get_lambda()))))
     return result[0] * symbolic_functions.p ** (-symbolic_functions.CLN_TWO * result[1].subs(get_lambda())), graph_reducer.iteration_graphs[0]
 
 
@@ -193,8 +196,8 @@ class GGraphReducer(object):
                     return res
             else:
                 cached_preprocessed_subgraphs.append(preprocessed)
-                if DEBUG:
-                    print "has not", subGraph, last_iteration
+                # if DEBUG:
+                #     print "has not", subGraph, last_iteration
 
         cached_preprocessed_subgraphs.reverse()
         for preprocessed in cached_preprocessed_subgraphs:
@@ -215,10 +218,12 @@ class GGraphReducer(object):
                         return res
                 else:
                     if DEBUG:
-                        print "cant through calculator1", preprocessed[1], preprocessed[1].getLoopsCount(), last_iteration
+                        pass
+                        # print "cant through calculator1", preprocessed[1], preprocessed[1].getLoopsCount(), last_iteration
             else:
                 if DEBUG:
-                    print "cant through calculator2", preprocessed[1], preprocessed[1].getLoopsCount(), last_iteration
+                    pass
+                    # print "cant through calculator2", preprocessed[1], preprocessed[1].getLoopsCount(), last_iteration
 
     def _do_iterate(self, sub_graph_info):
         assert len(sub_graph_info[2]) == 2, sub_graph_info[2]

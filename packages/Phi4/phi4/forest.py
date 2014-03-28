@@ -23,20 +23,17 @@ def delta_ir(co_sub_graph, graph, shrunk, r_operator):
     """
     stupid algorithm
     """
-    delta_ir = 0
+    delta_ir = symbolic_functions.CLN_ZERO
     if DEBUG:
         debug_line = "D_IR(%s)=" % shrunk.getPresentableStr()
     for forest in _generate_forests(co_sub_graph, graph, r_operator):
-        if DEBUG:
-            print "\tFOREST gamma =", co_sub_graph.getPresentableStr(), \
-                ", graph =",  graph.getPresentableStr(), \
-                ", forest =", map(lambda f: f.getPresentableStr(), forest)
         add, d_add = _calculate_delta_ir(forest, co_sub_graph, graph, r_operator)
         delta_ir += add
         if DEBUG:
             debug_line += "+" + d_add
     if DEBUG:
         print debug_line
+        print "D_IR(%s)=%s" % (shrunk, delta_ir)
     return delta_ir
 
 
@@ -59,7 +56,9 @@ def _calculate_delta_ir(forest,
     forest_extension = [co_sub_graph] + forest
     sign = symbolic_functions.CLN_MINUS_ONE if len(forest_extension) % 2 == 0 else symbolic_functions.CLN_ONE
     f = forest_extension.pop()
-    delta_ir = sign * r_operator.kr_star(_remove_tails(graph.shrinkToPoint(f.allEdges())))
+
+    # delta_ir = sign * r_operator.kr_star(_remove_tails(graph.shrinkToPoint(f.allEdges())))
+    delta_ir = sign * symbolic_functions.series(r_operator.kr_star(_remove_tails(graph.shrinkToPoint(f.allEdges()))), symbolic_functions.e, symbolic_functions.CLN_ZERO, 0, True)
     if DEBUG:
         debug_line = "(%s)*kr_star(%s)" % (sign, _remove_tails(graph.shrinkToPoint(f.allEdges())).getPresentableStr())
     else:
@@ -68,7 +67,8 @@ def _calculate_delta_ir(forest,
         prev_f = f
         while len(forest_extension):
             curr_f = forest_extension.pop()
-            delta_ir *= symbolic_functions.CLN_MINUS_ONE * r_operator.kr_star(_remove_tails(prev_f.shrinkToPoint(curr_f.allEdges())))
+            delta_ir *= symbolic_functions.CLN_MINUS_ONE * symbolic_functions.series(r_operator.kr_star(_remove_tails(prev_f.shrinkToPoint(curr_f.allEdges()))), symbolic_functions.e, symbolic_functions.CLN_ZERO, 0, True)
+            # delta_ir *= symbolic_functions.CLN_MINUS_ONE * r_operator.kr_star(_remove_tails(prev_f.shrinkToPoint(curr_f.allEdges())))
             if DEBUG:
                 debug_line += "*(-kr_star(%s))" % _remove_tails(prev_f.shrinkToPoint(curr_f.allEdges())).getPresentableStr()
             prev_f = curr_f
