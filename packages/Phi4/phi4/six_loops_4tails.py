@@ -47,7 +47,7 @@ class SixLoops4Tails(object):
         ms = time.time()
         not_calculated = list()
         for gs in graph_states_to_calculate:
-            gs = str(graph_state.GraphState.fromStr(gs))
+            gs = str(graph_state.GraphState.fromStr(gs))[:-2]
             graph = graph_util.graph_from_str(gs, do_init_weight=True)
             try:
                 SixLoops4Tails.LOG.info("start evaluate %s" % gs)
