@@ -3,8 +3,8 @@ __author__ = 'gleb'
 from pole_extractor import utils
 from pole_extractor import diagram_calculator
 
-need_p2 = utils.get_diagrams(tails=2, loops=2) #+ utils.get_diagrams(tails=2, loops=3)
-need_p0 = need_p2 + utils.get_diagrams(tails=3, loops=2) #+ utils.get_diagrams(tails=3, loops=3)
+need_p2 = utils.get_diagrams(tails=2, loops=2) + utils.get_diagrams(tails=2, loops=3)
+need_p0 = need_p2 + utils.get_diagrams(tails=3, loops=2) + utils.get_diagrams(tails=3, loops=3)
 
 for diag in need_p0:
     if diagram_calculator.is_present(diag[0], rprime=False, momentum_derivative=False):

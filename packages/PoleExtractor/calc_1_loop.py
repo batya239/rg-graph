@@ -61,6 +61,24 @@ for r in (True, False):
                                                                 4: [-0.008304386, 1E-8], 5: [0.004152193, 1E-8],
                                                                 6: [-0.002567884, 1E-8]}))
 
+    diagram_calculator.set_expansion(g=graphine.Graph.fromStr('e12|3|4|e4||'),
+                                     rprime=r,
+                                     momentum_derivative=True,
+                                     e=numcalc.NumEpsExpansion({0: [-0.016666667, 1E-8], 1: [0.0, 0.0],
+                                                                2: [-0.0065822344, 1E-8], 3: [0.0, 0.0],
+                                                                4: [-0.0014649679, 1E-8], 5: [0.0, 0.0],
+                                                                6: [-0.00024589376, 1E-8], 7: [0.0, 0.0],
+                                                                8: [-0.000035078170, 1E-8]}))
+
+    diagram_calculator.set_expansion(g=graphine.Graph.fromStr('e12|e3|4|4||'),
+                                     rprime=r,
+                                     momentum_derivative=True,
+                                     e=numcalc.NumEpsExpansion({0: [-0.011111111, 1E-8], 1: [0.0, 0.0],
+                                                                2: [-0.0043881563, 1E-8], 3: [0.0, 0.0],
+                                                                4: [-0.00097664528, 1E-8], 5: [0.0, 0.0],
+                                                                6: [-0.00016392917, 1E-8], 7: [0.0, 0.0],
+                                                                8: [-0.000023385447, 1E-8]}))
+
     diagram_calculator.set_expansion(g=graphine.Graph.fromStr('e12|e3|e3|e|'),
                                      rprime=r,
                                      momentum_derivative=False,
@@ -85,6 +103,15 @@ for r in (True, False):
                                                                 4: [0.010380483, 1E-8], 5: [-0.0051902415, 1E-8],
                                                                 6: [0.0032098552, 1E-8], 7: [-0.0016049276, 1E-8],
                                                                 8: [0.00089015921, 1E-8]}))
+
+    diagram_calculator.set_expansion(g=graphine.Graph.fromStr('e12|e3|e4|e5|e5|e|'),
+                                     rprime=r,
+                                     momentum_derivative=False,
+                                     e=numcalc.NumEpsExpansion({0: [-0.016666667, 1E-8], 1: [0.0, 0.0],
+                                                                2: [-0.0065822344, 1E-8], 3: [0.0, 0.0],
+                                                                4: [-0.0014649679, 1E-8], 5: [0.0, 0.0],
+                                                                6: [-0.00024589376, 1E-8], 7: [0.0, 0.0],
+                                                                8: [-0.000035078170, 1E-8]}))
 
     diagram_calculator.set_expansion(g=graphine.Graph.fromStr('ee12|ee2|ee|'),
                                      rprime=r,

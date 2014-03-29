@@ -65,8 +65,11 @@ def update_expansion(g, rprime, momentum_derivative, e, force_update=False):
 
 
 def term_factor_expansion(tf):
-    assert(isinstance(tf, rprime.RPrimeTermFactor))
-    assert(os.path.isfile(gen_filename(tf._diagram, rprime=tf._rprime, momentum_derivative=tf._derivative)))
+    if not isinstance(tf, rprime.RPrimeTermFactor):
+        raise TypeError
+    if not os.path.isfile(gen_filename(tf._diagram, rprime=tf._rprime, momentum_derivative=tf._derivative)):
+        raise EnvironmentError('Diagram ' + str(tf) + ' is not yet calculated')
+
     e = get_expansion(tf._diagram, rprime=tf._rprime, momentum_derivative=tf._derivative)
     if tf._k:
         return e.cut(0)
@@ -116,23 +119,19 @@ def calculate_diagram(label, theory, max_eps, zero_momenta=True, force_update=Fa
     if verbose:
         print 'All sectors: ' + str(len(ns)) + '\nNon-symmetrical sectors: ' + str(len(ss))
 
-    sector_expressions = map(lambda x: (x, fi.sector_decomposition(x)), ss)
-    expansions = map(lambda x: (x[0], feynman.extract_poles(x[1]._integrand, to_index)), sector_expressions)
-
     num_expansion = numcalc.NumEpsExpansion({k: [0.0, 0.0] for k in range(to_index + 1)}, precise=True)
 
-    if verbose:
-        print 'Calculated: 0',
-
-    for i, (e, s) in enumerate(zip(expansions, sector_expressions)):
-        sector_expansion = numcalc.parallel_cuba_calculate(e[1])
-        num_expansion += sector_expansion
+    for i, sec in enumerate(ss):
+        sec_expr = fi.sector_decomposition(sec)
+        expansion = feynman.extract_poles(sec_expr._integrand, to_index)
+        sector_n_expansion = numcalc.parallel_cuba_calculate(expansion)
+        num_expansion += sector_n_expansion
         if log:
-            utils.dispatch_log_message('\nCalculated sector:\n' + str(e[0][0]) + ' * ' + str(e[0][1]))
-            utils.dispatch_log_message('With integrand:\n' + str(s[1]), ts=False)
-            utils.dispatch_log_message('With expansion length: ' + str(sum([len(e[1][k]) for k in e[1].keys()])),
-                                       ts=False)
-            utils.dispatch_log_message('With result:\n' + str(sector_expansion), ts=False)
+            utils.dispatch_log_message('\nCalculated sector:\n' + str(sec[0]) + ' * ' + str(sec[1]))
+            utils.dispatch_log_message('With integrand:\n' + str(sec_expr), ts=False)
+            utils.dispatch_log_message('With expansion length: ' +
+                                       str(sum([len(expansion[k]) for k in expansion.keys()])), ts=False)
+            utils.dispatch_log_message('With result:\n' + str(sector_n_expansion), ts=False)
         if verbose:
             print '\rCalculated: ' + str(i + 1) + '   ',
 
