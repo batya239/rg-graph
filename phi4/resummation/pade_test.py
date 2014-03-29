@@ -147,7 +147,7 @@ def resummation_pade_borel(L, M, series_dict, a=0, b=0, g=1):
     try:
         output = integrate.quad(func, 0., 1., args=(b, g), full_output=1, limit=100)
         result = output[0]
-        if len(output)==4:
+        if len(output)>=4:
             warn = output[3]
         else:
             warn = None
