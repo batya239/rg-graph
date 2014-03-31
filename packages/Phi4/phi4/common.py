@@ -44,7 +44,7 @@ class MSKOperation(AbstractKOperation):
         self._description = description
 
     def calculate(self, expression):
-        return symbolic_functions.pole_part(expression, remove_order=False).expand().normal().series(symbolic_functions.e == 0, 0)
+        return symbolic_functions.pole_part(expression, remove_order=False).expand().series(symbolic_functions.e == 0, 0)
 
     def __str__(self):
         return self._description

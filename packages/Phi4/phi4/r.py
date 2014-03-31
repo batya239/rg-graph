@@ -148,6 +148,9 @@ class ROperation(object):
                                inside_krstar=True,
                                minus_graph=minus_graph)
 
+                print "asdasd1", krs
+
+
                 for spinney in spinneys_generators:
                     # switch by uv index
                     # uv = ir_uv.uvIndex(spinney)
@@ -165,13 +168,14 @@ class ROperation(object):
                     if isinstance(spinney_part, swiginac.numeric) and spinney_part.to_double() == 0:
                         continue
                     ir = forest.delta_ir(spinney, graph, shrunk, self)
+                    ir = symbolic_functions.series(ir, symbolic_functions.e, symbolic_functions.CLN_ZERO, 0, True)
                     assert p2_counts == 0
                     sub = self.k_operation.calculate(spinney_part * ir)
                     krs += sub
+                krs = self.k_operation.calculate(krs)
                 if ROperation.DEBUG:
                     print debug_line
-                    print "KR_Star(%s) = %s" % (graph, krs.normal())
-                krs = self.k_operation.calculate(krs).normal()
+                    print "KR_Star(%s) = %s" % (graph, krs)
                 self.storage.put_graph((graph, force, minus_graph, "star"), krs, "kr1")
                 return krs
             except common.CannotBeCalculatedError:
@@ -191,7 +195,7 @@ class ROperation(object):
                 return evaluated, graph
             try:
                 r1 = self._do_r1(graph, force=force, inside_krstar=inside_krstar, minus_graph=minus_graph)
-                kr1 = self.k_operation.calculate(r1[0]).normal()
+                kr1 = self.k_operation.calculate(r1[0])
                 self.storage.put_graph((r1[1], force, inside_krstar, minus_graph, "1"), kr1, "kr1")
                 return kr1, graph
             except common.CannotBeCalculatedError:
@@ -215,8 +219,8 @@ class ROperation(object):
                     kr1 = self.kr_star(graph)
                 else:
                     kr1 = self._do_kr1(graph, force=True, inside_krstar=inside_krstar)[0]
-                r = r1 - symbolic_functions.series(kr1, symbolic_functions.e, 0, 0, True)
-                r = r.normal()
+                r = r1 - symbolic_functions.series(kr1, symbolic_functions.e, symbolic_functions.CLN_ZERO, 0, True)
+                r = r.expand()
                 self.storage.put_graph((graph, force, inside_krstar), r, "r")
                 return r, graph
             except common.CannotBeCalculatedError:
@@ -247,7 +251,7 @@ class ROperation(object):
                     if ROperation.DEBUG:
                         print "R1(%s)=V(%s)" % (graph, graph)
                     self.storage.put_graph((two_tails_graph, force, inside_krstar), expression, "r1")
-                    return expression.normal(), two_tails_graph
+                    return expression, two_tails_graph
 
                 raw_r1 = symbolic_functions.CLN_ZERO if minus_graph else gfun_calculator.calculate_graph_value(graph)[0]
                 if ROperation.DEBUG:
@@ -266,7 +270,6 @@ class ROperation(object):
                             raw_r1 += sign * r1 * value[0] * (symbolic_functions.p2 ** (-p2_counts))
                 if ROperation.DEBUG:
                     print debug_line
-                raw_r1 = raw_r1.normal()
                 self.storage.put_graph((graph, force, inside_krstar, minus_graph), raw_r1, "r1")
                 return raw_r1, graph
             except common.CannotBeCalculatedError:
