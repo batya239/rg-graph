@@ -148,9 +148,6 @@ class ROperation(object):
                                inside_krstar=True,
                                minus_graph=minus_graph)
 
-                print "asdasd1", krs
-
-
                 for spinney in spinneys_generators:
                     # switch by uv index
                     # uv = ir_uv.uvIndex(spinney)
