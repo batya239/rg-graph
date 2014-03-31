@@ -100,6 +100,7 @@ class MercurialAwareStorage(AbstractGraphOperationValuesStorage):
         zeta = swiginac.zeta
         Pi = swiginac.Pi
         Euler = swiginac.Euler
+        Order = swiginac.Order
         execfile(os.path.join(storagePath, storageFileName))
         self._storage_file_name = storageFileName
         self._storage_path = storagePath
