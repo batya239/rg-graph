@@ -171,7 +171,7 @@ class ROperation(object):
                 if ROperation.DEBUG:
                     print debug_line
                     print "KR_Star(%s) = %s" % (graph, krs.normal())
-                krs = self.k_operation.calculate(krs)
+                krs = self.k_operation.calculate(krs).normal()
                 self.storage.put_graph((graph, force, minus_graph, "star"), krs, "kr1")
                 return krs
             except common.CannotBeCalculatedError:
@@ -217,7 +217,6 @@ class ROperation(object):
                     kr1 = self._do_kr1(graph, force=True, inside_krstar=inside_krstar)[0]
                 r = r1 - symbolic_functions.series(kr1, symbolic_functions.e, 0, 0, True)
                 r = r.normal()
-                print raw_graph, r
                 self.storage.put_graph((graph, force, inside_krstar), r, "r")
                 return r, graph
             except common.CannotBeCalculatedError:
@@ -259,8 +258,7 @@ class ROperation(object):
                     sign *= symbolic_functions.CLN_MINUS_ONE
                     for comb in itertools.combinations(uv_subgraphs, i):
                         if i == 1 or not graphine.util.has_intersecting_by_vertexes_graphs(comb):
-                            r1 = reduce(lambda _e, g: _e * c_operation(g, force=force), comb, symbolic_functions.CLN_ONE)
-                            r1 = symbolic_functions.series(r1, symbolic_functions.e, symbolic_functions.CLN_ZERO, 0, True)
+                            r1 = reduce(lambda _e, g: _e * symbolic_functions.series(c_operation(g, force=force), symbolic_functions.e, symbolic_functions.CLN_ZERO, 0, True), comb, symbolic_functions.CLN_ONE)
                             shrunk, p2_counts = ROperation.shrink_to_point(graph, comb)
                             value = gfun_calculator.calculate_graph_value(shrunk)
                             if ROperation.DEBUG:
