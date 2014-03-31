@@ -753,7 +753,7 @@ def On(graph, n):
     @param n:  число компонент поля
     @return: O(n)-симметрийный коэффициент
     """
-    return eval(on[str(graph)]).expand().subs('n',n)
+    return float(eval(on[str(graph)]).expand().subs('n',n))
 
 if __name__ == "__main__":
     print On("e112|33|e33||::",0)

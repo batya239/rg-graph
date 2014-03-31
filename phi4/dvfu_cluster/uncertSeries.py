@@ -39,27 +39,36 @@ class Series():
     """ Класс, обеспечивающий разложение в ряд по g с точностью до n-го порядка с учётом погрешности.
     """
 
-    def __init__(self, n, d={}, name='g'):
+    def __init__(self, n, d={}, name='g', analytic = False):
         self.n = n
         self.gSeries = d
         self.name = name
+        self.analytic = analytic
         for k, v in d.items():
             try:
                 if isinstance(v, (list,tuple)):
                     self.gSeries[k] = ufloat(v[0], v[1])
                 elif isinstance(v,str):
                     self.gSeries[k] = ufloat_fromstr(v)
+                elif isinstance(v,int):
+                    self.gSeries[k] = v
+                    self.analytic = True
             except:
-                pass
+                print "Series constructor warning: Type(v)=",type(v)
+        # print "Constructor:", self.gSeries ## FIXME
         for i in range(0, n):
             if i not in d.keys():
-                self.gSeries[i] = ufloat(0, 0)
+                if self.analytic:
+                    self.gSeries[i] = 0
+                else:
+                    self.gSeries[i] = ufloat(0, 0)
 
     def __lt__(self, other):
         return len(self.gSeries) < len(other.gSeries)
 
     def __add__(self, other):
         tmp = dict(self.gSeries)
+        print "From __add__:",self.analytic," + ",other ## FIXME
         if isinstance(other, Series):
             stop = min(self.n, other.n)
             if stop == 0:
@@ -94,7 +103,7 @@ class Series():
                             tmp[i + j] += self.gSeries[i] * other.gSeries[j]
                         except  KeyError:
                             tmp[i + j] = self.gSeries[i] * other.gSeries[j]
-            res = Series(max(self.n, other.n), tmp, name=self.name)
+            res = Series(max(self.n, other.n), tmp, name=self.name, analytic=self.analytic)
         elif isinstance(other, (int, float, Variable, AffineScalarFunc)):
             for i in self.gSeries.keys():
                 tmp[i] = self.gSeries[i] * other
@@ -114,7 +123,7 @@ class Series():
         """ Z.__invert__() = 1/Z
         1/(1+x)=Sum_i (-1)^i x^i
         """
-        res = Series(self.n, {}, self.name)
+        res = Series(self.n, {}, self.name, analytic=self.analytic)
         if self.gSeries[0] == 1:
             c = 1.
             normedSeries = self - 1
@@ -122,7 +131,7 @@ class Series():
             c = 1./self.gSeries[0]
             normedSeries = self/self.gSeries[0] - 1
         else:
-            raise NotImplementedError("no constnt term in series: %s" % self.gSeries)
+            raise NotImplementedError("no constant term in series: %s" % self.gSeries)
         #if self.gSeries[0] == 1:
         #    tmp = Series(self.gSeries[1:], n = self.n-1, name=self.name)
         #        for i in range(tmp.n):
@@ -180,7 +189,9 @@ class Series():
         """
         res = ''
         for g, c in self.gSeries.items():
-            if c != 0 and g == 0:
+            if c != 0 and g == 0 and isinstance(c, int):
+                res += " %d + " % (c)
+            elif c != 0 and g == 0:
                 res += " %s + " % (c.format('S'))
             elif c != 0 and g <= self.n and isinstance(c, (Variable, AffineScalarFunc)):
                 if c.s < 1e-14:
@@ -200,8 +211,10 @@ class Series():
     def pprint(self):
         res = ""
         for g, c in self.gSeries.items():
-            if c != 0 and g <= self.n:
+            if c != 0 and g <= self.n and not self.analytic:
                 res += "(%s ± %s) * %s**%s + " % (str(c.n), str(c.s), self.name, str(g))
+            elif c != 0 and g <= self.n and self.analytic:
+                res += "(%s) * %s**%s + " % (str(c), self.name, str(g))
         print res[:-2]
 
     def __len__(self):

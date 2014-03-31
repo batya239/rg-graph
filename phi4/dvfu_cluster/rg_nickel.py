@@ -2,32 +2,17 @@
 # -*- coding: utf8
 __author__ = 'mkompan'
 
-import sys
+import sys, sympy
 from uncertSeries import *
 import graphine
 import graph_state
-from On_structures import On
+from On_structures import On as num_On
+from On_analytic import On as anal_On
 
 usage_message = "\nrg_nickel.py usage:\n\n$ python rg_nickel.py KR1_file r2 r4 [n = 1]\
                 \nwhere\n\tKR1_file -- file that contains dictionary of KR'-operations over diagrams,\
                 \n\tr2 -- number of loops for 2-tails,\n\tr4 -- number of loops for 4-tails,\
                 \n\tn -- number of field components.\n"
-if len(sys.argv) < 4:
-    print usage_message
-    exit()
-
-fileName = sys.argv[1]
-r2Loops = int(sys.argv[2])
-r4Loops = int(sys.argv[3])
-try:
-    n = int(sys.argv[4])
-except:
-    n = 1
-
-r1op = eval(open(fileName).read())
-
-Z2_new = {0: (1, 0)}
-Z3_new = {0: (1, 0)}
 
 def saveSeriesToFile(s,fd):
     """"
@@ -38,31 +23,61 @@ def saveSeriesToFile(s,fd):
     f.write("Series(%d,%s,'%s')\n"%(s.n,data,s.name))
     f.close()
 
+if len(sys.argv) < 4:
+    print usage_message
+    exit()
+fileName = sys.argv[1]
+r2Loops = int(sys.argv[2])
+r4Loops = int(sys.argv[3])
+On = num_On
+analytic = False
+
+try:
+    n = int(sys.argv[4])
+except:
+    print "'n' is not set, trying to be analytic"
+    On = anal_On
+    n = 1
+    analytic = True
+
+r1op = eval(open(fileName).read())
+
+if analytic:
+    Z2_new = {0: 1}
+    Z3_new = {0: 1}
+else:
+    Z2_new = {0: (1, 0)}
+    Z3_new = {0: (1, 0)}
+
 for nickel in r1op:
-    uncert = ufloat(r1op[nickel][0], r1op[nickel][1])
+    if analytic:
+        uncert = float(r1op[nickel][0])
+    else:
+        uncert = ufloat(r1op[nickel][0], r1op[nickel][1])
     graph = graphine.Graph(graph_state.GraphState.fromStr(nickel))
     graphLoopCount = graph.getLoopsCount()
+    # print map(type,[On(graph,n), symmetryCoefficient(graph), uncert])
     if graphLoopCount > max(r2Loops, r4Loops):
         continue
     if len(graph.edges(graph.external_vertex)) == 2:
         #Z2 -= (-2 * g / 3) ** graphLoopCount * r1op[nickel] * symmetryCoefficient(graph)
         if graphLoopCount in Z2_new:
-            Z2_new[graphLoopCount] += float(-(-2. / 3) ** graphLoopCount  * On(graph,n) * symmetryCoefficient(graph)) * uncert
+            Z2_new[graphLoopCount] += -(-2. / 3) ** graphLoopCount * On(graph,n) * symmetryCoefficient(graph) * uncert
         else:
-            Z2_new[graphLoopCount] = float(-(-2. / 3) ** graphLoopCount * On(graph,n) * symmetryCoefficient(graph)) * uncert
+            Z2_new[graphLoopCount] = -(-2. / 3) ** graphLoopCount * On(graph,n) * symmetryCoefficient(graph) * uncert
     elif len(graph.edges(graph.external_vertex)) == 4:
         if graphLoopCount in Z3_new:
-            Z3_new[graphLoopCount] += float(-(-2. / 3) ** graphLoopCount * On(graph,n) * symmetryCoefficient(graph)) * uncert
+            Z3_new[graphLoopCount] += -(-2. / 3) ** graphLoopCount * On(graph,n) * symmetryCoefficient(graph) * uncert
         else:
-            Z3_new[graphLoopCount] = float(-(-2. / 3) ** graphLoopCount * On(graph,n) * symmetryCoefficient(graph)) * uncert
+            Z3_new[graphLoopCount] = -(-2. / 3) ** graphLoopCount * On(graph,n) * symmetryCoefficient(graph) * uncert
     else:
         raise ValueError("invalid ext legs count: %s, %s" % (graphLoopCount, nickel))
 
 Z2 = Series(r2Loops, Z2_new)
 Z3 = Series(r4Loops, Z3_new)
 print
-print "Z2 = ", Z2
-print "Z3 = ", Z3
+print "Z2 = ",Z2.pprint()
+print "Z3 = ",Z3.pprint()
 
 Zg = (Z3 / Z2 ** 2)
 print "Zg = ", Zg

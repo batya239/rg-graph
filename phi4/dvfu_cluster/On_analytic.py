@@ -747,7 +747,7 @@ on = {
 }
 
 
-def Anal(graph):
+def On(graph,n):
     """
     @param graph: диаграмма
     @param n:  число компонент поля
@@ -756,5 +756,5 @@ def Anal(graph):
     return eval(on[str(graph)]).expand()
 
 if __name__ == "__main__":
-    print Anal("e112|33|e33||::")
-    print Anal('ee12|333|345||e55|e|::')
+    print On("e112|33|e33||::",0)*3.
+    print On('ee12|333|345||e55|e|::',0)
