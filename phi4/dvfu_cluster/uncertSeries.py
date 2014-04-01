@@ -7,6 +7,7 @@ import math
 
 from uncertainties import ufloat, ufloat_fromstr, Variable, AffineScalarFunc
 from uncertainties import __version_info__ as uncert_version
+import sympy
 
 if uncert_version < (2, 4):
     raise Warning("Version  %s of uncertanties not supported" % str(uncert_version))
@@ -68,7 +69,7 @@ class Series():
 
     def __add__(self, other):
         tmp = dict(self.gSeries)
-        print "From __add__:",self.analytic," + ",other ## FIXME
+        # print "From __add__:",self.analytic," + ",other.pprint() ## FIXME
         if isinstance(other, Series):
             stop = min(self.n, other.n)
             if stop == 0:
@@ -84,7 +85,7 @@ class Series():
         else:
             print type(self), type(other)
             raise NotImplementedError
-        return Series(len(tmp), tmp, name=self.name)
+        return Series(len(tmp), tmp, name=self.name, analytic=self.analytic)
 
     def __radd__(self, other):
         return self + other
@@ -107,8 +108,15 @@ class Series():
         elif isinstance(other, (int, float, Variable, AffineScalarFunc)):
             for i in self.gSeries.keys():
                 tmp[i] = self.gSeries[i] * other
-            res = Series(self.n, tmp, name=self.name)
+            res = Series(self.n, tmp, name=self.name, analytic=self.analytic)
+        elif other == 0 or sum(map(lambda v: v == 0, self.gSeries.values()))==len(self.gSeries):
+            return 0
+        # elif isinstance(other, sympy.core.add.Add):
+        #     print "\n\nself=",self
+        #     print "other=",other
+        #     return 0
         else:
+            print "\nself =", self.gSeries, " type(self) =", type(self)
             print "\nother =", other, " type(other) =", type(other)
             raise NotImplementedError
         return res
@@ -126,10 +134,10 @@ class Series():
         res = Series(self.n, {}, self.name, analytic=self.analytic)
         if self.gSeries[0] == 1:
             c = 1.
-            normedSeries = self - 1
+            normedSeries = self + Series(self.n, {0:-1}, self.name, analytic=self.analytic) ## <-- это -1!
         elif self.gSeries[0] !=0:
             c = 1./self.gSeries[0]
-            normedSeries = self/self.gSeries[0] - 1
+            normedSeries = self/self.gSeries[0] + Series(self.n, {0:-1}, self.name, analytic=self.analytic) ## <-- это -1!
         else:
             raise NotImplementedError("no constant term in series: %s" % self.gSeries)
         #if self.gSeries[0] == 1:
@@ -158,7 +166,10 @@ class Series():
         elif isinstance(power, int) and power == 1:
             return self
         elif isinstance(power, int) and power == 0:
-            return Series(self.n, {0: ufloat(1, 0)}, self.name)
+            if self.analytic:
+                return Series(self.n, {0: 1}, self.name, analytic=self.analytic)
+            else:
+                return Series(self.n, {0: ufloat(1, 0)}, self.name, analytic=self.analytic)
         else:
             print "power =", power, " type(power) =", type(power)
             raise NotImplementedError
@@ -170,7 +181,7 @@ class Series():
         res = {}
         for i in range(len(self.gSeries) - 1):
             res[i] = (i + 1) * self.gSeries[i + 1]
-        return Series(self.n, res)
+        return Series(self.n, res,analytic=self.analytic)
 
     ## FIXME
     #def __repr__(self):
@@ -215,13 +226,14 @@ class Series():
                 res += "(%s ± %s) * %s**%s + " % (str(c.n), str(c.s), self.name, str(g))
             elif c != 0 and g <= self.n and self.analytic:
                 res += "(%s) * %s**%s + " % (str(c), self.name, str(g))
-        print res[:-2]
+        # print res[:-2]
+        return res[:-2]
 
     def __len__(self):
         return len(self.gSeries)
 
     def subs(self, point):
-        res = Series(n=self.n, d={0: ufloat(0, 0)}, name=point.name)
+        res = Series(n=self.n, d={0: ufloat(0, 0)}, name=point.name, analytic=self.analytic)
         for i, c in self.gSeries.items():
             res += c * (point ** i)
         return res

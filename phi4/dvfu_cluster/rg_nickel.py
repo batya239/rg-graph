@@ -23,6 +23,21 @@ def saveSeriesToFile(s,fd):
     f.write("Series(%d,%s,'%s')\n"%(s.n,data,s.name))
     f.close()
 
+def simplify(Z):
+    """
+    Simplify analytic series
+    """
+    if not analytic:
+        return Z
+    else:
+        n = sympy.var('n')
+        for k,v in Z.gSeries.items():
+            # v = sympy.simplify(v)
+            # v = v / (n+8)**k
+            Z.gSeries[k] = sympy.simplify(v)
+        return Z
+
+
 if len(sys.argv) < 4:
     print usage_message
     exit()
@@ -80,24 +95,41 @@ print "Z2 = ",Z2.pprint()
 print "Z3 = ",Z3.pprint()
 
 Zg = (Z3 / Z2 ** 2)
-print "Zg = ", Zg
+if analytic:
+    Zg = simplify(Zg)
+print "Zg = ", Zg.pprint()
 
 print
-g = Series(r2Loops, {1: ufloat(1, 0)})
+if analytic:
+    g = Series(r2Loops, {1: 1}, analytic=True)
+else:
+    g = Series(r2Loops, {1: ufloat(1, 0)})
 
 #beta = (-2 * g / (1 + g * sympy.ln(Zg).diff(g))).series(g, 0, r4Loops + 2).removeO()
 beta = (-2 * g / (1 + g * (Zg.diff() / Zg)))
-print "\nbeta/2 = ", beta / 2
+if not analytic:
+    print "\nbeta/2 = ", beta / 2
+else:
+    beta = simplify(beta)
+    beta_half = beta/2
+    print "beta/2 =",beta_half.pprint()
 
 #eta = (beta * sympy.ln(Z2).diff(g)).series(g, 0, r4Loops + 1).removeO()
 eta = beta * Z2.diff() / Z2
-print "\neta =", eta
+if not analytic:
+    print "\neta =", eta
+else:
+    eta = simplify(eta)
+    print "\neta =", eta.pprint()
 
-if __name__ == "__main__":
+if __name__ == "__main___":
     #beta1 = (beta / g / 2 + 1).expand()
     beta1 = (-1 / (1 + g * Zg.diff() / Zg) + 1)
-    beta1.gSeries.pop(1) ## equal to 'beta1 - g'
-    #print "beta1 =",beta1
+    beta1 = simplify(beta1)
+    ## FIXME: either of the following two lines
+    # beta1.gSeries.pop(1) ## equal to 'beta1 - g'
+    beta1.gSeries[1] -= 1
+    print "beta1 =",beta1.gSeries
 
     gStar = Series(n=1, d={0: ufloat(0., 0.)}, name='τ')
     for i in range(1, r4Loops + 1):
