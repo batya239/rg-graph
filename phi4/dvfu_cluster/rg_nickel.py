@@ -105,6 +105,11 @@ if analytic:
 else:
     g = Series(r2Loops, {1: ufloat(1, 0)})
 
+## TODO
+# s = Series(3,{0:1, 1: 'n+8', 2: 'n**2 +n +1'},'g')
+# s.__invert__()
+
+n = sympy.var('n')
 #beta = (-2 * g / (1 + g * sympy.ln(Zg).diff(g))).series(g, 0, r4Loops + 2).removeO()
 beta = (-2 * g / (1 + g * (Zg.diff() / Zg)))
 if not analytic:
