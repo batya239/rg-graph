@@ -116,7 +116,7 @@ class ROperation(object):
                 debug_line += "+(%s)*KR_STAR(%s)" % (c, _g.getPresentableStr())
         if ROperation.DEBUG:
             print debug_line
-        return result
+        return symbolic_functions.series(result * symbolic_functions.p2, symbolic_functions.e, symbolic_functions.CLN_ZERO, 0, remove_order=False)
 
     def kr_star(self, initial_graph, force=False, minus_graph=False):
         if len(initial_graph.edges(initial_graph.external_vertex)) == 2:
