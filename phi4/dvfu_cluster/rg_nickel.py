@@ -94,6 +94,13 @@ print
 print "Z2 = ",Z2.pprint()
 print "Z3 = ",Z3.pprint()
 
+n = sympy.var('n')
+for k,v in Z2.gSeries.items():
+    Z2.gSeries[k] = v/((n+8)/9)**k
+for k,v in Z3.gSeries.items():
+    Z3.gSeries[k] = v/((n+8)/9)**k
+
+
 Zg = (Z3 / Z2 ** 2)
 if analytic:
     Zg = simplify(Zg)
@@ -104,10 +111,6 @@ if analytic:
     g = Series(r2Loops, {1: 1}, analytic=True)
 else:
     g = Series(r2Loops, {1: ufloat(1, 0)})
-
-## TODO
-# s = Series(3,{0:1, 1: 'n+8', 2: 'n**2 +n +1'},'g')
-# s.__invert__()
 
 n = sympy.var('n')
 #beta = (-2 * g / (1 + g * sympy.ln(Zg).diff(g))).series(g, 0, r4Loops + 2).removeO()
