@@ -71,19 +71,6 @@ class SixLoops2Tails(object):
         configure.Configure.clear()
 
 
-def email(calculated_mappings):
-    string = "\n\n".join(map(lambda (g, v): str(g) + " = " + str(v), calculated_mappings.items()))
-    msg = MIMEText(string)
-    me = "epiq.bear@gmail.com"
-    they = ["batya239@gmail.com", "mkompan@gmail.com"]
-    msg['Subject'] = '6 loops answers'
-    msg['From'] = me
-    msg['To'] = ", ".join(they)
-    s = smtplib.SMTP('smtp.gmail.com', port=465)
-    s.sendmail(me, they, msg.as_string())
-    s.quit()
-
-
 def main():
     reductions_loops = (2, 3, 4),
     operations = (False, True)
@@ -99,7 +86,6 @@ def main():
         master = SixLoops2Tails(operation, calculator, calculated_mappings)
         current_graphs = master.start(current_graphs)
         master.dispose()
-    email(calculated_mappings)
 
 SIX_LOOPS = (
     "e112-23-34-45-55-e-::",

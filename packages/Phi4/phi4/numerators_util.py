@@ -30,7 +30,6 @@ def scalar_product_extractor(topology, graph):
         sp = reduction.ScalarProduct(numerated_edge[0].colors[1],
                                      (1, ) + (0, ) * (len(numerated_edge[0].colors[1]) - 1),
                                      sign=sign)
-        print "SP", sp, graph, topology
         if DEBUG:
             print "sp", sp
         yield sp

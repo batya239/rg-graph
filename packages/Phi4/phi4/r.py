@@ -193,6 +193,8 @@ class ROperation(object):
             try:
                 r1 = self._do_r1(graph, force=force, inside_krstar=inside_krstar, minus_graph=minus_graph)
                 kr1 = self.k_operation.calculate(r1[0])
+                if ROperation.DEBUG:
+                    print "KR1(%s)=%s" % (graph, kr1)
                 self.storage.put_graph((r1[1], force, inside_krstar, minus_graph, "1"), kr1, "kr1")
                 return kr1, graph
             except common.CannotBeCalculatedError:
