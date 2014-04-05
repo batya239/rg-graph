@@ -12,16 +12,15 @@
 
 /*-----Definitions that are constant for every function--------*/
 
-//#define DIVONNE
 
 #define NCOMP 1
 #define NVEC 1
-#define EPSREL 1e-7
+#define EPSREL 1e-4
 #define EPSABS 1e-12
 #define LAST 4
 #define SEED 0
 #define MINEVAL 0
-#define MAXEVAL 1E7
+#define MAXEVAL 1E5
 
 #define NSTART 1000
 #define NINCREASE 500
@@ -29,16 +28,16 @@
 #define GRIDNO 0
 #define STATEFILE NULL
 
-#define KEY1 47
-#define KEY2 1
-#define KEY3 1
-#define MAXPASS 5
-#define BORDER 0.
-#define MAXCHISQ 10.
-#define MINDEVIATION .25
-#define NGIVEN 0
-#define LDXGIVEN NDIM
-#define NEXTRA 0
+//#define KEY1 47
+//#define KEY2 1
+//#define KEY3 1
+//#define MAXPASS 5
+//#define BORDER 0.
+//#define MAXCHISQ 10.
+//#define MINDEVIATION .25
+//#define NGIVEN 0
+//#define LDXGIVEN NDIM
+//#define NEXTRA 0
 
 
 /*-------------------------------------------------------------*/
@@ -52,19 +51,10 @@ int main()
     if (env)
         verbose = atoi(env);
 
-#ifndef DIVONNE
-    Vegas(NDIM, NCOMP, Integrand, NULL, NVEC, EPSREL, EPSABS, verbose, SEED, MINEVAL,
-            MAXEVAL, NSTART, NINCREASE, NBATCH, GRIDNO, STATEFILE, &neval,
-            &fail, integral, error, prob);
-#endif
+    Vegas(NDIM, NCOMP, Integrand, NULL, NVEC, EPSREL, EPSABS, verbose, SEED,
+          MINEVAL, MAXEVAL, NSTART, NINCREASE, NBATCH, GRIDNO, STATEFILE,
+          &neval, &fail, integral, error, prob);
 
-#ifdef DIVONNE
-    int nregions;
-    Divonne(NDIM, NCOMP, Integrand, NULL, NVEC, EPSREL, EPSABS, verbose, SEED, MINEVAL,
-              MAXEVAL, KEY1, KEY2, KEY3, MAXPASS, BORDER, MAXCHISQ, MINDEVIATION, NGIVEN, LDXGIVEN,
-              NULL, NEXTRA, NULL, STATEFILE, &nregions, &neval,
-              &fail, integral, error, prob);
-#endif
 
     for (comp = 0; comp < NCOMP; ++comp)
         printf("%.8f %.8f", integral[comp], error[comp]);

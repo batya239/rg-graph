@@ -303,7 +303,7 @@ def cuba_calculate(expansion):
     return NumEpsExpansion(result)
 
 
-def parallel_cuba_calculate(expansion, parallel_processes=20):
+def parallel_cuba_calculate(expansion, parallel_processes=40, alg='Vegas'):
     """
     :param expansion:
     :return:
@@ -328,10 +328,20 @@ def parallel_cuba_calculate(expansion, parallel_processes=20):
         out, err = integrate.communicate()
         result.put((k, (out, err)))
 
-    split_size = 10
+    split_size = 5000
     max_jobs = 100
     wd = os.path.expanduser("~") + '/.pole_extractor'
-    source = wd + '/' + 'integrate.c'
+    if alg == 'Vegas':
+        source = wd + '/' + 'integrate.c'
+    elif alg == 'Cuhre':
+        source = wd + '/' + 'integrate_cuhre.c'
+    elif alg == 'Divonne':
+        # divonne does not work for now
+        source = wd + '/' + 'integrate_divonne.c'
+    elif alg == 'Suave':
+        source = wd + '/' + 'integrate_suave.c'
+    else:
+        source = wd + '/' + 'integrate.c'
 
     result = dict()
     sub_folder_names = []

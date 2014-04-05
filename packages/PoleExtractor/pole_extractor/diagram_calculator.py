@@ -89,7 +89,7 @@ def calculate_diagram(label, theory, max_eps, zero_momenta=True, force_update=Fa
 
     verbose = True
     log = True
-    update = True
+    update = False
 
     begin = datetime.datetime.now()
 
@@ -124,7 +124,7 @@ def calculate_diagram(label, theory, max_eps, zero_momenta=True, force_update=Fa
     for i, sec in enumerate(ss):
         sec_expr = fi.sector_decomposition(sec)
         expansion = feynman.extract_poles(sec_expr._integrand, to_index)
-        sector_n_expansion = numcalc.parallel_cuba_calculate(expansion)
+        sector_n_expansion = numcalc.parallel_cuba_calculate(expansion, alg='Suave')
         num_expansion += sector_n_expansion
         if log:
             utils.dispatch_log_message('\nCalculated sector:\n' + str(sec[0]) + ' * ' + str(sec[1]))
