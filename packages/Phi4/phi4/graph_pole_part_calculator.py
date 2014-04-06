@@ -34,14 +34,17 @@ def calculate_graph_pole_part(graph):
                 return None
             tails_count += d
         if tails_count != 4:
-
             return None
 
         kr_star = r_operation.kr_star(tadpole)
         co_part = r_operation.kr_star(graph, minus_graph=True)
-        return common.MSKOperation().calculate(kr_star - co_part + symbolic_functions.Order(1))
+        return common.MSKOperation().calculate(kr_star - co_part + symbolic_functions.Order(symbolic_functions.CLN_ONE))
     except common.CannotBeCalculatedError:
         return None
+
+
+def get_lambda():
+    return inject.instance("dimension") / symbolic_functions.cln(2) - symbolic_functions.CLN_ONE
 
 
 def calculate_graph_p_factor(graph):
@@ -57,10 +60,10 @@ def calculate_graph_p_factor(graph):
 
 class GraphPolePartCalculator(abstract_graph_calculator.AbstractGraphCalculator):
     def get_label(self):
-        return "graph pole part calculator"
+        return "graph pole part calculator for 5 loops"
 
     def is_applicable(self, graph):
-        if graph.getLoopsCount() != 5:
+        if graph.getLoopsCount() not in (5,):
             return False
         for e in graph.allEdges():
             if e.weight != 1:
@@ -72,9 +75,10 @@ class GraphPolePartCalculator(abstract_graph_calculator.AbstractGraphCalculator)
 
     def calculate(self, graph):
         eps_part = calculate_graph_pole_part(graph)
-        if not eps_part:
+        if eps_part is None:
             return None
-        return eps_part, calculate_graph_p_factor(graph)
+        p_factor = calculate_graph_p_factor(graph)
+        return eps_part.subs(symbolic_functions.p == symbolic_functions.CLN_ONE), p_factor
 
     def dispose(self):
         pass
