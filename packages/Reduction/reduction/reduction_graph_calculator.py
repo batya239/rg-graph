@@ -28,6 +28,8 @@ class ReductionGraphCalculator(abstract_graph_calculator.AbstractGraphCalculator
     def calculate(self, graph):
         result = reductor.calculate(graph)
         if result is None:
+            if reductor.DEBUG:
+                print "reduction not works for", graph
             return None
         return result.evaluate(substitute_sectors=True, _d=symbolic_functions.d_phi4, series_n=5, remove_o=True), \
             reduction_util.calculate_graph_p_factor(graph)
@@ -58,6 +60,8 @@ class ScalarProductReductionGraphCalculator(abstract_graph_calculator.AbstractGr
     def calculate(self, graph):
         result = reductor.calculate(graph, self._scalar_product_extractor)
         if result is None:
+            if reductor.DEBUG:
+                print "reduction not works for", graph
             return None
         r = result.evaluate(substitute_sectors=True,
                             _d=symbolic_functions.d_phi4,

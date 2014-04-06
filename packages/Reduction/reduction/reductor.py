@@ -362,16 +362,24 @@ class Reductor(object):
                                                          scalar_product.find_topology_result_converter)
             probably_calculable_sectors.add(res)
 
+        if not len(probably_calculable_sectors) and DEBUG:
+            print "no suitable sectors found"
+            return None
+
         for res in probably_calculable_sectors:
             try:
                 s = sector.Sector.create_from_shrunk_topology(res[0], res[1], self._all_propagators_count).as_sector_linear_combinations()
                 if scalar_product_aware_function:
                     for sp in scalar_product_aware_function(*res):
                         s = sp.apply(s, self._scalar_product_rules)
+                print s
                 v = self.evaluate_sector(s)
                 return v
             except RuleNotFoundException:
                 pass
+        if DEBUG:
+            print "rules not found", probably_calculable_sectors
+            return None
 
     def _try_calculate(self, graph):
         return self.evaluate_sector(sector.Sector.create_from_topologies_and_graph(graph,
@@ -429,6 +437,7 @@ class Reductor(object):
                         is_updated = True
                         break
                 if not is_updated:
+                    print "rule not found for", _sector
                     raise RuleNotFoundException(_sector)
             dfs_cache[_sector] = res
             return res
