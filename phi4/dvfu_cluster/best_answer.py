@@ -121,7 +121,7 @@ for k,v in spectrum.items():
         sp[i] += 1
 print sp
 
-fd = open(dumpFile,'w')
-fd.write(str(result))
-fd.close()
+#fd = open(dumpFile,'w')
+#fd.write(str(result))
+#fd.close()
 
