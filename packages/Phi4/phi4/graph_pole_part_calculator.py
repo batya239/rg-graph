@@ -43,10 +43,6 @@ def calculate_graph_pole_part(graph):
         return None
 
 
-def get_lambda():
-    return inject.instance("dimension") / symbolic_functions.cln(2) - symbolic_functions.CLN_ONE
-
-
 def calculate_graph_p_factor(graph):
     factor0 = 0
     arrow_factor = 0
