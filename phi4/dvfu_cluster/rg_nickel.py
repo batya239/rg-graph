@@ -97,8 +97,10 @@ print "Z3 = ",Z3.pprint()
 n = sympy.var('n')
 for k,v in Z2.gSeries.items():
     Z2.gSeries[k] = v/((n+8)/9)**k
+    Z2 = simplify(Z2)
 for k,v in Z3.gSeries.items():
     Z3.gSeries[k] = v/((n+8)/9)**k
+    Z3 = simplify(Z3)
 
 
 Zg = (Z3 / Z2 ** 2)
