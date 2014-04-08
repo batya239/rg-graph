@@ -13,8 +13,9 @@ KR1 = eval(open(KR1File,'r').read())
 diagList = map(lambda x: x.split(' ')[0], open('../graphs/phi4/e2-6loop.txt','r').readlines())
 
 print len(diagList), len(res), len(KR1)
-print res[diagList[0]]
-print KR1[diagList[0]]
+print diagList[2]
+print res[diagList[2]]
+print KR1[diagList[2].replace('-','|')+"::"]
 
 head = "\\documentclass[a4paper]{book}\n \
 \\usepackage[english,russian]{babel} \n \
@@ -34,8 +35,8 @@ f = open(outFile,'w')
 f.write(head)
 for i,diag in enumerate(diagList):
     r = ufloat(res[diag][0][0],res[diag][1][0])
-    kr = ufloat(KR1[diag])
-    f.write("%d & %s & %s & %s \\\\ \n"%(i+1, diag.replace('-','|'), r.format('S'), kr.format('S')))
+    kr = ufloat(KR1[diag.replace('-','|')+"::"])
+    f.write("%d & %s & %s & %s \\\\ \n"%(i+1, diag, r.format('S'), kr.format('S')))
     f.write("\\hline \n")
 f.write(tail)
 f.close()
