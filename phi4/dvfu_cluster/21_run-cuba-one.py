@@ -39,10 +39,10 @@ for i in range(int(start),int(finish)+1):
     #cmd = "ssh n%d nohup %s 3 1000000 1e-6 1e-12 > %s &"%(node,bin_file,out)
     #os.system(cmd)
     ## profile 2
-    out = "out_%s_%s_%s_99M_e-9_e-13"%(num,diag,method)
+    out = "out_%s_%s_%s_200M_e-10_e-14"%(num,diag,method)
     print "result will be stored in",out
     bin_file = os.path.join(workdir,diag,"cuba__%s.run"%num)
-    cmd = "ssh n%d nohup %s %s 99999999 1e-9 1e-13 > %s &"%(node,bin_file,method_num(method),out)
+    cmd = "ssh n%d nohup %s %s 200000000 1e-10 1e-14 > %s &"%(node,bin_file,method_num(method),out)
     os.system(cmd)
     node +=1
 

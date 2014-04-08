@@ -19,8 +19,8 @@ class RelevanceCondition(object):
 
     # noinspection PyUnusedLocal
     def isRelevant(self, edgesList, superGraph, superGraphEdges):
-        subgraph = graphine.Representator.asGraph(edgesList, superGraph.externalVertex)
-        return len(subgraph.edges(subgraph.externalVertex)) in self.relevantGraphsLegsCard
+        subgraph = graphine.Representator.asGraph(edgesList, superGraph.external_vertex)
+        return len(subgraph.edges(subgraph.external_vertex)) in self.relevantGraphsLegsCard
 
 
 phi4 = RelevanceCondition()
@@ -100,7 +100,7 @@ except:
 def internalEdges(graph):
     res = list()
     for edge in graph.allEdges():
-        if graph.externalVertex not in edge.nodes:
+        if graph.external_vertex not in edge.nodes:
             res.append(edge)
     return res
 
@@ -118,9 +118,10 @@ def checkIntersection(subGraphs):
 
 
 def calculateKR1term(subGraphs, shrinkedGraph, results, resultsKR1):
-    if str(shrinkedGraph)[:-2] not in results:
-        raise ValueError("no result for %s " % str(shrinkedGraph)[:-2])
-    res = ufloat(results[str(shrinkedGraph)[:-2]][0][0],results[str(shrinkedGraph)[:-2]][1][0])
+    diag = str(shrinkedGraph)[:-2].replace("|","-")
+    if diag not in results:
+        raise ValueError("no result for %s " % diag)
+    res = ufloat(results[diag][0][0],results[diag][1][0])
     #print "DEBUG: res =", res
     #print results[str(shrinkedGraph)[:-2]]
     for subGraph in subGraphs:
@@ -132,11 +133,12 @@ def calculateKR1term(subGraphs, shrinkedGraph, results, resultsKR1):
 
 
 def KR1(graph, results, resultsKR1):
-    if str(graph) in resultsKR1:
-        return resultsKR1[str(graph)]
+    diag = str(graph).replace("|","-")
+    if diag in resultsKR1:
+        return resultsKR1[diag]
 
-    #res = results[str(graph)[:-2]][0][0]
-    res = ufloat(results[str(graph)[:-2]][0][0],results[str(graph)[:-2]][1][0])
+    #res = results[diag[:-2]][0][0]
+    res = ufloat(results[diag[:-2]][0][0],results[diag[:-2]][1][0])
     subGraphsUV = [subG for subG in
                    graph.xRelevantSubGraphs(subgraphUVFilters, graphine.Representator.asGraph)]
 
@@ -165,7 +167,7 @@ def symmetryCoefficient(graph):
             unique_edges[idx] += 1
         else:
             unique_edges[idx] = 1
-    C = sympy.factorial(len(graph.edges(graph.externalVertex))) / len(graph.toGraphState().sortings)
+    C = sympy.factorial(len(graph.edges(graph.external_vertex))) / len(graph.toGraphState().sortings)
 
     for idxE in unique_edges:
         C = C / sympy.factorial(unique_edges[idxE])
@@ -177,7 +179,7 @@ maxNLoops = 6
 resultsKR1 = dict()
 print "{"
 for index in results:
-    graph = graphine.Graph.fromStr(index)
+    graph = graphine.Graph.fromStr(index.replace("-","|"))
     if graph.getLoopsCount() > maxNLoops:
         continue
     resultsKR1[str(graph)] = KR1(graph, results, resultsKR1)
@@ -186,6 +188,7 @@ for index in results:
         err = abs(float(res.s)/float(res.n))
     except ZeroDivisionError:
         err = 0
-    print '"%s": \t%s, \t# %s, \t%s \t err_rel: %.3e' % (index, (res.n,res.s), results[str(graph)[:-2]][0][0], symmetryCoefficient(graph), err)
-#    print
+    print '"%s": \t%s, \t# %s, \t%s \t err_rel: %.3e' % \
+        (str(graph), (res.n,res.s), results[str(graph).replace("|","-")[:-2]][0][0], symmetryCoefficient(graph), err)
+        #(index, (res.n,res.s), results[str(graph).replace("|","-")[:-2]][0][0], symmetryCoefficient(graph), err)
 print "}"

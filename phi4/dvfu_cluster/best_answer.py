@@ -30,10 +30,10 @@ def symmetryCoefficient(graphstate):
 
 
 def sym_coef(diag):
-    return symmetryCoefficient(graph_state.GraphState.fromStr(diag))
+    return symmetryCoefficient(graph_state.GraphState.fromStr(diag.replace('-','|')))
 
 def nloops(string):
-    return graphine.Graph(graph_state.GraphState.fromStr(string)).getLoopsCount()
+    return graphine.Graph(graph_state.GraphState.fromStr(string.replace('-','|'))).getLoopsCount()
 
 
 import subprocess
@@ -110,7 +110,7 @@ for dir in dirs:
         ans = float(sympy.gamma(nloops(dir))/sym_coef(dir))*ans
         result.update({dir:[[ans.n],[ans.s]]})
         #print  ans
-print result
+#print result
 #print "Failed:",failed
 #print spectrum
 
@@ -121,7 +121,7 @@ for k,v in spectrum.items():
         sp[i] += 1
 print sp
 
-#fd = open(dumpFile,'w')
-#fd.write(str(result))
-#fd.close()
+fd = open(dumpFile,'w')
+fd.write(str(result))
+fd.close()
 
