@@ -55,45 +55,46 @@ def multiply(ans1, ans2):
     return (r.n,), (r.s,)
 
 try:
-    results["ee11-ee-"] = [[1.], [1.0e-15]]
-    results["ee11-22-ee-"] = multiply(results["ee11-ee-"], results["ee11-ee-"])
-    results["ee11-23-e33-e-"] = multiply(results["ee11-ee-"], results["ee12-e22-e-"])
-    results["ee11-22-33-ee-"] = multiply(results["ee11-ee-"], results["ee11-22-ee-"])
-    results["ee11-22-33-44-ee-"] = multiply(results["ee11-ee-"], results["ee11-22-33-ee-"])
-    results["ee11-23-e44-e44--"] = multiply(results["ee11-ee-"], results["ee12-e33-e33--"])
-    results["ee11-22-34-e44-e-"] = multiply(results["ee11-ee-"], results["ee11-23-e33-e-"])
-    results["ee11-23-e34-44-e-"] = multiply(results["ee11-ee-"], results["ee12-e23-33-e-"])
-    results["ee11-23-ee4-444--"] = multiply(results["ee11-ee-"], results["ee12-ee3-333--"])
-    results["e112-e2-34-e44-e-"] = multiply(results["ee12-e22-e-"], results["ee12-e22-e-"])
-    results["ee11-23-334-4-ee-"] = multiply(results["ee11-ee-"], results["ee12-223-3-ee-"])
-    results["ee11-23-344-45-5-ee-"] = multiply(results["ee11-ee-"], results["ee12-233-34-4-ee-"])
-    results["ee11-23-e45-e45-55--"] = multiply(results["ee11-ee-"], results["ee12-e34-e34-44--"])
-    results["ee11-22-34-445-5-ee-"] = multiply(results["ee11-ee-"], results["ee11-23-334-4-ee-"])
-    results["ee11-23-345-45-e5-e-"] = multiply(results["ee11-ee-"], results["ee12-234-34-e4-e-"])
-    results["ee11-22-34-e55-e55--"] = multiply(results["ee11-ee-"], results["ee11-23-e44-e44--"])
-    results["ee11-23-445-455-e-e-"] = multiply(results["ee11-ee-"], results["ee12-334-344-e-e-"])
-    results["ee11-22-33-45-e55-e-"] = multiply(results["ee11-ee-"], results["ee11-22-34-e44-e-"])
-    results["e112-e2-34-e45-55-e-"] = multiply(results["ee12-e22-e-"], results["ee12-e23-33-e-"])
-    results["e112-e2-33-45-e55-e-"] = multiply(results["ee12-e22-e-"], results["ee11-23-e33-e-"])
-    results["ee11-23-ee4-455-55--"] = multiply(results["ee11-ee-"], results["ee12-ee3-344-44--"])
-    results["ee11-23-e44-555-e5--"] = multiply(results["ee11-ee-"], results["ee12-e33-444-e4--"])
-    results["ee11-23-445-445--ee-"] = multiply(results["ee11-ee-"], results["ee12-334-334--ee-"])
-    results["ee12-223-3-45-e55-e-"] = multiply(results["ee12-e22-e-"], results["ee12-223-3-ee-"])
-    results["ee11-23-334-5-e55-e-"] = multiply(results["ee11-ee-"], results["ee12-223-4-e44-e-"])
-    results["ee11-22-33-44-55-ee-"] = multiply(results["ee11-ee-"], results["ee11-22-33-44-ee-"])
-    results["ee11-23-e34-e5-555--"] = multiply(results["ee11-ee-"], results["ee12-e23-e4-444--"])
-    results["ee11-23-e44-e55-55--"] = multiply(results["ee11-ee-"], results["ee12-e33-e44-44--"])
-    results["ee11-23-344-55-e5-e-"] = multiply(results["ee11-ee-"], results["ee12-233-44-e4-e-"])
-    results["ee12-333-345--e55-e-"] = multiply(results["ee12-e22-e-"], results["ee12-ee3-333--"])
-    results["ee11-22-34-ee5-555--"] = multiply(results["ee11-ee-"], results["ee11-23-ee4-444--"])
-    results["ee11-22-34-e45-55-e-"] = multiply(results["ee11-ee-"], results["ee11-23-e34-44-e-"])
-    results["ee11-23-e44-455-5-e-"] = multiply(results["ee11-ee-"], results["ee12-e33-344-4-e-"])
-    results["ee11-23-444-455--ee-"] = multiply(results["ee11-ee-"], results["ee11-23-ee4-444--"])
-    results["ee11-23-e45-445-5-e-"] = multiply(results["ee11-ee-"], results["ee12-e34-334-4-e-"])
-    results["ee11-23-e34-55-e55--"] = multiply(results["ee11-ee-"], results["ee12-e23-44-e44--"])
-    results["e112-e2-34-e55-e55--"] = multiply(results["ee12-e22-e-"], results["ee12-e33-e33--"])
-    results["ee11-23-e34-45-55-e-"] = multiply(results["ee11-ee-"], results["ee12-e23-34-44-e-"])
-    results["ee11-23-334-4-55-ee-"] = multiply(results["ee11-ee-"], results["ee11-23-334-4-ee-"])
+    #results["ee11-ee-"] = [[1.], [1.0e-15]]
+    results["ee11|ee|"] = [[1.], [0]]
+    results["ee11|22|ee|"] = multiply(results["ee11|ee|"], results["ee11|ee|"])
+    results["ee11|23|e33|e|"] = multiply(results["ee11|ee|"], results["ee12|e22|e|"])
+    results["ee11|22|33|ee|"] = multiply(results["ee11|ee|"], results["ee11|22|ee|"])
+    results["ee11|22|33|44|ee|"] = multiply(results["ee11|ee|"], results["ee11|22|33|ee|"])
+    results["ee11|23|e44|e44||"] = multiply(results["ee11|ee|"], results["ee12|e33|e33||"])
+    results["ee11|22|34|e44|e|"] = multiply(results["ee11|ee|"], results["ee11|23|e33|e|"])
+    results["ee11|23|e34|44|e|"] = multiply(results["ee11|ee|"], results["ee12|e23|33|e|"])
+    results["ee11|23|ee4|444||"] = multiply(results["ee11|ee|"], results["ee12|ee3|333||"])
+    results["e112|e2|34|e44|e|"] = multiply(results["ee12|e22|e|"], results["ee12|e22|e|"])
+    results["ee11|23|334|4|ee|"] = multiply(results["ee11|ee|"], results["ee12|223|3|ee|"])
+    results["ee11|23|344|45|5|ee|"] = multiply(results["ee11|ee|"], results["ee12|233|34|4|ee|"])
+    results["ee11|23|e45|e45|55||"] = multiply(results["ee11|ee|"], results["ee12|e34|e34|44||"])
+    results["ee11|22|34|445|5|ee|"] = multiply(results["ee11|ee|"], results["ee11|23|334|4|ee|"])
+    results["ee11|23|345|45|e5|e|"] = multiply(results["ee11|ee|"], results["ee12|234|34|e4|e|"])
+    results["ee11|22|34|e55|e55||"] = multiply(results["ee11|ee|"], results["ee11|23|e44|e44||"])
+    results["ee11|23|445|455|e|e|"] = multiply(results["ee11|ee|"], results["ee12|334|344|e|e|"])
+    results["ee11|22|33|45|e55|e|"] = multiply(results["ee11|ee|"], results["ee11|22|34|e44|e|"])
+    results["e112|e2|34|e45|55|e|"] = multiply(results["ee12|e22|e|"], results["ee12|e23|33|e|"])
+    results["e112|e2|33|45|e55|e|"] = multiply(results["ee12|e22|e|"], results["ee11|23|e33|e|"])
+    results["ee11|23|ee4|455|55||"] = multiply(results["ee11|ee|"], results["ee12|ee3|344|44||"])
+    results["ee11|23|e44|555|e5||"] = multiply(results["ee11|ee|"], results["ee12|e33|444|e4||"])
+    results["ee11|23|445|445||ee|"] = multiply(results["ee11|ee|"], results["ee12|334|334||ee|"])
+    results["ee12|223|3|45|e55|e|"] = multiply(results["ee12|e22|e|"], results["ee12|223|3|ee|"])
+    results["ee11|23|334|5|e55|e|"] = multiply(results["ee11|ee|"], results["ee12|223|4|e44|e|"])
+    results["ee11|22|33|44|55|ee|"] = multiply(results["ee11|ee|"], results["ee11|22|33|44|ee|"])
+    results["ee11|23|e34|e5|555||"] = multiply(results["ee11|ee|"], results["ee12|e23|e4|444||"])
+    results["ee11|23|e44|e55|55||"] = multiply(results["ee11|ee|"], results["ee12|e33|e44|44||"])
+    results["ee11|23|344|55|e5|e|"] = multiply(results["ee11|ee|"], results["ee12|233|44|e4|e|"])
+    results["ee12|333|345||e55|e|"] = multiply(results["ee12|e22|e|"], results["ee12|ee3|333||"])
+    results["ee11|22|34|ee5|555||"] = multiply(results["ee11|ee|"], results["ee11|23|ee4|444||"])
+    results["ee11|22|34|e45|55|e|"] = multiply(results["ee11|ee|"], results["ee11|23|e34|44|e|"])
+    results["ee11|23|e44|455|5|e|"] = multiply(results["ee11|ee|"], results["ee12|e33|344|4|e|"])
+    results["ee11|23|444|455||ee|"] = multiply(results["ee11|ee|"], results["ee11|23|ee4|444||"])
+    results["ee11|23|e45|445|5|e|"] = multiply(results["ee11|ee|"], results["ee12|e34|334|4|e|"])
+    results["ee11|23|e34|55|e55||"] = multiply(results["ee11|ee|"], results["ee12|e23|44|e44||"])
+    results["e112|e2|34|e55|e55||"] = multiply(results["ee12|e22|e|"], results["ee12|e33|e33||"])
+    results["ee11|23|e34|45|55|e|"] = multiply(results["ee11|ee|"], results["ee12|e23|34|44|e|"])
+    results["ee11|23|334|4|55|ee|"] = multiply(results["ee11|ee|"], results["ee11|23|334|4|ee|"])
 except:
     pass
 
@@ -118,7 +119,7 @@ def checkIntersection(subGraphs):
 
 
 def calculateKR1term(subGraphs, shrinkedGraph, results, resultsKR1):
-    diag = str(shrinkedGraph)[:-2].replace("|","-")
+    diag = str(shrinkedGraph)[:-2]
     if diag not in results:
         raise ValueError("no result for %s " % diag)
     res = ufloat(results[diag][0][0],results[diag][1][0])
@@ -133,7 +134,7 @@ def calculateKR1term(subGraphs, shrinkedGraph, results, resultsKR1):
 
 
 def KR1(graph, results, resultsKR1):
-    diag = str(graph).replace("|","-")
+    diag = str(graph)
     if diag in resultsKR1:
         return resultsKR1[diag]
 
@@ -179,7 +180,7 @@ maxNLoops = 6
 resultsKR1 = dict()
 print "{"
 for index in results:
-    graph = graphine.Graph.fromStr(index.replace("-","|"))
+    graph = graphine.Graph.fromStr(index)
     if graph.getLoopsCount() > maxNLoops:
         continue
     resultsKR1[str(graph)] = KR1(graph, results, resultsKR1)
@@ -189,6 +190,6 @@ for index in results:
     except ZeroDivisionError:
         err = 0
     print '"%s": \t%s, \t# %s, \t%s \t err_rel: %.3e' % \
-        (str(graph), (res.n,res.s), results[str(graph).replace("|","-")[:-2]][0][0], symmetryCoefficient(graph), err)
+        (str(graph), (res.n,res.s), results[str(graph)[:-2]][0][0], symmetryCoefficient(graph), err)
         #(index, (res.n,res.s), results[str(graph).replace("|","-")[:-2]][0][0], symmetryCoefficient(graph), err)
 print "}"

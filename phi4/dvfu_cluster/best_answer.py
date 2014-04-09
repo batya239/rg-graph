@@ -108,7 +108,7 @@ for dir in dirs:
             spectrum[dir] += [minErr[2]]
         #print ans
         ans = float(sympy.gamma(nloops(dir))/sym_coef(dir))*ans
-        result.update({dir:[[ans.n],[ans.s]]})
+        result.update({dir.replace('-','|'):[[ans.n],[ans.s]]})
         #print  ans
 #print result
 #print "Failed:",failed
