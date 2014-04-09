@@ -11,6 +11,8 @@ KR1File = 'KR1_6loops.out'
 res = eval(open(resFile,'r').read())
 KR1 = eval(open(KR1File,'r').read())
 diagList = map(lambda x: x.split(' ')[0], open('../graphs/phi4/e2-6loop.txt','r').readlines())
+for i in range(len(diagList)):
+    diagList[i] = diagList[i].replace("-","|")
 
 print len(diagList), len(res), len(KR1)
 print diagList[2]

@@ -94,7 +94,8 @@ print
 print "Z2 = ",Z2.pprint()
 print "Z3 = ",Z3.pprint()
 
-n = sympy.var('n')
+if analytic:
+    n = sympy.var('n')
 for k,v in Z2.gSeries.items():
     Z2.gSeries[k] = v/((n+8)/9)**k
     Z2 = simplify(Z2)
