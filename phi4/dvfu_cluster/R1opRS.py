@@ -7,7 +7,6 @@ __author__ = 'mkompan'
 import graphine
 from graphine import filters
 
-import graph_state
 import sys
 
 from uncertainties import ufloat
@@ -130,7 +129,7 @@ def calculateKR1term(subGraphs, shrinkedGraph, results, resultsKR1):
             resultsKR1[str(subGraph)] = KR1(subGraph, results, resultsKR1)
         res *= - resultsKR1[str(subGraph)]
         if DEBUG: print "calculateKR1term: res, err =",res
-    return res.n
+    return res
 
 
 def KR1(graph, results, resultsKR1):
@@ -190,6 +189,6 @@ for index in results:
     except ZeroDivisionError:
         err = 0
     print '"%s": \t%s, \t# %s, \t%s \t err_rel: %.3e' % \
-        (str(graph), (res.n,res.s), results[str(graph)[:-2]][0][0], symmetryCoefficient(graph), err)
+        (str(graph)[:-2], (res.n,res.s), results[str(graph)[:-2]][0][0], symmetryCoefficient(graph), err)
         #(index, (res.n,res.s), results[str(graph).replace("|","-")[:-2]][0][0], symmetryCoefficient(graph), err)
 print "}"
