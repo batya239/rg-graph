@@ -34,6 +34,7 @@ if len(sys.argv) == 4:
     model = eval('dummy_model.%s("dummy")' % modelName)
     graphName = sys.argv[1]
     method = sys.argv[2]
+    model.maxSize=12500
 else:
     print "provide method and model"
     sys.exit(1)
@@ -55,7 +56,7 @@ exec("\n".join(sectorsFileContent))
 dynamics.method_name = method_name
 dynamics.code_ = dynamics.core_pvmpi_code
 
-G = Graph(graphName)
+G = Graph(graphName.replace("-","|"))
 
 C_ = polynomial.poly(map(lambda x: (1, x), C), c=(-1., 0))
 U_ = polynomial.poly(map(lambda x: (1, x), U))

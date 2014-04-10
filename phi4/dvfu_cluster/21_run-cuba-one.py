@@ -26,7 +26,8 @@ else:
 
 curDir = os.getcwd()
 print curDir
-workdir = '/home/kirienko/work/rg-graph/phi_4_d2_s2/6loops/'
+#workdir = '/home/kirienko/work/rg-graph/phi_4_d2_s2/6loops/'
+workdir = '/home/kirienko/work/rg-graph/phi_4_d2_s2/feynmanSDdotSF_mpi/'
 method = 'cuhre'
 os.chdir(os.path.join(workdir,diag))
 for i in range(int(start),int(finish)+1):
@@ -39,10 +40,10 @@ for i in range(int(start),int(finish)+1):
     #cmd = "ssh n%d nohup %s 3 1000000 1e-6 1e-12 > %s &"%(node,bin_file,out)
     #os.system(cmd)
     ## profile 2
-    out = "out_%s_%s_%s_200M_e-10_e-14"%(num,diag,method)
+    out = "out_%s_%s_%s_1B_e-10_e-14"%(num,diag,method)
     print "result will be stored in",out
     bin_file = os.path.join(workdir,diag,"cuba__%s.run"%num)
-    cmd = "ssh n%d nohup %s %s 200000000 1e-10 1e-14 > %s &"%(node,bin_file,method_num(method),out)
+    cmd = "ssh n%d nohup %s %s 1000000000 1e-10 1e-14 > %s &"%(node,bin_file,method_num(method),out)
     os.system(cmd)
     node +=1
 
