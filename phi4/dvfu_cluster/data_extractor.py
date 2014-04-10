@@ -38,6 +38,18 @@ head = "\\documentclass[a4paper]{book}\n \
 tail ="\end{longtable}\n \
     \end{document}"
 
+toSort = []
+for i,diag in enumerate(diagList):
+    r = ufloat(res[diag][0][0],res[diag][1][0])
+    kr = ufloat(KR1[diag])
+    graph = graphine.Graph(graph_state.GraphState.fromStr(diag))
+    graphLoopCount = graph.getLoopsCount()
+    coeff = -(-2. / 3) ** graphLoopCount * symmetryCoefficient(graph)
+    toSort.append([abs(kr.n*coeff),diag])
+
+diagList = [d[1] for d in sorted(toSort,reverse=True)]
+print diagList
+
 f = open(outFile,'w')
 f.write(head)
 for i,diag in enumerate(diagList):
@@ -46,7 +58,6 @@ for i,diag in enumerate(diagList):
     graph = graphine.Graph(graph_state.GraphState.fromStr(diag))
     graphLoopCount = graph.getLoopsCount()
     coeff = -(-2. / 3) ** graphLoopCount * symmetryCoefficient(graph)
-    #print symmetryCoefficient(graph), coeff
     f.write("%d & %s & %s & %s & %f & %s \\\\ \n"%(i+1, diag, r.format('S'),
                        kr.format('S'), symmetryCoefficient(graph), (coeff*kr).format('S') ))
     f.write("\\hline \n")
