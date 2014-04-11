@@ -165,7 +165,7 @@ class ROperation(object):
                     if isinstance(spinney_part, swiginac.numeric) and spinney_part.to_double() == 0:
                         continue
                     ir = forest.delta_ir(spinney, graph, shrunk, self)
-                    ir = symbolic_functions.series(ir, symbolic_functions.e, symbolic_functions.CLN_ZERO, 0, True)
+                    ir = symbolic_functions.series(ir, symbolic_functions.e, symbolic_functions.CLN_ZERO, 0, remove_order=True)
                     assert p2_counts == 0
                     sub = self.k_operation.calculate(spinney_part * ir)
                     krs += sub
@@ -218,7 +218,7 @@ class ROperation(object):
                     kr1 = self.kr_star(graph)
                 else:
                     kr1 = self._do_kr1(graph, force=True, inside_krstar=inside_krstar)[0]
-                r = r1 - symbolic_functions.series(kr1, symbolic_functions.e, symbolic_functions.CLN_ZERO, 0, True)
+                r = r1 - symbolic_functions.series(kr1, symbolic_functions.e, symbolic_functions.CLN_ZERO, 0, remove_order=True)
                 r = r.expand()
                 self.storage.put_graph((graph, force, inside_krstar), r, "r")
                 return r, graph
@@ -261,7 +261,7 @@ class ROperation(object):
                     sign *= symbolic_functions.CLN_MINUS_ONE
                     for comb in itertools.combinations(uv_subgraphs, i):
                         if i == 1 or not graphine.util.has_intersecting_by_vertexes_graphs(comb):
-                            r1 = reduce(lambda _e, g: _e * symbolic_functions.series(c_operation(g, force=force), symbolic_functions.e, symbolic_functions.CLN_ZERO, 0, True), comb, symbolic_functions.CLN_ONE)
+                            r1 = reduce(lambda _e, g: _e * symbolic_functions.series(c_operation(g, force=force), symbolic_functions.e, symbolic_functions.CLN_ZERO, 0, remove_order=True), comb, symbolic_functions.CLN_ONE)
                             shrunk, p2_counts = ROperation.shrink_to_point(graph, comb)
                             value = gfun_calculator.calculate_graph_value(shrunk)
                             if ROperation.DEBUG:
