@@ -16,19 +16,30 @@ import pickle
 
 
 def _preparePolynomials(polynomials):
-    pOne = None
+    if not len(polynomials):
+        return polynomials
+    constValue = 1
+    constExample = None
+    filteredPolynomials = list()
     for p in polynomials:
         if p.isZero():
             return list()
-        elif p.isOne():
-            pOne = p
+        c = p.getIfConstOrNone()
+        if c is not None:
+            if constExample is None:
+                constExample = p
+            else:
+                constValue *= c
+            continue
+        filteredPolynomials.append(p)
 
-    filteredPolynomials = filter(lambda p: not p.isOne(), polynomials)
-
-    if pOne is not None and len(filteredPolynomials) == 0:
-        return [pOne]
-    else:
-        return filteredPolynomials
+    if constExample is not None:
+        if not len(filteredPolynomials):
+            return [constExample * constValue]
+        else:
+            filteredPolynomials[0] *= (constValue * constExample.getIfConstOrNone())
+            return filteredPolynomials
+    return filteredPolynomials
 
 
 EpsExpansionResult = collections.namedtuple("EpsExpansionResult", ["factor", "main_expansion"])

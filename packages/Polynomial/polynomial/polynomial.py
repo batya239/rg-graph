@@ -190,6 +190,15 @@ class Polynomial(object):
                     power = min(power, curPower)
         return 0 if power is None else power * self.degree
 
+    def getIfConstOrNone(self):
+        """
+        return None if polynomials is not const
+        """
+        if not self.c.isRealNumber():
+            return None
+        if self.degree == 0 or len(self.monomials) == 1 and self.monomials.has_key(multiindex.CONST) and self.monomials[multiindex.CONST] == 1:
+            return self.c.a
+
     def isZero(self):
         return self.c == 0
 
