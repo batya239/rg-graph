@@ -18,7 +18,7 @@ def tau_differentiate(g, no_tails=False):
             g1 = g.deleteEdge(edge)
             ins = ([new_vertex, edge.nodes[0]], [new_vertex, edge.nodes[1]])
             if not no_tails:
-                ins += ([new_vertex, g.externalVertex], )
+                ins += ([new_vertex, g.external_vertex], )
             new_edges = map(lambda x: graph_state.Edge(x), ins)
             unreduced += tuple([g1.addEdges(new_edges)])
         return tuple((x, unreduced.count(x)) for x in unreduced if str(x) not in seen and not seen.add(str(x)))
