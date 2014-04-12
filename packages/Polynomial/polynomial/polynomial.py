@@ -196,8 +196,9 @@ class Polynomial(object):
         """
         if not self.c.isRealNumber():
             return None
-        if self.degree == 0 or len(self.monomials) == 1 and self.monomials.has_key(multiindex.CONST) and self.monomials[multiindex.CONST] == 1:
-            return self.c.a
+        if self.degree == 0 or len(self.monomials) == 1 and self.monomials.has_key(multiindex.CONST) and self.degree.isRealNumber():
+            return self.c.a * self.monomials[multiindex.CONST] ** self.degree.a
+        return None
 
     def isZero(self):
         return self.c == 0
