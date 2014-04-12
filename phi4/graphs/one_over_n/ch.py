@@ -82,3 +82,7 @@ if __name__ == "__main__":
 
     print series(I135(1-e, 1-e, 1-e, 1-e, 1-e) -IKaz(-1,-1,-1,-1,-1),e,0,6).expand()
     print series(I135(1-e, 1-2*e, 1-8*e, 1-e, 1-e) -IKaz(-1,-2,-8,-1,-1),e,0,6).expand()
+
+    x = var('x')
+    P = IKaz(0,-1,-1,0,-1+x)
+    print series(P.diff(x).subs(x==0)/e/P.subs(x==0),e,0,3)
