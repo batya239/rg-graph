@@ -5,7 +5,7 @@ __author__ = 'kirienko'
 import graphine, graph_state, math
 from uncertainties import ufloat
 from On_analytic import On
-from sympy import latex
+from sympy import latex, var, simplify
 
 outFile = 'diagTable.tex'
 resFile = 'res_best_6loops.txt'
@@ -51,7 +51,7 @@ head = "\\documentclass[a4paper]{book}\n \
 \\pagestyle{empty} \n \
 \\begin{longtable}{|c|c|l|l|c|l|l|}\n \
 \\hline\n \
- & diag & $N$(diag) & $KR'$(diag) & sym.c. & final & O(n)\\\\ \n \
+ & diag & $N$(diag) & $KR'$(diag) & sym.c. & final & $3^6\\times O(n)/(n+2)$\\\\ \n \
 \\hline \n"
 
 tail ="\end{longtable}\n \
@@ -73,6 +73,7 @@ print diagList
 
 f = open(outFile,'w')
 f.write(head)
+n = var('n')
 for i,diag in enumerate(diagList):
     r = ufloat(res[diag][0][0],res[diag][1][0])
     kr = ufloat(KR1[diag])
@@ -82,10 +83,10 @@ for i,diag in enumerate(diagList):
     coeff = -(-2. / 3) ** graphLoopCount * C[0] / C[1]
     if C[0] != C[1]:
         f.write("%d & %s & %s & %s & %d/%d & %s & $%s$ \\\\ \n"%(i+1, diag, r.format('S'),
-                       kr.format('S'), C[0], C[1], (coeff*kr).format('S'), latex(On(graph,1))))
+                       kr.format('S'), C[0], C[1], (coeff*kr).format('S'), latex(simplify(3**6*On(graph,1)/(n+2))) ))
     else:
         f.write("%d & %s & %s & %s & 1 & %s & $%s$  \\\\ \n"%(i+1, diag, r.format('S'),
-                       kr.format('S'), (coeff*kr).format('S'), latex(On(graph,1)) ))
+                       kr.format('S'), (coeff*kr).format('S'), latex(simplify(3**6*On(graph,1)/(n+2))) ))
     f.write("\\hline \n")
 f.write(tail)
 f.close()
