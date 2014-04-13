@@ -103,11 +103,7 @@ class NumEpsExpansion():
 
     def __mul__(self, other):
         res = dict()
-        if isinstance(other, float) or isinstance(other, int):
-            for k in self.keys():
-                res[k] = self[k] * float(other)
-            return NumEpsExpansion(res, precise=self._precise)
-        elif isinstance(other, NumEpsExpansion):
+        if isinstance(other, NumEpsExpansion):
             result_precise = self._precise and other._precise
             if result_precise:
                 for k1 in self.keys():
@@ -129,6 +125,10 @@ class NumEpsExpansion():
                         if k1 + k2 in res.keys():
                             res[k1 + k2] += self[k1] * other[k2]
             return NumEpsExpansion(res, precise=result_precise)
+        else:
+            for k in self.keys():
+                res[k] = self[k] * other
+            return NumEpsExpansion(res, precise=self._precise)
 
     def __rmul__(self, other):
         return self.__mul__(other)

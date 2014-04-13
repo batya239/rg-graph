@@ -38,8 +38,8 @@ class RPrimeTermFactor:
 
 def shrinking_groups(graph, PHI_EXPONENT):
     def intersect(graph1, graph2):
-        return bool(graph1.vertices().difference({graph1.externalVertex, }).
-                    intersection(graph2.vertices().difference({graph2.externalVertex, })))
+        return bool(graph1.vertices().difference({graph1.external_vertex, }).
+                    intersection(graph2.vertices().difference({graph2.external_vertex, })))
 
     def update_groupings(group, subgraphs):
         result = []
@@ -73,7 +73,7 @@ def gen_cts(graph, exclusion_groups, PHI_EXPONENT, momentum_derivative=False):
     """
     """
     def shrink_to_nothing(g, sg):
-        border_vertices = filter(lambda x: not x == sg.externalVertex,
+        border_vertices = filter(lambda x: not x == sg.external_vertex,
                                  sum([list(e.nodes) for e in sg.externalEdges()], []))
         border_edges = filter(lambda x: x not in sg.allEdges() and x in g.internalEdges(),
                               sum([g.edges(v) for v in border_vertices], []))
@@ -109,10 +109,10 @@ def gen_cts(graph, exclusion_groups, PHI_EXPONENT, momentum_derivative=False):
                      term[1][-1].shrinkToPoint(sg.internalEdges())]), ]
 
     def update_tails(graph, valency):
-        vs = graph.vertices() - {graph.externalVertex}
+        vs = graph.vertices() - {graph.external_vertex}
         for v in vs:
             while len(graph.edges(v)) < valency:
-                graph = graphine.Graph(graph.allEdges() + [graph_state.Edge((v, graph.externalVertex))],
+                graph = graphine.Graph(graph.allEdges() + [graph_state.Edge((v, graph.external_vertex))],
                                        renumbering=False)
         return graph
 
