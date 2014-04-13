@@ -141,7 +141,9 @@ def D_p2(graph):
     assert len(graph.edges(graph.external_vertex)) == 2
     minimal_passing = graphine.util.find_shortest_momentum_flow(graph)
     graph, minimal_passing = construct_graph_with_markers(graph, minimal_passing)
-    return dict(reduce(lambda r, comb: r + _do_diff(graph, comb), itertools.combinations_with_replacement(minimal_passing, 2), list()))
+#    return dict(reduce(lambda r, comb: r + _do_diff(graph, comb), itertools.combinations_with_replacement(minimal_passing, 2), list()))
+    #return dict(_do_diff(graph, minimal_passing[:2]))
+    return dict(_do_diff(graph, [minimal_passing[1], minimal_passing[1]]))
 
 
 def D_i_omega(graph):

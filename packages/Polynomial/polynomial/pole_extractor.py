@@ -127,11 +127,12 @@ def _ac_part(poly_prod, var_info, order):
 
 def tail_part(poly_prod, var_info):
     stretch_var_name = "t%d" % var_info.var_index
+    poly_prod = poly_prod.stretch(stretch_var_name, (var_info.var_index,))
     stretched_diff = poly_prod.diff(stretch_var_name, var_info.a)
-    stretched_diff = map(lambda _pp: _pp.stretch(stretch_var_name, (var_info.var_index,)), stretched_diff)
+    # stretched_diff = map(lambda _pp: _pp.stretch(stretch_var_name, (var_info.var_index,)), stretched_diff)
     a_ = var_info.a - 1
     main_part = \
-        map(lambda _pp: _pp * _var_in_power(var_info.var_index, eps_number.epsNumber((0, var_info.b))),
+        map(lambda _pp: _pp * _var_in_power(var_info.var_index, eps_number.epsNumber((-var_info.a, var_info.b))),
             stretched_diff)
     if a_ == 0:
         return main_part

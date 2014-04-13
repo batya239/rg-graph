@@ -190,8 +190,9 @@ class GGraphReducer(object):
             subGraph = graphine.Graph(adjusted_sub_graph[0],
                                       external_vertex=self._init_graph.external_vertex)
             preprocessed = (adjusted_sub_graph[1], subGraph, adjusted_sub_graph[2])
-            if inject.instance(storage.StoragesHolder).get_graph(subGraph, 'value'):
-                res = self._do_iterate(preprocessed)
+            v = inject.instance(storage.StoragesHolder).get_graph(subGraph, 'value')
+            if v:
+                res = self._do_iterate(preprocessed, v)
                 if res is not None:
                     return res
             else:
@@ -213,7 +214,7 @@ class GGraphReducer(object):
             if can_calculate:
                 result = inject.instance(graph_calculator.GraphCalculatorManager).try_calculate(preprocessed[1], put_value_to_storage=True)
                 if result is not None:
-                    res = self._do_iterate(preprocessed)
+                    res = self._do_iterate(preprocessed, result[0])
                     if res is not None:
                         return res
                 else:
@@ -225,10 +226,10 @@ class GGraphReducer(object):
                     pass
                     # print "cant through calculator2", preprocessed[1], preprocessed[1].getLoopsCount(), last_iteration
 
-    def _do_iterate(self, sub_graph_info):
+    def _do_iterate(self, sub_graph_info, iter_sub_graph_value):
         assert len(sub_graph_info[2]) == 2, sub_graph_info[2]
         new_iteration = self.get_current_iteration_graph()
-        iter_sub_graph_value = inject.instance(storage.StoragesHolder).get_graph(sub_graph_info[1], "value")
+        # iter_sub_graph_value = inject.instance(storage.StoragesHolder).get_graph(sub_graph_info[1], "value")
 
         new_used_arrows = copy.copy(self._used_arrows)
         for a in self._used_arrows:

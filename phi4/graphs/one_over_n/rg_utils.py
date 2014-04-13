@@ -6,7 +6,7 @@ __author__ = 'mkompan'
 
 from graph_state_builder_static import gs_builder
 import swiginac
-from rggraphenv.symbolic_functions import safe_integer_numerators_strong, e, zeta, var, Pi, series, tgamma
+from rggraphenv.symbolic_functions import safe_integer_numerators_strong, e, zeta, var, Pi, series, tgamma, Order, p
 
 from ch import H
 psi = swiginac.psi
@@ -64,9 +64,9 @@ def renormalization_constants(diagrams_dict, structures_dict):
         gs = gs_builder.graph_state_from_str(gs_string)
         graph = graphine.Graph(gs)
         if graph.externalEdgesCount() == 2:
-
+            value = series(eval(safe_integer_numerators_strong(diagrams_dict[gs_string])),e,0,0, remove_order=True).subs(p==1)
             Z1 += symmetry_coefficient(gs) \
-                  * eval(safe_integer_numerators_strong(diagrams_dict[gs_string])) \
+                  * value \
                   * eval(safe_integer_numerators_strong(structures_dict[gs_string])) \
                   * (-g) ** graph.getLoopsCount()
         elif graph.externalEdgesCount() == 4:
@@ -115,19 +115,28 @@ def DD(z, d=4-2*e):
 def I(e):
     I1 = var('I1')
     I2 = var('I2')
-    return I1*e+I2*e**2
+    return (I1*e+I2*e**2).subs(I1==-5*zeta(5)/2/zeta(3))
 
 
 if __name__ == "__main__":
     n = var('n')
-    loops2 = 5
+    loops2 = 6
     loops4 = 5
     from MS5loop import ms
+    from MS6loop import ms6
+    ms.update(ms6)
+    if 'e123|234|45|45|5|e|' not in ms:
+        x1, x2, x3, x4 = var('x1 x2 x3 x4')
+        ms['e123|234|45|45|5|e|'] = 'x2/e/e+x1/e'
+        ms['e123|234|45|45|5|e|'] = '5*zeta(5)/3/e/e+x1/e'
+        ms['e123|234|45|45|5|e|'] = '5*zeta(5)/3/e/e+(zeta(3)**2/6-25*zeta(6)/12)/e'
+    print ms['e123|234|45|45|5|e|']
     from On_structures_6loop import on
     from ri import ri
 
     g = var('g')
     Z1, Z3 = renormalization_constants(ms, on)
+#    print Z1
     Z1 = series(Z1.expand().collect(g), g, 0, loops2 + 1)
     Z3 = series(Z3.expand().collect(g), g, 0, loops4 + 1)
 #    print Z1
@@ -146,6 +155,7 @@ if __name__ == "__main__":
 
     print "\nbeta (n=1)= ", substitute_r(beta, ri).subs(n == 1).evalf().expand()
     print "\n2*gamma_f (n=1)= ", substitute_r(2*gamma_f, ri).subs(n == 1).evalf().expand()
+    print "\n2*gamma_f (n=1)= ", substitute_r(2*gamma_f, ri).subs(n == 1).expand()
 
     gstar = calculate_gstar(substitute_r(beta, ri), loops4)
     print
@@ -154,7 +164,7 @@ if __name__ == "__main__":
     print gstar.subs(n == 1)
 
 
-    eta = series(2*substitute_r(gamma_f, ri).subs(g == gstar), e, 0, loops2+1, remove_order=True)
+    eta = series(2*substitute_r(gamma_f, ri).subs(g == gstar).expand(), e, 0, loops2+1, remove_order=True)
 
     print "eta"
     print eta.subs(n == 1).subs(e == e/2).evalf()
@@ -165,12 +175,18 @@ if __name__ == "__main__":
     eta_n = series(eta.subs(n == 1/x).expand(), x, 0, 4, remove_order=True).expand().collect(x)
     print eta_n
 
+    print
+    print
+    print
+    print "-----------------------------------------------------"
+    print
+    print
+
     d = 4-2*e
     eta1 = -4 * H(2-d/2, d/2-2, d/2-1)/tgamma(d/2+1)
 #    print eta1
     eta1_ = series(eta1, e, 0, 7,remove_order=True).expand()
 
-    print
     print eta1_
     print eta1_-eta_n.coeff(x,1)
 
@@ -203,10 +219,12 @@ if __name__ == "__main__":
                                               + B*B*(20-50/b+32/b/b)
                                               + S3*(-45-10*mu+7*mu+127/b-64/b/b-48/b/b/b+32/b/b/b/b)
                                               + S4*(14+8*mu+8*mu**2-30/b)
-                                              + B*S3*(-45-13*mu-2*mu**2+136/b - 108/b/b+32/b/b/b) ) )
+                                              + B*S3*(-45-13*mu-2*mu**2+136/b - 108/b/b+32/b/b/b)))
     eta3_ = series(eta3, e, 0, 7,remove_order=True).expand()
 
     print
     print eta3_
-    print (eta3_-eta_n.coeff(x,3)).collect(e)
-    print (eta3_-eta_n.coeff(x,3)).collect(e).subs(e==e/2).expand()
+    print eta3_.subs(e==e/2).collect(e)
+    print (eta3_-eta_n.coeff(x, 3)).collect(e)
+    print
+    print (eta3_-eta_n.coeff(x, 3)).collect(e).subs(e==e/2).expand()

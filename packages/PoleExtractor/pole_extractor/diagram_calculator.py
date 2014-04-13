@@ -89,7 +89,7 @@ def calculate_diagram(label, theory, max_eps, zero_momenta=True, force_update=Fa
 
     verbose = True
     log = True
-    update = False
+    update = True
 
     begin = datetime.datetime.now()
 
