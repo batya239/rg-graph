@@ -317,7 +317,7 @@ def parallel_cuba_calculate(expansion, parallel_processes=10, alg='Vegas'):
         f.close()
 
         #compiling external C program
-        cmpl = 'gcc -Wall -I ' + wd + ' -o ' + bin_name + ' ' + src_name + ' -lm -lcuba'
+        cmpl = 'gcc -Wall -I ' + wd + ' -o ' + bin_name + ' ' + src_name + ' -L/usr/local/lib -lm -lcuba'
         subprocess.Popen([cmpl], shell=True, stderr=subprocess.PIPE).communicate()
 
         #running external C program
