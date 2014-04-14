@@ -8,13 +8,15 @@ import common
 DEBUG = True
 chunkSize = 2 ## <-- number of func-s in one exec
 
+if DEBUG: print "Debug mode ON\nchunkSize = %d\n"%chunkSize
+
 config = common.load_config()
 
 listdir = os.listdir('.')
 
 pat = re.compile('.*func.*c$')
 obj_src = [i for i in listdir if pat.match(i)]
-
+if DEBUG: print("DEBUG: obj_src =", obj_src)
 name = obj_src[0].split('_func_')[0]
 
 ### compile object files
@@ -28,10 +30,10 @@ objs = [s[:-1] + 'o' for s in obj_src]
 func = set()
 for i in obj_src:
     func.add(tuple(i[:-2].split('V')[1].split('_E')))
-if DEBUG: print "func =",func
+if DEBUG: print "DEBUG: func =",func
 
 headers = [s[:-1] + 'h' for s in obj_src]
-if DEBUG: print "headers =",headers
+if DEBUG: print "DEBUG: headers =",headers
 
 env = Environment(  LIBS=['m','pvegas'], 
                     LIBPATH=config.pvegasLIBPATHs, CPPPATH=config.pvegasCPPPATHs,
@@ -39,6 +41,7 @@ env = Environment(  LIBS=['m','pvegas'],
                     platform='posix',ENV=os.environ) 
 
 for e in func:
+    counter = 0 ## <-- counts func-s in one exec
     curName = "V%s_E%s." % (e[0], e[1])
     includes, functions = "", ""
 
@@ -47,8 +50,8 @@ for e in func:
             functions += "f[0] += func_t_%s(k);\n" % fileName.split('_')[2]
             includes += "#include \"%s\"\n" % fileName
     region = ("0," * int(e[0]) + "1," * int(e[0]))[:-1]
-    pvegasFile = name + "_0_" + curName + "c"
-    if DEBUG: print "pvegasFile =", pvegasFile
+    pvegasFile = name + "_%d_"%counter + curName + "c"
+    if DEBUG: print "DEBUG: pvegasFile =", pvegasFile
     f = open(pvegasFile, 'w')
     f.write('#define DIMENSION %s' % e[0])
     f.write(corePvegasCodeTemplate.format(
@@ -56,6 +59,6 @@ for e in func:
         includes=includes,
         functions=functions))
     f.close()
-    targetName = pvegasFile[:-2]+".run" 
+    targetName = pvegasFile[:-2]+".run"
     obj = [o for o in objs if 'V%s_E%s.'%e in o ]
-    env.Program(target = targetName, source = [pvegasFile]+obj)
+    #env.Program(target = targetName, source = [pvegasFile]+obj)
