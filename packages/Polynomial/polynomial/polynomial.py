@@ -93,6 +93,8 @@ class Polynomial(object):
             return None
         if self.degree != other_polynomial.degree:
             return None
+        if self.c == other_polynomial.c:
+            return 1
         return self.c / other_polynomial.c
 
     def changeVarToPolynomial(self, varIndex, polynomial):
@@ -339,6 +341,12 @@ class Polynomial(object):
 
     def __repr__(self):
         return formatter.format(self)
+
+    def __pow__(self, power, modulo=None):
+        assert modulo is None
+        assert power == -1
+        assert self.c.isRealNumber()
+        return Polynomial(self.monomials, degree=-self.degree, c=1./self.c.a, doPrepare=False)
 
 
 class MonomialsWithHash(object):
