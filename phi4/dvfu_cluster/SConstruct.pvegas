@@ -5,9 +5,10 @@ import imp
 from pvegasCodeTemplate import *
 import common
 
-DEBUG = True
-chunkSize = 2 ## <-- number of func-s in one exec
+DEBUG = False
+chunkSize = 100 ## <-- number of func-s in one exec
 
+if DEBUG: print "***"*10
 if DEBUG: print "Debug mode ON\nchunkSize = %d\n"%chunkSize
 
 config = common.load_config()
@@ -16,7 +17,7 @@ listdir = os.listdir('.')
 
 pat = re.compile('.*func.*c$')
 obj_src = [i for i in listdir if pat.match(i)]
-if DEBUG: print("DEBUG: obj_src =", obj_src)
+#if DEBUG: print("DEBUG: obj_src =", obj_src)
 name = obj_src[0].split('_func_')[0]
 
 ### compile object files
@@ -24,16 +25,16 @@ for src in obj_src:
     Object(src)
 
 ### list of *.o-files
-objs = [s[:-1] + 'o' for s in obj_src]
+#objs = [s[:-1] + 'o' for s in obj_src]
 
 ## find all possible groups
 func = set()
 for i in obj_src:
     func.add(tuple(i[:-2].split('V')[1].split('_E')))
-if DEBUG: print "DEBUG: func =",func
+#if DEBUG: print "DEBUG: func =",func
 
 headers = [s[:-1] + 'h' for s in obj_src]
-if DEBUG: print "DEBUG: headers =",headers
+#if DEBUG: print "DEBUG: headers =",headers
 
 env = Environment(  LIBS=['m','pvegas'], 
                     LIBPATH=config.pvegasLIBPATHs, CPPPATH=config.pvegasCPPPATHs,
@@ -41,24 +42,29 @@ env = Environment(  LIBS=['m','pvegas'],
                     platform='posix',ENV=os.environ) 
 
 for e in func:
-    counter = 0 ## <-- counts func-s in one exec
     curName = "V%s_E%s." % (e[0], e[1])
-    includes, functions = "", ""
-
-    for i, fileName in enumerate(headers):
-        if curName in fileName:
-            functions += "f[0] += func_t_%s(k);\n" % fileName.split('_')[2]
-            includes += "#include \"%s\"\n" % fileName
     region = ("0," * int(e[0]) + "1," * int(e[0]))[:-1]
-    pvegasFile = name + "_%d_"%counter + curName + "c"
-    if DEBUG: print "DEBUG: pvegasFile =", pvegasFile
-    f = open(pvegasFile, 'w')
-    f.write('#define DIMENSION %s' % e[0])
-    f.write(corePvegasCodeTemplate.format(
-        region=region,
-        includes=includes,
-        functions=functions))
-    f.close()
-    targetName = pvegasFile[:-2]+".run"
-    obj = [o for o in objs if 'V%s_E%s.'%e in o ]
-    #env.Program(target = targetName, source = [pvegasFile]+obj)
+    thisFuncList = sorted([f for f in headers if curName in f])
+    maxNumOfExecs = int(len(thisFuncList)/chunkSize)
+    if len(thisFuncList) > maxNumOfExecs * chunkSize:
+        maxNumOfExecs += 1
+
+    includes, functions = [""]*maxNumOfExecs, [""]*maxNumOfExecs
+    objs = [[] for i in range(maxNumOfExecs)]
+    for i, fileName in enumerate(thisFuncList):
+        functions[int(i/chunkSize)] += "f[0] += func_t_%s(k);\n" % fileName.split('_')[2]
+        includes[int(i/chunkSize)] += "#include \"%s\"\n" % fileName
+        objs[int(i/chunkSize)] += [fileName[:-2]+".o"]
+
+    for i in range(maxNumOfExecs):
+        pvegasFile = name + "_%d_"%i + curName + "c"
+        if DEBUG: print "DEBUG: pvegasFile =", pvegasFile
+        f = open(pvegasFile, 'w')
+        f.write('#define DIMENSION %s' % e[0])
+        f.write(corePvegasCodeTemplate.format(
+            region=region,
+            includes=includes[i],
+            functions=functions[i]))
+        f.close()
+        targetName = pvegasFile[:-2]+".run"
+        env.Program(target = targetName, source = [pvegasFile]+objs[i])

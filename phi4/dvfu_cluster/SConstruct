@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import os, re
 from cubaCodeTemplate import *
 from string import zfill
