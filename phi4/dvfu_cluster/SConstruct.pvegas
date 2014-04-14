@@ -5,6 +5,9 @@ import imp
 from pvegasCodeTemplate import *
 import common
 
+DEBUG = True
+chunkSize = 2 ## <-- number of func-s in one exec
+
 config = common.load_config()
 
 listdir = os.listdir('.')
@@ -25,9 +28,10 @@ objs = [s[:-1] + 'o' for s in obj_src]
 func = set()
 for i in obj_src:
     func.add(tuple(i[:-2].split('V')[1].split('_E')))
-print func
+if DEBUG: print "func =",func
 
 headers = [s[:-1] + 'h' for s in obj_src]
+if DEBUG: print "headers =",headers
 
 env = Environment(  LIBS=['m','pvegas'], 
                     LIBPATH=config.pvegasLIBPATHs, CPPPATH=config.pvegasCPPPATHs,
@@ -44,6 +48,7 @@ for e in func:
             includes += "#include \"%s\"\n" % fileName
     region = ("0," * int(e[0]) + "1," * int(e[0]))[:-1]
     pvegasFile = name + "_0_" + curName + "c"
+    if DEBUG: print "pvegasFile =", pvegasFile
     f = open(pvegasFile, 'w')
     f.write('#define DIMENSION %s' % e[0])
     f.write(corePvegasCodeTemplate.format(
