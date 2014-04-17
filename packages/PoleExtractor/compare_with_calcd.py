@@ -12,7 +12,8 @@ for diag in need_p0:
                                                   theory=3,
                                                   max_eps=3,
                                                   zero_momenta=True,
-                                                  force_update=False)
+                                                  force_update=False,
+                                                  num_alg='Suave')
         d2 = diagram_calculator.get_expansion(diag[0], rprime=False, momentum_derivative=False)
         print '#####\n' + str(d1)
         print d2
@@ -24,7 +25,8 @@ for diag in need_p2:
                                                   theory=3,
                                                   max_eps=3,
                                                   zero_momenta=False,
-                                                  force_update=False)
+                                                  force_update=False,
+                                                  num_alg='Suave')
         d2 = diagram_calculator.get_expansion(diag[0], rprime=False, momentum_derivative=True)
         print '#####\n' + str(d1)
         print d2

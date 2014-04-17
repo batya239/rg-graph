@@ -285,7 +285,7 @@ class TestVacuumLoopsPhi3(unittest.TestCase):
         vl *= numcalc.NumEpsExpansion(exp={0: [-3.0, 0.0], 1: [4.0, 0.0]}, precise=True)
         vl *= numcalc.NumEpsExpansion(exp={0: [-2.0, 0.0], 1: [4.0, 0.0]}, precise=True)
 
-        #self.assertEqual(vl.cut(1), d2.cut(1))
+        self.assertEqual(vl.cut(1), d2.cut(1))
 
         vl *= numcalc.NumEpsExpansion(exp={0: [-1.0, 0.0], 1: [4.0, 0.0]}, precise=True)
 
