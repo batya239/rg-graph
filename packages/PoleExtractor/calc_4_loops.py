@@ -1,7 +1,6 @@
 __author__ = 'gleb'
 
-from pole_extractor import diagram_calculator
-from pole_extractor import utils
+from pole_extractor import diagram_calculator, utils
 
 # calculating via 2-, 3-tailed diagrams
 # first check that we have all base diagrams we need
@@ -21,6 +20,7 @@ for i, (d, c) in enumerate(need_p0):
                                              max_eps=-1,
                                              zero_momenta=True,
                                              force_update=False)
+        #print (d, diagram_calculator.get_expansion(d, rprime=False, momentum_derivative=False).to_base_dict())
 
 for i, (d, c) in enumerate(need_p2):
     #v = diagram_calculator.get_expansion(d, False, True)[-1]
@@ -32,6 +32,7 @@ for i, (d, c) in enumerate(need_p2):
                                              max_eps=-1,
                                              zero_momenta=False,
                                              force_update=False)
+        #print (d, diagram_calculator.get_expansion(d, rprime=False, momentum_derivative=True).to_base_dict())
 
 for diag in need_p0:
     diagram_calculator.calculate_rprime(diag[0],

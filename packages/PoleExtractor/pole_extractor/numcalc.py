@@ -182,6 +182,12 @@ class NumEpsExpansion():
                     result_base[k] = e2[k]
         return NumEpsExpansion(exp=result_base)
 
+    def to_base_dict(self):
+        result = {}
+        for k in self.keys():
+            result[k] = (self[k].n, self[k].s)
+        return result
+
 
 def get_gamma(a, b, max_index):
     """

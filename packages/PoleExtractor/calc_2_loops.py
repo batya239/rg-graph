@@ -1,7 +1,6 @@
 __author__ = 'gleb'
 
-from pole_extractor import diagram_calculator
-from pole_extractor import utils
+from pole_extractor import diagram_calculator, utils
 
 CLEAR = False
 

@@ -1,7 +1,6 @@
 __author__ = 'gleb'
 
-from pole_extractor import diagram_calculator
-from pole_extractor import numcalc
+from pole_extractor import diagram_calculator, numcalc
 import graphine
 
 # setting up all 1-loop expansions that
