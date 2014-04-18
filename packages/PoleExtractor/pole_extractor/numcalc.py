@@ -256,15 +256,15 @@ def str_for_cuba(expansion):
     return result
 
 
-def cuba_calculate(expansion, parallel_processes=20, header_size=1000, adaptive=True):
+def cuba_calculate(expansion, parallel_processes=8, header_size=10000, adaptive=True):
     """
     :param expansion:
     :param parallel_processes:
     :param adaptive:
     :return:
     So the rules are as follows:
-    1. In dir ~/.pole_extractor there already are files integrate.c, integrate_cuhre.c, integrate_divonne.c,
-    integrate_suave.c for every numeric integration algorithm.
+    1. In dir ~/.pole_extractor there already are files integrate.c, integrate_suave.c for simple and adaptive
+    numeric integration algorithms.
     2. Function creates folder ~/.pole_extractor/int%PID% where %PID% is current process ID. Everything will be done
     inside this folder.
     3. ???

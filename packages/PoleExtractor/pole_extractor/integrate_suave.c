@@ -21,12 +21,12 @@
 #define NCOMP 1
 #define USERDATA NULL
 #define NVEC 1
-#define EPSREL 1e-6
+#define EPSREL 1e-3
 #define EPSABS 1e-12
 #define LAST 4
 #define SEED 0
 #define MINEVAL 10
-#define MAXEVAL 1E4
+#define MAXEVAL 1E6
 
 #define NSTART 1000
 #define NINCREASE 500
