@@ -274,7 +274,7 @@ class PolynomialProduct(object):
                 n_polynomials = copy.copy(self.polynomials)
                 n_polynomials.remove(p)
                 return PolynomialProduct(n_polynomials) * proportionality_c
-        raise NotImplementedError()
+        return self * other ** (-1)
 
     def __len__(self):
         return len(self.polynomials)

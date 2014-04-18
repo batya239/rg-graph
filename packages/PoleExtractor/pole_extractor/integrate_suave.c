@@ -26,7 +26,7 @@
 #define LAST 4
 #define SEED 0
 #define MINEVAL 10
-#define MAXEVAL 1E6
+#define MAXEVAL 1E4
 
 #define NSTART 1000
 #define NINCREASE 500
@@ -63,8 +63,6 @@ int main()
     
     if (NDIM > 1)
     {
-
-
         Suave(NDIM, NCOMP, Integrand, USERDATA, NVEC, EPSREL, EPSABS,
               verbose | LAST, SEED, MINEVAL, MAXEVAL, NNEW, FLATNESS, STATEFILE,
               &nregions, &neval, &fail, integral, error, prob);

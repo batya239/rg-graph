@@ -30,10 +30,10 @@ for i, (d, c) in enumerate(need_p0):
                                              zero_momenta=True,
                                              force_update=False)
 
-
 for i, (d, c) in enumerate(need_p2):
     #v = diagram_calculator.get_expansion(d, False, True)[-1]
     #if abs(v.s) / abs(v.n) > 1E-3:
+    if i >= 9:
         print '(' + str(i + 1) + '/' + str(len(need_p2)) + ')'
         diagram_calculator.calculate_diagram(label=d,
                                              theory=3,

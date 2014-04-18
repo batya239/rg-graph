@@ -2,7 +2,7 @@
 # -*- coding: utf8
 from string import find
 import unittest
-from multiindex import MultiIndex
+from multiindex import MultiIndex, CONST
 from polynomial import Polynomial, poly
 from framework.framework import PolynomialToolsTestCase
 from polynomial_product import PolynomialProduct
@@ -29,6 +29,10 @@ VARS = [1, 2, 3, 4, 5, 'eps']
 
 
 class PolynomialProductTestCase(PolynomialToolsTestCase):
+    def testDiv(self):
+        self.assertEqual(pp / p1, p2.toPolyProd())
+        self.assertEqual(((p1.toPolyProd() * 3) / Polynomial({CONST: 1}, 0, 3)), p1.toPolyProd())
+
     def testNoneEq(self):
         self.assertFalse(p1 is None)
 

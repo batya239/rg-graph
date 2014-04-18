@@ -72,15 +72,15 @@ gamma3_3 = Z3_3[-1] * (-6.0)
 
 # four loops:
 
-g2_4 = utils.get_diagrams(2, 4)
+#g2_4 = utils.get_diagrams(2, 4)
 g3_4 = utils.get_diagrams(3, 4)
 
-Z1_4 = numcalc.NumEpsExpansion(exp={}, precise=True)
-l = len(g2_4)
-for i, (g, c) in enumerate(g2_4):
-    Z1_4 += diagram_calculator.get_expansion(g, rprime=True, momentum_derivative=True).cut(0) * c
-    print '\rGetting 2-tailed w 4 loops: ' + str(i + 1) + ' of ' + str(l),
-gamma1_4 = Z1_4[-1] * (-8.0)
+#Z1_4 = numcalc.NumEpsExpansion(exp={}, precise=True)
+#l = len(g2_4)
+#for i, (g, c) in enumerate(g2_4):
+#    Z1_4 += diagram_calculator.get_expansion(g, rprime=True, momentum_derivative=True).cut(0) * c
+#    print '\rGetting 2-tailed w 4 loops: ' + str(i + 1) + ' of ' + str(l),
+#gamma1_4 = Z1_4[-1] * (-8.0)
 
 Z3_4 = numcalc.NumEpsExpansion(exp={}, precise=True)
 l = len(g3_4)
@@ -88,14 +88,15 @@ for i, (g, c) in enumerate(g3_4):
     Z3_4 += diagram_calculator.get_expansion(g, rprime=True, momentum_derivative=False).cut(0) * (-c)
     print '\rGetting 3-tailed w 4 loops: ' + str(i + 1) + ' of ' + str(l),
 gamma3_4 = Z3_4[-1] * (-8.0)
-print '\r',
 
-print 'Z1 = ' + str(Z1_0) + ' + u * (' + str(Z1_1) + ') + u^2 * (' + str(Z1_2) + ') + u^3 * (' + str(Z1_3) + \
-      ') + u^4 * (' + str(Z1_4) + ')'
+
+print '\r',
+print 'Z1 = ' + str(Z1_0) + ' + u * (' + str(Z1_1) + ') + u^2 * (' + str(Z1_2) + ') + u^3 * (' + str(Z1_3) #+ \
+#      ') + u^4 * (' + str(Z1_4) + ')'
 print 'Z3 = ' + str(Z3_0) + ' + u * (' + str(Z3_1) + ') + u^2 * (' + str(Z3_2) + ') + u^3 * (' + str(Z3_3) + \
       ') + u^4 * (' + str(Z3_4) + ')'
 print '### Z2 = Z3, Z4 = 1 - Z3, Z0 = Z3 - 1 + u * eps^(-1)[0.5] ###\n'
-
+"""
 print 'gamma1 = u^(1)[' + str(gamma1_1) + '] + u^(2)[' + str(gamma1_2) + '] + u^(3)[' + str(gamma1_3) + \
       '] + u^(4)[' + str(gamma1_4) + ']'
 print 'gamma3 = u^(1)[' + str(gamma3_1) + '] + u^(2)[' + str(gamma3_2) + '] + u^(3)[' + str(gamma3_3) + \
@@ -125,3 +126,4 @@ ita1 = u_star * gamma1_1 + (u_star**2) * gamma1_2 + (u_star**3) * gamma1_3 + (u_
 
 print '\n### u* : beta_u(u*) == 0 ###\nu* = ' + str(u_star) + '\ngamma3(u*) = ' + str(ita) + \
       '\ngamma1(u*) = ' + str(ita1)
+"""

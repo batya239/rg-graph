@@ -10,7 +10,7 @@ import itertools
 import uncertainties
 import shutil
 import multiprocessing
-import time
+import sys
 
 
 class NumEpsExpansion():
@@ -256,11 +256,108 @@ def str_for_cuba(expansion):
     return result
 
 
-def cuba_calculate(expansion):
+def cuba_calculate(expansion, parallel_processes=20, header_size=1000, adaptive=True):
     """
     :param expansion:
+    :param parallel_processes:
+    :param adaptive:
     :return:
+    So the rules are as follows:
+    1. In dir ~/.pole_extractor there already are files integrate.c, integrate_cuhre.c, integrate_divonne.c,
+    integrate_suave.c for every numeric integration algorithm.
+    2. Function creates folder ~/.pole_extractor/int%PID% where %PID% is current process ID. Everything will be done
+    inside this folder.
+    3. ???
+    4. Profit.
     """
+    def run_integration(src_name, h_name, bin_name, integrand, k, result):
+        f = open(h_name, 'w')
+        header_str = str_for_cuba(integrand)
+        f.write(header_str)
+        f.close()
+
+        #compiling external C program
+        cmpl = 'gcc -Wall -I ' + wd + ' -o ' + bin_name + ' ' + src_name + ' -L/usr/local/lib -lm -lcuba'
+        subprocess.Popen([cmpl], shell=True, stderr=subprocess.PIPE).communicate()
+
+        #running external C program
+        integrate = subprocess.Popen([bin_name], env={'CUBAVERBOSE': '0'}, shell=True, stdout=subprocess.PIPE,
+                                     stderr=subprocess.PIPE)
+
+        out, err = integrate.communicate()
+        result.put((k, (out, err)))
+
+    wd = os.path.expanduser("~") + '/.pole_extractor'
+    int_wd = wd + '/jobs_' + str(os.getpid())
+    os.mkdir(int_wd)
+
+    source = wd + '/'
+
+    if adaptive:
+        source += 'integrate_suave.c'
+    else:
+        source += 'integrate.c'
+
+    result = dict()
+
+    sub_folder_names = []
+    sources = []
+    headers = []
+    binaries = []
+    jobs = []
+    integration_results = multiprocessing.Queue()
+
+    for k in expansion.keys():
+        result[k] = uncertainties.ufloat(0.0, 0.0)
+        start = 0
+        end = 0
+        job_num = 0
+        while end < len(expansion[k]):
+            while end < len(expansion[k]) and len(str(expansion[k][start:end])) < header_size:
+                end += 1
+
+            sub_folder_names.append(int_wd + '/.jbf' + str(job_num).zfill(5))
+            sources.append(sub_folder_names[job_num] + '/' + 'integrate.c')
+            headers.append(sub_folder_names[job_num] + '/' + 'integrate.h')
+            binaries.append(sub_folder_names[job_num] + '/' + 'integrate')
+
+            os.mkdir(sub_folder_names[-1])
+            shutil.copy(source, sources[-1])
+
+            jobs.append(multiprocessing.Process(target=run_integration,
+                                                args=(sources[job_num], headers[job_num], binaries[job_num],
+                                                      expansion[k][start:end], k, integration_results)))
+            start = end
+            job_num += 1
+
+            if end == len(expansion[k]) or len(jobs) == parallel_processes:
+                map(lambda x: x.start(), jobs)
+                map(lambda x: x.join(), jobs)
+                map(lambda x: shutil.rmtree(x), sub_folder_names)
+
+                del jobs[:]
+                del sub_folder_names[:]
+                del sources[:]
+                del headers[:]
+                del binaries[:]
+
+                job_num = 0
+
+                while not integration_results.empty():
+                    (k, (out, err)) = integration_results.get()
+                    m = out.split(' ', 2)
+                    try:
+                        result[k] += uncertainties.ufloat(float(m[0]), float(m[1]))
+                    except ValueError:
+                        print 'Something went wrong during integration. Here\'s what CUBA said:'
+                        print str(out)
+                        print str(err)
+
+    shutil.rmtree(int_wd)
+    return NumEpsExpansion(result)
+
+"""
+def cuba_calculate(expansion):
     result = dict()
     split_size = 2
     wd = os.path.expanduser("~") + '/.pole_extractor'
@@ -304,12 +401,7 @@ def cuba_calculate(expansion):
     return NumEpsExpansion(result)
 
 
-def parallel_cuba_calculate(expansion, parallel_processes=10, alg='Vegas'):
-    """
-    :param expansion:
-    :return:
-    """
-
+def parallel_cuba_calculate(expansion, parallel_processes=20, alg='Vegas'):
     def run_integration(src_name, h_name, bin_name, integrand, k, result):
         f = open(h_name, 'w')
         header_str = str_for_cuba(integrand)
@@ -390,162 +482,4 @@ def parallel_cuba_calculate(expansion, parallel_processes=10, alg='Vegas'):
                         print str(err)
 
     return NumEpsExpansion(result)
-
-
-def new_parallel_cuba_calculate(expansion, parallel_processes=10, alg='Vegas'):
-    """
-    :param expansion:
-    :param parallel_processes:
-    :param alg:
-    :return:
-    """
-    def run_integration(src_name, h_name, bin_name, integrand):
-        f = open(h_name, 'w')
-        header_str = str_for_cuba(integrand)
-        f.write(header_str)
-        f.close()
-
-        #compiling external C program
-        cmpl = 'gcc -Wall -I ' + wd + ' -o ' + bin_name + ' ' + src_name + ' -lm -lcuba'
-        subprocess.Popen([cmpl], shell=True, stderr=subprocess.PIPE).communicate()
-
-        #running external C program
-        integrate = subprocess.Popen([bin_name], env={'OMP_NUM_THREADS': '4', 'CUBAVERBOSE': '0'},
-                                     shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-        out, err = integrate.communicate()
-        os.remove(h_name)
-        os.remove(bin_name)
-        return out, err
-
-    def integrate_from_q(in_q, out_q, fin_flag, src_name, h_name, bin_name):
-        print_lock.acquire()
-        print '### ' + str(os.getpid()) + ' in'
-        print_lock.release()
-        while (not in_q.empty()) or (fin_flag.value == 0):
-            print '### ' + str(os.getpid()) + ' inside while loop'
-            if in_q.empty():
-                print_lock.acquire()
-                print '### ' + str(os.getpid()) + ' nothing to do, going to sleep'
-                print_lock.release()
-                time.sleep(1)
-                print_lock.acquire()
-                print '### ' + str(os.getpid()) + ' awake!'
-                print_lock.release()
-            else:
-                k, integrand = in_q.get()
-                print_lock.acquire()
-                print str(os.getpid()) + ' received ' + str(k)
-                print_lock.release()
-                out_q.put((k, run_integration(src_name, h_name, bin_name, integrand)))
-                print_lock.acquire()
-                print str(os.getpid()) + ' sent ' + str(k)
-                print_lock.release()
-        print_lock.acquire()
-        print '### ' + str(os.getpid()) + ' out'
-        print_lock.release()
-        return
-
-    def fill_q(expansion, split_size, q, fin_flag):
-        print_lock.acquire()
-        print '### Filler in'
-        print_lock.release()
-        keys = sorted(expansion.keys())
-        position = 0
-        key_num = 0
-        while key_num < len(keys):
-            while not q.full():
-                q.put((keys[key_num], expansion[keys[key_num]][position:position + split_size]))
-                if position + split_size < len(expansion[keys[key_num]]):
-                    position += split_size
-                else:
-                    position = 0
-                    key_num += 1
-                    if key_num == len(keys):
-                        break
-            time.sleep(1)
-        fin_flag.value = 1
-        print_lock.acquire()
-        print '### Filler out'
-        print_lock.release()
-        return
-
-    def empty_q(in_q, fin_flag, result):
-        print_lock.acquire()
-        print '### Merger in'
-        print_lock.release()
-        while (not in_q.empty()) or (fin_flag.value == 0):
-            while not in_q.empty():
-                (k, (out, err)) = in_q.get()
-                print_lock.acquire()
-                print '### Merger received ' + str(k)
-                print_lock.release()
-                m = out.split(' ', 2)
-                if k not in result.keys():
-                    result[k] = uncertainties.ufloat(0.0, 0.0)
-                try:
-                    result[k] += uncertainties.ufloat(float(m[0]), float(m[1]))
-                except ValueError:
-                    print 'Something went wrong during integration. Here\'s what CUBA said:'
-                    print str(out)
-                    print str(err)
-            time.sleep(1)
-        print_lock.acquire()
-        print '### Merger out'
-        print_lock.release()
-        return
-
-    split_size = 1000
-
-    wd = os.path.expanduser("~") + '/.pole_extractor'
-    if alg == 'Vegas':
-        source = wd + '/' + 'integrate.c'
-    elif alg == 'Cuhre':
-        source = wd + '/' + 'integrate_cuhre.c'
-    elif alg == 'Divonne':
-        # divonne does not work for now
-        source = wd + '/' + 'integrate_divonne.c'
-    elif alg == 'Suave':
-        source = wd + '/' + 'integrate_suave.c'
-    else:
-        source = wd + '/' + 'integrate.c'
-
-    input_q = multiprocessing.Queue(maxsize=2*parallel_processes)
-    output_q = multiprocessing.Queue()
-    fin_generating = multiprocessing.Value('i', 0)
-    fin_integrating = multiprocessing.Value('i', 0)
-    print_lock = multiprocessing.Lock()
-
-    map(lambda x: shutil.rmtree(wd + '/' + x), [s for s in os.listdir(wd) if '.jbf' in s])
-    sub_folder_names = map(lambda x: wd + '/.jbf' + str(x).zfill(4), range(parallel_processes))
-    sources = map(lambda x: x + '/' + 'integrate.c', sub_folder_names)
-    headers = map(lambda x: x + '/' + 'integrate.h', sub_folder_names)
-    binaries = map(lambda x: x + '/' + 'integrate', sub_folder_names)
-    map(lambda x: os.mkdir(x), sub_folder_names)
-    map(lambda x: shutil.copy(source, x), sources)
-
-    manager = multiprocessing.Manager()
-    result = manager.dict()
-    filler = multiprocessing.Process(target=fill_q, args=(expansion, split_size, input_q, fin_generating))
-    merger = multiprocessing.Process(target=empty_q, args=(output_q, fin_integrating, result))
-
-    filler.start()
-    merger.start()
-
-    workers = map(lambda x: multiprocessing.Process(target=integrate_from_q,
-                                                    args=(input_q, output_q, fin_generating,
-                                                          sources[x], headers[x], binaries[x])),
-                  range(parallel_processes))
-    map(lambda x: x.start(), workers)
-
-    filler.join()
-
-    time.sleep(10)
-    print map(lambda x: x.is_alive(), workers)
-
-    map(lambda x: x.join(), workers)
-    fin_integrating.value = 1
-    merger.join()
-
-    map(lambda x: shutil.rmtree(wd + '/' + x), [s for s in os.listdir(wd) if '.jbf' in s])
-    return NumEpsExpansion(dict(result))
+"""
