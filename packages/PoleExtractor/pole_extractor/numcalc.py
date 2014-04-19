@@ -262,7 +262,7 @@ def str_for_cuba(expansion):
     return result
 
 
-def cuba_calculate(expansion, parallel_processes=8, header_size=10000, adaptive=True):
+def cuba_calculate(expansion, parallel_processes=4, header_size=20000, adaptive=True):
     """
     :param expansion:
     :param parallel_processes:

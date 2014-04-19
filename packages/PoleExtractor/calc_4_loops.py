@@ -9,7 +9,7 @@ from pole_extractor import diagram_calculator, utils
 
 need_p2 = utils.get_diagrams(tails=2, loops=4)
 need_p0 = need_p2 + utils.get_diagrams(tails=3, loops=4)
-
+"""
 for i, (d, c) in enumerate(need_p0):
     #v = diagram_calculator.get_expansion(d, False, False)[-1]
     #if abs(v.s) / abs(v.n) > 1E-3:
@@ -21,11 +21,11 @@ for i, (d, c) in enumerate(need_p0):
                                              zero_momenta=True,
                                              force_update=False)
         #print (d, diagram_calculator.get_expansion(d, rprime=False, momentum_derivative=False).to_base_dict())
-
+"""
 for i, (d, c) in enumerate(need_p2):
-    #v = diagram_calculator.get_expansion(d, False, True)[-1]
-    #if abs(v.s) / abs(v.n) > 1E-3:
-    if not diagram_calculator.is_present(d, rprime=False, momentum_derivative=True):
+    v = diagram_calculator.get_expansion(d, False, True)[-1]
+    if abs(v.s) / abs(v.n) > 1E-3:
+    #if not diagram_calculator.is_present(d, rprime=False, momentum_derivative=True):
         print '(' + str(i + 1) + '/' + str(len(need_p2)) + ')'
         diagram_calculator.calculate_diagram(label=d,
                                              theory=3,
