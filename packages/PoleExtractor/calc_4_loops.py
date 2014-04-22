@@ -22,7 +22,7 @@ for i, (d, c) in enumerate(need_p0):
                                              force_update=False)
         #print (d, diagram_calculator.get_expansion(d, rprime=False, momentum_derivative=False).to_base_dict())
 """
-for i, (d, c) in reversed(list(enumerate(need_p2))):
+for i, (d, c) in reversed(list(enumerate(need_p2))[:37]):
     v = diagram_calculator.get_expansion(d, False, True)[-1]
     if abs(v.s) / abs(v.n) > 1E-3:
     #if not diagram_calculator.is_present(d, rprime=False, momentum_derivative=True):
