@@ -8,6 +8,7 @@ __author__ = 'mkompan'
 import graph_state
 from nickel import LEG
 from graph_state_builder_with_fields import MAIN_GRAPH_CONFIG as gs_builder
+from symmetry_coefficient import symmetry_coefficient
 
 
 def sortString(string_):
@@ -177,7 +178,7 @@ for graph in DynamicGraphs(edges, externalFields, lines, vertices):
         # print "time loop:", graph
         continue
 
-    print str(graph)+"::::"
+    print str(graph), symmetry_coefficient(graph)
 
 
 

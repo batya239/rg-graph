@@ -74,10 +74,13 @@ for result_file in result_files:
             #       print
             #       print data
         result[eps_power] += float(regex_result1.groups()[0])
-        error[eps_power] += float(regex_result2.groups()[0])
+        error[eps_power] += float(regex_result2.groups()[0])**2
+
 
 print result
-#print error
+for eps in error:
+    error[eps]=error[eps]**0.5
+print error
 
 expr = reduce(lambda x, y: x + y, map(lambda x: x[1] * e ** x[0], result.items()))
 #print series(expr*tgamma(alpha - loops*(1-e))/(e*g11)**loops,e,0,max_eps_power).evalf()
