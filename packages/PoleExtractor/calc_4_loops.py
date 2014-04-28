@@ -22,20 +22,13 @@ for i, (d, c) in enumerate(need_p0):
                                              force_update=False)
         #print (d, diagram_calculator.get_expansion(d, rprime=False, momentum_derivative=False).to_base_dict())
 """
-for i, (d, c) in reversed(list(enumerate(need_p2))[:37]):
+for i, (d, c) in reversed(list(enumerate(need_p2))[:38]):
     v = diagram_calculator.get_expansion(d, False, True)[-1]
     if abs(v.s) / abs(v.n) > 1E-3:
     #if not diagram_calculator.is_present(d, rprime=False, momentum_derivative=True):
         print '(' + str(i + 1) + '/' + str(len(need_p2)) + ')'
-        diagram_calculator.calculate_diagram(label=d,
-                                             theory=3,
-                                             max_eps=-1,
-                                             zero_momenta=False,
-                                             force_update=False)
+    diagram_calculator.calculate_diagram(label=d, theory=3, max_eps=-1, zero_momenta=False, force_update=False)
         #print (d, diagram_calculator.get_expansion(d, rprime=False, momentum_derivative=True).to_base_dict())
 
 for diag in need_p0:
-    diagram_calculator.calculate_rprime(diag[0],
-                                        PHI_EXPONENT=3,
-                                        force_update=False,
-                                        verbose=2)
+    diagram_calculator.calculate_rprime(diag[0], theory=3, verbose=2, force_update=False)

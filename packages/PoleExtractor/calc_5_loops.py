@@ -755,8 +755,4 @@ need_p0 = three_tailed
 for i, (d, c) in enumerate(need_p0):
     if not diagram_calculator.is_present(d, rprime=False, momentum_derivative=False):
         print '(' + str(i + 1) + '/' + str(len(need_p0)) + ')'
-        diagram_calculator.calculate_diagram(label=d,
-                                             theory=3,
-                                             max_eps=-1,
-                                             zero_momenta=True,
-                                             force_update=False)
+        diagram_calculator.calculate_diagram(label=d, theory=3, max_eps=-1, zero_momenta=True, force_update=False)

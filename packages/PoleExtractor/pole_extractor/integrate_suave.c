@@ -21,7 +21,7 @@
 #define NCOMP 1
 #define USERDATA NULL
 #define NVEC 1
-#define EPSREL 1e-3
+#define EPSREL 1e-4
 #define EPSABS 1e-12
 #define LAST 4
 #define SEED 0

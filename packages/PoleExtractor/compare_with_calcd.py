@@ -8,12 +8,8 @@ need_p0 = need_p2 + utils.get_diagrams(tails=3, loops=2) + utils.get_diagrams(ta
 
 for diag in need_p0:
     if diagram_calculator.is_present(diag[0], rprime=False, momentum_derivative=False):
-        d1 = diagram_calculator.calculate_diagram(label=diag[0],
-                                                  theory=3,
-                                                  max_eps=3,
-                                                  zero_momenta=True,
-                                                  force_update=False,
-                                                  num_alg='Suave')
+        d1 = diagram_calculator.calculate_diagram(label=diag[0], theory=3, max_eps=3, zero_momenta=True,
+                                                  force_update=False, adaptive=True)
         d2 = diagram_calculator.get_expansion(diag[0], rprime=False, momentum_derivative=False)
         print '#####\n' + str(d1)
         print d2
@@ -21,12 +17,8 @@ for diag in need_p0:
 
 for diag in need_p2:
     if diagram_calculator.is_present(diag[0], rprime=False, momentum_derivative=True):
-        d1 = diagram_calculator.calculate_diagram(label=diag[0],
-                                                  theory=3,
-                                                  max_eps=3,
-                                                  zero_momenta=False,
-                                                  force_update=False,
-                                                  num_alg='Suave')
+        d1 = diagram_calculator.calculate_diagram(label=diag[0], theory=3, max_eps=3, zero_momenta=False,
+                                                  force_update=False, adaptive=True)
         d2 = diagram_calculator.get_expansion(diag[0], rprime=False, momentum_derivative=True)
         print '#####\n' + str(d1)
         print d2

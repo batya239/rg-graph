@@ -77,7 +77,7 @@ def term_factor_expansion(tf):
         return e
 
 
-def calculate_diagram(label, theory, max_eps, zero_momenta=True, force_update=False, num_alg='Vegas'):
+def calculate_diagram(label, theory, max_eps, zero_momenta=True, force_update=False, adaptive=True):
     """
     """
     if isinstance(label, str):
@@ -126,7 +126,8 @@ def calculate_diagram(label, theory, max_eps, zero_momenta=True, force_update=Fa
 
         expansion = feynman.extract_poles(sec_expr._integrand, to_index + 1 + rvl.loops())
         expansion = {k: expansion[k] for k in expansion.keys() if k <= to_index}
-        sector_n_expansion = numcalc.cuba_calculate(expansion)
+        sector_n_expansion = numcalc.cuba_calculate(expansion, parallel_processes=2,
+                                                    header_size=200, adaptive=adaptive)
 
         num_expansion += sector_n_expansion
         if log:
@@ -164,7 +165,7 @@ def calculate_diagram(label, theory, max_eps, zero_momenta=True, force_update=Fa
     return result
 
 
-def calculate_rprime(label, PHI_EXPONENT, verbose=1, force_update=False):
+def calculate_rprime(label, theory, verbose=1, force_update=False):
     """
     """
     def term_to_expansion(counter_term):
@@ -176,7 +177,7 @@ def calculate_rprime(label, PHI_EXPONENT, verbose=1, force_update=False):
         g = graphine.Graph.fromStr(label)
     elif isinstance(label, graphine.Graph):
         g = label
-    exclusion_groups = rprime.shrinking_groups(g, PHI_EXPONENT)
+    exclusion_groups = rprime.shrinking_groups(g, theory)
     if len(exclusion_groups) == 0:
         update_expansion(g, rprime=True,
                          momentum_derivative=False,
@@ -193,7 +194,7 @@ def calculate_rprime(label, PHI_EXPONENT, verbose=1, force_update=False):
     if verbose > 1:
         print "Non-overlapping subgraph groupings:\n" + str(exclusion_groups)
 
-    c_part = rprime.gen_cts(g, exclusion_groups, PHI_EXPONENT)
+    c_part = rprime.gen_cts(g, exclusion_groups, theory)
     if verbose > 1:
         print "Tau-counterterms:\n" + str(c_part)
 
@@ -208,7 +209,7 @@ def calculate_rprime(label, PHI_EXPONENT, verbose=1, force_update=False):
     update_expansion(g, rprime=True, momentum_derivative=False, e=result, force_update=force_update)
 
     if 2 == g.externalEdgesCount():
-        p2_part = rprime.gen_cts(g, exclusion_groups, PHI_EXPONENT, momentum_derivative=True)
+        p2_part = rprime.gen_cts(g, exclusion_groups, theory, momentum_derivative=True)
         if verbose > 1:
             print "p^2-counterterms:\n" + str(p2_part)
 

@@ -8,10 +8,8 @@ labels = ('e111|e|', 'ee11|22|ee|', 'ee12|e22|e|', 'e112|22|e|', 'ee11|22|33|ee|
 
 for l in labels:
     g = graphine.Graph.fromStr(l)
-    diagram_calculator.calculate_diagram(label=l, theory=4, max_eps=4,
-                                         zero_momenta=True, force_update=False)
+    diagram_calculator.calculate_diagram(label=l, theory=4, max_eps=4, zero_momenta=True, force_update=False)
     if 2 == g.externalEdgesCount():
-        diagram_calculator.calculate_diagram(label=l, theory=4, max_eps=4,
-                                             zero_momenta=False, force_update=False)
+        diagram_calculator.calculate_diagram(label=l, theory=4, max_eps=4, zero_momenta=False, force_update=False)
 
-    diagram_calculator.calculate_rprime(l, PHI_EXPONENT=4, force_update=True, verbose=2)
+    diagram_calculator.calculate_rprime(l, theory=4, verbose=2, force_update=True)

@@ -17,7 +17,7 @@ eps^(-3)[0.004008+/-0.000006] + eps^(-2)[0.01663+/-0.00010] + eps^(-1)[-0.1301+/
 """
 
 for d, c in utils.get_diagrams(0, 4):
-    d1 = diagram_calculator.calculate_diagram(label=d, theory=3, max_eps=-1,
-                                              zero_momenta=True, force_update=False, num_alg='Suave')
+    d1 = diagram_calculator.calculate_diagram(label=d, theory=3, max_eps=-1, zero_momenta=True, force_update=False,
+                                              adaptive=True)
     d2 = diagram_calculator.get_expansion(d, rprime=False, momentum_derivative=False)
     print '### NEW ###\n' + str(d1) + '\n' + str(d2) + '\n' + str(d1.cut(0) == d2.cut(0)) + '\n### OLD ###'

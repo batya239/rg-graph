@@ -119,8 +119,8 @@ u_star_2 = -4.0 * beta_u_3 / (beta_u_2**3)
 u_star_3 = -8.0 * (beta_u_2*beta_u_4 - 2.0*(beta_u_3**2)) / (beta_u_2**5)
 u_star_4 = -16.0 * (5.0*(beta_u_3**3) - 5.0*beta_u_2*beta_u_3*beta_u_4 + (beta_u_2**2)*beta_u_5) / (beta_u_2**7)
 u_star = numcalc.NumEpsExpansion({1: u_star_1, 2: u_star_2, 3: u_star_3, 4: u_star_4})
-ita = u_star * gamma3_1 + (u_star**2) * gamma3_2 + (u_star**3) * gamma3_3 + (u_star**4) * gamma3_4
-ita1 = u_star * gamma1_1 + (u_star**2) * gamma1_2 + (u_star**3) * gamma1_3 + (u_star**4) * gamma1_4
+ita = u_star * gamma1_1 + (u_star**2) * gamma1_2 + (u_star**3) * gamma1_3 + (u_star**4) * gamma1_4
+ita_ = numcalc.NumEpsExpansion({k: ita[k] / (2**k) for k in ita.keys()})
 
-print '\n### u* : beta_u(u*) == 0 ###\nu* = ' + str(u_star) + '\ngamma3(u*) = ' + str(ita) + \
-      '\ngamma_1(u*) = ' + str(ita1)
+print '\n### u* : beta_u(u*) == 0 ###\nu* = ' + str(u_star) + '\n/d = 6 - 2*eps/  gamma_1(u*) = ' + str(ita) + \
+      '\n/d = 6 - eps/  gamma_1(u*) = ' + str(ita_)
