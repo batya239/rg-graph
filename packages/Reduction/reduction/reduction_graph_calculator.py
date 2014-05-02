@@ -6,8 +6,12 @@ __author__ = 'dima'
 from rggraphenv import abstract_graph_calculator, symbolic_functions
 from two_and_three_loops import TWO_LOOP_REDUCTOR, THREE_LOOP_REDUCTOR
 from four_loops import FOUR_LOOP_REDUCTOR
+from dummy_reductors import FOUR_LOOP_REDUCTOR as DUMMY_FOUR_LOOP_REDUCTOR
 import reductor
 import reduction_util
+
+
+USE_DUMMY = False
 
 
 class ReductionGraphCalculator(abstract_graph_calculator.AbstractGraphCalculator):
@@ -18,7 +22,7 @@ class ReductionGraphCalculator(abstract_graph_calculator.AbstractGraphCalculator
         return "reduction calculator for %s loops" % str(self._reduction_loops)
 
     def init(self):
-        all_reductors = (TWO_LOOP_REDUCTOR, THREE_LOOP_REDUCTOR, FOUR_LOOP_REDUCTOR)
+        all_reductors = (TWO_LOOP_REDUCTOR, THREE_LOOP_REDUCTOR, DUMMY_FOUR_LOOP_REDUCTOR if USE_DUMMY else FOUR_LOOP_REDUCTOR)
         if not len(self._reduction_loops):
             reductors = all_reductors
         else:
@@ -50,7 +54,7 @@ class ScalarProductReductionGraphCalculator(abstract_graph_calculator.AbstractGr
         return "graphs with scalars products reduction calculator for %s loops" % str(self._reduction_loops)
 
     def init(self):
-        all_reductors = (TWO_LOOP_REDUCTOR, THREE_LOOP_REDUCTOR, FOUR_LOOP_REDUCTOR)
+        all_reductors = (TWO_LOOP_REDUCTOR, THREE_LOOP_REDUCTOR, DUMMY_FOUR_LOOP_REDUCTOR if USE_DUMMY else FOUR_LOOP_REDUCTOR)
         if self._reduction_loops is None or not len(self._reduction_loops):
             reductors = all_reductors
         else:
