@@ -16,8 +16,11 @@ import numerators_util
 import ir_uv
 import const
 import smtplib
+from reduction import reduction_graph_calculator
 from rggraphenv import symbolic_functions, graph_calculator, storage, theory, g_graph_calculator, StorageSettings, StoragesHolder
 from email.mime.text import MIMEText
+
+reduction_graph_calculator.USE_DUMMY = False
 
 
 class SixLoops2Tails(object):
