@@ -41,7 +41,7 @@ class Lazy(object):
         return LazyNeg(self, self._depth + 1)
 
     def __str__(self):
-        return str(self.evaluate())
+        return str(self._get_or_eval())
 
     def _get_or_eval(self):
         if "_cached" not in self.__dict__:
