@@ -83,7 +83,7 @@ class Sector(object):
             return SectorLinearCombination.singleton(self, other)
         elif isinstance(other, Sector):
             return Sector(map(lambda (x, y): x + y, itertools.izip(self.propagators_weights, other.propagators_weights)))
-        raise NotImplementedError()
+        return self.as_sector_linear_combinations() * other
 
     __rmul__ = __mul__
 
