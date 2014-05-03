@@ -167,6 +167,14 @@ class SectorLinearCombination(object):
         l.reverse()
         return str(l)
 
+    def is_zero(self):
+        if self._additional_part.evaluate() != 0:
+            return False
+        for c in self._sectors_to_coefficient.values():
+            if c.evaluate() != 0:
+                return False
+        return True
+
     @property
     def additional_part(self):
         return self._additional_part

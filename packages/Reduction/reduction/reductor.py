@@ -70,7 +70,7 @@ def _enumerate_graph(graph, init_propagators, to_sector=True, only_one_result=Fa
         edges = graph.allEdges()
         initedEdges = list()
         for e in edges:
-            if e.weight is None:
+            if e.colors is None:
                 color = zeroColor if graph.external_vertex in e.nodes else unitColor
                 initedEdges.append(graph_state.Edge(e.nodes, graph.external_vertex, colors=color))
             else:
@@ -341,6 +341,10 @@ class Reductor(object):
                 return False
         return True
 
+    def enumerate_graph(self, graph):
+        self.initIfNeed()
+        return _enumerate_graph(graph, self._propagators, to_sector=False)
+
     def calculate(self, graph, scalar_product_aware_function=None):
         """
         scalar_product_aware_function(topology_shrunk, graph) returns iterable of scalar_product.ScalarProduct
@@ -366,6 +370,9 @@ class Reductor(object):
             print "no suitable sectors found"
             return None
 
+        if DEBUG:
+            print "try calculate with", self._env_name
+
         for res in probably_calculable_sectors:
             try:
                 s = sector.Sector.create_from_shrunk_topology(res[0], res[1], self._all_propagators_count).as_sector_linear_combinations()
@@ -380,6 +387,10 @@ class Reductor(object):
         if DEBUG:
             print "rules not found", probably_calculable_sectors
             return None
+
+    def calculate_sector(self, a_sector, sp=None):
+        sectors = sp.apply(a_sector, self._scalar_product_rules) if sp is not None else a_sector
+        return self.evaluate_sector(sectors)
 
     def _try_calculate(self, graph):
         return self.evaluate_sector(sector.Sector.create_from_topologies_and_graph(graph,
