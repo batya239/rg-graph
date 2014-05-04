@@ -107,15 +107,24 @@ def extract_scalar_products(graph):
     elif len(extracted_numerated_edges) == 2:
         raw_common_vertex = set(extracted_numerated_edges[0].nodes) & set(extracted_numerated_edges[1].nodes)
         if not len(raw_common_vertex):
-            sign = resolve_scalar_product_sign(graph, extracted_numerated_edges)
+            sign, bound_nodes = resolve_scalar_product_sign(graph, extracted_numerated_edges)
+
+            if extracted_numerated_edges[0].nodes.index(bound_nodes[0]) == extracted_numerated_edges[1].nodes.index(bound_nodes[1]):
+                sign *= -1
+            sp = ScalarProduct(extracted_numerated_edges[0].flow,
+                               extracted_numerated_edges[1].flow,
+                               sign=sign)
         else:
             common_vertex = raw_common_vertex.pop()
             adjusted_numerators = map(lambda e: e.arrow if e.nodes[0] == common_vertex else -e.arrow, extracted_numerated_edges)
             sign = -1 if adjusted_numerators[0] == adjusted_numerators[1] else 1
 
-        sp = ScalarProduct(extracted_numerated_edges[0].flow,
-                           extracted_numerated_edges[1].flow,
-                           sign=sign)
+            if extracted_numerated_edges[0].nodes.index(common_vertex) == extracted_numerated_edges[1].nodes.index(common_vertex):
+                sign *= -1
+
+            sp = ScalarProduct(extracted_numerated_edges[0].flow,
+                               extracted_numerated_edges[1].flow,
+                               sign=sign)
         return sp
     else:
         raise AssertionError(str(graph))
@@ -127,6 +136,7 @@ def resolve_scalar_product_sign(graph, extracted_numerated_edges):
     for j in xrange(2):
         current_node = extracted_numerated_edges[0].nodes
         current_vertex = current_node[j]
+        bound_nodes = [current_node[j]]
         sign = (1 if extracted_numerated_edges[0].arrow.is_left() else -1) * ((-1) ** j)
         while True:
             nodes_found = False
@@ -141,5 +151,7 @@ def resolve_scalar_product_sign(graph, extracted_numerated_edges):
                 break
             if current_node == extracted_numerated_edges[1].nodes:
                 sign *= (1 if extracted_numerated_edges[1].arrow.is_left() else -1)
-                sign *= 1 if current_vertex == current_node[0] else -1
-                return sign
+                is_first = current_vertex == current_node[0]
+                sign *= 1 if is_first else -1
+                bound_nodes.append(current_node[1 if is_first else 0])
+                return sign, bound_nodes

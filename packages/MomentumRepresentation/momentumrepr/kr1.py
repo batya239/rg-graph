@@ -15,6 +15,7 @@ import configure_mr
 import map_reduce_wrapper
 import integration
 import momentum_enumeration
+import integrations_merger
 from rggraphutil import emptyListDict, zeroDict
 
 no_tadpoles = graphine.filters.noTadpoles
@@ -36,27 +37,36 @@ def kr1_d_iw(graph_state_as_str, integration_operation=None):
 def kr1_with_some_additional_lambda_operation(graph_state_as_str,
                                               additional_lambda=None,
                                               integration_operation=None):
-    def integral_producer_lambda(graph_with_tv, coeff):
+    def integral_preparer_lambda(graph_with_tv):
         if configure_mr.Configure.debug():
-            print "\n\n\nGraph: %s" % graph_with_tv.graph
-            print "Coefficient:", coeff
+            print "Graph: %s" % graph_with_tv.graph
             print "Time version: %s" % (graph_with_tv.time_version,)
         base_integrand, angles = integration.get_base_integrand_and_angles(graph_with_tv)
         loop_momentum_vars = integration.get_loop_momentum_vars(graph_with_tv)
         stretch_vars = integration.get_stretch_vars(graph_with_tv)
-        return integration.construct_integrand(base_integrand, loop_momentum_vars, stretch_vars, angles, coeff)
+        return integrations_merger.IntegralRepresentation(base_integrand, loop_momentum_vars, angles, stretch_vars)
+
+    def integral_producer_lambda(integral_representation, coeff):
+        if configure_mr.Configure.debug():
+            print "Coefficient:", coeff
+        return integration.construct_integrand(integral_representation.integrand,
+                                               integral_representation.loop_momentas,
+                                               integral_representation.stretchers,
+                                               integral_representation.scalar_products, coeff)
 
     graph = graph_util_mr.from_str(graph_state_as_str)
     graph = map_reduce_wrapper.MapReduceAlgebraWrapper(graph)
+
     if configure_mr.Configure.do_d_tau():
         graph = graph.apply(diff_util_mr.D_minus_tau)
     if additional_lambda is not None:
         graph = graph.apply(additional_lambda)
-    graph = graph.apply(GraphDashKey.as_key)
-    graph = graph.apply(GraphDashKey.to_graph)
+
+
     graph = graph.apply(momentum_enumeration.choose_minimal_momentum_flow)
     graph = graph.apply(propagator.subs_external_propagators_is_zero)
     graph = graph.apply(kr1_stretching)
+    graph = graph.apply(integral_preparer_lambda)
     integrals = graph.map_with_coefficients(integral_producer_lambda)
 
     if integration_operation is None:
@@ -95,27 +105,6 @@ def kr1_stretching(graph):
         with_stretching.append(graph_and_tv.set_graph(new_graph_with_stretching))
 
     return with_stretching
-
-
-class GraphDashKey(object):
-    def __init__(self, graph):
-        splitted = str(graph).split(":")
-        self.key = (splitted[0], splitted[1])
-        self.graph = graph
-
-    def __hash__(self):
-        return hash(self.key)
-
-    def __eq__(self, other):
-        return self.key == other.key
-
-    @staticmethod
-    def as_key(graph):
-        return GraphDashKey(graph)
-
-    @staticmethod
-    def to_graph(key):
-        return key.graph
 
 
 def add_stretching(graph, uv_sub_graph, cross_sections, stretchers_for_edges):

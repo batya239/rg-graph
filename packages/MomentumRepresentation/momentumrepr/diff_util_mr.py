@@ -13,6 +13,7 @@ import copy
 import graph_util_mr
 import graph_state
 from rggraphenv import symbolic_functions
+from rggraphutil import zeroDict
 
 
 def construct_graph_with_markers(graph, minimal_passing):
@@ -27,10 +28,11 @@ def construct_graph_with_markers(graph, minimal_passing):
 
 
 CLN_FOUR = swiginac.numeric("4")
+CLN_8 = swiginac.numeric("4")
 
 
 def c1():
-    return CLN_FOUR / configure_mr.Configure.dimension()
+    return CLN_8 / configure_mr.Configure.dimension()
 
 
 def c2():
@@ -141,9 +143,11 @@ def D_p2(graph):
     assert len(graph.edges(graph.external_vertex)) == 2
     minimal_passing = graphine.util.find_shortest_momentum_flow(graph)
     graph, minimal_passing = construct_graph_with_markers(graph, minimal_passing)
-#    return dict(reduce(lambda r, comb: r + _do_diff(graph, comb), itertools.combinations_with_replacement(minimal_passing, 2), list()))
-    #return dict(_do_diff(graph, minimal_passing[:2]))
-    return dict(_do_diff(graph, [minimal_passing[1], minimal_passing[1]]))
+    res = zeroDict()
+    for x in map(lambda comb: _do_diff(graph, comb), itertools.combinations_with_replacement(minimal_passing, 2)):
+        for g, c in x:
+            res[g] += c
+    return res
 
 
 def D_i_omega(graph):

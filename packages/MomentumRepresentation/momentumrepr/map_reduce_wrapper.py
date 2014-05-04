@@ -24,12 +24,12 @@ class MapReduceAlgebraWrapper(object):
             obj = function_lambda(g)
             if isinstance(obj, (list, tuple)):
                 for _g in obj:
-                    new_mappings[_g] += symbolic_functions.CLN_ONE * c
+                    new_mappings[_g] += c
             elif isinstance(obj, dict):
                 for _g, _c in obj.items():
                     new_mappings[_g] += _c * c
             else:
-                new_mappings[obj] += c * symbolic_functions.CLN_ONE
+                new_mappings[obj] += c
         return MapReduceAlgebraWrapper(new_mappings)
 
     def reduce(self, reduce_lambda, start_value, initial_transform_lambda=lambda a: a):
