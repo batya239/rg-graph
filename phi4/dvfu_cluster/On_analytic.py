@@ -756,5 +756,5 @@ def On(graph,n):
     return eval(on[str(graph)]).expand()
 
 if __name__ == "__main__":
-    print On("e112|33|e33||::",0)*3.
+    print On("e112|33|e33||::",0)
     print On('ee12|333|345||e55|e|::',0)

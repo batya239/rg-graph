@@ -7,7 +7,7 @@ import math
 
 from uncertainties import ufloat, ufloat_fromstr, Variable, AffineScalarFunc
 from uncertainties import __version_info__ as uncert_version
-import sympy
+from sympy import Add
 
 if uncert_version < (2, 4):
     raise Warning("Version  %s of uncertanties not supported" % str(uncert_version))
@@ -105,7 +105,7 @@ class Series():
                         except  KeyError:
                             tmp[i + j] = self.gSeries[i] * other.gSeries[j]
             res = Series(max(self.n, other.n), tmp, name=self.name, analytic=self.analytic)
-        elif isinstance(other, (int, float, Variable, AffineScalarFunc)):
+        elif isinstance(other, (int, float, Variable, AffineScalarFunc, Add)):
             for i in self.gSeries.keys():
                 tmp[i] = self.gSeries[i] * other
             res = Series(self.n, tmp, name=self.name, analytic=self.analytic)
@@ -225,7 +225,12 @@ class Series():
             if c != 0 and g <= self.n and not self.analytic:
                 res += "(%s ± %s) * %s**%s + " % (str(c.n), str(c.s), self.name, str(g))
             elif c != 0 and g <= self.n and self.analytic:
-                res += "(%s) * %s**%s + " % (str(c), self.name, str(g))
+                try:
+                    this_term = c.format('S')
+                except AttributeError:
+                    this_term = str(c)
+                #res += "(%s) * %s**%s + " % (str(c), self.name, str(g))
+                res += "(%s) * %s**%s + " % (this_term, self.name, str(g))
         # print res[:-2]
         return res[:-2]
 

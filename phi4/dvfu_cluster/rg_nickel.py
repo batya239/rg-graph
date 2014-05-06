@@ -66,7 +66,8 @@ else:
 
 for nickel in r1op:
     if analytic:
-        uncert = float(r1op[nickel][0])
+        uncert = ufloat(r1op[nickel][0], r1op[nickel][1])
+        #uncert = float(r1op[nickel][0])
     else:
         uncert = ufloat(r1op[nickel][0], r1op[nickel][1])
     graph = graphine.Graph(graph_state.GraphState.fromStr(nickel))
