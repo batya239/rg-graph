@@ -4,13 +4,14 @@
 __author__ = 'dima'
 
 import graph_state
+import copy
 
 
 def graph_state_to_edges_implicit_conversion(edges_first_parameter_function):
-    def graph_state_first_parameter_function(some_obj, *other_params):
+    def graph_state_first_parameter_function(some_obj, *other_params, **other_kwargs):
         return edges_first_parameter_function(some_obj.edges
                                               if isinstance(some_obj, graph_state.GraphState)
-                                              else some_obj, *other_params)
+                                              else some_obj, *other_params, **other_kwargs)
 
     return graph_state_first_parameter_function
 
@@ -30,16 +31,10 @@ def get_bound_vertices(edges):
     result = set()
     for e in edges:
         if e.is_external():
-            result |= set(e.internal_edges())
+            result.add(e.internal_node)
     return result
 
 
-@graph_state_to_edges_implicit_conversion
-def get_vertices(edges):
-    return reduce(lambda s, e: s | set(e.nodes), edges, set())
-
-
-@graph_state_to_edges_implicit_conversion
 def get_connected_components(edges, additional_vertices=set(), singular_vertices=set()):
     """
     additional_vertices
@@ -71,7 +66,7 @@ def get_connected_components(edges, additional_vertices=set(), singular_vertices
 
 
 @graph_state_to_edges_implicit_conversion
-def is_property_fully_none(edges, property_name):
+def is_edge_property_fully_none(edges, property_name):
     assert property_name is not None
     for e in edges:
         if getattr(e, property_name) is not None:
@@ -110,17 +105,17 @@ def has_no_tadpoles_in_counter_term(edges, super_graph_edges):
 
 
 @graph_state_to_edges_implicit_conversion
-def is_graph_connected(edges, additionalVertexes=set()):
+def is_graph_connected(edges, additional_vertices=set()):
     """
     graph as edges list
     """
-    return len(get_connected_components(edges, additionalVertexes)) == 1 if len(edges) else True
+    return len(get_connected_components(edges, additional_vertices)) == 1 if len(edges) else True
 
 
 @graph_state_to_edges_implicit_conversion
 def is_vertex_irreducible(edges):
     external_node = get_external_node(edges)
-    vertices = get_vertices(edges)
+    vertices = reduce(lambda s, e: s | set(e.nodes), edges, set())
     if len(vertices - set([external_node])) == 1:
         return True
     if len(vertices) == 2:
@@ -130,12 +125,12 @@ def is_vertex_irreducible(edges):
             if e.nodes[0] == e.nodes[1]:
                 return False
         if v is not external_node:
-            _edges = copy.copy(edges)
+            _edges = list(edges)
             for e in edges_for_node(edges, v):
                 _edges.remove(e)
             additional_vertices = set(vertices)
             additional_vertices.remove(v)
-            if not _is_graph_connected(_edges, additional_vertices=additional_vertices):
+            if not is_graph_connected(_edges, additional_vertices=additional_vertices):
                 return False
     return True
 
@@ -147,10 +142,9 @@ def is_1_irreducible(edges):
         for e in edges:
             if e.is_external():
                 continue
-            copied_edges = copy.copy(edges)
+            copied_edges = list(edges)
             copied_edges.remove(e)
-            if not _is_graph_connected(copied_edges,
-                                       additional_vertices=set([v for v in e.nodes]) - set([external_node])):
+            if not is_graph_connected(copied_edges, additional_vertices=set([v for v in e.nodes]) - set([external_node])):
                 return False
     return True
 
