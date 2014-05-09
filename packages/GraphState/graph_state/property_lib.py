@@ -80,6 +80,8 @@ class VariableAwareNumberExternalizer(graph_state_property.PropertyExternalizer)
         return str((obj.a, obj.b))
 
 
+EMPTY_CONFIG = graph_state.PropertiesConfig.create()
+
 WEIGHT_ARROW_AND_MARKER_PROPERTIES_CONFIG = \
     graph_state.PropertiesConfig.create(graph_state_property.PropertyKey(name="weight",
                                                                          is_directed=False,

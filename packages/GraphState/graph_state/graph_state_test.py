@@ -9,6 +9,7 @@ import unittest
 new_edge = graph_state.DEFAULT_PROPERTIES_CONFIG.new_edge
 new_properties = graph_state.DEFAULT_PROPERTIES_CONFIG.new_properties
 
+
 class TestFields(unittest.TestCase):
     def testCopy(self):
         fields = graph_state.Fields('ab')
@@ -47,10 +48,11 @@ class TestRainbow(unittest.TestCase):
         r = graph_state.Rainbow.fromObject("\"asd\"")
         self.assertEqual(r.colors, ("asd",))
 
+
 class TestEdge(unittest.TestCase):
     def testCompare(self):
         self.assertEqual(new_edge((0, 1)), new_edge((1, 0)),
-            'Non-typed edges should not depend on nodes order.')
+                         'Non-typed edges should not depend on nodes order.')
         self.assertTrue(new_edge((0, 1)) < new_edge((0, 2)))
         # (-1, 0) < (0, 1) < (1, -1) - Nickel ordering.
         self.assertTrue(new_edge((-1, 0)) < new_edge((0, 1)))
@@ -59,13 +61,13 @@ class TestEdge(unittest.TestCase):
 
     def testCompareWithFields(self):
         self.assertEqual(
-                new_edge((0, 1), fields=graph_state.Fields('ab')),
-                new_edge((1, 0), fields=graph_state.Fields('ba')))
+            new_edge((0, 1), fields=graph_state.Fields('ab')),
+            new_edge((1, 0), fields=graph_state.Fields('ba')))
 
         cmp_fields = cmp(graph_state.Fields('ab'), graph_state.Fields('ba'))
         cmp_edges = cmp(
-                new_edge((0, 1), fields=graph_state.Fields('ab')),
-                new_edge((0, 1), fields=graph_state.Fields('ba')))
+            new_edge((0, 1), fields=graph_state.Fields('ab')),
+            new_edge((0, 1), fields=graph_state.Fields('ba')))
         self.assertEqual(cmp_fields, cmp_edges)
 
     def testExternalNode(self):
@@ -81,28 +83,29 @@ class TestEdge(unittest.TestCase):
 
     def testCopy(self):
         edge = new_edge((0, 1),
-                                external_node=1,
-                                fields=graph_state.Fields('ab'),
-                                colors=graph_state.Rainbow((0,)),
-                                edge_id=333)
+                        external_node=1,
+                        fields=graph_state.Fields('ab'),
+                        colors=graph_state.Rainbow((0,)),
+                        edge_id=333)
         missed_attrs = [attr for attr in edge.__dict__ if not edge.__dict__[attr]]
         self.assertEqual(len(missed_attrs), 0,
-                'Attributes %s should be set.' % missed_attrs)
+                         'Attributes %s should be set.' % missed_attrs)
 
         self.assertEqual(edge, edge.copy())
         self.assertTrue(edge < edge.copy(node_map={0: 2}))
 
     def testHash(self):
         a = new_edge((0, 1), external_node=1,
-                fields=graph_state.Fields('ab'))
+                     fields=graph_state.Fields('ab'))
         b = new_edge((0, 1), external_node=1,
-                fields=graph_state.Fields('ab'))
+                     fields=graph_state.Fields('ab'))
         self.assertTrue(a == b)
         self.assertTrue(hash(a) == hash(b))
 
+
 class TestGraphState(unittest.TestCase):
     def testGraphStateObjectsEqual(self):
-        edges = tuple([new_edge(e, colors=graph_state.Rainbow((1, 2, 3)))for e in [(-1, 0), (0, 1), (1, -1)]])
+        edges = tuple([new_edge(e, colors=graph_state.Rainbow((1, 2, 3))) for e in [(-1, 0), (0, 1), (1, -1)]])
         state1 = graph_state.GraphState(edges)
         state2 = graph_state.GraphState.fromStr(str(state1))
         self.assertEqual(state1, state2)
@@ -114,7 +117,7 @@ class TestGraphState(unittest.TestCase):
 
     def testInit(self):
         edges = tuple([new_edge(e, colors=(1, 2, 3))
-                for e in [(-1, 0), (0, 1), (1, -1)]])
+                       for e in [(-1, 0), (0, 1), (1, -1)]])
         state = graph_state.GraphState(edges, node_maps=[{}])
         self.assertEqual(state.sortings, [edges])
 
@@ -250,27 +253,9 @@ class TestProperties(unittest.TestCase):
         self.assertEqual(e.nodes, (-1, 1))
         self.assertEqual(e.some_name, MyProperty(1, 0))
 
+    def testEmptyProperties(self):
+        self.assertEqual(str(property_lib.EMPTY_CONFIG.graph_state_from_str("e|")), "e|")
 
-class TestOldStyle(unittest.TestCase):
-    def testFromOldStyleStrWithColors(self):
-        gs = graph_state.GraphState.fromStrOldStyle("e1-e-::['(0,0)','(1,0)','(3,9)']")
-        self.assertEqual(str(gs), "e1|e|:(0, 0)_(1, 0)|(3, 9)|:")
-
-    def testFromOldStyleStrWithFields(self):
-        gs = graph_state.GraphState.fromStrOldStyle("e1-e-:00ab-00-:")
-        self.assertEqual(str(gs), "e1|e|::00_ab|00|")
-
-    def testComplexObjects(self):
-        gs = graph_state.GraphState.fromStrOldStyle("e1-e-:00ab-00-:['(0,0)','(1,0)','(3,9)']")
-        self.assertEqual(str(gs), "e1|e|:(0, 0)_(1, 0)|(3, 9)|:00_ab|00|")
-
-    def testSimpleObjects(self):
-        gs = graph_state.GraphState.fromStrOldStyle("e1-e-")
-        self.assertEqual(str(gs), "e1|e|::")
-
-        gs = graph_state.GraphState.fromStrOldStyle("e1-e-::")
-        self.assertEqual(str(gs), "e1|e|::")
 
 if __name__ == "__main__":
     unittest.main()
-
