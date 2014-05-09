@@ -41,17 +41,18 @@ class Lazy(object):
         return LazyNeg(self, self._depth + 1)
 
     def __str__(self):
-        return str(self._get_or_eval())
+        return str(self.evaluate())
 
-    def _get_or_eval(self):
+    def evaluate(self):
         if "_cached" not in self.__dict__:
-            self._cached = self.evaluate()
+            self._cached = self._evaluate()
+            if "normal" in dir(self._cached):
+                self._cached = self._cached.normal()
         return self._cached
 
     @staticmethod
     def evaluate_val(_v):
-        v = _v._get_or_eval() if isinstance(_v, Lazy) else _v
-        v = v.normal() if "normal" in dir(v) else v
+        v = _v.evaluate() if isinstance(_v, Lazy) else _v
         return v
 
 
@@ -60,8 +61,8 @@ class LazyNeg(Lazy):
         self._obj = obj
         super(LazyNeg, self).__init__(depth)
 
-    def evaluate(self):
-        return -Lazy.evaluate_val(self._obj.evaluate())
+    def _evaluate(self):
+        return -Lazy.evaluate_val(self._obj._evaluate())
 
 
 class LazyValue(Lazy):
@@ -69,7 +70,7 @@ class LazyValue(Lazy):
         self._obj = obj
         super(LazyValue, self).__init__(depth)
 
-    def evaluate(self):
+    def _evaluate(self):
         return Lazy.evaluate_val(self._obj)
 
     @staticmethod
@@ -87,7 +88,7 @@ class LazyDiv(Lazy):
         super(LazyDiv, self).__init__(depth)
 
 
-    def evaluate(self):
+    def _evaluate(self):
         val = Lazy.evaluate_val(self._a)
         if isinstance(val, int):
             val = swiginac.numeric(val)
@@ -100,7 +101,7 @@ class LazySum(Lazy):
         super(LazySum, self).__init__(depth)
 
 
-    def evaluate(self):
+    def _evaluate(self):
         return Lazy.evaluate_val(self._a) + Lazy.evaluate_val(self._b)
 
 
@@ -111,5 +112,5 @@ class LazyMul(Lazy):
         super(LazyMul, self).__init__(depth)
 
 
-    def evaluate(self):
+    def _evaluate(self):
         return Lazy.evaluate_val(self._a) * Lazy.evaluate_val(self._b)
