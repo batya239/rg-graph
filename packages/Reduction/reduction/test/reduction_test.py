@@ -20,7 +20,7 @@ reductor.DEBUG = True
 
 class ReductionTest(unittest.TestCase):
     def setUp(self):
-        reductor.initialize(two_and_three_loops.THREE_LOOP_REDUCTOR, two_and_three_loops.TWO_LOOP_REDUCTOR, four_loops.FOUR_LOOP_REDUCTOR)
+        reductor.initialize(two_and_three_loops.THREE_LOOP_REDUCTOR, two_and_three_loops.TWO_LOOP_REDUCTOR)
 
     def test_tbubble(self):
         self.do_test("e12|23|3|e|:(0, 0)_(1, 0)|(1, 0)_(1, 0)|(1, 0)|(1, 0)|(0, 0)|::",
@@ -33,9 +33,6 @@ class ReductionTest(unittest.TestCase):
     def test_tbubble_with_weight2(self):
         self.do_test("e12|23|3|e|:(0, 0)_(1, 0)_(1, 0)|(1, 0)_(1, 0)|(2, 0)|(0, 0)|::",
                      "4.5-(2.5)*e**(-1)+(8.292851526664017019)*e**2+(13.759548533622894061)*e**3+(6.3185121284363485687)*e+(0.5)*e**(-2)")
-
-    def test_4_loops_diagram(self):
-        self.do_test("e12|23|34|4|e|:(0, 0)_(1, 0)_(1, 0)|(1, 0)_(1, 0)|(1, 0)_(2, 0)|(1, 0)|(0, 0)|::", "e")
 
     def do_test(self, graph_as_string, expected_value_string):
         g = graphine.Graph.fromStr(graph_as_string, graph_state.WEIGHT_ARROW_AND_MARKER_PROPERTIES_CONFIG)

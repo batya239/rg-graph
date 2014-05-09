@@ -383,6 +383,8 @@ class Reductor(object):
                 v = self.evaluate_sector(s)
                 return v
             except RuleNotFoundException:
+                if DEBUG:
+                    print "rules not found"
                 pass
         if DEBUG:
             print "rules not found", probably_calculable_sectors
