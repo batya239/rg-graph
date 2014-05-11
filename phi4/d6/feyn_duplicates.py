@@ -11,16 +11,6 @@ import conserv
 """
 
 ## Ipython parallel part -- for future
-"""try:
-    if __IPYTHON__:
-        from IPython.parallel import Client
-        rc = Client()
-        print rc.ids
-        lview = rc.load_balanced_view()
-        ipython = True
-except NameError:
-    ipython = False
-"""
 
 def xindex():
     index = 0
@@ -111,10 +101,11 @@ final = separate(dup_dict.values())
 ring = 0
 print
 for d in final:
+    print " = ".join(map(lambda x: str(x)[:-2],d))
     for single_d in d:
-        #print single_d,results[str(single_d)[:-2]]
+        #print str(single_d)[:-2],#results[str(single_d)[:-2]]
         ring += 1
     #print
     ring -= 1 ## I leave one diag from each group
 
-print "cnt =", cnt
+print "ring =", ring
