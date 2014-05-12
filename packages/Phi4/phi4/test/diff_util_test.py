@@ -4,11 +4,29 @@ import unittest
 import graphine
 import diff_util
 import graph_util
+import configure
+import common
+import ir_uv
+import const
+from rggraphenv import StoragesHolder, StorageSettings
 
 __author__ = 'dimas'
 
 
 class DiffUtilTest(unittest.TestCase):
+    def setUp(self):
+        configure.Configure() \
+            .with_k_operation(common.MSKOperation()) \
+            .with_ir_filter(ir_uv.IRRelevanceCondition(const.SPACE_DIM_PHI4)) \
+            .with_uv_filter(ir_uv.UVRelevanceCondition(const.SPACE_DIM_PHI4)) \
+            .with_dimension(const.DIM_PHI4) \
+            .with_calculators() \
+            .with_storage_holder(StorageSettings("phi4", "test", "test").on_shutdown(revert=True)).configure()
+
+    def tearDown(self):
+        StoragesHolder.instance().close()
+        configure.Configure.clear()
+
     def test_e112_23_33_e_(self):
         self.do_p2_diff_test("e112|23|33|e|",
                              ["e112|23|34|e4||:(0, 0)_(1, 0)_(1, 0)_(1, 0)|(1, 0)_(1, 0)|(1, 0)_(1, 0)|(0, 0)_(1, 0)||::",

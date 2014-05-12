@@ -25,7 +25,7 @@ class SixLoops4Tails(object):
     logging.basicConfig(format="%(asctime)s:%(levelname)s:%(message)s")
     LOG = logging.getLogger("SixLoops4Tails")
     LOG.setLevel(logging.DEBUG)
-    LOG.addHandler(logging.FileHandler("6loops_4tails_log.txt", mode='w'))
+    LOG.addHandler(logging.FileHandler("6loops_2tails_log.txt", mode='w'))
     r.ROperation.set_debug(True)
 
     def __init__(self, do_r_star=False, calculators=tuple(), calculated_mappings=dict()):

@@ -7,4 +7,3 @@ from graph import Graph, Representator
 import filters
 import util
 import graph_operations
-import momentum

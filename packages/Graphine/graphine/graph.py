@@ -5,7 +5,7 @@ import graph_state
 import rggraphutil
 import graph_operations
 import itertools
-
+import collections
 assert graph_state.Edge.CREATE_EDGES_INDEX
 
 
@@ -13,179 +13,169 @@ class Representator(object):
     """
     see Graph#xRelevantSubGraphs
     """
+
     def __init__(self):
         raise AssertionError
 
-    # noinspection PyUnusedLocal
     @staticmethod
-    def asList(edgeList, external_vertex):
-        return edgeList
+    def asList(edge_list):
+        return edge_list
 
     @staticmethod
-    def asGraph(edgeList, external_vertex):
-        return Graph(edgeList, external_vertex=external_vertex, renumbering=False)
+    def asGraph(edge_list):
+        return Graph(edge_list, renumbering=False)
 
     @staticmethod
-    def asMinimalGraph(edgeList, external_vertex):
-        return Graph(edgeList, external_vertex=external_vertex, renumbering=True)
+    def asMinimalGraph(edge_list):
+        return Graph(edge_list, renumbering=True)
+
+
+KeyAndParams = collections.namedtuple("KeyAndParams", ["key", "params"])
+
+
+def cached_method(some_class_method):
+    def wrapper(self, *params, **kwargs):
+        hidden_key = "_" + some_class_method.__name__
+        key_and_params = KeyAndParams(hidden_key, params)
+        if key_and_params not in self._internal_cache:
+            self._internal_cache[key_and_params] = some_class_method(self, *params, **kwargs)
+        return self._internal_cache[key_and_params]
+
+    return wrapper
 
 
 class Graph(object):
     """
     representation of graph
     """
-    def __init__(self, obj, external_vertex=-1, renumbering=True):
+    def __init__(self, obj, renumbering=True):
         """
-        constructor to create Graph
-
-        obj - adjacency matrix, edges list or GraphState
-
-        self.edges - dict where keys is one vertex of edge and value is list of second vertices
+        obj - edges list or GraphState object
 
         renumbering - reordering edges using GraphState
         """
+        self._internal_cache = dict()
         if isinstance(obj, (list, tuple)):
-            self._edges = Graph._parseEdges(graph_state.GraphState(obj).edges if renumbering else obj)
-        elif isinstance(obj, dict):
-            self._edges = obj
+            assert len(obj)
+            self._underlying = graph_state.GraphState(obj) if renumbering else obj
         elif isinstance(obj, graph_state.GraphState):
-            self._edges = Graph._parseEdges(obj.edges)
+            self._underlying = obj
         else:
             raise AssertionError("unsupported obj type - %s" % type(obj))
-        self._nextVertexIndex = max(self._edges.keys()) + 1
-        self._external_vertex = external_vertex
-        self._hash = None
-        self._loopsCount = None
-        self._externalEdges = None
-        self._graphState = None
-        self._allEdges = None
-        self._allEdgesIndices = None
-        self._allInternalEdgesCount = None
-        self._boundVertexes = None
-        self._vertices = None
+        self._next_vertex_index = max(reduce(lambda t, e: t + tuple(n.node_index for n in e.nodes), self.edges(), tuple())) + 1
+        self._external_vertex = graph_state.operations_lib.get_external_node(self._underlying)
+
+
+    @staticmethod
+    def from_str(string, properties_config=None):
+        return Graph(graph_state.GraphState.fromStr(string, properties_config=properties_config))
 
     @property
+    @cached_method
     def external_vertex(self):
-        return self._external_vertex
+        return graph_state.operations_lib.get_external_node(self._underlying)
 
-    def externalEdges(self):
-        if self._externalEdges is None:
-            self._externalEdges = self.edges(self.external_vertex)
-        return self._externalEdges
+    @property
+    @cached_method
+    def external_edges(self):
+        return graph_state.operations_lib.edges_for_node(self._underlying, self.external_vertex)
 
-    def externalEdgesCount(self):
-        return len(self.externalEdges())
+    @property
+    def external_edges_count(self):
+        return len(self.external_edges)
 
-    def internalEdges(self):
-        res = list()
-        for edge in self.allEdges():
-            if self.external_vertex not in edge.nodes:
-                res.append(edge)
-        return res
+    @property
+    @cached_method
+    def internal_edges(self):
+        return tuple(filter(lambda e: not e.is_external(), self))
 
+    @property
+    @cached_method
     def vertices(self):
-        if self._vertices is None:
-            self._vertices = frozenset(self._edges.keys())
-        return self._vertices
+        return graph_state.operations_lib.get_vertices(self._underlying)
 
-    def createVertexIndex(self):
-        to_return = self._nextVertexIndex
-        self._nextVertexIndex += 1
-        return to_return
+    @property
+    @cached_method
+    def edges_indices(self):
+        return frozenset(map(lambda e: e.edge_id, self))
 
-    def getGraphStatePropertiesConfig(self):
-        return self._edges.values()[0][0].properties_config
+    @property
+    @cached_method
+    def internal_edges_count(self):
+        return len(self.internal_edges)
 
-    def edges(self, vertex, vertex2=None):
+    @property
+    @cached_method
+    def loops_count(self):
+        return self.internal_edges_count - len(self.vertices) + (1 if len(self.edges(self.external_vertex)) != 0 else 0) + 1
+
+    @property
+    def presentable_str(self):
+        return self.to_graph_state().topology_str()
+
+    @cached_method
+    def edges(self, vertex=None, vertex2=None, nickel_ordering=False):
         """
         returns all edges with one vertex equals vertex parameter
         """
-        if vertex2 is None:
-            return copy.copy(self._edges.get(vertex, []))
-        return filter(lambda e: vertex2 in e.nodes, self._edges.get(vertex, []))
+        if vertex is None:
+            if nickel_ordering or isinstance(self._underlying, graph_state.GraphState):
+                return tuple(self.to_graph_state().edges)
+            else:
+                return tuple(self._underlying)
+        else:
+            es = graph_state.operations_lib.edges_for_node(self._underlying, vertex)
+            if vertex2 is not None:
+                es = graph_state.operations_lib.edges_for_node(es, vertex2)
+            return es
 
-    def allEdgesIndices(self):
-        """
-        special method, inserted to Graph for caching
-        """
-        if self._allEdgesIndices is None:
-            self._allEdgesIndices = frozenset(map(lambda e: e.edge_id, self.allEdges()))
-        return self._allEdgesIndices
+    @cached_method
+    def to_graph_state(self):
+        return self._underlying \
+            if isinstance(self._underlying, graph_state.GraphState) \
+            else graph_state.GraphState(self._underlying)
 
-    def allEdges(self, nickel_ordering=False):
-        if nickel_ordering:
-            return copy.copy(self.toGraphState().edges)
-        if self._allEdges is None:
-            wrapped_result = set()
-            for edges in self._edges.values():
-                for e in edges:
-                    wrapped_result.add(_IdAwareEdgeDelegate(e))
-            self._allEdges = map(lambda ei: ei.edge, wrapped_result)
-        return copy.copy(self._allEdges)
+    @cached_method
+    def get_bound_vertices(self):
+        return graph_state.operations_lib.get_bound_vertices(self._underlying)
 
-    def addEdges(self, edgesToAdd):
-        """
-        immutable operation
-        """
-        newEdges = self.allEdges() + edgesToAdd
-        return Graph(newEdges, external_vertex=self.external_vertex)
+    def create_vertex_index(self):
+        to_return = self._next_vertex_index
+        self._next_vertex_index += 1
+        return to_return
 
-    def addEdge(self, edge):
-        return self.addEdges([edge])
-
-    def deleteEdges(self, edgesToRemove):
-        """
-        immutable operation
-        """
-        if not len(edgesToRemove):
-            return self
-        newEdges = Graph.dict_copy(self._edges)
-        for edge in edgesToRemove:
-            Graph._persDeleteEdge(newEdges, edge)
-        return Graph(newEdges, external_vertex=self.external_vertex)
-
-    def change(self, edgesToRemove=None, edgesToAdd=None, renumbering=True):
+    def change(self, edges_to_remove=None, edges_to_add=None, renumbering=True):
         """
         transactional changes graph structure
         """
-        newEdges = copy.copy(self.allEdges())
-        map(lambda e: newEdges.remove(e), edgesToRemove)
-        map(lambda e: newEdges.append(e), edgesToAdd)
-        return Graph(newEdges, external_vertex=self.external_vertex, renumbering=renumbering)
+        new_edges = self.edges()
+        new_edges = Graph._sub_tuple(new_edges, edges_to_remove)
+        new_edges += tuple(edges_to_add)
+        return Graph(new_edges, renumbering=renumbering)
 
-    def deleteVertex(self, vertex, transformEdgesToExternal=False):
+    def delete_vertex(self, vertex, transform_edges_to_external=False):
         assert vertex != self.external_vertex
-        if transformEdgesToExternal:
+        if transform_edges_to_external:
             edges = self.edges(vertex)
             for e in edges:
                 if self.external_vertex in e.nodes:
-                    raise AssertionError
-            g = self.deleteEdges(edges)
-            nodeMap = {vertex: self.external_vertex}
-            nEdges = map(lambda e: e.copy(nodeMap), edges)
-            return g.addEdges(nEdges)
+                    raise AssertionError()
+            node_map = {vertex: self.external_vertex}
+            n_edges = map(lambda e: e.copy(node_map), edges)
+            return self.change(edges, n_edges)
         else:
-            return self.deleteEdges(self.edges(vertex))
-
-    def deleteEdge(self, edge):
-        return self.deleteEdges([edge])
+            return self - self.edges(vertex)
 
     def contains(self, other_graph):
-        self_edges = self._edges
-        other_edges = other_graph._edges
-        for v, other_es in other_edges.iteritems():
-            _self_es = self_edges.get(v, None)
-            if _self_es is None and len(other_edges):
+        self_edges = list(self.edges())
+        for e in other_graph:
+            if e in self_edges:
+                self_edges.remove(e)
+            else:
                 return False
-            self_es = copy.copy(_self_es)
-            for e in other_es:
-                if e in self_es:
-                    self_es.remove(e)
-                else:
-                    return False
         return True
 
-    def batchShrinkToPointWithAuxInfo(self, sub_graphs):
+    def batch_shrink_to_point(self, sub_graphs, with_aux_info=False):
         """
         subGraphs -- list of graphs edges or graph with equivalent numbering of vertices
         """
@@ -195,186 +185,112 @@ class Graph(object):
         vertex_transformation = ID_VERTEX_TRANSFORMATION
         g = self
         new_vertices = list()
-        for subGraph in sub_graphs:
-            all_edges = subGraph.allEdges() if isinstance(subGraph, Graph) else subGraph
-            g, new_vertex, vertex_transformation = g._shrinkToPoint(all_edges, vertex_transformation)
+        for sub_graph in sub_graphs:
+            all_edges = sub_graph.edges() if isinstance(sub_graph, Graph) else sub_graph
+            g, new_vertex, vertex_transformation = g._shrink_to_point(all_edges, vertex_transformation)
             new_vertices.append(new_vertex)
         assert g
-        return g, new_vertices
+        return (g, new_vertices) if with_aux_info else g
 
-    def batchShrinkToPoint(self, sub_graphs):
-        return self.batchShrinkToPointWithAuxInfo(sub_graphs)[0]
+    def shrink_to_point(self, edges, with_aux_info=False):
+        result = self._shrink_to_point(edges)
+        return result[0:2] if with_aux_info else result[0]
 
-    def _shrinkToPoint(self, unTransformedEdges, vertex_transformation=None):
+    def _shrink_to_point(self, un_transformed_edges, vertex_transformation=None):
         """
-        obj -- list of edges or graph
         immutable operation
         """
         if not vertex_transformation:
             vertex_transformation = ID_VERTEX_TRANSFORMATION
 
-        edges = map(lambda e: e.copy(vertex_transformation.mapping), unTransformedEdges)
+        edges = map(lambda e: e.copy(vertex_transformation.mapping), un_transformed_edges)
 
-        newRawEdges = copy.copy(self.allEdges())
+        new_raw_edges = list(self.edges())
         marked_vertexes = set()
         for edge in edges:
             v1, v2 = edge.nodes
             if v1 != self.external_vertex and v2 != self.external_vertex:
-                newRawEdges.remove(edge)
+                new_raw_edges.remove(edge)
                 marked_vertexes.add(v1)
                 marked_vertexes.add(v2)
-        newEdges = list()
-        currVertexTransformationMap = dict()
-        for edge in newRawEdges:
+        new_edges = list()
+        curr_vertex_transformation_map = dict()
+        for edge in new_raw_edges:
             copy_map = {}
             for v in edge.nodes:
                 if v in marked_vertexes:
-                    currVertexTransformationMap[v] = self._nextVertexIndex
-                    copy_map[v] = self._nextVertexIndex
+                    curr_vertex_transformation_map[v] = self._next_vertex_index
+                    copy_map[v] = self._next_vertex_index
             if len(copy_map):
-                newEdges.append(edge.copy(copy_map))
+                new_edges.append(edge.copy(copy_map))
             else:
-                newEdges.append(edge)
-        return Graph(newEdges, external_vertex=self.external_vertex, renumbering=False), \
-               self._nextVertexIndex, \
-               vertex_transformation.add(VertexTransformation(currVertexTransformationMap))
+                new_edges.append(edge)
+        return Graph(new_edges, renumbering=False), \
+               self._next_vertex_index, \
+               vertex_transformation.add(VertexTransformation(curr_vertex_transformation_map))
 
-    def shrinkToPoint(self, edges):
-        return self._shrinkToPoint(edges)[0]
+    def remove_tadpoles(self):
+        return Graph(filter(lambda e: e.nodes[0] != e.nodes[1], self.edges()))
 
-    def shrinkToPointWithAuxInfo(self, edges):
-        return self._shrinkToPoint(edges)[0:2]
-
-    def xRelevantSubGraphs(self,
-                           filters=list(),
-                           resultRepresentator=Representator.asGraph,
-                           cutEdgesToExternal=True,
-                           exact=True):
-        allEdges = self.allEdges()
-        simpleCache = dict()
-        exactSubGraphIterator = graph_operations.x_sub_graphs(allEdges,
-                                                              self._edges,
-                                                              self.external_vertex,
-                                                              cut_edges_to_external=cutEdgesToExternal)
-        sgIterator = exactSubGraphIterator if exact else itertools.chain(exactSubGraphIterator, (allEdges,))
-        for subGraphAsList in sgIterator:
-            subGraphAsTuple = tuple(subGraphAsList)
-            isValid = simpleCache.get(subGraphAsTuple, None)
-            if isValid is None:
-                isValid = True
-                for aFilter in filters:
-                    if not aFilter(subGraphAsList, self, allEdges):
-                        isValid = False
+    def x_relevant_sub_graphs(self,
+                              filters=list(),
+                              result_representator=Representator.asGraph,
+                              cut_edges_to_external=True,
+                              exact=True):
+        simple_cache = dict()
+        exact_sub_graph_iterator = graph_operations.x_sub_graphs(self, cut_edges_to_external=cut_edges_to_external)
+        sg_iterator = exact_sub_graph_iterator if exact else itertools.chain(exact_sub_graph_iterator, (self.edges(),))
+        for sub_graph_as_list in sg_iterator:
+            sub_graph_as_tuple = tuple(sub_graph_as_list)
+            is_valid = simple_cache.get(sub_graph_as_tuple, None)
+            if is_valid is None:
+                is_valid = True
+                for a_filter in filters:
+                    if not a_filter(sub_graph_as_list, self):
+                        is_valid = False
                         break
-            if isValid:
-                yield resultRepresentator(subGraphAsList, self.external_vertex)
+            if is_valid:
+                yield result_representator(sub_graph_as_list)
 
-    def toGraphState(self):
-        if self._graphState is None:
-            self._graphState = graph_state.GraphState(self.allEdges(nickel_ordering=False))
-        return self._graphState
+    def __add__(self, other):
+        if isinstance(other, graph_state.Edge):
+            return Graph(self.edges() + (other,), renumbering=False)
+        elif isinstance(other, (list, tuple)):
+            return Graph(self.edges() + tuple(other), renumbering=False)
+        raise AssertionError("unsupported type: %s" % type(other))
 
-    def getBoundVertexes(self):
-        if self._boundVertexes is None:
-            self._boundVertexes = set()
-            for e in self.edges(self.external_vertex):
-                self._boundVertexes.add(e.internal_nodes[0])
-        return self._boundVertexes
+    def __sub__(self, other):
+        if isinstance(other, graph_state.Edge):
+            return Graph(Graph._sub_tuple(self.edges(), (other,)), renumbering=False)
+        elif isinstance(other, (list, tuple)):
+            return Graph(Graph._sub_tuple(self.edges(), other), renumbering=False)
+        raise AssertionError("unsupported type: %s" % type(other))
 
-    def getAllInternalEdgesCount(self):
-        if self._allInternalEdgesCount is None:
-            internalEdgesCount = 0
-            for v, e in self._edges.items():
-                internalEdgesCount += len(e)
-            self._allInternalEdgesCount = internalEdgesCount / 2 - len(self._edges.get(self.external_vertex, tuple()))
-        return self._allInternalEdgesCount
+    @staticmethod
+    def _sub_tuple(tuple_a, tuple_b):
+        copied_a = list(tuple_a)
+        for x in tuple_b:
+            copied_a.remove(x)
+        return copied_a
 
-    def getLoopsCount(self):
-        if self._loopsCount is None:
-            externalLegsCount = len(self.edges(self.external_vertex))
-            self._loopsCount = len(self.allEdges()) - externalLegsCount - (len(self.vertices()) -
-                                                                           (1 if externalLegsCount != 0 else 0)) + 1
-        return self._loopsCount
+    def __len__(self):
+        return len(self._underlying)
 
-    def getPresentableStr(self):
-        asStr = str(self)
-        return asStr.split(":")[0]
-
-    def removeTadpoles(self):
-        no_tadpoles = filter(lambda e: e.nodes[0] != e.nodes[1], self.allEdges())
-        return Graph(no_tadpoles, external_vertex=self.external_vertex)
-
-    def __repr__(self):
-        return str(self)
+    def __iter__(self):
+        return iter(self._underlying)
 
     def __str__(self):
-        return str(self.toGraphState())
+        return str(self.to_graph_state())
 
+    __repr__ = __str__
+
+    @cached_method
     def __hash__(self):
-        if self._hash is None:
-            self._hash = hash(self.toGraphState()) + 37 * hash(self.vertices())
-        return self._hash
+        return hash(self.to_graph_state()) + 37 * hash(self.vertices)
 
     def __eq__(self, other):
-        if not isinstance(other, Graph):
-            return False
-        return self.toGraphState() == other.toGraphState() and self.vertices() == other.vertices()
-
-    @staticmethod
-    def dict_copy(some_dict):
-        copied = dict()
-        for (k, v) in some_dict.iteritems():
-            copied[k] = list(v)
-        return copied
-
-    @staticmethod
-    def fromStr(string, properties_config=None):
-        return Graph(graph_state.GraphState.fromStr(string, properties_config=properties_config))
-
-    @staticmethod
-    def _parseEdges(edgesIterable):
-        edgesDict = dict()
-        for edge in edgesIterable:
-            v1, v2 = edge.nodes
-            Graph._insertEdge(edgesDict, v1, edge)
-            if v1 != v2:
-                Graph._insertEdge(edgesDict, v2, edge)
-        return edgesDict
-
-    @staticmethod
-    def _persInsertEdge(edgesDict, edge):
-        """
-        persistent operation
-        """
-        vertices = set(edge.nodes)
-        for v in vertices:
-            Graph._insertEdge(edgesDict, v, edge)
-
-    @staticmethod
-    def _persDeleteEdge(edgesDict, edge):
-        """
-        persistent operation
-        """
-        vertices = set(edge.nodes)
-        for v in vertices:
-            Graph._deleteEdge(edgesDict, v, edge)
-
-    @staticmethod
-    def _insertEdge(edgesDict, vertex, edge):
-        if vertex in edgesDict:
-            edgesDict[vertex].append(edge)
-        else:
-            edgesDict[vertex] = [edge]
-
-    @staticmethod
-    def _deleteEdge(edgesDict, vertex, edge):
-        try:
-            edgeList = edgesDict[vertex]
-            edgeList.remove(edge)
-            if not len(edgesDict[vertex]):
-                del edgesDict[vertex]
-        except AttributeError as e:
-            raise ValueError(e), "edge not exists in graph"
+        assert isinstance(other, Graph)
+        return self.to_graph_state() == other.to_graph_state() and self.vertices == other.vertices
 
 
 class VertexTransformation(object):
@@ -388,49 +304,29 @@ class VertexTransformation(object):
     def mapping(self):
         return self._mapping
 
-    def add(self, anotherVertexTransformation):
+    def add(self, another_vertex_transformation):
         """
         composition of 2 transformations
         """
-        composedMapping = dict()
+        composed_mapping = dict()
         usedKeys = set()
         for k, v in self._mapping.items():
-            av = anotherVertexTransformation.mapping.get(v, None)
+            av = another_vertex_transformation.mapping.get(v, None)
             if av:
-                composedMapping[k] = anotherVertexTransformation.mapping[v]
+                composed_mapping[k] = another_vertex_transformation.mapping[v]
                 usedKeys.add(v)
             else:
-                composedMapping[k] = v
-        for k, v in anotherVertexTransformation.mapping.items():
+                composed_mapping[k] = v
+        for k, v in another_vertex_transformation.mapping.items():
             if k not in usedKeys:
-                composedMapping[k] = v
-        return VertexTransformation(composedMapping)
+                composed_mapping[k] = v
+        return VertexTransformation(composed_mapping)
 
-    def map(self, vertexIndex):
-        indexMapping = self._mapping.get(vertexIndex, None)
-        if indexMapping:
-            return indexMapping
-        return vertexIndex
+    def map(self, vertex_index):
+        index_mapping = self._mapping.get(vertex_index, None)
+        if index_mapping:
+            return index_mapping
+        return vertex_index
 
 
 ID_VERTEX_TRANSFORMATION = VertexTransformation()
-
-
-class _IdAwareEdgeDelegate(object):
-    """
-    DO NOT USE IT OUTSIDE THIS PACKAGE
-
-    used for comparing edges by id
-    """
-    def __init__(self, edge):
-        self._edge = edge
-
-    @property
-    def edge(self):
-        return self._edge
-
-    def __hash__(self):
-        return hash(self.edge.edge_id)
-
-    def __eq__(self, other):
-        return self.edge.edge_id == other.edge.edge_id

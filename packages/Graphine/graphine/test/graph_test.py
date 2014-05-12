@@ -1,170 +1,118 @@
 #!/usr/bin/python
 # -*- coding: utf8
+
+
+__author__ = 'dima'
+
+
 import unittest
-
-from graph_state import graph_state as gs
 import graph_state
-import graph as gr
-import graph_operations
-import filters
-
-simpleEdges = tuple([gs.Edge((0, 1)), gs.Edge((1, 2)), gs.Edge((0, 2)), gs.Edge((-1, 0)), gs.Edge((-1, 2))])
-simpleGraphState = gs.GraphState(simpleEdges)
-simpleGraph = gr.Graph(simpleGraphState)
-
-edges = tuple([gs.Edge(p) for p in [(-1, 0), (0, 1), (0, 2), (1, 2), (2, 3), (1, 3), (3, -1)]])
-graphState = gs.GraphState(edges)
-graph = gr.Graph(graphState)
-
-subEdges = tuple([gs.Edge(p) for p in [(0, 1), (0, 2), (1, 2)]])
-subGraphState = gs.GraphState(subEdges)
-subGraph = gr.Graph(subGraphState)
+from graph import Graph, Representator
 
 
-@filters.graphFilter
-def twoEdgesFilter(edgesList, superGraph, superGraphEdges):
-    externalVertex = superGraph.external_vertex
-    notExternalEdges = list()
-    for e in edgesList:
-        if externalVertex not in set(e.nodes):
-            notExternalEdges.append(e)
-    return len(notExternalEdges) == 2
+class GraphTest(unittest.TestCase):
+    EYE_EDGES = [(-1, 3), (-1, 0), (-1, 0), (0, 4), (0, 3), (3, 4), (3, 4), (-1, 4)]
+    EYE = Graph([graph_state.Edge(e) for e in EYE_EDGES], renumbering=False)
+    EYE_MIN = Graph([graph_state.Edge(e) for e in EYE_EDGES])
 
+    def test_creation(self):
+        pass
 
-class GraphTestCase(unittest.TestCase):
-    def testChange(self):
-        """
-        this test case is example of usages of this, is not very simple
-        """
+    def test_external_vertex(self):
+        g = Graph.from_str("e11|e|")
+        self.assertEqual(g.external_vertex, -1)
 
-        #creates Graph object from nickel string
-        g = gr.Graph.fromStr("123|24|5|45|5|")
+    def test_external_edges(self):
+        g = Graph.from_str("ee11|ee|")
+        external_edges = g.external_edges
+        self.assertEqual(len(external_edges), 4)
+        self.assertEqual(external_edges[0], external_edges[1])
+        self.assertEqual(external_edges[2], external_edges[3])
+        self.assertEqual(external_edges[0].internal_node, 0)
+        self.assertEqual(external_edges[2].internal_node, 1)
+        self.assertEqual(g.external_edges_count, 4)
 
-        #find edges which node are 0 and 2
-        e = g.edges(0, 2)[0]
+    def test_internal_edges(self):
+        g = Graph.from_str("ee11|ee|")
+        internal_edges = g.internal_edges
+        self.assertEqual(len(internal_edges), 2)
+        self.assertEqual(internal_edges[0], internal_edges[1])
 
-        #create indexes for new edges
-        nvs = (g.createVertexIndex(), g.createVertexIndex())
+    def test_vertices(self):
+        g = Graph.from_str("ee11|ee|")
+        self.assertEqual(g.vertices, set([-1, 0, 1]))
 
-        #new internal edges will look like 0-->newVertex1, newVertex1-->newVertex2, newVertex2-->2
-        edgesSequence = (0,) + nvs + (2,)
-        newEdges = list()
-        for i in xrange(len(edgesSequence) - 1):
-            newEdges.append(graph_state.Edge(edgesSequence[i:i + 2]))
+        g = Graph([graph_state.Edge(e) for e in [(-1, 0), (0, 2), (2, -1)]], renumbering=False)
+        self.assertEqual(g.vertices, set([-1, 0, 2]))
 
-        #new external edges will look like newVertex1-->externalVertex, newVertex2-->externalVertex
-        for v in nvs:
-            newEdges.append(graph_state.Edge((v, -1)))
+    def test_edges_indices(self):
+        g = Graph.from_str("ee11|ee|")
+        self.assertEqual(len(set(g.edges_indices)), 6)
 
-        #change graph edges: 1st arg -- edges to remove, 2nd -- edges to add
-        newGraph = g.change((e,), newEdges)
-        self.assertEqual(str(newGraph), "e12|e3|45|46|7|67|7||::")
+    def test_internal_edges_count(self):
+        g = Graph.from_str("ee11|ee|")
+        self.assertEqual(g.internal_edges_count, 2)
 
-    def testIndexableEdges(self):
-        graph = gr.Graph(gs.GraphState.fromStr("e11|e|::"))
-        edges = graph.allEdges()
-        uniqueIndexes = set(map(lambda e: e.edge_id, edges))
-        self.assertEqual(len(edges), len(uniqueIndexes))
-        self.assertFalse(None in uniqueIndexes)
+    def test_loops_count(self):
+        g = Graph.from_str("ee11|ee|")
+        self.assertEqual(g.loops_count, 1)
+        g = Graph.from_str("11|")
+        self.assertEqual(g.loops_count, 1)
 
-    def testCreationAndConvertingToGraphState(self):
-        self.assertEquals(simpleGraph.toGraphState(), simpleGraphState)
-        self.assertSetEqual(set(simpleGraph.allEdges()), set(simpleGraphState.edges))
-        #
-        self.assertEquals(graph.toGraphState(), graphState)
-        self.assertSetEqual(set(graph.allEdges()), set(graphState.edges))
+        g = Graph.from_str("12|22|")
+        self.assertEqual(g.loops_count, 2)
+        g = Graph.from_str("ee12|e22|e|")
+        self.assertEqual(g.loops_count, 2)
 
-    def testGetRelevantSubGraphs(self):
-        self.doTestGetRelevantSubGraphs("e111|e|::", 0)
-        self.doTestGetRelevantSubGraphs("ee12|223|3|ee|::", 3)
-        self.doTestGetRelevantSubGraphs("ee12|e3|445|455|5||::", 5)
-        self.doTestGetRelevantSubGraphs("ee12|e22|e|::", 1)
+        g = Graph.from_str("e12|23|3|e|")
+        self.assertEqual(g.loops_count, 2)
+        g = Graph.from_str("12|23|3||")
+        self.assertEqual(g.loops_count, 2)
 
-        graph = gr.Graph(gs.GraphState.fromStr("e14|2|344|4|e|::"))
-        current = [g for g in
-                   graph.xRelevantSubGraphs(twoEdgesFilter, gr.Representator.asList)]
-        return graph_operations.isGraphConnected(current[1], graph, graph.allEdges())
+    def test_edges(self):
+        self.assertEqual(len(GraphTest.EYE.edges(3, 4)), 2)
+        self.assertEqual(len(GraphTest.EYE.edges(1, 2)), 0)
 
-    def testNextVertexIndex(self):
-        self.assertEquals(simpleGraph.createVertexIndex(), 3)
-        self.assertEquals(simpleGraph.createVertexIndex(), 4)
+        self.assertEqual(set([e.nodes for e in GraphTest.EYE.edges(nickel_ordering=False)]), set(GraphTest.EYE_EDGES))
+        self.assertEqual(len(GraphTest.EYE.edges(nickel_ordering=False)), len(GraphTest.EYE_EDGES))
 
-    def testGetVertexEdges(self):
-        self.assertSetEqual(simpleGraph.vertices(), set([-1, 0, 1, 2]))
-        #
-        self.assertSetEqual(graph.vertices(), set([-1, 0, 1, 2, 3]))
+    def test_to_graph_state(self):
+        self.assertEqual(str(GraphTest.EYE.to_graph_state()), "ee12|e22|e|::")
 
-    def testShrinkToPointInBatch(self):
-        self.doTestShrinkToPointInBatch([(-1, 0), (0, 1), (0, 2), (1, 2), (2, 3), (1, 3), (3, -1)],
-                                        [[(0, 1), (0, 2), (1, 2)], [(1, 3)]],
-                                        'ee0|')
+    def test_get_bound_vertices(self):
+        self.assertEqual(GraphTest.EYE.get_bound_vertices(), set([0, 3, 4]))
 
-        self.doTestShrinkToPointInBatch([(-1, 0), (0, 1), (0, 2), (1, 2), (1, 2), (2, 3), (1, 3), (3, -1)],
-                                        [[(0, 1), (0, 2), (1, 2)], [(1, 3)]],
-                                        'ee00|')
+    def test_create_vertex_index(self):
+        self.assertEqual(GraphTest.EYE.create_vertex_index(), 5)
 
-        self.doTestShrinkToPointInBatch([(-1, 0), (0, 1), (0, 2), (1, 2), (1, 2), (0, 3), (1, 3), (2, -1)],
-                                        [[(2, 1), (3, 2), (1, 3)], [(0, 1), (0, 2)]],
-                                        'ee0|')
+    def test_delete_vertex(self):
+        g = Graph.from_str("e12|e2||")
+        g1 = g.delete_vertex(2, transform_edges_to_external=False)
+        self.assertEqual(str(g1), "e1|e|::")
+        g2 = g.delete_vertex(2, transform_edges_to_external=True)
+        self.assertEqual(str(g2), "ee1|ee|::")
 
-    def testShrinkToPoint(self):
-        self.doTestShrinkToPoint([(-1, 0), (0, 1), (0, 2), (1, 2), (2, 3), (1, 3), (3, -1)],
-                                 [(0, 1), (0, 2), (1, 2)],
-                                 'e11|e|')
+    def test_contains(self):
+        g_sub = Graph.from_str("12|2||")
+        self.assertTrue(GraphTest.EYE_MIN.contains(g_sub))
+        g_sub = Graph.from_str("12|222||")
+        self.assertFalse(GraphTest.EYE_MIN.contains(g_sub))
 
-        self.doTestShrinkToPoint([(-1, 0), (0, 1), (0, 1), (0, 1), (1, -1)],
-                                 [(0, 1), (0, 1)],
-                                 'ee0|')
+    def test_shrink_to_point(self):
+        g = Graph.from_str("ee12|223|3|ee|")
+        g_sub = Graph([graph_state.Edge(e) for e in [(2, 1), (1, 2)]], renumbering=False)
+        shrunk = g.shrink_to_point(g_sub)
+        self.assertEqual(str(shrunk), "ee11|22|ee|::")
 
-    def testGetLoopCount(self):
-        self.assertEqual(gr.Graph.fromStr('e111|e|::').getLoopsCount(), 2)
-        self.assertEqual(gr.Graph.fromStr('ee11|ee|::').getLoopsCount(), 1)
-        self.assertEqual(gr.Graph.fromStr('111||::').getLoopsCount(), 2)
+        shrunk, new_vertex = g.shrink_to_point(g_sub, with_aux_info=True)
+        self.assertEqual(str(shrunk), "ee11|22|ee|::")
+        self.assertEqual(len(shrunk.edges(4)), 4)
 
-    def testDeleteVertex(self):
-        self.doTestDeleteVertex("e12|223|3|e|::", "e1|2|e|::", 2, False)
-        self.doTestDeleteVertex("e12|34|34||e|::", "e12|3|3|e|::", 3, False)
-        self.doTestDeleteVertex("e112|3|e3||::", "e1|e22||::", 3, False)
-        self.doTestDeleteVertex("e12|223|3|e|::", "ee1|ee2|ee|::", 2, True)
-        self.doTestDeleteVertex("e12|34|34||e|::", "e12|e3|e3|e|::", 3, True)
-        self.doTestDeleteVertex("e112|3|e3||::", "ee1|e22|e|::", 3, True)
-
-    def doTestDeleteVertex(self, rawToDelete, rawExpected, vertexToDelete, transformEdgesToExternal):
-        actual = gr.Graph.fromStr(rawToDelete).deleteVertex(vertexToDelete, transformEdgesToExternal)
-        self.assertEqual(str(actual), rawExpected)
-
-    def doTestGetRelevantSubGraphs(self, nickelRepresentation, expected):
-        graph = gr.Graph(gs.GraphState.fromStr(nickelRepresentation))
-        testFilters = filters.noTadpoles + filters.oneIrreducible
-        current = [g for g in
-                   graph.xRelevantSubGraphs(testFilters, gr.Representator.asList)]
-        if isinstance(expected, int):
-            self.assertEquals(expected, len(current))
-        elif isinstance(expected, list):
-            self.assertSetEqual(set(current), set(expected))
-            self.assertEquals(len(expected), len(current))
-
-    def doTestShrinkToPointInBatch(self, edges, subGraphs, expectedGraphState):
-        graphState = gs.GraphState([gs.Edge(e) for e in edges])
-        graph = gr.Graph(graphState)
-        newGraph = graph.batchShrinkToPoint(self.prepareGraphs(subGraphs))
-        self.assertEquals(str(newGraph.toGraphState())[:-2], expectedGraphState)
-
-    def doTestShrinkToPoint(self, edges, subEdges, expectedGraphState):
-        graphState = gs.GraphState([gs.Edge(e) for e in edges])
-        graph = gr.Graph(graphState)
-        newGraph = graph.shrinkToPoint([gs.Edge(e) for e in subEdges])
-        self.assertEquals(str(newGraph.toGraphState())[:-2], expectedGraphState)
-
-    # noinspection PyMethodOverriding
-    def assertSetEqual(self, set1, set2):
-        assert set1 == set2, str(set1) + " != " + str(set2)
-
-    def prepareEdges(self, edges):
-        return [gs.Edge(e) for e in edges]
-
-    def prepareGraphs(self, graphs):
-        return [self.prepareEdges(g) for g in graphs]
+    def test_batch_shrink_to_point(self):
+        g = Graph.from_str("ee12|2223|3|ee|")
+        g_sub1 = Graph([graph_state.Edge(e) for e in [(2, 1), (1, 2)]], renumbering=False)
+        g_sub2 = Graph([graph_state.Edge(e) for e in [(2, 1), (3, 2), (3, 2)]], renumbering=False)
+        self.assertEqual(str(g.batch_shrink_to_point([g_sub1, g_sub2])), "ee11|ee|::")
 
 
 if __name__ == "__main__":

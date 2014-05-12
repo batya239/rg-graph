@@ -35,12 +35,19 @@ def get_bound_vertices(edges):
     return result
 
 
+@graph_state_to_edges_implicit_conversion
+def get_vertices(edges):
+    return frozenset(reduce(lambda s, e: s + e.nodes, edges, tuple()))
+
+
 def get_connected_components(edges, additional_vertices=set(), singular_vertices=set()):
     """
     additional_vertices
     """
     if not len(edges):
         return tuple()
+    if len(additional_vertices):
+        additional_vertices = set(additional_vertices)
     external_vertex = get_external_node(edges)
 
     if external_vertex in additional_vertices:
@@ -79,7 +86,7 @@ def has_no_tadpoles_in_counter_term(edges, super_graph_edges):
     if not len(edges):
         return False
     external_node = get_external_node(super_graph_edges)
-    edges_copy = copy.copy(super_graph_edges)
+    edges_copy = list(super_graph_edges)
     singular_vertices = set()
     for e in edges:
         if e in edges_copy:
@@ -89,14 +96,14 @@ def has_no_tadpoles_in_counter_term(edges, super_graph_edges):
     for component in connectedComponents:
         all_singular = True
         for v in component:
-            if not _DisjointSet.isSingular(v):
+            if not DisjointSet.is_singular(v):
                 all_singular = False
                 break
         if all_singular:
             return False
         containsExternal = False
         for v in component:
-            for e in superGraph.edges(v):
+            for e in edges_for_node(super_graph_edges, v):
                 if e.is_external():
                     containsExternal = True
         if not containsExternal:
@@ -115,7 +122,7 @@ def is_graph_connected(edges, additional_vertices=set()):
 @graph_state_to_edges_implicit_conversion
 def is_vertex_irreducible(edges):
     external_node = get_external_node(edges)
-    vertices = reduce(lambda s, e: s | set(e.nodes), edges, set())
+    vertices = get_vertices(edges)
     if len(vertices - set([external_node])) == 1:
         return True
     if len(vertices) == 2:

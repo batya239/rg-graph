@@ -9,6 +9,7 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/gfunctions.iml" filepath="$PROJECT_DIR$/.idea/gfunctions.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../GraphState/graph_state/.idea/graph_state.iml" filepath="$PROJECT_DIR$/../../GraphState/graph_state/.idea/graph_state.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../Graphine/graphine/.idea/graphine.iml" filepath="$PROJECT_DIR$/../../Graphine/graphine/.idea/graphine.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../../phi4/graphs/.idea/graphs.iml" filepath="$PROJECT_DIR$/../../../phi4/graphs/.idea/graphs.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../../tests/litered/.idea/litered.iml" filepath="$PROJECT_DIR$/../../../tests/litered/.idea/litered.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../MomentumRepresentation/momentumrepr/.idea/momentumrepr.iml" filepath="$PROJECT_DIR$/../../MomentumRepresentation/momentumrepr/.idea/momentumrepr.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../Polynomial/polynomial/.idea/polynomial.iml" filepath="$PROJECT_DIR$/../../Polynomial/polynomial/.idea/polynomial.iml" />

@@ -16,21 +16,21 @@ l = symbolic_functions.l
 
 THREE_LOOP_REDUCTOR = reductor.Reductor("loop3",
                                "loop3",
-                               [graphine.Graph.fromStr("e12|34|35|4|5|e|"),
-                                graphine.Graph.fromStr("e12|34|34|5|5|e|"),
-                                graphine.Graph.fromStr("e12|23|4|45|5|e|")],
+                               [graphine.Graph.from_str("e12|34|35|4|5|e|"),
+                                graphine.Graph.from_str("e12|34|34|5|5|e|"),
+                                graphine.Graph.from_str("e12|23|4|45|5|e|")],
                                3,
-                               {graphine.Graph.fromStr("e12|34|34|5|5|e|"):
+                               {graphine.Graph.from_str("e12|34|34|5|5|e|"):
                                     symbolic_functions.evaluate(
                                         "_g11()**(-3)*(exp(-3 * Euler * e))/(1-2*e)*(20 * zeta(5)"
                                         "+e *(68 * zeta(3)**2+(10 * Pi**6)/189)"
                                         "+e**2 *((34 * Pi **4 * zeta(3))/15-5 * Pi **2 * zeta(5)+450 *zeta(7))"
                                         "+e**3 *(-9072/5 * Z53-2588*zeta(3)*zeta(5)-17* Pi **2 *zeta(3)**2+(6487*Pi**8)/10500))+Order(e**4)"),
-                                graphine.Graph.fromStr("e11|22|33|e|"): G(1, 1) ** 3,
-                                graphine.Graph.fromStr("e112|22|e|"): G(1, 1) * G(1, 1) * G(2 - 2 * l, 1),
-                                graphine.Graph.fromStr("e11|222|e|"): G(1, 1) * G(1, 1) * G(1 - l, 1),
-                                graphine.Graph.fromStr("e1111|e|"): G(1, 1) * G(1 - l, 1) * G(1 - 2 * l, 1),
-                                graphine.Graph.fromStr("e12|223|3|e|"):
+                                graphine.Graph.from_str("e11|22|33|e|"): G(1, 1) ** 3,
+                                graphine.Graph.from_str("e112|22|e|"): G(1, 1) * G(1, 1) * G(2 - 2 * l, 1),
+                                graphine.Graph.from_str("e11|222|e|"): G(1, 1) * G(1, 1) * G(1 - l, 1),
+                                graphine.Graph.from_str("e1111|e|"): G(1, 1) * G(1 - l, 1) * G(1 - 2 * l, 1),
+                                graphine.Graph.from_str("e12|223|3|e|"):
                                     symbolic_functions.evaluate("_g11()**(-3)*exp(-3 * Euler * e )*("
                                                                 "1/(3 *e **3)+7/(3* e **2)"
                                                                 "+e **(-1)*(31/3-(Pi **2)/12)"
@@ -43,7 +43,7 @@ THREE_LOOP_REDUCTOR = reductor.Reductor("loop3",
 
 TWO_LOOP_REDUCTOR = reductor.Reductor("loop2",
                              "loop2",
-                             [graphine.Graph.fromStr("e12|23|3|e|")],
+                             [graphine.Graph.from_str("e12|23|3|e|")],
                              2,
-                             {graphine.Graph.fromStr("e111|e|"): G(1, 1) * G(1 - l, 1),
-                              graphine.Graph.fromStr("e11|22|e|"): G(1, 1) ** 2}, "p", "k")
+                             {graphine.Graph.from_str("e111|e|"): G(1, 1) * G(1 - l, 1),
+                              graphine.Graph.from_str("e11|22|e|"): G(1, 1) ** 2}, "p", "k")

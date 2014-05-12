@@ -12,27 +12,27 @@ from rggraphutil import VariableAwareNumber
 def calculate_graph_p_factor(graph):
     factor0 = 0
     arrow_factor = 0
-    for e in graph.internalEdges():
+    for e in graph.internal_edges:
         arrow_factor += 1 if e.arrow is not None and not e.arrow.is_null() else 0
         factor0 += e.weight.a
     arrow_factor /= 2
-    f = VariableAwareNumber("l", factor0 - graph.getLoopsCount() - arrow_factor, - graph.getLoopsCount())
+    f = VariableAwareNumber("l", factor0 - graph.loops_count - arrow_factor, - graph.loops_count)
     return f
 
 
 def find_topology_for_graph(graph, topologies, result_converter):
-    target_graph_name = graph.getPresentableStr()
+    target_graph_name = graph.presentable_str
     for topology in topologies:
-        internal_edges = topology.internalEdges()
-        n = len(internal_edges) - len(graph.internalEdges())
+        internal_edges = topology.internal_edges
+        n = len(internal_edges) - len(graph.internal_edges)
         if n < 0:
             continue
         elif n == 0:
-            if topology.getPresentableStr() == target_graph_name:
+            if topology.presentable_str == target_graph_name:
                 return result_converter(topology, graph)
         for lines in itertools.combinations(internal_edges, n):
-            shrunk = topology.batchShrinkToPoint([[x] for x in lines])
-            gs_as_str = shrunk.getPresentableStr()
+            shrunk = topology.batch_shrink_to_point([[x] for x in lines])
+            gs_as_str = shrunk.presentable_str
             if target_graph_name == gs_as_str:
                 return result_converter(shrunk, graph)
     return None

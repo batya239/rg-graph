@@ -55,11 +55,11 @@ class VariableAwareNumber(object):
     @property
     def a(self):
         return self._a
-    
+
     @property
     def b(self):
         return self._b
-    
+
     @property
     def varName(self):
         return self._varName

@@ -5,226 +5,74 @@ import itertools
 import graph_state
 import graph
 
-# noinspection PyUnusedLocal
-def isGraph1Irreducible(edgesList, superGraph, superGraphEdges):
-    """
-    stupid algorithm
-    """
-    for e in edgesList:
-        if e.is_external():
-            continue
-        copiedEdges = copy.copy(edgesList)
-        copiedEdges.remove(e)
-        if not _is_graph_connected(copiedEdges, superGraph.external_vertex,
-                                   additionalVertexes=set([v for v in e.nodes]) - set([superGraph.external_vertex])):
-            return False
-    return True
+
+def from_graph_state_function(fun):
+    def wrapper(graph):
+        return fun(graph.edges())
+    return wrapper
 
 
-# noinspection PyUnusedLocal
-def isGraphVertexIrreducible(edgesList, superGraph, superGraphEdges):
-    subGraph = graph.Representator.asGraph(edgesList, superGraph.external_vertex)
-    if len(subGraph.vertices() - set([superGraph.external_vertex])) == 1:
-        return True
-    if len(subGraph.vertices()) == 2:
-        return len(subGraph.allEdges()) - len(subGraph.edges(subGraph.external_vertex)) > 0
-    for v in subGraph.vertices():
-        for e in subGraph.edges(v):
-            if e.nodes[0] == e.nodes[1]:
-                return False
-        if v is not superGraph.external_vertex:
-            if len(subGraph.vertices()) == 2:
-                return len(subGraph.allEdges()) - len(subGraph.edges(subGraph.external_vertex)) > 0
-            else:
-                edges = copy.copy(edgesList)
-                for e in subGraph.edges(v):
-                    edges.remove(e)
-                additionalVertexes = set(subGraph.vertices())
-                additionalVertexes.remove(v)
-                if not _is_graph_connected(edges, superGraph.external_vertex, additionalVertexes=additionalVertexes):
-                    return False
-    return True
+is_1_irreducible = from_graph_state_function(graph_state.operations_lib.is_1_irreducible)
+is_connected = from_graph_state_function(graph_state.operations_lib.is_graph_connected)
+is_vertex_irreducible = from_graph_state_function(graph_state.operations_lib.is_vertex_irreducible)
 
 
-def hasNoTadpolesInCounterTerm(edgesList, superGraph, superGraphEdges):
-    if not len(edgesList):
-        return False
-    edges = copy.copy(superGraphEdges)
-    singularVertexes = set()
-    for e in edgesList:
-        if e in edges:
-            edges.remove(e)
-        singularVertexes |= set(e.nodes)
-    connectedComponents = _get_connected_components(edges, superGraph.external_vertex, singularVertexes=singularVertexes)
-    for component in connectedComponents:
-        allSingular = True
-        for v in component:
-            if not _DisjointSet.isSingular(v):
-                allSingular = False
-                break
-        if allSingular:
-            return False
-        containsExternal = False
-        for v in component:
-            for e in superGraph.edges(v):
-                if superGraph.external_vertex in e.nodes:
-                    containsExternal = True
-        if not containsExternal:
-            return False
-    return True
+def has_tadpoles_in_counter_term(graph, super_graph):
+    return graph_state.operations_lib.has_no_tadpoles_in_counter_term(graph.edges(), super_graph.edges())
 
 
-# noinspection PyUnusedLocal
-def isGraphConnected(edgesList, superGraph, superGraphEdges):
-    return _is_graph_connected(edgesList, superGraph.external_vertex)
-
-
-def x_sub_graphs(edges_list, edges_map, external_vertex,
-                 cut_edges_to_external=True,
-                 start_size=2):
+def x_sub_graphs(graph, cut_edges_to_external=True, start_size=2):
     """
     cut_edges_to_external - if True then all graphs from iterator has only 2 external edges
     """
-    external, inner = _pick_external_edges(edges_list, external_vertex)
-    inner_length = len(inner)
+    if len(graph.edges()):
+        external, inner = _pick_external_edges(graph.edges())
+        inner_length = len(inner)
 
-    if len(edges_list):
         if start_size == 1:
             if not cut_edges_to_external:
                 raise AssertionError()
-            notExternalVertexes = set(edges_map.keys()) - set([external_vertex])
-            for v in notExternalVertexes:
-                edges = edges_map.get(v, None)
-                if edges:
-                    subGraph = map(lambda e_: e_.copy(node_map={(set(e_.nodes)-set([v])).pop(): external_vertex}), filter(lambda e: not e.is_external(), edges))
-                    subGraph += filter(lambda e: e.is_external(), edges)
-                    yield subGraph
-
+            not_external_vertices = graph.vertices - set([graph.external_vertex])
+            for v in not_external_vertices:
+                edges = graph.edges(v)
+                if len(edges):
+                    sub_graph = map(lambda e_: e_.copy(node_map={(set(e_.nodes)-set([v])).pop(): graph.external_vertex}),
+                                    filter(lambda e: not e.is_external(), edges))
+                    sub_graph += filter(lambda e: e.is_external(), edges)
+                    yield sub_graph
         if inner_length:
             for i in xrange(max(2, start_size), inner_length):
-                for rawSubGraph in itertools.combinations(inner, i):
-                    subGraph = list(rawSubGraph)
-                    subGraphVertexes = set()
-                    for e in subGraph:
-                        subGraphVertexes |= set(e.nodes)
+                for raw_sub_graph in itertools.combinations(inner, i):
+                    sub_graph = list(raw_sub_graph)
+                    sub_graph_vertices = graph_state.operations_lib.get_vertices(sub_graph)
                     if cut_edges_to_external:
-                        for e in _supplement(inner, subGraph):
+                        for e in _supplement(inner, sub_graph):
                             if len(e.internal_nodes) == 1:
                                 pass
-                            vSet = set(e.nodes)
-                            for v in vSet:
-                                if v in subGraphVertexes:
-                                    if len(vSet) == 1:
-                                        subGraph += e.cut_tadpole()
+                            v_set = set(e.nodes)
+                            for v in v_set:
+                                if v in sub_graph_vertices:
+                                    if len(v_set) == 1:
+                                        sub_graph += e.cut_tadpole()
                                     else:
-                                        subGraph.append(e.copy({(set(e.nodes)-set([v])).pop(): external_vertex}))
+                                        sub_graph.append(e.copy({(set(e.nodes)-set([v])).pop(): graph.external_vertex}))
                     for e in external:
-                        v = e.internal_nodes[0]
-                        if v in subGraphVertexes:
-                            subGraph.append(e)
-                    yield subGraph
+                        if e.internal_node in sub_graph_vertices:
+                            sub_graph.append(e)
+                    yield sub_graph
 
 
-def _is_graph_connected(edgesList, external_vertex, additionalVertexes=set()):
-    """
-    graph as edges list
-    """
-    return len(_get_connected_components(edgesList, external_vertex, additionalVertexes)) == 1 if len(edgesList) else True
-
-def _get_connected_components(edgesList, external_vertex, additionalVertexes=set(), singularVertexes=set()):
-    """
-    graph as edges list
-    """
-    if external_vertex in additionalVertexes:
-        additionalVertexes.remove(external_vertex)
-    disjointSet = _DisjointSet(additionalVertexes)
-
-    for e in edgesList:
-        pair = e.nodes
-        if external_vertex in pair:
-            for v in set(pair) - set([external_vertex]):
-                disjointSet.addKey(v)
-            continue
-
-        v = pair[0]
-        if v in singularVertexes:
-            pair = (disjointSet.nextSingularKey(v)), pair[1]
-        v = pair[1]
-        if v in singularVertexes:
-            pair = pair[0], (disjointSet.nextSingularKey(v))
-
-        disjointSet.union(pair)
-    return disjointSet.getConnectedComponents()
-
-
-def _pick_external_edges(edgesList, external_vertex=-1):
-    inner = []
-    external = []
-    for e in edgesList:
-        v1, v2 = e.nodes
-        if v1 == external_vertex or v2 == external_vertex:
-            external.append(e)
-        else:
-            inner.append(e)
+def _pick_external_edges(edges_list):
+    inner = list()
+    external = list()
+    for e in edges_list:
+        external.append(e) if e.is_external() else inner.append(e)
     return external, inner
 
 
-def _supplement(aList, innerList, check=False):
-    result = copy.copy(aList)
-    for element in innerList:
+def _supplement(a_list, inner_list, check=False):
+    result = copy.copy(a_list)
+    for element in inner_list:
         if not check or element in result:
             result.remove(element)
     return result
-
-
-class _DisjointSet(object):
-    def __init__(self, keys=set()):
-        self.underlying = dict()
-        for k in keys:
-            self.underlying[k] = k
-        self.singularKeyPrefix = 1
-
-    def addKey(self, key):
-        if key not in self.underlying:
-            self.underlying[key] = key
-
-    def root(self, a):
-        aRoot = a
-        aNext = self.underlying[aRoot]
-        while aNext != aRoot:
-            aRoot = aNext
-            aNext = self.underlying[aRoot]
-        return aRoot
-
-    def union(self, pair):
-        """
-        not fast implementation (no balancing)
-        """
-        a, b = pair
-        self.addKey(a)
-        self.addKey(b)
-        if a is b:
-            return
-        aRoot = self.root(a)
-        bRoot = self.root(b)
-        if aRoot is not bRoot:
-            self.underlying[aRoot] = bRoot
-
-    def getConnectedComponents(self):
-        connectedComponents = dict()
-        for k in self.underlying.keys():
-            kRoot = self.root(k)
-            if kRoot in connectedComponents:
-                connectedComponents[kRoot].append(k)
-            else:
-                connectedComponents[kRoot] = [k]
-        return connectedComponents.values()
-
-    def nextSingularKey(self, key):
-        prefix = self.singularKeyPrefix
-        self.singularKeyPrefix += 1
-        return "__%s_%s" % (prefix, key)
-
-    @staticmethod
-    def isSingular(key):
-        return str(key).startswith("__")

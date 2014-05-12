@@ -16,7 +16,7 @@ def scalar_product_extractor(topology, graph):
     extracted_numerated_edges = list()
     if DEBUG:
         print "CAL", graph
-    for e1, e2 in zip(topology.allEdges(nickel_ordering=True), graph.allEdges(nickel_ordering=True)):
+    for e1, e2 in zip(topology.edges(nickel_ordering=True), graph.edges(nickel_ordering=True)):
         numerator = e2.arrow if (e2.arrow is not None and not e2.arrow.is_null()) else None
         if numerator:
             extracted_numerated_edges.append((e1, numerator))

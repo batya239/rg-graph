@@ -7,6 +7,8 @@ import common
 import const
 import inject
 import swiginac
+import diff_util
+import momentum
 from rggraphenv import storage, graph_calculator, symbolic_functions
 from rggraphutil import VariableAwareNumber
 
@@ -56,16 +58,12 @@ UNIT = LazyVal(swiginac.numeric("1"))
 ZERO = LazyVal(swiginac.numeric("0"))
 
 
-def calculate_graphs_values(graphs, suppressException=False):
-    return reduce(lambda e, g: e * calculate_graph_value(g, suppressException)[0], graphs, 1)
-
-
-def calculate_graph_value(graph, suppressException=False):
+def calculate_graph_value(graph, use_dalembertian=False, suppressException=False):
     if len(graph.edges(graph.external_vertex)) == 2:
         graph_reducer = GGraphReducer(graph)
     else:
         graph_reducer = None
-        for g in graphine.momentum.xPassExternalMomentum(graph, common.graph_has_not_ir_divergence_filter):
+        for g in momentum.xPassExternalMomentum(graph, common.graph_has_not_ir_divergence_filter):
             graph_reducer = GGraphReducer(g)
             break
         if graph_reducer is None:
@@ -76,10 +74,16 @@ def calculate_graph_value(graph, suppressException=False):
             return None
         else:
             raise common.CannotBeCalculatedError(graph, "graph can't be calculated")
+    eps_part = result[0]
+    p_power = result[1]
+    if use_dalembertian:
+        p_power += -p_power.b - p_power.a
+        eps_part *= diff_util.dalembertian_coefficient(b=-graph.getLoopsCount())
     if DEBUG:
-        print "V(%s)=(%s)*p(-2(%s))" % (graph, common.MSKOperation().calculate(result[0]), result[1])
-        print "V(%s)=%s" % (graph, common.MSKOperation().calculate(result[0] * symbolic_functions.p ** (-symbolic_functions.CLN_TWO * result[1].subs(get_lambda()))))
-    return result[0] * symbolic_functions.p ** (-symbolic_functions.CLN_TWO * result[1].subs(get_lambda())), graph_reducer.iteration_graphs[0]
+        supplement = "▢" if use_dalembertian else ""
+        print "V(%s%s)=(%s)%s*p(-2(%s))" % (supplement, graph, common.MSKOperation().calculate(result[0]), ("*▢(1,-%s)" % graph.getLoopsCount()) if use_dalembertian else "", p_power)
+        print "V(%s%s)=%s" % ("▢" if use_dalembertian else "", graph, common.MSKOperation().calculate(eps_part * symbolic_functions.p ** (-symbolic_functions.CLN_TWO * p_power.subs(get_lambda()))))
+    return eps_part * symbolic_functions.p ** (-symbolic_functions.CLN_TWO * p_power.subs(get_lambda())), graph_reducer.iteration_graphs[0]
 
 
 def get_lambda():
@@ -89,14 +93,14 @@ def get_lambda():
 def create_filter():
     class RelevanceCondition(object):
         # noinspection PyUnusedLocal
-        def isRelevant(self, edgesList, superGraph, superGraphEdges):
-            subGraph = graphine.Representator.asGraph(edgesList, superGraph.external_vertex)
+        def is_relevant(self, edges_list, super_graph):
+            subGraph = graphine.Representator.asGraph(edges_list)
             vertexes = set()
-            for e in subGraph.edges(superGraph.external_vertex):
+            for e in subGraph.edges(super_graph.external_vertex):
                 vertexes |= set(e.nodes)
                 # external node and 2 internals
             return len(vertexes) == 3
-    return graphine.filters.oneIrreducible + graphine.filters.isRelevant(RelevanceCondition())
+    return graphine.filters.one_irreducible + graphine.filters.is_relevant(RelevanceCondition())
 
 
 class GGraphReducer(object):
@@ -155,7 +159,7 @@ class GGraphReducer(object):
         return self._iteration_values[-1] if len(self._iteration_values) else None
 
     def is_succesful_done(self):
-        return len(self.get_current_iteration_graph().allEdges()) == 3 and ("<" not in str(self.get_current_iteration_graph()) and ">" not in str(self.get_current_iteration_graph()))
+        return len(self.get_current_iteration_graph().edges()) == 3 and ("<" not in str(self.get_current_iteration_graph()) and ">" not in str(self.get_current_iteration_graph()))
 
     def calculate(self):
         """
@@ -168,7 +172,7 @@ class GGraphReducer(object):
             if self._is_tadpole:
                 return ZERO, const.ZERO_WEIGHT
 
-        if (len(last_iteration.allEdges()) == 3 and ("<" not in str(self.get_current_iteration_graph()) and ">" not in str(self.get_current_iteration_graph()))) or str(last_iteration).startswith("ee"):
+        if (len(last_iteration.edges()) == 3 and ("<" not in str(self.get_current_iteration_graph()) and ">" not in str(self.get_current_iteration_graph()))) or str(last_iteration).startswith("ee"):
             if DEBUG:
                 print "CALCULATED_GRAPH", self._init_graph, self.iteration_graphs, self.iteration_values
             return self._put_final_value_to_graph_storage()
@@ -178,17 +182,16 @@ class GGraphReducer(object):
             return res_red
 
         relevant_sub_graphs = [x for x in
-                               last_iteration.xRelevantSubGraphs(self._sub_graph_filter,
-                                                                graphine.Representator.asList)] + \
-                              [last_iteration.allEdges()]
+                               last_iteration.x_relevant_sub_graphs(self._sub_graph_filter,
+                                                                    graphine.Representator.asList)] + \
+                              [last_iteration.edges()]
         relevant_sub_graphs = relevant_sub_graphs[::-1]
         relevant_sub_graphs.sort(lambda y, x: - len(y) + len(x))
 
         cached_preprocessed_subgraphs = list()
         for sub_graph_as_list in relevant_sub_graphs:
             adjusted_sub_graph = GGraphReducer._adjust(sub_graph_as_list, self._init_graph.external_vertex)
-            subGraph = graphine.Graph(adjusted_sub_graph[0],
-                                      external_vertex=self._init_graph.external_vertex)
+            subGraph = graphine.Graph(adjusted_sub_graph[0])
             preprocessed = (adjusted_sub_graph[1], subGraph, adjusted_sub_graph[2])
             v = inject.instance(storage.StoragesHolder).get_graph(subGraph, 'value')
             if v:
@@ -203,7 +206,7 @@ class GGraphReducer(object):
         cached_preprocessed_subgraphs.reverse()
         for preprocessed in cached_preprocessed_subgraphs:
             if self._arrows_aware:
-                _as = filter(lambda e: not e.arrow.is_null(), preprocessed[1].allEdges())
+                _as = filter(lambda e: not e.arrow.is_null(), preprocessed[1].edges())
                 if len(_as) % 2 == 0:
                     can_calculate = len(self._used_arrows) == 0
                 else:
@@ -220,11 +223,9 @@ class GGraphReducer(object):
                 else:
                     if DEBUG:
                         pass
-                        # print "cant through calculator1", preprocessed[1], preprocessed[1].getLoopsCount(), last_iteration
             else:
                 if DEBUG:
                     pass
-                    # print "cant through calculator2", preprocessed[1], preprocessed[1].getLoopsCount(), last_iteration
 
     def _do_iterate(self, sub_graph_info, iter_sub_graph_value):
         assert len(sub_graph_info[2]) == 2, sub_graph_info[2]
@@ -236,12 +237,12 @@ class GGraphReducer(object):
             if a in sub_graph_info[0]:
                 new_used_arrows.remove(a)
         if self._arrows_aware:
-            _as = filter(lambda e: not e.arrow.is_null(), sub_graph_info[1].allEdges())
+            _as = filter(lambda e: not e.arrow.is_null(), sub_graph_info[1].edges())
             if len(_as) % 2 == 0:
                 arrow = graph_state.Arrow(graph_state.Arrow.NULL)
             else:
                 arrow_direction = 1
-                if sub_graph_info[1].allEdges(nickel_ordering=True)[0].marker == GGraphReducer.START_ID:
+                if sub_graph_info[1].edges(nickel_ordering=True)[0].marker == GGraphReducer.START_ID:
                     arrow_direction *= -1
                 if sub_graph_info[2][0] < sub_graph_info[2][1]:
                     arrow_direction *= -1
@@ -333,7 +334,7 @@ class GGraphReducer(object):
 
     def _search_for_chains(self):
         current_graph = self.get_current_iteration_graph()
-        for v in current_graph.vertices():
+        for v in current_graph.vertices:
             if v is not current_graph.external_vertex:
                 edges = current_graph.edges(v)
                 if len(edges) == 2:
@@ -349,7 +350,7 @@ class GGraphReducer(object):
             return symbolic_functions.CLN_ZERO, const.ZERO_WEIGHT
         g_value = reduce(lambda x, v: x * v, self._iteration_values, UNIT)
         inner_edge = None
-        for e in self._iteration_graphs[-1].allEdges():
+        for e in self._iteration_graphs[-1].edges():
             if self._init_graph.external_vertex not in e.nodes:
                 inner_edge = e
                 break

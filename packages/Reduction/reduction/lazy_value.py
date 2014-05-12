@@ -3,7 +3,6 @@
 
 __author__ = 'dima'
 
-
 import swiginac
 
 
@@ -13,7 +12,7 @@ class Lazy(object):
     def __init__(self, depth):
         self._depth = depth
         if depth > Lazy.MAX_DEPTH:
-            self._get_or_eval()
+            self.evaluate()
 
     def __add__(self, other):
         return LazySum(self, other, self._depth + 1)
@@ -48,6 +47,7 @@ class Lazy(object):
             self._cached = self._evaluate()
             if "normal" in dir(self._cached):
                 self._cached = self._cached.normal()
+            self._clear_refs()
         return self._cached
 
     @staticmethod
@@ -64,6 +64,9 @@ class LazyNeg(Lazy):
     def _evaluate(self):
         return -Lazy.evaluate_val(self._obj._evaluate())
 
+    def _clear_refs(self):
+        self._obj = None
+
 
 class LazyValue(Lazy):
     def __init__(self, obj, depth):
@@ -72,6 +75,9 @@ class LazyValue(Lazy):
 
     def _evaluate(self):
         return Lazy.evaluate_val(self._obj)
+
+    def _clear_refs(self):
+        self._obj = None
 
     @staticmethod
     def create(o, current_depth=-1):
@@ -87,12 +93,16 @@ class LazyDiv(Lazy):
         self._b = b
         super(LazyDiv, self).__init__(depth)
 
-
     def _evaluate(self):
         val = Lazy.evaluate_val(self._a)
         if isinstance(val, int):
             val = swiginac.numeric(val)
         return val / Lazy.evaluate_val(self._b)
+
+    def _clear_refs(self):
+        self._a = None
+        self._b = None
+
 
 class LazySum(Lazy):
     def __init__(self, a, b, depth):
@@ -100,6 +110,9 @@ class LazySum(Lazy):
         self._b = b
         super(LazySum, self).__init__(depth)
 
+    def _clear_refs(self):
+        self._a = None
+        self._b = None
 
     def _evaluate(self):
         return Lazy.evaluate_val(self._a) + Lazy.evaluate_val(self._b)
@@ -111,6 +124,9 @@ class LazyMul(Lazy):
         self._b = b
         super(LazyMul, self).__init__(depth)
 
+    def _clear_refs(self):
+        self._a = None
+        self._b = None
 
     def _evaluate(self):
         return Lazy.evaluate_val(self._a) * Lazy.evaluate_val(self._b)

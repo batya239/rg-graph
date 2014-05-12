@@ -13,8 +13,16 @@ import const
 import graphine
 import inject
 import swiginac
+from rggraphenv.symbolic_functions import CLN_TWO, CLN_ONE, cln, e
 
 CLN_FOUR = swiginac.numeric("4")
+
+
+def dalembertian_coefficient(a=1, b=None):
+    assert b is not None
+    a = cln(a)
+    b = cln(b)
+    return CLN_ONE / CLN_TWO * ((a + b * e) * (CLN_TWO + CLN_FOUR / inject.instance("dimension") * (a - CLN_ONE + b * e)))
 
 
 def c1():
@@ -48,26 +56,25 @@ if 'combinations_with_replacement' not in itertools.__dict__:
 
 
 def _do_diff(graph, old_graph, comb):
+    all_edges = list(old_graph.edges())
+    new_vertex = old_graph.create_vertex_index()
     if comb[0] == comb[1]:
         #
         # (d_xi)^2
         #
-        all_edges = copy.copy(old_graph.allEdges())
         edge = comb[0][1][0]
         all_edges.remove(edge)
-        new_vertex = old_graph.createVertexIndex()
         all_edges.append(graph_util.new_edge((edge.nodes[0], new_vertex),
                                              weight=const.UNIT_WEIGHT,
                                              external_node=graph.external_vertex))
         all_edges.append(graph_util.new_edge((edge.nodes[1], new_vertex),
                                              weight=const.UNIT_WEIGHT,
                                              external_node=graph.external_vertex))
-        return c2(), graphine.Graph(all_edges, external_vertex=graph.external_vertex, renumbering=False)
+        return c2(), graphine.Graph(all_edges, renumbering=False)
     else:
         #
         # d_xi
         #
-        all_edges = copy.copy(old_graph.allEdges())
         for c in comb:
             edge = c[1][0]
             try:
@@ -75,7 +82,6 @@ def _do_diff(graph, old_graph, comb):
             except ValueError as e:
                 print edge, all_edges
                 raise e
-            new_vertex = graph.createVertexIndex()
             numerator = graph_state.Arrow(graph_state.Arrow.LEFT_ARROW if comb[1] else graph_state.Arrow.RIGHT_ARROW)
             new_edge1 = graph_util.new_edge((edge.nodes[0], new_vertex),
                                             external_node=graph.external_vertex,
@@ -90,18 +96,18 @@ def _do_diff(graph, old_graph, comb):
             all_edges.append(new_edge1)
             all_edges.append(new_edge2)
         all_edges = map(lambda e: e.copy(arrow=graph_state.Arrow(graph_state.Arrow.NULL)) if e.arrow is None else e, all_edges)
-        return c1(), graphine.Graph(all_edges, external_vertex=graph.external_vertex, renumbering=False)
+        return c1(), graphine.Graph(all_edges, renumbering=False)
 
 
 def diff_p2(graph):
     assert len(graph.edges(graph.external_vertex)) == 2
     minimal_passing = graphine.util.find_shortest_momentum_flow(graph)
-    new_graph_edges = map(lambda e: e.copy(marker=const.MARKER_0), graph.allEdges())
+    new_graph_edges = map(lambda e: e.copy(marker=const.MARKER_0), graph.edges())
     new_minimal_passing = list()
     for e, b in minimal_passing:
         new_graph_edges.remove(e.copy(marker=const.MARKER_0))
         new_e = e.copy(marker=const.MARKER_1)
         new_graph_edges.append(new_e)
         new_minimal_passing.append((new_e, b))
-    new_graph = graphine.Graph(new_graph_edges, external_vertex=graph.external_vertex, renumbering=False)
+    new_graph = graphine.Graph(new_graph_edges, renumbering=False)
     return map(lambda comb: _do_diff(new_graph, graph, comb), itertools.combinations_with_replacement(zip(new_minimal_passing, minimal_passing), 2))

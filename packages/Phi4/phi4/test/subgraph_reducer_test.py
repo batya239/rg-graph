@@ -5,7 +5,7 @@ import unittest
 import graphine
 import const
 import graph_state
-import graphine.momentum as momentum
+import momentum
 import rggraphenv
 import gfun_calculator
 import reduction

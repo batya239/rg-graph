@@ -9,12 +9,14 @@ import itertools
 import diff_util
 import common
 import graphine
+import momentum
 import configure
 import numerators_util
 import ir_uv
 import const
 import graph_util
 import sys
+import graph_pole_part_calculator
 from rggraphenv import StorageSettings, StoragesHolder, g_graph_calculator, symbolic_functions
 
 r.ROperation.set_debug(True)
@@ -24,24 +26,27 @@ def kr_star_quadratic_divergence(r_operator, graph):
     diff = diff_util.diff_p2(graph)
     result = list()
 
-    i = -1
+    print "DIFF", diff
+    # i = -1
     for c, g in diff:
-        i += 1
-        if i != 1:
-            continue
-        _all = [x for x in graphine.momentum.xArbitrarilyPassMomentum(g)]
+        # i += 1
+        # if i != 1:
+        #     continue
+        _all = [x for x in momentum.xArbitrarilyPassMomentum(g)]
         _all.sort(key=common.graph_can_be_calculated_over_n_loops)
         r_star_values = list()
         r_star_graphs = list()
         for _g in _all:
-            if "e112|33|e4|45|56|6||" not in str(_g):
-                continue
+            # if "e12|e34|35|66|556|6||:" not in str(_g):
+            #     continue
+            print "PERFORM", _g
             try:
                 if common.graph_has_not_ir_divergence(_g):
                     r_star_values.append(r_operator.kr1(_g))
                 else:
                     r_star_values.append(r_operator.kr_star(_g))
                 r_star_graphs.append(_g)
+                # break
             except common.CannotBeCalculatedError:
                 pass
         print "Graph:", g
@@ -49,6 +54,7 @@ def kr_star_quadratic_divergence(r_operator, graph):
         print "R_stars:\n"
         for v, g in zip(r_star_values, r_star_graphs):
             print "\t", v
+            # print "kr1[%s] = %s" % (graph.getPresentableStr(), symbolic_functions.series(v * c, symbolic_functions.e, symbolic_functions.CLN_ZERO, 0, False))
             print "\t", v.subs(symbolic_functions.p == 1).evalf().expand().evalf().normal().expand()
             print "\t for", g
             print ""
@@ -56,11 +62,16 @@ def kr_star_quadratic_divergence(r_operator, graph):
         result.append(map(lambda v: c * v, r_star_values))
 
 
-    # q = result[0][0] + result[2][0]
+    if len(result) == 3:
+        q = result[0][0] + result[2][0]
+    else:
+        q = 0
 
-    # print "\n\n\n"
-    # for r in result[1]:
-    #     print (q + r).series(symbolic_functions.e == 0, 0).subs(symbolic_functions.p == 1).evalf().expand().evalf().normal().expand()
+    print "\n\n\n"
+    for r in (result[1] if len(result) == 3 else result[0]):
+        print "\n----"
+        print (q + r).series(symbolic_functions.e == 0, 0)
+        print (q + r).series(symbolic_functions.e == 0, 0).subs(symbolic_functions.p == 1).evalf().expand().evalf().normal().expand()
 
 
 def main():
@@ -69,12 +80,11 @@ def main():
         .with_ir_filter(ir_uv.IRRelevanceCondition(const.SPACE_DIM_PHI4)) \
         .with_uv_filter(ir_uv.UVRelevanceCondition(const.SPACE_DIM_PHI4)) \
         .with_dimension(const.DIM_PHI4) \
-        .with_calculators(g_graph_calculator.GLoopCalculator(const.DIM_PHI4),
-                           numerators_util.create_calculator(2)) \
+        .with_calculators(g_graph_calculator.GLoopCalculator(const.DIM_PHI4)) \
         .with_storage_holder(StorageSettings("phi4", "test", "test").on_shutdown(revert=True)).configure()
 
     operator = r.ROperation()
-    g = graph_util.graph_from_str("e112|23|44|e44||", do_init_weight=True)
+    g = graph_util.graph_from_str("e111|e|", do_init_weight=True)
     kr_star_quadratic_divergence(operator, g)
 
     StoragesHolder.instance().close()

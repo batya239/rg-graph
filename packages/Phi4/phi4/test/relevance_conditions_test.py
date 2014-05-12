@@ -12,12 +12,12 @@ __author__ = 'daddy-bear'
 uv = ir_uv.UVRelevanceCondition(4)
 ir = ir_uv.IRRelevanceCondition(4)
 
-subgraphUVFilters = (filters.oneIrreducible
-                     + filters.noTadpoles
-                     + filters.vertexIrreducible
-                     + filters.isRelevant(uv))
+subgraphUVFilters = (filters.one_irreducible
+                     + filters.no_tadpoles
+                     + filters.vertex_irreducible
+                     + filters.is_relevant(uv))
 
-subgraphIRFilters = (filters.connected + filters.isRelevant(ir))
+subgraphIRFilters = (filters.connected + filters.is_relevant(ir))
 
 
 class Phi4Test(unittest.TestCase):

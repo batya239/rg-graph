@@ -49,20 +49,14 @@ class MSKOperation(AbstractKOperation):
     def __str__(self):
         return self._description
 
-one_irreducible_and_no_tadpoles = graphine.filters.oneIrreducible + graphine.filters.noTadpoles
-
-_DEFAULT_GRAPH_HAS_NOT_IR_DIVERGENCE_RESULT = dict()
+one_irreducible_and_no_tadpoles = graphine.filters.one_irreducible + graphine.filters.no_tadpoles
 
 
 def graph_has_not_ir_divergence(graph):
-    result = _DEFAULT_GRAPH_HAS_NOT_IR_DIVERGENCE_RESULT.get(graph, None)
-    if result is None:
-        for _ in graph.xRelevantSubGraphs(inject.instance("ir_filter")):
-            _DEFAULT_GRAPH_HAS_NOT_IR_DIVERGENCE_RESULT[graph] = False
-            return False
-        _DEFAULT_GRAPH_HAS_NOT_IR_DIVERGENCE_RESULT[graph] = True
-        return True
-    return result
+    for _ in graph.x_relevant_sub_graphs(inject.instance("ir_filter")):
+        return False
+    return True
+
 
 graph_has_not_ir_divergence_filter = [graph_has_not_ir_divergence]
 
@@ -71,9 +65,9 @@ def graph_can_be_calculated_over_n_loops(graph):
     """
     ololoshki
     """
-    assert graph.externalEdgesCount() == 2
-    disjoint_set = DisjointSet(graph.getBoundVertexes() | set([graph.external_vertex]))
-    for e in graph.allEdges():
+    assert graph.external_edges_count == 2
+    disjoint_set = DisjointSet(graph.get_bound_vertices() | set([graph.external_vertex]))
+    for e in graph.edges():
         n1, n2 = e.nodes
         disjoint_set.union(n1, n2)
     connected_vertices = disjoint_set.get_sets()
@@ -83,7 +77,7 @@ def graph_can_be_calculated_over_n_loops(graph):
         for e in graph.allEdges():
             if len(set(e.nodes) & vertices):
                 edges.append(e)
-        g = graphine.Graph(edges, external_vertex=graph.external_vertex)
-        if g.getLoopsCount() > max_loops:
-            max_loops = g.getLoopsCount()
+        g = graphine.Graph(edges)
+        if g.loops_count > max_loops:
+            max_loops = g.loops_count
     return max_loops

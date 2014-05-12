@@ -532,6 +532,9 @@ class GraphState(object):
     def __len__(self):
         return len(self.edges)
 
+    def __iter__(self):
+        return iter(self.edges)
+
     def __str__(self):
         nickel_edges = [map(lambda n: n.node_index, edge.nodes) for edge in self.edges]
         edges_str = nickel.Nickel(edges=nickel_edges).string

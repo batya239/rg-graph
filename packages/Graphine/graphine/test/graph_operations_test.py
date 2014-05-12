@@ -8,41 +8,36 @@ import graph_operations as go
 import filters
 
 
-class ExternalVertexAware(object):
-    def __init__(self, external_vertex):
-        self.external_vertex = external_vertex
-
-
 class GraphOperationsTestCase(unittest.TestCase):
     def testRelevantSubGraphsTails(self):
-        g = gr.Graph.fromStr("e12|e23|3||")
-        gExternalIds = set(map(lambda e: e.edge_id, g.externalEdges()))
-        subGraphs = [x for x in g.xRelevantSubGraphs(filters=filters.connected + filters.oneIrreducible,
-                                                     resultRepresentator=gr.Representator.asGraph,
-                                                     cutEdgesToExternal=False)]
+        g = gr.Graph.from_str("e12|e23|3||")
+        gExternalIds = set(map(lambda e: e.edge_id, g.external_edges))
+        subGraphs = [x for x in g.x_relevant_sub_graphs(filters=filters.connected + filters.one_irreducible,
+                                                        result_representator=gr.Representator.asGraph,
+                                                        cut_edges_to_external=False)]
         sgExternalIds = set()
         for g in subGraphs:
-            for e in g.externalEdges():
+            for e in g.external_edges:
                 sgExternalIds.add(e.edge_id)
         self.assertTrue(gExternalIds.issuperset(sgExternalIds))
 
     def testRelevantSubGraphs(self):
-        g = gr.Graph.fromStr("e12|e23|3||")
-        subGraphs = [str(x) for x in g.xRelevantSubGraphs(filters=filters.connected + filters.oneIrreducible,
-                                                          resultRepresentator=gr.Representator.asGraph,
-                                                          cutEdgesToExternal=False)]
+        g = gr.Graph.from_str("e12|e23|3||")
+        subGraphs = [str(x) for x in g.x_relevant_sub_graphs(filters=filters.connected + filters.one_irreducible,
+                                                             result_representator=gr.Representator.asGraph,
+                                                             cut_edges_to_external=False)]
         self.assertEqual(set(subGraphs), set(['e12|e2||::', 'e12|2||::', 'e12|e3|3||::']))
 
     def testRelevantSubGraphsWithIndexRepresentator(self):
-        g = gr.Graph.fromStr("e12|e23|3||")
-        subGraphs = [x for x in g.xRelevantSubGraphs(filters=filters.connected + filters.oneIrreducible,
-                                                     resultRepresentator=gr.Representator.asList,
-                                                     cutEdgesToExternal=False)]
+        g = gr.Graph.from_str("e12|e23|3||")
+        subGraphs = [x for x in g.x_relevant_sub_graphs(filters=filters.connected + filters.one_irreducible,
+                                                        result_representator=gr.Representator.asList,
+                                                        cut_edges_to_external=False)]
         sgIndexes = set()
         for sg in subGraphs:
             for e in sg:
                 sgIndexes.add(e.edge_id)
-        gIndexes = set(map(lambda e: e.edge_id, g.allEdges()))
+        gIndexes = set(map(lambda e: e.edge_id, g.edges()))
         self.assertEqual(sgIndexes, gIndexes)
 
     def testHasNoTadPoles(self):
@@ -50,10 +45,6 @@ class GraphOperationsTestCase(unittest.TestCase):
                                  expectedResult=False)
         self.doTestHasNoTadPoles("ee18|233|334||ee5|667|78|88||::", [(1, 2), (1, 3), (2, 3)],
                                  expectedResult=False)
-        # self.doTestHasNoTadPoles("ee18|233|334||ee5|667|78|88||::", [(1, 2), (1, 3), (1, 3), (2, 3), (2, 3)],
-        #                          expectedResult=True)
-        # self.doTestHasNoTadPoles("ee18|233|334||ee5|667|78|88||::", [(7, 8), (7, 8)],
-        #                          expectedResult=True)
         self.doTestHasNoTadPoles("e111|e|::", [(-1, 0), (-1, 0), (-1, 1), (-1, 1), (0, 1), (0, 1)],
                                  expectedResult=False)
 
@@ -84,25 +75,22 @@ class GraphOperationsTestCase(unittest.TestCase):
         self.doTestVertexIrreducibility("1122|22||::", expectedResult=True)
         self.doTestVertexIrreducibility("1|2|3|4||::", expectedResult=False)
 
-    def doTestHasNoTadPoles(self, nickel, subGraphEdges, expectedResult):
-        subGraphEdges = [gs.Edge(e) for e in subGraphEdges]
+    def doTestHasNoTadPoles(self, nickel, subGraph, expectedResult):
+        subGraph = gr.Graph([gs.Edge(e) for e in subGraph], renumbering=False)
         graph = gr.Graph(gs.GraphState.fromStr(nickel))
-        self.assertEquals(go.hasNoTadpolesInCounterTerm(subGraphEdges, graph, graph.allEdges()), expectedResult)
+        self.assertEquals(go.has_tadpoles_in_counter_term(subGraph, graph), expectedResult)
 
     def doTest1Irreducibility(self, nickel, expectedResult):
         graph = gr.Graph(gs.GraphState.fromStr(nickel))
-        mockSuper = ExternalVertexAware(-1)
-        self.assertEquals(go.isGraph1Irreducible(graph.allEdges(), mockSuper, []), expectedResult)
+        self.assertEquals(go.is_1_irreducible(graph), expectedResult)
 
     def doTestConnected(self, nickel, expectedResult):
         graph = gr.Graph(gs.GraphState.fromStr(nickel))
-        mockSuper = ExternalVertexAware(-1)
-        self.assertEquals(go.isGraphConnected(graph.allEdges(), mockSuper, []), expectedResult)
+        self.assertEquals(go.is_connected(graph), expectedResult)
 
     def doTestVertexIrreducibility(self, nickel, expectedResult):
         graph = gr.Graph(gs.GraphState.fromStr(nickel))
-        mockSuper = ExternalVertexAware(-1)
-        self.assertEquals(go.isGraphVertexIrreducible(graph.allEdges(), mockSuper, []), expectedResult)
+        self.assertEquals(go.is_vertex_irreducible(graph), expectedResult)
 
 
 if __name__ == "__main__":

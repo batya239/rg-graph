@@ -1,9 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf8
 import unittest
-import graph
-import graph_state
+
 import momentum
+import graph_util
+
 
 __author__ = 'daddy-bear'
 
@@ -15,12 +16,12 @@ class SubGraphReducerTestCase(unittest.TestCase):
         self.doTestArbitrarilyPassMomentum("11||:(1,0)_(1,0)||::", 1)
 
     def testArbitraryPassMomentum(self):
-        g = momentum.from_str("ee12|e23|44|e44||:(0,0)_(0,0)_(1,0)_(1,0)|(0,0)_(1,0)_(1,0)|(1,0)_(1,0)|(0,0)_(1,0)_(1,0)||::")
+        g = graph_util.from_str("ee12|e23|44|e44||:(0,0)_(0,0)_(1,0)_(1,0)|(0,0)_(1,0)_(1,0)|(1,0)_(1,0)|(0,0)_(1,0)_(1,0)||::")
         for x in momentum.xArbitrarilyPassMomentum(g):
             self.assertFalse(str(x).startswith("ee"))
 
     def doTestArbitrarilyPassMomentum(self, graph_state_str, graphs_number):
-        g = momentum.from_str(graph_state_str)
+        g = graph_util.from_str(graph_state_str)
         graphs_with_passed_momentum = [x for x in momentum.xArbitrarilyPassMomentum(g)]
         for _g in graphs_with_passed_momentum:
             self.assertEquals(len(_g.edges(_g.external_vertex)), 2)

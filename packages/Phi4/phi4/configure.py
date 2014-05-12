@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding: utf8
+
 __author__ = 'dima'
 
 import rggraphenv
@@ -32,11 +35,11 @@ class Configure(object):
         return self
 
     def with_uv_filter(self, uv_relevance_condition):
-        self._uv_filter = graphine.filters.isRelevant(uv_relevance_condition)
+        self._uv_filter = graphine.filters.is_relevant(uv_relevance_condition)
         return self
 
     def with_ir_filter(self, ir_relevance_condition):
-        self._ir_filter = (graphine.filters.connected + graphine.filters.isRelevant(ir_relevance_condition))
+        self._ir_filter = (graphine.filters.connected + graphine.filters.is_relevant(ir_relevance_condition))
         return self
 
     def with_storage_holder(self, storage_setting):

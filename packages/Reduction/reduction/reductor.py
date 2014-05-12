@@ -66,16 +66,15 @@ def _enumerate_graph(graph, init_propagators, to_sector=True, only_one_result=Fa
     """
 
     empty_color = graph_state.Rainbow(("EMPTY",))
-    def init_weight(graph, zeroColor=graph_state.Rainbow((0, 0)), unitColor=graph_state.Rainbow((1, 0))):
-        edges = graph.allEdges()
-        initedEdges = list()
-        for e in edges:
+    def init_weight(graph, zero_color=graph_state.Rainbow((0, 0)), unit_color=graph_state.Rainbow((1, 0))):
+        inited_edges = list()
+        for e in graph:
             if e.colors is None:
-                color = zeroColor if graph.external_vertex in e.nodes else unitColor
-                initedEdges.append(graph_state.Edge(e.nodes, graph.external_vertex, colors=color))
+                color = zero_color if graph.external_vertex in e.nodes else unit_color
+                inited_edges.append(graph_state.Edge(e.nodes, graph.external_vertex, colors=color))
             else:
-                initedEdges.append(e)
-        return graphine.Graph(initedEdges, external_vertex=graph.external_vertex, renumbering=False)
+                inited_edges.append(e)
+        return graphine.Graph(inited_edges, renumbering=False)
     graph = init_weight(graph, empty_color, empty_color)
 
     neg_init_propagators = dict()
@@ -89,28 +88,27 @@ def _enumerate_graph(graph, init_propagators, to_sector=True, only_one_result=Fa
         propagator_indices[neg_init_propagators[p[1]]] = p[0]
 
     momentum_count = len(init_propagators.values()[0])
-    external_vertex = graph.external_vertex
-    graph_vertices = graph.vertices()
+    graph_vertices = graph.vertices
 
     def _enumerate_next_vertex(remaining_propagators, _graph, vertex, result):
         if vertex not in graph_vertices:
             new_edges = map(lambda e_: e_.copy(colors=graph_state.Rainbow((propagator_indices[e_.colors], e_.colors.colors)) if not e_.is_external() else None),
-                            _graph.allEdges())
+                            _graph.edges())
             has_momentums = rggraphutil.emptyListDict()
-            for e in _graph.allEdges():
+            for e in _graph.edges():
                 if not e.is_external():
                     for i, c in enumerate(e.colors):
                         if c != 0:
                             has_momentums[i].append(e)
-            if set(has_momentums.keys()) != set(range(graph.getLoopsCount() + 1)):
+            if set(has_momentums.keys()) != set(range(graph.loops_count + 1)):
                 return
             for i, es in has_momentums.iteritems():
-                if not graphine.graph_operations.isGraphConnected(es, _graph, _graph.allEdges()):
+                if not graph_state.operations_lib.is_graph_connected(es):
                     return
-                if i != 0 and not graphine.graph_operations.isGraphVertexIrreducible(es, _graph, _graph.allEdges()):
+                if i != 0 and not graph_state.operations_lib.is_vertex_irreducible(es):
                     return
 
-            result.add(graphine.Graph(new_edges, external_vertex, renumbering=False))
+            result.add(graphine.Graph(new_edges, renumbering=False))
             if only_one_result:
                 raise StopSearchException()
             return
@@ -148,18 +146,18 @@ def _enumerate_graph(graph, init_propagators, to_sector=True, only_one_result=Fa
                     if is_zero:
                         new_remaining_propagators = copy.copy(remaining_propagators)
                         del new_remaining_propagators[index]
-                        new_edges = copy.copy(_graph.allEdges())
+                        new_edges = list(_graph.edges())
                         new_edges.remove(not_enumerated[0])
                         new_edges.append(not_enumerated[0].copy(colors=graph_state.Rainbow(propagator)))
-                        new_graph = graphine.Graph(new_edges, external_vertex=external_vertex, renumbering=False)
+                        new_graph = graphine.Graph(new_edges, renumbering=False)
                         _enumerate_next_vertex(new_remaining_propagators, new_graph, vertex + 1, result)
                 else:
                     new_remaining_propagators = copy.copy(remaining_propagators)
                     del new_remaining_propagators[index]
-                    new_edges = copy.copy(_graph.allEdges())
+                    new_edges = list(_graph.edges())
                     new_edges.remove(not_enumerated[0])
                     new_edges.append(not_enumerated[0].copy(colors=graph_state.Rainbow(propagator)))
-                    new_graph = graphine.Graph(new_edges, external_vertex=external_vertex, renumbering=False)
+                    new_graph = graphine.Graph(new_edges, renumbering=False)
                     _enumerate_next_vertex(new_remaining_propagators, new_graph, vertex, result)
 
     _result = set()
@@ -334,9 +332,9 @@ class Reductor(object):
                                                                self._loop_momentum_sign)
 
     def is_applicable(self, graph):
-        if graph.getLoopsCount() != self._main_loop_count_condition:
+        if graph.loops_count != self._main_loop_count_condition:
             return False
-        for e in graph.allEdges():
+        for e in graph.edges():
             if e.weight.b != 0:
                 return False
         return True
@@ -350,14 +348,14 @@ class Reductor(object):
         scalar_product_aware_function(topology_shrunk, graph) returns iterable of scalar_product.ScalarProduct
         """
         self.initIfNeed()
-        if graph.getLoopsCount() != self._main_loop_count_condition:
+        if graph.loops_count != self._main_loop_count_condition:
             return None
         Reductor.CALLS_COUNT += 1
 
         probably_calculable_sectors = set()
         str_graph = str(graph)
         str_graph = str_graph[:str_graph.index(":")]
-        as_topologies = _enumerate_graph(graphine.Graph.fromStr(str_graph),
+        as_topologies = _enumerate_graph(graphine.Graph.from_str(str_graph),
                                          self._propagators,
                                          to_sector=False)
         for t in as_topologies:
@@ -498,7 +496,7 @@ class Reductor(object):
             topologies = set()
             with open(file_path, 'r') as f:
                 for s in f:
-                    topologies.add(graphine.Graph.fromStr(s))
+                    topologies.add(graphine.Graph.from_str(s))
                 return topologies
         return None
 

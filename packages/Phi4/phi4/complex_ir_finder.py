@@ -3,177 +3,57 @@
 
 __author__ = 'dima'
 
-#
-#
-# class checks 5-loops diagrams (primary recall checking, precision only with 4 loops reduction)
-#
-#
-import logging
 import graphine
-import graph_state
 import r
-import common
-import graph_util
-import time
-import numerators_util
-import itertools
-import diff_util
-import reduction
-import const
-import inject
 import configure
-import phi4
-import momentum
-from rggraphenv import symbolic_functions, theory, g_graph_calculator, StorageSettings, StoragesHolder
+import inject
+import graph_util
+import common
+import ir_uv
+import const
+from rggraphenv.symbolic_functions import e, zeta
+from rggraphenv import StorageSettings, StoragesHolder
 
 
-def pairwise(iterable):
-    a, b = itertools.tee(iterable)
-    next(b, None)
-    return itertools.izip(a, b)
+def find_complex_ir_diagrams(graph):
+    flow_iterator = [x for x in
+                     graph_util.batch_init_edges_weight(graphine.momentum.xArbitrarilyPassMomentum(graph))]
+    for g in flow_iterator:
+        spinneys_generators = [x for x in
+                               g.x_relevant_sub_graphs(inject.instance("uv_filter") + r._is_1uniting + r._no_hanging_parts,
+                                                    cut_edges_to_external=False,
+                                                    result_representator=graphine.Representator.asGraph)]
 
+        is_valid = False
+        for spinney in spinneys_generators:
+            uv = ir_uv.uvIndex(spinney)
+            if uv == 2:
+                is_valid = True
+            if uv > 2 or not graphine.graph_operations.isGraph1Irreducible(spinney.allEdges(), graph, None):
+                is_valid = False
+                break
 
-class ResultChecker(object):
-    EPS = 10E-5
-    LOG = logging.getLogger("ResultChecker")
-    LOG.setLevel(logging.DEBUG)
-    LOG.addHandler(logging.StreamHandler())
-    LOG.addHandler(logging.FileHandler("5LOOPS_log.txt"))
-
-    def __init__(self, name, up_to_loops_count, *graph_calculators_to_use):
-        self._name = name
-        graph_calculators_to_use = (g_graph_calculator.GLoopCalculator(const.DIM_PHI4),) + tuple(graph_calculators_to_use)
-        configure.Configure()\
-            .with_k_operation(phi4.MSKOperation())\
-            .with_ir_filter(phi4.IRRelevanceCondition(phi4.SPACE_DIM_PHI4))\
-            .with_uv_filter(phi4.UVRelevanceCondition(phi4.SPACE_DIM_PHI4))\
-            .with_dimension(phi4.DIM_PHI4)\
-            .with_calculators(*graph_calculators_to_use)\
-            .with_storage_holder(StorageSettings("phi4", "main method", "5 loops checking").on_shutdown(revert=True)).configure()
-        self.operator = r.ROperation()
-        self.two_tails_op = ("KR1", self.operator.kr1), ("KR_STAR", self.operator.kr_star_quadratic_divergence)
-        self.four_tails_op = ("KR1", self.operator.kr1), ("KR_STAR", self.operator.kr_star)
-        self.ops = dict({2: self.two_tails_op, 4: self.four_tails_op})
-        self.up_to_loops_count = up_to_loops_count
-
-    @classmethod
-    def dispose(cls):
-        inject.instance(StoragesHolder).close()
-        configure.Configure.clear()
-
-    def start(self, skip_2_tails=False, skip_4_tails=False):
-        ResultChecker.LOG.info("start checking \"%s\"" % self._name)
-        ms = time.time()
-
-        two_tails_expected = list()
-        for state_str, value in MS.iteritems():
-            state_str = str(graph_state.GraphState.fromStr(state_str.replace("-", "|")))[:-2]
-            graph = graph_util.graph_from_str(state_str, do_init_weight=True)
-            if graph.external_edges_count == 2:
-                two_tails_expected.append((graph, value))
-                continue
-            if skip_4_tails:
-                continue
-            if graph.loops_count != self.up_to_loops_count:
-                continue
-            ResultChecker.LOG.info("PERFORM %s", graph)
-            momentum_passed_graphs = momentum.arbitrarilyPassMomentumWithPreferable(graph, common.graph_has_not_ir_divergence)
-            operations = self.ops[graph.external_edges_count]
-            calculated_count, not_calculated_count, errors_count = 0, 0, 0
-            for graphs, oper in zip(momentum_passed_graphs, operations):
-                operation_name = oper[0]
-                operation_fun = oper[1]
-                for g in graphs:
-                    try:
-                        ResultChecker.LOG.info("TRY %s", g)
-                        kr1 = operation_fun(g)
-                        if kr1 is not None:
-                            print kr1
-                            if symbolic_functions.check_series_equal_numerically(kr1, value, symbolic_functions.e, ResultChecker.EPS):
-                                ResultChecker.LOG.info("%s OK %s" % (operation_name, g))
-                                calculated_count += 1
-                            else:
-                                ResultChecker.LOG.error("%s WRONG RESULT %s ACTUAL=(%s), EXPECTED=(%s)" % (operation_name, g, kr1, value))
-                                errors_count += 1
-                        else:
-                            raise AssertionError()
-                    except common.CannotBeCalculatedError:
-                        ResultChecker.LOG.warning("CAN'T CALCULATE WITH %s %s" % (operation_name, g))
-                        not_calculated_count += 1
-            ResultChecker.LOG.info("DONE %s %s calculated_count: %s, not_calculated_count: %s, errors_count: %s" %
-                                   (graph, "OK" if calculated_count > 0 else "NOT OK", calculated_count, not_calculated_count, errors_count))
-
-        if not skip_2_tails:
-            two_tails_expected.sort(cmp=lambda p1, p2: cmp(p1[0].loops_count, p2[0].loops_count))
-            for graph, value in two_tails_expected:
-                if graph.loops_count != self.up_to_loops_count:
-                    continue
-                self.kr_star_p2_checking(graph, value)
-
-        ResultChecker.LOG.info("checker \"%s\" finished in %s" % (self._name, time.time() - ms))
-        ResultChecker.LOG.info("reduction calls %s" % reduction.Reductor.CALLS_COUNT)
-
-    def kr_star_p2_checking(self, graph, expected_result):
-        """
-        used only for checking -- for any subgraph
-        """
-        diff = diff_util.diff_p2(graph)
-        result = 0
-        ResultChecker.LOG.info("PERFORM %s", graph)
-        for c, dg in diff:
-            momentum_passed_graphs = momentum.arbitrarilyPassMomentumWithPreferable(dg, common.graph_has_not_ir_divergence)
-            kr1_results = list()
-            for graphs, oper in zip(momentum_passed_graphs, self.four_tails_op):
-                operation_name = oper[0]
-                operation_fun = oper[1]
-                for g in graphs:
-                    try:
-                        ResultChecker.LOG.info("TRY %s", g)
-                        kr1 = inject.instance("k_operation").calculate(c * operation_fun(g))
-                        if kr1 is not None:
-                            print kr1, g
-                            kr1_results.append(kr1)
-                        else:
-                            raise AssertionError()
-                    except common.CannotBeCalculatedError:
-                        ResultChecker.LOG.warning("CAN'T EVALUATE %s %s" % (operation_name, g))
-            if len(kr1_results):
-                all_equal = True
-                for res1, res2 in pairwise(kr1_results):
-                    if not symbolic_functions.check_series_equal_numerically(res1, res2, symbolic_functions.e, ResultChecker.EPS):
-                        all_equal = False
-                if not all_equal:
-                    ResultChecker.LOG.error("KR1 OR KR STAR WRONG RESULT %s IN %s" % (dg, graph))
-                    for r in kr1_results:
-                        print r
-                    return
-            else:
-                ResultChecker.LOG.warning("CAN'T CALCULATE %s" % graph)
-                return
-            result += kr1_results[0]
-        result = result.convert_to_poly(True)
-        if symbolic_functions.check_series_equal_numerically(expected_result, result, symbolic_functions.e, ResultChecker.EPS):
-            ResultChecker.LOG.info("OK %s", graph)
-        else:
-            ResultChecker.LOG.error("P2 WRONG RESULT %s ACTUAL=(%s), EXPECTED=(%s)" % (graph, result, expected_result))
+        if is_valid:
+            print graph.getPresentableStr()
+            break
 
 
 def main():
-    checkers_configuration = ("with 0 loops reduction checker", [numerators_util.create_calculator(1)]),\
-                             ("with 2 loops reduction checker", [numerators_util.create_calculator(2)]),\
-                             ("with 2-3 loops reduction checker", [numerators_util.create_calculator(2, 3)]),\
-                             ("with 2-4 loops reduction checker", [numerators_util.create_calculator(2, 3, 4)])
+    configure.Configure() \
+    .with_k_operation(common.MSKOperation()) \
+    .with_ir_filter(ir_uv.IRRelevanceCondition(const.SPACE_DIM_PHI4)) \
+    .with_uv_filter(ir_uv.UVRelevanceCondition(const.SPACE_DIM_PHI4)) \
+    .with_dimension(const.DIM_PHI4) \
+    .with_calculators() \
+    .with_storage_holder(StorageSettings("phi4", "test", "test").on_shutdown(revert=True)).configure()
 
-    for conf in checkers_configuration:
-        checker = ResultChecker(conf[0], 2, *conf[1])
-        try:
-            checker.start(skip_4_tails=False)
-        finally:
-            checker.dispose()
+    for gs in MS.keys():
+        gs = gs.replace("-", "|")
+        g = graph_util.graph_from_str(gs, do_init_weight=True)
+        if g.externalEdgesCount() == 4:
+            find_complex_ir_diagrams(g)
 
 
-zeta = symbolic_functions.zeta
-e = 2 * symbolic_functions.e
 
 MS = {
     'e111-e-':(-0.5/e),
@@ -382,7 +262,6 @@ MS = {
     'e112-34-334-4-e-':((3./5*zeta(3)-331./480)/e+(77./120)/e/e-23./30/e/e/e+2./5/e/e/e/e),
     'e123-234-34-4-e-':(-(6./5*zeta(4)+3./5*zeta(3))/e+(12./5*zeta(3))/e/e),
 }
-
 
 if __name__ == "__main__":
     main()

@@ -1,9 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf8
-import graph_operations
+import graph_state
 
 
-def graphFilter(qualifier):
+def graph_filter(qualifier):
     """
     graphFilter should be used as decorator
 
@@ -14,27 +14,34 @@ def graphFilter(qualifier):
     return [qualifier]
 
 
-def isRelevant(relevanceCondition):
-    def wrapper(edgesList, superGraph, superGraphEdges):
-        return relevanceCondition.isRelevant(edgesList, superGraph, superGraphEdges)
+def is_relevant(relevance_condition):
+    def wrapper(edges_list, super_graph):
+        return relevance_condition.is_relevant(edges_list, super_graph)
+
     return [wrapper]
 
 
-def hasNBorders(n):
-    def wrapper(edgesList, superGraph, superGraphEdges):
-        externalVertex = superGraph.externalVertex
-        borders = set()
-        for e in edgesList:
-            v1, v2 = e.nodes
-            if v1 == externalVertex:
-                borders.add(v2)
-            if v2 == externalVertex:
-                borders.add(v1)
-        return len(borders) == n
-    return [wrapper]
+@graph_filter
+def has_n_borders(edges_list, super_graph):
+    borders = set()
+    for e in edges_list:
+        if e.is_external():
+            borders.add(e.internal_node)
+    return len(borders) == n
 
 
-oneIrreducible = graphFilter(graph_operations.isGraph1Irreducible)
-connected = graphFilter(graph_operations.isGraphConnected)
-noTadpoles = graphFilter(graph_operations.hasNoTadpolesInCounterTerm)
-vertexIrreducible = graphFilter(graph_operations.isGraphVertexIrreducible)
+def _graph_state_wrapper1(fun):
+    def wrapper(edges_list, super_graph):
+        return fun(edges_list)
+    return wrapper
+
+
+def _graph_state_wrapper2(fun):
+    def wrapper(edges_list, super_graph):
+        return fun(edges_list, super_graph.edges())
+    return wrapper
+
+one_irreducible = graph_filter(_graph_state_wrapper1(graph_state.operations_lib.is_1_irreducible))
+connected = graph_filter(_graph_state_wrapper1(graph_state.operations_lib.is_graph_connected))
+no_tadpoles = graph_filter(_graph_state_wrapper2(graph_state.operations_lib.has_no_tadpoles_in_counter_term))
+vertex_irreducible = graph_filter(_graph_state_wrapper1(graph_state.operations_lib.is_vertex_irreducible))

@@ -119,8 +119,8 @@ class Sector(object):
     @staticmethod
     def create_from_shrunk_topology(topology_graph, weights_graph, all_propagators_count):
         id_to_weight = dict()
-        for e1, e2 in itertools.izip(topology_graph.allEdges(nickel_ordering=True),
-                                     weights_graph.allEdges(nickel_ordering=True)):
+        for e1, e2 in itertools.izip(topology_graph.edges(nickel_ordering=True),
+                                     weights_graph.edges(nickel_ordering=True)):
             if not e1.is_external() and e2.weight:
                 id_to_weight[e1.colors[0]] = e2.weight.a
         propagators_weights = list()
