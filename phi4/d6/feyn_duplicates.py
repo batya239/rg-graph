@@ -37,8 +37,12 @@ def fp2(t):
     return sorted([sorted([len(x) for x in t if x.count(c)>0 ]) for c in abc(t)])
 
 ## Берём все диаграммы
-with open('../graphs/phi4/e4-6loop.txt') as f:
-    diags = [d.split(' ')[0] for d in f.read().split('\n')[:-1] if d.split(' ')[-1] is not 'S']
+fileName = '../graphs/phi4/e4-3loop.txt'
+with open(fileName,'r') as f:
+    data = f.readlines()
+    # diags = [d.split(' ')[0] for d in f.read().split('\n')[:-1] if d.split(' ')[-1] is not 'S']
+    diags = [d.split(' ')[0] for d in data if d.split(' ')[-1] is not 'S']
+
 ## Отдаём в графин
 diags = [graphine.Graph(gs_builder.graph_state_from_str(d.replace('-','|'))) for d in diags ]
 print "Total number of diags:", len(diags)
@@ -65,7 +69,7 @@ for d in duplicates:
         dup_dict[str(d[0])] += [(fp2(d[2]), diags[d[1]])]
     else:
         dup_dict[str(d[0])]  = [(fp2(d[2]), diags[d[1]])]
-#print len(dup_dict), dup_dict
+print len(dup_dict), dup_dict
 
 def separate(old):
     """
@@ -109,3 +113,15 @@ for d in final:
     ring -= 1 ## I leave one diag from each group
 
 print "ring =", ring
+
+## ----------------------
+## Записываем результаты в файл:
+## ----------------------
+for group_of_diags in final:
+    for d in group_of_diags[1:]:
+        for j,line in enumerate(data):
+            if str(d)[:-2].replace('|','-') in line:
+                data[j] = line[:-1]+' R\n'
+
+with open(fileName+'.new','w') as f_new:
+    f_new.writelines(data)
