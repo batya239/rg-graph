@@ -30,7 +30,7 @@ class GLoopCalculator(abstract_graph_calculator.AbstractGraphCalculator):
 
     def calculate(self, graph):
         graph_state_str = str(graph)
-        vertices = list(graph.vertices() - set([graph.external_vertex]))
+        vertices = list(graph.vertices - set([graph.external_vertex]))
         edges = filter(lambda e: graph.external_vertex not in e.nodes, graph.edges(vertices[0]))
 
         alpha = edges[0].weight
