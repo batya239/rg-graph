@@ -30,13 +30,14 @@ class Representator(object):
         return Graph(edge_list, renumbering=True)
 
 
-KeyAndParams = collections.namedtuple("KeyAndParams", ["key", "params"])
+KeyAndParams = collections.namedtuple("KeyAndParams", ["key", "params", "kwargs"])
 
 
 def cached_method(some_class_method):
     def wrapper(self, *params, **kwargs):
         hidden_key = "_" + some_class_method.__name__
-        key_and_params = KeyAndParams(hidden_key, params)
+        kwargs_k = frozenset(map(lambda t: t, kwargs.items())) if len(kwargs) else None
+        key_and_params = KeyAndParams(hidden_key, params, kwargs_k)
         if key_and_params not in self._internal_cache:
             self._internal_cache[key_and_params] = some_class_method(self, *params, **kwargs)
         return self._internal_cache[key_and_params]
@@ -180,7 +181,7 @@ class Graph(object):
         subGraphs -- list of graphs edges or graph with equivalent numbering of vertices
         """
         if not len(sub_graphs):
-            return self, list()
+            return (self, list()) if with_aux_info else self
 
         vertex_transformation = ID_VERTEX_TRANSFORMATION
         g = self
@@ -232,6 +233,9 @@ class Graph(object):
     def remove_tadpoles(self):
         return Graph(filter(lambda e: e.nodes[0] != e.nodes[1], self.edges()))
 
+    def to_tadpole(self):
+        return Graph(self.internal_edges)
+
     def x_relevant_sub_graphs(self,
                               filters=list(),
                               result_representator=Representator.asGraph,
@@ -264,7 +268,13 @@ class Graph(object):
             return Graph(Graph._sub_tuple(self.edges(), (other,)), renumbering=False)
         elif isinstance(other, (list, tuple)):
             return Graph(Graph._sub_tuple(self.edges(), other), renumbering=False)
+        elif isinstance(other, Graph):
+            return Graph(Graph._sub_tuple(self.edges(), other.edges()), renumbering=False)
         raise AssertionError("unsupported type: %s" % type(other))
+
+    def __div__(self, other):
+        assert isinstance(other, Graph)
+        return self.shrink_to_point(other)
 
     @staticmethod
     def _sub_tuple(tuple_a, tuple_b):
@@ -278,6 +288,10 @@ class Graph(object):
 
     def __iter__(self):
         return iter(self._underlying)
+
+    def __contains__(self, item):
+        assert isinstance(item, graph_state.Edge)
+        return item in self.edges()
 
     def __str__(self):
         return str(self.to_graph_state())

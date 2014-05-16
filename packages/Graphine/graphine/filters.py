@@ -21,13 +21,15 @@ def is_relevant(relevance_condition):
     return [wrapper]
 
 
-@graph_filter
-def has_n_borders(edges_list, super_graph):
-    borders = set()
-    for e in edges_list:
-        if e.is_external():
-            borders.add(e.internal_node)
-    return len(borders) == n
+def has_n_borders(n):
+    @graph_filter
+    def _has_n_borders(edges_list, super_graph):
+        borders = set()
+        for e in edges_list:
+            if e.is_external():
+                borders.add(e.internal_node)
+        return len(borders) == n
+    return _has_n_borders
 
 
 def _graph_state_wrapper1(fun):
