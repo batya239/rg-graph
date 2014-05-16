@@ -77,7 +77,7 @@ class ResultChecker(object):
             if graph.loops_count != self.up_to_loops_count:
                 continue
             ResultChecker.LOG.info("PERFORM %s", graph)
-            momentum_passed_graphs = momentum.arbitrarilyPassMomentumWithPreferable(graph, common.graph_has_not_ir_divergence)
+            momentum_passed_graphs = momentum.arbitrarily_pass_momentum_with_preferable(graph, common.graph_has_not_ir_divergence)
             operations = self.ops[graph.external_edges_count]
             calculated_count, not_calculated_count, errors_count = 0, 0, 0
             for graphs, oper in zip(momentum_passed_graphs, operations):
@@ -121,7 +121,7 @@ class ResultChecker(object):
         result = 0
         ResultChecker.LOG.info("PERFORM %s", graph)
         for c, dg in diff:
-            momentum_passed_graphs = momentum.arbitrarilyPassMomentumWithPreferable(dg, common.graph_has_not_ir_divergence)
+            momentum_passed_graphs = momentum.arbitrarily_pass_momentum_with_preferable(dg, common.graph_has_not_ir_divergence)
             kr1_results = list()
             for graphs, oper in zip(momentum_passed_graphs, self.four_tails_op):
                 operation_name = oper[0]

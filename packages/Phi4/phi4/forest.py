@@ -34,12 +34,12 @@ def delta_ir(co_sub_graph, graph, shrunk, r_operator):
             debug_line += "+" + d_add
     if DEBUG:
         print debug_line
-        print "D_IR(%s)=%s" % (shrunk, delta_ir)
+        print "D_IR(%s)=%s" % (shrunk, delta_ir.expand())
     return delta_ir
 
 
 def _adjust_for_ir(co_sub_graph, graph):
-    uv_index = ir_uv.uvIndex(co_sub_graph)
+    uv_index = ir_uv.uv_index(co_sub_graph)
     if uv_index == 0:
         return co_sub_graph, graph
     if uv_index == 2:
@@ -92,6 +92,7 @@ def _calculate_delta_ir(forest,
             if DEBUG:
                 debug_line += "*(-kr_star(%s))" % _remove_tails(prev_f.shrink_to_point(curr_f.edges())).presentable_str
             prev_f = curr_f
+    print delta_ir.expand()
     return delta_ir, debug_line
 
 
@@ -109,9 +110,9 @@ def _compare(sg1, sg2):
     -1 -  sg2 > sg1
     0  -  sg1 >< sg2
     """
-    if sg1.contains(sg2) and len(sg1.allEdges()) > len(sg2.allEdges()) + 1:
+    if sg1.contains(sg2) and len(sg1.edges()) > len(sg2.edges()) + 1:
         return 1
-    elif sg2.contains(sg1) and len(sg2.allEdges()) > len(sg1.allEdges()) + 1:
+    elif sg2.contains(sg1) and len(sg2.edges()) > len(sg1.edges()) + 1:
         return -1
     raise UN_COMPARABLE_EXCEPTION
 
@@ -132,7 +133,7 @@ def _x_generate_forests(graph, co_sub_graph, r_operator):
         return maybe_spinney_generator.contains(co_sub_graph) \
                and len(co_sub_graph.edges()) != len(maybe_spinney_generator.edges()) \
                and len(co_sub_graph.edges()) + 1 != len(maybe_spinney_generator.edges()) \
-               and len(maybe_spinney_generator.allEdges()) + 1 != len(_super_graph)
+               and len(maybe_spinney_generator.edges()) + 1 != len(_super_graph)
 
     return graph.x_relevant_sub_graphs(filters.one_irreducible +
                                        r_operator.uv_filter +

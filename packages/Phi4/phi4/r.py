@@ -111,7 +111,7 @@ class ROperation(object):
         if len(initial_graph.edges(initial_graph.external_vertex)) == 2:
             iterator = initial_graph,
         else:
-            iterator = [x for x in graph_util.batch_init_edges_weight(momentum.xArbitrarilyPassMomentum(initial_graph))]
+            iterator = graph_util.batch_init_edges_weight(momentum.arbitrarily_pass_momentum(initial_graph))
         for graph in iterator:
             try:
                 evaluated = self.storage.get_graph((graph, force, minus_graph, "star"), "kr1")
@@ -123,7 +123,7 @@ class ROperation(object):
                                                                               result_representator=graphine.Representator.asGraph)]
 
                 for spinney in spinneys_generators:
-                    uv = ir_uv.uvIndex(spinney)
+                    uv = ir_uv.uv_index(spinney)
                     if uv > 2:
                         raise common.CannotBeCalculatedError(spinney)
                     if not graphine.graph_operations.is_1_irreducible(spinney):
@@ -170,7 +170,7 @@ class ROperation(object):
                 raise AssertionError(str(raw_graph) + " - IR divergence")
             iterator = raw_graph,
         else:
-            iterator = momentum.xPassExternalMomentum(raw_graph, common.graph_has_not_ir_divergence_filter)
+            iterator = momentum.pass_external_momentum(raw_graph, common.graph_has_not_ir_divergence_filter)
         for graph in iterator:
             evaluated = self.storage.get_graph((graph, force, inside_krstar, minus_graph, "1"), "kr1")
             if evaluated is not None:
@@ -196,7 +196,7 @@ class ROperation(object):
 
         use_delembertian = False
         if inside_krstar:
-            uv_index = ir_uv.uvIndex(raw_graph)
+            uv_index = ir_uv.uv_index(raw_graph)
             assert uv_index in (0, 2), "high uv graphs not supported"
             if uv_index != 0:
                 use_delembertian = True
@@ -215,6 +215,7 @@ class ROperation(object):
                     kr1 /= symbolic_functions.p ** symbolic_functions.cln(uv_index)
                 r = r1 - symbolic_functions.series(kr1, symbolic_functions.e, symbolic_functions.CLN_ZERO, 0, remove_order=True)
                 r = r.expand()
+                print r, graph
                 self.storage.put_graph((graph, force, inside_krstar, use_delembertian), r, "r")
                 return r, graph
             except common.CannotBeCalculatedError:

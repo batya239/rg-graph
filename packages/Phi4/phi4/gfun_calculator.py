@@ -8,12 +8,13 @@ import const
 import inject
 import swiginac
 import diff_util
+import graph_util2
 import momentum
 from rggraphenv import storage, graph_calculator, symbolic_functions
 from rggraphutil import VariableAwareNumber
 
 DEBUG = False
-new_edge = graph_state.WEIGHT_ARROW_AND_MARKER_PROPERTIES_CONFIG.new_edge
+new_edge = graph_util2.WEIGHT_ARROW_MARKER_AND_VERTEX_FACTOR_PROPERTIES_CONFIG.new_edge
 
 
 class LazyVal(object):
@@ -58,16 +59,17 @@ UNIT = LazyVal(swiginac.numeric("1"))
 ZERO = LazyVal(swiginac.numeric("0"))
 
 
+def calculate_graph_value_with_vertices(graph):
+    value = calculate_graph_value(graph)
+    for vertex in graph.vertices:
+        if vertex != graph.external_vertex and vertex.factor is not None:
+            value *= vertex.factor
+    return value
+
+
 def calculate_graph_value(graph, use_dalembertian=False, suppressException=False):
-    if len(graph.edges(graph.external_vertex)) == 2:
-        graph_reducer = GGraphReducer(graph)
-    else:
-        graph_reducer = None
-        for g in momentum.xPassExternalMomentum(graph, common.graph_has_not_ir_divergence_filter):
-            graph_reducer = GGraphReducer(g)
-            break
-        if graph_reducer is None:
-            raise common.CannotBeCalculatedError(graph)
+    assert len(graph.edges(graph.external_vertex)) == 2
+    graph_reducer = GGraphReducer(graph)
     result = graph_reducer.calculate()
     if not result:
         if suppressException:
@@ -83,24 +85,11 @@ def calculate_graph_value(graph, use_dalembertian=False, suppressException=False
         supplement = "▢" if use_dalembertian else ""
         print "V(%s%s)=(%s)%s*p(-2(%s))" % (supplement, graph, common.MSKOperation().calculate(result[0]), ("*▢(1,-%s)" % graph.getLoopsCount()) if use_dalembertian else "", p_power)
         print "V(%s%s)=%s" % ("▢" if use_dalembertian else "", graph, common.MSKOperation().calculate(eps_part * symbolic_functions.p ** (-symbolic_functions.CLN_TWO * p_power.subs(get_lambda()))))
-    return eps_part * symbolic_functions.p ** (-symbolic_functions.CLN_TWO * p_power.subs(get_lambda())), graph_reducer.iteration_graphs[0]
+    return eps_part * symbolic_functions.p ** (-symbolic_functions.CLN_TWO * p_power.subs(get_lambda()))
 
 
 def get_lambda():
     return inject.instance("dimension") / swiginac.numeric("2") - swiginac.numeric("1")
-
-
-def create_filter():
-    class RelevanceCondition(object):
-        # noinspection PyUnusedLocal
-        def is_relevant(self, edges_list, super_graph):
-            subGraph = graphine.Representator.asGraph(edges_list)
-            vertexes = set()
-            for e in subGraph.edges(super_graph.external_vertex):
-                vertexes |= set(e.nodes)
-                # external node and 2 internals
-            return len(vertexes) == 3
-    return graphine.filters.one_irreducible + graphine.filters.is_relevant(RelevanceCondition())
 
 
 class GGraphReducer(object):
@@ -108,7 +97,7 @@ class GGraphReducer(object):
     END_ID = 777
     DEBUG = False
 
-    FILTER = create_filter()
+    FILTER = graphine.filters.one_irreducible + graphine.filters.has_n_borders(2)
 
     @staticmethod
     def set_debug(debug):
@@ -159,7 +148,12 @@ class GGraphReducer(object):
         return self._iteration_values[-1] if len(self._iteration_values) else None
 
     def is_succesful_done(self):
-        return len(self.get_current_iteration_graph().edges()) == 3 and ("<" not in str(self.get_current_iteration_graph()) and ">" not in str(self.get_current_iteration_graph()))
+        return len(self.get_current_iteration_graph().edges()) == 3 or self.has_tadpoles()
+
+    def has_tadpoles(self):
+        for e in self.get_current_iteration_graph():
+            if e.nodes[0] == e.nodes[1]:
+                return True
 
     def calculate(self):
         """
@@ -167,12 +161,11 @@ class GGraphReducer(object):
         return True if has nextIteration or False if not
         """
         last_iteration = self.get_current_iteration_graph()
-        if self._is_tadpole is None:
-            self._is_tadpole = str(last_iteration).startswith("ee")
-            if self._is_tadpole:
-                return ZERO, const.ZERO_WEIGHT
+        if str(last_iteration).startswith("ee") or self.has_tadpoles():
+            self.iteration_values.append(symbolic_functions.CLN_ZERO)
+            return self._put_final_value_to_graph_storage()
 
-        if (len(last_iteration.edges()) == 3 and ("<" not in str(self.get_current_iteration_graph()) and ">" not in str(self.get_current_iteration_graph()))) or str(last_iteration).startswith("ee"):
+        if len(last_iteration.edges()) == 3 or str(last_iteration).startswith("ee"):
             if DEBUG:
                 print "CALCULATED_GRAPH", self._init_graph, self.iteration_graphs, self.iteration_values
             return self._put_final_value_to_graph_storage()
@@ -347,7 +340,7 @@ class GGraphReducer(object):
     def get_final_value(self):
         assert self.is_succesful_done()
         if str(self.get_current_iteration_graph()).startswith("ee"):
-            return symbolic_functions.CLN_ZERO, const.ZERO_WEIGHT
+            return LazyVal(symbolic_functions.CLN_ZERO), const.ZERO_WEIGHT
         g_value = reduce(lambda x, v: x * v, self._iteration_values, UNIT)
         inner_edge = None
         for e in self._iteration_graphs[-1].edges():

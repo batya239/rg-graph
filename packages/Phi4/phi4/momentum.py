@@ -1,7 +1,5 @@
 #!/usr/bin/python
 # -*- coding: utf8
-import filters
-import graph_operations
 
 __author__ = 'daddy-bear'
 
@@ -9,42 +7,23 @@ import copy
 import itertools
 import graph_state
 import graphine
-import graph_util
+import graph_util2
+import const
 from rggraphutil import VariableAwareNumber
-
-new_edge = graph_state.WEIGHT_ARROW_AND_MARKER_PROPERTIES_CONFIG.new_edge
-
-
-def from_str(graph_as_str):
-    return graphine.Graph.fromStr(graph_as_str, graph_state.WEIGHT_ARROW_AND_MARKER_PROPERTIES_CONFIG)
+from graphine import filters, graph_operations
 
 
 NULL_ARROW = graph_state.Arrow(graph_state.Arrow.NULL)
-ZERO_WEIGHT = VariableAwareNumber("l", 0, 0)
 
 
-class _StubExternalVertexAwareGraph(object):
-    def __init__(self, external_vertex):
-        self._external_vertex = external_vertex
-
-    @property
-    def external_vertex(self):
-        return self._external_vertex
+def pass_external_momentum(graph, filters=list()):
+    result = set()
+    for mp in x_pick_passing_external_momentum(graph, filters):
+        result.add(pass_momentum_on_graph(graph, mp))
+    return result
 
 
-def _graphine_wrapper(graphine_filter):
-    def wrapper(graph):
-        return graphine_filter(graph.allEdges(), _StubExternalVertexAwareGraph(graph.external_vertex), None)
-
-    return [wrapper]
-
-
-def xPassExternalMomentum(graph, filters=list()):
-    for momentumPassing in xPickPassingExternalMomentum(graph, filters):
-        yield passMomentOnGraph(graph, momentumPassing)
-
-
-def xPickPassingExternalMomentum(graph, filters=list()):
+def x_pick_passing_external_momentum(graph, filters=list()):
     """
     chooses 2-combinations of external nodes
     """
@@ -77,7 +56,7 @@ def _choose_external_edges_with_different_vertices(edges):
     return result
 
 
-def passMomentOnGraph(graph, momentum_passing):
+def pass_momentum_on_graph(graph, momentum_passing):
     assert len(momentum_passing) == 2
     edges_to_remove = list()
     copied_momentum_passing = list(momentum_passing)
@@ -89,10 +68,10 @@ def passMomentOnGraph(graph, momentum_passing):
     return graph - edges_to_remove
 
 
-def arbitrarilyPassMomentumWithPreferable(graph, prefer_condition):
+def arbitrarily_pass_momentum_with_preferable(graph, prefer_condition):
     preferred = list()
     not_preferred = list()
-    for g in set([g for g in xArbitrarilyPassMomentum(graph)]):
+    for g in arbitrarily_pass_momentum(graph):
         if prefer_condition(g) and g not in preferred:
             preferred.append(g)
         elif g not in not_preferred:
@@ -100,21 +79,28 @@ def arbitrarilyPassMomentumWithPreferable(graph, prefer_condition):
     return preferred, not_preferred
 
 
-def xArbitrarilyPassMomentum(graph):
+def arbitrarily_pass_momentum(graph):
     """
     find ALL (NO CONDITIONS) cases for momentum passing.
     """
 
+    result = set()
+
+    if graph.internal_edges_count == 1 and len(graph.vertices) == 2:
+        result.add(graph)
+        return result
+
     #ex-ex
-    passing = set([x for x in xPickPassingExternalMomentum(graph)])
+    passing = set([x for x in x_pick_passing_external_momentum(graph)])
     for momentumPassing in passing:
-        yield passMomentOnGraph(graph, momentumPassing)
+        result.add(pass_momentum_on_graph(graph, momentumPassing))
 
     #ex-in
     external_vertex = graph.external_vertex
     external_edges = graph.edges(external_vertex)
-    internal_vertices = graph.vertices - set(reduce(lambda x, y: x | y, map(lambda x: set(x.nodes), external_edges), set())
-                                         - set([external_vertex])) - set([external_vertex])
+    internal_vertices = graph.vertices - set(
+        reduce(lambda x, y: x | y, map(lambda x: set(x.nodes), external_edges), set())
+        - set([external_vertex])) - set([external_vertex])
 
     visited_vertices = set()
     has_arrows = graph.edges()[0].arrow is not None
@@ -131,25 +117,26 @@ def xArbitrarilyPassMomentum(graph):
         _g = graph - edges_to_remove
         for v in internal_vertices:
             if _check_valid(_g, (v, e.internal_nodes[0])):
-                new_external_edge = new_edge((v, external_vertex),
-                                             external_node=external_vertex,
-                                             weight=ZERO_WEIGHT,
-                                             arrow=default_arrow)
+                new_external_edge = graph_util2.new_edge((v, external_vertex),
+                                                        external_node=external_vertex,
+                                                        weight=const.ZERO_WEIGHT,
+                                                        arrow=default_arrow)
                 graph_to_yield = _g + new_external_edge
-                yield graph_to_yield
+                result.add(graph_to_yield)
 
     #in-in
     _g = graph - external_edges
     for vs in itertools.combinations(internal_vertices, 2):
         if _check_valid(_g, vs):
-            yield _g.addEdges([new_edge((vs[0], external_vertex),
-                                        external_node=external_vertex,
-                                        weight=ZERO_WEIGHT,
-                                        arrow=default_arrow),
-                               new_edge((vs[1], external_vertex),
-                                        external_node=external_vertex,
-                                        weight=ZERO_WEIGHT,
-                                        arrow=default_arrow)])
+            result.add(_g + [graph_util2.new_edge((vs[0], external_vertex),
+                                                 external_node=external_vertex,
+                                                 weight=const.ZERO_WEIGHT,
+                                                 arrow=default_arrow),
+                             graph_util2.new_edge((vs[1], external_vertex),
+                                                 external_node=external_vertex,
+                                                 weight=const.ZERO_WEIGHT,
+                                                 arrow=default_arrow)])
+    return result
 
 
 def _check_valid(graph, new_external_vertices):

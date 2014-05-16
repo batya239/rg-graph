@@ -46,6 +46,22 @@ class Configure(object):
         self._storage_holder = rggraphenv.StoragesHolder(storage_setting)
         return self
 
+    @classmethod
+    def k_operation(cls):
+        return inject.instance("k_operation")
+
+    @classmethod
+    def uv_filter(cls):
+        return inject.instance("uv_filter")
+
+    @classmethod
+    def ir_filter(cls):
+        return inject.instance("ir_filter")
+
+    @classmethod
+    def storage(cls):
+        return inject.instance(rggraphenv.StoragesHolder)
+
     def configure(self):
         def injector(binder):
             binder.bind(rggraphenv.GraphCalculatorManager, self._calculators_holder)

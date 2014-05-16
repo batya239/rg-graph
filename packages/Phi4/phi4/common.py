@@ -74,7 +74,7 @@ def graph_can_be_calculated_over_n_loops(graph):
     max_loops = 0
     for vertices in connected_vertices:
         edges = list()
-        for e in graph.allEdges():
+        for e in graph.edges():
             if len(set(e.nodes) & vertices):
                 edges.append(e)
         g = graphine.Graph(edges)

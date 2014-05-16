@@ -32,7 +32,7 @@ def kr_star_quadratic_divergence(r_operator, graph):
         # i += 1
         # if i != 1:
         #     continue
-        _all = [x for x in momentum.xArbitrarilyPassMomentum(g)]
+        _all = [x for x in momentum.arbitrarily_pass_momentum(g)]
         _all.sort(key=common.graph_can_be_calculated_over_n_loops)
         r_star_values = list()
         r_star_graphs = list()

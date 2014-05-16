@@ -9,7 +9,7 @@ import graph_state
 import const
 import ir_uv
 
-new_edge = graph_state.WEIGHT_ARROW_AND_MARKER_PROPERTIES_CONFIG.new_edge
+# new_edge = graph_state.WEIGHT_ARROW_AND_MARKER_PROPERTIES_CONFIG.new_edge
 NEGATIVE_WEIGHT_EDGE = VariableAwareNumber("l", -1, 0)
 
 
@@ -33,7 +33,7 @@ def has_momentum_quadratic_divergence(sub_graph):
     if sub_graph.external_edges_count != 2:
         return None
 
-    subgraph_uv_index = ir_uv.uvIndex(sub_graph)
+    subgraph_uv_index = ir_uv.uv_index(sub_graph)
     if subgraph_uv_index != 2:
         assert subgraph_uv_index < 2
         return None

@@ -26,7 +26,7 @@ def find_complex_ir_diagrams(graph):
 
         is_valid = False
         for spinney in spinneys_generators:
-            uv = ir_uv.uvIndex(spinney)
+            uv = ir_uv.uv_index(spinney)
             if uv == 2:
                 is_valid = True
             if uv > 2 or not graphine.graph_operations.isGraph1Irreducible(spinney.allEdges(), graph, None):

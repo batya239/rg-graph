@@ -16,28 +16,28 @@ import inject
 
 
 def uvIndexTadpole(graph):
-    n_edges = len(graph.allEdges()) - len(graph.edges(graph.external_vertex))
-    assert_right_edges(graph.edges())
-    index = n_edges * const.EDGE_WEIGHT + numeratorsCount(graph.edges()) + (graph.loops_count + 1) * inject.instance("space_dimension_int")
+    index = denominator_dimension(graph) + numerators_count(graph.edges()) + (graph.loops_count + 1) * inject.instance("space_dimension_int")
     return index
 
 
-def uvIndex(graph):
-    n_edges = len(graph.edges()) - len(graph.edges(graph.external_vertex))
-    assert_right_edges(graph.edges())
-    index = n_edges * const.EDGE_WEIGHT + numeratorsCount(graph.edges()) + graph.loops_count * inject.instance("space_dimension_int")
+def uv_index(graph):
+    index = denominator_dimension(graph) + numerators_count(graph.edges()) + graph.loops_count * inject.instance("space_dimension_int")
     return index
 
+def denominator_dimension(graph):
+    result = 0
+    for e in graph.internal_edges:
+        assert e.weight.b == 0, e
+        result += e.weight.a
+    return result * const.EDGE_WEIGHT
 
-def numeratorsCount(edgesList):
-    _numeratorsCount = 0
-    for e in edgesList:
-        if e.fields is None:
-            break
-        else:
-            if e.arrow is not None and not e.arrow.is_null():
-                _numeratorsCount += 1
-    return _numeratorsCount
+
+def numerators_count(edges_list):
+    _numerators_count = 0
+    for e in edges_list:
+        if e.arrow is not None and not e.arrow.is_null():
+                _numerators_count += 1
+    return _numerators_count
 
 
 class UVRelevanceCondition(object):
@@ -51,7 +51,7 @@ class UVRelevanceCondition(object):
         n_vertices = len(sub_graph.vertices) - 1
         n_loop = n_edges - n_vertices + 1
         assert_right_edges(edges_list)
-        sub_graphUVIndex = n_edges * const.EDGE_WEIGHT + numeratorsCount(edges_list) + n_loop * self._space_dim
+        sub_graphUVIndex = denominator_dimension(sub_graph) + numerators_count(edges_list) + n_loop * self._space_dim
         return sub_graphUVIndex >= 0
 
 
@@ -66,10 +66,9 @@ class IRRelevanceCondition(object):
 
         if len(borderNodes) > 2:
             return False
-        n_edges = sub_graph.internal_edges_count
         n_loop = sub_graph.loops_count
         assert_right_edges(edges_list)
-        sub_graph_ir_index = n_edges * const.EDGE_WEIGHT + numeratorsCount(edges_list) + (n_loop + 1) * self._space_dim
+        sub_graph_ir_index = denominator_dimension(sub_graph) + numerators_count(edges_list) + (n_loop + 1) * self._space_dim
         # invalid result for e12-e333-3-- (there is no IR sub_graphs)
         if sub_graph_ir_index > 0:
             return False
@@ -137,4 +136,4 @@ def assert_right_edges(edges):
             continue
         if e.weight:
             assert e.weight.b == 0, e
-            assert e.weight.a == 1, e
+            assert isinstance(e.weight.a, int), e

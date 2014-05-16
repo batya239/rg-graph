@@ -58,17 +58,17 @@ class SubGraphReducerTestCase(unittest.TestCase):
     def testPickPassingExternalMomentum(self):
         g = graphine.Graph(
             from_str("ee11|ee|:(0,0)_(0,0)_(1, 0)_(1, 0)|(0,0)_(0,0)|::"))
-        passings = [x for x in momentum.xPickPassingExternalMomentum(g)]
+        passings = [x for x in momentum.x_pick_passing_external_momentum(g)]
         self.assertEquals(len(passings), 1)
 
         g = graphine.Graph(
             from_str("e111|e|:(0,0)_(0,0)_(1, 0)_(1, 0)|(0,0)|::"))
-        passings = [x for x in momentum.xPickPassingExternalMomentum(g)]
+        passings = [x for x in momentum.x_pick_passing_external_momentum(g)]
         self.assertEquals(len(passings), 1)
 
         g = graphine.Graph(
             from_str("e111|e|:(0,0)_(0,0)_(1, 0)_(1, 0)|(0,0)|::"))
-        passings = [x for x in momentum.xPickPassingExternalMomentum(g)]
+        passings = [x for x in momentum.x_pick_passing_external_momentum(g)]
         self.assertEquals(len(passings), 1)
 
         edges = list()
@@ -82,7 +82,7 @@ class SubGraphReducerTestCase(unittest.TestCase):
         edges.append(graph_state.WEIGHT_ARROW_AND_MARKER_PROPERTIES_CONFIG.new_edge((-1, 2)))
         g = graphine.Graph(
             graph_state.GraphState(edges))
-        passings = [x for x in momentum.xPickPassingExternalMomentum(g)]
+        passings = [x for x in momentum.x_pick_passing_external_momentum(g)]
         self.assertEquals(len(passings), 3)
 
     def testReducingE111_E_(self):
