@@ -34,7 +34,7 @@ if len(sys.argv) == 4:
     model = eval('dummy_model.%s("dummy")' % modelName)
     graphName = sys.argv[1]
     method = sys.argv[2]
-    model.maxSize=12500
+    model.maxSize=25000
 else:
     print "provide method and model"
     sys.exit(1)

@@ -51,8 +51,8 @@ all_runs, all_done = 0, 0
 
 ## На баше это выглядело бы лучше...
 for dir in os.listdir(inPath):
-    if os.path.isdir(os.path.join(inPath,dir)):
-        #print "Diagram:",dir
+    if os.path.isdir(os.path.join(inPath,dir)) and dir[0] is 'e':
+        print "Diagram:",dir
         files = os.listdir(os.path.join(inPath,dir))
         ans = ufloat(0.,0.)
         runs, done = 0,0 # счётчик run-файлов и ответов в папке
@@ -74,9 +74,9 @@ for dir in os.listdir(inPath):
                     all_done += 1
                 #else:
                 #    print "No result for", f
-        ans = float(sympy.gamma(nloops(dir))/sym_coef(dir))*ans
+        ans = float(sympy.gamma(nloops(dir.replace('-','|')))/sym_coef(dir.replace('-','|')))*ans
         result.update({dir:[[ans.n],[ans.s]]})
-        #print "finally:", ans
+        print "finally:", ans.format('S')
         print "%d of %d pieces done for %s" %(done, runs, dir)
 print result
 print "Total progress: %.0f%% (%d of %d)"%(float(all_done)/all_runs*100, all_done, all_runs)

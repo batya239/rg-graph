@@ -17,8 +17,8 @@ def getDiags(diag):
     from platform import node
     path = '/home/kirienko/rg-graph/phi4/graphs/'
     #wd ='/home/kirienko/work/rg-graph/phi_4_d2_s2/feynmanSDdotSF_mpi/'
-    cmd1 = 'python '+path+'gen_sectorsN.py '+diag+' methods.feynmanSDdotSF_mpi _phi4_d2_s2'
-    cmd2 = 'python '+path+'gen_sdN_mpi.py  '+diag+' methods.feynmanSDdotSF_mpi _phi4_d2_s2'
+    cmd1 = 'python '+path+'gen_sectorsN.py "%s" methods.feynmanSDdotSF_mpi _phi4_d2_s2'%diag
+    cmd2 = 'python '+path+'gen_sdN_mpi.py  "%s" methods.feynmanSDdotSF_mpi _phi4_d2_s2'%diag
     #os.system('python '+path+'gen_sectorsN.py '+diag+' methods.feynmanSDdotSF_mpi _phi4_d2_s2')
     #os.system('python '+path+'gen_sdN_mpi.py  '+diag+' methods.feynmanSDdotSF_mpi _phi4_d2_s2')
     os.system(cmd1)
@@ -29,7 +29,8 @@ def getDiags(diag):
 CUR_DIR = os.getcwd()
 #WORKDIR=$HOME'/work/rg-graph/phi_4_d2_s2/feynmanSDdotSF_mpi/'
 #WORKDIR='/home/kirienko/work/rg-graph/phi_4_d2_s2/feynmanSDdotSF_mpi/'
-WORKDIR='/net/n15/data/kirienko/'
+WORKDIR='/net/n10/data/kirienko/part_1'
+fileName = '/home/kirienko/rg-graph/phi4/graphs/phi4/e4-6loop.txt.new.part_01'
 
 ## WARNING: применять с осторожностью:
 #rm -rf $WORKDIR/e*
@@ -50,27 +51,28 @@ print WORKDIR
 #fls = [ f for f in os.listdir('./phi4/') if int(f[3]) <= n ] 
 #fls = [ f for f in os.listdir('./phi4/') if f[:4] == 'e2-6' ] 
 diags = [ ]
-#for d in [ open('./phi4/'+f).readlines()for f in fls ]:
-#    diags.extend(d)
-#diags = [ d.strip().split(' ')[0] for d in diags if d.strip()[-1] != 'S' ]
-diags = map(lambda x: x.strip(),open('e2-6loop.txt').readlines())
-print diags
+with open(fileName) as f:
+    diags = f.readlines()
+diags = [ d.strip().split(' ')[0] for d in diags if d.strip()[-1] != ('S' or 'R') ]
+#diags = map(lambda x: x.strip(),open(fileName).readlines())
 
-rc = Client(profile='ssh')
+rc = Client(profile='small')
 print rc.ids
 
 lview = rc.load_balanced_view()
 print lview.apply_sync(getnode)
-## Затем вызываем скрипт запуска этих cuba.run-файлов
 
-lview.map(getDiags,diags)
-#scheduled = lview.map(getDiags,diags)
+#lview.map(getDiags,diags)
+scheduled = lview.map(getDiags,diags)
 
 ## Direct view!
 #dview = rc[:]
 #scheduled = dview.map_sync(getDiags,diags)
-#for s in scheduled: print s
+for s in scheduled: print s
 ## Возвращаемся обратно
 #cd $CUR_DIR
 os.chdir(CUR_DIR)
+
+## Затем вызываем скрипт запуска этих cuba.run-файлов
 #./cuba-run.sh
+
