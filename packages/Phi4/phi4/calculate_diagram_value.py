@@ -34,7 +34,7 @@ def main():
 
 
     g = graph_util2.graph_from_str(sys.argv[1])
-    gfun_calculator.calculate_graph_value(g)
+    print gfun_calculator.calculate_graph_value(g)
 
     StoragesHolder.instance().close()
     configure.Configure.clear()
