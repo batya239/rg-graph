@@ -605,27 +605,28 @@ def addBranches(tree, variables, conservations, parents=list(), depth=0):
 
 def det2treeSubstitutions(substitutions, branchVars):
     res = dict()
-#    print "det2treeSubstitutions", branchVars
+    # print "det2treeSubstitutions", branchVars
     for var in substitutions:
         subs = substitutions[var]
         newSubs = list()
-#        print var, subs
+        # print var, subs
         for term in subs:
-            newTerm = list()
-#            print "term  ",     term
+            # newTerm = list()
+            # print "term  ",     term, newSubs
             for item in term:
-                skip = False
+                # skip = False
+                # print 'item', item, isinstance(item, int),item in branchVars
                 if isinstance(item, int):
                     candidate = item
-                else:
-                    if item in branchVars:
-                        skip = True
-            if not skip:
-                newTerm.append(candidate)
-            if len(newTerm) <= 1:
-                newSubs += newTerm
-            else:
-                raise ValueError, newTerm
+                    break
+                # else:
+                #     if item in branchVars:
+                #         skip = True
+            # print skip, candidate
+            # if not skip:
+            #     newTerm.append(candidate)
+
+            newSubs.append(candidate)
 
         res[var] = newSubs
     return res
@@ -755,44 +756,55 @@ def generateDynamicSpeerTree(dG, tVersion, model, tree=None):
     return speerTree
 
 
-def checkDecomposition_(expr):
-    exprStatus = "bad"
+def poly_has_positive_coefficients(poly):
+    const = poly.c
+    res = reduce(lambda x,y: x and y, map(lambda x: poly.monomials[x]*const>=0, poly.monomials))
+    return res
+
+
+def check_poly(poly, delta_arg=None):
+    if poly.degree.a >= 0:
+        return "ok"
+    else:
+        if len(poly.monomials) >1:
+            for monomial in poly.monomials:
+                if len(monomial) == 0:
+                    return "ok"
+            poly_diff = poly.changeDegree(1).changeConst(1)-delta_arg
+            if poly_has_positive_coefficients(poly_diff):
+                return "ok"
+            else:
+                return "bad"
+        else:
+            if poly.isConst():
+                return "ok"
+            else:
+                return "pole"
+
+
+
+def checkDecomposition_(expr, delta_arg=None):
+    # exprStatus = None
     if len(expr.polynomials) == 0:
         return "0"
-    for poly in expr.polynomials:
-
-        if poly.degree.a < 0:
-            if len(poly.monomials) > 1:
-                polyStatus = "bad"
-                for monomial in poly.monomials.keys():
-                    if len(monomial) == 0:
-                        polyStatus = "1"
-                        break
-                    else:
-                        if reduce(lambda x, y: x & y, [isinstance(x, str) for x in monomial.vars]):
-                            polyStatus = "%s" % monomial
-                if polyStatus == "bad":
-                    exprStatus = "bad"
-                    break
-                elif polyStatus == "1":
-                    if exprStatus == "1" or exprStatus == "bad":
-                        exprStatus = "1"
-                else:
-                    if exprStatus == "1" or exprStatus == "bad":
-                        exprStatus = polyStatus
-                    else:
-                        exprStatus = exprStatus + " " + polyStatus
-            elif not poly.isConst():
-                exprStatus = 'pole'
-    return exprStatus
+    res = map(lambda x: check_poly(x,delta_arg), expr.polynomials)
+    if "pole" in res:
+        return "pole"
+    elif "bad" in res:
+        return "bad"
+    elif set(res)==set(["ok"]):
+        return "ok"
+    else:
+        raise NotImplemented("unknown status %s"%res)
 
 
-def checkDecomposition(exprList):
+
+def checkDecomposition(exprList, delta_arg=None):
     exprList_ = exprList
     if not isinstance(exprList, list):
         exprList_ = [exprList, ]
 
-    checks = map(checkDecomposition_, exprList_)
+    checks = map(lambda x:checkDecomposition_(x, delta_arg), exprList_)
     return checks
 
 
@@ -1305,7 +1317,7 @@ def saveSDT(model, expr, sectors, name, neps, statics=False):
     uVars, aVars = splitUA(variables)
     delta_arg = deltaArg(uVars)
 
-    maxSize = 30000
+    maxSize = 3000
     sectorCount = -1
     size = 0
     nSaved = 0
@@ -1352,14 +1364,10 @@ def saveSDT(model, expr, sectors, name, neps, statics=False):
         if 'removeRoots' in model.__dict__ and model.removeRoots:
             sectorExpr = removeRoots(sectorExpr)
 
-        # check = checkDecomposition(sectorExpr)
-        # #        print sector, check
-        # if "bad" in check:
-        #     print
-        #     print sector
-        #     print polynomial.formatter.format(sectorExpr, polynomial.formatter.CPP)
-        #     print check
-        #     print
+        # print sector, delta_arg_sd
+        check = checkDecomposition(sectorExpr, delta_arg_sd)
+        if set(check) != set(["ok"]):
+            print sector, check
 
         sectorVariables = set()
         for expr_ in sectorExpr:
@@ -1493,7 +1501,7 @@ def execute(name, model, points=10000, threads=4, calc_delta=0., neps=0):
 
 
 def Replace(fileName):
-    symbolsToReplace = '-:(),'
+    symbolsToReplace = '|-:(),'
     res = fileName
     for symbol in symbolsToReplace:
         res = res.replace(symbol, "_")

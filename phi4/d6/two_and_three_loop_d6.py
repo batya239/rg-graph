@@ -12,7 +12,7 @@ G = lambda x,y : symbolic_functions.G(x,y, 6-2*symbolic_functions.e)
 l = 2 - symbolic_functions.e
 
 symbolic_functions.UNKNOWN = symbolic_functions.var('UNKNOWN')
-
+THREE_LOOP_REDUCTOR_D6 = None
 THREE_LOOP_REDUCTOR_D6 = reductor.Reductor("loop3",
                                "loop3D6",
                                [graphine.Graph.fromStr("e12|34|35|4|5|e|"),
@@ -44,7 +44,7 @@ THREE_LOOP_REDUCTOR_D6 = reductor.Reductor("loop3",
                                         "+(-88537120453/201553920000+35459/466560*zeta(3)+49/466560*Pi**4+7/24*zeta(5))*e**2"
                                         "+(-25186269201119/12093235200000+12981377/27993600*zeta(3)-113/648*zeta(3)**2+35459/27993600*Pi**4+13/17496*Pi**6+49/288*zeta(5))*e**3"
                                         "+(-6814992416469337/725594112000000+3983656471/1679616000*zeta(3)-791/7776*zeta(3)**2+12981377/1679616000*Pi**4+245/54*zeta(7)-113/19440*zeta(3)*Pi**4+91/209952*Pi**6+58897/51840*zeta(5))*e**4"
-                                        "+Order(e**5)", strong_to_internal_code=True)})
+                                        "+Order(e**5)", strong_to_internal_code=True)},"p","k")
 
 
 
@@ -54,7 +54,7 @@ TWO_LOOP_REDUCTOR_D6 = reductor.Reductor("loop2",
                              [graphine.Graph.fromStr("e12|23|3|e|")],
                              2,
                              {graphine.Graph.fromStr("e111|e|"): G(1, 1) * G(1 - l, 1),
-                              graphine.Graph.fromStr("e11|22|e|"): G(1, 1) ** 2})
+                              graphine.Graph.fromStr("e11|22|e|"): G(1, 1) ** 2}, "p", "k")
 
 
 class ReductionGraphCalculator(abstract_graph_calculator.AbstractGraphCalculator):
