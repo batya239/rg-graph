@@ -144,6 +144,9 @@ class Properties(object):
 
 class PropertiesConfig(object):
     def __init__(self, property_order, property_directionality, property_externalizer, property_target):
+        """
+        Don't use directly, see PropertiesConfig.create()
+        """
         self._property_order = property_order
         self._property_directionality = property_directionality
         self._property_externalizer = property_externalizer
@@ -170,14 +173,23 @@ class PropertiesConfig(object):
         return self._property_target.get(property_name, None) is from_edge
 
     def new_node(self, node_index, **kwargs):
+        """
+        create new node with this config
+        """
         kwargs['properties_config'] = self
         return graph_state_property.NodeAndProperty(node_index, Properties.from_kwargs(from_edge=False, **kwargs))
 
     def new_edge(self, nodes, external_node=-1, edge_id=None, **kwargs):
+        """
+        create new edge with this config
+        """
         kwargs['properties_config'] = self
         return graph_state.Edge(nodes, external_node, edge_id, **kwargs)
 
     def graph_state_from_str(self, string):
+        """
+        parse GraphState object from string with this config
+        """
         return graph_state.GraphState.fromStr(string, properties_config=self)
 
     def new_properties(self, **kwargs):
@@ -351,13 +363,16 @@ class Edge(graph_state_property.PropertyGetAttrTrait):
     MAKE_PROPERTY_EXTERNAL_METHOD_NAME = 'make_external'
 
     def __init__(self, nodes, external_node=-1, edge_id=None, **kwargs):
-        """Edge constructor.
+        """
+        Edge constructor.
+        Do not use directly. use PropertiesConfig#new_edge instead this
+
 
         Args:
             nodes: pair of ints enumerating edge ends.
             external_node: which nodes are external. Default: -1.
-            fields: Fields object with fields corresponding to the nodes.
-            colors: Rainbow object.
+            edge_id: unique edge id number
+            **kwargs: properties of edge and properties config
         """
         properties = kwargs.get('properties', None)
         if properties is None:
@@ -397,6 +412,9 @@ class Edge(graph_state_property.PropertyGetAttrTrait):
         return self._nodes
 
     def co_node(self, node):
+        """
+        returns node of edges which a not equal to given
+        """
         for n in self.nodes:
             if n != node:
                 return n
@@ -443,6 +461,7 @@ class Edge(graph_state_property.PropertyGetAttrTrait):
         Args:
             node_map: dictionary mapping old nodes to new ones. Identity map
                 is assumed for the missed keys.
+            **kwargs: properties that must be replaced for edge copy          
         Returns:
             New Edge object.
         """
@@ -589,6 +608,8 @@ class GraphState(object):
     def fromStr(string, properties_config=None):
         """
         creates GraphState object from nickel serialized string
+    
+        see alse PropertiesConfig#from_str
         """
         if properties_config is None:
             properties_config = DEFAULT_PROPERTIES_CONFIG
@@ -623,7 +644,6 @@ class GraphState(object):
                         if not not_none_node_properties:
                             not_none_node_properties = p_name
                     else:
-                        #TODO
                         un_transposed_nodes_properties[p_name] = None
             transposed_properties = list()
             for i in xrange(len(nickel_edges)):
