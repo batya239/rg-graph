@@ -71,6 +71,9 @@ class NodeAndProperty(PropertyGetAttrTrait):
 
 # noinspection PyMethodMayBeStatic
 class PropertyExternalizer(object):
+    """
+    Base externalizer superclass, can be used as is for numeric types
+    """
     def serialize(self, obj):
         return str(obj)
 
