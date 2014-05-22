@@ -6,6 +6,9 @@ __author__ = 'dima'
 import graph_state
 import copy
 
+"""
+all of functions in module marked with @graph_state_to_edges_implicit_conversion can take list of edges or GraphState object as parameter 
+"""
 
 def graph_state_to_edges_implicit_conversion(edges_first_parameter_function):
     def graph_state_first_parameter_function(some_obj, *other_params, **other_kwargs):
@@ -28,6 +31,9 @@ def get_external_node(edges):
 
 @graph_state_to_edges_implicit_conversion
 def get_bound_vertices(edges):
+    """
+    non-external vertices of external nodes
+    """
     result = set()
     for e in edges:
         if e.is_external():
@@ -37,12 +43,18 @@ def get_bound_vertices(edges):
 
 @graph_state_to_edges_implicit_conversion
 def get_vertices(edges):
+    """
+    all vertices including external
+    """
     return frozenset(reduce(lambda s, e: s + e.nodes, edges, tuple()))
 
 
 def get_connected_components(edges, additional_vertices=set(), singular_vertices=set()):
     """
-    additional_vertices
+    get lists of connected undirected graph vertices
+    
+    additional_vertices: any additional vertices which will be included to result
+    singular_vertices: vertices that not produce connection between vertices
     """
     if not len(edges):
         return tuple()
@@ -74,6 +86,9 @@ def get_connected_components(edges, additional_vertices=set(), singular_vertices
 
 @graph_state_to_edges_implicit_conversion
 def is_edge_property_fully_none(edges, property_name):
+    """
+    checks that given property is None for all edges
+    """
     assert property_name is not None
     for e in edges:
         if getattr(e, property_name) is not None:
@@ -114,7 +129,9 @@ def has_no_tadpoles_in_counter_term(edges, super_graph_edges):
 @graph_state_to_edges_implicit_conversion
 def is_graph_connected(edges, additional_vertices=set()):
     """
-    graph as edges list
+    checks that graph is connected
+    
+    see get_connected_components
     """
     return len(get_connected_components(edges, additional_vertices)) == 1 if len(edges) else True
 
