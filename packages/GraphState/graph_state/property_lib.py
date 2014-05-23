@@ -221,3 +221,11 @@ WEIGHT_ARROW_AND_MARKER_PROPERTIES_CONFIG = \
                                         graph_state_property.PropertyKey(name="marker",
                                                                          is_directed=False,
                                                                          externalizer=StringExternalizer()))
+
+COLORS_AND_FIELDS_CONFIG = \
+    graph_state.PropertiesConfig.create(graph_state_property.PropertyKey(name="colors",
+                                                                         is_directed=False,
+                                                                         externalizer=Rainbow.Externalizer()),
+                                        graph_state_property.PropertyKey(name="fields",
+                                                                         is_directed=True,
+                                                                         externalizer=Fields.Externalizer()))

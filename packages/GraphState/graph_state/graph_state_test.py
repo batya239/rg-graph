@@ -6,8 +6,8 @@ import graph_state_property
 import property_lib
 import unittest
 
-new_edge = graph_state.DEFAULT_PROPERTIES_CONFIG.new_edge
-new_properties = graph_state.DEFAULT_PROPERTIES_CONFIG.new_properties
+new_edge = property_lib.COLORS_AND_FIELDS_CONFIG.new_edge
+new_properties = property_lib.COLORS_AND_FIELDS_CONFIG.new_properties
 
 
 class TestFields(unittest.TestCase):
@@ -40,12 +40,12 @@ class TestFields(unittest.TestCase):
 
 class TestRainbow(unittest.TestCase):
     def testToFromStr(self):
-        r = graph_state.Rainbow((0, 1))
+        r = property_lib.Rainbow((0, 1))
         self.assertEqual(str(r), '(0, 1)')
-        self.assertEqual(r, graph_state.Rainbow.fromObject(str(r)))
+        self.assertEqual(r, property_lib.Rainbow.fromObject(str(r)))
 
     def testFromStr2(self):
-        r = graph_state.Rainbow.fromObject("\"asd\"")
+        r = property_lib.Rainbow.fromObject("\"asd\"")
         self.assertEqual(r.colors, ("asd",))
 
 
@@ -85,7 +85,7 @@ class TestEdge(unittest.TestCase):
         edge = new_edge((0, 1),
                         external_node=1,
                         fields=property_lib.Fields('ab'),
-                        colors=graph_state.Rainbow((0,)),
+                        colors=property_lib.Rainbow((0,)),
                         edge_id=333)
         missed_attrs = [attr for attr in edge.__dict__ if not edge.__dict__[attr]]
         self.assertEqual(len(missed_attrs), 0,
@@ -105,9 +105,9 @@ class TestEdge(unittest.TestCase):
 
 class TestGraphState(unittest.TestCase):
     def testGraphStateObjectsEqual(self):
-        edges = tuple([new_edge(e, colors=graph_state.Rainbow((1, 2, 3))) for e in [(-1, 0), (0, 1), (1, -1)]])
+        edges = tuple([new_edge(e, colors=property_lib.Rainbow((1, 2, 3))) for e in [(-1, 0), (0, 1), (1, -1)]])
         state1 = graph_state.GraphState(edges)
-        state2 = graph_state.GraphState.from_str(str(state1))
+        state2 = graph_state.GraphState.from_str(str(state1), property_lib.COLORS_AND_FIELDS_CONFIG)
         self.assertEqual(state1, state2)
 
     def testEdgeId(self):
@@ -154,11 +154,11 @@ class TestGraphState(unittest.TestCase):
         state = graph_state.GraphState(edges)
         self.assertEqual(str(state), 'e1|e|::')
 
-        decoded = graph_state.GraphState.from_str(str(state))
+        decoded = graph_state.GraphState.from_str(str(state), property_lib.COLORS_AND_FIELDS_CONFIG)
         self.assertEqual(decoded.sortings[0], edges)
 
     def testToFromStr1(self):
-        actual_state = graph_state.GraphState.from_str("e1|e|")
+        actual_state = graph_state.GraphState.from_str("e1|e|", property_lib.COLORS_AND_FIELDS_CONFIG)
         self.assertEqual("e1|e|::", str(actual_state))
         edges = (new_edge((-1, 0)),
                  new_edge((0, 1)),
@@ -173,15 +173,15 @@ class TestGraphState(unittest.TestCase):
         state = graph_state.GraphState(edges)
         self.assertEqual(str(state), 'e1|e|::0a_ab|0a|')
 
-        decoded = graph_state.GraphState.from_str(str(state))
+        decoded = graph_state.GraphState.from_str(str(state), property_lib.COLORS_AND_FIELDS_CONFIG)
         self.assertEqual(decoded.sortings[0], edges)
 
     def testToFromStrWithColors(self):
-        edges = (new_edge((-1, 0), colors=graph_state.Rainbow((1, 7))),)
+        edges = (new_edge((-1, 0), colors=property_lib.Rainbow((1, 7))),)
         state = graph_state.GraphState(edges)
         self.assertEqual(str(state), "e|:(1, 7)|:")
 
-        decoded = graph_state.GraphState.from_str(str(state))
+        decoded = graph_state.GraphState.from_str(str(state), property_lib.COLORS_AND_FIELDS_CONFIG)
         self.assertEqual(decoded.sortings[0], edges)
 
 
