@@ -41,10 +41,10 @@ class GraphStatePropertiesTest(unittest.TestCase):
         gs = config.graph_state_from_str('e1|e|:2_1|0|:20_30:0_>|0|')
         self.assertEqual(str(gs), 'e1|e|:0_1|2|:30_20:0_<|0|')
         self.assertEqual(str(gs.nodes[0]), 'n[-1, n_num=None]')
-        self.assertEqual(gs.nodes[0].node_index, -1)
+        self.assertEqual(gs.nodes[0].index, -1)
         for n in gs.nodes[1:]:
             self.assertTrue(n.n_num in (20, 30))
-            self.assertTrue(n.node_index in (0, 1))
+            self.assertTrue(n.index in (0, 1))
             self.assertTrue(str(n) in ('n[0, n_num=30]', 'n[1, n_num=20]'))
 
     def testOrderingByNodes(self):
@@ -63,7 +63,7 @@ class GraphStatePropertiesTest(unittest.TestCase):
     def testNodeCreation(self):
         n = config.new_node(2, n_num=2)
         self.assertEqual('n[2, n_num=2]', str(n))
-        self.assertEqual(2, n.node_index)
+        self.assertEqual(2, n.index)
         self.assertEqual(2, n.n_num)
 
     def testEdgeCreation(self):

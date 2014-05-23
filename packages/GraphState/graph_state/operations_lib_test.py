@@ -6,11 +6,12 @@ __author__ = 'dima'
 
 import unittest
 import operations_lib
+import property_lib
 import graph_state
 import graph_state_property
 
 
-config = graph_state.DEFAULT_PROPERTIES_CONFIG
+config = property_lib.COLORS_AND_FIELDS_CONFIG
 
 
 class OperationsLibTest(unittest.TestCase):

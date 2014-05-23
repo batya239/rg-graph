@@ -17,16 +17,16 @@ class PropertyGetAttrTrait(object):
 
 
 class Node(PropertyGetAttrTrait):
-    def __init__(self, node_index, properties):
+    def __init__(self, index, properties):
         super(Node, self).__init__(from_edge=False)
         assert properties is not None
-        self._node_index = node_index
-        self._node_index_str = str(node_index)
+        self._index = index
+        self._node_index_str = str(index)
         self._properties = properties
 
     @property
-    def node_index(self):
-        return self._node_index
+    def index(self):
+        return self._index
 
     def key(self):
         return self._properties.key()
@@ -41,24 +41,24 @@ class Node(PropertyGetAttrTrait):
             return new_node if isinstance(new_node, Node) else Node(new_node, self._properties)
         properties_is_none = self._properties.is_none(from_edge=True)
         updated_properties = dict() if properties_is_none else self._properties.update(from_edge=False, **kwargs)
-        return Node(self.node_index if new_node_index is None else new_node_index, updated_properties)
+        return Node(self.index if new_node_index is None else new_node_index, updated_properties)
 
     def is_by_properties_equal(self, other_node_and_property):
-        return self.node_index == other_node_and_property.node_index and self._properties == other_node_and_property._property
+        return self.index == other_node_and_property.index and self._properties == other_node_and_property._property
 
     def __cmp__(self, other):
-        return cmp(self.node_index, other.node_index if isinstance(other, Node) else other)
+        return cmp(self.index, other.index if isinstance(other, Node) else other)
 
     def __str__(self):
-        return 'n[%s, %s]' % (self.node_index_str, str(self._properties)) if len(self._properties) else str(self.node_index)
+        return 'n[%s, %s]' % (self.node_index_str, str(self._properties)) if len(self._properties) else str(self.index)
 
     __repr__ = __str__
 
     def __eq__(self, other):
-        return self.node_index == (other.node_index if isinstance(other, Node) else other)
+        return self.index == (other.index if isinstance(other, Node) else other)
 
     def __hash__(self):
-        return hash(self.node_index)
+        return hash(self.index)
 
     @staticmethod
     def build_if_need(node_indices_or_nodes, default_node_properties):

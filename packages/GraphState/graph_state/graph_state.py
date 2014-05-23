@@ -292,7 +292,7 @@ class Edge(graph_state_property.PropertyGetAttrTrait):
     def key(self):
         if '_key' not in self.__dict__:
             # noinspection PyAttributeOutsideInit
-            self._key = (tuple(map(lambda n: n.node_index, self.internal_nodes)),)
+            self._key = (tuple(map(lambda n: n.index, self.internal_nodes)),)
             if self._properties:
                 self._key += self._properties.key()
             self._key = reduce(lambda k, n: k + n.key(), self.nodes, self._key)
@@ -379,7 +379,7 @@ class GraphState(object):
             ('properties_count =  %s, len(edges) = %s' % (properties_count, len(edges)))
 
         self._properties_config = None if edges[0]._properties is None else edges[0]._properties._properties_config
-        node_maps = (node_maps or nickel.Canonicalize([map(lambda n: n.node_index, edge.nodes) for edge in edges]).node_maps)
+        node_maps = (node_maps or nickel.Canonicalize([map(lambda n: n.index, edge.nodes) for edge in edges]).node_maps)
         self.sortings = []
         for node_map in node_maps:
             mapped_edges = list()
@@ -422,7 +422,7 @@ class GraphState(object):
         return iter(self.edges)
 
     def __str__(self):
-        nickel_edges = [map(lambda n: n.node_index, edge.nodes) for edge in self.edges]
+        nickel_edges = [map(lambda n: n.index, edge.nodes) for edge in self.edges]
         edges_str = nickel.Nickel(edges=nickel_edges).string
 
         serialized = [edges_str]
