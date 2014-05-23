@@ -186,6 +186,10 @@ class PropertiesConfig(object):
         kwargs['properties_config'] = self
         return graph_state.Edge(nodes, external_node, edge_id, **kwargs)
 
+    @classmethod
+    def new_graph_state(cls, edges):
+        return GraphState(edges)
+
     def graph_state_from_str(self, string):
         """
         parse GraphState object from string with this config
