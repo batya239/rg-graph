@@ -24,7 +24,7 @@ new_edge = MAIN_GRAPH_CONFIG.new_edge
 
 
 def from_str(graph_state_str):
-    return graphine.Graph.fromStr(graph_state_str, MAIN_GRAPH_CONFIG)
+    return graphine.Graph.from_str(graph_state_str, MAIN_GRAPH_CONFIG)
 
 
 aa = graph_state.Fields("aa")

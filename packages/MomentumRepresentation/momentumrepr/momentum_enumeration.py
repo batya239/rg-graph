@@ -14,12 +14,12 @@ from rggraphutil import Ref
 
 
 def find_momentum_enumeration_graph(graph, callback):
-    loops_count = graph.getLoopsCount()
-    tails_count = graph.externalEdgesCount()
+    loops_count = graph.loops_count
+    tails_count = graph.external_edges_count
     external_vertex = graph.external_vertex
     assert tails_count > 1
     empty_propagator = propagator.MomentumFlow.empty(tails_count, loops_count)
-    graph_vertices = graph.vertices()
+    graph_vertices = graph.vertices
 
     def _enumerate_next_vertex(_graph, remaining_flows, vertex):
         if vertex not in graph_vertices:
@@ -40,10 +40,10 @@ def find_momentum_enumeration_graph(graph, callback):
             return
 
         if len(not_enumerated) == 1 and len(_graph.edges(vertex)) == 2:
-            new_edges = copy.copy(_graph.allEdges())
+            new_edges = list(_graph.edges())
             new_edges.remove(not_enumerated[0])
             new_edges.append(not_enumerated[0].copy(flow=-result_known_flow))
-            new_graph = graphine.Graph(new_edges, external_vertex=external_vertex, renumbering=False)
+            new_graph = graphine.Graph(new_edges, renumbering=False)
             _enumerate_next_vertex(new_graph, remaining_flows, vertex + 1)
 
         for index, remaining_flow in enumerate(remaining_flows):
@@ -52,18 +52,18 @@ def find_momentum_enumeration_graph(graph, callback):
                     if result_known_flow + remaining_flow == empty_propagator:
                         new_remaining_flows = copy.copy(remaining_flows)
                         del new_remaining_flows[index]
-                        new_edges = copy.copy(_graph.allEdges())
+                        new_edges = list(_graph.edges())
                         new_edges.remove(not_enumerated[0])
                         new_edges.append(not_enumerated[0].copy(flow=remaining_flow))
-                        new_graph = graphine.Graph(new_edges, external_vertex=external_vertex, renumbering=False)
+                        new_graph = graphine.Graph(new_edges, renumbering=False)
                         _enumerate_next_vertex(new_graph, new_remaining_flows, vertex + 1)
                 else:
                     new_remaining_flows = copy.copy(remaining_flows)
                     del new_remaining_flows[index]
-                    new_edges = copy.copy(_graph.allEdges())
+                    new_edges = list(_graph.edges())
                     new_edges.remove(not_enumerated[0])
                     new_edges.append(not_enumerated[0].copy(flow=remaining_flow))
-                    new_graph = graphine.Graph(new_edges, external_vertex=external_vertex, renumbering=False)
+                    new_graph = graphine.Graph(new_edges, renumbering=False)
                     _enumerate_next_vertex(new_graph, new_remaining_flows, vertex)
         pass
 
@@ -77,7 +77,7 @@ def find_momentum_enumeration_graph(graph, callback):
                 result_flow += e
             all_flows.append(result_flow)
 
-    start_edges = copy.copy(graph.allEdges())
+    start_edges = list(graph.edges())
     es = graph.edges(graph.external_vertex)
     sum_external_flow = None
     with_external = list()
@@ -103,11 +103,11 @@ def find_momentum_enumeration_graph(graph, callback):
 
 
 def is_suitable(graph):
-    for sub_graph in graph.xRelevantSubGraphs(graphine.filters.oneIrreducible + uv.uv_condition):
+    for sub_graph in graph.x_relevant_sub_graphs(graphine.filters.one_irreducible + uv.uv_condition):
         indices_in_co_subgraph = set()
         indices_in_subgraph = set()
-        sub_graph_edges = sub_graph.allEdges()
-        for e in graph.allEdges():
+        sub_graph_edges = list(sub_graph.edges())
+        for e in graph:
             if e.is_external():
                 continue
             if e in sub_graph_edges:
@@ -115,7 +115,7 @@ def is_suitable(graph):
                 indices_in_subgraph |= e.flow.get_internal_momentas_indices()
             else:
                 indices_in_co_subgraph |= e.flow.get_internal_momentas_indices()
-        if len(indices_in_subgraph - indices_in_co_subgraph) != sub_graph.getLoopsCount():
+        if len(indices_in_subgraph - indices_in_co_subgraph) != sub_graph.loops_count:
             return False
     return True
 

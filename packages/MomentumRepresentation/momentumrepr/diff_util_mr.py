@@ -17,14 +17,14 @@ from rggraphutil import zeroDict
 
 
 def construct_graph_with_markers(graph, minimal_passing):
-    new_graph_edges = map(lambda e: e.copy(marker=graph_util_mr.MARKER_0), graph.allEdges())
+    new_graph_edges = map(lambda e: e.copy(marker=graph_util_mr.MARKER_0), graph.edges())
     new_minimal_passing = list()
     for e, b in minimal_passing:
         new_graph_edges.remove(e.copy(marker=graph_util_mr.MARKER_0))
         new_e = e.copy(marker=graph_util_mr.MARKER_1)
         new_graph_edges.append(new_e)
         new_minimal_passing.append((new_e, b))
-    return graphine.Graph(new_graph_edges, external_vertex=graph.external_vertex, renumbering=False), new_minimal_passing
+    return graphine.Graph(new_graph_edges, renumbering=False), new_minimal_passing
 
 
 CLN_FOUR = swiginac.numeric("4")
@@ -69,10 +69,10 @@ def _do_diff(graph, comb):
         #
         # (d_xi)^2
         #
-        all_edges_3edges = copy.copy(graph.allEdges())
+        all_edges_3edges = list(graph.edges())
         edge = comb[0][0]
         all_edges_3edges.remove(edge)
-        new_vertex1, new_vertex2 = graph.createVertexIndex(), graph.createVertexIndex()
+        new_vertex1, new_vertex2 = graph.create_vertex_index(), graph.create_vertex_index()
         numerator = graph_state.Arrow(graph_state.Arrow.LEFT_ARROW)
         all_edges_3edges.append(graph_util_mr.new_edge((edge.nodes[0], new_vertex1),
                                                        flow=edge.flow,
@@ -94,12 +94,12 @@ def _do_diff(graph, comb):
                                                        external_node=graph.external_vertex))
         to_return = list()
         all_edges_3edges = map(lambda e: e.copy(arrow=graph_state.Arrow(graph_state.Arrow.NULL)) if e.arrow is None else e, all_edges_3edges)
-        to_return.append((graphine.Graph(all_edges_3edges, external_vertex=graph.external_vertex), c2()))
+        to_return.append((graphine.Graph(all_edges_3edges), c2()))
 
-        all_edges_2edges = copy.copy(graph.allEdges())
+        all_edges_2edges = list(graph.edges())
         edge = comb[0][0]
         all_edges_2edges.remove(edge)
-        new_vertex = graph.createVertexIndex()
+        new_vertex = graph.create_vertex_index()
         all_edges_2edges.append(graph_util_mr.new_edge((edge.nodes[0], new_vertex),
                                                        flow=edge.flow,
                                                        fields=edge.fields,
@@ -108,17 +108,17 @@ def _do_diff(graph, comb):
                                                        flow=edge.flow,
                                                        fields=edge.fields,
                                                        external_node=graph.external_vertex))
-        to_return.append((graphine.Graph(all_edges_2edges, external_vertex=graph.external_vertex), c3()))
+        to_return.append((graphine.Graph(all_edges_2edges), c3()))
         return to_return
     else:
         #
         # d_xi
         #
-        all_edges = copy.copy(graph.allEdges())
+        all_edges = list(graph.edges())
         for c in comb:
             edge = c[0]
             all_edges.remove(edge)
-            new_vertex = graph.createVertexIndex()
+            new_vertex = graph.create_vertex_index()
             numerator = graph_state.Arrow(graph_state.Arrow.LEFT_ARROW if comb[1] else graph_state.Arrow.RIGHT_ARROW)
             new_edge1 = graph_util_mr.new_edge((edge.nodes[0], new_vertex),
                                                external_node=graph.external_vertex,
@@ -135,7 +135,7 @@ def _do_diff(graph, comb):
             all_edges.append(new_edge1)
             all_edges.append(new_edge2)
         all_edges = map(lambda e: e.copy(arrow=graph_state.Arrow(graph_state.Arrow.NULL)) if e.arrow is None else e, all_edges)
-        new_graph = graphine.Graph(all_edges, external_vertex=graph.external_vertex)
+        new_graph = graphine.Graph(all_edges)
         return [(new_graph, c1())]
 
 
@@ -155,9 +155,9 @@ def D_i_omega(graph):
     graph, minimal_passing = construct_graph_with_markers(graph, minimal_passing)
     new_graphs = list()
     for e, sign in minimal_passing:
-        new_edges = copy.copy(graph.allEdges())
+        new_edges = list(graph.edges())
         new_edges.remove(e)
-        next_vertex = graph.createVertexIndex()
+        next_vertex = graph.create_vertex_index()
         new_edges.append(graph_util_mr.new_edge((e.nodes[0], next_vertex),
                                                 external_node=graph.external_vertex,
                                                 fields=e.fields,
@@ -172,13 +172,13 @@ def D_i_omega(graph):
 
 def D_minus_tau(graph):
     new_graphs = list()
-    graph_edges = graph.allEdges()
-    for e in graph.allEdges():
+    graph_edges = graph.edges()
+    for e in graph:
         if e.is_external():
             continue
-        new_edges = copy.copy(graph_edges)
+        new_edges = list(graph_edges)
         new_edges.remove(e)
-        next_vertex = graph.createVertexIndex()
+        next_vertex = graph.create_vertex_index()
         non_empty_arrow = e.arrow
         empty_arrow = None if non_empty_arrow is None else graph_state.Arrow(graph_state.Arrow.NULL)
         new_edges.append(graph_util_mr.new_edge((e.nodes[0], next_vertex),

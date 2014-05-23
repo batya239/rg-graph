@@ -20,9 +20,9 @@ def substitute(graph_with_time_version):
     _scalar_product = scalar_product.extract_scalar_products(graph_with_time_version.graph)
 
     sps = set() if _scalar_product is None else _scalar_product.momentum_pairs()
-    sps = reduce(lambda s, e: s | e.flow.get_raw_scalar_products(), graph_with_time_version.graph.allEdges(), sps)
+    sps = reduce(lambda s, e: s | e.flow.get_raw_scalar_products(), graph_with_time_version.graph.edges(), sps)
 
-    substitutor = spherical_coordinats.ScalarProductEnumerator.enumerate(sps, graph_with_time_version.graph.getLoopsCount())
+    substitutor = spherical_coordinats.ScalarProductEnumerator.enumerate(sps, graph_with_time_version.graph.loops_count)
 
     v = symbolic_functions.CLN_ONE
     for cs in graph_with_time_version.edges_cross_sections:
@@ -75,7 +75,7 @@ def find_time_versions(graph):
 def find_raw_time_versions(graph):
     def find_restrictions(g):
         restrictions = list()
-        for e in g.allEdges():
+        for e in g:
             if e.fields == graph_util_mr.Aa:
                 restrictions.append(e.nodes)
             elif e.fields == graph_util_mr.aA:
@@ -92,7 +92,7 @@ def find_raw_time_versions(graph):
 
     time_versions = list()
     restrictions = find_restrictions(graph)
-    for perm in itertools.permutations(graph.vertices() - set([graph.external_vertex])):
+    for perm in itertools.permutations(graph.vertices - set([graph.external_vertex])):
         if is_acceptable(restrictions, perm):
             time_versions.append(perm)
 

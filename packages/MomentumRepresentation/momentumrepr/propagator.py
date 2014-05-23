@@ -13,12 +13,8 @@ from rggraphenv import symbolic_functions
 
 def subs_external_propagators_is_zero(graph):
     new_edges = list()
-    for e in graph.allEdges():
-        try:
-            new_edges.append(e.copy(flow=e.flow.subs_external_momenta_is_zero()))
-        except AttributeError as e:
-            print graph
-            exit(1)
+    for e in graph:
+        new_edges.append(e.copy(flow=e.flow.subs_external_momenta_is_zero()))
     new_graph = graphine.Graph(new_edges)
     return new_graph
 

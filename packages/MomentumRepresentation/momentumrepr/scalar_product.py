@@ -99,7 +99,7 @@ class _Prod(ScalarProductAlgebraElement):
 
 def extract_scalar_products(graph):
     extracted_numerated_edges = list()
-    for e in graph.allEdges():
+    for e in graph:
         if e.arrow is not None and not e.arrow.is_null():
             extracted_numerated_edges.append(e)
     if len(extracted_numerated_edges) == 0:
@@ -131,7 +131,7 @@ def extract_scalar_products(graph):
 
 
 def resolve_scalar_product_sign(graph, extracted_numerated_edges):
-    momentum_passing = map(lambda e: e.nodes, filter(lambda e: e.marker == graph_util_mr.MARKER_1, graph.allEdges()))
+    momentum_passing = map(lambda e: e.nodes, filter(lambda e: e.marker == graph_util_mr.MARKER_1, graph.edges()))
     momentum_passing.remove(extracted_numerated_edges[0].nodes)
     for j in xrange(2):
         current_node = extracted_numerated_edges[0].nodes

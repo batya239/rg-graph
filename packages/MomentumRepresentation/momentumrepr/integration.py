@@ -27,7 +27,7 @@ def get_base_integrand_and_angles(graph_with_time_version):
 def get_loop_momentum_vars(graph_with_time_version):
     graph = graph_with_time_version.graph
     loop_momentums_vars = set()
-    for e in graph.allEdges():
+    for e in graph:
         loop_momentums_vars |= e.flow.get_loop_momentas()
     return loop_momentums_vars
 
@@ -35,7 +35,7 @@ def get_loop_momentum_vars(graph_with_time_version):
 def get_stretch_vars(graph_with_time_version):
     graph = graph_with_time_version.graph
     stretch_vars = set()
-    for e in graph.allEdges():
+    for e in graph:
         stretch_vars |= e.flow.get_stretch_vars()
     return stretch_vars
 
@@ -79,8 +79,7 @@ def construct_integrand(base_integrand, loop_momentum_vars, stretch_vars, angles
         integrand_a *= loop_var ** (-2)
         integrations.append(Integration(var=loop_var, a=symbolic_functions.CLN_ZERO, b=symbolic_functions.CLN_ONE))
 
-
-    integrand_a = integrand_a.normal()
+    integrand_a = integrand_a.simplify_indexed()
     if configure_mr.Configure.debug():
         print "Integrand(a):", integrand_a
     for s_v in stretch_vars:

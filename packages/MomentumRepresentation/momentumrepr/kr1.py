@@ -18,8 +18,8 @@ import momentum_enumeration
 import integrations_merger
 from rggraphutil import emptyListDict, zeroDict
 
-no_tadpoles = graphine.filters.noTadpoles
-one_irreducible = graphine.filters.oneIrreducible
+no_tadpoles = graphine.filters.no_tadpoles
+one_irreducible = graphine.filters.one_irreducible
 
 
 def kr1_log_divergence(graph_state_as_str, integration_operation=None):
@@ -81,7 +81,7 @@ def kr1_with_some_additional_lambda_operation(graph_state_as_str,
 
 
 def kr1_stretching(graph):
-    uv_subgraphs = [x for x in graph.xRelevantSubGraphs(one_irreducible + no_tadpoles + uv.uv_condition)]
+    uv_subgraphs = [x for x in graph.x_relevant_sub_graphs(one_irreducible + no_tadpoles + uv.uv_condition)]
     graphs_and_time_versions = time_versions.find_time_versions(graph)
 
     with_stretching = list()
@@ -92,7 +92,7 @@ def kr1_stretching(graph):
             add_stretching(g, uv_graph, graph_and_tv.edges_cross_sections, stretchers_for_edges)
 
         new_edges = list()
-        for e in g.allEdges():
+        for e in g.edges():
             stretchers = stretchers_for_edges[RefEqualityWrapper(e)]
             _e = e
             for s in stretchers:
@@ -108,7 +108,7 @@ def kr1_stretching(graph):
 
 
 def add_stretching(graph, uv_sub_graph, cross_sections, stretchers_for_edges):
-    cross_sections_base_number = len(uv_sub_graph.vertices()) - 2
+    cross_sections_base_number = len(uv_sub_graph.vertices) - 2
     base_uv_index = uv.uv_index(uv_sub_graph)
 
     cross_sections_number = 0
@@ -116,7 +116,7 @@ def add_stretching(graph, uv_sub_graph, cross_sections, stretchers_for_edges):
     for cs in cross_sections:
         cross_sections_conj = list()
         intersect = False
-        sub_graph_edges = set(uv_sub_graph.allEdges())
+        sub_graph_edges = set(uv_sub_graph.edges())
         for e in cs:
             if e in sub_graph_edges:
                 intersect = True
@@ -135,14 +135,14 @@ def add_stretching(graph, uv_sub_graph, cross_sections, stretchers_for_edges):
     # add stretching for divergent subgraph
     #
     stretcher_indices = set()
-    for e in uv_sub_graph.externalEdges():
+    for e in uv_sub_graph.external_edges:
         for i, c in enumerate(e.flow.loop_momentas):
             if c != 0:
                 stretcher_indices.add(i)
     assert len(stretcher_indices)
     stretcher_index = propagator.MomentumFlow.get_next_stretcher_index()
 
-    for e in uv_sub_graph.internalEdges():
+    for e in uv_sub_graph.internal_edges:
         stretchers_for_edges[RefEqualityWrapper(e)].append(propagator.Stretcher(False, frozenset(stretcher_indices), stretcher_index, uv_index))
 
     for conj in intersect_cross_sections:
