@@ -1,14 +1,12 @@
 #!/usr/bin/python
 # -*- coding: utf8 -*-
-
+"""
+all of functions in module marked with @graph_state_to_edges_implicit_conversion can take list of edges or GraphState object as parameter
+"""
 __author__ = 'dima'
 
 import graph_state
-import copy
 
-"""
-all of functions in module marked with @graph_state_to_edges_implicit_conversion can take list of edges or GraphState object as parameter 
-"""
 
 def graph_state_to_edges_implicit_conversion(edges_first_parameter_function):
     def graph_state_first_parameter_function(some_obj, *other_params, **other_kwargs):
@@ -64,24 +62,24 @@ def get_connected_components(edges, additional_vertices=set(), singular_vertices
 
     if external_vertex in additional_vertices:
         additional_vertices.remove(external_vertex)
-    disjointSet = DisjointSet(additional_vertices)
+    disjoint_set = DisjointSet(additional_vertices)
 
     for e in edges:
         pair = e.nodes
         if external_vertex in pair:
             for v in set(pair) - set([external_vertex]):
-                disjointSet.add_key(v)
+                disjoint_set.add_key(v)
             continue
 
         v = pair[0]
         if v in singular_vertices:
-            pair = (disjointSet.next_singular_key(v)), pair[1]
+            pair = (disjoint_set.next_singular_key(v)), pair[1]
         v = pair[1]
         if v in singular_vertices:
-            pair = pair[0], (disjointSet.next_singular_key(v))
+            pair = pair[0], (disjoint_set.next_singular_key(v))
 
-        disjointSet.union(pair)
-    return disjointSet.get_connected_components()
+        disjoint_set.union(pair)
+    return disjoint_set.get_connected_components()
 
 
 @graph_state_to_edges_implicit_conversion
@@ -107,8 +105,8 @@ def has_no_tadpoles_in_counter_term(edges, super_graph_edges):
         if e in edges_copy:
             edges_copy.remove(e)
         singular_vertices |= set(e.nodes)
-    connectedComponents = get_connected_components(edges_copy, (external_node,), singular_vertices=singular_vertices)
-    for component in connectedComponents:
+    connected_components = get_connected_components(edges_copy, (external_node,), singular_vertices=singular_vertices)
+    for component in connected_components:
         all_singular = True
         for v in component:
             if not DisjointSet.is_singular(v):
@@ -116,12 +114,12 @@ def has_no_tadpoles_in_counter_term(edges, super_graph_edges):
                 break
         if all_singular:
             return False
-        containsExternal = False
+        contains_external = False
         for v in component:
             for e in edges_for_node(super_graph_edges, v):
                 if e.is_external():
-                    containsExternal = True
-        if not containsExternal:
+                    contains_external = True
+        if not contains_external:
             return False
     return True
 

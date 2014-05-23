@@ -16,9 +16,9 @@ class PropertyGetAttrTrait(object):
         return None
 
 
-class NodeAndProperty(PropertyGetAttrTrait):
+class Node(PropertyGetAttrTrait):
     def __init__(self, node_index, properties):
-        super(NodeAndProperty, self).__init__(from_edge=False)
+        super(Node, self).__init__(from_edge=False)
         assert properties is not None
         self._node_index = node_index
         self._node_index_str = str(node_index)
@@ -38,20 +38,16 @@ class NodeAndProperty(PropertyGetAttrTrait):
     def copy(self, new_node_index=None, **kwargs):
         if 'new_node' in kwargs:
             new_node = kwargs['new_node']
-            return new_node if isinstance(new_node, NodeAndProperty) else NodeAndProperty(new_node, self._properties)
+            return new_node if isinstance(new_node, Node) else Node(new_node, self._properties)
         properties_is_none = self._properties.is_none(from_edge=True)
-        updated_properties = None if properties_is_none else self._properties.update(from_edge=False, **kwargs)
-        if updated_properties is None:
-            if 'properties_config' not in kwargs:
-                kwargs['properties_config'] = DEFAULT_PROPERTIES_CONFIG
-            updated_properties = Properties.from_kwargs(from_edge=False, **kwargs)
-        return NodeAndProperty(self.node_index if new_node_index is None else new_node_index, updated_properties)
+        updated_properties = dict() if properties_is_none else self._properties.update(from_edge=False, **kwargs)
+        return Node(self.node_index if new_node_index is None else new_node_index, updated_properties)
 
     def is_by_properties_equal(self, other_node_and_property):
-        return self.node_index == other.node_index and self._properties == other_node_and_property._property
+        return self.node_index == other_node_and_property.node_index and self._properties == other_node_and_property._property
 
     def __cmp__(self, other):
-        return cmp(self.node_index, other.node_index if isinstance(other, NodeAndProperty) else other)
+        return cmp(self.node_index, other.node_index if isinstance(other, Node) else other)
 
     def __str__(self):
         return 'n[%s, %s]' % (self.node_index_str, str(self._properties)) if len(self._properties) else str(self.node_index)
@@ -59,14 +55,14 @@ class NodeAndProperty(PropertyGetAttrTrait):
     __repr__ = __str__
 
     def __eq__(self, other):
-        return self.node_index == (other.node_index if isinstance(other, NodeAndProperty) else other)
+        return self.node_index == (other.node_index if isinstance(other, Node) else other)
 
     def __hash__(self):
         return hash(self.node_index)
 
     @staticmethod
     def build_if_need(node_indices_or_nodes, default_node_properties):
-        return tuple(sorted(map(lambda n: n if isinstance(n, NodeAndProperty) else NodeAndProperty(n, default_node_properties), node_indices_or_nodes)))
+        return tuple(sorted(map(lambda n: n if isinstance(n, Node) else Node(n, default_node_properties), node_indices_or_nodes)))
 
 
 # noinspection PyMethodMayBeStatic
@@ -89,7 +85,6 @@ class FakePropertyExternalizer(PropertyExternalizer):
         raise NotImplementedError()
 
 
-#TODO use this instead other
 class ExternalableProperty(object):
     def make_external(self, nodes, external_node):
         raise NotImplementedError()

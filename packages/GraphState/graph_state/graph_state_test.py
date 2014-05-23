@@ -12,28 +12,28 @@ new_properties = graph_state.DEFAULT_PROPERTIES_CONFIG.new_properties
 
 class TestFields(unittest.TestCase):
     def testCopy(self):
-        fields = graph_state.Fields('ab')
+        fields = property_lib.Fields('ab')
         self.assertEqual(fields, fields.copy())
         swapped = fields.copy(swap=True)
         self.assertTrue(fields != swapped)
         self.assertEqual(fields, swapped.copy(swap=True))
 
     def testToFromString(self):
-        fields = graph_state.Fields('ab')
-        self.assertEqual(len(str(fields)), graph_state.Fields.STR_LEN)
-        decoded = graph_state.Fields.fromStr(str(fields))
+        fields = property_lib.Fields('ab')
+        self.assertEqual(len(str(fields)), property_lib.Fields.STR_LEN)
+        decoded = property_lib.Fields.from_str(str(fields))
         self.assertEqual(fields, decoded)
 
     def testFieldsToFromString(self):
         string = 'aBcD'
-        fields = graph_state.Fields.fieldsFromStr(string)
+        fields = property_lib.Fields.fieldsFromStr(string)
         self.assertEqual(len(fields), 2)
-        self.assertEqual(graph_state.Fields.fieldsToStr(fields),
+        self.assertEqual(property_lib.Fields.fieldsToStr(fields),
                          string)
 
     def testHash(self):
-        first = graph_state.Fields('ab')
-        second = graph_state.Fields('ba').copy(swap=True)
+        first = property_lib.Fields('ab')
+        second = property_lib.Fields('ba').copy(swap=True)
         self.assertTrue(first == second)
         self.assertTrue(hash(first) == hash(second))
 
@@ -61,13 +61,13 @@ class TestEdge(unittest.TestCase):
 
     def testCompareWithFields(self):
         self.assertEqual(
-            new_edge((0, 1), fields=graph_state.Fields('ab')),
-            new_edge((1, 0), fields=graph_state.Fields('ba')))
+            new_edge((0, 1), fields=property_lib.Fields('ab')),
+            new_edge((1, 0), fields=property_lib.Fields('ba')))
 
-        cmp_fields = cmp(graph_state.Fields('ab'), graph_state.Fields('ba'))
+        cmp_fields = cmp(property_lib.Fields('ab'), property_lib.Fields('ba'))
         cmp_edges = cmp(
-            new_edge((0, 1), fields=graph_state.Fields('ab')),
-            new_edge((0, 1), fields=graph_state.Fields('ba')))
+            new_edge((0, 1), fields=property_lib.Fields('ab')),
+            new_edge((0, 1), fields=property_lib.Fields('ba')))
         self.assertEqual(cmp_fields, cmp_edges)
 
     def testExternalNode(self):
@@ -77,14 +77,14 @@ class TestEdge(unittest.TestCase):
     def testAnnotateExternalField(self):
         edge = new_edge((0, 1),
                         external_node=1,
-                        fields=graph_state.Fields('ab'))
+                        fields=property_lib.Fields('ab'))
         self.assertEqual(edge.fields.pair[0], 'a')
         self.assertEqual(edge.fields.pair[1], edge.fields.EXTERNAL)
 
     def testCopy(self):
         edge = new_edge((0, 1),
                         external_node=1,
-                        fields=graph_state.Fields('ab'),
+                        fields=property_lib.Fields('ab'),
                         colors=graph_state.Rainbow((0,)),
                         edge_id=333)
         missed_attrs = [attr for attr in edge.__dict__ if not edge.__dict__[attr]]
@@ -96,9 +96,9 @@ class TestEdge(unittest.TestCase):
 
     def testHash(self):
         a = new_edge((0, 1), external_node=1,
-                     fields=graph_state.Fields('ab'))
+                     fields=property_lib.Fields('ab'))
         b = new_edge((0, 1), external_node=1,
-                     fields=graph_state.Fields('ab'))
+                     fields=property_lib.Fields('ab'))
         self.assertTrue(a == b)
         self.assertTrue(hash(a) == hash(b))
 
@@ -107,7 +107,7 @@ class TestGraphState(unittest.TestCase):
     def testGraphStateObjectsEqual(self):
         edges = tuple([new_edge(e, colors=graph_state.Rainbow((1, 2, 3))) for e in [(-1, 0), (0, 1), (1, -1)]])
         state1 = graph_state.GraphState(edges)
-        state2 = graph_state.GraphState.fromStr(str(state1))
+        state2 = graph_state.GraphState.from_str(str(state1))
         self.assertEqual(state1, state2)
 
     def testEdgeId(self):
@@ -131,13 +131,13 @@ class TestGraphState(unittest.TestCase):
         self.assertTrue(state.sortings != [edges])
 
     def testSymmetries(self):
-        edges = [new_edge((-1, 0), fields=graph_state.Fields('aa')),
-                 new_edge((0, 1), fields=graph_state.Fields('aa')),
-                 new_edge((1, -1), fields=graph_state.Fields('aa'))]
+        edges = [new_edge((-1, 0), fields=property_lib.Fields('aa')),
+                 new_edge((0, 1), fields=property_lib.Fields('aa')),
+                 new_edge((1, -1), fields=property_lib.Fields('aa'))]
         state = graph_state.GraphState(edges)
         self.assertEqual(len(state.sortings), 2, 'Symmetry 0 <--> 1.')
 
-        edges[1] = new_edge((0, 1), fields=graph_state.Fields('ab'))
+        edges[1] = new_edge((0, 1), fields=property_lib.Fields('ab'))
         state = graph_state.GraphState(edges)
         self.assertEqual(len(state.sortings), 1, 'No symmetry 0 <--> 1.')
 
@@ -154,11 +154,11 @@ class TestGraphState(unittest.TestCase):
         state = graph_state.GraphState(edges)
         self.assertEqual(str(state), 'e1|e|::')
 
-        decoded = graph_state.GraphState.fromStr(str(state))
+        decoded = graph_state.GraphState.from_str(str(state))
         self.assertEqual(decoded.sortings[0], edges)
 
     def testToFromStr1(self):
-        actual_state = graph_state.GraphState.fromStr("e1|e|")
+        actual_state = graph_state.GraphState.from_str("e1|e|")
         self.assertEqual("e1|e|::", str(actual_state))
         edges = (new_edge((-1, 0)),
                  new_edge((0, 1)),
@@ -167,13 +167,13 @@ class TestGraphState(unittest.TestCase):
         self.assertEqual(actual_state, expected_state)
 
     def testToFromStrWithFields(self):
-        edges = (new_edge((-1, 0), fields=graph_state.Fields('0a')),
-                 new_edge((0, 1), fields=graph_state.Fields('ab')),
-                 new_edge((1, -1), fields=graph_state.Fields('a0')))
+        edges = (new_edge((-1, 0), fields=property_lib.Fields('0a')),
+                 new_edge((0, 1), fields=property_lib.Fields('ab')),
+                 new_edge((1, -1), fields=property_lib.Fields('a0')))
         state = graph_state.GraphState(edges)
         self.assertEqual(str(state), 'e1|e|::0a_ab|0a|')
 
-        decoded = graph_state.GraphState.fromStr(str(state))
+        decoded = graph_state.GraphState.from_str(str(state))
         self.assertEqual(decoded.sortings[0], edges)
 
     def testToFromStrWithColors(self):
@@ -181,7 +181,7 @@ class TestGraphState(unittest.TestCase):
         state = graph_state.GraphState(edges)
         self.assertEqual(str(state), "e|:(1, 7)|:")
 
-        decoded = graph_state.GraphState.fromStr(str(state))
+        decoded = graph_state.GraphState.from_str(str(state))
         self.assertEqual(decoded.sortings[0], edges)
 
 
@@ -215,7 +215,7 @@ class TestProperties(unittest.TestCase):
                                                         externalizer=MyPropertyExternalizer())
         config = graph_state.PropertiesConfig.create(property_key)
 
-        state = graph_state.GraphState.fromStr("e1|e|:(0,0)_(1,0)|(3,9)|", properties_config=config)
+        state = graph_state.GraphState.from_str("e1|e|:(0,0)_(1,0)|(3,9)|", properties_config=config)
         es = set(map(lambda b: b.some_name, filter(lambda a: a.is_external(), state.edges)))
         self.assertEqual(es, set((MyProperty(3, 9), MyProperty(0, 0))))
 
@@ -248,7 +248,7 @@ class TestProperties(unittest.TestCase):
                                                         externalizer=MyPropertyExternalizer())
         config = graph_state.PropertiesConfig.create(property_key)
 
-        state = graph_state.GraphState.fromStr("e12|2|e|:(1,0)_(1,0)_(1,0)|(1,0)|(1,0)|", properties_config=config)
+        state = graph_state.GraphState.from_str("e12|2|e|:(1,0)_(1,0)_(1,0)|(1,0)|(1,0)|", properties_config=config)
         e = state.edges[3]
         self.assertEqual(e.nodes, (-1, 1))
         self.assertEqual(e.some_name, MyProperty(1, 0))

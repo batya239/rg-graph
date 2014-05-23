@@ -177,7 +177,7 @@ class PropertiesConfig(object):
         create new node with this config
         """
         kwargs['properties_config'] = self
-        return graph_state_property.NodeAndProperty(node_index, Properties.from_kwargs(from_edge=False, **kwargs))
+        return graph_state_property.Node(node_index, Properties.from_kwargs(from_edge=False, **kwargs))
 
     def new_edge(self, nodes, external_node=-1, edge_id=None, **kwargs):
         """
@@ -190,7 +190,7 @@ class PropertiesConfig(object):
         """
         parse GraphState object from string with this config
         """
-        return graph_state.GraphState.fromStr(string, properties_config=self)
+        return graph_state.GraphState.from_str(string, properties_config=self)
 
     def new_properties(self, **kwargs):
         return Properties(self, **kwargs)
@@ -217,141 +217,7 @@ class PropertiesConfig(object):
         return PropertiesConfig(property_order, property_directionality, property_externalizer, property_target)
 
 
-class Fields(object):
-    EXTERNAL = '0'
-    STR_LEN = 2
-
-    class Externalizer(graph_state_property.PropertyExternalizer):
-        def deserialize(self, string):
-            return Fields.fromStr(string)
-
-    def __init__(self, pair):
-        assert len(str(pair[0])) == 1
-        assert len(str(pair[1])) == 1
-        self._pair = str(pair[0]), str(pair[1])
-
-    def make_external(self, nodes, external_node):
-        if external_node == nodes[0]:
-            return Fields((Fields.EXTERNAL, self.pair[1]))
-        else:
-            return Fields((self.pair[0], Fields.EXTERNAL))
-
-    @property
-    def pair(self):
-        return self._pair
-
-    def __neg__(self):
-        return Fields((self.pair[1], self.pair[0]))
-
-    def __cmp__(self, other):
-        return cmp(self.pair, other.pair)
-
-    def __hash__(self):
-        return hash(self.pair)
-
-    def copy(self, swap=False):
-        if swap:
-            return Fields(tuple(reversed(self.pair)))
-        return Fields(self.pair)
-
-    def __str__(self):
-        return self.pair[0] + self.pair[1]
-
-    def __repr__(self):
-        return str(self)
-
-    @staticmethod
-    def externalizer():
-        return Fields.Externalizer()
-
-    @staticmethod
-    def fromStr(string):
-        return Fields(string)
-
-    @staticmethod
-    def fieldsToStr(seq):
-        return ''.join([str(fields) for fields in seq])
-
-    @staticmethod
-    def fieldsFromStr(string):
-        return [Fields.fromStr(string[i: i + Fields.STR_LEN])
-                for i in range(0, len(string), Fields.STR_LEN)]
-
-
-class Rainbow(object):
-    """
-    Class of sequences assigned to the edge.
-    Stores all input attributes as tuple ex:
-        colors: [1,2] self._colors: (1,2)
-        colors: 1     self._colors: (1,)
-    """
-
-    class Externalizer(graph_state_property.PropertyExternalizer):
-        def deserialize(self, string):
-            return Rainbow.fromObject(string)
-
-    def __init__(self, colors):
-        if isinstance(colors, Rainbow):
-            self._colors = colors.colors
-        else:
-            self._colors = tuple(colors) if isinstance(colors, (list, set, tuple)) else (colors, )
-
-    @property
-    def colors(self):
-        """
-        main method to access data from colors
-        """
-        return self._colors
-
-    # noinspection PyUnusedLocal
-    def make_external(self, nodes, external_node):
-        return self
-
-    def __getitem__(self, item):
-        return self._colors[item]
-
-    def __cmp__(self, other):
-        if isinstance(other, tuple):
-            return cmp(self.colors, other)
-        return cmp(self.colors, other.colors)
-
-    def __len__(self):
-        return len(self.colors)
-
-    def __hash__(self):
-        return hash(self.colors)
-
-    def __str__(self):
-        return str(self.colors)
-
-    def __repr__(self):
-        return str(self)
-
-    def __add__(self, other):
-        if isinstance(other, Rainbow):
-            return Rainbow(self.colors + other.colors)
-        raise AssertionError()
-
-    @staticmethod
-    def externalizer():
-        return Rainbow.Externalizer()
-
-    @staticmethod
-    def fromObject(obj):
-        if obj is None:
-            return None
-        elif isinstance(obj, str):
-            return Rainbow(eval(obj))
-        else:
-            return Rainbow(obj)
-
-
-DEFAULT_PROPERTIES_CONFIG = PropertiesConfig.create(graph_state_property.PropertyKey(name='colors',
-                                                                                     is_directed=False,
-                                                                                     externalizer=Rainbow.externalizer()),
-                                                    graph_state_property.PropertyKey(name='fields',
-                                                                                     is_directed=True,
-                                                                                     externalizer=Fields.externalizer()))
+DEFAULT_PROPERTIES_CONFIG = PropertiesConfig.create()
 
 
 class Edge(graph_state_property.PropertyGetAttrTrait):
@@ -381,7 +247,7 @@ class Edge(graph_state_property.PropertyGetAttrTrait):
             properties = Properties.from_kwargs(from_edge=True, **kwargs)
 
         super(Edge, self).__init__()
-        self._nodes = graph_state_property.NodeAndProperty.build_if_need(nodes, Properties.from_kwargs(from_edge=False,
+        self._nodes = graph_state_property.Node.build_if_need(nodes, Properties.from_kwargs(from_edge=False,
                                                                                                        properties_config=properties.properties_config))
         self.internal_nodes = tuple([node for node in self.nodes if node != external_node])
         self.external_node = external_node
@@ -497,7 +363,6 @@ class Edge(graph_state_property.PropertyGetAttrTrait):
         return 0
 
 
-
 # noinspection PyProtectedMember
 class GraphState(object):
     SEP = ':'
@@ -505,11 +370,9 @@ class GraphState(object):
     NICKEL_SEP = nickel.Nickel.SEP
 
     def __init__(self, edges, node_maps=None):
-        # Fields must be in every edge or defaultFields must be not None.
         properties_count = len([edge._properties for edge in edges if edge._properties])
         assert properties_count == 0 or properties_count == len(edges), \
-            ('properties_count =  %s, len(edges) = %s, default_properties = %s' % (properties_count, len(edges),
-                                                                                   default_properties))
+            ('properties_count =  %s, len(edges) = %s' % (properties_count, len(edges)))
 
         self._properties_config = None if edges[0]._properties is None else edges[0]._properties._properties_config
         node_maps = (node_maps or nickel.Canonicalize([map(lambda n: n.node_index, edge.nodes) for edge in edges]).node_maps)
@@ -569,19 +432,18 @@ class GraphState(object):
                     if is_all_attrs_none:
                         serialized.append('')
                         continue
-                    fields_chars = [externalizer.serialize((getattr(edge, p_name))) for edge in self.sortings[0]]
-                    fields_chars_iter = iter(fields_chars)
-                    # Add separators to fields string so that it would look similar to
+                    prop_chars = [externalizer.serialize((getattr(edge, p_name))) for edge in self.sortings[0]]
+                    prop_chars_iter = iter(prop_chars)
                     # edge string.
-                    fields_chars_with_sep = []
+                    prop_chars_with_sep = []
                     for char in edges_str:
                         if char == self.NICKEL_SEP:
-                            fields_chars_with_sep.append(self.NICKEL_SEP)
+                            prop_chars_with_sep.append(self.NICKEL_SEP)
                         else:
-                            if len(fields_chars_with_sep) and fields_chars_with_sep[-1] != self.NICKEL_SEP:
-                                fields_chars_with_sep.append(self.SEP2)
-                            fields_chars_with_sep.append(fields_chars_iter.next())
-                    serialized.append(''.join(fields_chars_with_sep))
+                            if len(prop_chars_with_sep) and prop_chars_with_sep[-1] != self.NICKEL_SEP:
+                                prop_chars_with_sep.append(self.SEP2)
+                            prop_chars_with_sep.append(prop_chars_iter.next())
+                    serialized.append(''.join(prop_chars_with_sep))
                 else:
                     if not reduced_nodes:
                         reduced_nodes = filter(lambda n: n != self.edges[0].external_node, self.nodes)
@@ -605,7 +467,7 @@ class GraphState(object):
         return base_str
 
     @staticmethod
-    def fromStr(string, properties_config=None):
+    def from_str(string, properties_config=None):
         """
         creates GraphState object from nickel serialized string
     
@@ -682,7 +544,7 @@ class GraphState(object):
 
     @staticmethod
     def _with_properties_node_mapper(nodes, nodes_properties, properties_config):
-        return tuple(map(lambda n: graph_state_property.NodeAndProperty(n, Properties.from_kwargs(False, **nodes_properties[n])
+        return tuple(map(lambda n: graph_state_property.Node(n, Properties.from_kwargs(False, **nodes_properties[n])
                                                                            if n != nickel.LEG
                                                                            else Properties.from_kwargs(False, properties_config=properties_config)), nodes))
 

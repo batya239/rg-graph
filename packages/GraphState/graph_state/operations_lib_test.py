@@ -21,7 +21,7 @@ class OperationsLibTest(unittest.TestCase):
     def testGetExternalNode(self):
         gs = config.graph_state_from_str("e1|e|")
         self.assertEqual(-1, operations_lib.get_external_node(gs))
-        self.assertEqual(graph_state_property.NodeAndProperty(-1, object()), operations_lib.get_external_node(gs))
+        self.assertEqual(graph_state_property.Node(-1, object()), operations_lib.get_external_node(gs))
 
     def testGetBoundVertices(self):
         gs = config.graph_state_from_str("e1|e|")
