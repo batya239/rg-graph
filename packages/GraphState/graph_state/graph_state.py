@@ -252,7 +252,7 @@ class Edge(graph_state_property.PropertyGetAttrTrait):
 
         super(Edge, self).__init__()
         self._nodes = graph_state_property.Node.build_if_need(nodes, Properties.from_kwargs(from_edge=False,
-                                                                                                       properties_config=properties.properties_config))
+                                                                                            properties_config=properties.properties_config))
         self.internal_nodes = tuple([node for node in self.nodes if node != external_node])
         self.external_node = external_node
 

@@ -120,10 +120,11 @@ class PropertyKey(object):
 
     def __eq__(self, other):
         assert isinstance(other, PropertyKey)
-        return self.name == other.name and \
-               self.is_directed == other.is_directed and \
-               self.externalizer == other.externalizer and \
-               self.is_edge_property == other.is_edge_property
+        return \
+            self.name == other.name and \
+            self.is_directed == other.is_directed and \
+            self.externalizer == other.externalizer and \
+            self.is_edge_property == other.is_edge_property
 
     def __hash__(self):
         h = hash(self.name)
