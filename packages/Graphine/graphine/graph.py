@@ -63,7 +63,7 @@ class Graph(object):
             self._underlying = obj
         else:
             raise AssertionError("unsupported obj type - %s" % type(obj))
-        self._next_vertex_index = max(reduce(lambda t, e: t + tuple(n.node_index for n in e.nodes), self.edges(), tuple())) + 1
+        self._next_vertex_index = max(reduce(lambda t, e: t + tuple(n.index for n in e.nodes), self.edges(), tuple())) + 1
         self._external_vertex = graph_state.operations_lib.get_external_node(self._underlying)
 
 
