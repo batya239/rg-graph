@@ -47,9 +47,9 @@ Cn = C4m
 
 graph = graphine.Graph(gs_builder.graph_state_from_str(sys.argv[1]))
 
-loops = graph.getLoopsCount()
-alpha = len(graph.internalEdges())
-if graph.externalEdgesCount() == 2:
+loops = graph.loops_count
+alpha = graph.internal_edges_count
+if graph.external_edges_count == 2:
     alpha += 1
 
 graph_dir = "sd6loop/%s" % graph

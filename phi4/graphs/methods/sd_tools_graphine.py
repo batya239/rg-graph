@@ -67,7 +67,7 @@ def xMSNTreeElement2(tree, parents=list(), varMap=dict(), coef=1, debug=False):
             print
 
 def internal_edges_dict(graph):
-    return dict(map(lambda x: (x.edge_id, x.nodes), graph.internalEdges()))
+    return dict(map(lambda x: (x.edge_id, x.nodes), graph.internal_edges))
 
 
 def find_eq(conservations):
@@ -169,7 +169,7 @@ def gendet(graph, n=None):
     graph must have _qi2l, _cons, _subgraphs, _subgraphs_as_line_ids
     """
     if n is None:
-        n_ = graph.getLoopsCount()
+        n_ = graph.loops_count
     else:
         n_ = n
     det = []
@@ -582,7 +582,7 @@ def gen_adoptive_tree(poly):
     return tree
 
 def graph_msn_index(graph, parents, branch, branches):
-    edges = graph.allEdges()
+    edges = graph.edges()
     edges_msn = list()
     master = None
     slaves = list()
