@@ -109,7 +109,7 @@ def _ac_part(poly_prod, var_info, order):
     @param order - excluded
     """
     a_ = var_info.a - 2
-    if a_ <= 0:
+    if a_ < 0:
         return dict()
 
     b_factor = 1
@@ -120,7 +120,7 @@ def _ac_part(poly_prod, var_info, order):
             diff = diff_cache[k] if k in diff_cache else poly_prod.diff(var_info.var_index, k)
             coeff = (b_factor * (math.factorial(k) * (k - var_info.a + 1) ** (i + 1)) ** (-1))
             diff = map(lambda d: d * coeff, diff)
-            eps_expansion[i] += diff
+            eps_expansion[i] += map(lambda x: x.set0toVar(var_info.var_index), diff)
         b_factor *= - var_info.b
     return eps_expansion
 

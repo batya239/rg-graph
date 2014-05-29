@@ -14,8 +14,6 @@ __author__ = 'mkompan'
 
 use_eqs = False
 #use_eqs = True
-print gs_builder.graph_state_from_str(sys.argv[1])
-
 graph = graphine.Graph(gs_builder.graph_state_from_str(sys.argv[1]))
 print str(graph), gs_builder.graph_state_from_str(sys.argv[1])
 eps_order = int(sys.argv[2])
@@ -84,6 +82,7 @@ delta = polynomial.poly(map(lambda x: (1, (x,)), D.getVarsIndexes()))
 
 # tree = sd_tools.gen_speer_tree(graph, graph.getLoopsCount()+1, symmetries=False)
 tree = sd_tools.gen_speer_tree(graph, graph.loops_count+1, symmetries=True)
+# tree = sd_tools.gen_speer_tree(graph, graph.loops_count+1, symmetries=False)
 
 dir = os.path.join("sd6loop/", str(graph))
 try:
