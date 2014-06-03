@@ -35,7 +35,7 @@ class MongoClientWrapper(object):
         return self._db[collection].find_one(condition)["value"]
 
     def has_graph(self, collection, graph, condition=None):
-        return self.get_graph(collection, graph, collection) is not None
+        return self.get_graph(collection, graph, condition) is not None
 
     def put_graph(self, collection, graph, value, condition=None):
         doc = dict() if condition is None else dict(condition)
