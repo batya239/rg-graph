@@ -66,12 +66,11 @@ else:
 
 for nickel in r1op:
     if analytic:
-        uncert = ufloat(r1op[nickel][0], r1op[nickel][1])
-        #uncert = float(r1op[nickel][0])
+        uncert = float(r1op[nickel][0])
     else:
         uncert = ufloat(r1op[nickel][0], r1op[nickel][1])
-    graph = graphine.Graph(graph_state.GraphState.fromStr(nickel))
-    graphLoopCount = graph.getLoopsCount()
+    graph = graphine.Graph(graph_state.GraphState.from_str(nickel))
+    graphLoopCount = graph.loops_count
     # print map(type,[On(graph,n), symmetryCoefficient(graph), uncert])
     if graphLoopCount > max(r2Loops, r4Loops):
         continue

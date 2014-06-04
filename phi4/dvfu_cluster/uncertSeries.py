@@ -22,14 +22,14 @@ def internalEdges(graph):
 
 
 def symmetryCoefficient(graph):
-    edges = graph.allEdges()
+    edges = graph.edges()
     unique_edges = dict()
     for idx in edges:
         if idx in unique_edges:
             unique_edges[idx] += 1
         else:
             unique_edges[idx] = 1
-    C = float(math.factorial(len(graph.edges(graph.external_vertex)))) / len(graph.toGraphState().sortings)
+    C = float(math.factorial(len(graph.edges(graph.external_vertex)))) / len(graph.to_graph_state().sortings)
 
     for idxE in unique_edges:
         C = C / float(math.factorial(unique_edges[idxE]))
