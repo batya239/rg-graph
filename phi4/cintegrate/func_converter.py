@@ -24,30 +24,41 @@ funcs = [f for f in os.listdir(inPath) if os.path.isfile(os.path.join(inPath, f)
 pat_interm_func = re.compile("^double func" + "[0-9].*")
 pat_var = re.compile(".*double u" + "[0-9].*")
 
-for f in funcs:
+def pow_replace(txt):
+    """ replaces pow(...) --> p[...] """
+    pows = re.findall('pow\(.*?\)',txt)
+    for elem in pows:
+        txt = txt.replace(elem, 'p['+elem[4:-1]+']')
+    return txt.replace(';','')
+
+
+def make_cintegrate_input(f):
     print(f)
     with open(f, 'r') as data:
         lines = data.readlines()
     intermediate = {} ## intermediate functions
     ## Searching for sectors
-    j = 0
+    i = 0
     for line in lines:
         if pat_interm_func.match(line):
-            # print(line)
-            intermediate['f%d' % j] = [0,'']
+            #print(line)
+            intermediate['f%d' % i] = ''
+            #print(intermediate)
             vars = []
+        ## Searching for vars in a sector
         if pat_var.match(line):
-            # print(line)
-            vars.append(int(line.strip().split()[1][1:]))
+            vars.append(line.strip().split()[1])
 
         if "coreExpr = " in line:
-            # print(line)
-            # print("Vars:",vars)
-            intermediate['f%d' % j] = [vars,line.strip().split('=')[1]]
-            j += 1
+            coreExpr = line.strip().split('=')[1]
+            ## Substituting vars
+            for j,var in enumerate(vars):
+                coreExpr = coreExpr.replace(var,'x[%d]'%(j+1))
+            ## Substituting 'power' brackets
+            intermediate['f%d' % i] += pow_replace(coreExpr)
+            i += 1
     print(intermediate)
-    ## Searching for vars in a sector
-    ## Substituting vars
-    ## Substituting 'power' brackets
 
-## Generating outputs
+for f in funcs:
+    make_cintegrate_input(f)
+
