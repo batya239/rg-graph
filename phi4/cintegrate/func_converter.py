@@ -22,6 +22,7 @@ inPath = sys.argv[1]
 funcs = [f for f in os.listdir(inPath) if os.path.isfile(os.path.join(inPath, f)) and '_func_' in f]
 
 pat_interm_func = re.compile("^double func" + "[0-9].*")
+pat_var = re.compile(".*double u" + "[0-9].*")
 
 for f in funcs:
     print(f)
@@ -32,8 +33,17 @@ for f in funcs:
     j = 0
     for line in lines:
         if pat_interm_func.match(line):
-            print(line)
-            intermediate['f%d' % j] = [0, '']
+            # print(line)
+            intermediate['f%d' % j] = [0,'']
+            vars = []
+        if pat_var.match(line):
+            # print(line)
+            vars.append(int(line.strip().split()[1][1:]))
+
+        if "coreExpr = " in line:
+            # print(line)
+            # print("Vars:",vars)
+            intermediate['f%d' % j] = [vars,line.strip().split('=')[1]]
             j += 1
     print(intermediate)
     ## Searching for vars in a sector
