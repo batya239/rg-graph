@@ -19,6 +19,13 @@ try:
 except IndexError:
     print "'maxeval' is not set, use 1M"
     maxeval = '1000000'
+try:
+    epsrel = sys.argv[3] ## <-- number of Monte Carlo points
+except IndexError:
+    print "'epsrel' is not set, use 1.E-06"
+    epsrel = '1.E-06'
+
+integrator = 'suaveCuba' ## 'vegasCuba', 'cuhreCuba', 'divonneCuba', 'suaveCuba'
 
 funcs = [f for f in os.listdir(inPath) if os.path.isfile(os.path.join(inPath, f)) and '__func_' in f]
 
@@ -45,6 +52,7 @@ def make_cintegrate_input(f):
         if pat_interm_func.match(line):
             intermediate['f[%d]' % (number_of_func+1)] = ''
             vars = []
+            number_of_vars = 0
         ## Searching for vars in a sector
         if pat_var.match(line):
             vars.append(line.strip().split()[1])
@@ -54,7 +62,7 @@ def make_cintegrate_input(f):
             coreExpr = line.strip().split('=')[1]
             ## Substituting vars
             for j,var in enumerate(vars):
-                coreExpr = coreExpr.replace(var,'x[%d]'%(j+1+number_of_vars-len(vars)))
+                coreExpr = coreExpr.replace(var,'x[%d]'%(j+1))#+number_of_vars-len(vars)))
             ## Substituting 'power' brackets
             intermediate['f[%d]' % (number_of_func+1)] += pow_replace(coreExpr)
         if "f += coreExpr" in line:
@@ -62,8 +70,11 @@ def make_cintegrate_input(f):
             intermediate['f[%d]' % (number_of_func+1)] += ' *'+line.strip().split('*')[1]
             number_of_func += 1
     with open(f.replace('.c','.int'),'w') as out_file:
-        out_file.write("SetMath\nmath\n")
+        out_file.write("SetIntegrator\n%s\n"%integrator)
         out_file.write("SetCurrentIntegratorParameter\nmaxeval\n%s\n"%maxeval)
+        out_file.write("SetCurrentIntegratorParameter\nepsrel\n%s\n"%epsrel)
+        out_file.write("CubaCores\n8\n")
+        out_file.write("GetCurrentIntegratorParameters\n")
         out_file.write("Integrate\n%d;\n%d;\n" %(number_of_vars,len(intermediate)))
         for i in intermediate:
             out_file.write(intermediate[i]+'\n')
