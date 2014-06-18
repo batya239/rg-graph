@@ -69,7 +69,7 @@ class Graph(object):
 
     @staticmethod
     def from_str(string, properties_config=None):
-        return Graph(graph_state.GraphState.fromStr(string, properties_config=properties_config))
+        return Graph(graph_state.GraphState.from_str(string, properties_config=properties_config))
 
     @property
     @cached_method
