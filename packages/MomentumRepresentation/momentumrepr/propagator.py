@@ -34,7 +34,7 @@ class MomentumFlow(object):
 
     def __init__(self, external_momentas, loop_momentas, stretchers=None):
         if stretchers:
-            self._stretchers = tuple(stretchers)
+            self._stretchers = tuple(set(stretchers))
         else:
             self._stretchers = tuple()
         self._external_momentas = tuple(external_momentas)
