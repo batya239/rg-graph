@@ -87,7 +87,7 @@ def construct_integrand(base_integrand, loop_momentum_vars, stretch_vars, angles
         divergence = s_v.divergence
         integrand_a = (symbolic_functions.CLN_ONE / swiginac.factorial(divergence)) * \
                      (symbolic_functions.CLN_ONE - var) ** divergence \
-                     * integrand_a.diff(var, divergence + 1).normal()
+                     * integrand_a.diff(var, divergence + 1)
         integrations.append(Integration(var=var, a=symbolic_functions.CLN_ZERO, b=symbolic_functions.CLN_ONE))
 
     if configure_mr.Configure.debug():
