@@ -136,7 +136,7 @@ class ScalarProductEnumerator(object):
                         used_vars_i_j.append(omega)
                         sin_part *= sin(omega)
                         cos_part *= cos(omega)
-                        current_expression = cos_part + sin_part * current_expression
+                    current_expression = cos_part + sin_part * current_expression
                 current_scalar_products[j] = current_expression
                 current_used_variables[j] = set(used_vars_i_j)
 
