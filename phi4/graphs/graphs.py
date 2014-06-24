@@ -21,8 +21,7 @@ def _find_empty_idx(keys_):
 
 
 class Graph:
-    def
-        __init__(self, arg):
+    def __init__(self, arg):
         self._lines = list()
         self._nodes = list()
         if isinstance(arg, str):
