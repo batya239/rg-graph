@@ -54,23 +54,31 @@ def construct_integrand(base_integrand, loop_momentum_vars, stretch_vars, angles
     free_sphere_dimension = dimension
     scalar_products_functions = list()
     angle_integrations = set()
+    angle_integration_order = dict()
 
     for angle in angles:
         free_sphere_dimension -= symbolic_functions.CLN_ONE
         expression = angle.expression
+        order = angle.order
         for v in angle.variables:
             expression = expression.subs(v == swiginac.Pi * v)
             angle_integrations.add(Integration(var=v, a=symbolic_functions.CLN_ZERO, b=symbolic_functions.CLN_ONE))
+            str_v = str(v)
+            if str_v not in angle_integration_order:
+                angle_integration_order[str_v] = order
+            else:
+                angle_integration_order[str_v] = min(angle_integration_order[str_v], order)
         scalar_products_functions.append(ScalarProductFunction(angle.fake_variable, expression))
     integrations += list(angle_integrations)
 
     for angle_integration in angle_integrations:
-        integrand_e *= (swiginac.sin(angle_integration.var)) ** (dimension - 2)
+        order = angle_integration_order[str(angle_integration.var)]
+        integrand_e *= (swiginac.sin(angle_integration.var)) ** (dimension - order - 1)
         integrand_e *= swiginac.Pi
         integrand_e = integrand_e.subs(angle_integration.var == (angle_integration.var * swiginac.Pi))
-        integrand_e *= spherical_coordinats.sphere_square(dimension - 1) / spherical_coordinats.sphere_square(dimension)
+        integrand_e *= spherical_coordinats.sphere_square(dimension - order) / spherical_coordinats.sphere_square(dimension)
         if configure_mr.Configure.debug():
-            print "Angle integration:", swiginac.Pi * (swiginac.sin(swiginac.Pi * angle_integration.var)) ** (dimension - 2) * spherical_coordinats.sphere_square(dimension - 1) / spherical_coordinats.sphere_square(dimension)
+            print "Angle integration:", swiginac.Pi * (swiginac.sin(swiginac.Pi * angle_integration.var)) ** (dimension - order - 1) * spherical_coordinats.sphere_square(dimension - order) / spherical_coordinats.sphere_square(dimension)
 
     for loop_var in loop_momentum_vars:
         integrand_e *= loop_var ** (dimension - symbolic_functions.CLN_ONE)

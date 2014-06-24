@@ -21,7 +21,7 @@ from rggraphenv import symbolic_functions
 cos = swiginac.cos
 sin = swiginac.sin
 
-SubstitutedScalarProduct = collections.namedtuple("SubstitutedScalarProduct", ["expression", "variables", "fake_variable"])
+SubstitutedScalarProduct = collections.namedtuple("SubstitutedScalarProduct", ["expression", "variables", "fake_variable", "order"])
 
 
 def sphere_square(dimension):
@@ -97,7 +97,8 @@ class ScalarProductEnumerator(object):
 
                 substitutor[p] = SubstitutedScalarProduct(expression=enumerator.scalar_products[order][index_mapping[other_index]],
                                                           variables=used_vars,
-                                                          fake_variable=fake_var)
+                                                          fake_variable=fake_var,
+                                                          order=order + 1)
         return substitutor
 
 
