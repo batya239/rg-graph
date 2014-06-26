@@ -27,7 +27,9 @@ except IndexError:
 
 integrator = 'suaveCuba' ## 'vegasCuba', 'cuhreCuba', 'divonneCuba', 'suaveCuba'
 
-funcs = [f for f in os.listdir(inPath) if os.path.isfile(os.path.join(inPath, f)) and '__func_' in f]
+funcs = [f for f in os.listdir(inPath) \
+    if os.path.isfile(os.path.join(inPath, f)) and \
+    '__func_' in f and '.c' in f]
 
 pat_interm_func = re.compile("^double func" + "[0-9].*")
 pat_var = re.compile(".*double u" + "[0-9].*")
