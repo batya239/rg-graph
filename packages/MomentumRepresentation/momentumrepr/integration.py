@@ -76,7 +76,7 @@ def construct_integrand(base_integrand, loop_momentum_vars, stretch_vars, angles
         integrand_e *= (swiginac.sin(angle_integration.var)) ** (dimension - order - 1)
         integrand_e *= swiginac.Pi
         integrand_e = integrand_e.subs(angle_integration.var == (angle_integration.var * swiginac.Pi))
-        integrand_e *= spherical_coordinats.sphere_square(dimension - order) / spherical_coordinats.sphere_square(dimension-order+1)
+        integrand_e *= spherical_coordinats.sphere_square(dimension - order) / spherical_coordinats.sphere_square(dimension - order + 1)
         if configure_mr.Configure.debug():
             print "Angle integration:", swiginac.Pi * (swiginac.sin(swiginac.Pi * angle_integration.var)) ** (dimension - order - 1) * spherical_coordinats.sphere_square(dimension - order) / spherical_coordinats.sphere_square(dimension)
 
