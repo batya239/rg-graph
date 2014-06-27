@@ -21,10 +21,26 @@ def has_tadpoles_in_counter_term(graph, super_graph):
     return graph_state.operations_lib.has_no_tadpoles_in_counter_term(graph.edges(), super_graph.edges())
 
 
+class FactoryMap(object):
+    def __init__(self, an_lambda):
+        self.underlying = dict()
+        self.an_lambda = an_lambda
+
+    def get(self, key):
+        value = self.underlying.get(key, None)
+        if value is None:
+            value = self.an_lambda(key)
+            self.underlying[key] = value
+        return value
+
+
 def x_sub_graphs(graph, cut_edges_to_external=True, start_size=2):
     """
     cut_edges_to_external - if True then all graphs from iterator has only 2 external edges
     """
+
+    edge_external_mapping = FactoryMap(lambda (e_, v): e_.copy(node_map={(set(e_.nodes)-set([v])).pop(): graph.external_vertex}))
+
     if len(graph.edges()):
         external, inner = _pick_external_edges(graph.edges())
         inner_length = len(inner)
@@ -36,7 +52,7 @@ def x_sub_graphs(graph, cut_edges_to_external=True, start_size=2):
             for v in not_external_vertices:
                 edges = graph.edges(v)
                 if len(edges):
-                    sub_graph = map(lambda e_: e_.copy(node_map={(set(e_.nodes)-set([v])).pop(): graph.external_vertex}),
+                    sub_graph = map(lambda e_: edge_external_mapping.get((e_, v)),
                                     filter(lambda e: not e.is_external(), edges))
                     sub_graph += filter(lambda e: e.is_external(), edges)
                     yield sub_graph
@@ -55,7 +71,7 @@ def x_sub_graphs(graph, cut_edges_to_external=True, start_size=2):
                                     if len(v_set) == 1:
                                         sub_graph += e.cut_tadpole()
                                     else:
-                                        sub_graph.append(e.copy({(set(e.nodes)-set([v])).pop(): graph.external_vertex}))
+                                        sub_graph.append(edge_external_mapping.get((e, v)))
                     for e in external:
                         if e.internal_node in sub_graph_vertices:
                             sub_graph.append(e)
