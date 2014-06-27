@@ -10,6 +10,7 @@ connected = graphine.filters.connected
 no_tadpoles = graphine.filters.no_tadpoles
 one_irreducible = graphine.filters.one_irreducible
 
+
 # gs = gs_builder.graph_state_from_str("e12|e3|45|46|7|e7|e7||:0_0_0|0_0|0_0|1_0|0|0_0|0_1||")
 # gs = gs_builder.graph_state_from_str("e12|e3|34|5|56|7|e7|e|:0_0_0|0_0|0_0|0|0_0|0|0_0|0|0|")
 # gs = gs_builder.graph_state_from_str("e12|e3|34|5|56|7|78|9|e9|e|:0_0_0|0_0|0_0|0|0_0|0|0_0|0|0_0|0|")
@@ -20,10 +21,11 @@ one_irreducible = graphine.filters.one_irreducible
 # gs = gs_builder.graph_state_from_str("e12|34|56|e7|67|e8|8|9|9|e|:0_0_0|0_1|2_0|0_1|0_0|0_0|2|0|0|0|")
 # gs = gs_builder.graph_state_from_str("e12|e34|35|6|67|e67||e|:0_0_0|0_0_0|0_0|0|0_0|0_0_0||0|")
 # gs = gs_builder.graph_state_from_str("e12|34|35|67|e6|e7|8|8|e|:0_0_0|0_0|0_0|0_0|0_0|0_0|0|0|0|")
-# gs = gs_builder.graph_state_from_str("e12|e3|34|5|56|7|89|8A|B|eB|eB||:0_0_0|0_0|0_0|0|0_0|0|1_0|0_0|0|0_1|0_0||")
+gs = gs_builder.graph_state_from_str("e12|e3|34|5|56|7|89|8A|B|eB|eB||:0_0_0|0_0|0_0|0|0_0|0|1_0|0_0|0|0_1|0_0||")
 
-gs = gs_builder.graph_state_from_str(sys.argv[1])
+# gs = gs_builder.graph_state_from_str(sys.argv[1])
 print gs
+
 
 graph = graphine.Graph(gs)
 start = time.time()
