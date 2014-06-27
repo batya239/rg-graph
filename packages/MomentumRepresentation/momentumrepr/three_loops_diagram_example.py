@@ -29,4 +29,5 @@ def kr11(operation, graph_state_as_str):
 
 
 graph_state_str = "e15|23|34|4|5|e|:0A_aA_aA|aA_aA|aA_aA|aA|aA|0a|:::"
-print kr11(kr1.kr1_d_iw, graph_state_str)
+# print kr11(kr1.kr1_d_iw, graph_state_str)
+print kr11(kr1.kr1_d_p2, graph_state_str)
