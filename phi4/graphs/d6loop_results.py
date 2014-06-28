@@ -58,7 +58,7 @@ graph = graphine.Graph(gs_builder.graph_state_from_str(sys.argv[1]))
 
 loops = graph.loops_count
 alpha = len(graph.internal_edges)
-if graph.internal_edges_count == 2:
+if graph.external_edges_count == 2:
     alpha += 1
 
 graph_dir = "d6loop/%s" % graph
@@ -91,11 +91,20 @@ if len(sys.argv) > 2:
     max_eps_power = int(sys.argv[2])
 
 expr = reduce(lambda x, y: x + y, map(lambda x: x[1] * e ** x[0], result.items()))
-expr += Order(e**(max(result.keys())+1))
+if loops == 1:
+    eps_add = 4
+else:
+    eps_add = 0
+max_eps_power += eps_add
+expr += Order(e**(max(result.keys())+1+eps_add))
+
+# expr += Order(e**(max(result.keys())+1))
 #print series(expr*tgamma(alpha - loops*(1-e))/(e*g11)**loops,e,0,max_eps_power).evalf()
 if alpha - loops * 2 <= 0:
     max_eps_power -= 1
-print (alpha - loops * (3 - e)).expand()
+# print (alpha - loops * (3 - e)).expand()
+# print alpha, loops
+# print series( Cn(alpha,loops), e, 0, max_eps_power + 1).evalf()
 final = series(expr * Cn(alpha,loops), e, 0, max_eps_power + 1).evalf()
 print final
 print "Gleb:", series(expr*C6g(alpha, loops)*symmetry_coefficient(graph.to_graph_state()),e,0,max_eps_power+1).evalf()
