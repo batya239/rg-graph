@@ -85,3 +85,36 @@ def uv_index(graph):
 #     return len(todo) == 0 and len(additional_vertices-connected)==0
 
 
+#another version
+#
+# def is_graph_connected(edges, additional_vertices=set()):
+#     """
+#     checks that graph is connected
+#
+#     see get_connected_components
+#     """
+#     external = set([-1])
+#     connected = [set(edges[0].nodes) - external]
+#     added = True
+#     for edge in edges[1:]:
+#         nodes = set(edge.nodes)
+#         updated_components = list()
+#         added = False
+#         new_connected = list()
+#         for component in connected:
+#             if len(nodes & component) != 0:
+#                 component = (component | nodes) - external
+#                 updated_components.append(component)
+#                 added = True
+#             else:
+#                 new_connected.append(component)
+#         connected = new_connected
+#         if added:
+#             new_component = set()
+#             for component in updated_components:
+#                 new_component = new_component | component
+#             connected.append(new_component)
+#         else:
+#             new_component =  nodes - external
+#             connected.append(new_component)
+#     return len(connected) == 1 and len(additional_vertices-connected[0])==0
