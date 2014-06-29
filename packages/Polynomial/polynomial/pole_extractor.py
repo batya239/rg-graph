@@ -113,11 +113,10 @@ def _ac_part(poly_prod, var_info, order):
         return dict()
 
     b_factor = 1
-    diff_cache = rggraphutil.emptyListDict()
     eps_expansion = rggraphutil.emptyListDict()
     for i in xrange(order):
         for k in xrange(a_ + 1):
-            diff = diff_cache[k] if k in diff_cache else poly_prod.diff(var_info.var_index, k)
+            diff = poly_prod.diff(var_info.var_index, k)
             coeff = (b_factor * (math.factorial(k) * (k - var_info.a + 1) ** (i + 1)) ** (-1))
             diff = map(lambda d: d * coeff, diff)
             eps_expansion[i] += map(lambda x: x.set0toVar(var_info.var_index), diff)
