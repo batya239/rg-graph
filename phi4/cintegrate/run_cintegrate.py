@@ -32,8 +32,22 @@ from IPython.parallel import Client
 CUR_DIR = os.getcwd()
 print CUR_DIR
 
-WORKDIR = os.path.expanduser('~')+'/_scratch/ints/'
-
+diags =[]
+try:
+    if os.path.isdir(sys.argv[1]):
+        WORKDIR = sys.argv[1].replace('~',os.path.expanduser('~'))
+        diags += [ d for d in os.listdir(WORKDIR) if os.path.isfile(os.path.join(WORKDIR,d)) and 'int' in d ]
+    elif os.path.isfile(sys.argv[1]):
+        WORKDIR = os.path.dirname(sys.argv[1].replace('~',os.path.expanduser('~')))
+        print "WORKDIR:",WORKDIR
+        diags = +[sys.argv[1].replace('~',os.path.expanduser('~'))]
+    else:
+        print "Error: input path is wrong"
+        sys.exit()
+except IndexError:
+    print "Error: input path with <*.inc>-s is not set, nothing to do"
+    sys.exit()
+print "diagrams:", diags    
 os.chdir(WORKDIR)
 
 rc = Client()
@@ -42,19 +56,12 @@ print rc.ids
 #dview = rc[:]
 lview = rc.load_balanced_view()
 lview.block = True
-print lview.apply_sync(getnode)
+#print lview.apply_sync(getnode)
 
-try:
-    diags = [sys.argv[1]]
-except IndexError:
-    diags = [ d for d in os.listdir('.') if os.path.isfile(d) and 'int' in d ]
 commands = []
 for d in diags:
-    cmd = 'FIESTA3/bin/CIntegrateMP < '+WORKDIR + d + ' > '+d.replace('int', 'out')
+    cmd = 'time FIESTA3/bin/CIntegrateMP < '+os.path.join(WORKDIR,d)+' > '+os.path.join(WORKDIR,d.replace('int','out'))
     commands += [cmd]
-
-#for cmd in commands:
-#    print cmd
 
 lview.map(cubaRun,commands)
 #res = map(cubaRun,commands)
