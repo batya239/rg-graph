@@ -59,31 +59,32 @@ def uv_index(graph):
                 raise NotImplementedError("more than two dashes %s\n%s" %(dash, graph))
     return _uv_index
 
-#
-# def is_graph_connected(edges, additional_vertices=set()):
-#     """
-#     checks that graph is connected
-#
-#     see get_connected_components
-#     """
-#
-#     external = set([-1])
-#     connected = set(edges[0].nodes) - external
-#     added = True
-#     todo = edges[1:]
-#     while added and len(todo) != 0:
-#         added = False
-#         todo_ = todo
-#         todo = list()
-#         for edge in todo_:
-#             nodes = set(edge.nodes)
-#             if len(nodes & connected) != 0:
-#                 connected = (connected | nodes) - external
-#                 added = True
-#             else:
-#                 todo.append(edge)
-#     return len(todo) == 0 and len(additional_vertices-connected)==0
+@graph_state.operations_lib.graph_state_to_edges_implicit_conversion
+def is_graph_connected(edges, additional_vertices=set()):
+    """
+    checks that graph is connected
 
+    see get_connected_components
+    """
+
+    external = set([-1])
+    connected = set(edges[0].nodes) - external
+    added = True
+    todo = edges[1:]
+    while added and len(todo) != 0:
+        added = False
+        todo_ = todo
+        todo = list()
+        for edge in todo_:
+            nodes = set(edge.nodes)
+            if len(nodes & connected) != 0:
+                connected = (connected | nodes) - external
+                added = True
+            else:
+                todo.append(edge)
+    return len(todo) == 0 and len(additional_vertices-connected) == 0
+
+graph_state.operations_lib.is_graph_connected = is_graph_connected
 
 #another version
 #
