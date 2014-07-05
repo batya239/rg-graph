@@ -21,7 +21,6 @@ def mark_border_edges(graph):
             new_edges.append(new_edge)
         else:
             new_edges.append(gs_builder.new_edge(edge.nodes, colors=Rainbow(tuple())))
-
     return graphine.Graph(new_edges)
 
 
@@ -91,14 +90,14 @@ def find_loops(graph):
             loop_cnt += 1
         # print g, loop_cnt
         # print
-
     for vertex in set(g.vertices)-g.get_bound_vertices()-set([g.external_vertex]):
         loops = find_minimal_loop(g, vertex)
         # print vertex, loop_cnt, loops
         if loops is not None:
             g = color_loops(g, loops[0], loop_cnt)
             loop_cnt += 1
-    if loop_cnt != graph.loops_count:
+    if not (loop_cnt != graph.loops_count and
+            reduce(lambda x, y:  x & y, map(lambda x: len(x.colors) == 2, g.internal_edges))):
         return None
     else:
         return g
@@ -212,8 +211,9 @@ def get_pairs(nodes_to_connect, banned):
 # gs = gs_builder.graph_state_from_str("e12|e3|34|5|e5|e|:")
 # gs = gs_builder.graph_state_from_str("e12|e3|34|5|56|7|e7|e|:")
 # gs = gs_builder.graph_state_from_str("e12|e3|34|5|56|7|89|8A|B|eB|eB||:")
+gs = gs_builder.graph_state_from_str("e12|23|4|e5|67|89|7A|B|eC|eC|BD|D|D||:")
 
-gs = gs_builder.graph_state_from_str("%s:"%sys.argv[1])
+# gs = gs_builder.graph_state_from_str("%s:"%sys.argv[1])
 print gs
 
 g = graphine.Graph(gs)
