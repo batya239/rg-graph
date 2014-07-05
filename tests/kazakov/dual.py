@@ -77,7 +77,6 @@ def color_loops(graph, loop, mark):
 
 
 def find_loops(graph):
-
     loop_cnt = 0
     g = graph
     for vertex in g.get_bound_vertices():
@@ -96,8 +95,9 @@ def find_loops(graph):
         if loops is not None:
             g = color_loops(g, loops[0], loop_cnt)
             loop_cnt += 1
-    if not (loop_cnt != graph.loops_count and
-            reduce(lambda x, y:  x & y, map(lambda x: len(x.colors) == 2, g.internal_edges))):
+    # print g
+    if not (loop_cnt == graph.loops_count and
+            reduce(lambda x, y:  x & y, map(lambda x: len(x.colors) > 0, g.internal_edges))):
         return None
     else:
         return g
@@ -211,9 +211,10 @@ def get_pairs(nodes_to_connect, banned):
 # gs = gs_builder.graph_state_from_str("e12|e3|34|5|e5|e|:")
 # gs = gs_builder.graph_state_from_str("e12|e3|34|5|56|7|e7|e|:")
 # gs = gs_builder.graph_state_from_str("e12|e3|34|5|56|7|89|8A|B|eB|eB||:")
-gs = gs_builder.graph_state_from_str("e12|23|4|e5|67|89|7A|B|eC|eC|BD|D|D||:")
+# gs = gs_builder.graph_state_from_str("e12|23|4|e5|67|89|7A|B|eC|eC|BD|D|D||:")
+# gs = gs_builder.graph_state_from_str("e12|e3|34|5|56|7|78|9|9A|B|BC|D|eD|e|:")
 
-# gs = gs_builder.graph_state_from_str("%s:"%sys.argv[1])
+gs = gs_builder.graph_state_from_str("%s:"%sys.argv[1])
 print gs
 
 g = graphine.Graph(gs)
