@@ -244,6 +244,10 @@ class Graph(object):
                               result_representator=Representator.asGraph,
                               cut_edges_to_external=True,
                               exact=True):
+        """
+        filters - list of graph filters (see filters.py)
+        result_representator - see Representator
+        """
         simple_cache = dict()
         exact_sub_graph_iterator = graph_operations.x_sub_graphs(self, cut_edges_to_external=cut_edges_to_external)
         sg_iterator = exact_sub_graph_iterator if exact else itertools.chain(exact_sub_graph_iterator, (self.edges(),))
