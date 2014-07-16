@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf8
-
+"""
+library provides some useful primitive classes which can be used as edges/nodes properties
+"""
 __author__ = 'dima'
 
 import graph_state_property
@@ -9,6 +11,9 @@ from rggraphutil import VariableAwareNumber
 
 
 class Fields(object):
+    """
+    represents directed 2-letters word: "aA" <-> "Aa"
+    """
     EXTERNAL = '0'
     STR_LEN = 2
 
@@ -138,6 +143,9 @@ class Rainbow(object):
 
 
 class Arrow(object):
+    """
+    direction class, can be on of three types "<", ">", "0"
+    """
     LEFT_ARROW = "<"
     RIGHT_ARROW = ">"
     NULL = "0"
