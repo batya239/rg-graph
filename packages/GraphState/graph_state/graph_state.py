@@ -7,13 +7,12 @@ import graph_state
 import graph_state_property
 
 
-def chain_from_iterables(iterables):
-    for it in iterables:
-        for element in it:
-            yield element
-
-
 if 'chain_from_iterables' not in itertools.__dict__:
+    def chain_from_iterables(iterables):
+        for it in iterables:
+            for element in it:
+                yield element
+
     itertools.chain_from_iterables = chain_from_iterables
 
 
