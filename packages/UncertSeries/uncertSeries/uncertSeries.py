@@ -3,38 +3,12 @@
 
 __author__ = 'kirienko'
 
-import math
-
 from uncertainties import ufloat, ufloat_fromstr, Variable, AffineScalarFunc
 from uncertainties import __version_info__ as uncert_version
-from sympy import Add
+#from sympy import Add
 
 if uncert_version < (2, 4):
     raise Warning("Version  %s of uncertanties not supported" % str(uncert_version))
-
-
-def internalEdges(graph):
-    res = list()
-    for edge in graph.allEdges():
-        if graph.external_vertex not in edge.nodes:
-            res.append(edge)
-    return res
-
-
-def symmetryCoefficient(graph):
-    edges = graph.edges()
-    unique_edges = dict()
-    for idx in edges:
-        if idx in unique_edges:
-            unique_edges[idx] += 1
-        else:
-            unique_edges[idx] = 1
-    C = float(math.factorial(len(graph.edges(graph.external_vertex)))) / len(graph.to_graph_state().sortings)
-
-    for idxE in unique_edges:
-        C = C / float(math.factorial(unique_edges[idxE]))
-    return C
-
 
 class Series():
     """ Класс, обеспечивающий разложение в ряд по g с точностью до n-го порядка с учётом погрешности.
@@ -249,15 +223,3 @@ class Series():
         for k,v in self.gSeries.items():
             slov += "%d: '%s', "%(k,v)
         print "Series(%d, {%s}, '%s')"%(self.n,slov,self.name)
-
-
-if __name__ == "__main__":
-    Z1 = Series(1)
-    Z2 = Series(2, {0: ufloat(-4, 0.3), 1: ufloat(2, .002)})
-    print "Z1 =", Z1
-    print "Z2 =", Z2
-    print "Z2.diff() =", Z2.diff()
-    print "Z2 =", Z2
-    print "1/Z2 =", 1 / Z2
-    print "Z1*Z2 =", Z1 * Z2
-    print "Z2**2 =", Z2 ** 2
