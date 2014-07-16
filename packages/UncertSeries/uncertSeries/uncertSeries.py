@@ -11,10 +11,23 @@ if uncert_version < (2, 4):
     raise Warning("Version  %s of uncertanties not supported" % str(uncert_version))
 
 class Series():
-    """ Класс, обеспечивающий разложение в ряд по g с точностью до n-го порядка с учётом погрешности.
+    """ This class provides a series expansion in g up to n-th order, taking into account uncertainty.
+
+    >>> from uncertSeries import Series
+    >>> s = Series() --> just a zero number with zero inaccuracy
+    >>> s = Series(1,{0:1, 1:(0.1,0.03)})
+    >>> s.pprint() --> '(1) * g**0 + (0.100(30)) * g**1 '
+    String representation is also possible:
+    >>> print s --> 1 +  0.100(30) * g**1
+
+    Possible arguments:
+        n -- number of orders of expansion (default:1 i.e. only zero power term)
+        d -- dictionary with coefficients (len(d) >= n)
+        name -- name of the variable with respect to which the series expansion is done (default:'g')
+        analytic -- do expansion analytically, bool variable (default:False)
     """
 
-    def __init__(self, n, d={}, name='g', analytic = False):
+    def __init__(self, n=1, d={}, name='g', analytic = False):
         self.n = n
         self.gSeries = d
         self.name = name
@@ -122,7 +135,7 @@ class Series():
         return res * c
 
     def __div__(self, other):
-        """ Пока полагаем, что все степени g неотрицательны
+        """ We assume that all powers of 'g' are non-negative
         """
         if isinstance(other, Series):
             return self * other.__invert__()
@@ -161,12 +174,6 @@ class Series():
     #def __repr__(self):
     #    return self.gSeries
 
-    ## FIXME
-    def _approx(self, other):
-        for k, v in self.gSeries.items():
-            if v != other.gSeries[k]:
-                return False
-        return True
 
     def __str__(self):
         """
