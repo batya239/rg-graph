@@ -132,9 +132,12 @@ class Graph(object):
 
     @cached_method
     def to_graph_state(self):
-        return self._underlying \
-            if isinstance(self._underlying, graph_state.GraphState) \
-            else graph_state.GraphState(self._underlying)
+        try:
+            return self._underlying \
+                if isinstance(self._underlying, graph_state.GraphState) \
+                else graph_state.GraphState(self._underlying)
+        except StandardError as e:
+            raise ValueError("Can't create GraphState: %s" % e.message)
 
     @cached_method
     def get_bound_vertices(self):
