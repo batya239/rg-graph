@@ -488,7 +488,7 @@ class GraphState(object):
                         values.append(str(v))
                         if v is not None:
                             is_all_none = False
-                    serialized.append('' if is_all_none else GraphState.SEP2.join(values))
+                    serialized.append('' if is_all_none else GraphState.NICKEL_SEP.join(values))
 
         return self.SEP.join(serialized)
 
@@ -534,7 +534,7 @@ class GraphState(object):
                         un_transposed_properties[p_name] = [None] * len(nickel_edges)
                 else:
                     if r_property_line != '':
-                        r_properties = r_property_line.split(GraphState.SEP2)
+                        r_properties = r_property_line.split(GraphState.NICKEL_SEP)
                         externalizer = properties_config.externalizer(p_name)
                         un_transposed_nodes_properties[p_name] = map(lambda raw_prop: externalizer.deserialize(raw_prop), r_properties)
                         if not not_none_node_properties:
