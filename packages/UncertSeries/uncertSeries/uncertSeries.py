@@ -72,7 +72,7 @@ class Series():
         else:
             print type(self), type(other)
             raise NotImplementedError
-        return Series(len(tmp), tmp, name=self.name, analytic=self.analytic)
+        return Series(max(tmp), tmp, name=self.name, analytic=self.analytic)
 
     def __radd__(self, other):
         return self + other
@@ -83,7 +83,7 @@ class Series():
     def __mul__(self, other):
         tmp = {}
         if isinstance(other, Series):
-            stop = min(self.n, other.n)
+            stop=min(min(self.gSeries)+max(other.gSeries),max(self.gSeries)+min(other.gSeries))
             for i in self.gSeries.keys():
                 for j in other.gSeries.keys():
                     if (i + j) <= stop:
@@ -180,7 +180,7 @@ class Series():
         Вывод результата, обрезанного с учётом погрешности, с указанием точности последней значащей цифры
         """
         res = ''
-        for g, c in self.gSeries.items():
+        for g, c in sorted(self.gSeries.items()):
             if c != 0 and g == 0 and isinstance(c, int):
                 res += " %d + " % (c)
             elif c != 0 and g == 0:
@@ -202,7 +202,7 @@ class Series():
 
     def pprint(self):
         res = ""
-        for g, c in self.gSeries.items():
+        for g, c in sorted(self.gSeries.items()):
             if c != 0 and g <= self.n and not self.analytic:
                 res += "(%s ± %s) * %s**%s + " % (str(c.n), str(c.s), self.name, str(g))
             elif c != 0 and g <= self.n and self.analytic:
