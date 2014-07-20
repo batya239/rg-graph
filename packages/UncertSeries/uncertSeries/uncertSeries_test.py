@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from uncertSeries import Series
+from uncertSeries import Series, Series2, Order
 import unittest
 
 
@@ -64,6 +64,45 @@ class TestHelperSeries(unittest.TestCase):
 
     def testSave(self):
         pass
+
+
+class TestSeries2(unittest.TestCase):
+    def testInit(self):
+        ## zero series
+        s = Series2()
+        self.assertEqual(s.order, False)
+        self.assertEqual(s.name, 'g')
+        self.assertEqual(s.gSeries,{0:0})
+        s1 = Series2({1:1.})
+        self.assertEqual(s1.order, False)
+        self.assertEqual(s1.name, 'g')
+        self.assertEqual(s1.gSeries,{1:1})
+
+
+    def testLessThan(self):
+        pass
+
+    def testAdd(self):
+        z = Series2()
+        s1 = Series2({1:1})
+        s2 = Series2({1:1,2:1})
+        O = Order(2)
+        sum1 = z + s1
+        self.assertEqual(sum1.gSeries,{0:0, 1:1})
+        self.assertEqual(sum1.order,False)
+        sum2 = s1 + s2
+        self.assertEqual(sum2.gSeries, {1:2, 2:1})
+        self.assertEqual(sum2.order, False)
+        sum3 = z+s1+s2
+        self.assertEqual(sum3.gSeries,{0:0, 1:2, 2:1})
+        sum4 = z+s1+s2 + O
+        self.assertEqual(sum4.gSeries,{0:0, 1:2, 2:None})
+        self.assertEqual(sum4.order, True)
+        sum5 = z+s1+(s2 + O)
+        self.assertEqual(sum5.gSeries,{0:0, 1:2, 2:None})
+        self.assertEqual(sum5.order, True)
+
+
 
 
 if __name__ == "__main__":

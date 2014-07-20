@@ -230,3 +230,95 @@ class Series():
         for k,v in self.gSeries.items():
             slov += "%d: '%s', "%(k,v)
         print "Series(%d, {%s}, '%s')"%(self.n,slov,self.name)
+
+
+class Series2(object):
+    def __init__(self, series_dict=None, name='g'):
+        if series_dict is None:
+            self.gSeries = dict()
+            self.gSeries[0] = ufloat(0,0)
+            self.name = name
+            self.order = False
+        else:
+            self.order = False
+            self.name = name
+            self.gSeries = dict()
+            for k, v in sorted(series_dict.items()):
+                if v is None:
+                    self.order = True
+                    self.gSeries[k] = None
+                    break
+                try:
+                    if isinstance(v, (list, tuple)):
+                        self.gSeries[k] = ufloat(v[0], v[1])
+                    elif isinstance(v, str):
+                        self.gSeries[k] = ufloat_fromstr(v)
+                    elif isinstance(v, (int, float)):
+                        self.gSeries[k] = ufloat(v, 0)
+                    elif isinstance(v, AffineScalarFunc):
+                        self.gSeries[k] = v
+    # analytic??
+                    # elif isinstance(v, int):
+                    #     self.gSeries[k] = v
+                    #     self.analytic = True
+                    else:
+                        raise NotImplementedError
+                except Exception as e:
+                    print "Series constructor warning: Type(v)=", type(v), e.message
+            # for i in range(min(self.gSeries.keys()), max(self.gSeries.keys())):
+            #     if i not in self.gSeries:
+            #         self.gSeries[i] = ufloat(0, 0)
+
+
+    def __add__(self, other):
+        if isinstance(other, Series2):
+            AssertionError(self.name != other.name)
+            s_max = max(self.gSeries.keys())
+            o_max = max(other.gSeries.keys())
+            s_min = min(self.gSeries.keys())
+            o_min = min(other.gSeries.keys())
+            order = False
+            if self.order and other.order:
+                stop = min(s_max, o_max)
+                order = True
+            elif self.order:
+                stop = s_max
+                order = True
+            elif other.order:
+                stop = o_max
+                order = True
+            else:
+                stop = max(s_max, o_max)+1
+            res = dict()
+            for i in range(min(s_min, o_min), stop):
+                if i in self.gSeries:
+                    a = self.gSeries[i]
+                else:
+                    a = ufloat(0, 0)
+
+                if i in other.gSeries:
+                    b = other.gSeries[i]
+                else:
+                    b = ufloat(0, 0)
+                res[i] = a+b
+            if order:
+                res[stop] = None
+        return Series2(res, name=self.name)
+
+    def __str__(self):
+        res = ''
+        for g, c in sorted(self.gSeries):
+            if c is None:
+                res += 'Order(%s**%s) + '%(self.name, g)
+                break
+            elif c != 0:
+                res += "(%s ± %s) * %s**%s + " % (str(c.n), str(c.s), self.name, str(g))
+        if len(res)==0:
+            return '0'
+        else:
+            return res[:-3]
+
+
+
+def Order(n, name='g'):
+    return Series2({n: None}, name=name)
