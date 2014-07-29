@@ -2,7 +2,7 @@
 # -*- coding: utf8
 import os
 
-import graph_state
+from graph_state_builder_with_fields import gs_builder
 import sys
 
 import subgraphs
@@ -15,7 +15,7 @@ import dynamics
 model = _phi4_dyn("phi4_dyn_test")
 methodName = "simpleSDT"
 
-gs = graph_state.GraphState.fromStr(sys.argv[1])
+gs = gs_builder.graph_state_from_str(sys.argv[1])
 print str(gs)
 
 dG = dynamics.DynGraph(gs)
@@ -40,7 +40,7 @@ for tVersion in dynamics.TVersions(dG):
     exec(open(inputFileName).read())
     # print "sectors = ", sectors
 
-    gs = graph_state.GraphState.fromStr(graphName)
+    gs = gs_builder.graph_state_from_str(graphName)
 
     dG = dynamics.DynGraph(gs)
     print dG._lines

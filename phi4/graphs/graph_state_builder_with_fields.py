@@ -10,6 +10,7 @@ MAIN_GRAPH_CONFIG = graph_state.PropertiesConfig.create(graph_state.PropertyKey(
                                                                                 is_directed=True,
                                                                                 externalizer=graph_state.Fields.externalizer()))
 
+gs_builder = MAIN_GRAPH_CONFIG
 
 new_edge = MAIN_GRAPH_CONFIG.new_edge
 

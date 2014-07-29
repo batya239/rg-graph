@@ -3,7 +3,7 @@
 
 import copy
 import sympy
-import pydot
+#import pydot
 
 import nickel
 
