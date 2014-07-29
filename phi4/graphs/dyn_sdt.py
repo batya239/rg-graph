@@ -33,6 +33,7 @@ model = _phi4_dyn("phi4_dyn_test")
 methodName = "simpleSDT"
 dynamics.method_name = methodName
 
+graphName_ = sys.argv[1]
 gs = gs_builder.graph_state_from_str(graphName_)
 
 print str(gs)
@@ -53,7 +54,7 @@ for tVersion_ in tVersions:
     fileName = "%s/dyn_sectors.py" % dirName
     exec (open(fileName).read())
 
-    gs = graph_state.GraphState.fromStr(graphName)
+    gs = gs_builder.graph_state_from_str(graphName)
 
     dG = dynamics.DynGraph(gs)
     #dG.FindSubgraphs(model)
