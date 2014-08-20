@@ -1,5 +1,4 @@
-#ifndef VEGAS_H
-#define VEGAS_H
+#pragma once
 
 void gVegas(double& avgi, double& sd, double& chi2a);
 
@@ -38,4 +37,3 @@ EXTERN unsigned nCubes;
 
 #undef EXTERN
 
-#endif

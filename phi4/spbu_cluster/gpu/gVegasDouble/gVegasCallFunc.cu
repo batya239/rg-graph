@@ -1,3 +1,5 @@
+#include "const.h"
+
 #include "vegasconst.h"
 #include "vegas.h"
 
@@ -13,12 +15,10 @@ void gVegasCallFunc(double* gFval, int* gIAval)
    const unsigned int bIdx  = blockIdx.x;
    const unsigned int gDimx = gridDim.x;
    const unsigned int bIdy  = blockIdx.y;
-   //   const unsigned int gDimy = gridDim.y;
 
    unsigned int bid  = bIdy*gDimx+bIdx;
    const unsigned int tid = bid*bDimx+tIdx;
 
-   //   int ipg = tid%g_npg;
    int ig = tid/g_npg;
 
    unsigned nCubeNpg = g_nCubes*g_npg;
@@ -37,7 +37,6 @@ void gVegasCallFunc(double* gFval, int* gIAval)
          igg /= g_ng;
       }
       
-      //            randa(g_ndim,randm);
       double randm[ndim_max];
       fxorshift128(tidRndm, g_ndim, randm);
       
@@ -61,7 +60,6 @@ void gVegasCallFunc(double* gFval, int* gIAval)
       
       double f = wgt * func(x,wgt);
       
-      //      gFval[tid] = (double)typeFinal[2];
       gFval[tid] = f;
       for (int idim=0;idim<g_ndim;idim++) {
          gIAval[idim*nCubeNpg+tid] = ia[idim];

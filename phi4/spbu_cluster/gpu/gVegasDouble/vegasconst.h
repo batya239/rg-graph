@@ -1,7 +1,4 @@
-//  ======<< vegasconst.h >>======
-
-#ifndef VEGASCONST_H
-#define VEGASCONST_H
+#pragma once
 
 __device__ __constant__ int g_ndim;
 __device__ __constant__ int g_ng;
@@ -15,6 +12,4 @@ __device__ __constant__ double g_dx[ndim_max];
 __device__ __constant__ double g_xi[ndim_max][nd_max];
 
 __device__ __constant__ unsigned g_nCubes;
-
-#endif
 
