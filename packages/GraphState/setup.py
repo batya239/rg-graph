@@ -4,8 +4,8 @@ from distutils.core import setup
 
 setup(
     name='GraphState',
-    version='0.0.6',
-    author='S. Novikov',
+    version='1.0.0',
+    author='S. Novikov, D. Batkovich',
     author_email='dr.snov@gmail.com',
     packages=['graph_state', 'nickel'],
     url='http://pypi.python.org/pypi/GraphState/',

@@ -4,7 +4,7 @@ from distutils.core import setup
 
 setup(
     name='Graphine',
-    version='0.0.1',
+    version='1.0.0',
     author='D. Batkovich',
     author_email='batya239@gmail.com',
     packages=['graphine', 'graphine.test'],
@@ -12,5 +12,5 @@ setup(
     license='LICENSE.txt',
     description='Manipulating on graphs',
     long_description=open('README.txt').read(),
-    requires=['GraphState (>= 0.0.3)']
+    requires=['GraphState (>= 1.0.0)']
 )
