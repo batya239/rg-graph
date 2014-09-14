@@ -77,7 +77,7 @@ class GraphTest(unittest.TestCase):
         self.assertEqual(len(GraphTest.EYE.edges(nickel_ordering=False)), len(GraphTest.EYE_EDGES))
 
     def test_to_graph_state(self):
-        self.assertEqual(str(GraphTest.EYE.to_graph_state()), "ee12|e22|e|::")
+        self.assertEqual(str(GraphTest.EYE.to_graph_state()), "ee12|e22|e|")
 
     def test_get_bound_vertices(self):
         self.assertEqual(GraphTest.EYE.get_bound_vertices(), set([0, 3, 4]))
@@ -88,9 +88,9 @@ class GraphTest(unittest.TestCase):
     def test_delete_vertex(self):
         g = Graph.from_str("e12|e2||")
         g1 = g.delete_vertex(2, transform_edges_to_external=False)
-        self.assertEqual(str(g1), "e1|e|::")
+        self.assertEqual(str(g1), "e1|e|")
         g2 = g.delete_vertex(2, transform_edges_to_external=True)
-        self.assertEqual(str(g2), "ee1|ee|::")
+        self.assertEqual(str(g2), "ee1|ee|")
 
     def test_contains(self):
         g_sub = Graph.from_str("12|2||")
@@ -102,17 +102,17 @@ class GraphTest(unittest.TestCase):
         g = Graph.from_str("ee12|223|3|ee|")
         g_sub = Graph([graph_state.Edge(e) for e in [(2, 1), (1, 2)]], renumbering=False)
         shrunk = g.shrink_to_point(g_sub)
-        self.assertEqual(str(shrunk), "ee11|22|ee|::")
+        self.assertEqual(str(shrunk), "ee11|22|ee|")
 
         shrunk, new_vertex = g.shrink_to_point(g_sub, with_aux_info=True)
-        self.assertEqual(str(shrunk), "ee11|22|ee|::")
+        self.assertEqual(str(shrunk), "ee11|22|ee|")
         self.assertEqual(len(shrunk.edges(4)), 4)
 
     def test_batch_shrink_to_point(self):
         g = Graph.from_str("ee12|2223|3|ee|")
         g_sub1 = Graph([graph_state.Edge(e) for e in [(2, 1), (1, 2)]], renumbering=False)
         g_sub2 = Graph([graph_state.Edge(e) for e in [(2, 1), (3, 2), (3, 2)]], renumbering=False)
-        self.assertEqual(str(g.batch_shrink_to_point([g_sub1, g_sub2])), "ee11|ee|::")
+        self.assertEqual(str(g.batch_shrink_to_point([g_sub1, g_sub2])), "ee11|ee|")
 
 
 if __name__ == "__main__":
