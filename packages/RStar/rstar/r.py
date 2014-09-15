@@ -125,7 +125,8 @@ class RStar(object):
                     if result is None:
                         result = current_result
                     else:
-                        assert result.evaluate().is_equal(current_result.evaluate()), ("graph = %s,\nvalue1 = %s,\nvalue2 = %s") % (_graph, result.evaluate(), current_result.evaluate())
+                        if not result.evaluate().is_equal(current_result.evaluate()):
+                            log.debug("WRONG graph = %s,\nvalue1 = %s,\nvalue2 = %s" % (_graph, result.evaluate(), current_result.evaluate()))
                 else:
                     self.storage.put_graph(_graph.to_tadpole(), current_result, storage_label)
                     return current_result

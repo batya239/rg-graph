@@ -111,14 +111,8 @@ masters["e11111|e|"] = "G(1,1)*G(1-l,1)*G(1-2*l,1)*G(1-3*l,1)"
 #M31
 masters["e11|22|33|44|e|"] = "G(1,1)**4"
 
-topology = list()
-topology.append("e12|34|35|6|67|67||e|")
-topology.append("e12|34|56|56|57||7|e|")
-topology.append("e12|34|35|6|56|7|7|e|")
-
 
 FOUR_LOOP_REDUCTOR = reductor.Reductor("p4a",
                                        "loop4",
-                                       map(lambda g: graphine.Graph.from_str(g), topology),
                                        4,
-                                       dict(map(lambda (g, v): (graphine.Graph.from_str(g), symbolic_functions.evaluate(v, strong_to_internal_code=True)), masters.iteritems())), "q", "l")
+                                       dict(map(lambda (g, v): (graphine.Graph.from_str(g), symbolic_functions.evaluate(v)), masters.iteritems())), "q", "l")

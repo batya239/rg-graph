@@ -358,7 +358,7 @@ class GGraphReducer(object):
 
     def _put_final_value_to_graph_storage(self):
         raw_v = self.get_final_value()
-        v = raw_v[0], raw_v[1]
+        v = raw_v[0].get(), raw_v[1]
         configure.Configure.storage().put_graph(self._init_graph, v, "value")
         return v
 

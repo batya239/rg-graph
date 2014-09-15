@@ -117,12 +117,13 @@ class Sector(object):
                                                       lambda _s, _g: Sector.create_from_shrunk_topology(_s, _g, all_propagators_count))
 
     @staticmethod
-    def create_from_shrunk_topology(topology_graph, weights_graph, all_propagators_count):
+    def create_from_shrunk_topology(topology_graph, weights_graph, all_propagators_count, weight_extractor):
         id_to_weight = dict()
         for e1, e2 in itertools.izip(topology_graph.edges(nickel_ordering=True),
                                      weights_graph.edges(nickel_ordering=True)):
-            if not e1.is_external() and e2.weight:
-                id_to_weight[e1.colors[0]] = e2.weight.a
+            weight = weight_extractor(e2)
+            if not e1.is_external() and weight:
+                id_to_weight[e1.weight[0]] = weight
         propagators_weights = list()
         for i in xrange(all_propagators_count):
             weight = id_to_weight.get(i, None)
