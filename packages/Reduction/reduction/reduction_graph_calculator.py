@@ -34,7 +34,7 @@ class ScalarProductReductionGraphCalculator(abstract_graph_calculator.AbstractGr
     def calculate(self, graph):
         result = reductor.calculate(graph, self._weight_extractor, self._scalar_product_extractor)
         if result is None:
-            log.debug("reduction not works for " + graph)
+            log.debug("reduction not works for " + str(graph))
             return None
         r = result.evaluate(substitute_sectors=True,
                             _d=symbolic_functions.d_phi4,
@@ -46,7 +46,10 @@ class ScalarProductReductionGraphCalculator(abstract_graph_calculator.AbstractGr
         return r, reduction_util.calculate_graph_p_factor(graph)
 
     def is_applicable(self, graph):
-        return reductor.is_applicable(graph)
+        for e in graph:
+            if not e.is_external() and self._weight_extractor(e) is None:
+                return False
+        return True
 
     def dispose(self):
         pass

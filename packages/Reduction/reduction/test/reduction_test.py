@@ -12,7 +12,7 @@ import swiginac
 import two_and_three_loops
 import four_loops
 import graph_state
-import graph_util
+import reduction_graph_util
 from rggraphenv import symbolic_functions
 
 
@@ -36,7 +36,7 @@ class ReductionTest(unittest.TestCase):
                      "4.5-(2.5)*e**(-1)+(8.292851526664017019)*e**2+(13.759548533622894061)*e**3+(6.3185121284363485687)*e+(0.5)*e**(-2)")
 
     def do_test(self, graph_as_string, expected_value_string):
-        g = graph_util.graph_from_str(graph_as_string)
+        g = reduction_graph_util.graph_from_str(graph_as_string)
         unsubstituted_actual = reductor.calculate(g, weight_extractor=lambda e: e.weight)
         if not expected_value_string:
             self.assertIsNone(unsubstituted_actual)

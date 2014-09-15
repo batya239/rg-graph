@@ -9,7 +9,7 @@ import logging
 logging.basicConfig(format="%(asctime)s:%(levelname)s:%(message)s")
 logger = logging.getLogger("rg-graph")
 logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.StreamHandler())
+# logger.addHandler(logging.StreamHandler())
 
 
 def set_format(a_format):
@@ -38,3 +38,7 @@ def debug(msg, *params):
 
 def info(msg, *params):
     logger.info(msg)
+
+
+def error(mas, *params):
+    logger.error(msg)

@@ -10,20 +10,13 @@ import const
 from rggraphenv import graph_calculator
 
 
-DEBUG = False
-
-
 def scalar_product_extractor(topology, graph):
     extracted_numerated_edges = list()
-    if DEBUG:
-        print "CAL", graph
     for e1, e2 in zip(topology.edges(nickel_ordering=True), graph.edges(nickel_ordering=True)):
         numerator = e2.arrow if (e2.arrow is not None and not e2.arrow.is_null()) else None
         if numerator:
             extracted_numerated_edges.append((e1, numerator))
     if not len(extracted_numerated_edges):
-        if DEBUG:
-            print "no scalar products"
         raise StopIteration()
     if len(extracted_numerated_edges) == 1:
         numerated_edge = extracted_numerated_edges[0]
@@ -31,8 +24,6 @@ def scalar_product_extractor(topology, graph):
         sp = reduction.ScalarProduct(numerated_edge[0].colors[1],
                                      (1, ) + (0, ) * (len(numerated_edge[0].colors[1]) - 1),
                                      sign=sign)
-        if DEBUG:
-            print "sp", sp
         yield sp
     else:
         assert len(extracted_numerated_edges) == 2, ("graph must has only 2 numerated edges, actual = %s, graph = %s" % (extracted_numerated_edges, graph))
@@ -51,9 +42,6 @@ def scalar_product_extractor(topology, graph):
         sp = reduction.ScalarProduct(extracted_numerated_edges[0][0].colors[1],
                                      extracted_numerated_edges[1][0].colors[1],
                                      sign=sign)
-        print "SP", sp, graph, topology
-        if DEBUG:
-            print "sp", sp
         yield sp
 
 
@@ -85,7 +73,14 @@ def resolve_scalar_product_sign(graph, extracted_numerated_edges):
                 return sign
 
 
-def create_calculator(*loops_counts):
-    return reduction.ScalarProductReductionGraphCalculator(scalar_product_extractor, loops_counts)
+def weight_extractor(edge):
+    w = edge.weight
+    if w is None or w.b != 0:
+        return None
+    return w.a
 
-GRAPHS_WITH_SCALAR_PRODUCTS_CALCULATOR = reduction.ScalarProductReductionGraphCalculator(scalar_product_extractor)
+
+def create_calculator(*loops_counts):
+    return reduction.ScalarProductReductionGraphCalculator(weight_extractor, scalar_product_extractor, loops_counts)
+
+GRAPHS_WITH_SCALAR_PRODUCTS_CALCULATOR = reduction.ScalarProductReductionGraphCalculator(weight_extractor, scalar_product_extractor)

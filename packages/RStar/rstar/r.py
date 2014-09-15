@@ -149,7 +149,7 @@ class RStar(object):
                 if graph.loops_count == 1:
                     return lazy.LazyValue(symbolic_functions.series(calculate_graph(graph).evaluate(), symbolic_functions.e, 0, 0, True))
                 delta_ir = lazy.ZERO
-                delta_ir += self.kr_star(graph.to_tadpole())
+                delta_ir += symbolic_functions.series(self.kr_star(graph.to_tadpole()).evaluate(), symbolic_functions.e, 0, 0, True)
                 for counter_item, shrunk, _, debug_line_piece in self.x_r_prime(graph):
                     if self.debug():
                         debug_line += "-" + debug_line_piece + "*D_IR(%s)" % shrunk
@@ -215,7 +215,7 @@ class RStar(object):
 
     @staticmethod
     def present_expression(expression):
-        return str(configure.Configure.k_operation().calculate(expression.evaluate()).convert_to_poly(True).expand())
+        return str(configure.Configure.k_operation().calculate(expression.evaluate()).expand())
 
     @staticmethod
     def make_right_2_tails(graph):

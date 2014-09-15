@@ -16,7 +16,7 @@ import sector
 import reduction_util
 import graph_state
 import scalar_product
-import graph_util
+import reduction_graph_util
 
 
 e = symbolic_functions.e
@@ -68,7 +68,7 @@ def _enumerate_graph(graph, init_propagators, to_sector=True, only_one_result=Fa
         for e in graph:
             if e.weight is None:
                 color = zero_color if graph.external_vertex in e.nodes else unit_color
-                inited_edges.append(graph_util.new_edge(e.nodes, graph.external_vertex, weight=color))
+                inited_edges.append(reduction_graph_util.new_edge(e.nodes, graph.external_vertex, weight=color))
             else:
                 inited_edges.append(e)
         return graphine.Graph(inited_edges, renumbering=False)
@@ -421,7 +421,7 @@ class Reductor(object):
                         is_updated = True
                         break
                 if not is_updated:
-                    print "rule not found for", _sector
+                    log.debug("rule not found for" + str(_sector))
                     raise RuleNotFoundException(_sector)
             dfs_cache[_sector] = res
             return res
@@ -445,8 +445,8 @@ class Reductor(object):
             cur_sectors = key_to_sector[k]
             for _s in cur_sectors:
                 a_sectors += dfs(_s, cur_rules, _all, hits) * not_masters[_s]
-        if DEBUG:
-            print "time", (time.time()-ms), " cache hits", hits.get(), " all cache points", _all.get()
+        if log.is_debug_enabled():
+            log.debug("time " + str(time.time()-ms) + ", cache hits " + str(hits.get()) + ", all cache points " + str(_all.get()))
         return ReductorResult(a_sectors, self._masters)
 
     def _get_file_path(self, file_name):

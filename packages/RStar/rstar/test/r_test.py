@@ -26,7 +26,7 @@ class RPrimeTestCase(unittest.TestCase):
             .with_ir_filter(ir_uv.IRRelevanceCondition(const.SPACE_DIM_PHI4))\
             .with_uv_filter(ir_uv.UVRelevanceCondition(const.SPACE_DIM_PHI4))\
             .with_dimension(const.DIM_PHI4)\
-            .with_calculators(g_graph_calculator.GLoopCalculator(const.DIM_PHI4), numerators_util.create_calculator(2, 3, 4))\
+            .with_calculators(g_graph_calculator.GLoopCalculator(const.DIM_PHI4), numerators_util.create_calculator(2, 3))\
             .with_storage_holder(StorageSettings("phi4", "test", "test", test=True)).configure()
         self.operator = r.RStar()
 
@@ -151,7 +151,7 @@ class RPrimeTestCase(unittest.TestCase):
         self._do_test_r1("e114|22|33|e4||", "-1/(4*e**4)+1/(4*e**3)+1/(4*e**2)+1/(4*e)-zeta(3)/(2*e)")
 
     def test_e112_34_e34_e4_e_(self):
-        self._do_test_r1("e112|34|e34|e4|e|", "-1/2*e**(-2)*zeta(3)+1/2*e**(-1)*(-(1/6)*Pi**4+3*zeta(3))")
+        self._do_test_r1("e112|34|e34|e4|e|", "-1/2*e**(-2)*zeta(3)+1/2*e**(-1)*(-(1/60)*Pi**4+3*zeta(3))")
 
     def _do_test_r1(self, graph_state_str, expected_result_as_string):
         g = graph_util.graph_from_str(graph_state_str, do_init_weight=True)
