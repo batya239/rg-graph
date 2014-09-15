@@ -8,7 +8,7 @@ __author__ = 'dimas'
 
 import os
 from rggraphutil import ref, VariableAwareNumber
-from rggraphenv import abstract_graph_calculator, log
+from rggraphenv import log
 import graphine
 
 import jrules_parser
