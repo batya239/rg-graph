@@ -1,10 +1,9 @@
-#!/usr/bin/python
+# !/usr/bin/python
 # -*- coding: utf8
 
 __author__ = 'dima'
 
 import pymongo
-import logging
 
 
 class GraphIdExtractor(object):
@@ -31,14 +30,18 @@ class MongoClientWrapper(object):
 
     def get_graph(self, collection, graph, condition=None):
         condition = dict() if condition is None else dict(condition)
-        condition["_id"] = str(graph)
-        return self._db[collection].find_one(condition)["value"]
+        condition["_id"] = self._graph_id_extractor.get_id(graph, collection)
+        doc = self._db[collection].find_one(condition)
+        return None if doc is None else doc["value"]
 
     def has_graph(self, collection, graph, condition=None):
         return self.get_graph(collection, graph, condition) is not None
 
     def put_graph(self, collection, graph, value, condition=None):
         doc = dict() if condition is None else dict(condition)
-        doc["_id"] = str(graph)
+        doc["_id"] = self._graph_id_extractor.get_id(graph, collection)
         doc["value"] = value
         self._db[collection].insert(doc)
+
+    def close(self):
+        return self._client.close()

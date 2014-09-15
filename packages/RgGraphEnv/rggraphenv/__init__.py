@@ -1,18 +1,19 @@
-#!/usr/bin/python
+# !/usr/bin/python
 # -*- coding: utf8
 
 #
 # common environment objects
 #
 import theory
-import graph_calculator
 import symbolic_functions
-from storage import StorageSettings, StoragesHolder
-from graph_calculator import GraphCalculatorManager
 from abstract_graph_calculator import AbstractGraphCalculator
 from g_graph_calculator import GLoopCalculator
+
 try:
+    import graph_calculator
+    from graph_calculator import GraphCalculatorManager
     from mongo_storage import MongoClientWrapper, GraphIdExtractor, StrGraphIdExtractor
+    from graph_storage import StorageSettings, StorageHolder
 except ImportError:
     pass
 

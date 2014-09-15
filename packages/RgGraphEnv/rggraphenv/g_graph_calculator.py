@@ -1,20 +1,21 @@
-#!/usr/bin/python
+# !/usr/bin/python
 # -*- coding: utf8
 
 __author__ = 'dima'
 
+import swiginac
+
 import abstract_graph_calculator
 import symbolic_functions
-import swiginac
+
 
 G, G1, G2 = symbolic_functions.G, symbolic_functions.G1, symbolic_functions.G2
 
 
 class GLoopCalculator(abstract_graph_calculator.AbstractGraphCalculator):
-
     def __init__(self, dimension):
         self._dimension = dimension
-        self._lambda = dimension / swiginac.numeric("2") - swiginac.numeric("1")
+        self._lambda = dimension / symbolic_functions.CLN_TWO - symbolic_functions.CLN_ONE
 
     def get_label(self):
         return "loop calculator for dim = %s" % self._dimension
@@ -36,9 +37,7 @@ class GLoopCalculator(abstract_graph_calculator.AbstractGraphCalculator):
         alpha = edges[0].weight
         beta = edges[1].weight
 
-        not_empty = None
-        if graph_state_str[-2] != ":":
-            not_empty = filter(lambda e: e.arrow is not None and not e.arrow.is_null(), edges)
+        not_empty = filter(lambda e: e.arrow is not None and not e.arrow.is_null(), edges)
 
         if not_empty is not None and len(not_empty):
             not_empty_numerator_edge = not_empty[0]
@@ -51,8 +50,10 @@ class GLoopCalculator(abstract_graph_calculator.AbstractGraphCalculator):
                     t = alpha
                     alpha = beta
                     beta = t
-                return sign * symbolic_functions.G1(alpha.subs(self._lambda), beta.subs(self._lambda), d=self._dimension), alpha + beta - (1, 1)
+                return sign * symbolic_functions.G1(alpha.subs(self._lambda), beta.subs(self._lambda),
+                                                    d=self._dimension), alpha + beta - (1, 1)
             else:
                 sign = 1 if not_empty_numerator_edge.arrow == other_edge.arrow else -1
-                return sign * symbolic_functions.G2(alpha.subs(self._lambda), beta.subs(self._lambda), d=self._dimension), alpha + beta - (2, 1)
+                return sign * symbolic_functions.G2(alpha.subs(self._lambda), beta.subs(self._lambda),
+                                                    d=self._dimension), alpha + beta - (2, 1)
         return G(alpha.subs(self._lambda), beta.subs(self._lambda), d=self._dimension), alpha + beta - (1, 1)
