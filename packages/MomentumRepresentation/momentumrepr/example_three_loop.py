@@ -13,11 +13,12 @@ from rggraphenv import symbolic_functions
 from rggraphutil import zeroDict
 
 
-configure_mr.Configure().with_dimension(symbolic_functions.cln(4) - symbolic_functions.e).with_target_loops_count(2).\
-    with_maximum_points_number(300000).\
-    with_absolute_error(10e-7).\
-    with_relative_error(10e-7).\
+configure_mr.Configure().with_dimension(symbolic_functions.cln(4) - symbolic_functions.e).with_target_loops_count(3).\
+    with_maximum_points_number(13000000).\
+    with_absolute_error(10e-10).\
+    with_relative_error(10e-10).\
     with_debug(True).configure()
+
 
 def kr11(operation, graph_state_as_str):
     answer = zeroDict()
@@ -27,5 +28,5 @@ def kr11(operation, graph_state_as_str):
     return answer
 
 
-graph_state_str = "e12|e3|33||:0A_aA_aA|00_Aa|aA_aA||:::"
+graph_state_str = "e15|23|34|4|5|e|:0A_aA_aA|aA_aA|aA_aA|aA|aA|0a|:::"
 print kr11(kr1.kr1_d_iw, graph_state_str)
