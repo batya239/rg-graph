@@ -63,19 +63,19 @@ def renormalization_constants(diagrams_dict, structures_dict):
     for gs_string in sorted(diagrams_dict.keys()):
         gs = gs_builder.graph_state_from_str(gs_string)
         graph = graphine.Graph(gs)
-        if graph.externalEdgesCount() == 2:
+        if graph.external_edges_count == 2:
             value = series(eval(safe_integer_numerators_strong(diagrams_dict[gs_string])),e,0,0, remove_order=True).subs(p==1)
             Z1 += symmetry_coefficient(gs) \
                   * value \
                   * eval(safe_integer_numerators_strong(structures_dict[gs_string])) \
-                  * (-g) ** graph.getLoopsCount()
-        elif graph.externalEdgesCount() == 4:
+                  * (-g) ** graph.loops_count
+        elif graph.external_edges_count == 4:
             Z3 -= symmetry_coefficient(gs) \
                   * eval(safe_integer_numerators_strong(diagrams_dict[gs_string])) \
                   * eval(safe_integer_numerators_strong(structures_dict[gs_string])) \
-                  * (-g) ** graph.getLoopsCount()
+                  * (-g) ** graph.loops_count
         else:
-            raise NotImplementedError("ext legs count: %s" % graph.externalEdgesCount())
+            raise NotImplementedError("ext legs count: %s" % graph.external_edges_count)
     return Z1, Z3
 
 
@@ -166,8 +166,16 @@ if __name__ == "__main__":
 
     eta = series(2*substitute_r(gamma_f, ri).subs(g == gstar).expand(), e, 0, loops2+1, remove_order=True)
 
-    print "eta"
+    print "eta e n=1"
     print eta.subs(n == 1).subs(e == e/2).evalf()
+
+    print "eta 2e n=1"
+    print eta.subs(n == 1).evalf()
+    print eta.subs(n == 1)
+
+    print "eta 2e n"
+    print eta
+
 
 
     print
