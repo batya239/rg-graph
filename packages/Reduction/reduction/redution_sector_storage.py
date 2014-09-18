@@ -32,4 +32,4 @@ class ReductionSectorStorage(object):
     def put_sector(self, sector, value):
         if not self._enable:
             self._local_storage[sector] = value
-        self._storage.put(self._collection_name, sector, symbolic_functions.to_internal_code(str(value)))
+        self._storage.put(self._collection_name, sector, symbolic_functions.to_internal_code(str(value), strong=True))
