@@ -17,6 +17,7 @@ import reduction_util
 import graph_state
 import scalar_product
 import reduction_graph_util
+import redution_sector_storage
 
 
 e = symbolic_functions.e
@@ -243,6 +244,12 @@ class Reductor(object):
 
         self._is_inited = False
 
+        self._cache = redution_sector_storage.ReductionSectorStorage(self._env_name)
+
+    def with_cache(self, host_name="localhost", port=27017):
+        self._cache = redution_sector_storage.ReductionSectorStorage(self._env_name, host_name, port)
+        return self
+
     def init_if_need(self):
         if self._is_inited:
             return
@@ -376,13 +383,11 @@ class Reductor(object):
             return None
         import time
         ms = time.time()
-        dfs_cache = dict()
         _all = rggraphutil.Ref.create(0)
         hits = rggraphutil.Ref.create(0)
 
-
         def dfs(_sector, sector_rules, _all, hits):
-            cached = dfs_cache.get(_sector, None)
+            cached = self._cache.get_sector(_sector)
             _all.set(_all.get() + 1)
             if cached is not None:
                 hits.set(hits.get() + 1)
@@ -423,7 +428,7 @@ class Reductor(object):
                 if not is_updated:
                     log.debug("rule not found for" + str(_sector))
                     raise RuleNotFoundException(_sector)
-            dfs_cache[_sector] = res
+            self._cache.put_sector(_sector, res)
             return res
 
         a_sectors = a_sectors.as_sector_linear_combinations()
@@ -446,7 +451,7 @@ class Reductor(object):
             for _s in cur_sectors:
                 a_sectors += dfs(_s, cur_rules, _all, hits) * not_masters[_s]
         if log.is_debug_enabled():
-            log.debug("time " + str(time.time()-ms) + ", cache hits " + str(hits.get()) + ", all cache points " + str(_all.get()))
+            log.debug("time " + str(time.time()-ms) + ", cache hits " + str(hits.get()) + ", all points " + str(_all.get()))
         return ReductorResult(a_sectors, self._masters)
 
     def _get_file_path(self, file_name):

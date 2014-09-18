@@ -189,7 +189,7 @@ class GGraphReducer(object):
             adjusted_sub_graph = GGraphReducer._adjust(sub_graph_as_list, self._init_graph.external_vertex)
             subGraph = graphine.Graph(adjusted_sub_graph[0])
             preprocessed = (adjusted_sub_graph[1], subGraph, adjusted_sub_graph[2])
-            v = configure.Configure.storage().get_graph(subGraph, 'value')
+            v = configure.Configure.storage().get(subGraph, 'value')
             if v:
                 res = self._do_iterate(preprocessed, v)
                 if res is not None:
@@ -226,7 +226,7 @@ class GGraphReducer(object):
     def _do_iterate(self, sub_graph_info, iter_sub_graph_value):
         assert len(sub_graph_info[2]) == 2, sub_graph_info[2]
         new_iteration = self.get_current_iteration_graph()
-        # iter_sub_graph_value = inject.instance(storage.StoragesHolder).get_graph(sub_graph_info[1], "value")
+        # iter_sub_graph_value = inject.instance(storage.StoragesHolder).get(sub_graph_info[1], "value")
 
         new_used_arrows = copy.copy(self._used_arrows)
         for a in self._used_arrows:
@@ -359,7 +359,7 @@ class GGraphReducer(object):
     def _put_final_value_to_graph_storage(self):
         raw_v = self.get_final_value()
         v = raw_v[0].get(), raw_v[1]
-        configure.Configure.storage().put_graph(self._init_graph, v, "value")
+        configure.Configure.storage().put(self._init_graph, v, "value")
         return v
 
     @staticmethod

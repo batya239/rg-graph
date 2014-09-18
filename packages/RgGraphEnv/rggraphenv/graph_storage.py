@@ -34,11 +34,11 @@ class StorageHolder(object):
         def dispose():
             self.close()
 
-    def get_graph(self, graph, operation_name):
+    def get(self, graph, operation_name):
         cached = self._cache.get((graph, operation_name), None)
         if cached is not None or self._settings.test:
             return cached
-        raw_value = self._storage.get_graph(operation_name, graph, self._condition)
+        raw_value = self._storage.get(operation_name, graph, self._condition)
         if raw_value is None:
             return None
         evaluated = symbolic_functions.evaluate_expression(raw_value)
@@ -49,7 +49,7 @@ class StorageHolder(object):
         self._cache.put(graph, value)
         return value
 
-    def put_graph(self, graph, expression, operation_name):
+    def put(self, graph, expression, operation_name):
         cache_key = (graph, operation_name)
         cached = self._cache.get(cache_key, None)
         if cached is not None:
@@ -57,13 +57,13 @@ class StorageHolder(object):
         self._cache.put(cache_key, expression)
         if self._settings.test:
             return
-        if self._storage.get_graph(operation_name, graph, self._condition) is not None:
+        if self._storage.get(operation_name, graph, self._condition) is not None:
             return
         if isinstance(expression, tuple):
             serialized = str((symbolic_functions.to_internal_code(str(expression[0])), expression[1].a, expression[1].b))
         else:
             serialized = symbolic_functions.to_internal_code(str(expression))
-        self._storage.put_graph(operation_name, graph, serialized, self._condition)
+        self._storage.put(operation_name, graph, serialized, self._condition)
 
     def close(self):
         if not self._settings.test:

@@ -32,9 +32,9 @@ class GraphCalculatorManager(object):
             if c.is_applicable(graph):
                 res = c.calculate(graph)
                 if res is not None:
-                    if put_value_to_storage and not inject.instance(graph_storage.StorageHolder).get_graph(graph,
+                    if put_value_to_storage and not inject.instance(graph_storage.StorageHolder).get(graph,
                                                                                                             "value"):
-                        inject.instance(graph_storage.StorageHolder).put_graph(graph, res, "value")
+                        inject.instance(graph_storage.StorageHolder).put(graph, res, "value")
                     return res, c.get_label()
         return None
 

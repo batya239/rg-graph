@@ -12,7 +12,7 @@ from g_graph_calculator import GLoopCalculator
 try:
     import graph_calculator
     from graph_calculator import GraphCalculatorManager
-    from mongo_storage import MongoClientWrapper, GraphIdExtractor, StrGraphIdExtractor
+    from mongo_storage import MongoClientWrapper, IdExtractor, StrIdExtractor
     from graph_storage import StorageSettings, StorageHolder
 except ImportError:
     pass

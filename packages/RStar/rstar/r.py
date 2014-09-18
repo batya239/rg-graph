@@ -97,7 +97,7 @@ class RStar(object):
             assert not minus_graph
             return self.kr_star_p2(_graph)
         storage_label = "kr_star_red" if minus_graph else "kr_star"
-        evaluated = self.storage.get_graph(_graph.to_tadpole(), storage_label)
+        evaluated = self.storage.get(_graph.to_tadpole(), storage_label)
         if evaluated is not None:
             return lazy.LazyValue.create(evaluated)
         if uv_index < 0:
@@ -128,7 +128,7 @@ class RStar(object):
                         if not result.evaluate().is_equal(current_result.evaluate()):
                             log.debug("WRONG graph = %s,\nvalue1 = %s,\nvalue2 = %s" % (_graph, result.evaluate(), current_result.evaluate()))
                 else:
-                    self.storage.put_graph(_graph.to_tadpole(), current_result, storage_label)
+                    self.storage.put(_graph.to_tadpole(), current_result, storage_label)
                     return current_result
             except common.CannotBeCalculatedError:
                 pass
@@ -137,7 +137,7 @@ class RStar(object):
         raise common.CannotBeCalculatedError(_graph)
 
     def delta_ir(self, _graph):
-        evaluated = self.storage.get_graph(_graph.to_tadpole(), "delta_ir")
+        evaluated = self.storage.get(_graph.to_tadpole(), "delta_ir")
         if evaluated is not None:
             return evaluated
         has_passings = False
@@ -158,7 +158,7 @@ class RStar(object):
                     log.debug(debug_line)
                     log.debug("D_IR(%s)=%s" % (_graph, RStar.present_expression(delta_ir)))
                 result = lazy.LazyValue(symbolic_functions.series(delta_ir.evaluate(), symbolic_functions.e, 0, 0, True))
-                self.storage.put_graph(_graph.to_tadpole(), result, "delta_ir")
+                self.storage.put(_graph.to_tadpole(), result, "delta_ir")
                 return result
             except common.CannotBeCalculatedError:
                 pass
@@ -169,7 +169,7 @@ class RStar(object):
     def renormalize_ir(self, graph, minus_graph=False):
         storage_label = "r_tilda_red" if minus_graph else "r_tilda"
 
-        evaluated = self.storage.get_graph(graph, storage_label)
+        evaluated = self.storage.get(graph, storage_label)
         if evaluated is not None:
             return lazy.LazyValue.create(evaluated)
         if RStar.is_tadpole(graph):
@@ -191,7 +191,7 @@ class RStar(object):
             if log.is_debug_enabled():
                 log.debug(debug_line)
                 log.debug("R~(%s)=%s" % (graph, RStar.present_expression(renormalized_g)))
-            self.storage.put_graph(graph, renormalized_g, storage_label)
+            self.storage.put(graph, renormalized_g, storage_label)
             return renormalized_g
 
     @staticmethod
