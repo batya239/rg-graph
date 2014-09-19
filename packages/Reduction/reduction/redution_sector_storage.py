@@ -8,6 +8,16 @@ from rggraphenv import MongoClientWrapper, StrIdExtractor, symbolic_functions, l
 from sector import Sector, d
 import swiginac
 import atexit
+import subprocess
+
+try:
+    from revision import REVISION
+except ImportError:
+    try:
+        REVISION = subprocess.Popen("hg id -i", shell=True, stdout=subprocess.PIPE).stdout.read()[:-1]
+    except:
+        REVISION = "revision_not_exist"
+
 
 class ReductionSectorStorage(object):
     COLLECTION_NAME = "cache_"
@@ -32,4 +42,6 @@ class ReductionSectorStorage(object):
     def put_sector(self, sector, value):
         if not self._enable:
             self._local_storage[sector] = value
-        self._storage.put(self._collection_name, sector, symbolic_functions.to_internal_code(str(value), strong=True))
+        condition = {"hg_revision": REVISION}
+        self._storage.put(self._collection_name, sector, symbolic_functions.to_internal_code(str(value), strong=True),
+                          condition=condition)
