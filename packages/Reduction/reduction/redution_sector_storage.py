@@ -18,7 +18,7 @@ class ReductionSectorStorage(object):
             self._collection_name = ReductionSectorStorage.COLLECTION_NAME + reductor_name
             atexit.register(lambda: self._storage.close())
             self._enable = True
-        except StandardError as e:
+        except Exception as e:
             self._enable = False
             self._local_storage = dict()
             log.error(e.message)
