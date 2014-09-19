@@ -10,13 +10,20 @@ import swiginac
 import atexit
 import subprocess
 
+
+def execute_or_default(cmd, default_value):
+    try:
+        return subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).stdout.read()[:-1]
+    except:
+        return default_value
+
+
 try:
     from revision import REVISION
 except ImportError:
-    try:
-        REVISION = subprocess.Popen("hg id -i", shell=True, stdout=subprocess.PIPE).stdout.read()[:-1]
-    except:
-        REVISION = "revision_not_exist"
+    REVISION = execute_or_default("hg id -i", "revision_info_is_not_exist")
+USER_NAME = execute_or_default("whoami", "user_name_is_not_specified")
+HOST_NAME = execute_or_default("hostname", "host_name_is_not_specified")
 
 
 class ReductionSectorStorage(object):
@@ -42,6 +49,6 @@ class ReductionSectorStorage(object):
     def put_sector(self, sector, value):
         if not self._enable:
             self._local_storage[sector] = value
-        condition = {"hg_revision": REVISION}
+        condition = {"hg_revision": REVISION, "user": USER_NAME, "host": HOST_NAME}
         self._storage.put(self._collection_name, sector, symbolic_functions.to_internal_code(str(value), strong=True),
                           condition=condition)
