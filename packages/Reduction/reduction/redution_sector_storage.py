@@ -24,6 +24,7 @@ except ImportError:
     REVISION = execute_or_default("hg id -i", "revision_info_is_not_exist")
 USER_NAME = execute_or_default("whoami", "user_name_is_not_specified")
 HOST_NAME = execute_or_default("hostname", "host_name_is_not_specified")
+CONDITION = {"hg_revision": REVISION, "user": USER_NAME, "host": HOST_NAME}
 
 
 class ReductionSectorStorage(object):
@@ -49,6 +50,7 @@ class ReductionSectorStorage(object):
     def put_sector(self, sector, value):
         if not self._enable:
             self._local_storage[sector] = value
-        condition = {"hg_revision": REVISION, "user": USER_NAME, "host": HOST_NAME}
-        self._storage.put(self._collection_name, sector, symbolic_functions.to_internal_code(str(value), strong=True),
-                          condition=condition)
+        self._storage.put(self._collection_name,
+                          sector,
+                          symbolic_functions.to_internal_code(str(value), strong=True),
+                          condition=CONDITION)
