@@ -401,6 +401,8 @@ class SectorRule(object):
         """
         exception_condition -- yet another condition because LiteRed is so crazy
         """
+        assert "j_pswiginac" not in apply_formula
+
         self._exception_condition = exception
         self._additional_condition = additional_condition
         self._apply_formula = apply_formula

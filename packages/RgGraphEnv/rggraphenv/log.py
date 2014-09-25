@@ -40,5 +40,5 @@ def info(msg, *params):
     logger.info(msg)
 
 
-def error(mas, *params):
+def error(msg, *params):
     logger.error(msg)
