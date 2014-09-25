@@ -116,7 +116,3 @@ FOUR_LOOP_REDUCTOR = reductor.Reductor("p4a",
                                        "loop4",
                                        4,
                                        dict(map(lambda (g, v): (graphine.Graph.from_str(g), symbolic_functions.evaluate(v)), masters.iteritems())), "q", "l")
-
-
-
-FOUR_LOOP_REDUCTOR.init_if_need()
