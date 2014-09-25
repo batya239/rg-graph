@@ -6,7 +6,8 @@ __author__ = 'mkompan'
 
 from graph_state_builder_static import gs_builder
 import swiginac
-from rggraphenv.symbolic_functions import safe_integer_numerators_strong, e, zeta, var, Pi, series, tgamma, Order, p
+from rggraphenv.symbolic_functions import e, zeta, var, Pi, series, tgamma, Order, p
+from rggraphenv.symbolic_functions import _safe_integer_numerators_strong as safe_integer_numerators_strong
 
 from ch import H
 psi = swiginac.psi
@@ -232,7 +233,5 @@ if __name__ == "__main__":
 
     print
     print eta3_
-    print eta3_.subs(e==e/2).collect(e)
     print (eta3_-eta_n.coeff(x, 3)).collect(e)
     print
-    print (eta3_-eta_n.coeff(x, 3)).collect(e).subs(e==e/2).expand()

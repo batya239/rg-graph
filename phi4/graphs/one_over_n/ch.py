@@ -4,7 +4,8 @@ import swiginac
 
 __author__ = 'mkompan'
 
-from rggraphenv.symbolic_functions import e, tgamma, series, var, Pi, zeta, Euler, safe_integer_numerators
+from rggraphenv.symbolic_functions import e, tgamma, series, var, Pi, zeta, Euler
+from rggraphenv.symbolic_functions import _safe_integer_numerators_strong as safe_integer_numerators_strong
 
 D = 4-2*e
 
