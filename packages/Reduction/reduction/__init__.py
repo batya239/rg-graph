@@ -11,3 +11,5 @@ from reductor import Reductor
 import reduction_graph_util as graph_util
 from sector import Sector
 from bases import BASIS_2, BASIS_3, BASIS_4
+
+J = Sector
