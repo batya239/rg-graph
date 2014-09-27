@@ -180,8 +180,8 @@ class ReductorResult(object):
     def __str__(self):
         return str(self._final_sector_linear_combinations)
 
-    def evaluate(self, substitute_sectors=False, _d=None, series_n=-1, remove_o=True):
-        if not substitute_sectors:
+    def evaluate(self, substitute_masters=False, _d=None, series_n=-1, remove_o=True):
+        if not substitute_masters:
             return self._evaluate_unsubsituted(_d=_d, series_n=series_n, remove_o=remove_o)
         value = self._final_sector_linear_combinations.get_value(self._masters)
         return ReductorResult._evaluate_coefficient(value, _d=_d, series_n=series_n, remove_o=remove_o)
@@ -453,6 +453,8 @@ class Reductor(object):
         if log.is_debug_enabled():
             log.debug("time " + str(time.time()-ms) + ", cache hits " + str(hits.get()) + ", all points " + str(_all.get()))
         return ReductorResult(a_sectors, self._masters)
+
+    calculate_j = evaluate_sector
 
     def _get_file_path(self, file_name):
         dir_path = self._get_dir_path()

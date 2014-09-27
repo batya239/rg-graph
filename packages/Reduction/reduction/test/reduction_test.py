@@ -42,7 +42,7 @@ class ReductionTest(unittest.TestCase):
             self.assertIsNone(unsubstituted_actual)
             return
         expected = symbolic_functions.evaluate_expression(expected_value_string)
-        actual = unsubstituted_actual.evaluate(substitute_sectors=True,
+        actual = unsubstituted_actual.evaluate(substitute_masters=True,
                                                _d=symbolic_functions.d_phi4,
                                                series_n=4,
                                                remove_o=True)
