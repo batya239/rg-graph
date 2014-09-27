@@ -53,7 +53,6 @@ class RStar(object):
 
     def __init__(self):
         self._uv_filter = configure.Configure.uv_filter()
-        self._ir_filter = configure.Configure.ir_filter()
         self._k_operation = configure.Configure.k_operation()
         self.storage = configure.Configure.storage()
 
@@ -136,7 +135,15 @@ class RStar(object):
             return result
         raise common.CannotBeCalculatedError(_graph)
 
-    def delta_ir(self, _graph):
+    def delta_uv(self, _graph):
+        value = - self.kr_star(_graph)
+        value = value.evaluate() if isinstance(value, lazy.Lazy) else value
+        value = value.expand()
+        if "Order(1)" in str(value):
+            value = symbolic_functions.series(value, symbolic_functions.e, 0, 0, remove_order=True)
+        return value
+
+    def _delta_ir(self, _graph):
         evaluated = self.storage.get(_graph.to_tadpole(), "delta_ir")
         if evaluated is not None:
             return evaluated
@@ -153,7 +160,7 @@ class RStar(object):
                 for counter_item, shrunk, _, debug_line_piece in self.x_r_prime(graph):
                     if self.debug():
                         debug_line += "-" + debug_line_piece + "*D_IR(%s)" % shrunk
-                    delta_ir -= counter_item * self.delta_ir(shrunk)
+                    delta_ir -= counter_item * self._delta_ir(shrunk)
                 if log.is_debug_enabled():
                     log.debug(debug_line)
                     log.debug("D_IR(%s)=%s" % (_graph, RStar.present_expression(delta_ir)))
@@ -166,6 +173,10 @@ class RStar(object):
             return lazy.ZERO
         raise common.CannotBeCalculatedError(_graph)
 
+    def delta_ir(self, _graph):
+        raw = self._delta_ir(_graph)
+        return raw.evaluate() if isinstance(raw, lazy.Lazy) else raw
+
     def renormalize_ir(self, graph, minus_graph=False):
         storage_label = "r_tilda_red" if minus_graph else "r_tilda"
 
@@ -174,12 +185,12 @@ class RStar(object):
             return lazy.LazyValue.create(evaluated)
         if RStar.is_tadpole(graph):
             assert not minus_graph
-            return lazy.LazyValue.create(self.delta_ir(graph))
+            return lazy.LazyValue.create(self._delta_ir(graph))
         else:
             if log.is_debug_enabled():
                 debug_line = "R~(%s)=V(%s)" % (graph, graph)
             renormalized_g = lazy.ZERO if minus_graph else calculate_graph(graph)
-            for co_ir in graph.x_relevant_sub_graphs(self._uv_filter + is_1uniting + no_hanging_parts,
+            for co_ir in graph.x_relevant_sub_graphs(graphine.filters.one_irreducible + self._uv_filter + is_1uniting + no_hanging_parts,
                                                      cut_edges_to_external=False,
                                                      result_representator=graphine.Representator.asGraph):
                 if ir_uv.uv_index(co_ir) > 0:
@@ -187,7 +198,7 @@ class RStar(object):
                     raise common.CannotBeCalculatedError(graph)
                 if log.is_debug_enabled():
                     debug_line += "+V(%s)*D_IR(%s)" % (co_ir, graph_util.shrink_to_point(graph, (co_ir, ))[0])
-                renormalized_g += calculate_graph(co_ir) * self.delta_ir(graph_util.shrink_to_point(graph, (co_ir, ))[0])
+                renormalized_g += calculate_graph(co_ir) * self._delta_ir(graph_util.shrink_to_point(graph, (co_ir, ))[0])
             if log.is_debug_enabled():
                 log.debug(debug_line)
                 log.debug("R~(%s)=%s" % (graph, RStar.present_expression(renormalized_g)))

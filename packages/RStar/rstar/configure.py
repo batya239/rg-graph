@@ -20,6 +20,9 @@ class Configure(object):
         self._space_dimension = None
         self._space_dimension_int = None
 
+        import common
+        self.with_k_operation(common.MSKOperation())
+
     def with_dimension(self, dimension):
         self._dimension = dimension
         self._space_dimension = dimension.subs(rggraphenv.symbolic_functions.e == 0)
@@ -35,10 +38,19 @@ class Configure(object):
         return self
 
     def with_uv_filter(self, uv_relevance_condition):
-        self._uv_filter = graphine.filters.is_relevant(uv_relevance_condition)
+        if isinstance(uv_relevance_condition, list):
+            self._uv_filter = uv_relevance_condition
+        else:
+            self._uv_filter = graphine.filters.is_relevant(uv_relevance_condition)
         return self
 
     def with_ir_filter(self, ir_relevance_condition):
+        """
+        deprecated
+
+        :param ir_relevance_condition:
+        :return:
+        """
         self._ir_filter = (graphine.filters.connected + graphine.filters.is_relevant(ir_relevance_condition))
         return self
 

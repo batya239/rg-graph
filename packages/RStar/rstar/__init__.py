@@ -8,3 +8,4 @@ from gfun_calculator import GGraphReducer
 from const import DIM_PHI4, SPACE_DIM_PHI4
 from numerators_util import GRAPHS_WITH_SCALAR_PRODUCTS_CALCULATOR
 from common import AbstractKOperation, MSKOperation, graph_has_not_ir_divergence_filter, CannotBeCalculatedError
+from r import RStar

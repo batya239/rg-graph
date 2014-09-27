@@ -143,7 +143,7 @@ def has_momentum_quadratic_divergence(sub_graph):
 
 
 def graph_from_str(string,
-                   do_init_weight=False,
+                   do_init_weight=True,
                    zero_weight=const.ZERO_WEIGHT,
                    unit_weight=const.UNIT_WEIGHT,
                    do_init_arrow=False,
