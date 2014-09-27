@@ -9,7 +9,5 @@ from reduction_graph_calculator import ScalarProductReductionGraphCalculator
 from scalar_product import ScalarProduct
 from reductor import Reductor
 import reduction_graph_util as graph_util
-from sector import Sector
+from sector import J
 from bases import BASIS_2, BASIS_3, BASIS_4
-
-J = Sector

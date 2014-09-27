@@ -5,7 +5,7 @@ __author__ = 'dima'
 
 
 from rggraphenv import MongoClientWrapper, StrIdExtractor, symbolic_functions, log
-from sector import Sector, d
+from sector import Sector, d, J
 import swiginac
 import atexit
 import subprocess

@@ -20,7 +20,7 @@ def clnZeroDict():
     return collections.defaultdict(lambda: symbolic_functions.CLN_ZERO)
 
 
-class Sector(object):
+class J(object):
     SECTOR_TO_KEY = dict()
 
     def __init__(self, *propagators_weights):
@@ -56,7 +56,7 @@ class Sector(object):
         return SectorLinearCombination.singleton(self, symbolic_functions.CLN_MINUS_ONE)
 
     def __str__(self):
-        return "Sector" + str(self._propagators_weights).replace(" ", "")
+        return "J" + str(self._propagators_weights).replace(" ", "")
 
     def __repr__(self):
         return str(self)
@@ -132,6 +132,9 @@ class Sector(object):
             else:
                 propagators_weights.append(weight)
         return Sector(propagators_weights)
+
+
+Sector = J
 
 
 class SectorLinearCombination(object):
