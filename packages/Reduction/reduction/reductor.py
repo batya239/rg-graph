@@ -373,6 +373,8 @@ class Reductor(object):
             log.debug("rules not found" + probably_calculable_sectors)
         return None
 
+    calculate_diagram = calculate
+
     def calculate_sector(self, a_sector, sp=None):
         sectors = sp.apply(a_sector, self._scalar_product_rules) if sp is not None else a_sector
         return self.evaluate_sector(sectors)
