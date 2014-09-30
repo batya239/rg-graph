@@ -10,7 +10,7 @@ setup(
     packages=['graphine', 'graphine.test'],
     url='http://pypi.python.org/pypi/Graphine/',
     license='LICENSE.txt',
-    description='Manipulating on graphs',
+    description='Graph manipulation package based on GraphState',
     long_description=open('README.txt').read(),
     requires=['GraphState (>= 1.0.0)']
 )
