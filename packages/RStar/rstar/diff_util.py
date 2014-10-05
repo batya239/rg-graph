@@ -67,49 +67,49 @@ if 'combinations_with_replacement' not in itertools.__dict__:
     itertools.combinations_with_replacement = combinations_with_replacement
 
 
-def _do_diff(graph, old_graph, comb):
-    all_edges = list(old_graph.edges())
-    new_vertex = old_graph.create_vertex_index()
-    if comb[0] == comb[1]:
-        #
-        # (d_xi)^2
-        #
-        edge = comb[0][1][0]
-        all_edges.remove(edge)
-        all_edges.append(graph_util.new_edge((edge.nodes[0], new_vertex),
-                                             weight=const.UNIT_WEIGHT,
-                                             external_node=graph.external_vertex))
-        all_edges.append(graph_util.new_edge((edge.nodes[1], new_vertex),
-                                             weight=const.UNIT_WEIGHT,
-                                             external_node=graph.external_vertex))
-        return c2(), graphine.Graph(all_edges, renumbering=False)
-    else:
-        #
-        # d_xi
-        #
-        for c in comb:
-            edge = c[1][0]
-            try:
-                all_edges.remove(edge)
-            except ValueError as e:
-                print edge, all_edges
-                raise e
-            numerator = graph_state.Arrow(graph_state.Arrow.LEFT_ARROW if comb[1] else graph_state.Arrow.RIGHT_ARROW)
-            new_edge1 = graph_util.new_edge((edge.nodes[0], new_vertex),
-                                            external_node=graph.external_vertex,
-                                            weight=const.UNIT_WEIGHT,
-                                            arrow=numerator,
-                                            marker=const.MARKER_1)
-            new_edge2 = graph_util.new_edge((edge.nodes[1], new_vertex),
-                                            weight=const.UNIT_WEIGHT,
-                                            arrow=graph_state.Arrow(graph_state.Arrow.NULL),
-                                            external_node=graph.external_vertex,
-                                            marker=const.MARKER_1)
-            all_edges.append(new_edge1)
-            all_edges.append(new_edge2)
-        all_edges = map(lambda e: e.copy(arrow=graph_state.Arrow(graph_state.Arrow.NULL)) if e.arrow is None else e,
-                        all_edges)
-        return c1(), graphine.Graph(all_edges, renumbering=False)
+# def _do_diff(graph, old_graph, comb):
+#     all_edges = list(old_graph.edges())
+#     new_vertex = old_graph.create_vertex_index()
+#     if comb[0] == comb[1]:
+#         #
+#         # (d_xi)^2
+#         #
+#         edge = comb[0][1][0]
+#         all_edges.remove(edge)
+#         all_edges.append(graph_util.new_edge((edge.nodes[0], new_vertex),
+#                                              weight=const.UNIT_WEIGHT,
+#                                              external_node=graph.external_vertex))
+#         all_edges.append(graph_util.new_edge((edge.nodes[1], new_vertex),
+#                                              weight=const.UNIT_WEIGHT,
+#                                              external_node=graph.external_vertex))
+#         return c2(), graphine.Graph(all_edges, renumbering=False)
+#     else:
+#         #
+#         # d_xi
+#         #
+#         for c in comb:
+#             edge = c[1][0]
+#             try:
+#                 all_edges.remove(edge)
+#             except ValueError as e:
+#                 print edge, all_edges
+#                 raise e
+#             numerator = graph_state.Arrow(graph_state.Arrow.LEFT_ARROW if comb[1] else graph_state.Arrow.RIGHT_ARROW)
+#             new_edge1 = graph_util.new_edge((edge.nodes[0], new_vertex),
+#                                             external_node=graph.external_vertex,
+#                                             weight=const.UNIT_WEIGHT,
+#                                             arrow=numerator,
+#                                             marker=const.MARKER_1)
+#             new_edge2 = graph_util.new_edge((edge.nodes[1], new_vertex),
+#                                             weight=const.UNIT_WEIGHT,
+#                                             arrow=graph_state.Arrow(graph_state.Arrow.NULL),
+#                                             external_node=graph.external_vertex,
+#                                             marker=const.MARKER_1)
+#             all_edges.append(new_edge1)
+#             all_edges.append(new_edge2)
+#         all_edges = map(lambda e: e.copy(arrow=graph_state.Arrow(graph_state.Arrow.NULL)) if e.arrow is None else e,
+#                         all_edges)
+#         return c1(), graphine.Graph(all_edges, renumbering=False)
 
 
 def _do_diff(base_graph_edges, old_graph, comb):
@@ -123,10 +123,10 @@ def _do_diff(base_graph_edges, old_graph, comb):
         all_edges.remove(edge)
         all_edges.append(graph_util.new_edge((edge.nodes[0], new_vertex),
                                              weight=const.UNIT_WEIGHT,
-                                             external_node=graph.external_vertex))
+                                             external_node=old_graph.external_vertex))
         all_edges.append(graph_util.new_edge((edge.nodes[1], new_vertex),
                                              weight=const.UNIT_WEIGHT,
-                                             external_node=graph.external_vertex))
+                                             external_node=old_graph.external_vertex))
         return c2(), graphine.Graph(all_edges, renumbering=False)
     else:
         #
@@ -141,21 +141,20 @@ def _do_diff(base_graph_edges, old_graph, comb):
                 raise e
             numerator = graph_state.Arrow(graph_state.Arrow.LEFT_ARROW if comb[1] else graph_state.Arrow.RIGHT_ARROW)
             new_edge1 = graph_util.new_edge((edge.nodes[0], new_vertex),
-                                            external_node=graph.external_vertex,
+                                            external_node=old_graph.external_vertex,
                                             weight=const.UNIT_WEIGHT,
                                             arrow=numerator,
                                             marker=const.MARKER_1)
             new_edge2 = graph_util.new_edge((edge.nodes[1], new_vertex),
                                             weight=const.UNIT_WEIGHT,
                                             arrow=graph_state.Arrow(graph_state.Arrow.NULL),
-                                            external_node=graph.external_vertex,
+                                            external_node=old_graph.external_vertex,
                                             marker=const.MARKER_1)
             all_edges.append(new_edge1)
             all_edges.append(new_edge2)
         all_edges = map(lambda e: e.copy(arrow=graph_state.Arrow(graph_state.Arrow.NULL)) if e.arrow is None else e,
                         all_edges)
         return c1(), graphine.Graph(all_edges, renumbering=False)
-
 
 def diff_p2(graph):
     assert graph.external_edges_count == 2
