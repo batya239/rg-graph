@@ -50,11 +50,6 @@ masters["e1122|e22||"] = "G(1,1)**2*G(1,2-2*l)*G(1,2-3*l)"
 masters["e11111|e|"] = "G(1,1)*G(1-l,1)*G(1-2*l,1)*G(1-3*l,1)"
 masters["e11|22|33|44|e|"] = "G(1,1)**4"
 
-topology = list()
-topology.append("e12|34|35|6|67|67||e|")
-topology.append("e12|34|56|56|57||7|e|")
-topology.append("e12|34|35|6|56|7|7|e|")
-
 symbolic_functions.Am1 = symbolic_functions.var("Am1")
 symbolic_functions.A0 = symbolic_functions.var("A0")
 symbolic_functions.A1 = symbolic_functions.var("A1")
@@ -94,6 +89,5 @@ symbolic_functions.E5 = symbolic_functions.var("E5")
 
 FOUR_LOOP_REDUCTOR = reductor.Reductor("p4a",
                                        "loop4d",
-                                       map(lambda g: graphine.Graph.from_str(g), topology),
                                        4,
-                                       dict(map(lambda (g, v): (graphine.Graph.from_str(g), symbolic_functions.evaluate(v, strong_to_internal_code=True)), masters.iteritems())), "q", "l")
+                                       dict(map(lambda (g, v): (graphine.Graph.from_str(g), symbolic_functions.evaluate(v)), masters.iteritems())), "q", "l")

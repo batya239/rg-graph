@@ -47,7 +47,7 @@ def parse_scalar_products_reducing_rules(file_path, j_suffix, loop_momentum_sign
                 else:
                     kp.append(0)
             key = scalar_product.ScalarProductRuleKey(*kp)
-            raw_rule = symbolic_functions.safe_integer_numerators_strong(raw_rule)
+            raw_rule = symbolic_functions.to_internal_code(raw_rule, strong=True)
             rules[key] = eval(raw_rule)
         return rules
 

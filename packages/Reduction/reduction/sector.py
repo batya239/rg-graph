@@ -20,7 +20,7 @@ def clnZeroDict():
     return collections.defaultdict(lambda: symbolic_functions.CLN_ZERO)
 
 
-class Sector(object):
+class J(object):
     SECTOR_TO_KEY = dict()
 
     def __init__(self, *propagators_weights):
@@ -56,7 +56,7 @@ class Sector(object):
         return SectorLinearCombination.singleton(self, symbolic_functions.CLN_MINUS_ONE)
 
     def __str__(self):
-        return "Sector" + str(self._propagators_weights).replace(" ", "")
+        return "J" + str(self._propagators_weights).replace(" ", "")
 
     def __repr__(self):
         return str(self)
@@ -117,12 +117,13 @@ class Sector(object):
                                                       lambda _s, _g: Sector.create_from_shrunk_topology(_s, _g, all_propagators_count))
 
     @staticmethod
-    def create_from_shrunk_topology(topology_graph, weights_graph, all_propagators_count):
+    def create_from_shrunk_topology(topology_graph, weights_graph, all_propagators_count, weight_extractor):
         id_to_weight = dict()
         for e1, e2 in itertools.izip(topology_graph.edges(nickel_ordering=True),
                                      weights_graph.edges(nickel_ordering=True)):
-            if not e1.is_external() and e2.weight:
-                id_to_weight[e1.colors[0]] = e2.weight.a
+            weight = weight_extractor(e2)
+            if not e1.is_external() and weight:
+                id_to_weight[e1.weight[0]] = weight
         propagators_weights = list()
         for i in xrange(all_propagators_count):
             weight = id_to_weight.get(i, None)
@@ -131,6 +132,9 @@ class Sector(object):
             else:
                 propagators_weights.append(weight)
         return Sector(propagators_weights)
+
+
+Sector = J
 
 
 class SectorLinearCombination(object):
@@ -293,8 +297,8 @@ class SectorLinearCombination(object):
         # l = sorted(self.sectors_to_coefficient.keys(), cmp=reduction_util._compare)
         # l.reverse()
         # return str(l)
-        return symbolic_functions.safe_integer_numerators(str(self.additional_part)) + "".join(
-            map(lambda i: "+%s*(%s)" % (i[0], symbolic_functions.safe_integer_numerators(str(i[1]))), self.sectors_to_coefficient.items()))
+        return symbolic_functions.to_internal_code(str(self.additional_part)) + "".join(
+            map(lambda i: "+%s*(%s)" % (i[0], symbolic_functions.to_internal_code(str(i[1]))), self.sectors_to_coefficient.items()))
 
     __repr__ = __str__
 
@@ -400,6 +404,8 @@ class SectorRule(object):
         """
         exception_condition -- yet another condition because LiteRed is so crazy
         """
+        assert "j_pswiginac" not in apply_formula
+
         self._exception_condition = exception
         self._additional_condition = additional_condition
         self._apply_formula = apply_formula

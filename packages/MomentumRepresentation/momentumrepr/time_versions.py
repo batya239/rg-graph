@@ -39,6 +39,14 @@ class GraphAndTimeVersion(object):
     def __init__(self, graph, time_version):
         self._graph = graph
         self._time_version = time_version
+        self._check()
+
+    def _check(self):
+        external_edges = self._graph.external_edges
+        assert len(external_edges) == 2
+        for e in external_edges:
+            node = e.internal_node
+            assert node == self._time_version[0] or node == self._time_version[-1]
 
     @property
     def graph(self):

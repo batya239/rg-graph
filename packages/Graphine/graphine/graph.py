@@ -2,7 +2,6 @@
 # -*- coding: utf8
 import copy
 import graph_state
-import rggraphutil
 import graph_operations
 import itertools
 import collections
