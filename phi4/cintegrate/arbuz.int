@@ -1,8 +1,18 @@
-SetMath
-math
+SetIntegrator
+suaveCuba
+SetCurrentIntegratorParameter
+maxeval
+10000000
+SetCurrentIntegratorParameter
+epsrel
+1E-8
+CubaCores
+8
+GetCurrentIntegratorParameters
 Integrate
 2;
-0;
-((x[1]))*((x[2]))*(p[1+x[1]+x[1]*x[2],-2])*(p[1+x[2]+x[1]*x[2],-2]);
+1;
+((x[2]))*((x[1]))*(p[1+x[2]+x[2]*x[1], -2.0])*(p[1+x[1]+x[2]*x[1], -2.0]) * -1.0;
+f[1];
 |
 Exit
