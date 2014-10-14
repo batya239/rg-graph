@@ -173,8 +173,7 @@ class Canonicalize(object):
         self.num_symmetries = len(nickels)
         self.nickel = min(nickels)
         assert min(nickels) == max(nickels), 'All nickels must be equal.'
-        assert len(flatten(self.nickel)) == len(self.edges), ('Nickel must '
-                'include all edges.')
+        assert len(flatten(self.nickel)) == len(self.edges), ('Graph is not connected: %s' % (edges, ))
 
         # Shift back to original nodes.
         self.node_maps = []

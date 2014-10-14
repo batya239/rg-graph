@@ -1,8 +1,11 @@
-#!/usr/bin/python
+# !/usr/bin/python
 # -*- coding: utf8
-import storage
 import atexit
+
 import inject
+
+import graph_storage
+
 
 __author__ = 'daddy-bear'
 
@@ -29,14 +32,16 @@ class GraphCalculatorManager(object):
             if c.is_applicable(graph):
                 res = c.calculate(graph)
                 if res is not None:
-                    if put_value_to_storage and not inject.instance(storage.StoragesHolder).get_graph(graph, "value"):
-                        inject.instance(storage.StoragesHolder).put_graph(graph, res, "value")
+                    if put_value_to_storage and not inject.instance(graph_storage.StorageHolder).get(graph,
+                                                                                                            "value"):
+                        inject.instance(graph_storage.StorageHolder).put(graph, res, "value")
                     return res, c.get_label()
         return None
 
     def dispose(self):
         while len(self._calculators):
             self._calculators.pop().dispose()
+
 
 @atexit.register
 def dispose():

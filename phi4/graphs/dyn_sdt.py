@@ -5,7 +5,7 @@ import os
 import sys
 import re
 
-import graph_state
+from graph_state_builder_with_fields import gs_builder
 import polynomial
 
 import subgraphs
@@ -34,7 +34,8 @@ methodName = "simpleSDT"
 dynamics.method_name = methodName
 
 graphName_ = sys.argv[1]
-gs = graph_state.GraphState.fromStr(graphName_)
+gs = gs_builder.graph_state_from_str(graphName_)
+
 print str(gs)
 dG = dynamics.DynGraph(gs)
 
@@ -53,7 +54,7 @@ for tVersion_ in tVersions:
     fileName = "%s/dyn_sectors.py" % dirName
     exec (open(fileName).read())
 
-    gs = graph_state.GraphState.fromStr(graphName)
+    gs = gs_builder.graph_state_from_str(graphName)
 
     dG = dynamics.DynGraph(gs)
     #dG.FindSubgraphs(model)

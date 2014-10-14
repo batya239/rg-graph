@@ -155,7 +155,7 @@ def stretch_list(sector, graph, unique=False):
     stretch = []
     subs = graph._subgraphs_as_line_ids
     for j in range(len(subs)):
-        si = len(set(sector) & set(subs[j])) - graph._subgraphs[j].getLoopsCount()
+        si = len(set(sector) & set(subs[j])) - graph._subgraphs[j].loops_count
         stretch += ["a%s" % j] * si
     if unique:
         return list(set(stretch))
@@ -614,7 +614,7 @@ def master_slaves(branch, branches):
     return branch, branches_
 
 
-def add_speer_branches(tree, variables, conservations, parents=list(), depth=0, graph=None):
+def add_speer_branches(tree, variables, conservations, parents=list(), depth=0, graph=None, skip_bad_branches=False):
     # print parents, depth
     if depth == 0:
         return
@@ -630,7 +630,10 @@ def add_speer_branches(tree, variables, conservations, parents=list(), depth=0, 
         if len(branches) == 0:
             return
         elif len(branches) == 1:
-            raise ValueError("parents: %s, branches %s" % (parents, branches))
+            if skip_bad_branches:
+                return
+            else:
+                raise ValueError("parents: %s, branches %s" % (parents, branches))
         else:
             branch_count = dict()
             branch_vars = dict()
@@ -664,16 +667,17 @@ def add_speer_branches(tree, variables, conservations, parents=list(), depth=0, 
                                    conservations,
                                    parents=parents + [(master, tuple(branches))],
                                    depth=depth - 1,
-                                   graph=graph)
+                                   graph=graph,
+                                   skip_bad_branches=skip_bad_branches)
 
 
-def gen_speer_tree(graph, depth=None, symmetries=False):
+def gen_speer_tree(graph, depth=None, symmetries=False, skip_bad_branches=False):
     tree = MSNTree(None, None, [])
     variables = graph._qi.keys()
     if depth is None:
-        add_speer_branches(tree, variables, graph._cons, parents=list(), depth=graph.getLoopsCount(), graph=graph if symmetries else None)
+        add_speer_branches(tree, variables, graph._cons, parents=list(), depth=graph.getLoopsCount(), graph=graph if symmetries else None, skip_bad_branches=skip_bad_branches)
     else:
-        add_speer_branches(tree, variables, graph._cons, parents=list(), depth=depth, graph=graph if symmetries else None)
+        add_speer_branches(tree, variables, graph._cons, parents=list(), depth=depth, graph=graph if symmetries else None, skip_bad_branches=skip_bad_branches)
     return tree
 
 

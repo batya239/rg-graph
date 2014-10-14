@@ -5,7 +5,7 @@ import os
 import sys
 import re
 
-import graph_state
+from graph_state_builder_with_fields import gs_builder
 import polynomial.sd_lib as sd_lib
 import polynomial
 
@@ -19,9 +19,9 @@ model = _phi4_dyn("phi4_dyn_test")
 methodName = "simpleSDT"
 dynamics.method_name = methodName
 
-points = int(sys.argv[1])
-graphName = sys.argv[2]
-gs = graph_state.GraphState.fromStr(graphName)
+points = int(sys.argv[2])
+graphName = sys.argv[1]
+gs = gs_builder.graph_state_from_str(graphName)
 print str(gs)
 dG = dynamics.DynGraph(gs)
 
@@ -41,7 +41,7 @@ for tVersion_ in tVersions:
     fileName = "%s/dyn_sectors.py" % dirName
     exec (open(fileName).read())
 
-    gs = graph_state.GraphState.fromStr(graphName)
+    gs = gs_builder.graph_state_from_str(graphName)
     tVersion = tVersion
 
     dG = dynamics.DynGraph(gs)

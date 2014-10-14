@@ -8,7 +8,7 @@ __author__ = 'dimas'
 
 import os
 from rggraphutil import ref, VariableAwareNumber
-from rggraphenv import abstract_graph_calculator
+from rggraphenv import log
 import graphine
 
 import jrules_parser
@@ -16,12 +16,11 @@ import sector
 import reduction_util
 import graph_state
 import scalar_product
+import reduction_graph_util
+import redution_sector_storage
 
 
 e = symbolic_functions.e
-
-
-DEBUG = False
 
 
 class ReductorHolder(object):
@@ -34,9 +33,9 @@ class ReductorHolder(object):
                 return True
         return False
 
-    def calculate(self, graph, scalar_product_aware_function=None):
+    def calculate(self, graph, weight_extractor, scalar_product_aware_function=None):
         for r in self._reductors:
-            v = r.calculate(graph, scalar_product_aware_function)
+            v = r.calculate(graph, weight_extractor, scalar_product_aware_function)
             if v is not None:
                 return v
         return None
@@ -53,7 +52,7 @@ class RuleNotFoundException(BaseException):
 def _enumerated_graph_as_sector(g, initial_propagators_len):
     raw_sector = [0] * initial_propagators_len
     for e in g.internalEdges():
-        raw_sector[e.colors[0]] = 1
+        raw_sector[e.weight[0]] = 1
     return sector.Sector(raw_sector)
 
 
@@ -65,16 +64,17 @@ def _enumerate_graph(graph, init_propagators, to_sector=True, only_one_result=Fa
     to_sector = False => return graphine.Graph with corresponding weight
     """
 
-    empty_color = graph_state.Rainbow(("EMPTY",))
-    def init_weight(graph, zero_color=graph_state.Rainbow((0, 0)), unit_color=graph_state.Rainbow((1, 0))):
+    def init_weight(graph, zero_color=(0, 0), unit_color=(1, 0)):
         inited_edges = list()
         for e in graph:
-            if e.colors is None:
+            if e.weight is None:
                 color = zero_color if graph.external_vertex in e.nodes else unit_color
-                inited_edges.append(graph_state.Edge(e.nodes, graph.external_vertex, colors=color))
+                inited_edges.append(reduction_graph_util.new_edge(e.nodes, graph.external_vertex, weight=color))
             else:
                 inited_edges.append(e)
         return graphine.Graph(inited_edges, renumbering=False)
+
+    empty_color = ("EMPTY",)
     graph = init_weight(graph, empty_color, empty_color)
 
     neg_init_propagators = dict()
@@ -92,12 +92,12 @@ def _enumerate_graph(graph, init_propagators, to_sector=True, only_one_result=Fa
 
     def _enumerate_next_vertex(remaining_propagators, _graph, vertex, result):
         if vertex not in graph_vertices:
-            new_edges = map(lambda e_: e_.copy(colors=graph_state.Rainbow((propagator_indices[e_.colors], e_.colors.colors)) if not e_.is_external() else None),
+            new_edges = map(lambda e_: e_.copy(weight=(propagator_indices[e_.weight], e_.weight) if not e_.is_external() else None),
                             _graph.edges())
             has_momentums = rggraphutil.emptyListDict()
             for e in _graph.edges():
                 if not e.is_external():
-                    for i, c in enumerate(e.colors):
+                    for i, c in enumerate(e.weight):
                         if c != 0:
                             has_momentums[i].append(e)
             if set(has_momentums.keys()) != set(range(graph.loops_count + 1)):
@@ -115,12 +115,12 @@ def _enumerate_graph(graph, init_propagators, to_sector=True, only_one_result=Fa
         vertex_known_factor = [0] * momentum_count
         not_enumerated = list()
         for e in _graph.edges(vertex):
-            if e.colors is not empty_color:
+            if e.weight is not empty_color:
                 for i in xrange(momentum_count):
                     if vertex == e.nodes[0]:
-                        vertex_known_factor[i] += e.colors[i]
+                        vertex_known_factor[i] += e.weight[i]
                     else:
-                        vertex_known_factor[i] -= e.colors[i]
+                        vertex_known_factor[i] -= e.weight[i]
             elif len(e.internal_nodes) == 1:
                 if vertex == 0:
                     vertex_known_factor[0] += 1
@@ -148,7 +148,7 @@ def _enumerate_graph(graph, init_propagators, to_sector=True, only_one_result=Fa
                         del new_remaining_propagators[index]
                         new_edges = list(_graph.edges())
                         new_edges.remove(not_enumerated[0])
-                        new_edges.append(not_enumerated[0].copy(colors=graph_state.Rainbow(propagator)))
+                        new_edges.append(not_enumerated[0].copy(weight=propagator))
                         new_graph = graphine.Graph(new_edges, renumbering=False)
                         _enumerate_next_vertex(new_remaining_propagators, new_graph, vertex + 1, result)
                 else:
@@ -156,7 +156,7 @@ def _enumerate_graph(graph, init_propagators, to_sector=True, only_one_result=Fa
                     del new_remaining_propagators[index]
                     new_edges = list(_graph.edges())
                     new_edges.remove(not_enumerated[0])
-                    new_edges.append(not_enumerated[0].copy(colors=graph_state.Rainbow(propagator)))
+                    new_edges.append(not_enumerated[0].copy(weight=propagator))
                     new_graph = graphine.Graph(new_edges, renumbering=False)
                     _enumerate_next_vertex(new_remaining_propagators, new_graph, vertex, result)
 
@@ -180,8 +180,8 @@ class ReductorResult(object):
     def __str__(self):
         return str(self._final_sector_linear_combinations)
 
-    def evaluate(self, substitute_sectors=False, _d=None, series_n=-1, remove_o=True):
-        if not substitute_sectors:
+    def evaluate(self, substitute_masters=False, _d=None, series_n=-1, remove_o=True):
+        if not substitute_masters:
             return self._evaluate_unsubsituted(_d=_d, series_n=series_n, remove_o=remove_o)
         value = self._final_sector_linear_combinations.get_value(self._masters)
         return ReductorResult._evaluate_coefficient(value, _d=_d, series_n=series_n, remove_o=remove_o)
@@ -216,7 +216,6 @@ class ReductorResult(object):
 
 
 class Reductor(object):
-    TOPOLOGIES_FILE_NAME = "topologies"
     MASTERS_FILE_NAME = "masters"
 
     CALLS_COUNT = 0
@@ -224,21 +223,18 @@ class Reductor(object):
     def __init__(self,
                  env_name,
                  env_path,
-                 topologies,
                  main_loop_count_condition,
                  masters,
                  external_momentum_sign,
                  loop_momentum_sign):
         self._env_name = env_name
         self._env_path = env_path
-        self._graph_topologies = topologies
         self._main_loop_count_condition = main_loop_count_condition
         self._graph_masters = masters
         self._external_momentum_sign = external_momentum_sign
         self._loop_momentum_sign = loop_momentum_sign
 
         self._propagators = None
-        self._topologies = None
         self._zero_sectors = None
         self._sector_rules = None
         self._all_propagators_count = None
@@ -248,22 +244,19 @@ class Reductor(object):
 
         self._is_inited = False
 
-    def initIfNeed(self):
+        self._cache = redution_sector_storage.ReductionSectorStorage(self._env_name)
+
+    def with_cache(self, host_name="localhost", port=27017):
+        self._cache = redution_sector_storage.ReductionSectorStorage(self._env_name, host_name, port)
+        return self
+
+    def init_if_need(self):
         if self._is_inited:
             return
         self._propagators = jrules_parser.parse_propagators(self._get_file_path(self._env_name),
                                                             self._main_loop_count_condition,
                                                             self._loop_momentum_sign,
                                                             self._external_momentum_sign)
-
-        read_topologies = self._try_read_topologies()
-        if read_topologies:
-            self._topologies = read_topologies
-        else:
-            self._topologies = reduce(lambda ts, t: ts | _enumerate_graph(t, self._propagators, to_sector=False),
-                                      self._graph_topologies,
-                                      set())
-            self._save_topologies()
 
         self._all_propagators_count = len(self._propagators)
         self._sector_rules = rggraphutil.emptyListDict()
@@ -340,76 +333,63 @@ class Reductor(object):
         return True
 
     def enumerate_graph(self, graph):
-        self.initIfNeed()
+        self.init_if_need()
         return _enumerate_graph(graph, self._propagators, to_sector=False)
 
-    def calculate(self, graph, scalar_product_aware_function=None):
+    def calculate(self, graph, weight_extractor, scalar_product_aware_function=None):
         """
         scalar_product_aware_function(topology_shrunk, graph) returns iterable of scalar_product.ScalarProduct
         """
-        self.initIfNeed()
+        assert weight_extractor is not None
+        self.init_if_need()
         if graph.loops_count != self._main_loop_count_condition:
             return None
         Reductor.CALLS_COUNT += 1
 
         probably_calculable_sectors = set()
-        str_graph = str(graph)
-        str_graph = str_graph[:str_graph.index(":")]
-        as_topologies = _enumerate_graph(graphine.Graph.from_str(str_graph),
+        as_enumerated = _enumerate_graph(graphine.Graph.from_str(graph.presentable_str),
                                          self._propagators,
                                          to_sector=False)
-        for t in as_topologies:
-            res = reduction_util.find_topology_for_graph(graph,
-                                                         (t,),
-                                                         scalar_product.find_topology_result_converter)
-            probably_calculable_sectors.add(res)
 
-        if not len(probably_calculable_sectors) and DEBUG:
-            print "no suitable sectors found"
+        if not len(as_enumerated):
             return None
 
-        if DEBUG:
-            print "try calculate with", self._env_name
+        if log.is_debug_enabled():
+            log.debug("try calculate with " + self._env_name)
 
-        for res in probably_calculable_sectors:
+        for enumerated in as_enumerated:
             try:
-                s = sector.Sector.create_from_shrunk_topology(res[0], res[1], self._all_propagators_count).as_sector_linear_combinations()
+                s = sector.Sector.create_from_shrunk_topology(enumerated, graph, self._all_propagators_count, weight_extractor).as_sector_linear_combinations()
                 if scalar_product_aware_function:
-                    for sp in scalar_product_aware_function(*res):
+                    for sp in scalar_product_aware_function(enumerated, graph):
                         s = sp.apply(s, self._scalar_product_rules)
-                print s
                 v = self.evaluate_sector(s)
                 return v
             except RuleNotFoundException:
-                if DEBUG:
-                    print "rules not found"
+                if log.is_debug_enabled():
+                    log.debug("rules not found")
                 pass
-        if DEBUG:
-            print "rules not found", probably_calculable_sectors
-            return None
+        if log.is_debug_enabled():
+            log.debug("rules not found" + probably_calculable_sectors)
+        return None
+
+    calculate_diagram = calculate
 
     def calculate_sector(self, a_sector, sp=None):
         sectors = sp.apply(a_sector, self._scalar_product_rules) if sp is not None else a_sector
         return self.evaluate_sector(sectors)
 
-    def _try_calculate(self, graph):
-        return self.evaluate_sector(sector.Sector.create_from_topologies_and_graph(graph,
-                                                                                   self._topologies,
-                                                                                   self._all_propagators_count))
-
     def evaluate_sector(self, a_sectors):
-        self.initIfNeed()
+        self.init_if_need()
         if a_sectors is None:
             return None
         import time
         ms = time.time()
-        dfs_cache = dict()
         _all = rggraphutil.Ref.create(0)
         hits = rggraphutil.Ref.create(0)
 
-
         def dfs(_sector, sector_rules, _all, hits):
-            cached = dfs_cache.get(_sector, None)
+            cached = self._cache.get_sector(_sector)
             _all.set(_all.get() + 1)
             if cached is not None:
                 hits.set(hits.get() + 1)
@@ -448,9 +428,9 @@ class Reductor(object):
                         is_updated = True
                         break
                 if not is_updated:
-                    print "rule not found for", _sector
+                    log.debug("rule not found for" + str(_sector))
                     raise RuleNotFoundException(_sector)
-            dfs_cache[_sector] = res
+            self._cache.put_sector(_sector, res)
             return res
 
         a_sectors = a_sectors.as_sector_linear_combinations()
@@ -472,9 +452,11 @@ class Reductor(object):
             cur_sectors = key_to_sector[k]
             for _s in cur_sectors:
                 a_sectors += dfs(_s, cur_rules, _all, hits) * not_masters[_s]
-        if DEBUG:
-            print "time", (time.time()-ms), " cache hits", hits.get(), " all cache points", _all.get()
+        if log.is_debug_enabled():
+            log.debug("time " + str(time.time()-ms) + ", cache hits " + str(hits.get()) + ", all points " + str(_all.get()))
         return ReductorResult(a_sectors, self._masters)
+
+    calculate_j = evaluate_sector
 
     def _get_file_path(self, file_name):
         dir_path = self._get_dir_path()
@@ -484,30 +466,8 @@ class Reductor(object):
     def _get_dir_path(self):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), self._env_path)
 
-    def _get_topologies_file_path(self):
-        return self._get_file_path(Reductor.TOPOLOGIES_FILE_NAME)
-
     def _get_masters_file_path(self):
         return self._get_file_path(Reductor.MASTERS_FILE_NAME)
-
-    def _try_read_topologies(self):
-        file_path = self._get_topologies_file_path()
-        if os.path.exists(file_path):
-            topologies = set()
-            with open(file_path, 'r') as f:
-                for s in f:
-                    topologies.add(graphine.Graph.from_str(s))
-                return topologies
-        return None
-
-    def _save_topologies(self):
-        file_path = self._get_topologies_file_path()
-        if not os.path.exists(file_path):
-            with open(file_path, 'w') as f:
-                for t in self._topologies:
-                    f.write(str(t) + "\n")
-        else:
-            raise ValueError("file %s already exists" % file_path)
 
     def _try_read_masters(self):
         file_path = self._get_masters_file_path()
@@ -537,17 +497,6 @@ class Reductor(object):
         else:
             raise ValueError("file %s already exists" % file_path)
 
-    @staticmethod
-    def as_internal_graph(graph):
-        new_edges = list()
-        if graph.getGraphStatePropertiesConfig() is graph_state.WEIGHT_ARROW_AND_MARKER_PROPERTIES_CONFIG:
-            return graph
-        for e in graph.allEdges(nickel_ordering=True):
-            weight = graph_state.Rainbow((1, 0)) if e.weight is None else e.weight
-            arrow = graph_state.Arrow(graph_state.Arrow.NULL) if e.arrow is None else e.arrow
-            new_edges.append(graph_state.WEIGHT_ARROW_AND_MARKER_PROPERTIES_CONFIG.new_edge(e.nodes, weight=weight, arrow=arrow, marker=e.marker))
-        return graphine.Graph(new_edges)
-
 
 _MAIN_REDUCTION_HOLDER = ref.Ref.create()
 _IS_INITIALIZED = ref.Ref.create(False)
@@ -558,8 +507,8 @@ def initialize(*reductors):
     _MAIN_REDUCTION_HOLDER.set(ReductorHolder(reductors))
 
 
-def calculate(graph, scalar_product_aware_function=None):
-    return _MAIN_REDUCTION_HOLDER.get().calculate(graph, scalar_product_aware_function)
+def calculate(graph, weight_extractor=None, scalar_product_aware_function=None):
+    return _MAIN_REDUCTION_HOLDER.get().calculate(graph, weight_extractor, scalar_product_aware_function)
 
 
 def is_applicable(graph):

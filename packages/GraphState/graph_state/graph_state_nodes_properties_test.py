@@ -38,8 +38,8 @@ class GraphStatePropertiesTest(unittest.TestCase):
             self.assertEqual(n.n_num, None)
 
     def testEdgesPropertiesNotEmpty(self):
-        gs = config.graph_state_from_str('e1|e|:2_1|0|:20_30:0_>|0|')
-        self.assertEqual(str(gs), 'e1|e|:0_1|2|:30_20:0_<|0|')
+        gs = config.graph_state_from_str('e1|e|:2_1|0|:20|30:0_>|0|')
+        self.assertEqual(str(gs), 'e1|e|:0_1|2|:30|20:0_<|0|')
         self.assertEqual(str(gs.nodes[0]), 'n[-1, n_num=None]')
         self.assertEqual(gs.nodes[0].index, -1)
         for n in gs.nodes[1:]:
@@ -48,16 +48,16 @@ class GraphStatePropertiesTest(unittest.TestCase):
             self.assertTrue(str(n) in ('n[0, n_num=30]', 'n[1, n_num=20]'))
 
     def testOrderingByNodes(self):
-        gs1 = config2.graph_state_from_str('e1|e|:5_1')
-        gs2 = config2.graph_state_from_str('e1|e|:1_5')
+        gs1 = config2.graph_state_from_str('e1|e|:5|1')
+        gs2 = config2.graph_state_from_str('e1|e|:1|5')
         self.assertEqual(str(gs1), str(gs2))
         self.assertEqual(gs1, gs2)
         gs3 = config2.graph_state_from_str(str(gs2))
         self.assertEqual(gs3, gs1)
 
     def testOrderingByNodes2(self):
-        gs1 = config.graph_state_from_str('e1|e|:1_1|1|:20_30:0_>|0|')
-        gs2 = config.graph_state_from_str('e1|e|:1_1|1|:30_20:0_<|0|')
+        gs1 = config.graph_state_from_str('e1|e|:1_1|1|:20|30:0_>|0|')
+        gs2 = config.graph_state_from_str('e1|e|:1_1|1|:30|20:0_<|0|')
         self.assertEqual(gs1, gs2)
 
     def testNodeCreation(self):

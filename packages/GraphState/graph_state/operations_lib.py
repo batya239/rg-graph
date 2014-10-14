@@ -1,7 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf8 -*-
 """
-all of functions in module marked with @graph_state_to_edges_implicit_conversion can take list of edges or GraphState object as parameter
+provides some useful operations on graphs such obtain vertices of graph or connected components
+
+all of functions in module marked with @graph_state_to_edges_implicit_conversion
+can take list of edges or GraphState object as parameter
 """
 __author__ = 'dima'
 
@@ -9,6 +12,9 @@ import graph_state
 
 
 def graph_state_to_edges_implicit_conversion(edges_first_parameter_function):
+    """
+    wrapper implicitly converts GraphState parameter to edges list parameter
+    """
     def graph_state_first_parameter_function(some_obj, *other_params, **other_kwargs):
         return edges_first_parameter_function(some_obj.edges
                                               if isinstance(some_obj, graph_state.GraphState)
@@ -19,11 +25,19 @@ def graph_state_to_edges_implicit_conversion(edges_first_parameter_function):
 
 @graph_state_to_edges_implicit_conversion
 def edges_for_node(edges, node):
+    """
+    return only edges that contain node as node
+    """
     return filter(lambda e: node in e.nodes, edges)
 
 
 @graph_state_to_edges_implicit_conversion
 def get_external_node(edges):
+    """
+    returns external node for edges
+
+    method not checks that all of edges have same external node
+    """
     return edges[0].external_node
 
 
@@ -96,6 +110,9 @@ def is_edge_property_fully_none(edges, property_name):
 
 @graph_state_to_edges_implicit_conversion
 def has_no_tadpoles_in_counter_term(edges, super_graph_edges):
+    """
+    TODO dima forgot what this method do
+    """
     if not len(edges):
         return False
     external_node = get_external_node(super_graph_edges)
@@ -136,6 +153,9 @@ def is_graph_connected(edges, additional_vertices=set()):
 
 @graph_state_to_edges_implicit_conversion
 def is_vertex_irreducible(edges):
+    """
+    checks that graph is vertex irreducible
+    """
     external_node = get_external_node(edges)
     vertices = get_vertices(edges)
     if len(vertices - set([external_node])) == 1:
@@ -159,6 +179,9 @@ def is_vertex_irreducible(edges):
 
 @graph_state_to_edges_implicit_conversion
 def is_1_irreducible(edges):
+    """
+    checks that graph is 1-irreducible
+    """
     if len(edges):
         external_node = get_external_node(edges)
         for e in edges:
@@ -172,6 +195,9 @@ def is_1_irreducible(edges):
 
 
 class DisjointSet(object):
+    """
+    internal class represent disjoint set as a engine for connected components algorithm
+    """
     def __init__(self, keys=set()):
         self.underlying = dict()
         for k in keys:

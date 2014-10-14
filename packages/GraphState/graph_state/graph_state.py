@@ -7,17 +7,19 @@ import graph_state
 import graph_state_property
 
 
-def chain_from_iterables(iterables):
-    for it in iterables:
-        for element in it:
-            yield element
-
-
 if 'chain_from_iterables' not in itertools.__dict__:
+    def chain_from_iterables(iterables):
+        for it in iterables:
+            for element in it:
+                yield element
+
     itertools.chain_from_iterables = chain_from_iterables
 
 
 class Properties(object):
+    """
+    internal class represents a set of named properties
+    """
     def __init__(self, from_edge, properties_config=None, **kwargs):
         assert properties_config is not None
         self._from_edge = from_edge
@@ -143,6 +145,9 @@ class Properties(object):
 
 
 class PropertiesConfig(object):
+    """
+    Base factory to produce Edge or Node objects
+    """
     def __init__(self, property_order, property_directionality, property_externalizer, property_target):
         """
         Don't use directly, see PropertiesConfig.create()
@@ -151,61 +156,6 @@ class PropertiesConfig(object):
         self._property_directionality = property_directionality
         self._property_externalizer = property_externalizer
         self._property_target = property_target
-
-    @property
-    def property_order(self):
-        return self._property_order
-
-    @property
-    def property_target(self):
-        return self._property_target
-
-    def externalizer(self, p_name):
-        return self._property_externalizer[p_name]
-
-    def properties_count(self):
-        return len(self._property_order)
-
-    def is_directed(self, property_name):
-        return self._property_directionality[property_name]
-
-    def has_property(self, property_name, from_edge=True):
-        return self._property_target.get(property_name, None) is from_edge
-
-    def new_node(self, node_index, **kwargs):
-        """
-        create new node with this config
-        """
-        kwargs['properties_config'] = self
-        return graph_state_property.Node(node_index, Properties.from_kwargs(from_edge=False, **kwargs))
-
-    def new_edge(self, nodes, external_node=-1, edge_id=None, **kwargs):
-        """
-        create new edge with this config
-        """
-        kwargs['properties_config'] = self
-        return graph_state.Edge(nodes, external_node, edge_id, **kwargs)
-
-    @classmethod
-    def new_graph_state(cls, edges):
-        return GraphState(edges)
-
-    def graph_state_from_str(self, string):
-        """
-        parse GraphState object from string with this config
-        """
-        return graph_state.GraphState.from_str(string, properties_config=self)
-
-    def new_properties(self, **kwargs):
-        return Properties(self, **kwargs)
-
-    def __len__(self):
-        return len(self._property_order)
-
-    def __str__(self):
-        return "PropertiesConfig(%s)" % self.property_order
-
-    __repr__ = __str__
 
     @staticmethod
     def create(*property_keys):
@@ -219,6 +169,86 @@ class PropertiesConfig(object):
             property_externalizer[k.name] = k.externalizer
             property_target[k.name] = k.is_edge_property
         return PropertiesConfig(property_order, property_directionality, property_externalizer, property_target)
+
+    def new_node(self, node_index, **kwargs):
+        """
+        create new node with this config with specified node_index and specified node properties in **kwargs
+        """
+        kwargs['properties_config'] = self
+        return graph_state_property.Node(node_index, Properties.from_kwargs(from_edge=False, **kwargs))
+
+    def new_edge(self, nodes, external_node=-1, edge_id=None, **kwargs):
+        """
+        nodes - pair of Node or int objects
+        **kwargs - edge properties
+
+        create new edge with this config with specified nodes
+        """
+        kwargs['properties_config'] = self
+        return graph_state.Edge(nodes, external_node, edge_id, **kwargs)
+
+    @classmethod
+    def new_graph_state(cls, edges):
+        """
+        deprecated
+        """
+        return GraphState(edges)
+
+    def graph_state_from_str(self, string):
+        """
+        parse GraphState object from string with this config
+        """
+        return graph_state.GraphState.from_str(string, properties_config=self)
+
+    def new_properties(self, **kwargs):
+        return Properties(self, **kwargs)
+
+
+    @property
+    def property_order(self):
+        """
+        don't use it, only for internal usage
+        """
+        return self._property_order
+
+    @property
+    def property_target(self):
+        """
+        don't use it, only for internal usage
+        """
+        return self._property_target
+
+    def externalizer(self, p_name):
+        """
+        don't use it, only for internal usage
+        """
+        return self._property_externalizer[p_name]
+
+    def properties_count(self):
+        """
+        don't use it, only for internal usage
+        """
+        return len(self._property_order)
+
+    def is_directed(self, property_name):
+        """
+        don't use it, only for internal usage
+        """
+        return self._property_directionality[property_name]
+
+    def has_property(self, property_name, from_edge=True):
+        """
+        don't use it, only for internal usage
+        """
+        return self._property_target.get(property_name, None) is from_edge
+
+    def __len__(self):
+        return len(self._property_order)
+
+    def __str__(self):
+        return "PropertiesConfig(%s)" % self.property_order
+
+    __repr__ = __str__
 
 
 DEFAULT_PROPERTIES_CONFIG = PropertiesConfig.create()
@@ -458,7 +488,7 @@ class GraphState(object):
                         values.append(str(v))
                         if v is not None:
                             is_all_none = False
-                    serialized.append('' if is_all_none else GraphState.SEP2.join(values))
+                    serialized.append('' if is_all_none else GraphState.NICKEL_SEP.join(values))
 
         return self.SEP.join(serialized)
 
@@ -504,7 +534,7 @@ class GraphState(object):
                         un_transposed_properties[p_name] = [None] * len(nickel_edges)
                 else:
                     if r_property_line != '':
-                        r_properties = r_property_line.split(GraphState.SEP2)
+                        r_properties = r_property_line.split(GraphState.NICKEL_SEP)
                         externalizer = properties_config.externalizer(p_name)
                         un_transposed_nodes_properties[p_name] = map(lambda raw_prop: externalizer.deserialize(raw_prop), r_properties)
                         if not not_none_node_properties:

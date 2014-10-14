@@ -16,9 +16,6 @@ l = symbolic_functions.l
 
 THREE_LOOP_REDUCTOR = reductor.Reductor("loop3",
                                "loop3",
-                               [graphine.Graph.from_str("e12|34|35|4|5|e|"),
-                                graphine.Graph.from_str("e12|34|34|5|5|e|"),
-                                graphine.Graph.from_str("e12|23|4|45|5|e|")],
                                3,
                                {graphine.Graph.from_str("e12|34|34|5|5|e|"):
                                     symbolic_functions.evaluate(
@@ -43,7 +40,6 @@ THREE_LOOP_REDUCTOR = reductor.Reductor("loop3",
 
 TWO_LOOP_REDUCTOR = reductor.Reductor("loop2",
                              "loop2",
-                             [graphine.Graph.from_str("e12|23|3|e|")],
                              2,
                              {graphine.Graph.from_str("e111|e|"): G(1, 1) * G(1 - l, 1),
                               graphine.Graph.from_str("e11|22|e|"): G(1, 1) ** 2}, "p", "k")
