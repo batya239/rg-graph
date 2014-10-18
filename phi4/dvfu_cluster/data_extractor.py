@@ -12,14 +12,14 @@ resFile = 'res_best_6loops.txt'
 KR1File = 'KR1_6loops.out'
 
 def symmetryCoefficient(graph):
-    edges = graph.allEdges()
+    edges = graph.edges()
     unique_edges = dict()
     for idx in edges:
         if idx in unique_edges:
             unique_edges[idx] += 1
         else:
             unique_edges[idx] = 1
-    C = [math.factorial(len(graph.edges(graph.external_vertex))), len(graph.toGraphState().sortings)]
+    C = [math.factorial(len(graph.edges(graph.external_vertex))), len(graph.to_graph_state().sortings)]
     for idxE in unique_edges:
         C[1] = C[1]* (math.factorial(unique_edges[idxE]))
     if C[1]%C[0] == 0:
@@ -61,8 +61,8 @@ toSort = []
 for i,diag in enumerate(diagList):
     r = ufloat(res[diag][0][0],res[diag][1][0])
     kr = ufloat(KR1[diag])
-    graph = graphine.Graph(graph_state.GraphState.fromStr(diag))
-    graphLoopCount = graph.getLoopsCount()
+    graph = graphine.Graph(graph_state.GraphState.from_str(diag))
+    graphLoopCount = graph.loops_count
     C = symmetryCoefficient(graph)
     coeff = -(-2. / 3) ** graphLoopCount * C[0]/C[1]
     toSort.append([abs(kr.n*coeff),diag])
@@ -77,8 +77,8 @@ n = var('n')
 for i,diag in enumerate(diagList):
     r = ufloat(res[diag][0][0],res[diag][1][0])
     kr = ufloat(KR1[diag])
-    graph = graphine.Graph(graph_state.GraphState.fromStr(diag))
-    graphLoopCount = graph.getLoopsCount()
+    graph = graphine.Graph(graph_state.GraphState.from_str(diag))
+    graphLoopCount = graph.loops_count
     C = symmetryCoefficient(graph)
     coeff = -(-2. / 3) ** graphLoopCount * C[0] / C[1]
     if C[0] != C[1]:
