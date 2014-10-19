@@ -813,6 +813,40 @@ def generate_func_files(tree, generate_expr_for_sector, eps_order=0):
             function_file.set_file_info(file_info)
             yield function_file
 
+def generate_func_files_from_sector_list(sectors, generate_expr_for_sector, eps_order=0):
+    files = collections.defaultdict(lambda: FunctionsFile(0))
+    for sector in sectors:
+        expr = generate_expr_for_sector(sector)
+#        expr = generate_expr_for_sector(sector, coef)
+#        print sector
+#        print expr
+        #print eps_order
+        extracted = pole_extractor.extract_poles_and_eps_series(expr, eps_order)
+        #print extracted
+        #print
+        formatted_dict = formatter.formatPoleExtracting(extracted)
+        # print sector, coef
+        # print formatted_dict
+        # print
+        # print
+        # print
+        for eps_order_ in formatted_dict:
+            for expr, variables in formatted_dict[eps_order_]:
+                file_info = funcFileInfo(eps_order_, len(variables))
+                function_file = files[file_info]
+                function_file.add_function(generate_function_body(expr,
+                                                                  variables,
+                                                                  "// sector: %s, coef: %s" % (sector, 1)))
+
+                if len(function_file) > maxFunctionLength:
+                    function_file.set_file_info(file_info)
+                    files[file_info] = FunctionsFile(function_file.file_idx + 1)
+                    yield function_file
+
+    for file_info, function_file in files.items():
+        if len(function_file) != 0:
+            function_file.set_file_info(file_info)
+            yield function_file
 
 
 

@@ -38,7 +38,7 @@ for tVersion in dynamics.TVersions(dG):
     dirName = '%s/%s/%s/' % (model.workdir, methodName, name)
     inputFileName = '%s/dyn_sectors_templ.py' % dirName
     exec(open(inputFileName).read())
-    # print "sectors = ", sectors
+    print "sectors = ", sectors
 
     gs = gs_builder.graph_state_from_str(graphName)
 
@@ -58,9 +58,9 @@ for tVersion in dynamics.TVersions(dG):
 
     sdtTree = dynamics.Tree(None)
 
-    # for sector, ops in sectors:
-    #     print sector, ops
-    #     sdtTree.addSector(sector)
+    for sector, ops in sectors:
+        print sector, ops
+        sdtTree.addSector(sector)
 
 
 
