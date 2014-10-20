@@ -74,9 +74,10 @@ class Properties(object):
         for p_name, to_edge in self._properties_config.property_target.items():
             if to_edge != from_edge:
                 continue
-            value = kwargs.get(p_name, None)
-            if value is None:
+            if p_name not in kwargs:
                 value = getattr(self, p_name, None)
+            else:
+                value = kwargs[p_name]
             setattr(p, p_name, value)
         return p
 
