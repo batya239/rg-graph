@@ -45,6 +45,11 @@ class StopSearchException(BaseException):
     pass
 
 
+class CallbackException(BaseException):
+    def __init__(self, result):
+        self.result = result
+
+
 class RuleNotFoundException(BaseException):
     pass
 
@@ -56,7 +61,7 @@ def _enumerated_graph_as_sector(g, initial_propagators_len):
     return sector.Sector(raw_sector)
 
 
-def _enumerate_graph(graph, init_propagators, to_sector=True, only_one_result=False):
+def _enumerate_graph(graph, init_propagators, to_sector=True, only_one_result=False, _calculate=None):
     """
     propagators - iterable of tuples (1, 0, -1) = q - k2
 
@@ -100,7 +105,8 @@ def _enumerate_graph(graph, init_propagators, to_sector=True, only_one_result=Fa
                     for i, c in enumerate(e.weight):
                         if c != 0:
                             has_momentums[i].append(e)
-            if set(has_momentums.keys()) != set(range(graph.loops_count + 1)):
+            new_graph = graphine.Graph(new_edges, renumbering=False)
+            if set(has_momentums.keys()) != set(range(new_graph.loops_count + 1)):
                 return
             for i, es in has_momentums.iteritems():
                 if not graph_state.operations_lib.is_graph_connected(es):
@@ -108,7 +114,12 @@ def _enumerate_graph(graph, init_propagators, to_sector=True, only_one_result=Fa
                 if i != 0 and not graph_state.operations_lib.is_vertex_irreducible(es):
                     return
 
-            result.add(graphine.Graph(new_edges, renumbering=False))
+            if _calculate is not None:
+                _result = _calculate(_enumerated_graph_as_sector(g, len(init_propagators)) if to_sector else new_graph)
+                if _result is not None:
+                    raise CallbackException(_result)
+
+            result.add(new_graph)
             if only_one_result:
                 raise StopSearchException()
             return
@@ -166,6 +177,11 @@ def _enumerate_graph(graph, init_propagators, to_sector=True, only_one_result=Fa
         _enumerate_next_vertex(propagators_copy, graph, 0, _result)
     except StopSearchException:
         pass
+    except CallbackException as e:
+        assert _calculate is not None
+        return e.result
+    if _calculate is not None:
+        return None
     if not to_sector:
         return _result
     else:
@@ -332,10 +348,6 @@ class Reductor(object):
                 return False
         return True
 
-    def enumerate_graph(self, graph):
-        self.init_if_need()
-        return _enumerate_graph(graph, self._propagators, to_sector=False)
-
     def calculate(self, graph, weight_extractor, scalar_product_aware_function=None):
         """
         scalar_product_aware_function(topology_shrunk, graph) returns iterable of scalar_product.ScalarProduct
@@ -346,18 +358,7 @@ class Reductor(object):
             return None
         Reductor.CALLS_COUNT += 1
 
-        probably_calculable_sectors = set()
-        as_enumerated = _enumerate_graph(graphine.Graph.from_str(graph.presentable_str),
-                                         self._propagators,
-                                         to_sector=False)
-
-        if not len(as_enumerated):
-            return None
-
-        if log.is_debug_enabled():
-            log.debug("try calculate with " + self._env_name)
-
-        for enumerated in as_enumerated:
+        def evaluator(enumerated):
             try:
                 s = sector.Sector.create_from_shrunk_topology(enumerated, graph, self._all_propagators_count, weight_extractor).as_sector_linear_combinations()
                 if scalar_product_aware_function:
@@ -366,12 +367,14 @@ class Reductor(object):
                 v = self.evaluate_sector(s)
                 return v
             except RuleNotFoundException:
-                if log.is_debug_enabled():
-                    log.debug("rules not found")
-                pass
-        if log.is_debug_enabled():
-            log.debug("rules not found" + probably_calculable_sectors)
-        return None
+                return None
+
+        return _enumerate_graph(graphine.Graph.from_str(graph.presentable_str),
+                                         self._propagators,
+                                         to_sector=False,
+                                         _calculate=evaluator)
+
+
 
     calculate_diagram = calculate
 
@@ -428,7 +431,7 @@ class Reductor(object):
                         is_updated = True
                         break
                 if not is_updated:
-                    log.debug("rule not found for" + str(_sector))
+                    log.debug("rule not found for " + str(_sector))
                     raise RuleNotFoundException(_sector)
             self._cache.put_sector(_sector, res)
             return res
