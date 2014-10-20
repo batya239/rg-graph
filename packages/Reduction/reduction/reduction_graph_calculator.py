@@ -36,12 +36,12 @@ class ScalarProductReductionGraphCalculator(abstract_graph_calculator.AbstractGr
         if result is None:
             log.debug("reduction not works for " + str(graph))
             return None
-        r = result.evaluate(substitute_sectors=True,
+        r = result.evaluate(substitute_masters=True,
                             _d=symbolic_functions.d_phi4,
                             series_n=5,
                             remove_o=False)
         if log.is_debug_enabled():
-            log.debug("V(%s)=%s" % (graph, result.evaluate(substitute_sectors=False)))
+            log.debug("V(%s)=%s" % (graph, result.evaluate(substitute_masters=False)))
             log.debug("V(%s)=%s, %s" % (graph, r, reduction_util.calculate_graph_p_factor(graph)))
         return r, reduction_util.calculate_graph_p_factor(graph)
 
