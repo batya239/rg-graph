@@ -89,7 +89,14 @@ def shrink_to_point(graph, sub_graphs):
             else:
                 graph = graph.change(sg.internal_edges, (edge, ), renumbering=True)
     shrunk = graph.batch_shrink_to_point(to_shrink)
-    shrunk = try_simplify_edges(shrunk)
+    to_simplify = shrunk
+    while True:
+        current = try_simplify_edges(to_simplify)
+        if current == to_simplify:
+            shrunk = current
+            break
+        else:
+            to_simplify = current
     return shrunk, p2_counts
 
 

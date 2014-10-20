@@ -242,9 +242,9 @@ class RPrimeP2Divergence(unittest.TestCase):
     def test_e112_23_e4_444__(self):
         self._do_test_r1("e112|23|e4|444||", "7/128/e - 23/240/e/e + 11/480/e/e/e")
 
-    # def test_e123_e45_444_555___(self):
-    #     self._do_test_r1("e123|e45|444|555|||", "(-1/192)*e**(-3)+(5/192)*e**(-2)+(-11/384)*e**(-1)")
-    #
+    def test_e123_e45_444_555___(self):
+        self._do_test_r1("e123|e45|444|555|||", "(-1/192)*e**(-3)+(5/192)*e**(-2)+(-11/384)*e**(-1)")
+
     # def test_8loop_watermelon(self):
     #     self._do_test_r1("e234|e567|555|666|777||||", "0")
 

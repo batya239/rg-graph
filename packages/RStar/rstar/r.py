@@ -130,7 +130,7 @@ class RStar(object):
             return lazy.LazyValue.create(evaluated)
         if uv_index < 0:
             return lazy.ZERO
-        iterator = momentum.arbitrarily_pass_momentum(_graph, pseudo=do_diff)
+        iterator = (_graph, ) if minus_graph else momentum.arbitrarily_pass_momentum(_graph, pseudo=do_diff)
         if do_diff and iterator is None:
             return lazy.ZERO
         result = None

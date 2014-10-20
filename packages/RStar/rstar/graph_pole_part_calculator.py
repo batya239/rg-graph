@@ -8,7 +8,7 @@ import common
 import inject
 import configure
 import r
-from rggraphenv import symbolic_functions, abstract_graph_calculator
+from rggraphenv import symbolic_functions, abstract_graph_calculator, log
 from rggraphutil import VariableAwareNumber
 
 
@@ -21,8 +21,8 @@ def calculate_graph_pole_part(graph):
 
     calculates some inversion of KR*
     """
-    if DEBUG:
-        print "calculate graph via pole part: %s, loops count: %s" % (graph, graph.getLoopsCount())
+    if log.is_debug_enabled():
+        log.debug("calculate graph via pole part: %s, loops count: %s" % (graph, graph.loops_count))
     try:
         r_operation = r.RStar()
         assert graph.external_edges_count == 2
@@ -49,11 +49,11 @@ def calculate_graph_pole_part(graph):
 def calculate_graph_p_factor(graph):
     factor0 = 0
     arrow_factor = 0
-    for e in graph.internalEdges():
+    for e in graph.internal_edges:
         arrow_factor += 1 if e.arrow is not None and not e.arrow.is_null() else 0
         factor0 += e.weight.a
     arrow_factor /= 2
-    f = VariableAwareNumber("l", factor0 - graph.getLoopsCount() - arrow_factor, - graph.getLoopsCount())
+    f = VariableAwareNumber("l", factor0 - graph.loops_count - arrow_factor, - graph.loops_count)
     return f
 
 
@@ -62,10 +62,10 @@ class GraphPolePartCalculator(abstract_graph_calculator.AbstractGraphCalculator)
         return "graph pole part calculator for 5 loops"
 
     def is_applicable(self, graph):
-        if graph.getLoopsCount() not in (5,):
+        if graph.loops_count not in (5,):
             return False
-        for e in graph.allEdges():
-            if e.weight != 1:
+        for e in graph:
+            if not e.is_external() and e.weight != 1:
                 return False
         return True
 
