@@ -266,6 +266,8 @@ class Graph(object):
         if isinstance(other, graph_state.Edge):
             return Graph(self.edges() + (other,), renumbering=False)
         elif isinstance(other, (list, tuple)):
+            if not len(other):
+                return self
             return Graph(self.edges() + tuple(other), renumbering=False)
         raise AssertionError("unsupported type: %s" % type(other))
 
@@ -273,6 +275,8 @@ class Graph(object):
         if isinstance(other, graph_state.Edge):
             return Graph(Graph._sub_tuple(self.edges(), (other,)), renumbering=False)
         elif isinstance(other, (list, tuple)):
+            if not len(other):
+                return self
             return Graph(Graph._sub_tuple(self.edges(), other), renumbering=False)
         elif isinstance(other, Graph):
             return Graph(Graph._sub_tuple(self.edges(), other.edges()), renumbering=False)
