@@ -62,7 +62,7 @@ class LazyNeg(Lazy):
         super(LazyNeg, self).__init__(depth)
 
     def _evaluate(self):
-        return -Lazy.evaluate_val(self._obj._evaluate())
+        return -Lazy.evaluate_val(self._obj)
 
     def _clear_refs(self):
         self._obj = None
