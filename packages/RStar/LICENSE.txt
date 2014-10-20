@@ -1,5 +1,5 @@
-RStar
-Copyright (C) 2012  Dmitry Batkovich
+RStar. Library provides calculation of graphs UV-counterterms using $R^{*}$ operation
+Copyright (C) 2014  Dmitry Batkovich
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
