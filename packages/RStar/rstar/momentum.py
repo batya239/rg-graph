@@ -9,6 +9,7 @@ import graph_state
 import graphine
 import graph_util
 import const
+import diff_util
 from rggraphutil import VariableAwareNumber
 from graphine import filters, graph_operations
 
@@ -60,12 +61,16 @@ def pass_momentum_on_graph(graph, momentum_passing):
     assert len(momentum_passing) == 2
     edges_to_remove = list()
     copied_momentum_passing = list(momentum_passing)
-    for e in graph.edges(graph.external_vertex):
+    for e in graph.external_edges:
         if e in copied_momentum_passing:
             copied_momentum_passing.remove(e)
         else:
             edges_to_remove.append(e)
     return graph - edges_to_remove
+
+
+def pseudo_pass_momentum_on_graph(graph, momentum_passing):
+    return graph - graph.external_edges + momentum_passing
 
 
 def arbitrarily_pass_momentum_with_preferable(graph, prefer_condition):
@@ -79,21 +84,39 @@ def arbitrarily_pass_momentum_with_preferable(graph, prefer_condition):
     return preferred, not_preferred
 
 
-def arbitrarily_pass_momentum(graph):
+def adjust(graph):
+    to_add = list()
+    graph -= graph.external_edges
+    for v in graph.vertices:
+        to_add_count = 4 - reduce(lambda s, e: s + (1 if len(set(e.nodes)) == 2 else 2), graph.edges(v), 0)
+        assert to_add_count >= 0
+        for i in xrange(to_add_count):
+            to_add.append(graph_util.new_edge((graph.external_vertex, v), weight=const.ZERO_WEIGHT))
+    return graph + to_add
+
+
+def arbitrarily_pass_momentum(graph, pseudo=False):
     """
     find ALL (NO CONDITIONS) cases for momentum passing.
     """
+    if pseudo and graph.external_edges_count != 2:
+        graph = adjust(graph)
+        if graph.external_edges_count == 1:
+            return None
+
+    if pseudo:
+        graph = diff_util.find_minimal_momentum_passing(graph)
 
     result = set()
 
     if graph.internal_edges_count == 1 and len(graph.vertices) == 2:
-        result.add(graph)
+        result.add(pseudo_pass_momentum_on_graph(graph, graph.external_edges)) if pseudo else result.add(graph)
         return result
 
     #ex-ex
     passing = set([x for x in x_pick_passing_external_momentum(graph)])
     for momentumPassing in passing:
-        result.add(pass_momentum_on_graph(graph, momentumPassing))
+        result.add(pseudo_pass_momentum_on_graph(graph, graph.external_edges) if pseudo else pass_momentum_on_graph(graph, momentumPassing))
 
     #ex-in
     external_vertex = graph.external_vertex
@@ -121,6 +144,9 @@ def arbitrarily_pass_momentum(graph):
                                                         external_node=external_vertex,
                                                         weight=const.ZERO_WEIGHT,
                                                         arrow=default_arrow)
+                if pseudo:
+                    result.add(pseudo_pass_momentum_on_graph(graph, (new_external_edge, e)))
+                    continue
                 graph_to_yield = _g + new_external_edge
                 result.add(graph_to_yield)
 
@@ -128,14 +154,15 @@ def arbitrarily_pass_momentum(graph):
     _g = graph - external_edges
     for vs in itertools.combinations(internal_vertices, 2):
         if _check_valid(_g, vs):
-            result.add(_g + [graph_util.new_edge((vs[0], external_vertex),
-                                                 external_node=external_vertex,
-                                                 weight=const.ZERO_WEIGHT,
-                                                 arrow=default_arrow),
-                             graph_util.new_edge((vs[1], external_vertex),
-                                                 external_node=external_vertex,
-                                                 weight=const.ZERO_WEIGHT,
-                                                 arrow=default_arrow)])
+            new_edge1 = graph_util.new_edge((vs[0], external_vertex), external_node=external_vertex,
+                                       weight=const.ZERO_WEIGHT, arrow=default_arrow)
+            new_edge2 = graph_util.new_edge((vs[1], external_vertex), external_node=external_vertex,
+                                       weight=const.ZERO_WEIGHT, arrow=default_arrow)
+            if pseudo:
+                result.add(pseudo_pass_momentum_on_graph(graph, (new_edge1, new_edge2)))
+                continue
+            result.add(_g + [new_edge1,
+                             new_edge2])
     return result
 
 

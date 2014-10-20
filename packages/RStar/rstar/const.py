@@ -18,5 +18,6 @@ SPACE_DIM_PHI4 = 4
 DIM_PHI4 = swiginac.numeric(str(SPACE_DIM_PHI4)) - swiginac.numeric("2") * symbolic_functions.e
 EDGE_WEIGHT = -2
 
-MARKER_0 = "0"
-MARKER_1 = "1"
+MARKER_0 = 0
+MARKER_1 = 1
+MARKER_M1 = -1

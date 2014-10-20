@@ -25,7 +25,7 @@ gfun_calculator.DEBUG = True
 
 from_str = graph_util.graph_from_str
 new_edge = graph_util.new_edge
-G, G1, G2, l = symbolic_functions.G, symbolic_functions.G1, symbolic_functions.G2, symbolic_functions.l
+G, G1, G2, l, e = symbolic_functions.G, symbolic_functions.G1, symbolic_functions.G2, symbolic_functions.l, symbolic_functions.e
 
 
 class SubGraphReducerTestCase(unittest.TestCase):
@@ -176,6 +176,14 @@ class SubGraphReducerTestCase(unittest.TestCase):
 
         self.assertEquals(res[1], VariableAwareNumber("l", 4, -4))
         self.assertTrue(res[0].is_equal(-G1(2, 1) * G(1, 1) * G1(3 - l, 1) * G2(4 - 3 * l, 2)))
+
+    def testWithNumerators7(self):
+        graph = graph_util.graph_from_str(
+            "e123|e24|34|||:(0, 0)_(1, 0)_(1, 0)_(1, 0)|(0, 0)_(1, 0)_(1, 0)|(1, 0)_(1, 0)|||:0_0_0_0|0_0_0|<_<|||:None_None_None_1|None_None_1|1_1|||:")
+        reducer = gfun_calculator.GGraphReducer(graph)
+        res = reducer.calculate()
+        self.assertEquals(res[1], VariableAwareNumber("l", 3, -3))
+        self.assertTrue(res[0].is_equal(-G1(2,1)**2*G(1+2*e,1)))
 
     def testWithNumerators6(self):
         graph = graph_util.graph_from_str(

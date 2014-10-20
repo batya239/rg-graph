@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf8
-from deprecated import r, graph_util
+import r, graph_util
 
 __author__ = 'dima'
 
@@ -16,7 +16,7 @@ import ir_uv
 import const
 import smtplib
 from reduction import reduction_graph_calculator
-from rggraphenv import symbolic_functions, graph_calculator, storage, theory, g_graph_calculator, StorageSettings, StoragesHolder
+from rggraphenv import symbolic_functions, graph_calculator, theory, g_graph_calculator, StorageSettings
 from email.mime.text import MIMEText
 
 reduction_graph_calculator.USE_DUMMY = False
@@ -39,16 +39,16 @@ class SixLoops2Tails(object):
             .with_uv_filter(ir_uv.UVRelevanceCondition(const.SPACE_DIM_PHI4))\
             .with_dimension(const.DIM_PHI4)\
             .with_calculators(*graph_calculators_to_use)\
-            .with_storage_holder(StorageSettings("phi4", "main method", "6 loops 2 tails").on_shutdown(revert=True)).configure()
-        operator = r.ROperation()
-        self._operation = operator.kr_star_quadratic_divergence if do_r_star else operator.kr1
+            .with_storage_holder(StorageSettings("phi4", "test1", "test1")).configure()
+        operator = r.RStar()
+        self._operation = operator.kr_star
 
     def start(self, graph_states_to_calculate):
         SixLoops2Tails.LOG.info("start calculation using %s graph_calculator, %s operation" % (self._calculator, self._operation.__name__))
         ms = time.time()
         not_calculated = list()
         for gs in graph_states_to_calculate:
-            gs = str(graph_state.GraphState.fromStrOldStyle(gs))[:-2]
+            gs = gs.replace("-", "|")[:-2]
             graph = graph_util.graph_from_str(gs, do_init_weight=True)
             try:
                 SixLoops2Tails.LOG.info("start evaluate %s" % gs)
@@ -74,7 +74,7 @@ class SixLoops2Tails(object):
 
 
 def main():
-    reductions_loops = (2, 3, 4),
+    reductions_loops = (2,),
     operations = (False, True)
 
     calculated_mappings = dict()

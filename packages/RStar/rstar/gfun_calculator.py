@@ -11,7 +11,7 @@ import diff_util
 import graph_util
 import momentum
 import configure
-from rggraphenv import graph_calculator, symbolic_functions
+from rggraphenv import graph_calculator, symbolic_functions, log
 from rggraphutil import VariableAwareNumber
 
 DEBUG = False
@@ -60,8 +60,8 @@ UNIT = LazyVal(swiginac.numeric("1"))
 ZERO = LazyVal(swiginac.numeric("0"))
 
 
-def calculate_graph_value_with_vertices(graph):
-    value = calculate_graph_value(graph)
+def calculate_graph_value_with_vertices(graph, use_dalembertian=False):
+    value = calculate_graph_value(graph, use_dalembertian=use_dalembertian)
     for vertex in graph.vertices:
         if vertex != graph.external_vertex and vertex.factor is not None:
             value *= vertex.factor
@@ -69,7 +69,12 @@ def calculate_graph_value_with_vertices(graph):
 
 
 def calculate_graph_value(graph, use_dalembertian=False, suppressException=False):
+    # print "start calculate %s" % graph
     assert len(graph.edges(graph.external_vertex)) == 2
+    v = configure.Configure.storage().get(graph, 'value')
+    if v is not None:
+        return v[0] * symbolic_functions.p ** (-symbolic_functions.CLN_TWO * v[1].subs(get_lambda()))
+
     graph_reducer = GGraphReducer(graph)
     result = graph_reducer.calculate()
     if not result:
@@ -81,12 +86,14 @@ def calculate_graph_value(graph, use_dalembertian=False, suppressException=False
     p_power = result[1]
     if use_dalembertian:
         p_power += -p_power.b - p_power.a
-        eps_part *= diff_util.dalembertian_coefficient(b=-graph.getLoopsCount())
-    if DEBUG:
-        supplement = "▢" if use_dalembertian else ""
-        print "V(%s%s)=(%s)%s*p(-2(%s))" % (supplement, graph, common.MSKOperation().calculate(result[0]), ("*▢(1,-%s)" % graph.getLoopsCount()) if use_dalembertian else "", p_power)
-        print "V(%s%s)=%s" % ("▢" if use_dalembertian else "", graph, common.MSKOperation().calculate(eps_part * symbolic_functions.p ** (-symbolic_functions.CLN_TWO * p_power.subs(get_lambda()))))
-    return eps_part * symbolic_functions.p ** (-symbolic_functions.CLN_TWO * p_power.subs(get_lambda()))
+        eps_part *= diff_util.dalembertian_coefficient(b=-graph.loops_count)
+    if log.is_debug_enabled():
+    #     supplement = "▢" if use_dalembertian else ""
+    #     log.debug("V(%s%s)=(%s)%s*p(-2(%s))" % (supplement, graph, common.MSKOperation().calculate(result[0]), ("*▢(1,-%s)" % graph.loops_count) if use_dalembertian else "", p_power))
+        log.debug("VV(%s%s)=%s" % ("▢" if use_dalembertian else "", graph, common.MSKOperation().calculate(eps_part * symbolic_functions.p ** (-symbolic_functions.CLN_TWO * p_power.subs(get_lambda())))))
+    v = eps_part * symbolic_functions.p ** (-symbolic_functions.CLN_TWO * p_power.subs(get_lambda()))
+    configure.Configure.storage().put(graph, (eps_part, p_power), 'value')
+    return v
 
 
 def get_lambda():
@@ -202,7 +209,7 @@ class GGraphReducer(object):
         cached_preprocessed_subgraphs.reverse()
         for preprocessed in cached_preprocessed_subgraphs:
             if self._arrows_aware:
-                _as = filter(lambda e: not e.arrow.is_null(), preprocessed[1].edges())
+                _as = filter(lambda e: not e.is_external() and not e.arrow.is_null(), preprocessed[1].edges())
                 if len(_as) % 2 == 0:
                     can_calculate = len(self._used_arrows) == 0
                 else:
@@ -233,7 +240,7 @@ class GGraphReducer(object):
             if a in sub_graph_info[0]:
                 new_used_arrows.remove(a)
         if self._arrows_aware:
-            _as = filter(lambda e: not e.arrow.is_null(), sub_graph_info[1].edges())
+            _as = filter(lambda e: not e.is_external() and not e.arrow.is_null(), sub_graph_info[1].edges())
             if len(_as) % 2 == 0:
                 arrow = graph_state.Arrow(graph_state.Arrow.NULL)
             else:

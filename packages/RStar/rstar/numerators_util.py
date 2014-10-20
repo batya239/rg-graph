@@ -21,8 +21,8 @@ def scalar_product_extractor(topology, graph):
     if len(extracted_numerated_edges) == 1:
         numerated_edge = extracted_numerated_edges[0]
         sign = -1 if numerated_edge[1].is_left() else 1
-        sp = reduction.ScalarProduct(numerated_edge[0].colors[1],
-                                     (1, ) + (0, ) * (len(numerated_edge[0].colors[1]) - 1),
+        sp = reduction.ScalarProduct(numerated_edge[0].weight[1],
+                                     (1, ) + (0, ) * (len(numerated_edge[0].weight[1]) - 1),
                                      sign=sign)
         yield sp
     else:
@@ -32,15 +32,15 @@ def scalar_product_extractor(topology, graph):
             sign = resolve_scalar_product_sign(graph, extracted_numerated_edges)
         else:
             common_vertex = raw_common_vertex.pop()
-            if common_vertex in graph.getBoundVertexes():
+            if common_vertex in graph.get_bound_vertices():
                 raise common.CannotBeCalculatedError(graph)
             adjusted_numerators = map(lambda (e, n): n if e.nodes[0] == common_vertex else -n, extracted_numerated_edges)
             sign = 1 if adjusted_numerators[0] != adjusted_numerators[1] else -1
             if extracted_numerated_edges[0][0].nodes.index(common_vertex) == extracted_numerated_edges[1][0].nodes.index(common_vertex):
                 sign *= -1
 
-        sp = reduction.ScalarProduct(extracted_numerated_edges[0][0].colors[1],
-                                     extracted_numerated_edges[1][0].colors[1],
+        sp = reduction.ScalarProduct(extracted_numerated_edges[0][0].weight[1],
+                                     extracted_numerated_edges[1][0].weight[1],
                                      sign=sign)
         yield sp
 

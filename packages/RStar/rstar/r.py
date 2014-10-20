@@ -16,6 +16,7 @@ import configure
 import itertools
 import ir_uv
 import diff_util
+import const
 
 from rggraphutil import emptyListDict
 from rggraphenv import symbolic_functions, log
@@ -23,12 +24,36 @@ from rggraphenv import symbolic_functions, log
 
 ValueAndPower = collections.namedtuple("ValueAndPPower", ["value", "p_power"])
 
-calculate_graph = lambda g: lazy.LazyValue.create(gfun_calculator.calculate_graph_value_with_vertices(g))
-
 
 @graphine.filters.graph_filter
 def is_1uniting(edges_list, super_graph):
-    return len(graph_state.operations_lib.edges_for_node(edges_list, graph_state.operations_lib.get_external_node(edges_list))) == 2
+    sg_external_edges = graph_state.operations_lib.edges_for_node(edges_list, graph_state.operations_lib.get_external_node(edges_list))
+    if len(sg_external_edges) == 2:
+        return True
+
+    if len(sg_external_edges) != 1:
+        return False
+    if ir_uv.uv_index(graphine.Graph(edges_list)) != 2:
+        return False
+
+
+    sg_vertices = graph_state.operations_lib.get_vertices(edges_list)
+
+    bound_vertices = graph_state.operations_lib.get_bound_vertices(sg_external_edges)
+    assert len(bound_vertices) == 1
+
+    super_vertices = super_graph.get_bound_vertices() - bound_vertices
+    assert len(super_vertices) == 1
+
+    additional_vertex = list(super_vertices)[0]
+    for e in super_graph.edges(additional_vertex):
+        if not e.is_external():
+            c_node = e.co_node(additional_vertex)
+            if c_node in sg_vertices:
+                return True
+
+    return False
+
 
 
 @graphine.filters.graph_filter
@@ -70,6 +95,8 @@ class RStar(object):
             for comb in itertools.combinations(uv_subgraphs, i):
                 if i == 1 or not graphine.util.has_intersecting_by_vertices_graphs(comb):
                     shrunk, p2_counts = graph_util.shrink_to_point(graph, comb)
+                    if shrunk.internal_edges_count == 1:
+                        continue
                     counter_item = lazy.LazyValue.create(symbolic_functions.CLN_MINUS_ONE ** i)
                     counter_item *= symbolic_functions.p2 ** (-p2_counts)
                     for g in comb:
@@ -91,31 +118,40 @@ class RStar(object):
 
     def kr_star(self, _graph, minus_graph=False, all_possible=False):
         assert not (minus_graph and all_possible)
+        _graph = graphine.Graph(map(lambda e: e.copy(marker=None), _graph))
         uv_index = ir_uv.uv_index(_graph)
-        if uv_index == 2:
+        do_diff = uv_index == 2
+        if do_diff:
             assert not minus_graph
-            return self.kr_star_p2(_graph)
+            # return self.kr_star_p2(_graph)
         storage_label = "kr_star_red" if minus_graph else "kr_star"
         evaluated = self.storage.get(_graph.to_tadpole(), storage_label)
         if evaluated is not None:
             return lazy.LazyValue.create(evaluated)
         if uv_index < 0:
             return lazy.ZERO
-        iterator = (_graph, ) if _graph.external_edges_count == 2 else momentum.arbitrarily_pass_momentum(_graph)
+        iterator = momentum.arbitrarily_pass_momentum(_graph, pseudo=do_diff)
+        if do_diff and iterator is None:
+            return lazy.ZERO
         result = None
+
         for graph in iterator:
+            # if (graph.loops_count == 4 and not str(graph).startswith('e112|33|33|e|:')):
+            #     continue
             try:
                 if log.is_debug_enabled():
                     debug_line = "KR*(%s)=R~(%s)" % (_graph, graph)
-                value = self.renormalize_ir(graph, minus_graph=minus_graph)
+                value = self.renormalize_ir(graph, minus_graph=minus_graph, do_diff=do_diff)
                 if value.evaluate().is_zero():
                     return lazy.ZERO
                 for counter_item, shrunk, p2_counts, _debug_line in self.x_r_prime(graph):
                     # if p2_counts != 0 and RStar.is_tadpole(shrunk):
                     #     raise common.CannotBeCalculatedError(graph)
+                    if do_diff and ir_uv.uv_index(shrunk) == 2 and RStar.is_tadpole(RStar.adjust(shrunk)):
+                        continue
                     if log.is_debug_enabled():
                         debug_line += "+%s*R~(%s)" % (_debug_line, shrunk)
-                    value += self.renormalize_ir(shrunk) * counter_item
+                    value += self.renormalize_ir(shrunk, do_diff=do_diff) * counter_item
                 current_result = lazy.LazyValue.create(self._k_operation.calculate(value.evaluate()))
                 if log.is_debug_enabled():
                     log.debug(debug_line)
@@ -125,7 +161,7 @@ class RStar(object):
                         result = current_result
                     else:
                         if not result.evaluate().is_equal(current_result.evaluate()):
-                            log.debug("WRONG graph = %s,\nvalue1 = %s,\nvalue2 = %s" % (_graph, result.evaluate(), current_result.evaluate()))
+                            log.debug("WRONG graph = %s,\nvalue1 = %s,\nvalue2 = %s" % (graph, result.evaluate(), current_result.evaluate()))
                 else:
                     self.storage.put(_graph.to_tadpole(), current_result, storage_label)
                     return current_result
@@ -137,7 +173,7 @@ class RStar(object):
 
     def delta_uv(self, _graph):
         value = - self.kr_star(_graph)
-        value = value.evaluate() if isinstance(value, lazy.Lazy) else value
+        value = value.evaluate()
         value = value.expand()
         if "Order(1)" in str(value):
             value = symbolic_functions.series(value, symbolic_functions.e, 0, 0, remove_order=True)
@@ -154,9 +190,8 @@ class RStar(object):
                 if log.is_debug_enabled():
                     debug_line = "D_IR(%s)=KR*(%s)" % (_graph, graph)
                 if graph.loops_count == 1:
-                    return lazy.LazyValue(symbolic_functions.series(calculate_graph(graph).evaluate(), symbolic_functions.e, 0, 0, True))
-                delta_ir = lazy.ZERO
-                delta_ir += symbolic_functions.series(self.kr_star(graph.to_tadpole()).evaluate(), symbolic_functions.e, 0, 0, True)
+                    return lazy.LazyValue(symbolic_functions.series(RStar.calculate_graph(graph).evaluate(), symbolic_functions.e, 0, 0, True))
+                delta_ir = lazy.LazyValue(symbolic_functions.series(self.kr_star(graph.to_tadpole()).evaluate(), symbolic_functions.e, 0, 0, True))
                 for counter_item, shrunk, _, debug_line_piece in self.x_r_prime(graph):
                     if self.debug():
                         debug_line += "-" + debug_line_piece + "*D_IR(%s)" % shrunk
@@ -174,10 +209,9 @@ class RStar(object):
         raise common.CannotBeCalculatedError(_graph)
 
     def delta_ir(self, _graph):
-        raw = self._delta_ir(_graph)
-        return raw.evaluate() if isinstance(raw, lazy.Lazy) else raw
+        return self._delta_ir(_graph).evaluate()
 
-    def renormalize_ir(self, graph, minus_graph=False):
+    def renormalize_ir(self, graph, minus_graph=False, do_diff=False):
         storage_label = "r_tilda_red" if minus_graph else "r_tilda"
 
         evaluated = self.storage.get(graph, storage_label)
@@ -185,20 +219,33 @@ class RStar(object):
             return lazy.LazyValue.create(evaluated)
         if RStar.is_tadpole(graph):
             assert not minus_graph
+            if str(graph).startswith("ee0"):
+                return lazy.ZERO
+            if ir_uv.uv_index(graph) == 2 and RStar.is_tadpole(RStar.adjust(graph)):
+                return lazy.ZERO
             return lazy.LazyValue.create(self._delta_ir(graph))
         else:
             if log.is_debug_enabled():
                 debug_line = "R~(%s)=V(%s)" % (graph, graph)
-            renormalized_g = lazy.ZERO if minus_graph else calculate_graph(graph)
+            renormalized_g = lazy.ZERO if minus_graph else RStar.calculate_graph(graph, do_diff=do_diff, zero_if_cant=True)
             for co_ir in graph.x_relevant_sub_graphs(graphine.filters.one_irreducible + self._uv_filter + is_1uniting + no_hanging_parts,
                                                      cut_edges_to_external=False,
                                                      result_representator=graphine.Representator.asGraph):
                 if ir_uv.uv_index(co_ir) > 0:
                     #TODO implement dalembertian
                     raise common.CannotBeCalculatedError(graph)
+                shrunk = graph_util.shrink_to_point(graph, (co_ir, ))[0]
+                if shrunk.internal_edges_count == 1:
+                    continue
                 if log.is_debug_enabled():
-                    debug_line += "+V(%s)*D_IR(%s)" % (co_ir, graph_util.shrink_to_point(graph, (co_ir, ))[0])
-                renormalized_g += calculate_graph(co_ir) * self._delta_ir(graph_util.shrink_to_point(graph, (co_ir, ))[0])
+                    debug_line += "+V(%s)*D_IR(%s)" % (co_ir, shrunk)
+                if str(shrunk).startswith("ee0"):
+                    continue
+                if do_diff and ir_uv.uv_index(shrunk) == 2 and RStar.is_tadpole(RStar.adjust(shrunk)):
+                    continue
+                if do_diff and RStar.is_tadpole(co_ir):
+                    continue
+                renormalized_g += RStar.calculate_graph(co_ir) * self._delta_ir(shrunk)
             if log.is_debug_enabled():
                 log.debug(debug_line)
                 log.debug("R~(%s)=%s" % (graph, RStar.present_expression(renormalized_g)))
@@ -206,10 +253,48 @@ class RStar(object):
             return renormalized_g
 
     @staticmethod
+    def adjust(graph):
+        to_add = list()
+        graph -= graph.external_edges
+        for v in graph.vertices:
+            to_add_count = 4 - reduce(lambda s, e: s + (1 if len(set(e.nodes)) == 2 else 2), graph.edges(v), 0)
+            assert to_add_count >= 0, to_add_count
+            for i in xrange(to_add_count):
+                to_add.append(graph_util.new_edge((graph.external_vertex, v), weight=const.ZERO_WEIGHT))
+        return graph + to_add
+
+    @staticmethod
+    def calculate_graph(graph, do_diff=False, zero_if_cant=False):
+        if RStar.is_tadpole(graph):
+            return lazy.ZERO
+        if do_diff:
+            value = RStar.diff_and_calculate(graph, zero_if_cant=zero_if_cant)
+            log.debug("V(%s)=%s" % (graph, RStar.present_expression(value)))
+            return value
+        value = lazy.LazyValue.create(gfun_calculator.calculate_graph_value(graph))
+        log.debug("V(%s)=%s" % (graph, RStar.present_expression(value)))
+        return value
+
+    @staticmethod
+    def diff_and_calculate(graph, zero_if_cant=False):
+        d = diff_util.diff_p2_by_markers(graph)
+        if d is None:
+            return lazy.ZERO if zero_if_cant else RStar.calculate_graph(graph, do_diff=False)
+        value = lazy.ZERO
+        for c, g in d:
+            value += c * RStar.calculate_graph(g, do_diff=False)
+        return value * symbolic_functions.p2
+
+    @staticmethod
     def is_tadpole(graph):
         external_edges = graph.external_edges
-        assert len(external_edges) == 2
-        return external_edges[0].internal_node == external_edges[1].internal_node
+        assert len(external_edges) == 2, graph
+        if external_edges[0].internal_node == external_edges[1].internal_node:
+            return True
+        for e in graph.internal_edges:
+            if len(set(e.nodes)) == 1:
+                return True
+        return False
 
     @staticmethod
     def make_two_tails(g):
@@ -226,7 +311,7 @@ class RStar(object):
 
     @staticmethod
     def present_expression(expression):
-        return str(configure.Configure.k_operation().calculate(expression.evaluate()).expand())
+        return str(expression.evaluate().series(symbolic_functions.e == 0, 1).expand())
 
     @staticmethod
     def make_right_2_tails(graph):

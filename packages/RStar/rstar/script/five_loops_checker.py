@@ -24,7 +24,7 @@ import inject
 import configure
 import ir_uv
 import momentum
-from rggraphenv import symbolic_functions, theory, g_graph_calculator, StorageSettings, StorageHolder
+from rggraphenv import symbolic_functions, theory, g_graph_calculator, StorageSettings, log
 
 
 def pairwise(iterable):
@@ -35,10 +35,6 @@ def pairwise(iterable):
 
 class ResultChecker(object):
     EPS = 10E-5
-    LOG = logging.getLogger("ResultChecker")
-    LOG.setLevel(logging.DEBUG)
-    LOG.addHandler(logging.StreamHandler())
-    LOG.addHandler(logging.FileHandler("5LOOPS_log.txt"))
 
     def __init__(self, name, up_to_loops_count, *graph_calculators_to_use):
         self._name = name
@@ -50,7 +46,7 @@ class ResultChecker(object):
             .with_uv_filter(ir_uv.UVRelevanceCondition(const.SPACE_DIM_PHI4)) \
             .with_dimension(const.DIM_PHI4) \
             .with_calculators(*graph_calculators_to_use) \
-            .with_storage_holder(StorageSettings("phi4", "main method", "5 loops checking", test=True)).configure()
+            .with_storage_holder(StorageSettings("phi4", "rstarmethod", "5_loops_checking", test=True)).configure()
         self.operator = r.RStar()
         self.up_to_loops_count = up_to_loops_count
 
@@ -60,47 +56,47 @@ class ResultChecker(object):
         configure.Configure.clear()
 
     def start(self, skip_2_tails=False, skip_4_tails=False):
-        ResultChecker.LOG.info("start checking \"%s\"" % self._name)
-        two_tails_expected = list()
+        log.debug("start checking \"%s\"" % self._name)
+        all = 0
+        calculated = 0
         for state_str, value in MS.iteritems():
             state_str = str(graph_state.GraphState.from_str(state_str.replace("-", "|")))
             graph = graph_util.graph_from_str(state_str, do_init_weight=True)
 
             if graph.external_edges_count == 2:
-                two_tails_expected.append((graph, value))
-                continue
-            if skip_4_tails:
+                if skip_2_tails:
+                    continue
+            if graph.external_edges_count == 4 and skip_4_tails:
                 continue
             if graph.loops_count != self.up_to_loops_count:
                 continue
-            ResultChecker.LOG.info("PERFORM %s", graph)
+            log.debug("PERFORM %s" % graph)
             try:
-                ResultChecker.LOG.info("TRY %s", graph)
+                all += 1
                 kr1 = self.operator.kr_star(graph, all_possible=True).evaluate()
                 if kr1 is not None:
-                    print kr1
+                    calculated += 1
+                    kr1 = kr1.subs(symbolic_functions.p2 == 1)
                     if symbolic_functions.check_series_equal_numerically(kr1, value, symbolic_functions.e,
                                                                          ResultChecker.EPS):
-                        ResultChecker.LOG.info("kr_star OK %s" % graph)
+                        log.debug("kr_star OK %s" % graph)
                     else:
-                        ResultChecker.LOG.error("%s WRONG RESULT %s ACTUAL=(%s), EXPECTED=(%s)" % (
+                        log.debug("%s WRONG RESULT %s ACTUAL=(%s), EXPECTED=(%s)" % (
                             "kr_star", graph, kr1, value))
                 else:
                     raise AssertionError()
             except common.CannotBeCalculatedError:
-                ResultChecker.LOG.warning("CAN'T CALCULATE WITH %s %s" % ("kr_star", graph))
+                log.debug("CAN'T CALCULATE WITH %s %s" % ("kr_star", graph))
+        log.debug("all = %s, calculated = %s" % (all, calculated))
 
 
 def main():
-    checkers_configuration = ("with 0 loops reduction checker", [numerators_util.create_calculator(1)]), \
-                             ("with 2 loops reduction checker", [numerators_util.create_calculator(2)]), \
-                             ("with 2-3 loops reduction checker", [numerators_util.create_calculator(2, 3)]), \
-                             ("with 2-4 loops reduction checker", [numerators_util.create_calculator(2, 3, 4)])
+    checkers_configuration = ("with 2-4 loops reduction checker", [numerators_util.create_calculator(2, 3, 4)]),
 
     for conf in checkers_configuration:
-        checker = ResultChecker(conf[0], 4, *conf[1])
+        checker = ResultChecker(conf[0], 5, *conf[1])
         try:
-            checker.start(skip_2_tails=False)
+            checker.start(skip_4_tails=True)
         finally:
             checker.dispose()
 

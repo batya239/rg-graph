@@ -41,7 +41,7 @@ def c2():
 def factorized_c2():
     d = inject.instance("dimension")
     if d.subs(e == CLN_ZERO).is_equal(CLN_FOUR):
-        return True, ((CLN_FOUR - d) / e).expand() / d
+        return False, ((CLN_FOUR - d) / e).expand() / d
     else:
         return False, (CLN_FOUR - d).expand() / d
 
@@ -67,108 +67,62 @@ if 'combinations_with_replacement' not in itertools.__dict__:
     itertools.combinations_with_replacement = combinations_with_replacement
 
 
-# def _do_diff(graph, old_graph, comb):
-#     all_edges = list(old_graph.edges())
-#     new_vertex = old_graph.create_vertex_index()
-#     if comb[0] == comb[1]:
-#         #
-#         # (d_xi)^2
-#         #
-#         edge = comb[0][1][0]
-#         all_edges.remove(edge)
-#         all_edges.append(graph_util.new_edge((edge.nodes[0], new_vertex),
-#                                              weight=const.UNIT_WEIGHT,
-#                                              external_node=graph.external_vertex))
-#         all_edges.append(graph_util.new_edge((edge.nodes[1], new_vertex),
-#                                              weight=const.UNIT_WEIGHT,
-#                                              external_node=graph.external_vertex))
-#         return c2(), graphine.Graph(all_edges, renumbering=False)
-#     else:
-#         #
-#         # d_xi
-#         #
-#         for c in comb:
-#             edge = c[1][0]
-#             try:
-#                 all_edges.remove(edge)
-#             except ValueError as e:
-#                 print edge, all_edges
-#                 raise e
-#             numerator = graph_state.Arrow(graph_state.Arrow.LEFT_ARROW if comb[1] else graph_state.Arrow.RIGHT_ARROW)
-#             new_edge1 = graph_util.new_edge((edge.nodes[0], new_vertex),
-#                                             external_node=graph.external_vertex,
-#                                             weight=const.UNIT_WEIGHT,
-#                                             arrow=numerator,
-#                                             marker=const.MARKER_1)
-#             new_edge2 = graph_util.new_edge((edge.nodes[1], new_vertex),
-#                                             weight=const.UNIT_WEIGHT,
-#                                             arrow=graph_state.Arrow(graph_state.Arrow.NULL),
-#                                             external_node=graph.external_vertex,
-#                                             marker=const.MARKER_1)
-#             all_edges.append(new_edge1)
-#             all_edges.append(new_edge2)
-#         all_edges = map(lambda e: e.copy(arrow=graph_state.Arrow(graph_state.Arrow.NULL)) if e.arrow is None else e,
-#                         all_edges)
-#         return c1(), graphine.Graph(all_edges, renumbering=False)
-
-
-def _do_diff(base_graph_edges, old_graph, comb):
+def _do_diff(old_graph, comb):
     all_edges = list(old_graph.edges())
-    new_vertex = old_graph.create_vertex_index()
     if comb[0] == comb[1]:
         #
         # (d_xi)^2
         #
-        edge = comb[0][1][0]
+        edge = comb[0]
         all_edges.remove(edge)
-        all_edges.append(graph_util.new_edge((edge.nodes[0], new_vertex),
-                                             weight=const.UNIT_WEIGHT,
-                                             external_node=old_graph.external_vertex))
-        all_edges.append(graph_util.new_edge((edge.nodes[1], new_vertex),
-                                             weight=const.UNIT_WEIGHT,
+        all_edges.append(graph_util.new_edge((edge.nodes[0], edge.nodes[1]),
+                                             weight=const.DOUBLE_WEIGHT,
                                              external_node=old_graph.external_vertex))
         return c2(), graphine.Graph(all_edges, renumbering=False)
     else:
         #
         # d_xi
         #
-        for c in comb:
-            edge = c[1][0]
-            try:
-                all_edges.remove(edge)
-            except ValueError as e:
-                print edge, all_edges
-                raise e
-            numerator = graph_state.Arrow(graph_state.Arrow.LEFT_ARROW if comb[1] else graph_state.Arrow.RIGHT_ARROW)
-            new_edge1 = graph_util.new_edge((edge.nodes[0], new_vertex),
-                                            external_node=old_graph.external_vertex,
-                                            weight=const.UNIT_WEIGHT,
-                                            arrow=numerator,
-                                            marker=const.MARKER_1)
-            new_edge2 = graph_util.new_edge((edge.nodes[1], new_vertex),
-                                            weight=const.UNIT_WEIGHT,
-                                            arrow=graph_state.Arrow(graph_state.Arrow.NULL),
-                                            external_node=old_graph.external_vertex,
-                                            marker=const.MARKER_1)
-            all_edges.append(new_edge1)
-            all_edges.append(new_edge2)
-        all_edges = map(lambda e: e.copy(arrow=graph_state.Arrow(graph_state.Arrow.NULL)) if e.arrow is None else e,
-                        all_edges)
+        for edge in comb:
+            all_edges.remove(edge)
+            numerator = graph_state.Arrow(graph_state.Arrow.LEFT_ARROW if edge.marker == const.MARKER_1 else graph_state.Arrow.RIGHT_ARROW)
+            new_edge = graph_util.new_edge((edge.nodes[0], edge.nodes[1]),
+                                           external_node=old_graph.external_vertex,
+                                           weight=const.DOUBLE_WEIGHT,
+                                           arrow=numerator,
+                                           marker=const.MARKER_1)
+            all_edges.append(new_edge)
+        all_edges = map(lambda e: e.copy(arrow=graph_state.Arrow(graph_state.Arrow.NULL)) if e.arrow is None else e, all_edges)
         return c1(), graphine.Graph(all_edges, renumbering=False)
+
 
 def diff_p2(graph):
     assert graph.external_edges_count == 2
     minimal_passing = graphine.util.find_shortest_momentum_flow(graph)
-    new_graph_edges = map(lambda e: e.copy(marker=const.MARKER_0), graph.edges())
     new_minimal_passing = list()
     for e, b in minimal_passing:
-        new_graph_edges.remove(e.copy(marker=const.MARKER_0))
         new_e = e.copy(marker=const.MARKER_1)
-        new_graph_edges.append(new_e)
         new_minimal_passing.append((new_e, b))
-    new_graph = graphine.Graph(new_graph_edges, renumbering=False)
-    return map(lambda comb: _do_diff(new_graph, graph, comb),
-               itertools.combinations_with_replacement(zip(new_minimal_passing, minimal_passing), 2))
+    return map(lambda comb: _do_diff(graph, comb), itertools.combinations_with_replacement(minimal_passing, 2))
+
+
+def diff_p2_by_markers(graph):
+    diff_edges = filter(lambda e: not e.is_external() and e.marker is not None, graph)
+    if not len(diff_edges):
+        return None
+    result = map(lambda comb: _do_diff(graph, comb), itertools.combinations_with_replacement(diff_edges, 2))
+    return result
+
+
+def find_minimal_momentum_passing(graph):
+    external_nodes = filter(lambda e: e.marker is None, graph.external_edges)
+    minimal_passing = graphine.util.find_shortest_momentum_flow(graph, *external_nodes)
+    to_add = list()
+    to_remove = list()
+    for e, direction in minimal_passing:
+        to_remove.append(e)
+        to_add.append(e.copy(marker=const.MARKER_1 if direction else const.MARKER_M1))
+    return graph.change(to_remove, to_add)
 
 
 def diff_single_propagator(base_graph_edges, edge, new_vertex_index):

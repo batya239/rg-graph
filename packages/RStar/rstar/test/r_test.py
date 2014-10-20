@@ -64,6 +64,9 @@ class RPrimeTestCase(unittest.TestCase):
         self._do_test_r1("ee11|22|33|44|ee|", "-1/(e**4)")
 
     def test_p2_ir(self):
+        self._do_test_r1("12|3|e333|e|", "-3/8/e+1/6/e**2")
+
+    def test_p2_ir2(self):
         self._do_test_r1("ee12|ee3|333||", "-3/8/e+1/6/e**2")
 
     def test_ee11_22_34_e44_(self):
@@ -212,7 +215,7 @@ class RPrimeP2Divergence(unittest.TestCase):
     def _do_test_r1(self, graph_state_str, expected_result_as_string):
         g = graph_util.graph_from_str(graph_state_str, do_init_weight=True)
         expected = symbolic_functions.evaluate(expected_result_as_string) * symbolic_functions.p2
-        actual = self.operator.kr_star_p2(g, True).evaluate().simplify_indexed().expand()
+        actual = self.operator.kr_star(g, all_possible=True).evaluate().simplify_indexed().expand()
         symbolic_functions.check_series_equal_numerically(actual, expected, symbolic_functions.e, 10e-6, self)
 
     def test_e111_e_(self):
@@ -221,12 +224,30 @@ class RPrimeP2Divergence(unittest.TestCase):
     def test_e112_22_e_(self):
         self._do_test_r1("e112|22|e|", "-1/12/e+1/6/e**2")
 
+    def test_e112_33_e33_(self):
+        self._do_test_r1("e112|33|e33|", "5/32/e+1/16/e**2-1/8/e**3")
+
     def test_e112_e3_333__(self):
         self._do_test_r1("e112|e3|333||", "5/32/e-1/32/e**2")
 
-    # def test_e112_22_e_(self):
-    #     self.do_test_rstar_quadratic_divergence("e112|22|e|", "1/6*e**(-2)-1/12*e**(-1)")
+    def test_e123_e23_33__(self):
+        self._do_test_r1("e123|e23|33||", "-13/96/e+7/48/e**2-1/24/e**3")
+
+    def test_e112_23_33_e_(self):
+        self._do_test_r1("e112|23|33|e|", "-1/e/3 + 1/6/e**2 - 1/12/e**3")
+
+    def test_e112_33_e44_44__(self):
+        self._do_test_r1("e112|33|e44|44||", "(1/5*zeta(3)-13/80)/e-1/8/e**2-1/20/e**3+1/10/e**4")
+
+    def test_e112_23_e4_444__(self):
+        self._do_test_r1("e112|23|e4|444||", "7/128/e - 23/240/e/e + 11/480/e/e/e")
+
+    # def test_e123_e45_444_555___(self):
+    #     self._do_test_r1("e123|e45|444|555|||", "(-1/192)*e**(-3)+(5/192)*e**(-2)+(-11/384)*e**(-1)")
     #
+    # def test_8loop_watermelon(self):
+    #     self._do_test_r1("e234|e567|555|666|777||||", "0")
+
     # def test_e112_33_e33__(self):
     #     self.do_test_rstar_quadratic_divergence("e112|33|e33||", "5/(32*e)+1/(16*e**2)-1/(8*e**3)")
 
