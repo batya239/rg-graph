@@ -12,11 +12,6 @@ that depends only on its combinatorial type. The uniqueness of graph representat
 searching for subgraphs and other graph manipulation tasks. Though offered libraries were originally designed for Feynman graphs,
 they might be useful for more general graph problems.
 
-Contents:
-
-.. toctree::
-   :maxdepth: 2
-
 Properties and its configuration
 ================================
 
