@@ -40,6 +40,12 @@ using factory methods of :class:`PropertiesConfig` instance. Edges and nodes are
 .. autoclass:: graph_state.Node
    :members:
 
+:mod:`operations_lib` module
+============================
+
+.. automodule:: graph_state.operations_lib
+   :members:
+
 Indices and tables
 ==================
 

@@ -1,20 +1,21 @@
 #!/usr/bin/python
 # -*- coding: utf8 -*-
 """
-provides some useful operations on graphs such obtain vertices of graph or connected components
+Module provides some useful operations on graphs such obtaining vertices of graph or connected components.
 
-all of functions in module marked with @graph_state_to_edges_implicit_conversion
-can take list of edges or GraphState object as parameter
+All of functions in module marked with :func:`@_graph_state_to_edges_implicit_conversion`
+can take list of edges or :class:`GraphState` object as parameter as well.
 """
 __author__ = 'dima'
 
 import graph_state
+from functools import wraps
 
-
-def graph_state_to_edges_implicit_conversion(edges_first_parameter_function):
+def _graph_state_to_edges_implicit_conversion(edges_first_parameter_function):
     """
-    wrapper implicitly converts GraphState parameter to edges list parameter
+    First edges parameter can be both list of edges and :class:`GraphState`.
     """
+    @wraps(edges_first_parameter_function)
     def graph_state_first_parameter_function(some_obj, *other_params, **other_kwargs):
         return edges_first_parameter_function(some_obj.edges
                                               if isinstance(some_obj, graph_state.GraphState)
@@ -22,16 +23,14 @@ def graph_state_to_edges_implicit_conversion(edges_first_parameter_function):
 
     return graph_state_first_parameter_function
 
-
-@graph_state_to_edges_implicit_conversion
+@_graph_state_to_edges_implicit_conversion
 def edges_for_node(edges, node):
     """
     return only edges that contain node as node
     """
     return filter(lambda e: node in e.nodes, edges)
 
-
-@graph_state_to_edges_implicit_conversion
+@_graph_state_to_edges_implicit_conversion
 def get_external_node(edges):
     """
     returns external node for edges
@@ -41,7 +40,7 @@ def get_external_node(edges):
     return edges[0].external_node
 
 
-@graph_state_to_edges_implicit_conversion
+@_graph_state_to_edges_implicit_conversion
 def get_bound_vertices(edges):
     """
     non-external vertices of external nodes
@@ -53,7 +52,7 @@ def get_bound_vertices(edges):
     return result
 
 
-@graph_state_to_edges_implicit_conversion
+@_graph_state_to_edges_implicit_conversion
 def get_vertices(edges):
     """
     all vertices including external
@@ -96,10 +95,10 @@ def get_connected_components(edges, additional_vertices=set(), singular_vertices
     return disjoint_set.get_connected_components()
 
 
-@graph_state_to_edges_implicit_conversion
+@_graph_state_to_edges_implicit_conversion
 def is_edge_property_fully_none(edges, property_name):
     """
-    checks that given property is None for all edges
+    checks that given property is **None** for all edges
     """
     assert property_name is not None
     for e in edges:
@@ -108,7 +107,7 @@ def is_edge_property_fully_none(edges, property_name):
     return True
 
 
-@graph_state_to_edges_implicit_conversion
+@_graph_state_to_edges_implicit_conversion
 def has_no_tadpoles_in_counter_term(edges, super_graph_edges):
     """
     TODO dima forgot what this method do
@@ -141,7 +140,7 @@ def has_no_tadpoles_in_counter_term(edges, super_graph_edges):
     return True
 
 
-@graph_state_to_edges_implicit_conversion
+@_graph_state_to_edges_implicit_conversion
 def is_graph_connected(edges, additional_vertices=set()):
     """
     checks that graph is connected
@@ -151,7 +150,7 @@ def is_graph_connected(edges, additional_vertices=set()):
     return len(get_connected_components(edges, additional_vertices)) == 1 if len(edges) else True
 
 
-@graph_state_to_edges_implicit_conversion
+@_graph_state_to_edges_implicit_conversion
 def is_vertex_irreducible(edges):
     """
     checks that graph is vertex irreducible
@@ -177,7 +176,7 @@ def is_vertex_irreducible(edges):
     return True
 
 
-@graph_state_to_edges_implicit_conversion
+@_graph_state_to_edges_implicit_conversion
 def is_1_irreducible(edges):
     """
     checks that graph is 1-irreducible
@@ -195,9 +194,6 @@ def is_1_irreducible(edges):
 
 
 class DisjointSet(object):
-    """
-    internal class represent disjoint set as a engine for connected components algorithm
-    """
     def __init__(self, keys=set()):
         self.underlying = dict()
         for k in keys:
@@ -217,9 +213,6 @@ class DisjointSet(object):
         return a_root
 
     def union(self, pair):
-        """
-        no balancing
-        """
         a, b = pair
         self.add_key(a)
         self.add_key(b)
