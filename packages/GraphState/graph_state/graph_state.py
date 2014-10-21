@@ -17,9 +17,6 @@ if 'chain_from_iterables' not in itertools.__dict__:
 
 
 class Properties(object):
-    """
-    internal class represents a set of named properties
-    """
     def __init__(self, from_edge, properties_config=None, **kwargs):
         assert properties_config is not None
         self._from_edge = from_edge
@@ -147,12 +144,10 @@ class Properties(object):
 
 class PropertiesConfig(object):
     """
-    Base factory to produce Edge or Node objects
+    Base factory class to produce :class:`GraphState`, :class:`Edge` or :class:`Node` objects. All creation of new instances must
+    be done using this class. Don't use constructors of these classes directly.
     """
     def __init__(self, property_order, property_directionality, property_externalizer, property_target):
-        """
-        Don't use directly, see PropertiesConfig.create()
-        """
         self._property_order = property_order
         self._property_directionality = property_directionality
         self._property_externalizer = property_externalizer
@@ -160,6 +155,10 @@ class PropertiesConfig(object):
 
     @staticmethod
     def create(*property_keys):
+        """
+        :param property_keys: property keys defines properties behaviour. See :class:`graph_state_property.PropertyKey`.
+        :return: properties config created for given keys
+        """
         property_order = [None] * len(property_keys)
         property_directionality = dict()
         property_externalizer = dict()
@@ -173,74 +172,56 @@ class PropertiesConfig(object):
 
     def new_node(self, node_index, **kwargs):
         """
-        create new node with this config with specified node_index and specified node properties in **kwargs
+        creates new node with this config with specified node_index and specified node properties in **kwargs.
         """
         kwargs['properties_config'] = self
         return graph_state_property.Node(node_index, Properties.from_kwargs(from_edge=False, **kwargs))
 
     def new_edge(self, nodes, external_node=-1, edge_id=None, **kwargs):
         """
-        nodes - pair of Node or int objects
-        **kwargs - edge properties
-
-        create new edge with this config with specified nodes
+        :param nodes: pair of nodes defines edge
+        :type nodes: tuple
+        :param external_node: Current state to be in.
+        :type external_node: int or :class:`Node`
+        :param edge_id: unique edge id, if not given then assigned automated
+        :type int
+        :param **kwargs: properties of edge and properties config
+        :return: :new edge represented as class:`Edge` object
         """
         kwargs['properties_config'] = self
         return graph_state.Edge(nodes, external_node, edge_id, **kwargs)
 
     @classmethod
     def new_graph_state(cls, edges):
-        """
-        deprecated
-        """
         return GraphState(edges)
 
     def graph_state_from_str(self, string):
         """
-        parse GraphState object from string with this config
+        :return: creates :class:`GraphState` object for given serialized string corresponding to properties config.
         """
         return graph_state.GraphState.from_str(string, properties_config=self)
 
     def new_properties(self, **kwargs):
         return Properties(self, **kwargs)
 
-
     @property
     def property_order(self):
-        """
-        don't use it, only for internal usage
-        """
         return self._property_order
 
     @property
     def property_target(self):
-        """
-        don't use it, only for internal usage
-        """
         return self._property_target
 
     def externalizer(self, p_name):
-        """
-        don't use it, only for internal usage
-        """
         return self._property_externalizer[p_name]
 
     def properties_count(self):
-        """
-        don't use it, only for internal usage
-        """
         return len(self._property_order)
 
     def is_directed(self, property_name):
-        """
-        don't use it, only for internal usage
-        """
         return self._property_directionality[property_name]
 
     def has_property(self, property_name, from_edge=True):
-        """
-        don't use it, only for internal usage
-        """
         return self._property_target.get(property_name, None) is from_edge
 
     def __len__(self):
@@ -256,7 +237,9 @@ DEFAULT_PROPERTIES_CONFIG = PropertiesConfig.create()
 
 
 class Edge(graph_state_property.PropertyGetAttrTrait):
-    """Representation of an edge of a graph."""
+    """
+    Representation of an edge of a graph. Edge could have directed or undirected properties defined by :class:`PropertiesConfig`.
+    """
 
     #if this attribute is True than any new Edge will be generated with unique edge_id
     CREATE_EDGES_INDEX = True
@@ -265,15 +248,15 @@ class Edge(graph_state_property.PropertyGetAttrTrait):
 
     def __init__(self, nodes, external_node=-1, edge_id=None, **kwargs):
         """
-        Edge constructor.
-        Do not use directly. use PropertiesConfig#new_edge instead this
+        warning:: Do not use directly. use PropertiesConfig#new_edge instead this
 
-
-        Args:
-            nodes: pair of ints enumerating edge ends.
-            external_node: which nodes are external. Default: -1.
-            edge_id: unique edge id number
-            **kwargs: properties of edge and properties config
+        :param nodes: pair of nodes defines edge
+        :type nodes: tuple
+        :param external_node: Current state to be in.
+        :type external_node: int or :class:`Node`
+        :param edge_id: unique edge id, if not given then assigned automated
+        :type int
+        :param **kwargs: properties of edge and properties config
         """
         properties = kwargs.get('properties', None)
         if properties is None:
@@ -301,6 +284,9 @@ class Edge(graph_state_property.PropertyGetAttrTrait):
                 self.edge_id = None
 
     def is_external(self):
+        """
+        :return: is edge is external (has external node)
+        """
         return len(self.internal_nodes) == 1
 
     @property
@@ -310,11 +296,14 @@ class Edge(graph_state_property.PropertyGetAttrTrait):
 
     @property
     def nodes(self):
+        """
+        :return: nodes of edge
+        """
         return self._nodes
 
     def co_node(self, node):
         """
-        returns node of edges which a not equal to given
+        :return: node that complements node given by parameter
         """
         for n in self.nodes:
             if n != node:
@@ -357,14 +346,11 @@ class Edge(graph_state_property.PropertyGetAttrTrait):
 
     def copy(self, node_map=None, **kwargs):
         """
-        Creates a copy of the object with possible change of nodes.
+        Creates a copy of the object with possible change of nodes and possible change of properties.
 
-        Args:
-            node_map: dictionary mapping old nodes to new ones. Identity map
-                is assumed for the missed keys.
-            **kwargs: properties that must be replaced for edge copy          
-        Returns:
-            New Edge object.
+        :param node_map: dictionary mapping old nodes to new ones. Identity map is assumed for the missed keys.
+        :param **kwargs: properties that must be replaced for edge copy
+        :return: new :class:`Edge` constructed by given rules.
         """
         node_map = node_map or {}
 

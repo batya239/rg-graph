@@ -17,6 +17,17 @@ class PropertyGetAttrTrait(object):
 
 
 class Node(PropertyGetAttrTrait):
+    """
+    Representation of an graph node. Any node has unique integer index to identify node in graph.
+
+    Usually to simplify dealing with :class:`Node` implicit conversion to integer is used. It means that node with given
+    index equals to index:
+
+    >>> assert node.index == node
+    True
+
+    This means that for simple cases when nodes don't have any properties :class:`Node` can be considered as integer number.
+    """
     def __init__(self, index, properties):
         super(Node, self).__init__(from_edge=False)
         assert properties is not None
@@ -26,6 +37,9 @@ class Node(PropertyGetAttrTrait):
 
     @property
     def index(self):
+        """
+        :return: unique index of :class:`Node`
+        """
         return self._index
 
     def key(self):
@@ -36,6 +50,11 @@ class Node(PropertyGetAttrTrait):
         return self._node_index_str
 
     def copy(self, new_node_index=None, **kwargs):
+        """
+        :param new_node_index: if not None then new index of node will be assigned
+        :type new_node_index: int
+        :param kwargs: properties of node to change
+        """
         if 'new_node' in kwargs:
             new_node = kwargs['new_node']
             return new_node if isinstance(new_node, Node) else Node(new_node, self._properties)
@@ -68,12 +87,27 @@ class Node(PropertyGetAttrTrait):
 # noinspection PyMethodMayBeStatic
 class PropertyExternalizer(object):
     """
-    Base externalizer superclass, can be used as is for numeric types
+    Base externalizer (serializer/deserializer) superclass. Any externalizer for properties should be override this class.
+
+    For example to externalize numeric values following implementation can be used::
+
+        class IntegerExternalizer(PropertyExternalizer):
+            def serialize(self, obj):
+                return str(obj)
+
+            def deserialize(self, string):
+                return eval(string)
     """
     def serialize(self, obj):
+        """
+        :return: string serialization of given object
+        """
         return str(obj)
 
     def deserialize(self, string):
+        """
+        :return: object deserialized from string
+        """
         return eval(string)
 
 
@@ -91,15 +125,30 @@ class ExternalableProperty(object):
 
 
 class PropertyKey(object):
+    """
+    Class defines behaviour of properties that can be assigned to lines or nodes of graph.
+    Any property must have a name that can be used as pseudofield of :class:`Node`
+    or :class:`Edge` to access value, for example edge property with name "weight" can be accessed using following code:
+
+    >>> edge.weight
+
+    To emulate directed graphs property can be directed. In this case value of this property MUST have defined :func:`__cmp__` method:
+
+    >>> PropertyKey("arrow", is_directed=True, is_edge_property=True, externalizer=ArrowExternalizer())
+
+    To create node property :func:`is_edge_property` parameter must be specified as False
+
+    >>> node_property = PropertyKey("color", is_edge_property=False, externalizer=ColorExternalizer())
+    """
     def __init__(self,
                  name,
                  is_directed=False,
                  is_edge_property=True,
-                 externalizer=FakePropertyExternalizer()):
+                 externalizer=None):
         assert not is_directed or is_edge_property, 'node property can\'t be vector'
         self._name = name
         self._is_directed = is_directed
-        self._externalizer = externalizer
+        self._externalizer = externalizer if externalizer is not None else FakePropertyExternalizer()
         self._is_edge_property = is_edge_property
 
     @property
