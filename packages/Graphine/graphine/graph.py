@@ -5,6 +5,7 @@ import graph_state
 import graph_operations
 import itertools
 import collections
+from functools import wraps
 assert graph_state.Edge.CREATE_EDGES_INDEX
 
 
@@ -33,6 +34,7 @@ KeyAndParams = collections.namedtuple("KeyAndParams", ["key", "params", "kwargs"
 
 
 def cached_method(some_class_method):
+    @wraps(some_class_method)
     def wrapper(self, *params, **kwargs):
         hidden_key = "_" + some_class_method.__name__
         kwargs_k = frozenset(map(lambda t: t, kwargs.items())) if len(kwargs) else None
@@ -46,12 +48,15 @@ def cached_method(some_class_method):
 
 class Graph(object):
     """
-    representation of graph
+    :class:`Graph` object can be created from both list of edges and :class:`GraphState` object as a first parameter. Additionally one
+    can use :meth:`Graph.from_str` for creation from :class:`GraphState` serialized string and given :class:`PropertiesConfig`.
+
+    In case of list of edges in constructor this list will be processed to list of edges that are relevant to minimal Nickel notation.
+    If one don't need that then specify :attr:`renumbering` parameter as ``False``.
     """
     def __init__(self, obj, renumbering=True):
         """
-        obj - edges list or GraphState object
-
+        obj - both of edges list or GraphState object
         renumbering - reordering edges using GraphState
         """
         self._internal_cache = dict()
@@ -68,45 +73,76 @@ class Graph(object):
 
     @staticmethod
     def from_str(string, properties_config=None):
+        """
+        :param string: GraphState serialized string
+        :type string: str.
+        :param properties_config: valid properties configuration do deserialize string
+        :type properties_config: :class:`PropertiesConfig`
+        :return: constructed :class:`Graph` object
+        """
         return Graph(graph_state.GraphState.from_str(string, properties_config=properties_config))
 
     @property
     @cached_method
     def external_vertex(self):
+        """
+        Returns external vertex of graph.
+        """
         return graph_state.operations_lib.get_external_node(self._underlying)
 
     @property
     @cached_method
     def external_edges(self):
+        """
+        Returns external edges of graph. See :attr:`external_edges_count`, :attr:`internal_edges`.
+        """
         return graph_state.operations_lib.edges_for_node(self._underlying, self.external_vertex)
 
     @property
     def external_edges_count(self):
+        """
+        Returns count of external edges. See :attr:`external_edges`, :attr:`external_edges`.
+        """
         return len(self.external_edges)
 
     @property
     @cached_method
     def internal_edges(self):
+        """
+        Returns internal edges of graph. See :meth:`external_edges`, :meth:`internal_edges_count`.
+        """
         return tuple(filter(lambda e: not e.is_external(), self))
 
     @property
     @cached_method
     def vertices(self):
+        """
+        Returns vertices of graph (includes external vertex). See :meth:`get_bound_vertices`.
+        """
         return graph_state.operations_lib.get_vertices(self._underlying)
 
     @property
     @cached_method
     def edges_indices(self):
+        """
+        Returns indices of edges. See :class:`Edge`, :attr:`Edge.edge_id`.
+        """
         return frozenset(map(lambda e: e.edge_id, self))
 
     @property
     @cached_method
     def internal_edges_count(self):
+        """
+        Returns internal edges of graph. See :meth:`internal_edges`.
+        """
         return len(self.internal_edges)
 
     @property
     @cached_method
     def loops_count(self):
+        """
+        Returns count of loops in diagram (graph).
+        """
         return self.internal_edges_count - len(self.vertices) + (1 if len(self.edges(self.external_vertex)) != 0 else 0) + 1
 
     @property
@@ -116,7 +152,14 @@ class Graph(object):
     @cached_method
     def edges(self, vertex=None, vertex2=None, nickel_ordering=False):
         """
-        returns all edges with one vertex equals vertex parameter
+        Return edges of graph for corresponding :param:`vertex` and :param:`vertex2` if specified.
+
+        >>> Graph.from_str("e11|e|", config).edges(0)
+        [(0, -1), (0, 1), (0, 1)]
+
+
+        >>> Graph.from_str("e11|e|", config).edges(0, 1)
+        [(0, 1), (0, 1)]
         """
         if vertex is None:
             if nickel_ordering or isinstance(self._underlying, graph_state.GraphState):
@@ -131,6 +174,9 @@ class Graph(object):
 
     @cached_method
     def to_graph_state(self):
+        """
+        Returns :class:`GraphState` of given graph.
+        """
         try:
             return self._underlying \
                 if isinstance(self._underlying, graph_state.GraphState) \
@@ -140,16 +186,22 @@ class Graph(object):
 
     @cached_method
     def get_bound_vertices(self):
+        """
+        Returns vertices of graph that are bound to external vertex.
+        """
         return graph_state.operations_lib.get_bound_vertices(self._underlying)
 
     def create_vertex_index(self):
+        """
+        Creates and returns index of edge that are not occurred among vertex indices of given graph.
+        """
         to_return = self._next_vertex_index
         self._next_vertex_index += 1
         return to_return
 
     def change(self, edges_to_remove=None, edges_to_add=None, renumbering=True):
         """
-        transactional changes graph structure
+        Returns graph with deleted edges :attr:`edges_to_remove` and added :attr:`edges_to_add`.
         """
         new_edges = self.edges()
         new_edges = Graph._sub_tuple(new_edges, edges_to_remove)
@@ -157,6 +209,9 @@ class Graph(object):
         return Graph(new_edges, renumbering=renumbering)
 
     def delete_vertex(self, vertex, transform_edges_to_external=False):
+        """
+        Delete vertex from graph and makes all of edges containing specified vertex external.
+        """
         assert vertex != self.external_vertex
         if transform_edges_to_external:
             edges = self.edges(vertex)
@@ -170,6 +225,9 @@ class Graph(object):
             return self - self.edges(vertex)
 
     def contains(self, other_graph):
+        """
+        Return is graoh has given graph as subset of edges.
+        """
         self_edges = list(self.edges())
         for e in other_graph:
             if e in self_edges:
@@ -179,9 +237,6 @@ class Graph(object):
         return True
 
     def batch_shrink_to_point(self, sub_graphs, with_aux_info=False):
-        """
-        subGraphs -- list of graphs edges or graph with equivalent numbering of vertices
-        """
         if not len(sub_graphs):
             return (self, list()) if with_aux_info else self
 

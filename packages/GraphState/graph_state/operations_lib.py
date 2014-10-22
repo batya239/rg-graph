@@ -11,6 +11,7 @@ __author__ = 'dima'
 import graph_state
 from functools import wraps
 
+
 def _graph_state_to_edges_implicit_conversion(edges_first_parameter_function):
     """
     First edges parameter can be both list of edges and :class:`GraphState`.
@@ -26,16 +27,17 @@ def _graph_state_to_edges_implicit_conversion(edges_first_parameter_function):
 @_graph_state_to_edges_implicit_conversion
 def edges_for_node(edges, node):
     """
-    return only edges that contain node as node
+    :return: only edges that contain node as node
     """
     return filter(lambda e: node in e.nodes, edges)
 
 @_graph_state_to_edges_implicit_conversion
 def get_external_node(edges):
     """
-    returns external node for edges
+    Method does not checks that all of edges have same external node and returns :func:`external_node`
+    field of first occurred edge.
 
-    method not checks that all of edges have same external node
+    :returns: external node for edges
     """
     return edges[0].external_node
 
@@ -43,7 +45,7 @@ def get_external_node(edges):
 @_graph_state_to_edges_implicit_conversion
 def get_bound_vertices(edges):
     """
-    non-external vertices of external nodes
+    :returns: non-external vertices of external nodes
     """
     result = set()
     for e in edges:
@@ -55,17 +57,19 @@ def get_bound_vertices(edges):
 @_graph_state_to_edges_implicit_conversion
 def get_vertices(edges):
     """
-    all vertices including external
+    :returns: all vertices including external
     """
     return frozenset(reduce(lambda s, e: s + e.nodes, edges, tuple()))
 
 
 def get_connected_components(edges, additional_vertices=set(), singular_vertices=set()):
     """
-    get lists of connected undirected graph vertices
+    :returns: get lists of connected undirected graph vertices
     
-    additional_vertices: any additional vertices which will be included to result
-    singular_vertices: vertices that not produce connection between vertices
+    :param additional_vertices: any additional vertices which will be included to result
+    :type additional_vertices: set
+    :param singular_vertices: vertices that not produce connection between vertices. All Edges is containing these nodes will be ignored
+    :type singular_vertices: set
     """
     if not len(edges):
         return tuple()
@@ -98,7 +102,7 @@ def get_connected_components(edges, additional_vertices=set(), singular_vertices
 @_graph_state_to_edges_implicit_conversion
 def is_edge_property_fully_none(edges, property_name):
     """
-    checks that given property is **None** for all edges
+    checks that property with given name is **None** for all edges
     """
     assert property_name is not None
     for e in edges:
@@ -109,9 +113,7 @@ def is_edge_property_fully_none(edges, property_name):
 
 @_graph_state_to_edges_implicit_conversion
 def has_no_tadpoles_in_counter_term(edges, super_graph_edges):
-    """
-    TODO dima forgot what this method do
-    """
+    # TODO dima forgot what this method do
     if not len(edges):
         return False
     external_node = get_external_node(super_graph_edges)
@@ -143,9 +145,7 @@ def has_no_tadpoles_in_counter_term(edges, super_graph_edges):
 @_graph_state_to_edges_implicit_conversion
 def is_graph_connected(edges, additional_vertices=set()):
     """
-    checks that graph is connected
-    
-    see get_connected_components
+    Checks that graph is connected. See :func:`get_connected_components`
     """
     return len(get_connected_components(edges, additional_vertices)) == 1 if len(edges) else True
 
@@ -153,7 +153,7 @@ def is_graph_connected(edges, additional_vertices=set()):
 @_graph_state_to_edges_implicit_conversion
 def is_vertex_irreducible(edges):
     """
-    checks that graph is vertex irreducible
+    Checks that graph is vertex irreducible
     """
     external_node = get_external_node(edges)
     vertices = get_vertices(edges)
@@ -179,7 +179,7 @@ def is_vertex_irreducible(edges):
 @_graph_state_to_edges_implicit_conversion
 def is_1_irreducible(edges):
     """
-    checks that graph is 1-irreducible
+    Checks that graph is 1-irreducible
     """
     if len(edges):
         external_node = get_external_node(edges)

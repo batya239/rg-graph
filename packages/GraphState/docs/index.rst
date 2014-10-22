@@ -43,7 +43,22 @@ using factory methods of :class:`PropertiesConfig` instance. Edges and nodes are
 :mod:`operations_lib` module
 ============================
 
+:mode:`operations_lib` provides operations on low-level data structures (list of edges or :class:`GraphState`).
+Usually all operations are produced only using :class:`Graph` objects but if there is no way to escape low-level data structures or
+decreasing of :class:`Graph` performance are occurred then this functions can be used.
+
 .. automodule:: graph_state.operations_lib
+   :members:
+
+Graphine overview
+=================
+
+:class:`Graph` class is main representation for graph. All access to graph structure and producing operations on graph may be
+done using this class (use :class:`GraphState` only for graph serialization/deserializaion tasks).
+Several frequently used methods of this class (for ex.: :meth:`Graph.edges`, :attr:`Graph.loops_count`) are cacheable
+in hard reference map hidden in :class:`Graph` backend.
+
+.. autoclass:: graphine.Graph
    :members:
 
 Indices and tables
