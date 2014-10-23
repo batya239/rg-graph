@@ -37,10 +37,10 @@ _ASym=True
 _ASym=False
 #search for A-symmetries after all sectors are constructed
 _ASym2=True
-#_ASym2=False
+_ASym2=False
 #search for base symmetries
-_SSym=True
-#_SSym=False
+#_SSym=True
+_SSym=False
 
 _ASectorsDots = False
 

@@ -9,8 +9,8 @@ from sympy import latex, var, simplify
 
 outFile = 'diagTable_5loops.tex'
 # resFile = 'res_best_6loops.txt'
-# resFile = 'res_best_6loops.txt'
-KR1File = 'KR1_5loops_yura.out'
+resFile = 'phi4_d2_s2-5loop-e4-100M-6loop-e2-1M.py'
+KR1File = 'KR1_5loops.out'
 
 def symmetryCoefficient(graph):
     edges = graph.edges()
@@ -32,15 +32,11 @@ def symmetryCoefficient(graph):
 
 res = eval(open(resFile,'r').read())
 KR1 = eval(open(KR1File,'r').read())
-diagList = map(lambda x: x.split(' ')[0], open('../graphs/phi4/e4-5loop.txt','r').readlines())
+# diagList = map(lambda x: x.split(' ')[0], open('../graphs/phi4/e4-5loop.txt','r').readlines())
+diagList = KR1.keys()
 diagList.sort()
-for i in range(len(diagList)):
-    diagList[i] = diagList[i].replace("-","|")
 
-print len(diagList), len(res), len(KR1)
-# print diagList[39]
-# print res[diagList[39]]
-# print KR1[diagList[39]]
+print "len(diagList) = %d, len(res) = %d, len(KR1) = %d"%(len(diagList), len(res), len(KR1))
 
 head = "\\documentclass[a4paper]{book}\n \
 \\usepackage[english,russian]{babel} \n \
@@ -50,7 +46,7 @@ head = "\\documentclass[a4paper]{book}\n \
 \n \
 \\begin{document} \n \
 \\pagestyle{empty} \n \
-\\begin{longtable}{|c|c|l|l|c|l|l|}\n \
+\\begin{longtable}{|c|l|l|l|c|l|l|}\n \
 \\hline\n \
  & $\gamma_i$ & $KR'$($\gamma_i$) & $S(\gamma_i$) & $3^6\\times O(n)/(n+2)$\\\\ \n \
 \\hline \n"
@@ -66,15 +62,14 @@ for i,diag in enumerate(diagList):
     except KeyError:
         print("No result for",diag)
         continue
-    graph = graphine.Graph(graph_state.GraphState.from_str(diag))
+    graph = graphine.Graph(graph_state.GraphState.from_str(diag.replace("-","|")))
     graphLoopCount = graph.loops_count
     C = symmetryCoefficient(graph)
     coeff = -(-2. / 3) ** graphLoopCount * C[0]/C[1]
     toSort.append([abs(kr.n*coeff),diag])
-    # toSort.append([kr.n*coeff,diag])
 
-diagList = [d[1] for d in sorted(toSort,reverse=True)]
-print diagList
+# diagList = [d[1] for d in sorted(toSort,reverse=True)]
+diagList = [d[1] for d in toSort]
 
 f = open(outFile,'w')
 f.write(head)
@@ -82,7 +77,7 @@ n = var('n')
 for i,diag in enumerate(diagList):
     r = ufloat(res[diag][0][0],res[diag][1][0])
     kr = ufloat(KR1[diag])
-    graph = graphine.Graph(graph_state.GraphState.from_str(diag))
+    graph = graphine.Graph(graph_state.GraphState.from_str(diag.replace("-","|")))
     graphLoopCount = graph.loops_count
     C = symmetryCoefficient(graph)
     coeff = -(-2. / 3) ** graphLoopCount * C[0] / C[1]
