@@ -5,7 +5,7 @@ __author__ = 'dimas'
 
 
 from rggraphutil import VariableAwareNumber
-from rggraphenv import symbolic_functions
+from rggraphenv.symbolic_functions import cln, e
 import swiginac
 
 
@@ -15,7 +15,9 @@ DOUBLE_WEIGHT = VariableAwareNumber("l", 2, 0)
 NEGATIVE_WEIGHT_EDGE = VariableAwareNumber("l", -1, 0)
 
 SPACE_DIM_PHI4 = 4
-DIM_PHI4 = swiginac.numeric(str(SPACE_DIM_PHI4)) - swiginac.numeric("2") * symbolic_functions.e
+SPACE_DIM_PHI3 = 6
+DIM_PHI4 = cln(SPACE_DIM_PHI4) - cln(2) * e
+DIM_PHI3 = cln(SPACE_DIM_PHI3) - cln(2) * e
 EDGE_WEIGHT = -2
 
 MARKER_0 = 0

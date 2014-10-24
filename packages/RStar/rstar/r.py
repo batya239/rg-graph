@@ -17,6 +17,7 @@ import itertools
 import ir_uv
 import diff_util
 import const
+import inject
 
 from rggraphutil import emptyListDict
 from rggraphenv import symbolic_functions, log
@@ -80,6 +81,7 @@ class RStar(object):
         self._uv_filter = configure.Configure.uv_filter()
         self._k_operation = configure.Configure.k_operation()
         self.storage = configure.Configure.storage()
+        self.vertex = 4 if inject.instance("dimension").subs(symbolic_functions.e == 0).to_int() == 4 else 3
 
     @classmethod
     def set_debug(cls, debug):
@@ -147,7 +149,7 @@ class RStar(object):
                 for counter_item, shrunk, p2_counts, _debug_line in self.x_r_prime(graph):
                     # if p2_counts != 0 and RStar.is_tadpole(shrunk):
                     #     raise common.CannotBeCalculatedError(graph)
-                    if do_diff and ir_uv.uv_index(shrunk) == 2 and RStar.is_tadpole(RStar.adjust(shrunk)):
+                    if do_diff and ir_uv.uv_index(shrunk) == 2 and RStar.is_tadpole(self.adjust(shrunk)):
                         continue
                     if log.is_debug_enabled():
                         debug_line += "+%s*R~(%s)" % (_debug_line, shrunk)
@@ -180,6 +182,8 @@ class RStar(object):
         return value
 
     def _delta_ir(self, _graph):
+        if ir_uv.uv_index(_graph) > 0:
+            return lazy.ZERO
         evaluated = self.storage.get(_graph.to_tadpole(), "delta_ir")
         if evaluated is not None:
             return evaluated
@@ -221,7 +225,7 @@ class RStar(object):
             assert not minus_graph
             if str(graph).startswith("ee0"):
                 return lazy.ZERO
-            if ir_uv.uv_index(graph) == 2 and RStar.is_tadpole(RStar.adjust(graph)):
+            if ir_uv.uv_index(graph) == 2 and RStar.is_tadpole(self.adjust(graph)):
                 return lazy.ZERO
             return lazy.LazyValue.create(self._delta_ir(graph))
         else:
@@ -241,7 +245,7 @@ class RStar(object):
                     debug_line += "+V(%s)*D_IR(%s)" % (co_ir, shrunk)
                 if str(shrunk).startswith("ee0"):
                     continue
-                if do_diff and ir_uv.uv_index(shrunk) == 2 and RStar.is_tadpole(RStar.adjust(shrunk)):
+                if do_diff and ir_uv.uv_index(shrunk) == 2 and RStar.is_tadpole(self.adjust(shrunk)):
                     continue
                 if do_diff and RStar.is_tadpole(co_ir):
                     continue
@@ -252,12 +256,11 @@ class RStar(object):
             self.storage.put(graph, renormalized_g, storage_label)
             return renormalized_g
 
-    @staticmethod
-    def adjust(graph):
+    def adjust(self, graph):
         to_add = list()
         graph -= graph.external_edges
         for v in graph.vertices:
-            to_add_count = 4 - reduce(lambda s, e: s + (1 if len(set(e.nodes)) == 2 else 2), graph.edges(v), 0)
+            to_add_count = self.vertex - reduce(lambda s, e: s + (1 if len(set(e.nodes)) == 2 else 2), graph.edges(v), 0)
             assert to_add_count >= 0, to_add_count
             for i in xrange(to_add_count):
                 to_add.append(graph_util.new_edge((graph.external_vertex, v), weight=const.ZERO_WEIGHT))
