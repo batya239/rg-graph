@@ -82,11 +82,17 @@ for i,diag in enumerate(diagList):
     C = symmetryCoefficient(graph)
     coeff = -(-2. / 3) ** graphLoopCount * C[0] / C[1]
     if C[0] != C[1]:
-        f.write("%d & %s & %s & %s & %d/%d & %s & $%s$ \\\\ \n"%(i+1, diag, r.format('S'),
-                       kr.format('S'), C[0], C[1], (coeff*kr).format('S'), latex(simplify(3**6*On(graph,1)/(n+2))) ))
+#        f.write("%d & %s & %s & %s & %d/%d & %s & $%s$ \\\\ \n"%(i+1, diag, r.format('S'),
+#                       kr.format('S'), C[0], C[1], (coeff*kr).format('S'), latex(simplify(3**6*On(graph,1)/(n+2))) ))
+#    else:
+#        f.write("%d & %s & %s & %s & 1 & %s & $%s$  \\\\ \n"%(i+1, diag, r.format('S'),
+#                       kr.format('S'), (coeff*kr).format('S'), latex(simplify(3**6*On(graph,1)/(n+2))) ))
+       f.write("%d & %s & %s & %d/%d & $%s$ \\\\ \n"%(i+1, diag,
+                       kr.format('S'), C[0], C[1], latex(simplify(3**6*On(graph,1)/(n+2))) ))
     else:
-        f.write("%d & %s & %s & %s & 1 & %s & $%s$  \\\\ \n"%(i+1, diag, r.format('S'),
-                       kr.format('S'), (coeff*kr).format('S'), latex(simplify(3**6*On(graph,1)/(n+2))) ))
+        f.write("%d & %s & %s & 1 & $%s$  \\\\ \n"%(i+1, diag,
+                       kr.format('S'), latex(simplify(3**6*On(graph,1)/(n+2))) ))
+  
     f.write("\\hline \n")
 f.write(tail)
 f.close()
