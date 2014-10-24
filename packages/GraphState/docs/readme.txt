@@ -1,0 +1,22 @@
+GraphState and Graphine are graph manipulation libraries. The key feature of these libraries is usage of generalization
+of graph representation offered by B. G. Nickel et al. In this approach graph is represented in some unique 'canonical' form
+that depends only on its combinatorial type. The uniqueness of graph representation gives an efficient way for isomorphism finding,
+searching for subgraphs and other graph manipulation tasks. Though offered libraries were originally designed for Feynman graphs,
+they might be useful for more general graph problems.
+
+GraphState and Graphine installation guide. To install use CLI interface (additionally Cygwin for Windows systems)
+
+1. Download packages from "Download" link at https://code.google.com/p/rg-graph/
+2. Extract packages
+
+> tar xvfz Graphine-1.0.1.tar.gz
+> tar xvfz GraphState-1.0.0.tar.gz
+
+3. Sequentially install packages
+
+> cd GraphState-1.0.1
+> python setup.py install
+
+> cd ..
+> cd Graphine-1.0.1
+> python setup.py install
