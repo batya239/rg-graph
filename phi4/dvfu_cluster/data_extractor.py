@@ -25,9 +25,6 @@ def symmetryCoefficient(graph):
     if C[1]%C[0] == 0:
         C[0],C[1] = 1, C[1]/C[0]
     return C
-# def NsymmetryCoefficient(graph):
-#     C = symmetryCoefficient(graph)
-#     return float(C[0])/float(C[1])
 
 res = eval(open(resFile,'r').read())
 KR1 = eval(open(KR1File,'r').read())
@@ -49,9 +46,9 @@ head = "\\documentclass[a4paper]{book}\n \
 \n \
 \\begin{document} \n \
 \\pagestyle{empty} \n \
-\\begin{longtable}{|c|c|l|l|c|l|l|}\n \
+\\begin{longtable}{|c|c|l|l|c|l|}\n \
 \\hline\n \
- & diag & $N$(diag) & $KR'$(diag) & sym.c. & final & $3^6\\times O(n)/(n+2)$\\\\ \n \
+ & $\gamma_i$ & $N$($\gamma_i$) & $KR'(\gamma_i)$ & $S(\gamma_i)$ & $3^6\\times O(n)/(n+2)$\\\\ \n \
 \\hline \n"
 
 tail ="\end{longtable}\n \
@@ -68,7 +65,7 @@ for i,diag in enumerate(diagList):
     toSort.append([abs(kr.n*coeff),diag])
     # toSort.append([kr.n*coeff,diag])
 
-diagList = [d[1] for d in sorted(toSort,reverse=True)]
+diagList = [d[1] for d in sorted(toSort)]
 print diagList
 
 f = open(outFile,'w')
@@ -82,16 +79,11 @@ for i,diag in enumerate(diagList):
     C = symmetryCoefficient(graph)
     coeff = -(-2. / 3) ** graphLoopCount * C[0] / C[1]
     if C[0] != C[1]:
-#        f.write("%d & %s & %s & %s & %d/%d & %s & $%s$ \\\\ \n"%(i+1, diag, r.format('S'),
-#                       kr.format('S'), C[0], C[1], (coeff*kr).format('S'), latex(simplify(3**6*On(graph,1)/(n+2))) ))
-#    else:
-#        f.write("%d & %s & %s & %s & 1 & %s & $%s$  \\\\ \n"%(i+1, diag, r.format('S'),
-#                       kr.format('S'), (coeff*kr).format('S'), latex(simplify(3**6*On(graph,1)/(n+2))) ))
-       f.write("%d & %s & %s & %d/%d & $%s$ \\\\ \n"%(i+1, diag,
-                       kr.format('S'), C[0], C[1], latex(simplify(3**6*On(graph,1)/(n+2))) ))
+       f.write("%d & $%s$ & %s & %s & %d/%d & $%s$ \\\\ \n"%(i+1, diag,
+                      r.format('S'), kr.format('S'), C[0], C[1], latex(simplify(3**6*On(graph,1)/(n+2))) ))
     else:
-        f.write("%d & %s & %s & 1 & $%s$  \\\\ \n"%(i+1, diag,
-                       kr.format('S'), latex(simplify(3**6*On(graph,1)/(n+2))) ))
+        f.write("%d & $%s$ & %s & %s & 1 & $%s$  \\\\ \n"%(i+1, diag,
+                      r.format('S'), kr.format('S'), latex(simplify(3**6*On(graph,1)/(n+2))) ))
   
     f.write("\\hline \n")
 f.write(tail)

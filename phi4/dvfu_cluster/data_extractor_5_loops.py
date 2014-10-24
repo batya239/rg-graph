@@ -6,9 +6,9 @@ import graphine, graph_state, math
 from uncertainties import ufloat
 from On_analytic import On
 from sympy import latex, var, simplify
+from fractions import gcd # <-- Greatest common divisor
 
 outFile = 'diagTable_5loops.tex'
-# resFile = 'res_best_6loops.txt'
 resFile = 'phi4_d2_s2-5loop-e4-100M-6loop-e2-1M.py'
 KR1File = 'KR1_5loops.out'
 
@@ -30,8 +30,7 @@ def symmetryCoefficient(graph):
 res = eval(open(resFile,'r').read())
 KR1 = eval(open(KR1File,'r').read())
 diagList = KR1.keys()
-#__diagList = [[d for d in diagList if d.count('e')==2],[d for d in diagList if d.count('e')==4]]
-#diagList.sort()
+diagList.sort()
 
 print "len(diagList) = %d, len(res) = %d, len(KR1) = %d"%(len(diagList), len(res), len(KR1))
 
@@ -83,13 +82,13 @@ for i,diag in enumerate(sorted(__diagList[0],key = lambda x: len(x))):
     graph = graphine.Graph(graph_state.GraphState.from_str(diag.replace("-","|")))
     graphLoopCount = graph.loops_count
     C = symmetryCoefficient(graph)
-    coeff = -(-2. / 3) ** graphLoopCount * C[0] / C[1]
-    if C[0] != C[1]:
-        f.write("%d & %s & %s & %d/%d & $%s$ \\\\ \n"%(i+1, diag,
-                       kr.format('S'), C[0], C[1], latex(simplify(3**6*On(graph,1))) ))
+    if C[0]%C[1] != 0:
+        GCD = gcd(C[0],C[1])
+        f.write("%d & $%s$ & %s & %d/%d & $%s$ \\\\ \n"%(i+1, diag.replace("-","|"),
+                       kr.format('S'), C[0]/GCD, C[1]/GCD, latex(simplify(3**6*On(graph,1))) ))
     else:
-        f.write("%d & %s & %s & 1 & $%s$  \\\\ \n"%(i+1, diag,
-                       kr.format('S'), latex(simplify(3**6*On(graph,1))) ))
+        f.write("%d & $%s$ & %s & %d & $%s$  \\\\ \n"%(i+1, diag.replace("-","|"),
+                       kr.format('S'), C[0]/C[1], latex(simplify(3**6*On(graph,1))) ))
     f.write("\\hline \n")
 f.write("\\end{longtable}\n")
 
@@ -101,12 +100,12 @@ for i,diag in enumerate(sorted(__diagList[1],key = lambda x: len(x))):
     graph = graphine.Graph(graph_state.GraphState.from_str(diag.replace("-","|")))
     graphLoopCount = graph.loops_count
     C = symmetryCoefficient(graph)
-    coeff = -(-2. / 3) ** graphLoopCount * C[0] / C[1]
     if C[0] != C[1]:
-        f.write("%d & %s & %s & %d/%d & $%s$ \\\\ \n"%(i+1, diag,
-                       kr.format('S'), C[0], C[1], latex(simplify(3**graphLoopCount*On(graph,1)/(n+2))) ))
+        GCD = gcd(C[0],C[1])
+        f.write("%d & $%s$ & %s & %d/%d & $%s$ \\\\ \n"%(i+1, diag.replace("-","|"),
+                       kr.format('S'), C[0]/GCD, C[1]/GCD, latex(simplify(3**graphLoopCount*On(graph,1)/(n+2))) ))
     else:
-        f.write("%d & %s & %s & 1 & $%s$  \\\\ \n"%(i+1, diag,
+        f.write("%d & $%s$ & %s & 1 & $%s$  \\\\ \n"%(i+1, diag.replace("-","|"),
                        kr.format('S'), latex(simplify(3**graphLoopCount*On(graph,1)/(n+2))) ))
     f.write("\\hline \n")
 f.write("\\end{longtable}\n")
