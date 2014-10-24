@@ -56,7 +56,7 @@ class RuleNotFoundException(BaseException):
 
 def _enumerated_graph_as_sector(g, initial_propagators_len):
     raw_sector = [0] * initial_propagators_len
-    for e in g.internalEdges():
+    for e in g.internal_edges:
         raw_sector[e.weight[0]] = 1
     return sector.Sector(raw_sector)
 
@@ -496,7 +496,7 @@ class Reductor(object):
                         ";" +
                         str(s.propagators_weights) +
                         ";" +
-                        symbolic_functions.safe_integer_numerators_strong(str(v)) + "\n")
+                        symbolic_functions.to_internal_code(str(v), strong=True) + "\n")
         else:
             raise ValueError("file %s already exists" % file_path)
 

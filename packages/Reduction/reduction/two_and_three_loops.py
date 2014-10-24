@@ -43,3 +43,11 @@ TWO_LOOP_REDUCTOR = reductor.Reductor("loop2",
                              2,
                              {graphine.Graph.from_str("e111|e|"): G(1, 1) * G(1 - l, 1),
                               graphine.Graph.from_str("e11|22|e|"): G(1, 1) ** 2}, "p", "k")
+
+G_D6 = symbolic_functions.create_G(symbolic_functions.cln(6) - symbolic_functions.cln(2) * symbolic_functions.e)
+
+TWO_LOOP_REDUCTOR_D6 = reductor.Reductor("loop2",
+                             "loop2_d6",
+                             2,
+                             {graphine.Graph.from_str("e111|e|"): G_D6(1, 1) * G_D6(symbolic_functions.e - 1, 1),
+                              graphine.Graph.from_str("e11|22|e|"): G_D6(1, 1) ** 2}, "p", "k")

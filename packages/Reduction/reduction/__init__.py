@@ -3,7 +3,7 @@
 
 __author__ = 'dima'
 
-from two_and_three_loops import THREE_LOOP_REDUCTOR, TWO_LOOP_REDUCTOR
+from two_and_three_loops import THREE_LOOP_REDUCTOR, TWO_LOOP_REDUCTOR, TWO_LOOP_REDUCTOR_D6
 from four_loops import FOUR_LOOP_REDUCTOR
 from reduction_graph_calculator import ScalarProductReductionGraphCalculator
 from scalar_product import ScalarProduct

@@ -1,0 +1,61 @@
+BasisDirectory[loop2] = StringDrop[DirectoryName[$Input], -1]
+loop2 /: BasisSectors[loop2] := Get[StringJoin[BasisDirectory[loop2], 
+    "/BasisSectors[loop2]"]]
+loop2 /: Ds[loop2] := {sp[k1, k1], sp[k1 + p, k1 + p], sp[k1 - k2, k1 - k2], 
+   sp[k2, k2], sp[k2 + p, k2 + p]}
+loop2 /: EMs[loop2] := {p}
+loop2 /: IBP[loop2] := Get[StringJoin[BasisDirectory[loop2], "/IBP[loop2]"]]
+loop2 /: jRules[loop2, 0, 1, 1, 1, 0] := 
+  Get[StringJoin[BasisDirectory[loop2], "/jRules[loop2, 0, 1, 1, 1, 0]"]]
+loop2 /: jRules[loop2, 0, 1, 1, 1, 1] := 
+  Get[StringJoin[BasisDirectory[loop2], "/jRules[loop2, 0, 1, 1, 1, 1]"]]
+loop2 /: jRules[loop2, 1, 0, 1, 0, 1] := 
+  Get[StringJoin[BasisDirectory[loop2], "/jRules[loop2, 1, 0, 1, 0, 1]"]]
+loop2 /: jRules[loop2, 1, 0, 1, 1, 1] := 
+  Get[StringJoin[BasisDirectory[loop2], "/jRules[loop2, 1, 0, 1, 1, 1]"]]
+loop2 /: jRules[loop2, 1, 1, 0, 1, 1] := 
+  Get[StringJoin[BasisDirectory[loop2], "/jRules[loop2, 1, 1, 0, 1, 1]"]]
+loop2 /: jRules[loop2, 1, 1, 1, 0, 1] := 
+  Get[StringJoin[BasisDirectory[loop2], "/jRules[loop2, 1, 1, 1, 0, 1]"]]
+loop2 /: jRules[loop2, 1, 1, 1, 1, 0] := 
+  Get[StringJoin[BasisDirectory[loop2], "/jRules[loop2, 1, 1, 1, 1, 0]"]]
+loop2 /: jRules[loop2, 1, 1, 1, 1, 1] := 
+  Get[StringJoin[BasisDirectory[loop2], "/jRules[loop2, 1, 1, 1, 1, 1]"]]
+loop2 /: jSymmetries[loop2, 0, 1, 1, 1, 0] := 
+  Get[StringJoin[BasisDirectory[loop2], "/jSymmetries[loop2, 0, 1, 1, 1, 0]"]]
+loop2 /: jSymmetries[loop2, 0, 1, 1, 1, 1] := 
+  Get[StringJoin[BasisDirectory[loop2], "/jSymmetries[loop2, 0, 1, 1, 1, 1]"]]
+loop2 /: jSymmetries[loop2, 1, 1, 0, 1, 1] := 
+  Get[StringJoin[BasisDirectory[loop2], "/jSymmetries[loop2, 1, 1, 0, 1, 1]"]]
+loop2 /: jSymmetries[loop2, 1, 1, 1, 1, 1] := 
+  Get[StringJoin[BasisDirectory[loop2], "/jSymmetries[loop2, 1, 1, 1, 1, 1]"]]
+loop2 /: LI[loop2] := Get[StringJoin[BasisDirectory[loop2], "/LI[loop2]"]]
+loop2 /: LMs[loop2] := {k1, k2}
+loop2 /: MappedSectors[loop2] := Get[StringJoin[BasisDirectory[loop2], 
+    "/MappedSectors[loop2]"]]
+loop2 /: MIs[loop2] := {j[loop2, 0, 1, 1, 1, 0], j[loop2, 1, 1, 0, 1, 1]}
+loop2 /: NonZeroSectors[loop2] := Get[StringJoin[BasisDirectory[loop2], 
+    "/NonZeroSectors[loop2]"]]
+loop2 /: SimpleSectors[loop2] := Get[StringJoin[BasisDirectory[loop2], 
+    "/SimpleSectors[loop2]"]]
+loop2 /: SPs[loop2] := {sp[k1, k1], sp[k1, k2], sp[k1, p], sp[k2, k2], 
+   sp[k2, p]}
+loop2 /: SR[loop2] := Get[StringJoin[BasisDirectory[loop2], "/SR[loop2]"]]
+loop2 /: Toj[loop2] := {sp[k1, k1] -> j[loop2, -1, 0, 0, 0, 0], 
+   sp[k1, k2] -> j[loop2, -1, 0, 0, 0, 0]/2 - j[loop2, 0, 0, -1, 0, 0]/2 + 
+     j[loop2, 0, 0, 0, -1, 0]/2, sp[k1, p] -> 
+    -1/2 - j[loop2, -1, 0, 0, 0, 0]/2 + j[loop2, 0, -1, 0, 0, 0]/2, 
+   sp[k2, k2] -> j[loop2, 0, 0, 0, -1, 0], 
+   sp[k2, p] -> -1/2 - j[loop2, 0, 0, 0, -1, 0]/2 + 
+     j[loop2, 0, 0, 0, 0, -1]/2}
+loop2 /: UniqueSectors[loop2] := Get[StringJoin[BasisDirectory[loop2], 
+    "/UniqueSectors[loop2]"]]
+loop2 /: ZerojRule[loop2] := LiteRed`Private`jjj:j[loop2, __] :> 
+   0 /; Module[{LiteRed`Private`jjs = 
+       Rest[List @@ jSector[LiteRed`Private`jjj]]}, 
+     Or @@ (BitOr[LiteRed`Private`jjs, #1] === #1 & ) /@ 
+       {{1, 1, 1, 0, 0}, {0, 0, 1, 1, 1}, {1, 1, 0, 1, 0}, {0, 1, 0, 1, 1}, 
+        {1, 1, 0, 0, 1}, {1, 0, 1, 1, 0}, {0, 1, 1, 0, 1}, {1, 0, 0, 1, 1}}]
+loop2 /: ZeroSectors[loop2] := Get[StringJoin[BasisDirectory[loop2], 
+    "/ZeroSectors[loop2]"]]
+BasisDirectory[loop2]
