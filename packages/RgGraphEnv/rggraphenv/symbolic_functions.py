@@ -94,6 +94,21 @@ def G(alpha, beta, d=d_phi4):
 
 
 #noinspection PyPep8Naming
+def create_G(d=d_phi4):
+    return lambda alpha, beta: G(alpha, beta, d=d)
+
+
+#noinspection PyPep8Naming
+def create_G1(d=d_phi4):
+    return lambda alpha, beta: G1(alpha, beta, d=d)
+
+
+#noinspection PyPep8Naming
+def create_G2(d=d_phi4):
+    return lambda alpha, beta: G2(alpha, beta, d=d)
+
+
+#noinspection PyPep8Naming
 def G1(alpha, beta, d=d_phi4):
     return (G(alpha, beta, d=d) + G(alpha - CLN_ONE, beta, d=d) - G(alpha, beta - CLN_ONE, d=d)) / CLN_TWO
 
