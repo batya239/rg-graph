@@ -193,6 +193,9 @@ class PropertiesConfig(object):
 
     @classmethod
     def new_graph_state(cls, edges):
+        """
+        :return: created :class:`GraphState` object from given edges and properties config held by these edges.
+        """
         return GraphState(edges)
 
     def graph_state_from_str(self, string):
@@ -386,6 +389,33 @@ class Edge(graph_state_property.PropertyGetAttrTrait):
 
 # noinspection PyProtectedMember
 class GraphState(object):
+    """
+    Don't use constructor to create instances directly. Use :meth:`PropertiesConfig.graph_state_from_str` or
+    :meth:`PropertiesConfig.new_graph_state`.
+
+    To access of isomorphisms group of graph call ``graph_state.obj.sortings``. It returns all possible isomorphic graphs
+    represented as list of edges.
+
+    >>> GraphState.from_str("e11|e|", config).sortings
+    [(((0,), ), ((0, 1), ), ((0, 1), ), ((1,), )), (((0,), ), ((0, 1), ), ((0, 1), ), ((1,), ))]
+
+    Nodes and edges of graph can be obtained by corresponding properties access: :attr:`GraphState.edges` (or iterating
+    over object) and :attr:`GraphState.nodes`:
+
+    >>> gs = GraphState.from_str("e11|e|", config)
+    >>> gs.edges
+    (((0,), ), ((0, 1), ), ((0, 1), ), ((1,), ))
+    >>> [e for e in gs]
+    [((0,), ), ((0, 1), ), ((0, 1), ), ((1,), )]
+    >>> gs.nodes
+    [-1, 0, 1]
+
+    graph state can be serialized to Nickel string using :func:`str()` function:
+
+    >>> str(gs)
+    "e11|e|"
+
+    """
     SEP = ':'
     SEP2 = '_'
     NICKEL_SEP = nickel.Nickel.SEP
@@ -415,14 +445,14 @@ class GraphState(object):
     @property
     def edges(self):
         """
-        returns ordered with nickel order edges which represents corresponding GraphState
+        Returns ordered with nickel order edges which represents corresponding GraphState.
         """
         return self.sortings[0]
 
     @property
     def nodes(self):
         """
-        returns all internal unique nodes for nickel order
+        Returns all internal unique nodes in nickel order.
         """
         return sorted(reduce(lambda s, e: s | set(e.nodes), self.edges, set()))
 
@@ -490,9 +520,7 @@ class GraphState(object):
     @staticmethod
     def from_str(string, properties_config=None):
         """
-        creates GraphState object from nickel serialized string
-    
-        see alse PropertiesConfig#from_str
+        Creates :class:`graph_state.GraphState` object from nickel serialized string. See :meth:`PropertiesConfig.graph_state_from_str`.
         """
         if properties_config is None:
             properties_config = DEFAULT_PROPERTIES_CONFIG

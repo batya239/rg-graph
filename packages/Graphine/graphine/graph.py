@@ -237,6 +237,11 @@ class Graph(object):
         return True
 
     def batch_shrink_to_point(self, sub_graphs, with_aux_info=False):
+        """
+        Method shrinks to point given collection of :attr:`sub_graphs`(can be edges or grapsh) and returns shrunk graph.
+        If :attr:`with_aux_info` specified as ``True`` then method return pair where first element is shrunk graph but
+        second is indices of vertices created while operation.
+        """
         if not len(sub_graphs):
             return (self, list()) if with_aux_info else self
 
@@ -251,6 +256,11 @@ class Graph(object):
         return (g, new_vertices) if with_aux_info else g
 
     def shrink_to_point(self, edges, with_aux_info=False):
+        """
+        Method shrinks to point given :attr:`edges` and returns shrunk graph. If :attr:`with_aux_info`
+        specified as ``True`` then method return pair where first element is shrunk graph but second is indices of vertices
+        created while operation.
+        """
         result = self._shrink_to_point(edges)
         return result[0:2] if with_aux_info else result[0]
 
@@ -291,6 +301,9 @@ class Graph(object):
         return Graph(filter(lambda e: e.nodes[0] != e.nodes[1], self.edges()))
 
     def to_tadpole(self):
+        """
+        Creates graph copy and removes all external edges from its.
+        """
         return Graph(self.internal_edges)
 
     def x_relevant_sub_graphs(self,
@@ -298,9 +311,16 @@ class Graph(object):
                               result_representator=Representator.asGraph,
                               cut_edges_to_external=True,
                               exact=True):
+
         """
-        filters - list of graph filters (see filters.py)
-        result_representator - see Representator
+        :param filters: condition to decide is subgraph is relevant. filters is list of filter. See :mod:`graphine.filters` overview.
+        :param result_representator: defines representation of returned result. Can be on of: :attr:`graphine.Representator.asGraph`
+        (without vertices renumbering and Nickel canonicalization),
+        :attr:`graphine.Representator.asMinimalGraph` (graph that has minimal Nickel notation), :attr:`graphine.Representator.asList` (edges list)
+
+        :param cut_edges_to_external: representate edges of vertex included in subgraph that are not included in subgraph as external edges for subgraph
+        :param exact: yild self graph as relevant subgraph
+        :return: iterator of  relevant subgraph for given condition (filters)
         """
         simple_cache = dict()
         exact_sub_graph_iterator = graph_operations.x_sub_graphs(self, cut_edges_to_external=cut_edges_to_external)

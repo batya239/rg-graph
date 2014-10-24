@@ -18,9 +18,9 @@ Properties and its configuration
 To define edge and node properties behaviour (name, (de)serialization process, directed or undirected (for edge properties only))
 :class:`PropertiesConfig` and :class:`PropertyKey` used. :class:`PropertyKey` defines single type of properties and :class:`PropertiesConfig`
 defines all properties are contained in graph. Additionally :class:`PropertiesConfig` serves as factory object to create edges, nodes
- and :class:`GraphState` objects.
+and :class:`GraphState` objects.
 
-.. autoclass:: graph_state.PropertyConfig
+.. autoclass:: graph_state.PropertiesConfig
    :members:
 .. autoclass:: graph_state.PropertyKey
    :members:
@@ -40,11 +40,21 @@ using factory methods of :class:`PropertiesConfig` instance. Edges and nodes are
 .. autoclass:: graph_state.Node
    :members:
 
+
+:class:`graph_state.GraphState`
+===================
+
+:class:`graph_state.GraphState` represents graph state (or structure). It can be used to determine isomorphisms of graph, to low-level access
+to edges, graph (de)serialization. In other cases it's useful to use :class:`Graph` objects because it provides additional possibilities.
+
+.. autoclass:: graph_state.GraphState
+   :members:
+
 :mod:`operations_lib` module
 ============================
 
-:mode:`operations_lib` provides operations on low-level data structures (list of edges or :class:`GraphState`).
-Usually all operations are produced only using :class:`Graph` objects but if there is no way to escape low-level data structures or
+:mod:`operations_lib` provides operations on low-level data structures (list of edges or :class:`graph_state.GraphState`).
+Usually all operations are produced only using :class:`graphine.Graph` objects but if there is no way to escape low-level data structures or
 decreasing of :class:`Graph` performance are occurred then this functions can be used.
 
 .. automodule:: graph_state.operations_lib
@@ -53,12 +63,18 @@ decreasing of :class:`Graph` performance are occurred then this functions can be
 Graphine overview
 =================
 
-:class:`Graph` class is main representation for graph. All access to graph structure and producing operations on graph may be
-done using this class (use :class:`GraphState` only for graph serialization/deserializaion tasks).
+:class:`graphine.Graph` class is main representation for graph. All access to graph structure and producing operations on graph may be
+done using this class (use :class:`graph_state.GraphState` only for graph serialization/deserializaion tasks).
 Several frequently used methods of this class (for ex.: :meth:`Graph.edges`, :attr:`Graph.loops_count`) are cacheable
 in hard reference map hidden in :class:`Graph` backend.
 
 .. autoclass:: graphine.Graph
+   :members:
+
+:mod:`graphine.filters` module
+===============================
+
+.. automodule:: graphine.filters
    :members:
 
 Indices and tables
