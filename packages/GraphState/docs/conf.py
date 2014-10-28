@@ -34,7 +34,7 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
-    'sphinx.ext.mathjax',
+    #'sphinx.ext.mathjax',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
