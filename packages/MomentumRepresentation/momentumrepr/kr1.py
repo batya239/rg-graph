@@ -59,6 +59,11 @@ def kr1_with_some_additional_lambda_operation(graph_state_as_str,
 
     if configure_mr.Configure.do_d_tau():
         graph = graph.apply(diff_util_mr.D_minus_tau)
+
+    for k in graph._mappings.keys():
+        if not str(k).startswith("e12|e3|45|46|5|6||:0a_Aa_Aa|0A_aA|Aa_Aa|aA_aA|aA|Aa||:::"):
+            del graph._mappings[k]
+
     if additional_lambda is not None:
         graph = graph.apply(additional_lambda)
 
