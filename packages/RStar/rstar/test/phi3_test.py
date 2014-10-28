@@ -39,6 +39,9 @@ class RPrimeTestCase(unittest.TestCase):
     def test_e12_23_3_e_(self):
         self._do_test_r1("e12|23|3|e|", "1/12*e**(-2)+(-1/18)*e**(-1)")
 
+    def test_e12_e3_33__(self):
+        self._do_test_r1("e12|e3|33||", "(-1/72)*e**(-2)+11/432*e**(-1)")
+
     def _do_test_r1(self, graph_state_str, expected_result_as_string):
         g = graph_util.graph_from_str(graph_state_str, do_init_weight=True)
         expected = symbolic_functions.evaluate(expected_result_as_string)
