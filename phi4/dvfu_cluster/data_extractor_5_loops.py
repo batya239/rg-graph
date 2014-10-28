@@ -45,7 +45,7 @@ title = "\\documentclass[a4paper]{book}\n \
 
 head = ["\\begin{longtable}{|c|l|l|c|l|}\n \
 \\hline\n \
- & $\gamma_i$ & $KR'$($\gamma_i$) & $S(\gamma_i)$ & $O(n)$\\\\ \n \
+ & $\gamma_i$ & $KR'$($\gamma_i$) & $S(\gamma_i)$ & $3^{l+1}\\times O(n)$\\\\ \n \
 \\hline \n", "\\begin{longtable}{|c|l|l|c|l|}\n \
 \\hline\n \
  & $\gamma_i$ & $KR'$($\gamma_i$) & $S(\gamma_i$) & $3^l\\times O(n)/(n+2)$\\\\ \n \
@@ -85,10 +85,10 @@ for i,diag in enumerate(sorted(__diagList[0],key = lambda x: len(x))):
     if C[0]%C[1] != 0:
         GCD = gcd(C[0],C[1])
         f.write("%d & $%s$ & %s & %d/%d & $%s$ \\\\ \n"%(i+1, diag.replace("-","|"),
-                       kr.format('S'), C[0]/GCD, C[1]/GCD, latex(simplify(3**6*On(graph,1))) ))
+                       kr.format('S'), C[0]/GCD, C[1]/GCD, latex(simplify(3**(graphLoopCount+1)*On(graph,1))) ))
     else:
         f.write("%d & $%s$ & %s & %d & $%s$  \\\\ \n"%(i+1, diag.replace("-","|"),
-                       kr.format('S'), C[0]/C[1], latex(simplify(3**6*On(graph,1))) ))
+                       kr.format('S'), C[0]/C[1], latex(simplify(3**(graphLoopCount+1)*On(graph,1))) ))
     f.write("\\hline \n")
 f.write("\\end{longtable}\n")
 
