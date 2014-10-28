@@ -182,8 +182,6 @@ class RStar(object):
         return value
 
     def _delta_ir(self, _graph):
-        if ir_uv.uv_index(_graph) > 0:
-            return lazy.ZERO
         evaluated = self.storage.get(_graph.to_tadpole(), "delta_ir")
         if evaluated is not None:
             return evaluated
