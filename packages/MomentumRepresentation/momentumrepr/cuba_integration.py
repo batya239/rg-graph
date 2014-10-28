@@ -154,8 +154,11 @@ def parse_cuba_output(output):
     # print "---"
     # print output.splitlines()[-1]
     if regex is not None:
-        res = eval(regex.groups()[0])
-        std_dev = eval(regex.groups()[1])
+        try:
+            res = eval(regex.groups()[0])
+            std_dev = eval(regex.groups()[1])
+        except BaseException as e:
+            raise AssertionError(output)
         return res, std_dev
     raise AssertionError("\"%s\"" % output)
 
@@ -187,8 +190,10 @@ def execute_cuba(directory, chdir=True):
             points = str(configure_mr.Configure.maximum_points_number())
             rel_err = str(configure_mr.Configure.relative_error())
             abs_err = str(configure_mr.Configure.absolute_error())
-            process = subprocess.Popen(["./%s" % filename, code, points, rel_err, abs_err], stdout=subprocess.PIPE)
-            output = process.communicate()[0]
+            process = subprocess.Popen(["./%s" % filename, code, points, rel_err, abs_err], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            proc_comm = process.communicate()
+            print proc_comm
+            output = proc_comm[0]
             # print output
             term = parse_cuba_output(output)
             res[get_eps_from_filename(filename)] += ufloat(*term)
