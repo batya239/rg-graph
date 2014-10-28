@@ -157,7 +157,7 @@ def parse_cuba_output(output):
         res = eval(regex.groups()[0])
         std_dev = eval(regex.groups()[1])
         return res, std_dev
-    raise AssertionError()
+    raise AssertionError("\"%s\"" % output)
 
 
 def generate_integrands(integrand_iterator, directory, graph_name):

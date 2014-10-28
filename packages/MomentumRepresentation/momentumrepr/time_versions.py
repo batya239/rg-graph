@@ -42,11 +42,12 @@ class GraphAndTimeVersion(object):
         self._check()
 
     def _check(self):
-        external_edges = self._graph.external_edges
-        assert len(external_edges) == 2
-        for e in external_edges:
-            node = e.internal_node
-            assert node == self._time_version[0] or node == self._time_version[-1]
+        pass
+        # external_edges = self._graph.external_edges
+        # assert len(external_edges) == 2
+        # for e in external_edges:
+        #     node = e.internal_node
+        #     assert node == self._time_version[0] or node == self._time_version[-1]
 
     @property
     def graph(self):

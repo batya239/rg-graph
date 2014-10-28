@@ -9,14 +9,14 @@ import graph_util_mr
 import kr1
 import propagator
 import cuba_integration
+import inject
 from rggraphenv import symbolic_functions
 from rggraphutil import zeroDict
 
 
 class TwoLoopsTest(unittest.TestCase):
 
-    @classmethod
-    def setUpClass(cls):
+    def setUp(self):
         configure_mr.Configure().\
             with_dimension(symbolic_functions.d_percolation).\
             with_target_loops_count(2).\
@@ -26,6 +26,9 @@ class TwoLoopsTest(unittest.TestCase):
             with_maximum_points_number(1200000).\
             with_delete_integration_tmp_dir_on_shutdown(True).\
             configure()
+
+    def tearDown(self):
+        inject.clear()
 
     def test_triangle_in_triangle(self):
         res = self.kr1(kr1.kr1_log_divergence, "e12|e3|34|4|e|:0A_aA_aA|0a_aA|aA_aA|aA|0a|:::")

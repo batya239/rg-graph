@@ -25,6 +25,8 @@ static int Integrand(const int *ndim, const double xx[],
 #define SEED 0
 #define MINEVAL 0
 
+#define SPIN NULL
+#define NVEC 1
 #define NSTART 1000
 #define NINCREASE 500
 #define NBATCH 1000
@@ -73,12 +75,12 @@ int main(int argc, char* argv[])
 
 if (METHOD == 0) {{
   printf("-------------------- Vegas test --------------------\\n");
-  Vegas(NDIM, NCOMP, Integrand, USERDATA,
+  void *spin = NULL;
+  Vegas(NDIM, NCOMP, Integrand, USERDATA, NVEC,
     EPSREL, EPSABS, verbose, SEED,
     MINEVAL, MAXEVAL, NSTART, NINCREASE, NBATCH,
-    GRIDNO, STATEFILE,
+    GRIDNO, STATEFILE, &spin,
     &neval, &fail, integral, error, prob);
-
   printf("VEGAS RESULT:\tneval %d\tfail %d\\n",
     neval, fail);
   for( comp = 0; comp < NCOMP; ++comp )
@@ -88,9 +90,9 @@ if (METHOD == 0) {{
 else if (METHOD == 1) {{
   printf("\\n-------------------- Suave test --------------------\\n");
 
-  Suave(NDIM, NCOMP, Integrand, USERDATA,
+  Suave(NDIM, NCOMP, Integrand, USERDATA, NVEC,
     EPSREL, EPSABS, verbose | LAST, SEED,
-    MINEVAL, MAXEVAL, NNEW, FLATNESS,
+    MINEVAL, MAXEVAL, NNEW, FLATNESS, STATEFILE, SPIN,
     &nregions, &neval, &fail, integral, error, prob);
 
   printf("SUAVE RESULT:\tnregions %d\tneval %d\tfail %d\\n",
@@ -102,11 +104,11 @@ else if (METHOD == 1) {{
 else if (METHOD == 2) {{
   printf("\\n------------------- Divonne test -------------------\\n");
 
-  Divonne(NDIM, NCOMP, Integrand, USERDATA,
+  Divonne(NDIM, NCOMP, Integrand, USERDATA, NVEC,
     EPSREL, EPSABS, verbose, SEED,
     MINEVAL, MAXEVAL, KEY1, KEY2, KEY3, MAXPASS,
     BORDER, MAXCHISQ, MINDEVIATION,
-    NGIVEN, LDXGIVEN, NULL, NEXTRA, NULL,
+    NGIVEN, LDXGIVEN, NULL, NEXTRA, NULL, STATEFILE, SPIN,
     &nregions, &neval, &fail, integral, error, prob);
 
   printf("DIVONNE RESULT:\tnregions %d\tneval %d\tfail %d\\n",
@@ -118,9 +120,9 @@ else if (METHOD == 2) {{
 else if (METHOD == 3) {{
   printf("\\n-------------------- Cuhre test --------------------\\n");
 
-  Cuhre(NDIM, NCOMP, Integrand, USERDATA,
+  Cuhre(NDIM, NCOMP, Integrand, USERDATA, NVEC,
     EPSREL, EPSABS, verbose | LAST,
-    MINEVAL, MAXEVAL, KEY,
+    MINEVAL, MAXEVAL, KEY, STATEFILE, SPIN,
     &nregions, &neval, &fail, integral, error, prob);
 
   printf("CUHRE RESULT:\tnregions %d\tneval %d\tfail %d\\n",
