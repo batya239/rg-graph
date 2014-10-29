@@ -66,7 +66,8 @@ int main(int argc, char* argv[])
   #define EPSREL atof(argv[3])
   #define EPSABS atof(argv[4])
   
-  int verbose, comp, nregions, neval, fail;
+  int verbose, comp, nregions, fail;
+  long long int neval;
   double integral[NCOMP], error[NCOMP], prob[NCOMP];
 
   const char *env = getenv("CUBAVERBOSE");
@@ -76,7 +77,7 @@ int main(int argc, char* argv[])
 if (METHOD == 0) {{
   printf("-------------------- Vegas test --------------------\\n");
   void *spin = NULL;
-  Vegas(NDIM, NCOMP, Integrand, USERDATA, NVEC,
+  llVegas(NDIM, NCOMP, Integrand, USERDATA, NVEC,
     EPSREL, EPSABS, verbose, SEED,
     MINEVAL, MAXEVAL, NSTART, NINCREASE, NBATCH,
     GRIDNO, STATEFILE, &spin,
@@ -90,7 +91,7 @@ if (METHOD == 0) {{
 else if (METHOD == 1) {{
   printf("\\n-------------------- Suave test --------------------\\n");
 
-  Suave(NDIM, NCOMP, Integrand, USERDATA, NVEC,
+  llSuave(NDIM, NCOMP, Integrand, USERDATA, NVEC,
     EPSREL, EPSABS, verbose | LAST, SEED,
     MINEVAL, MAXEVAL, NNEW, FLATNESS, STATEFILE, SPIN,
     &nregions, &neval, &fail, integral, error, prob);
@@ -104,7 +105,7 @@ else if (METHOD == 1) {{
 else if (METHOD == 2) {{
   printf("\\n------------------- Divonne test -------------------\\n");
 
-  Divonne(NDIM, NCOMP, Integrand, USERDATA, NVEC,
+  llDivonne(NDIM, NCOMP, Integrand, USERDATA, NVEC,
     EPSREL, EPSABS, verbose, SEED,
     MINEVAL, MAXEVAL, KEY1, KEY2, KEY3, MAXPASS,
     BORDER, MAXCHISQ, MINDEVIATION,
@@ -120,7 +121,7 @@ else if (METHOD == 2) {{
 else if (METHOD == 3) {{
   printf("\\n-------------------- Cuhre test --------------------\\n");
 
-  Cuhre(NDIM, NCOMP, Integrand, USERDATA, NVEC,
+  llCuhre(NDIM, NCOMP, Integrand, USERDATA, NVEC,
     EPSREL, EPSABS, verbose | LAST,
     MINEVAL, MAXEVAL, KEY, STATEFILE, SPIN,
     &nregions, &neval, &fail, integral, error, prob);
