@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
  
  
   int METHOD = atoi(argv[1]);
-  #define MAXEVAL atoi(argv[2])
+  #define MAXEVAL atoll(argv[2])
   #define EPSREL atof(argv[3])
   #define EPSABS atof(argv[4])
   

@@ -192,7 +192,7 @@ def execute_cuba(directory, chdir=True):
             abs_err = str(configure_mr.Configure.absolute_error())
             process = subprocess.Popen(["./%s" % filename, code, points, rel_err, abs_err], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             proc_comm = process.communicate()
-            print proc_comm
+            # print proc_comm
             output = proc_comm[0]
             # print output
             term = parse_cuba_output(output)
