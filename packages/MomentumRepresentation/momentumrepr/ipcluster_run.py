@@ -5,6 +5,7 @@ __author__ = 'dima'
 
 from IPython.parallel import Client
 from rggraphenv import log
+from rggraphutil import zeroDict
 import cuba_integration
 
 try:
@@ -18,7 +19,7 @@ except BaseException as e:
     log.debug("no enabled concurrency")
 
 
-def kr11(kr_operation, graph_state_as_str):
+def run(kr_operation, graph_state_as_str):
     answer = zeroDict()
 
     for local_answer in imap(lambda integrand: cuba_integration.cuba_integrate(*integrand), kr_operation(graph_state_as_str)):
