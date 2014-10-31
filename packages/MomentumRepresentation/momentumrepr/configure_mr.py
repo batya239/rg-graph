@@ -114,7 +114,7 @@ class Configure(object):
 
     @classmethod
     def delete_integration_tmp_dir_on_shutdown(cls):
-        return inject.instance("delete_integration_tmp_dir_on_shutdown")
+        return inject.is_configured() and inject.instance("delete_integration_tmp_dir_on_shutdown")
 
     @classmethod
     def do_d_tau(cls):
