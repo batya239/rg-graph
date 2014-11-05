@@ -1,12 +1,15 @@
 #!/usr/bin/python
 # -*- coding: utf8
-from TaskScheduler.task_scheduler import task, log
+import task, log
 
 __author__ = 'dima'
 
 
 import time
 import os
+import task
+import log
+import atexit
 
 
 class MasterNode(object):
@@ -20,6 +23,16 @@ class MasterNode(object):
         if os.path.exists(started_file):
             raise ValueError("Can't start yet another one scheduler in same folder '%s'" % directory)
         open(started_file, 'a').close()
+
+        @atexit.register
+        def f():
+            killfile = os.path.join(self._directory, MasterNode.KILL_FILE)
+            if os.path.exists(killfile):
+                os.remove(os.path.join(self._directory, MasterNode.KILL_FILE))
+            started_path = os.path.join(self._directory, MasterNode.STARTED_FILE)
+            if os.path.exists(started_file):
+                os.remove(started_path)
+            log.info("scheduler exit")
         self._directory = directory
         self._watch_interval = watch_interval
 
@@ -56,10 +69,4 @@ class MasterNode(object):
 
     def watch_for_exit(self):
         kill_file_path = os.path.join(self._directory, MasterNode.KILL_FILE)
-        if os.path.exists(kill_file_path):
-            os.remove(kill_file_path)
-            os.remove(os.path.join(self._directory, MasterNode.STARTED_FILE))
-            log.info("scheduler exit")
-            return True
-        else:
-            return False
+        return os.path.exists(kill_file_path)

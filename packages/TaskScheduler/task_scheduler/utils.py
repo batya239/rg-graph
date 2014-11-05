@@ -1,12 +1,15 @@
 #!/usr/bin/python
 # -*- coding: utf8
-from TaskScheduler.task_scheduler import master_node, task
+import master_node, task
 
 __author__ = 'dima'
 
 
 import os
 import shutil
+import task
+import log
+import master_node
 
 
 def start_scheduler(server_directory, watch_interval=10):

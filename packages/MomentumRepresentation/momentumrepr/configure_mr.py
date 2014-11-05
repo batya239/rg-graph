@@ -41,6 +41,11 @@ class Configure(object):
     def with_integration_algorithm(self, integration_algorithm):
         code = Configure.INTEGRATION_ALGORITHM_CODES.get(integration_algorithm, None)
         if code is None:
+            try:
+                code = eval(integration_algorithm)
+            except:
+                pass
+        if code is None:
             raise Exception("no integration algorithm for name - %s" % integration_algorithm)
         self._integration_algorithm = code
         return self

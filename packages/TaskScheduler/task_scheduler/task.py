@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf8
-from TaskScheduler.task_scheduler import log
+import log
 
 __author__ = 'dima'
 
@@ -35,6 +35,7 @@ def async_map(function, iterable):
             the_map = dview.map_async
             log.debug("concurrency using IPython enabled")
             with dview.sync_imports():
+                import task
             if dview is None or len(dview) == 0:
                 raise ValueError("dview is empty")
         except BaseException as e:

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf8
-from TaskScheduler.task_scheduler import utils
+import utils
 
 __author__ = 'dima'
 
