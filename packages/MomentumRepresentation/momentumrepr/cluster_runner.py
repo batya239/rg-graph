@@ -111,7 +111,7 @@ def aggregation(scheduler_path, task_names):
             print "job '%s' failed" % task_name
             return
         elif status == STATUS_RUN or status == STATUS_NEW:
-            print "job '%s' in progress" % task_name
+            print "job '%s' in progress (%s)" % (task_name, status)
         elif status == STATUS_DONE:
             try:
                 with open(os.path.join(scheduler_path, task_name, OUTPUT_FILE_NAME), "r") as f:
