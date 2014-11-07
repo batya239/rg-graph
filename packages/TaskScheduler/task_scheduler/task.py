@@ -34,13 +34,15 @@ def async_map(function, iterable):
             c = Client(profile=PROFILE)
             dview = c[:]
             the_map = dview.map_async
-            log.debug("concurrency using IPython enabled")
             with dview.sync_imports():
                 import task
             if dview is None or len(dview) == 0:
                 raise ValueError("dview is empty")
+            log.debug("dview = %s" % dview)
+            log.debug("concurrency using IPython enabled")
         except BaseException as e:
             the_map = map
+            log.debug("\n" + "".join(traceback.format_tb(sys.exc_info()[2])))
             log.debug("concurrency no enabled")
 
     return the_map(function, iterable)
