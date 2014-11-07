@@ -35,7 +35,7 @@ def async_map(function, iterable):
             dview = c[:]
             the_map = dview.map_async
             with dview.sync_imports():
-                import task
+                from task_scheduler import task
             if dview is None or len(dview) == 0:
                 raise ValueError("dview is empty")
             log.debug("dview = %s" % dview)
