@@ -13,6 +13,7 @@ import stat
 from IPython.parallel import Client
 
 FAIL_MESSAGE_FILE_NAME = ".fail-message"
+STD_ERR_FILE_NAME = ".stderr"
 TASK_SETTINGS_FILE_NAME = ".settings"
 
 STATUS_NEW = ".new"
@@ -51,8 +52,9 @@ def run(t):
     log.info("starting new task '%s'" % os.path.basename(t.task_dir))
     try:
         output = open(redirect_output, 'w')
+        stderr = open(os.path.join(t.task_dir, STD_ERR_FILE_NAME), 'w')
         os.chmod(executable_abs_path, os.stat(executable_abs_path).st_mode | stat.S_IEXEC | stat.S_IREAD | stat.S_IWRITE)
-        return_code = subprocess.Popen(executable_abs_path, stdout=output, cwd=os.path.dirname(executable_abs_path)).wait()
+        return_code = subprocess.Popen(executable_abs_path, stdout=output, stderr=stderr, cwd=os.path.dirname(executable_abs_path)).wait()
         if return_code != 0:
             log.error("task '%s' return code == %s" % (os.path.basename(t.task_dir), return_code))
             t.set_status(STATUS_FAILED)
