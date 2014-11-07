@@ -32,7 +32,7 @@ for i in obj_src:
 
 headers = [s[:-1] + 'h' for s in obj_src]
 
-env = Environment(  LIBS=['m'],
+env = Environment(  LIBS=['m', 'cuba'],
                     LIBPATH=[os.path.expanduser("~/.local/lib/"), "-L/usr/local/lib"], CPPPATH=config.pvegasCPPPATHs,
                     CCFLAGS='-Wno-write-strings',##no CC warnings
                     platform='posix',ENV=os.environ) 
