@@ -24,7 +24,7 @@ OPERATION_NAMES["p"] = kr1.kr1_d_p2
 OUTPUT_FILE_NAME = "output.txt"
 
 
-AGGREGATION_FILE_TEMPLATE = """##!/usr/bin/env python
+AGGREGATION_FILE_TEMPLATE = """#!/usr/bin/env python
 # -*- coding: utf8
 
 from momentumrepr import aggregation
@@ -36,7 +36,7 @@ aggregation(SCHEDULER_DIR, TASK_NAMES)
 """
 
 
-JOB_EXECUTABLE = """##!/usr/bin/env python
+JOB_EXECUTABLE = """#!/usr/bin/env python
 # -*- coding: utf8
 
 
