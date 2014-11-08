@@ -10,7 +10,9 @@ import os
 logging.basicConfig(format="%(asctime)s:%(levelname)s:%(message)s")
 logger = logging.getLogger("task-scheduler")
 logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.FileHandler(os.path.expanduser("~/task_scheduler.log")))
+handler = logging.FileHandler(os.path.expanduser("~/task_scheduler.log"))
+handler.setFormatter(logging.Formatter("%(asctime)s:%(levelname)s:%(message)s"))
+logger.addHandler(handler)
 
 
 def set_format(a_format):
