@@ -4,7 +4,8 @@ import log
 
 __author__ = 'dima'
 
-
+import time
+import socket
 import os
 import subprocess
 import sys
@@ -56,8 +57,16 @@ def run(t):
         output = open(redirect_output, 'w')
         stderr = open(os.path.join(t.task_dir, STD_ERR_FILE_NAME), 'w')
         os.chmod(executable_abs_path, os.stat(executable_abs_path).st_mode | stat.S_IEXEC | stat.S_IREAD | stat.S_IWRITE)
-        return_code = subprocess.Popen(executable_abs_path, stdout=output, stderr=stderr, cwd=os.path.dirname(executable_abs_path)).wait()
-        if return_code != 0:
+        proc = subprocess.Popen(executable_abs_path, stdout=output, stderr=stderr, cwd=os.path.dirname(executable_abs_path))
+        hostname = socket.gethostname()
+        code = None
+        while True:
+            time.sleep(60)
+            log.debug("run task '%s' heartbeat on '%s'" % (os.path.basename(t.task_dir), hostname))
+            code = proc.poll()
+            if code is not None:
+                break
+        if code != 0:
             log.error("task '%s' return code == %s" % (os.path.basename(t.task_dir), return_code))
             t.set_status(STATUS_FAILED)
             t.set_fail_message("process return code: %s" % return_code)
