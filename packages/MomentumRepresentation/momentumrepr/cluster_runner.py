@@ -105,6 +105,7 @@ def aggregation(scheduler_path, task_names):
     scheduler_path = os.path.expanduser(scheduler_path)
     scheduler_path = os.path.abspath(scheduler_path)
     answer = zeroDict()
+    done_tasks = 0
     for task_name in task_names:
         status = check_job_status(scheduler_path, task_name)
         if status == STATUS_FAILED:
@@ -118,6 +119,7 @@ def aggregation(scheduler_path, task_names):
                     content = f.read()
                     try:
                         d = eval(content.split("\n")[-2])
+                        done_tasks += 1
                         for k, v in d.iteritems():
                             answer[k] += ufloat(v[0], v[1])
                     except Exception as e:
@@ -129,4 +131,5 @@ def aggregation(scheduler_path, task_names):
                 print e
                 print "something wrong with job '%s'" % task_name
                 return
-    print answer
+    print "%s/%s done" % (done_tasks,len(task_names))
+    print "result =", answer
