@@ -15,6 +15,7 @@ import configure_mr
 import atexit
 import traceback
 import sys
+import cuba_integration
 
 OPERATION_NAMES = dict()
 OPERATION_NAMES[""] = kr1.kr1_log_divergence
@@ -115,7 +116,25 @@ def aggregation(scheduler_path, task_names):
             print "job '%s' failed" % task_name
             return
         elif status == STATUS_RUN or status == STATUS_NEW:
-            print "job '%s' in progress (%s)" % (task_name, status)
+            current_result = zeroDict()
+            task_dir = os.path.join(scheduler_path, task_name)
+
+            for f in os.listdir(task_dir):
+                if f.endswith(".run"):
+                    eps = cuba_integration.get_eps_from_filename(f)
+                    log_file = os.path.join(task_dir, os.path.splitext(os.path.basename(filename))[0] + ".log")
+                    if os.path.exists(log_file):
+                        with open(log_file, 'r') as f:
+                            content = f.read()
+                            lines = content.splitlines().reverse()
+                            for l in lines:
+                                if "[1]" in l and "chisq" in l:
+                                    a, b = eval(l[3: l.index("\t")].replace("+-", ","))
+                                    value = ufloat(a, b)
+                                    current_result[eps] += value
+                                    answer[eps] += value
+
+            print "job '%s' in progress (%s), current result is = " % (task_name, status, current_result)
         elif status == STATUS_DONE:
             try:
                 with open(os.path.join(scheduler_path, task_name, OUTPUT_FILE_NAME), "r") as f:
