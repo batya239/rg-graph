@@ -257,22 +257,26 @@ def cuba_generate(integrand_series, integrations, scalar_products_functions):
     #         break
     # if not has_a:
     #     return {0: 0}
+    directories = list()
 
-    time_id = int(round(time.time() * 1000))
-    directory = os.path.join("tmp/", str(time_id))
-    directory = os.path.abspath(directory)
-    if configure_mr.Configure.debug():
-        print "Integration ID: %s" % an_id
-        print "Start integration: %s\nIntegration: %s\nScalar functions: %s" % (integrand_series, integrations, scalar_products_functions)
-    sps = list()
-    for sp_function in scalar_products_functions:
-        sps.append("%s = %s" % (sp_function.sign, sp_function.body))
-    _vars = map(lambda v: str(v.var), integrations)
+    for k, v in integrand_series.iteritems():
+        time_id = int(round(time.time() * 1000))
+        directory = os.path.join("tmp/", str(time_id))
+        directory = os.path.abspath(directory)
+        if configure_mr.Configure.debug():
+            print "Integration ID: %s" % an_id
+            print "Start integration: %s\nIntegration: %s\nScalar functions: %s" % ((k, v), integrations, scalar_products_functions)
+        sps = list()
+        for sp_function in scalar_products_functions:
+            sps.append("%s = %s" % (sp_function.sign, sp_function.body))
+        _vars = map(lambda v: str(v.var), integrations)
 
-    integrand_series_c = dict(map(lambda (p, v): (p, v.printc()), integrand_series.items()))
-    term = integrandInfo(integrand_series_c, _vars, sps, '')
-    generate_integrands([term], directory, time_id)
-    return directory
+        integrand_series_c = {k: v.printc()}
+        term = integrandInfo(integrand_series_c, _vars, sps, '')
+        generate_integrands([term], directory, time_id)
+        directories.append(directory)
+
+    return directories
 
 
 def cuba_execute(directory):
@@ -284,5 +288,10 @@ def cuba_execute(directory):
 
 
 def cuba_integrate(integrand_series, integrations, scalar_products_functions):
-    directory = cuba_generate(integrand_series, integrations, scalar_products_functions)
-    return cuba_execute(directory)
+    directories = cuba_generate(integrand_series, integrations, scalar_products_functions)
+    result = zeroDict()
+    for directory in directories:
+        current_result = cuba_execute(directory)
+        for k, v in current_result.iteritems():
+            result[k] += v
+    return result

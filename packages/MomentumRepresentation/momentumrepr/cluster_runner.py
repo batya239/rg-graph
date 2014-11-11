@@ -79,16 +79,19 @@ def calculate_diagram(graph_state_str, operation_name, task_server_dir, aggregat
         f.write(JOB_EXECUTABLE.format(**args))
 
     for integrand in OPERATION_NAMES[operation_name](graph_state_str):
-        integrator_dir = cuba_integration.cuba_generate(*integrand)
-        task_name = os.path.basename(integrator_dir)
-        task_names.append(task_name)
-        task_files = [os.path.abspath("./job_executable.py")]
-        task_executable_name = "job_executable.py"
+        integrator_dirs = cuba_integration.cuba_generate(*integrand)
 
-        for f in os.listdir(integrator_dir):
-            task_files.append(os.path.join(integrator_dir, f))
-        submit_job(task_server_dir, task_name, task_files, task_executable_name, OUTPUT_FILE_NAME)
-        print "job '%s' submitted" % task_name
+        for integrator_dir in integrator_dirs:
+
+            task_name = os.path.basename(integrator_dir)
+            task_names.append(task_name)
+            task_files = [os.path.abspath("./job_executable.py")]
+            task_executable_name = "job_executable.py"
+
+            for f in os.listdir(integrator_dir):
+                task_files.append(os.path.join(integrator_dir, f))
+            submit_job(task_server_dir, task_name, task_files, task_executable_name, OUTPUT_FILE_NAME)
+            print "job '%s' submitted" % task_name
 
     aggregation_file_name = graph_state_str.replace("|", "-").replace(":", "#") + operation_name + ".py"
     aggregation_file_name = os.path.join(aggregator_dir, aggregation_file_name)
