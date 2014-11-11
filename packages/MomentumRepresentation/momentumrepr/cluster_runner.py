@@ -134,7 +134,7 @@ def aggregation(scheduler_path, task_names):
                                     current_result[eps] += value
                                     answer[eps] += value
 
-            print "job '%s' in progress (%s), current result is = " % (task_name, status, current_result)
+            print "job '%s' in progress (%s), current result is = %s" % (task_name, status, current_result)
         elif status == STATUS_DONE:
             try:
                 with open(os.path.join(scheduler_path, task_name, OUTPUT_FILE_NAME), "r") as f:
