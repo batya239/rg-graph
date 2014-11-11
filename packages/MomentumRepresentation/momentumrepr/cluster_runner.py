@@ -128,11 +128,12 @@ def aggregation(scheduler_path, task_names):
                             content = f.read()
                             lines = content.splitlines().reverse()
                             for l in lines:
-                                if "[1]" in l and "chisq" in l:
+                                if "[1]" in l and "chisq" in l and "\t" in l:
                                     a, b = eval(l[3: l.index("\t")].replace("+-", ","))
                                     value = ufloat(a, b)
                                     current_result[eps] += value
                                     answer[eps] += value
+                                    break
 
             print "job '%s' in progress (%s), current result is = %s" % (task_name, status, current_result)
         elif status == STATUS_DONE:
