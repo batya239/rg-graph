@@ -191,10 +191,14 @@ def execute_cuba(directory, chdir=True):
             rel_err = str(configure_mr.Configure.relative_error())
             abs_err = str(configure_mr.Configure.absolute_error())
             os.chmod(filename, os.stat(filename).st_mode | stat.S_IEXEC | stat.S_IREAD | stat.S_IWRITE)
-            process = subprocess.Popen(["./%s" % filename, code, points, rel_err, abs_err], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            # process = subprocess.Popen(["./%s" % filename, code, points, rel_err, abs_err], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            log_file = os.path.splitext(os.path.basename(filename))[0] + ".log"
+            process = subprocess.Popen("./%s %s %s %s %s > %s" % (filename, code, points, rel_err, abs_err, log_file), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
             proc_comm = process.communicate()
             # print proc_comm
-            output = proc_comm[0]
+            with open(log_file, 'r') as f:
+                output = f.read()
+            # output = proc_comm[0]
             # print output
             term = parse_cuba_output(output)
             res[get_eps_from_filename(filename)] += ufloat(*term)
@@ -275,7 +279,6 @@ def cuba_execute(directory):
     compile_cuba(directory, chdir=True)
     exec_res = execute_cuba(directory, chdir=True)
     if configure_mr.Configure.debug():
-        print "Integration done in %s s" % (time.time() - ms)
         print "Result", exec_res
     return exec_res
 
