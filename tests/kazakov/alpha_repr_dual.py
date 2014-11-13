@@ -139,12 +139,49 @@ def find_all_loops(edges_dict):
 
 
 
+
+def cons_to_vertices(cons, edges_dict):
+
+    vertices =  reduce(lambda x,y: x+y, map(lambda x:edges_dict[x].nodes, cons))
+    res = list()
+    for v in set(vertices):
+        if vertices.count(v) ==1:
+            res.append(v)
+
+    # print res
+    return set(res)
+
+def C(edges_dict, conservations, nloops):
+    vertices = list(set(reduce(lambda x,y: x+y, map(lambda x: x.nodes, edges_dict.values()))))
+    svertices = set(filter(lambda x: x.n_num=='s', vertices))
+    tvertices = set(filter(lambda x: x.n_num=='t', vertices))
+    internal_vertices = set(filter(lambda x: x.n_num==0, vertices))
+    # print vertices
+    # print svertices
+    # print tvertices
+    # print internal_vertices
+    scons = set(filter(lambda x: (cons_to_vertices(x, edges_dict) & svertices) == svertices, conservations))
+    tcons = set(filter(lambda x: (cons_to_vertices(x, edges_dict) & tvertices) == tvertices, conservations))
+    # print scons
+    # print cons_to_vertices((2,3,4,5),edges_dict)
+    # print tcons
+    cons_for_s_channel = conservations-tcons
+    cons_for_t_channel = conservations-scons
+    C_s = det(edges_dict, nloops+1, cons_for_s_channel)
+    C_t = det(edges_dict, nloops+1, cons_for_t_channel)
+    return C_s, C_t
+
+
+
 if __name__=="__main__":
     # from graph_state_builder import gs_builder
+    import sys
     from graph_state_builder_dual import gs_builder
 
     # half_d = 3
-    half_d = 4
+    half_d = int(sys.argv[0])
+    gs = gs_builder.graph_state_from_str(sys.argv[1])
+
 
     # gs = gs_builder.graph_state_from_str("1|234||||:0|0_0_0||||:s|0|s|t|t")  # box
     # gs = gs_builder.graph_state_from_str("1|234|3|45|||:0|0_0_0|0|0_0|||:s|0|t|0|t|s")  # double box
@@ -155,7 +192,7 @@ if __name__=="__main__":
     # gs = gs_builder.graph_state_from_str("1|2345|3|45|||:0|0_0_0_2|0|0_0|||:s|0|t|0|t|s")  # double box with two numerators
     # gs = gs_builder.graph_state_from_str("1|2345|3|45|||:0|0_0_0_2|0|0_0|||:t|0|s|0|s|t")  # double box with two numerators
     # gs = gs_builder.graph_state_from_str("1|23456|3|45|5|6||:0|0_0_1_0_0|0|0_0|0|0||:s|0|t|0|s|0|t")  # K3 K4
-    gs = gs_builder.graph_state_from_str("1|23456|3|45|5|6||:0|0_0_1_0_0|0|0_0|0|0||:t|0|s|0|t|0|s")  # K3 K4
+    # gs = gs_builder.graph_state_from_str("1|23456|3|45|5|6||:0|0_0_1_0_0|0|0_0|0|0||:t|0|s|0|t|0|s")  # K3 K4
     # gs = gs_builder.graph_state_from_str("1|234|34567|5|6|67|7||:0|0_0_0|0_0_0_0_1|0|0|0_0|0||:s|0|0|t|t|0|0|s")  # L3 L4
     # gs = gs_builder.graph_state_from_str("1|23456|34|45|567|6|||:0|0_0_1_0_0|0_0|0_0|0_0_0|0|||:t|0|s|0|0|0|s|t")  # L5 L6
     # gs = gs_builder.graph_state_from_str("1|234567|3|45|56|6|7||:0|0_0_0_2_0_0|0|0_0|0_0|0|0||:t|0|s|0|0|t|0|s")  # L7 L8
@@ -178,36 +215,6 @@ if __name__=="__main__":
 
     print edges_dict
 
-    def cons_to_vertices(cons, edges_dict):
-
-        vertices =  reduce(lambda x,y: x+y, map(lambda x:edges_dict[x].nodes, cons))
-        res = list()
-        for v in set(vertices):
-            if vertices.count(v) ==1:
-                res.append(v)
-
-        # print res
-        return set(res)
-
-    def C(edges_dict, conservations, nloops):
-        vertices = list(set(reduce(lambda x,y: x+y, map(lambda x: x.nodes, edges_dict.values()))))
-        svertices = set(filter(lambda x: x.n_num=='s', vertices))
-        tvertices = set(filter(lambda x: x.n_num=='t', vertices))
-        internal_vertices = set(filter(lambda x: x.n_num==0, vertices))
-        # print vertices
-        # print svertices
-        # print tvertices
-        # print internal_vertices
-        scons = set(filter(lambda x: (cons_to_vertices(x, edges_dict) & svertices) == svertices, conservations))
-        tcons = set(filter(lambda x: (cons_to_vertices(x, edges_dict) & tvertices) == tvertices, conservations))
-        # print scons
-        # print cons_to_vertices((2,3,4,5),edges_dict)
-        # print tcons
-        cons_for_s_channel = conservations-tcons
-        cons_for_t_channel = conservations-scons
-        C_s = det(edges_dict, nloops+1, cons_for_s_channel)
-        C_t = det(edges_dict, nloops+1, cons_for_t_channel)
-        return C_s, C_t
 
     cons = find_all_loops(edges_dict)
 
