@@ -249,8 +249,8 @@ def get_nodes_to_pair(graph):
     return nodes_to_connect
 
 
-def dual_uv_index(graph):
-    D = 6
+def dual_uv_index(graph, half_d=3):
+    D = half_d*2
     res = 0
     for node in graph.vertices:
         if node.n_num not in ('s','t'):
