@@ -74,7 +74,7 @@ def _extract_poles(poly_prod, order):
     """
     pole_parameters = list()
     for p in poly_prod.polynomials:
-        if len(p.monomials) == 1:
+        if len(p.monomials) == 1 and not p.isConst():
             m = p.monomials.items()[0]
             multi_index = m[0].vars.items()[0]
             var_name = multi_index[0]
