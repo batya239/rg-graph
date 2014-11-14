@@ -193,6 +193,9 @@ if __name__=="__main__":
     # gs = gs_builder.graph_state_from_str("1|2345|3|45|||:0|0_0_0_2|0|0_0|||:t|0|s|0|s|t")  # double box with two numerators
     # gs = gs_builder.graph_state_from_str("1|23456|3|45|5|6||:0|0_0_1_0_0|0|0_0|0|0||:s|0|t|0|s|0|t")  # K3 K4
     # gs = gs_builder.graph_state_from_str("1|23456|3|45|5|6||:0|0_0_1_0_0|0|0_0|0|0||:t|0|s|0|t|0|s")  # K3 K4
+
+    # gs = gs_builder.graph_state_from_str("1|234|345|56|56|6|7||:0|0_0_0|0_0_0|0_0|0_0|0|0||:s|0|0|t|t|0|0|s")  # L1 L2
+    # gs = gs_builder.graph_state_from_str("1|234|345|56|56|6|7||:0|0_0_0|0_0_0|0_0|0_0|0|0||:t|0|0|s|s|0|0|t")  # L1 L2
     # gs = gs_builder.graph_state_from_str("1|234|34567|5|6|67|7||:0|0_0_0|0_0_0_0_1|0|0|0_0|0||:s|0|0|t|t|0|0|s")  # L3 L4
     # gs = gs_builder.graph_state_from_str("1|23456|34|45|567|6|||:0|0_0_1_0_0|0_0|0_0|0_0_0|0|||:t|0|s|0|0|0|s|t")  # L5 L6
     # gs = gs_builder.graph_state_from_str("1|234567|3|45|56|6|7||:0|0_0_0_2_0_0|0|0_0|0_0|0|0||:t|0|s|0|0|t|0|s")  # L7 L8
@@ -201,6 +204,9 @@ if __name__=="__main__":
     # gs = gs_builder.graph_state_from_str("1|23456|3|4567|57|7|7||:0|0_0_0_0_1|0|0_1_0_0|0_0|0|0||:s|0|t|0|0|t|s|0")  # L9 L10
     # gs = gs_builder.graph_state_from_str("12|234|3456|4|567|6|7||:0_0|0_0_0|1_0_0_0|0|1_0_0|0|0||:s|0|0|t|0|t|0|s")  # L11 L12
     # gs = gs_builder.graph_state_from_str("12|234|3456|4|567|6|7||:0_0|0_0_0|1_0_0_0|0|1_0_0|0|0||:t|0|0|s|0|s|0|t")  # L11 L12
+    # gs = gs_builder.graph_state_from_str("1|234|3|45|56|67|||:0|0_0_0|0|0_0|0_0|0_0|||:s|0|t|0|0|0|t|s")  # L13 L14
+    # gs = gs_builder.graph_state_from_str("1|234|3|45|56|67|||:0|0_0_0|0|0_0|0_0|0_0|||:t|0|s|0|0|0|s|t")  # L13 L14
+    # gs = gs_builder.graph_state_from_str("12|234|56|4|57|67|||:0_0|0_0_0|0_0|0|0_0|0_0|||:s|0|0|t|0|0|t|s")  # L15
     print gs
     g = graphine.Graph(gs)
 
