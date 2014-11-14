@@ -179,8 +179,8 @@ if __name__=="__main__":
     from graph_state_builder_dual import gs_builder
 
     # half_d = 3
-    half_d = int(sys.argv[0])
-    gs = gs_builder.graph_state_from_str(sys.argv[1])
+    half_d = int(sys.argv[1])
+    gs = gs_builder.graph_state_from_str(sys.argv[2])
 
 
     # gs = gs_builder.graph_state_from_str("1|234||||:0|0_0_0||||:s|0|s|t|t")  # box
