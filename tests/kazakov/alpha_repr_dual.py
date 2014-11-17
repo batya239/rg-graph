@@ -3,14 +3,11 @@ import copy
 import itertools
 import os
 import graphine
-import sys
 import conserv
-from polynomial import poly, pole_extractor, sd_lib
+from polynomial import poly, sd_lib
 from polynomial.multiindex import CONST
-from rggraphenv.symbolic_functions import tgamma, cln
-fact = lambda x: tgamma(x+1)
+from math import factorial as fact
 
-import comb
 __author__ = 'mkompan'
 
 def det(edges_dict, nloops, cons):
@@ -267,7 +264,7 @@ if __name__ == "__main__":
     suffix = "_"+'_'.join(diff_vars)+"_"
     print "diff: ", suffix
     for chanel in set(diff_vars):
-        expr_ = expr_*C_channels[chanel].changeDegree(diff_vars.count(chanel)).changeConst(float(1/fact(diff_vars.count(chanel))))
+        expr_ = expr_*C_channels[chanel].changeDegree(diff_vars.count(chanel)).changeConst(float(1./fact(diff_vars.count(chanel))))
     poly_d = poly(map(lambda x: (1,x), D_ext), degree=(-half_d-len(diff_vars), +1), c=float((-1.)**len(diff_vars)/dual_loops_count(g)))
     expr = [expr_*poly_d]
 
