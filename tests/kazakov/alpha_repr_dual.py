@@ -257,7 +257,7 @@ if __name__ == "__main__":
 
     M = map(lambda x: [x], filter(lambda x: x not in dotted_edges,new_edges_dict.keys()))
     # poly_m = poly(map(lambda x: (1,x), M), degree=(0,-3))
-    poly_m = poly([])  # does not affects on leading pole
+    poly_m = poly([(1,())])  # does not affects on leading pole
 
 
 
