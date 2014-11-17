@@ -55,6 +55,7 @@ def check_decomposition(polys):
 
 def sectorAlphaDiagram(expr, sector):
     expr_ = sd_lib.sectorDiagram(expr,sector,remove_delta=False)
+    # print expr_
     if expr_[1] == None:
 
         first_var = sector[0][0]
@@ -173,7 +174,7 @@ def C(edges_dict, conservations, nloops):
 
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     # from graph_state_builder import gs_builder
     import sys
     from graph_state_builder_dual import gs_builder
@@ -181,6 +182,7 @@ if __name__=="__main__":
     # half_d = 3
     half_d = int(sys.argv[1])
     gs = gs_builder.graph_state_from_str(sys.argv[2])
+    diff_vars = [i for i in sys.argv[3]]
 
 
     # gs = gs_builder.graph_state_from_str("1|234||||:0|0_0_0||||:s|0|s|t|t")  # box
@@ -215,44 +217,25 @@ if __name__=="__main__":
     for i in range(len(gs.edges)):
         edge = gs.edges[i]
         if not edge.is_external():
-            edges_dict[i]=edge
-            # edges_dict[edges_map[i]]=edge
-            # print edge.edge_id
+            edges_dict[i] = edge
 
     print edges_dict
 
-
-    cons = find_all_loops(edges_dict)
-
     from dual_lib import dual_uv_index
     uv_index = dual_uv_index(g, half_d=half_d)
-    if uv_index>0:
+    if len(diff_vars)*2 != uv_index:
+        raise ValueError("non logarithmic graph, uv_index=%s, diffs=%s")
+
+    cons = find_all_loops(edges_dict)
+    if uv_index > 0:
         C_s, C_t = C(edges_dict, cons, dual_loops_count(g))
-        C_channels = {'s': poly(map(lambda x: (1,x), C_s)), 't': poly(map(lambda x: (1,x), C_t))}
-
-    # print C_s
-    # sys.exit()
-
-    print uv_index
-
-
-
-
+        C_channels = {'s': poly(map(lambda x: (1, x), C_s)), 't': poly(map(lambda x: (1, x), C_t))}
 
 
 
 
     D_ext = det(edges_dict, dual_loops_count(g), cons)
-    # print sorted(D_ext), len(D_ext)
     print "len D_ext",  len(D_ext)
-    # sys.exit()
-
-    # sys.exit()
-    # chanel_pairs = ([0, 5], [1, 6])
-    # chanel_pairs = ([0, 1], [5, 6])
-    #
-    # chanel_pairs = ([0, 4], [1, 5])
-    # chanel_pairs = ([0, 4], [0, 4])
 
     print
     # print sorted(cons_c, key=len)
@@ -266,13 +249,6 @@ if __name__=="__main__":
         else:
             dotted_edges[edge_id] = edge.colors
 
-    # print new_edges_dict
-    # print dotted_edges
-    # assert len(dotted_edges)==1
-    # dotted_id = dotted_edges.keys()[0]
-    # assert dotted_edges[dotted_id]==1
-
-
     from sd_tools_graphine import gen_speer_tree1, xMSNTreeElement2
     tree = gen_speer_tree1(new_edges_dict.keys(), cons, depth=dual_loops_count(g), skip_bad_branches=False)
 
@@ -280,53 +256,47 @@ if __name__=="__main__":
     poly_d = poly(map(lambda x: (1,x), D_ext), degree=(-3,+1))
 
     M = map(lambda x: [x], filter(lambda x: x not in dotted_edges,new_edges_dict.keys()))
-    poly_m = poly(map(lambda x: (1,x), M), degree=(0,-3))  # TODO: edges_dict or edges_dict1??
+    # poly_m = poly(map(lambda x: (1,x), M), degree=(0,-3))
+    poly_m = poly([])  # does not affects on leading pole
 
 
 
-    for i in itertools.combinations_with_replacement(['s','t'], uv_index/2):
-        expr_ =  poly_m
-        prefix = "D%s_"%(half_d*2)+'_'.join(i)
-        print "diff: ", prefix
-        if len(i)>0:
-            prefix+='_'
-        for chanel in set(i):
-            expr_ = expr_*C_channels[chanel].changeDegree(i.count(chanel)).changeConst(float(1/fact(i.count(chanel))))
-        poly_d = poly(map(lambda x: (1,x), D_ext), degree=(-half_d-len(i), +1), c=float((-1.)**len(i)/dual_loops_count(g)))
-        expr = [expr_*poly_d]
 
-        print expr
-        if uv_index>0:
-            print C_channels
-        # print C[chanel].changeDegree(i.count(chanel))
-        print poly_d
-        print poly_m
+    expr_ =  poly_m
+    prefix = "D%s_"%(half_d*2)
+    suffix = "_"+'_'.join(diff_vars)+"_"
+    print "diff: ", suffix
+    for chanel in set(i):
+        expr_ = expr_*C_channels[chanel].changeDegree(diff_vars.count(chanel)).changeConst(float(1/fact(diff_vars.count(chanel))))
+    poly_d = poly(map(lambda x: (1,x), D_ext), degree=(-half_d-len(i), +1), c=float((-1.)**len(i)/dual_loops_count(g)))
+    expr = [expr_*poly_d]
 
+    # if uv_index > 0:
+    #     print C_channels
 
-        for edge_id in dotted_edges:
-            expr_diff = list()
-            for term in expr:
-                expr_diff += map(lambda x: x.set0toVar(edge_id), ((-1)**dotted_edges[edge_id]*term).diff(edge_id, count=dotted_edges[edge_id]))
-            expr = expr_diff
+    for edge_id in dotted_edges:
+        expr_diff = list()
+        for term in expr:
+            expr_diff += map(lambda x: x.set0toVar(edge_id), ((-1)**dotted_edges[edge_id]*term).diff(edge_id, count=dotted_edges[edge_id]))
+        expr = expr_diff
 
-        # print expr
-        dir = os.path.join("sd_massive/", prefix+str(g))
-        try:
-            os.makedirs(dir)
-        except OSError:
-            pass
-        if half_d==3:
-            eps_order = 3-dual_loops_count(g)
-        elif half_d == 4:
-            eps_order = 1 - dual_loops_count(g)
-        else:
-            eps_order = -1
-        import sd_tools_graphine as sd_tools
-        for functions_file in sd_tools.generate_func_files(tree, lambda x: sectorAlphaDiagram(expr, x), eps_order):
-            print os.path.join(dir, "%s.c" % functions_file.get_file_name(str(g))), functions_file.file_info, len(functions_file.functions), functions_file.functions_count
-            f = open(os.path.join(dir, "%s.c" % functions_file.get_file_name(str(g))), "w")
-            f.write(functions_file.get_c_file())
-            f.close()
-            f = open(os.path.join(dir, "%s.h" % functions_file.get_file_name(str(g))), "w")
-            f.write(functions_file.get_h_file())
-            f.close()
+    dir = os.path.join("sd_massive/", prefix+str(g)+suffix)
+    try:
+        os.makedirs(dir)
+    except OSError:
+        pass
+    if half_d == 3:
+        eps_order = 3-dual_loops_count(g)
+    elif half_d == 4:
+        eps_order = 1 - dual_loops_count(g)
+    else:
+        eps_order = -1
+    import sd_tools_graphine as sd_tools
+    for functions_file in sd_tools.generate_func_files(tree, lambda x: sectorAlphaDiagram(expr, x), eps_order):
+        print os.path.join(dir, "%s.c" % functions_file.get_file_name(str(g))), functions_file.file_info, len(functions_file.functions), functions_file.functions_count
+        f = open(os.path.join(dir, "%s.c" % functions_file.get_file_name(str(g))), "w")
+        f.write(functions_file.get_c_file())
+        f.close()
+        f = open(os.path.join(dir, "%s.h" % functions_file.get_file_name(str(g))), "w")
+        f.write(functions_file.get_h_file())
+        f.close()

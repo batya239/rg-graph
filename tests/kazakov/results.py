@@ -1,8 +1,11 @@
+import sys
+
 __author__ = 'mkompan'
 
 from rggraphenv.symbolic_functions import var, tgamma, e ,cln
 
-s,t = var('s t')
+s, t = var('s t')
+x = var('x')
 fact = lambda x: tgamma(x+1)
 
 res_d8_kazakov = {'I1': 1/fact(3),
@@ -12,6 +15,23 @@ res_d8_kazakov = {'I1': 1/fact(3),
                   'K2': t*t/fact(5)/fact(4),
                   'K3': s*(3*s*s-2*s*t+t*t)/fact(5)/fact(4)/fact(3)/9,
                   'K4': t*(3*t*t-2*s*t+s*s)/fact(5)/fact(4)/fact(3)/9,
+
+                 'L1': (s**3*cln(-210))/fact(6)/fact(5)/fact(4)/fact(3),
+                 'L2': (t**3*cln(-210))/fact(6)/fact(5)/fact(4)/fact(3),
+                 'L3': (s**3*t*cln(4)/9-s**2*t**2*cln(1)/18)/fact(6)/fact(5)/fact(4)/fact(3), #correct
+                 'L4': (-s**2*t**2*cln(1)/18+s*t**3*cln(4)/9)/fact(6)/fact(5)/fact(4)/fact(3),
+                 'L5': (s**3*t*cln(8)/9-s**2*t**2*cln(1)/9)/fact(6)/fact(5)/fact(4)/fact(3), #correct
+                 'L6': (-s**2*t**2*cln(1)/9+s*t**3*cln(8)/9)/fact(6)/fact(5)/fact(4)/fact(3),
+                 'L7': (-cln(45)/14*s**5+s**4*t*(cln(18)/7)+s**3*t**2*cln(-27)/14+s*s*t**3*(cln(9)/7)+s*t**4*cln(-9)/14)/fact(6)/fact(5)/fact(4)/fact(3),
+                 'L8': (s*t**4*(cln(18)/7)+s**2*t**3*cln(-27)/14+s**3*t**2*(cln(9)/7)+t*s**4*cln(-9)/14-cln(45)/14*t**5)/fact(6)/fact(5)/fact(4)/fact(3), #corect
+                 'L9': (s**2*t**3*cln(5)/42+s*t**4*(-cln(1)/28))/fact(6)/fact(5)/fact(4)/fact(3), #correct
+                 'L10': (s**4*t*(-cln(1)/28)+s**3*t**2*cln(5)/42)/fact(6)/fact(5)/fact(4)/fact(3),
+                 'L11': cln(0),
+                 'L12': cln(0),
+                 'L13': cln(0),
+                 'L14': cln(0),
+                 'L15': cln(0),
+
                   }
 print res_d8_kazakov
 
@@ -46,11 +66,30 @@ res_d8_mk =  {'I1': 0.166666380789930679,  # D8_1|234||||:0|0_0_0||||:s|0|s|t|t
               'K2': t**2*0.000347220504630162444,  # D8_s_t_1|234|345|5|5|6||:0|0_0_0|0_0_0|0|0|0||:t|0|0|s|s|0|t
               'K3': s**3*1.92902197684449618e-05+s**2*t*(-1.28600777698412859e-05)+s*t**2*6.4300638832171996e-06+t**3*0,   # D8_s_s_s_1|23456|3|45|5|6||:0|0_0_1_0_0|0|0_0|0|0||:s|0|t|0|s|0|t
               'K4': s**3*0+s**2*t*(6.43009917744553122e-06)+s*t**2*(-1.28601020109254184e-05)+t**3*1.92901204043652127e-05,   # D8_t_t_t_1|23456|3|45|5|6||:0|0_0_1_0_0|0|0_0|0|0||:t|0|s|0|t|0|s
+
+              'L1': s**3*(-1.68785995602744613e-05),
+              'L2': t**3*(-1.68778695435609865e-05),
+              'L3': s**4*x+s**3*t*(3.57204561294340108e-08)+s*s*t*t*(-4.46518959518477966e-09), #correct s*s*t*t
+              'L4': s*s*t*t*(-4.46518959518477966e-09)+s*t**3*(3.57204561294340108e-08)+t**4*x,
+              'L5': s**4*x+s**3*t*(7.14458251862796748e-08)+s*s*t*t*(-8.93056087494089887e-09), #correct s*s*t*t
+              'L6': s*s*t*t*(-8.93056087494089887e-09)+s*t**3*(7.14458251862796748e-08)+t**4*x,
+              'L7': s**5*(-2.58350887957834037e-07)+s**4*t*(2.06686192690137045e-07)+s**3*t**2*(-1.55011566907761635e-07)+s**2*t**3*(1.03337882470582075e-07)+s*t**4*(-5.16715122528733594e-08),
+              'L8': s**4*t*(-5.16715122528733594e-08)+s**3*t**2*(1.03337882470582075e-07)+s**2*t**3*(-1.55011566907761635e-07)+s**1*t**4*(2.06686192690137045e-07)+t**5*(-2.58350887957834037e-07),  #correct t^5
+              'L9': s*t**4*(-2.87039517787842645e-09)+s**2*t**3*(9.56890571755092227e-09), #correct s*s*t*t
+              'L10': s**4*t*(-2.87039517787842645e-09)+s**3*t**2*(9.56890571755092227e-09),
+
+              'L11': cln(0),
+              'L12': cln(0),
+              'L13': cln(0),
+              'L14': cln(0),
+              'L15': cln(0),
               }
-for i in sorted(res_d8_kazakov.keys()):
-    print i,"\t", (res_d8_kazakov[i].expand()).evalf(),"\n\t",res_d8_mk[i],"\ndelta =", ((res_d8_kazakov[i].expand()).evalf()-res_d8_mk[i]).expand()
+for i in sorted(res_d8_mk.keys()):
+    print i,"\t", (res_d8_kazakov[i].expand()).evalf() if i in res_d8_kazakov else None,"\n\t",res_d8_mk[i],"\ndelta =", ((res_d8_kazakov[i].expand()).evalf()-res_d8_mk[i]).expand() if i in res_d8_kazakov else None
     print
 
+
+sys.exit()
 
 print
 print
