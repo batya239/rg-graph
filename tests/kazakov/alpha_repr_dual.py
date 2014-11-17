@@ -262,13 +262,13 @@ if __name__ == "__main__":
 
 
 
-    expr_ =  poly_m
-    prefix = "D%s_"%(half_d*2)
+    expr_ = poly_m
+    prefix = "D%s_" % (half_d*2)
     suffix = "_"+'_'.join(diff_vars)+"_"
     print "diff: ", suffix
-    for chanel in set(i):
+    for chanel in set(diff_vars):
         expr_ = expr_*C_channels[chanel].changeDegree(diff_vars.count(chanel)).changeConst(float(1/fact(diff_vars.count(chanel))))
-    poly_d = poly(map(lambda x: (1,x), D_ext), degree=(-half_d-len(i), +1), c=float((-1.)**len(i)/dual_loops_count(g)))
+    poly_d = poly(map(lambda x: (1,x), D_ext), degree=(-half_d-len(diff_vars), +1), c=float((-1.)**len(diff_vars)/dual_loops_count(g)))
     expr = [expr_*poly_d]
 
     # if uv_index > 0:
