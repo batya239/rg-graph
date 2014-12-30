@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf8 -*-
 """
-Module provides some useful operations on graphs such obtaining vertices of graph or connected components.
+Module provides some useful operations on graphs such obtaining nodes of graph or connected components.
 
 All of functions in module marked with :func:`@_graph_state_to_edges_implicit_conversion`
 can take list of edges or :class:`GraphState` object as parameter as well.
@@ -27,14 +27,14 @@ def _graph_state_to_edges_implicit_conversion(edges_first_parameter_function):
 @_graph_state_to_edges_implicit_conversion
 def edges_for_node(edges, node):
     """
-    :return: only edges that contain node as node
+    :return: only edges that contain node
     """
     return filter(lambda e: node in e.nodes, edges)
 
 @_graph_state_to_edges_implicit_conversion
 def get_external_node(edges):
     """
-    Method does not checks that all of edges have same external node and returns :func:`external_node`
+    Method does not check that all edges have same external node and returns :func:`external_node`
     field of first occurred edge.
 
     :returns: external node for edges
@@ -45,7 +45,7 @@ def get_external_node(edges):
 @_graph_state_to_edges_implicit_conversion
 def get_bound_vertices(edges):
     """
-    :returns: non-external vertices of external nodes
+    :returns: non-external nodes of external edges
     """
     result = set()
     for e in edges:
@@ -57,18 +57,18 @@ def get_bound_vertices(edges):
 @_graph_state_to_edges_implicit_conversion
 def get_vertices(edges):
     """
-    :returns: all vertices including external
+    :returns: all nodes including external
     """
     return frozenset(reduce(lambda s, e: s + e.nodes, edges, tuple()))
 
 
 def get_connected_components(edges, additional_vertices=set(), singular_vertices=set()):
     """
-    :returns: get lists of connected undirected graph vertices
+    :returns: get lists of connected undirected graph nodes
     
-    :param additional_vertices: any additional vertices which will be included to result
+    :param additional_vertices: any additional nodes which will be included to result
     :type additional_vertices: set
-    :param singular_vertices: vertices that not produce connection between vertices. All Edges is containing these nodes will be ignored
+    :param singular_vertices: nodes that not produce connection between nodes. All edges containing these nodes will be ignored
     :type singular_vertices: set
     """
     if not len(edges):
@@ -102,7 +102,7 @@ def get_connected_components(edges, additional_vertices=set(), singular_vertices
 @_graph_state_to_edges_implicit_conversion
 def is_edge_property_fully_none(edges, property_name):
     """
-    checks that property with given name is **None** for all edges
+    Checks that property with given name is **None** for all edges
     """
     assert property_name is not None
     for e in edges:
