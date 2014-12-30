@@ -790,11 +790,11 @@ def generate_func_files(tree, generate_expr_for_sector, eps_order=0):
         #print extracted
         #print
         formatted_dict = formatter.formatPoleExtracting(extracted)
-        print sector, coef
-        print formatted_dict
-        print
-        print
-        print
+        # print sector, coef
+        # print formatted_dict
+        # print
+        # print
+        # print
         for eps_order_ in formatted_dict:
             for expr, variables in formatted_dict[eps_order_]:
                 file_info = funcFileInfo(eps_order_, len(variables))
