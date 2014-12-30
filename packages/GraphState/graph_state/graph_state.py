@@ -288,7 +288,7 @@ class Edge(graph_state_property.PropertyGetAttrTrait):
 
     def is_external(self):
         """
-        :return: is edge is external (has external node)
+        :return: if edge is external (has external node)
         """
         return len(self.internal_nodes) == 1
 
