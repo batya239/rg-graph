@@ -18,7 +18,7 @@ class PropertyGetAttrTrait(object):
 
 class Node(PropertyGetAttrTrait):
     """
-    Representation of an graph node. Any node has unique integer index to identify node in graph.
+    Representation of graph node. Any node has unique integer index to identify node in graph.
 
     Usually to simplify dealing with :class:`Node` implicit conversion to integer is used. It means that node with given
     index equals to index:
@@ -53,7 +53,7 @@ class Node(PropertyGetAttrTrait):
         """
         :param new_node_index: if not None then new index of node will be assigned
         :type new_node_index: int
-        :param kwargs: properties of node to change
+        :param **kwargs: properties of node to change
         """
         if 'new_node' in kwargs:
             new_node = kwargs['new_node']
