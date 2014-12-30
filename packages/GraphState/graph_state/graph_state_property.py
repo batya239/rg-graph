@@ -87,7 +87,7 @@ class Node(PropertyGetAttrTrait):
 # noinspection PyMethodMayBeStatic
 class PropertyExternalizer(object):
     """
-    Base externalizer (serializer/deserializer) superclass. Any externalizer for properties should be override this class.
+    Base externalizer (serializer/deserializer) superclass. Any properties externalizer should override this class.
 
     For example to externalize numeric values following implementation can be used::
 
