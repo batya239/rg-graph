@@ -51,8 +51,8 @@ class Graph(object):
     :class:`Graph` object can be created from both list of edges and :class:`GraphState` object as a first parameter. Additionally one
     can use :meth:`Graph.from_str` for creation from :class:`GraphState` serialized string and given :class:`PropertiesConfig`.
 
-    In case of list of edges in constructor this list will be processed to list of edges that are relevant to minimal Nickel notation.
-    If one don't need that then specify :attr:`renumbering` parameter as ``False``.
+    In case of list of edges passed in constructor this list will be processed to list of edges that are relevant to minimal Nickel notation.
+    If you don't need that then specify :attr:`renumbering` parameter as ``False``.
     """
     def __init__(self, obj, renumbering=True):
         """
@@ -152,7 +152,7 @@ class Graph(object):
     @cached_method
     def edges(self, vertex=None, vertex2=None, nickel_ordering=False):
         """
-        Return edges of graph for corresponding :param:`vertex` and :param:`vertex2` if specified.
+        Returns edges of graph for corresponding :attr:`vertex` and :attr:`vertex2` if specified.
 
         >>> Graph.from_str("e11|e|", config).edges(0)
         [(0, -1), (0, 1), (0, 1)]
@@ -193,7 +193,7 @@ class Graph(object):
 
     def create_vertex_index(self):
         """
-        Creates and returns index of edge that are not occurred among vertex indices of given graph.
+        Creates and returns index of vertex that are not occurred among vertex indices of given graph.
         """
         to_return = self._next_vertex_index
         self._next_vertex_index += 1
@@ -210,7 +210,7 @@ class Graph(object):
 
     def delete_vertex(self, vertex, transform_edges_to_external=False):
         """
-        Delete vertex from graph and makes all of edges containing specified vertex external.
+        Deletes vertex from graph and makes all of edges containing specified vertex external.
         """
         assert vertex != self.external_vertex
         if transform_edges_to_external:
@@ -226,7 +226,7 @@ class Graph(object):
 
     def contains(self, other_graph):
         """
-        Return is graoh has given graph as subset of edges.
+        Returns if graph has given graph as subset of edges.
         """
         self_edges = list(self.edges())
         for e in other_graph:
@@ -238,9 +238,9 @@ class Graph(object):
 
     def batch_shrink_to_point(self, sub_graphs, with_aux_info=False):
         """
-        Method shrinks to point given collection of :attr:`sub_graphs`(can be edges or grapsh) and returns shrunk graph.
-        If :attr:`with_aux_info` specified as ``True`` then method return pair where first element is shrunk graph but
-        second is indices of vertices created while operation.
+        Method shrinks given collection of :attr:`sub_graphs` (can be edges or graphs) to point and returns shrunk graph.
+        If :attr:`with_aux_info` specified as ``True`` then method returns pair where the first element is shrunk graph but
+        the second are indices of vertices created while shrink operation.
         """
         if not len(sub_graphs):
             return (self, list()) if with_aux_info else self
@@ -257,9 +257,9 @@ class Graph(object):
 
     def shrink_to_point(self, edges, with_aux_info=False):
         """
-        Method shrinks to point given :attr:`edges` and returns shrunk graph. If :attr:`with_aux_info`
-        specified as ``True`` then method return pair where first element is shrunk graph but second is indices of vertices
-        created while operation.
+        Method shrinks given :attr:`edges` to point and returns shrunk graph. If :attr:`with_aux_info`
+        specified as ``True`` then method returns pair where the first element is shrunk graph but the second are indices of vertices
+        created while shrink operation.
         """
         result = self._shrink_to_point(edges)
         return result[0:2] if with_aux_info else result[0]
@@ -308,20 +308,23 @@ class Graph(object):
 
     def x_relevant_sub_graphs(self,
                               filters=list(),
-                              result_representator=Representator.asGraph,
+                              result_representator=None,
                               cut_edges_to_external=True,
                               exact=True):
 
         """
-        :param filters: condition to decide is subgraph is relevant. filters is list of filter. See :mod:`graphine.filters` overview.
-        :param result_representator: defines representation of returned result. Can be on of: :attr:`graphine.Representator.asGraph`
+        :param filters: condition to decide if subgraph is relevant. :attr:`filters` is list of filter. See :mod:`graphine.filters` overview.
+        :param result_representator: defines representation of returned result. Can be one of: :attr:`graphine.Representator.asGraph`
         (without vertices renumbering and Nickel canonicalization),
         :attr:`graphine.Representator.asMinimalGraph` (graph that has minimal Nickel notation), :attr:`graphine.Representator.asList` (edges list)
 
         :param cut_edges_to_external: representate edges of vertex included in subgraph that are not included in subgraph as external edges for subgraph
-        :param exact: yild self graph as relevant subgraph
+        :param exact: yield self graph as relevant subgraph
         :return: iterator of  relevant subgraph for given condition (filters)
         """
+        if result_representator is None:
+            result_representator=Representator.asGraph
+        
         simple_cache = dict()
         exact_sub_graph_iterator = graph_operations.x_sub_graphs(self, cut_edges_to_external=cut_edges_to_external)
         sg_iterator = exact_sub_graph_iterator if exact else itertools.chain(exact_sub_graph_iterator, (self.edges(),))
