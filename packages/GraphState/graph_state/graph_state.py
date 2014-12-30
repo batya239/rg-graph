@@ -186,7 +186,7 @@ class PropertiesConfig(object):
         :param edge_id: unique edge id, if not given then assigned automatically
         :type edge_id: int
         :param **kwargs: properties of edge and properties config
-        :return: new edge represented as class:`Edge` object
+        :return: new edge represented as :class:`Edge` object
         """
         kwargs['properties_config'] = self
         return graph_state.Edge(nodes, external_node, edge_id, **kwargs)
@@ -194,13 +194,13 @@ class PropertiesConfig(object):
     @classmethod
     def new_graph_state(cls, edges):
         """
-        :return: created :class:`GraphState` object from given edges and properties config held by these edges.
+        :return: :class:`GraphState` object from given edges and properties config held by these edges.
         """
         return GraphState(edges)
 
     def graph_state_from_str(self, string):
         """
-        :return: creates :class:`GraphState` object for given serialized string corresponding to properties config.
+        :return: :class:`GraphState` object for given serialized string corresponding to properties config.
         """
         return graph_state.GraphState.from_str(string, properties_config=self)
 
