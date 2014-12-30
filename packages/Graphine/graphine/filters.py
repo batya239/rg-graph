@@ -5,14 +5,13 @@ Module provides tools to create relevance filters for graphs that can be used fo
 
 >>> graph.x_relevant_sub_graphs(filters=my_filters)
 
-Any filter must be a function with 2 parameters. First if subgraph edges list, second is super graph. Function responsible
-to decide is graph is relevant and returns boolean decision value (``True`` if subgraph is relevant). Filter function must have
+Any filter must be a function with 2 parameters. First is subgraph edges list, second is super graph. Function is responsible
+to decide if graph is relevant and returns boolean decision value (``True`` if subgraph is relevant). Filter function must have
 :attr:`graphine.filters.graph_filter` decorator. To create composite filter ``+`` operator can be used:
 
 >>> composite_filters = connected + vertex_irreducible
 
-
-Additionally package contains some set of predefined filters: for subgraph connectivity, 1-irreducibility etc:
+Additionally package contains set of predefined filters: for subgraph connectivity, 1-irreducibility etc.:
 
 1. :attr:`graph_state.filters.connected`
 2. :attr:`graph_state.filters.one_irreducible`
