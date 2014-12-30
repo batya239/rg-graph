@@ -445,14 +445,14 @@ class GraphState(object):
     @property
     def edges(self):
         """
-        Returns ordered with nickel order edges which represents corresponding GraphState.
+        Returns ordered with Nickel order edges which represents corresponding GraphState.
         """
         return self.sortings[0]
 
     @property
     def nodes(self):
         """
-        Returns all internal unique nodes in nickel order.
+        Returns all internal unique nodes in Nickel order.
         """
         return sorted(reduce(lambda s, e: s | set(e.nodes), self.edges, set()))
 
@@ -520,7 +520,7 @@ class GraphState(object):
     @staticmethod
     def from_str(string, properties_config=None):
         """
-        Creates :class:`graph_state.GraphState` object from nickel serialized string. See :meth:`PropertiesConfig.graph_state_from_str`.
+        Creates :class:`graph_state.GraphState` object from Nickel serialized string. See :meth:`PropertiesConfig.graph_state_from_str`.
         """
         if properties_config is None:
             properties_config = DEFAULT_PROPERTIES_CONFIG
