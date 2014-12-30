@@ -144,7 +144,7 @@ class Properties(object):
 
 class PropertiesConfig(object):
     """
-    Base factory class to produce :class:`GraphState`, :class:`Edge` or :class:`Node` objects. All creation of new instances must
+    Base factory class to produce :class:`GraphState`, :class:`Edge` or :class:`Node` objects. Creation of all new instances must
     be done using this class. Don't use constructors of these classes directly.
     """
     def __init__(self, property_order, property_directionality, property_externalizer, property_target):
@@ -156,7 +156,7 @@ class PropertiesConfig(object):
     @staticmethod
     def create(*property_keys):
         """
-        :param property_keys: property keys defines properties behaviour. See :class:`graph_state_property.PropertyKey`.
+        :param property_keys: property keys define properties behaviour. See :class:`graph_state_property.PropertyKey`.
         :return: properties config created for given keys
         """
         property_order = [None] * len(property_keys)
@@ -181,12 +181,12 @@ class PropertiesConfig(object):
         """
         :param nodes: pair of nodes defines edge
         :type nodes: tuple
-        :param external_node: Current state to be in.
+        :param external_node: external node index
         :type external_node: int or :class:`Node`
-        :param edge_id: unique edge id, if not given then assigned automated
-        :type int
+        :param edge_id: unique edge id, if not given then assigned automatically
+        :type edge_id: int
         :param **kwargs: properties of edge and properties config
-        :return: :new edge represented as class:`Edge` object
+        :return: new edge represented as class:`Edge` object
         """
         kwargs['properties_config'] = self
         return graph_state.Edge(nodes, external_node, edge_id, **kwargs)
