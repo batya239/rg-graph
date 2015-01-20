@@ -31,6 +31,9 @@ class Fields(object):
         else:
             return Fields((self.pair[0], Fields.EXTERNAL))
 
+    def is_one_way(self):
+        return Fields.EXTERNAL in self._pair
+
     @property
     def pair(self):
         return self._pair

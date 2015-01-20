@@ -312,6 +312,16 @@ class Edge(graph_state_property.PropertyGetAttrTrait):
             if n != node:
                 return n
 
+    def get_attr_regard_to(self, node, attr_name):
+        attr_value = self.__getattr__(attr_name)
+        if attr_value is None:
+            return None
+        if node == self.nodes[0]:
+            return attr_value
+        elif node == self.nodes[1]:
+            return - attr_value
+        raise ValueError("invalid node = %s" % node)
+
     def key(self):
         if '_key' not in self.__dict__:
             # noinspection PyAttributeOutsideInit
