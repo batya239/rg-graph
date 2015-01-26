@@ -39,7 +39,7 @@ def split_edges_for_node(edges, node):
     with_node = list()
     without_node = list()
     for e in edges:
-        (with_node if node in e.nodese else without_node).append(e)
+        (with_node if node in e.nodes else without_node).append(e)
     return with_node, without_node
 
 @_graph_state_to_edges_implicit_conversion
