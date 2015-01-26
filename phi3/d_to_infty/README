@@ -1,0 +1,15 @@
+= T U R B U L E N C E : $d \to \infty$ =
+
+Program:
+
+For every $\phi^3$ static diagram 'd':
+
+1. Find all pairs (spine, half-spine)           <-- done
+
+2. In BFS-style:
+    - for every vertex 'v' of 'd':
+        - for every edge incident with 'v':
+            - put 'dot' and 'prime' according to
+              some 'filters' (e.g. 'prime'-'prime' edges are prohibited)
+
+3. [optional] Draw all results as multigraps    <-- partly done
