@@ -58,6 +58,9 @@ class Fields(object):
     def __repr__(self):
         return str(self)
 
+    def __getitem__(self, item):
+        return self._pair[item]
+
     @staticmethod
     def externalizer():
         return Fields.Externalizer()
