@@ -132,9 +132,9 @@ class Poset(object):
             return
         self._lessers[greater].add(lesser)
         self._greaters[lesser].add(greater)
-        for l in self._lessers[lesser]:
+        for l in frozenset(self._lessers[lesser]):
             self.update(l, greater)
-        for g in self._greaters[greater]:
+        for g in frozenset(self._greaters[greater]):
             self.update(lesser, g)
 
     def update_border(self, is_lessier, index):
