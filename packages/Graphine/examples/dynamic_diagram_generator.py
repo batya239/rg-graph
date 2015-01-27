@@ -211,6 +211,3 @@ def flatten_multi_set(multi_set):
     for i, c in multi_set.iteritems():
         result += [i] * c
     return result
-
-
-
