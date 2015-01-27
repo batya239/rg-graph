@@ -4,7 +4,6 @@
 __author__ = 'dima'
 
 import dynamic_diagram_generator
-import time
 
 three_loops = list()
 
@@ -23,9 +22,3 @@ for gs in three_loops:
     for _g in dynamic_diagram_generator.generate(gs, possible_fields=["aA"], possible_external_fields="Aa", possible_vertices=["aaA", "aAA"]):
         print i, _g
         i += 1
-
-#
-# t = time.time()
-# for g in dynamic_diagram_generator.generate("e12|e3|45|45|5||", possible_fields=["aA"], possible_external_fields="Aa", possible_vertices=["aaA", "aAA"]):
-#     print g
-# print time.time() - t

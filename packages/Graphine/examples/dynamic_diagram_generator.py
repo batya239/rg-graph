@@ -35,9 +35,10 @@ def do_bfs(graph_stub, possible_fields_index, possible_external_fields, possible
     all_vertices = graph_stub.vertices
     vertices = sorted(all_vertices)
     vertices.remove(graph_stub.external_vertex)
+    vertices.reverse()
 
     result = set()
-    q = [(edges, vertices, possible_external_fields, Poset(possible_fields_index))]
+    q = [(edges, vertices, possible_external_fields, Poset())]
     while len(q):
         edges, vertices, possible_external_fields, poset = q.pop()
         for obj in assign_fields_in_vertex(edges, vertices, possible_fields_index, possible_external_fields, possible_vertices_rank, poset):
@@ -169,11 +170,11 @@ class Poset(object):
     def copy(self):
         copied_lessers = emptySetDict()
         for g, ls in self._lessers.iteritems():
-            copied_lessers[g] = ls
+            copied_lessers[g] = set(ls)
 
         copied_greaters = emptySetDict()
         for l, gs in self._greaters.iteritems():
-            copied_greaters[l] = gs
+            copied_greaters[l] = set(gs)
         return Poset(copied_lessers, copied_greaters, set(self._lessiers), set(self._greatest))
 
 
