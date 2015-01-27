@@ -200,7 +200,7 @@ class VertexIndex(object):
         return supp
 
     def __str__(self):
-        return "VertexIndex(%s)" % dict(self._undelying)
+        return "".join(sorted(flatten_multi_set(self._undelying)))
 
     __repr__ = __str__
 
