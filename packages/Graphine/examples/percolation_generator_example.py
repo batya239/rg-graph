@@ -4,6 +4,7 @@
 __author__ = 'dima'
 
 import dynamic_diagram_generator
+import time
 
 three_loops = list()
 
@@ -18,7 +19,9 @@ three_loops.append("e12|e3|34|5|55||")
 three_loops.append("e12|33|44|5|5|e|")
 
 i = 1
+t = time.time()
 for gs in three_loops:
     for _g in dynamic_diagram_generator.generate(gs, possible_fields=["aA"], possible_external_fields="Aa", possible_vertices=["aaA", "aAA"]):
         print i, _g
         i += 1
+print "generated in " + str(time.time() - t) + " sec."
