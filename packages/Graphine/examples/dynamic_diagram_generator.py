@@ -88,15 +88,17 @@ def assign_fields_in_vertex(graph_edges, vertices, possible_fields_index, possib
                                 suitable = False
                                 break
                             new_possible_external_fields.remove(f)
-                            is_lessier = f == f.lower()
+                            is_lessier = f == f.isupper()
                             if not new_poset.can_be_border(is_lessier, vertex):
                                 suitable = False
                                 break
                             new_poset.update_border(is_lessier, vertex)
                         fields = graph_state.Fields((f, graph_state.Fields.EXTERNAL) if e.nodes[0] == vertex else (graph_state.Fields.EXTERNAL, f))
                     else:
-                        f_is_upper = f.isupper()
-                        is_order_producer = (f_is_upper and exist_fields[1].islower()) or (not f_is_upper and exist_fields[1].isupper())
+                        # assert not e.is_external()
+                        # assert not exist_fields[1] == graph_state.Fields.EXTERNAL
+                        f_is_upper = f.islower()
+                        is_order_producer = (f_is_upper and exist_fields[1].isupper()) or (not f_is_upper and exist_fields[1].islower())
                         if e.nodes[0] == vertex:
                             fields = graph_state.Fields((f, exist_fields[1]))
                         else:
