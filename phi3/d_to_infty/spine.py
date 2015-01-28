@@ -7,6 +7,7 @@ import graph_state as gs
 import networkx as nx
 import itertools as it
 import matplotlib.pyplot as plt
+import dynamic_diagram_generator
 
 def draw_nx_graph(G,spines,nom):
     """
@@ -48,30 +49,68 @@ def draw_Agraph(G,spines,nom):
         #a.node_attr.update(shape="circle")
         a.draw('%s_%d.png'%(nom,i))
 
+def draw_Agraph_with_fields(nickel_str):
+    if not isinstance(nickel_str,str):
+        nickel_str = str(nickel_str)
+    G = nx_graph_from_str(nickel_str)
+    new_G = nx.MultiDiGraph()
+    lines = {'d':'dot', 'a':'none','A':'tee'}
+
+    for e in set(G.edges()):
+        i,j = e
+        for r in range(len(G[i][j])):
+            # print lines[G[i][j][r]['fields'][0]]
+            new_G.add_edge(*e,arrowtail = lines[G[i][j][r]['fields'][0]],arrowhead = lines[G[i][j][r]['fields'][1]],dir='both')
+    a = nx.to_agraph(new_G)
+    a.layout(prog='circo')
+    # nx.draw(new_G)
+    # plt.show()
+    a.draw('%s.png'%(nickel_str))
+
 def nx_graph_from_str(nickel_str):
     """
     Returns networkx MultiGraph object from Nickel string
     NB: here we 'forget' about graph_state ancestry
     """
-    gs_diag = static_diag(nickel_str)
-    # edges = [e.nodes for e in gs_diag.edges]
-    edges = [tuple(map(lambda n: n.index, e.nodes)) for e in gs_diag.edges]
-    ext = [e for e in edges if -1 in e]
-    ext_index = lambda x: 1-x.index(-1) 
+    if not ":" in str(nickel_str):
+        gs_diag = static_diag(nickel_str)
+        edges = [tuple(map(lambda n: n.index, e.nodes)) for e in gs_diag.edges]
+        ext = [e for e in edges if -1 in e]
+        ext_index = lambda x: 1-x.index(-1)
+        g = nx.MultiGraph()
 
-    for i,e in enumerate(ext):
-        edges.remove(e)
-        # edges.append((e[ext_index(e)],'e'+str(i)))
-        edges.append((e[ext_index(e)],-i-1))
+        for i,e in enumerate(ext):
+                edges.remove(e)
+                edges.append((e[ext_index(e)],-i-1))
+        g.add_edges_from(edges)
 
-    g = nx.MultiGraph()
-    g.add_edges_from(edges)
+    else:
+        gs_diag = dynamic_diag(nickel_str)
+        edges = [e for e  in gs_diag.edges if not e.is_external()]
+        ext = [tuple(map(lambda n: n.index, e.nodes)) for e  in gs_diag.edges if e.is_external()]
+
+        g = nx.MultiDiGraph()
+        for e in edges:
+            i,j = tuple(map(lambda n: n.index, e.nodes))
+            g.add_edge(i,j,fields = e.fields)
+        # for e in ext:
+        print ext
+        g.add_edge(-1,0,fields = 'aA')
+        g.add_edge(ext[1][1],-2,fields = 'aa')
     #nx.write_dot(g,'multi.dot')
     return g
 
 def static_diag(diag_from_str):
     sc = gs.PropertiesConfig.create()
     return sc.graph_state_from_str(diag_from_str)
+
+def dynamic_diag(diag_from_str):
+    sc = gs.PropertiesConfig.create(
+                gs.PropertyKey(name="fields",
+                                is_directed=True,
+                                externalizer=gs.Fields.externalizer()))
+    return sc.graph_state_from_str(diag_from_str)
+
 
 def spine(G,source,sink):
     """
@@ -86,9 +125,9 @@ def spine(G,source,sink):
     return spine_pairs
 
 if  __name__ == "__main__":
-    with open("../e2-2loop.txt.gs") as fd:
+    with open("../e2-3loop.txt.gs") as fd:
         diags = [d.strip() for d in fd.readlines()]
-    for d in diags[1:]:
+    for d in diags[:1]:
         print "\n",d
         G = nx_graph_from_str(d)
         source = 0
@@ -101,7 +140,10 @@ if  __name__ == "__main__":
         print "Spine pairs",spine_pairs
         # full_spine,half_spine = spine_pairs[0]
         full_spine = spine_pairs[0][1]
-
+        for _g in dynamic_diagram_generator.generate(d, possible_fields=["aA", "aa", "ad", "dd", "dA"], possible_external_fields="Aa", possible_vertices=["adA"]):
+            print _g
+            draw_Agraph_with_fields(_g)
+        """
         full_spine = ''.join(map(str,full_spine))
         print "Full spine:",full_spine
         internal_nodes = [g for g in G.nodes() if g >= 0]
@@ -127,3 +169,4 @@ if  __name__ == "__main__":
                         # NN.append(nG)
             #draw_Agraph(G,full_spine,d)
         print "len(NN)",len(NN)
+        """
