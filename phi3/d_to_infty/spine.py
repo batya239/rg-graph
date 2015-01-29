@@ -54,7 +54,7 @@ def draw_Agraph_with_fields(nickel_str):
         nickel_str = str(nickel_str)
     G = nx_graph_from_str(nickel_str)
     new_G = nx.MultiDiGraph()
-    lines = {'d':'dot', 'a':'none','A':'tee'}
+    lines = {'d':'dot', 'a':'none','A':'tee','0':'none'}
 
     for e in set(G.edges()):
         i,j = e
@@ -87,16 +87,16 @@ def nx_graph_from_str(nickel_str):
     else:
         gs_diag = dynamic_diag(nickel_str)
         edges = [e for e  in gs_diag.edges if not e.is_external()]
-        ext = [tuple(map(lambda n: n.index, e.nodes)) for e  in gs_diag.edges if e.is_external()]
+        # ext = [tuple(map(lambda n: n.index, e.nodes)) for e  in gs_diag.edges if e.is_external()]
+        ext = [e for e  in gs_diag.edges if e.is_external()]
 
         g = nx.MultiDiGraph()
         for e in edges:
             i,j = tuple(map(lambda n: n.index, e.nodes))
             g.add_edge(i,j,fields = e.fields)
-        # for e in ext:
-        print ext
-        g.add_edge(-1,0,fields = 'aA')
-        g.add_edge(ext[1][1],-2,fields = 'aa')
+        for k,e in enumerate(ext):
+            i,j = tuple(map(lambda n: n.index, e.nodes))
+            g.add_edge(-k-1,j,fields = e.fields)
     #nx.write_dot(g,'multi.dot')
     return g
 
@@ -125,7 +125,7 @@ def spine(G,source,sink):
     return spine_pairs
 
 if  __name__ == "__main__":
-    with open("../e2-3loop.txt.gs") as fd:
+    with open("../e2-1loop.txt.gs") as fd:
         diags = [d.strip() for d in fd.readlines()]
     for d in diags[:1]:
         print "\n",d
@@ -136,7 +136,7 @@ if  __name__ == "__main__":
         spine_pairs = spine(G,source,sink)
         #print "Spine pairs:",spine_pairs
         #draw_nx_graph(G,spine_pairs,d.replace('|','-'))
-        draw_Agraph(G,spine_pairs,d.replace('|','-'))
+        # draw_Agraph(G,spine_pairs,d.replace('|','-'))
         print "Spine pairs",spine_pairs
         # full_spine,half_spine = spine_pairs[0]
         full_spine = spine_pairs[0][1]
