@@ -124,49 +124,89 @@ def spine(G,source,sink):
             spine_pairs.append(s)
     return spine_pairs
 
+def filter_spines(G,spines):
+    """
+    @param G:
+    @param spines:
+    @return: True if graph G has spine from 'spines'
+    """
+
+    # def node_to_int(n):
+    #     return map(lambda x: x.index,n.nodes)
+
+    # print "G =",G
+    # source, sink = [e for e in G.edges() if e.is_external()]
+    # if str(source.fields) == '0a':
+    #     source, sink = sink, source
+    # source = node_to_int(source)[1]
+    # if source != 0:
+    #     print "Error: 'source' is not zero!"
+    #     raise
+    # sink = node_to_int(sink)[1]
+    # print source, sink
+    # path = []
+    # internal = G.internal_edges
+    # while source != sink:
+    # nxG = nx_graph_from_str(str(G))
+    # print nxG.nodes()
+
+    ##################################
+    all_vertices = G.vertices
+    vertices = sorted(all_vertices)
+    vertices.remove(G.external_vertex)
+
+    # print "All vertices:",vertices
+    # print [v for v in G.edges(vertices[0]) if not v.is_external()]
+
+    source = vertices[0]
+    # print "Source:",source
+    ## Search for spine candidate
+    q = [source]
+    visited_vertices = set()
+    while q:
+        v = q.pop()
+        # print "v =",v
+        if v in visited_vertices:
+            continue
+        visited_vertices.add(v)
+        for e in [k for k in G.edges(v)]:
+            # print "try",e
+            next_node = e.co_node(v)
+            if str(e.fields) == 'aA' and next_node not in visited_vertices:
+                # print "Next edge:",next_node
+                q = [next_node] + q
+                break
+    def has_spine(visited):
+        visited = list(visited)
+        for sp in spine_pairs:
+            if visited in sp:
+                # print "Spine found:",sp[1-sp.index(visited)]
+                return sp[1-sp.index(visited)]
+        return None
+
+    # print "Visited:",visited_vertices, map(lambda x: list(visited_vertices) in x, spine_pairs)
+    half_spine = has_spine(visited_vertices)
+    # print "Half-spine:", half_spine
+
+    return half_spine
+
 if  __name__ == "__main__":
-    with open("../e2-1loop.txt.gs") as fd:
+    with open("../e2-2loop.txt.gs") as fd:
         diags = [d.strip() for d in fd.readlines()]
-    for d in diags[:1]:
+    for d in diags:
+        count_all, count_good = 0,0
         print "\n",d
         G = nx_graph_from_str(d)
         source = 0
-        # sink = max([g for g in G.edges() if type(g[1]) == str])[0]
         sink = max([g for g in G.edges() if g[1] < 0])[0]
         spine_pairs = spine(G,source,sink)
-        #print "Spine pairs:",spine_pairs
-        #draw_nx_graph(G,spine_pairs,d.replace('|','-'))
         # draw_Agraph(G,spine_pairs,d.replace('|','-'))
         print "Spine pairs",spine_pairs
-        # full_spine,half_spine = spine_pairs[0]
-        full_spine = spine_pairs[0][1]
         for _g in dynamic_diagram_generator.generate(d, possible_fields=["aA", "aa", "ad", "dd", "dA"], possible_external_fields="Aa", possible_vertices=["adA"]):
-            print _g
-            draw_Agraph_with_fields(_g)
-        """
-        full_spine = ''.join(map(str,full_spine))
-        print "Full spine:",full_spine
-        internal_nodes = [g for g in G.nodes() if g >= 0]
-        NN = []
-        for v in internal_nodes:
-            print "Node",v
-            print "\tNeighbours:",G[v].keys()
-            for incident_nodes in G[v].keys():
-                # print incident_nodes, G[v][incident_nodes]
-                ## for ever edge, even dulicated:
-                for u in G[v][incident_nodes].keys():
-                    print "\t[v,u]:",(v,incident_nodes)
-                    ## if one line is for spine, the another is for dot
-                    if ''.join(map(str,[v,u])) in full_spine or ''.join(map(str,[u,v])) in full_spine:
-                        G[v][u][0]['spine'] = True
-                        print "\tspine!", (v,u)
-                        if len(G[v][u])>1:
-                            print "\t\tdot!", (v,u)
-                            G[v][u][1]['dot'] = True
-
-                        # nG = G.copy()
-                        # nG[v][u]['dot'] = v
-                        # NN.append(nG)
-            #draw_Agraph(G,full_spine,d)
-        print "len(NN)",len(NN)
-        """
+            # print "_"*5
+            count_all +=1
+            if filter_spines(_g,spine_pairs):
+                count_good +=1
+                print _g
+                #draw_Agraph_with_fields(_g)
+        print "All: %d, good: %d"%(count_all,count_good)
