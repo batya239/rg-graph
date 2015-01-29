@@ -181,14 +181,45 @@ def filter_spines(G,spines):
         for sp in spine_pairs:
             if visited in sp:
                 # print "Spine found:",sp[1-sp.index(visited)]
-                return sp[1-sp.index(visited)]
+                # return sp[1-sp.index(visited)]
+                return visited
         return None
 
     # print "Visited:",visited_vertices, map(lambda x: list(visited_vertices) in x, spine_pairs)
-    half_spine = has_spine(visited_vertices)
-    # print "Half-spine:", half_spine
+    full_spine = has_spine(visited_vertices)
+    print "Full spine:", full_spine
 
-    return half_spine
+    ## Search for half-spine candidate
+    q = [source]
+    visited_vertices = set()
+    ## First edge
+    for e in [k for k in G.edges(source)]:
+            # print "try",e
+            next_node = e.co_node(v)
+            if str(e.fields) == 'dd':
+                return None
+            elif (str(e.fields) == 'dA' or str(e.fields) == 'da') \
+                    and next_node not in visited_vertices:
+                # print "Next edge:",next_node
+                q = [next_node] + q
+
+    while q:
+        v = q.pop()
+        # print "v =",v
+        if v in visited_vertices:
+            continue
+        visited_vertices.add(v)
+        for e in [k for k in G.edges(v)]:
+            # print "try",e
+            next_node = e.co_node(v)
+            if (str(e.fields) == 'aA' or str(e.fields) == 'aa') \
+                    and next_node not in visited_vertices: #\
+                    # and next_node not in full_spine:
+                # print "Next edge:",next_node
+                q = [next_node] + q
+                break
+
+    return full_spine
 
 if  __name__ == "__main__":
     with open("../e2-2loop.txt.gs") as fd:
