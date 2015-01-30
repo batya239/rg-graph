@@ -131,26 +131,6 @@ def filter_spines(G,spines):
     @return: True if graph G has spine from 'spines'
     """
 
-    # def node_to_int(n):
-    #     return map(lambda x: x.index,n.nodes)
-
-    # print "G =",G
-    # source, sink = [e for e in G.edges() if e.is_external()]
-    # if str(source.fields) == '0a':
-    #     source, sink = sink, source
-    # source = node_to_int(source)[1]
-    # if source != 0:
-    #     print "Error: 'source' is not zero!"
-    #     raise
-    # sink = node_to_int(sink)[1]
-    # print source, sink
-    # path = []
-    # internal = G.internal_edges
-    # while source != sink:
-    # nxG = nx_graph_from_str(str(G))
-    # print nxG.nodes()
-
-    ##################################
     all_vertices = G.vertices
     vertices = sorted(all_vertices)
     vertices.remove(G.external_vertex)
@@ -162,13 +142,13 @@ def filter_spines(G,spines):
     # print "Source:",source
     ## Search for spine candidate
     q = [source]
-    visited_vertices = set()
+    visited_vertices = []#set()
     while q:
         v = q.pop()
         # print "v =",v
         if v in visited_vertices:
             continue
-        visited_vertices.add(v)
+        visited_vertices += [v]
         for e in [k for k in G.edges(v)]:
             # print "try",e
             next_node = e.co_node(v)
@@ -176,39 +156,67 @@ def filter_spines(G,spines):
                 # print "Next edge:",next_node
                 q = [next_node] + q
                 break
-    def has_spine(visited):
-        visited = list(visited)
-        for sp in spine_pairs:
-            if visited in sp:
-                # print "Spine found:",sp[1-sp.index(visited)]
-                # return sp[1-sp.index(visited)]
-                return visited
-        return None
+    print "Spine:",visited_vertices
+    half_spine_candidates = []
+    for sp in spine_pairs:
+        if visited_vertices in sp:
+            # print "Spine found:",sp[1-sp.index(visited)], "%d times"%sp.count(visited)
+            half_spine_candidates += [sp[1-sp.index(visited_vertices)]]
+    half_spine_candidates = set(tuple(row) for row in half_spine_candidates)
 
     # print "Visited:",visited_vertices, map(lambda x: list(visited_vertices) in x, spine_pairs)
-    full_spine = has_spine(visited_vertices)
-    print "Full spine:", full_spine
 
+    if half_spine_candidates:
+        print "Half-spine candidates:", half_spine_candidates
+    else:
+        print "\tFiltered: no half-spine candidate"
+        return None
+    for sc in half_spine_candidates:
+        print "current candidate:", sc
+        sink = sc[-1]
+        if len(G.edges(source,sink)) > 0:
+            for e in G.edges(source,sink):
+                if str(e.fields) == 'dd':
+                    return True
+        # print "First edge of hs:",G.edges(*sc[:2])
+        # print "Last edge of hs:",G.edges(*sc[-2:])
+
+        if str(G.edges(*sc[0:2])[0].fields) not in ['da','dA']:
+            return None
+        elif str(G.edges(*sc[-2:])[0].fields) not in ['ad','Ad']:
+            return None
+        # for v in sc:
+        #     print "\t\t",v
+
+    """
     ## Search for half-spine candidate
     q = [source]
-    visited_vertices = set()
-    ## First edge
-    for e in [k for k in G.edges(source)]:
-            # print "try",e
-            next_node = e.co_node(v)
-            if str(e.fields) == 'dd':
-                return None
-            elif (str(e.fields) == 'dA' or str(e.fields) == 'da') \
-                    and next_node not in visited_vertices:
-                # print "Next edge:",next_node
-                q = [next_node] + q
+    visited_vertices = []
 
+    ## First edge
+    # print "Source:", source, " sink:",sink
+    for e in [k for k in G.edges(source)]:
+        # print "try",e
+        next_node = e.co_node(source)
+        if str(e.fields) == 'dd':
+            # print "dd, next_node =",next_node
+            if next_node == sink:
+                return [source,sink]
+            else:
+                return None
+        elif (str(e.fields) == 'dA' or str(e.fields) == 'da') \
+                and next_node not in visited_vertices:
+            # print "Next edge:",next_node
+            q = [next_node] + q
+            visited_vertices += [next_node]
+    # print "\tHalf spine:",visited_vertices
+    ## Half-spine
     while q:
         v = q.pop()
         # print "v =",v
         if v in visited_vertices:
             continue
-        visited_vertices.add(v)
+        visited_vertices += [v]
         for e in [k for k in G.edges(v)]:
             # print "try",e
             next_node = e.co_node(v)
@@ -219,13 +227,31 @@ def filter_spines(G,spines):
                 q = [next_node] + q
                 break
 
-    return full_spine
+    ## Last edge
+    for e in [k for k in G.edges(sink)]:
+        prew_node = e.co_node(sink)
+        if prew_node == visited_vertices[-1]:
+            # print "prew edge:",prew_node, "sink:",sink
+            if str(e.fields) == 'ad' or str(e.fields) == 'Ad':
+                # print "not dd"
+                return visited_vertices + [next_node]
+            else:
+                # print "xxx"
+                return None
+        # elif (str(e.fields) == 'dA' or str(e.fields) == 'da') \
+        #         and next_node not in visited_vertices:
+            # print "Next edge:",next_node
+            # q = [next_node] + q
+    print "half spine:",visited_vertices
+    """
+    return True
+
 
 if  __name__ == "__main__":
     with open("../e2-2loop.txt.gs") as fd:
         diags = [d.strip() for d in fd.readlines()]
-    for d in diags:
-        count_all, count_good = 0,0
+    count_all, count_good = 0,0
+    for d in diags[:1]:
         print "\n",d
         G = nx_graph_from_str(d)
         source = 0
@@ -234,10 +260,10 @@ if  __name__ == "__main__":
         # draw_Agraph(G,spine_pairs,d.replace('|','-'))
         print "Spine pairs",spine_pairs
         for _g in dynamic_diagram_generator.generate(d, possible_fields=["aA", "aa", "ad", "dd", "dA"], possible_external_fields="Aa", possible_vertices=["adA"]):
-            # print "_"*5
+            print "_"*5
             count_all +=1
             if filter_spines(_g,spine_pairs):
                 count_good +=1
                 print _g
-                #draw_Agraph_with_fields(_g)
-        print "All: %d, good: %d"%(count_all,count_good)
+                draw_Agraph_with_fields(_g)
+    print "All: %d, good: %d"%(count_all,count_good)
