@@ -31,7 +31,8 @@ static int Integrand(const int *ndim, const double xx[],
 #define NINCREASE 500
 #define NBATCH 1000
 #define GRIDNO 0
-#define STATEFILE NULL
+#define STATEFILE "cuba.state"
+#define RETAIN_STATE 1 << 3
 #define Pi 3.1415926535897932384626433832795028841971
 
 #define NNEW 1000
@@ -60,13 +61,14 @@ int main(int argc, char* argv[])
       return 1;
   }}
  
- 
+
   int METHOD = atoi(argv[1]);
-  #define MAXEVAL atoi(argv[2])
+  #define MAXEVAL atoll(argv[2])
   #define EPSREL atof(argv[3])
   #define EPSABS atof(argv[4])
   
-  int verbose, comp, nregions, neval, fail;
+  int verbose, comp, nregions, fail;
+  long long int neval;
   double integral[NCOMP], error[NCOMP], prob[NCOMP];
 
   const char *env = getenv("CUBAVERBOSE");
@@ -76,8 +78,8 @@ int main(int argc, char* argv[])
 if (METHOD == 0) {{
   printf("-------------------- Vegas test --------------------\\n");
   void *spin = NULL;
-  Vegas(NDIM, NCOMP, Integrand, USERDATA, NVEC,
-    EPSREL, EPSABS, verbose, SEED,
+  llVegas(NDIM, NCOMP, Integrand, USERDATA, NVEC,
+    EPSREL, EPSABS, verbose | RETAIN_STATE, SEED,
     MINEVAL, MAXEVAL, NSTART, NINCREASE, NBATCH,
     GRIDNO, STATEFILE, &spin,
     &neval, &fail, integral, error, prob);
@@ -90,8 +92,8 @@ if (METHOD == 0) {{
 else if (METHOD == 1) {{
   printf("\\n-------------------- Suave test --------------------\\n");
 
-  Suave(NDIM, NCOMP, Integrand, USERDATA, NVEC,
-    EPSREL, EPSABS, verbose | LAST, SEED,
+  llSuave(NDIM, NCOMP, Integrand, USERDATA, NVEC,
+    EPSREL, EPSABS, verbose | LAST | RETAIN_STATE, SEED,
     MINEVAL, MAXEVAL, NNEW, FLATNESS, STATEFILE, SPIN,
     &nregions, &neval, &fail, integral, error, prob);
 
@@ -104,8 +106,8 @@ else if (METHOD == 1) {{
 else if (METHOD == 2) {{
   printf("\\n------------------- Divonne test -------------------\\n");
 
-  Divonne(NDIM, NCOMP, Integrand, USERDATA, NVEC,
-    EPSREL, EPSABS, verbose, SEED,
+  llDivonne(NDIM, NCOMP, Integrand, USERDATA, NVEC,
+    EPSREL, EPSABS, verbose | RETAIN_STATE, SEED,
     MINEVAL, MAXEVAL, KEY1, KEY2, KEY3, MAXPASS,
     BORDER, MAXCHISQ, MINDEVIATION,
     NGIVEN, LDXGIVEN, NULL, NEXTRA, NULL, STATEFILE, SPIN,
@@ -120,8 +122,8 @@ else if (METHOD == 2) {{
 else if (METHOD == 3) {{
   printf("\\n-------------------- Cuhre test --------------------\\n");
 
-  Cuhre(NDIM, NCOMP, Integrand, USERDATA, NVEC,
-    EPSREL, EPSABS, verbose | LAST,
+  llCuhre(NDIM, NCOMP, Integrand, USERDATA, NVEC,
+    EPSREL, EPSABS, verbose | LAST | RETAIN_STATE,
     MINEVAL, MAXEVAL, KEY, STATEFILE, SPIN,
     &nregions, &neval, &fail, integral, error, prob);
 

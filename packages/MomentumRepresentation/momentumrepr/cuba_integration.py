@@ -9,6 +9,7 @@ import time
 from uncertainties import ufloat
 import configure_mr
 import atexit
+import stat
 from rggraphutil import zeroDict
 
 __author__ = 'mkompan'
@@ -183,17 +184,21 @@ def execute_cuba(directory, chdir=True):
     if chdir:
         os.chdir(directory)
     res = collections.defaultdict(lambda: 0)
-    err = collections.defaultdict(lambda: 0)
     for filename in os.listdir("."):
-        if filename[-3:] == "run":
+        if filename.endswith("run") and filename != ".run":
             code = str(configure_mr.Configure.integration_algorithm())
             points = str(configure_mr.Configure.maximum_points_number())
             rel_err = str(configure_mr.Configure.relative_error())
             abs_err = str(configure_mr.Configure.absolute_error())
-            process = subprocess.Popen(["./%s" % filename, code, points, rel_err, abs_err], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            os.chmod(filename, os.stat(filename).st_mode | stat.S_IEXEC | stat.S_IREAD | stat.S_IWRITE)
+            # process = subprocess.Popen(["./%s" % filename, code, points, rel_err, abs_err], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            log_file = os.path.splitext(os.path.basename(filename))[0] + ".log"
+            process = subprocess.Popen("./%s %s %s %s %s > %s" % (filename, code, points, rel_err, abs_err, log_file), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
             proc_comm = process.communicate()
-            print proc_comm
-            output = proc_comm[0]
+            # print proc_comm
+            with open(log_file, 'r') as f:
+                output = f.read()
+            # output = proc_comm[0]
             # print output
             term = parse_cuba_output(output)
             res[get_eps_from_filename(filename)] += ufloat(*term)
@@ -239,7 +244,7 @@ def on_shutdown():
         subprocess.call(["rm", "-rf", "tmp/"])
 
 
-def cuba_integrate(integrand_series, integrations, scalar_products_functions):
+def cuba_generate(integrand_series, integrations, scalar_products_functions):
     an_id = id(integrand_series)
     # for i in integrations:
     #     if "a" in str(i.var):
@@ -252,24 +257,41 @@ def cuba_integrate(integrand_series, integrations, scalar_products_functions):
     #         break
     # if not has_a:
     #     return {0: 0}
+    directories = list()
 
-    graph = str(an_id)
-    directory = os.path.join("tmp/", str(graph))
-    if configure_mr.Configure.debug():
-        print "Integration ID: %s" % an_id
-        print "Start integration: %s\nIntegration: %s\nScalar functions: %s" % (integrand_series, integrations, scalar_products_functions)
-        ms = time.time()
-    sps = list()
-    for sp_function in scalar_products_functions:
-        sps.append("%s = %s" % (sp_function.sign, sp_function.body))
-    _vars = map(lambda v: str(v.var), integrations)
+    for k, v in integrand_series.iteritems():
+        time_id = int(round(time.time() * 1000))
+        directory = os.path.join("tmp/", str(time_id))
+        directory = os.path.abspath(directory)
+        if configure_mr.Configure.debug():
+            print "Integration ID: %s" % an_id
+            print "Start integration: %s\nIntegration: %s\nScalar functions: %s" % ((k, v), integrations, scalar_products_functions)
+        sps = list()
+        for sp_function in scalar_products_functions:
+            sps.append("%s = %s" % (sp_function.sign, sp_function.body))
+        _vars = map(lambda v: str(v.var), integrations)
 
-    integrand_series_c = dict(map(lambda (p, v): (p, v.printc()), integrand_series.items()))
-    term = integrandInfo(integrand_series_c, _vars, sps, '')
-    generate_integrands([term], directory, str(graph))
+        integrand_series_c = {k: v.printc()}
+        term = integrandInfo(integrand_series_c, _vars, sps, '')
+        generate_integrands([term], directory, time_id)
+        directories.append(directory)
+
+    return directories
+
+
+def cuba_execute(directory):
     compile_cuba(directory, chdir=True)
     exec_res = execute_cuba(directory, chdir=True)
     if configure_mr.Configure.debug():
-        print "Integration done in %s s" % (time.time() - ms)
         print "Result", exec_res
     return exec_res
+
+
+def cuba_integrate(integrand_series, integrations, scalar_products_functions):
+    directories = cuba_generate(integrand_series, integrations, scalar_products_functions)
+    result = zeroDict()
+    for directory in directories:
+        current_result = cuba_execute(directory)
+        for k, v in current_result.iteritems():
+            result[k] += v
+    return result
