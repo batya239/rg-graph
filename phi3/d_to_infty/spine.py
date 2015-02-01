@@ -124,6 +124,20 @@ def spine(G,source,sink):
             spine_pairs.append(s)
     return spine_pairs
 
+def direct(edge,graphine_edge):
+        """
+        Returns inversed field if directions of 'edge' and 'graphine_edge' are different
+        """
+        # if isinstance(edge,gs.graph_state.Edge):
+        #     edge = tuple(map(lambda n: n.index, edge.nodes))
+        # print "\t\t\t\tGE:", tuple(map(lambda n: n.index, graphine_edge.nodes))[::-1] == edge
+        # print "\t\t\t\tGE:", edge
+        if edge == tuple(map(lambda n: n.index, graphine_edge.nodes)):
+            return str(graphine_edge.fields)
+        else:
+            return str(graphine_edge.fields)[::-1]
+
+
 def filter_spines(G,spines):
     """
     @param G:
@@ -143,6 +157,7 @@ def filter_spines(G,spines):
     ## Search for spine candidate
     q = [source]
     visited_vertices = []#set()
+    spi = [source]
     while q:
         v = q.pop()
         # print "v =",v
@@ -152,14 +167,17 @@ def filter_spines(G,spines):
         for e in [k for k in G.edges(v)]:
             # print "try",e
             next_node = e.co_node(v)
-            if str(e.fields) == 'aA' and next_node not in visited_vertices:
+            # if str(e.fields) == 'aA' and next_node not in spi:
+            if direct(G.edges(tuple(map(lambda n: n.index, e.nodes)),next_node),e) == 'Aa' and next_node not in visited_vertices:
                 # print "Next edge:",next_node
                 q = [next_node] + q
+                spi += [next_node]
                 break
-    print "Spine:",visited_vertices
+    print "Spine:", spi
+
     half_spine_candidates = []
     for sp in spine_pairs:
-        if visited_vertices in sp:
+        if spi in sp:
             # print "Spine found:",sp[1-sp.index(visited)], "%d times"%sp.count(visited)
             half_spine_candidates += [sp[1-sp.index(visited_vertices)]]
     half_spine_candidates = set(tuple(row) for row in half_spine_candidates)
@@ -170,7 +188,7 @@ def filter_spines(G,spines):
         print "Half-spine candidates:", half_spine_candidates
     else:
         print "\tFiltered: no half-spine candidate"
-        return None
+        return False
     for sc in half_spine_candidates:
         print "current candidate:", sc
         sink = sc[-1]
@@ -178,72 +196,35 @@ def filter_spines(G,spines):
             for e in G.edges(source,sink):
                 if str(e.fields) == 'dd':
                     return True
-        # print "First edge of hs:",G.edges(*sc[:2])
-        # print "Last edge of hs:",G.edges(*sc[-2:])
+        first_edge = G.edges(*sc[:2])[0]
+        last_edge  = G.edges(*sc[-2:])[0]
+        # print "First edge of hs:",first_edge
+        # print "Last edge of hs:",last_edge
 
-        if str(G.edges(*sc[0:2])[0].fields) not in ['da','dA']:
-            return None
-        elif str(G.edges(*sc[-2:])[0].fields) not in ['ad','Ad']:
-            return None
-        # for v in sc:
-        #     print "\t\t",v
 
-    """
-    ## Search for half-spine candidate
-    q = [source]
-    visited_vertices = []
+        # print "Right fields",direct(sc[-2:],last_edge)
 
-    ## First edge
-    # print "Source:", source, " sink:",sink
-    for e in [k for k in G.edges(source)]:
-        # print "try",e
-        next_node = e.co_node(source)
-        if str(e.fields) == 'dd':
-            # print "dd, next_node =",next_node
-            if next_node == sink:
-                return [source,sink]
+        # if str(G.edges(*sc[:2])[0].fields) not in ['da','dA']:
+        if direct(sc[:2],G.edges(*sc[:2])[0]) not in ['da','dA']:
+            print "\t\tFirst edge", sc[:2],"of hs '%s' is not in ['da','dA']"%str(G.edges(*sc[:2])[0].fields)
+            return False
+        # elif str(G.edges(*sc[-2:])[0].fields) not in ['ad','Ad']:
+        elif direct(sc[-2:],G.edges(*sc[-2:])[0]) not in ['ad','Ad']:
+            print "\t\tLast edge",sc[-2:]," of hs '%s' is not in ['da','dA']"%str(G.edges(*sc[-2:])[0].fields),G.edges(*sc[-2:])[0]
+            return False
+
+
+        for e in [(sc[i],sc[i+1]) for i in range(1,len(sc[:-2]))]:
+            if len(G.edges(*e)) == 1 and 'd' in str(G.edges(*e)[0].fields):
+                return False
+            elif 'd' not in str(G.edges(*e)[0].fields):
+                continue
             else:
-                return None
-        elif (str(e.fields) == 'dA' or str(e.fields) == 'da') \
-                and next_node not in visited_vertices:
-            # print "Next edge:",next_node
-            q = [next_node] + q
-            visited_vertices += [next_node]
-    # print "\tHalf spine:",visited_vertices
-    ## Half-spine
-    while q:
-        v = q.pop()
-        # print "v =",v
-        if v in visited_vertices:
-            continue
-        visited_vertices += [v]
-        for e in [k for k in G.edges(v)]:
-            # print "try",e
-            next_node = e.co_node(v)
-            if (str(e.fields) == 'aA' or str(e.fields) == 'aa') \
-                    and next_node not in visited_vertices: #\
-                    # and next_node not in full_spine:
-                # print "Next edge:",next_node
-                q = [next_node] + q
-                break
+                if len(G.edges(*e)) == 2:
+                    if 'd' not in str(G.edges(*e)[1].fields):
+                       continue
+            return False
 
-    ## Last edge
-    for e in [k for k in G.edges(sink)]:
-        prew_node = e.co_node(sink)
-        if prew_node == visited_vertices[-1]:
-            # print "prew edge:",prew_node, "sink:",sink
-            if str(e.fields) == 'ad' or str(e.fields) == 'Ad':
-                # print "not dd"
-                return visited_vertices + [next_node]
-            else:
-                # print "xxx"
-                return None
-        # elif (str(e.fields) == 'dA' or str(e.fields) == 'da') \
-        #         and next_node not in visited_vertices:
-            # print "Next edge:",next_node
-            # q = [next_node] + q
-    print "half spine:",visited_vertices
-    """
     return True
 
 
@@ -251,7 +232,7 @@ if  __name__ == "__main__":
     with open("../e2-2loop.txt.gs") as fd:
         diags = [d.strip() for d in fd.readlines()]
     count_all, count_good = 0,0
-    for d in diags[:1]:
+    for d in diags[1:]:
         print "\n",d
         G = nx_graph_from_str(d)
         source = 0
@@ -265,5 +246,5 @@ if  __name__ == "__main__":
             if filter_spines(_g,spine_pairs):
                 count_good +=1
                 print _g
-                draw_Agraph_with_fields(_g)
+                # draw_Agraph_with_fields(_g)
     print "All: %d, good: %d"%(count_all,count_good)
