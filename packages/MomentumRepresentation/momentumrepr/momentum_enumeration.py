@@ -4,27 +4,33 @@ __author__ = 'dima'
 
 
 import propagator
-import graph_state
 import copy
 import graphine
 import itertools
-import graph_util_mr
 import uv
+from repoze.lru import LRUCache
 from rggraphutil import Ref
 
 
 def find_momentum_enumeration_graph(graph, callback):
     loops_count = graph.loops_count
     tails_count = graph.external_edges_count
-    external_vertex = graph.external_vertex
+
     assert tails_count > 1
     empty_propagator = propagator.MomentumFlow.empty(tails_count, loops_count)
     graph_vertices = graph.vertices
 
     def _enumerate_next_vertex(_graph, remaining_flows, vertex):
         if vertex not in graph_vertices:
+            internal_flows = set()
+            for e in _graph:
+                internal_flows |= set(e.flow.get_internal_momentas_indices())
+            if len(internal_flows) != graph.loops_count:
+                return
             if not callback(_graph):
                 raise StopIteration
+            return
+        if not is_suitable(_graph, force=True):
             return
         result_known_flow = empty_propagator
         not_enumerated = list()
@@ -95,26 +101,30 @@ def find_momentum_enumeration_graph(graph, callback):
             with_external.append(f + flow)
 
     all_flows += with_external
-
+    all_flows = filter(lambda x: x.size(), all_flows)
+    all_flows = sorted(all_flows, key=lambda x: x.size())
     try:
         _enumerate_next_vertex(graphine.Graph(start_edges), all_flows, 0)
     except StopIteration:
         pass
 
 
-def is_suitable(graph):
+def is_suitable(graph, force=False):
     for sub_graph in graph.x_relevant_sub_graphs(graphine.filters.one_irreducible + uv.uv_condition):
         indices_in_co_subgraph = set()
         indices_in_subgraph = set()
-        sub_graph_edges = list(sub_graph.edges())
-        for e in graph:
+        do_continue = False
+        for e in sub_graph:
+            f = e.flow
+            if force and f is None:
+                do_continue = True
+                break
             if e.is_external():
-                continue
-            if e in sub_graph_edges:
-                sub_graph_edges.remove(e)
-                indices_in_subgraph |= e.flow.get_internal_momentas_indices()
+                indices_in_co_subgraph |= f.get_internal_momentas_indices()
             else:
-                indices_in_co_subgraph |= e.flow.get_internal_momentas_indices()
+                indices_in_subgraph |= f.get_internal_momentas_indices()
+        if do_continue:
+            continue
         if len(indices_in_subgraph - indices_in_co_subgraph) != sub_graph.loops_count:
             return False
     return True
@@ -129,7 +139,18 @@ def size_key(graph):
     return _sum
 
 
+cache = LRUCache(1024)
+
+
 def choose_minimal_momentum_flow(graph):
+    print graph
+    topology_key = graph.presentable_str
+    momentum_representator = cache.get(topology_key, None)
+    if momentum_representator is not None:
+        result = apply_from_representator(graph, momentum_representator)
+        assert result is not None
+        return result
+
     minimal_suitable_graph = Ref.create()
     graphs = list()
 
@@ -144,9 +165,22 @@ def choose_minimal_momentum_flow(graph):
     find_momentum_enumeration_graph(graph, chooser_graph_callback)
 
     if minimal_suitable_graph is not None:
-        return minimal_suitable_graph.get()
+        result = minimal_suitable_graph.get()
+        cache.put(topology_key, result)
+        assert result is not None
+        return result
 
     if len(graphs):
-        return graphs.sort(key=lambda e: e.flow.size())[0]
+        result = graphs.sort(key=lambda e: e.flow.size())[0]
+        cache.put(topology_key, result)
+        assert result is not None
+        return result
 
-    return None
+    assert False
+
+
+def apply_from_representator(graph, representator):
+    edges = list()
+    for (original_e, representator_e) in itertools.izip(graph.edges(), representator.edges()):
+        edges.append(original_e.copy(flow=representator_e.flow))
+    return graphine.Graph(edges)
