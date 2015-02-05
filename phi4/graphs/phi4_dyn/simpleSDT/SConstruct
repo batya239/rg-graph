@@ -1,0 +1,73 @@
+#!/usr/bin/python
+
+import os, re
+import imp
+#from cubaCodeTemplate import *
+from cubaCodeTemplate_cuba30 import *
+import common
+
+config = common.load_config()
+
+listdir = os.listdir('.')
+
+localPath = os.getcwd() 
+#cubaPath = os.path.expanduser('~')+"/soft/Cuba-4.1"
+cubaPath = os.path.expanduser('~')+"/soft/Cuba-3.0"
+cubaPath = ""
+env = Environment(  LIBS=['m','cuba'],
+                    LIBPATH=config.pvegasLIBPATHs, CPPPATH=config.pvegasCPPPATHs,
+                    CCFLAGS='-Wno-write-strings',##no CC warnings
+                    platform='posix',ENV=os.environ) 
+
+
+pat = re.compile('.*func.*c$')
+### list of func-files
+obj_src = sorted([i for i in listdir if pat.match(i)])
+### list of *.o-files
+objs = [s[:-1] + 'o' for s in obj_src]
+### list of headers:
+headers = [s[:-1] + 'h' for s in obj_src]
+
+num = len(obj_src) # <-- for zfill() and test purposes
+
+name = obj_src[0].split('_func_')[0]
+# print "Name:", name
+
+func = set()
+### Loop over all func-files.
+for src in obj_src:
+    ### compile object files
+    Object(src)
+    ## find all possible groups (orders of expansion over epsilon)
+    func.add(src[:-2].split('_E')[1])
+
+
+### Every iteration produces one final binary cuba-file.
+for e in func:
+    curName = "E%s." %e
+    includes, functions = "", ""
+    for i, fileName in enumerate(headers):
+        if curName in fileName:
+            func_number = int(fileName.split('_func_')[1].split('_')[0])
+            functions += "f += func_t_%d(xx);\n" % func_number
+            includes += "#include \"%s\"\n" % fileName
+    region = ("0," * int(e) + "1," * int(e))[:-1]
+    resFile = name + "_0_" + curName + "c"
+    f = open(resFile, 'w')
+    f.write('#define DIMENSION %s' % e[0])
+    # print "Region:",region
+    # print "Includes:",includes
+    # print os.path.join(cubaPath,'cuba.h')
+    # print "Functions:",functions
+    f.write(coreCubaCodeTemplate.format(
+        region=region,
+        includes=includes,
+        cuba_path=os.path.join(cubaPath,'cuba.h'),
+        functions=functions))
+    f.close()
+    targetName = resFile[:-2]+".run" 
+    obj = [o for o in objs if 'E%s.'%e in o ]
+    env.Program(target = targetName, source = [resFile]+obj)
+
+## Do nothing, just points out what to clean with '-c' option (see man scons)
+env.Clean("cleanObjs",objs)

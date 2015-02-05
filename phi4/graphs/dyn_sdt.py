@@ -78,5 +78,5 @@ for tVersion_ in tVersions:
     neps = model.target - dG.NLoops() + 1
     os.chdir(pwd)
     dynamics.saveSDT(model, expr, sectors, name, neps)
-    dynamics.compileCode(model, name, options=["-lm", "-lpthread", "-lpvegas", "-O2"])
+#    dynamics.compileCode(model, name, options=["-lm", "-lpthread", "-lpvegas", "-O2"])
 

@@ -14,7 +14,7 @@ ITER={iter}
 DELTA={delta}
 cd $PWD
 for PROG in `ls *.run`; do
-cat << EOF | qsub  -N $PROG -l nodes=$NODESPPN  -q long@pbs-vm.hpc.cc.spbu.ru -W group_list=vcluster
+cat << EOF | qsub  -N $PROG -l nodes=$NODESPPN  -q short@pbs-vm.hpc.cc.spbu.ru -W group_list=vcluster
 
 export PATH={mpidir}/bin:$PATH
 export LD_LIBRARY_PATH={mpidir}/lib64:{libdir}:{mpidir}/../lib/
