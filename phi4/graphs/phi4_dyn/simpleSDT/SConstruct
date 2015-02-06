@@ -52,7 +52,7 @@ for e in func:
             functions += "f += func_t_%d(xx);\n" % func_number
             includes += "#include \"%s\"\n" % fileName
     region = ("0," * int(e) + "1," * int(e))[:-1]
-    resFile = name + "_0_" + curName + "c"
+    resFile = name + "_" + curName + "c"
     f = open(resFile, 'w')
     f.write('#define DIMENSION %s' % e[0])
     # print "Region:",region
