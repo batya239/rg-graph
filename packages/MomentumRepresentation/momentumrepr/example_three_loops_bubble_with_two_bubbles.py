@@ -25,5 +25,8 @@ def kr11(operation, graph_state_as_str):
             answer[d] += a
     return answer
 
+#TODO
+# I don't understand why "vegas" throws exception while calculation of this diagram
+#
 graph_state_str = "e12|33|44|5|5|e|:0A_aA_aA|aA_aA|aA_aA|aA|aA|0a|:::"
 print kr11(kr1.kr1_d_iw, graph_state_str)
