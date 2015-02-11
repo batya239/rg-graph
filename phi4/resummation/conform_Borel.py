@@ -84,65 +84,19 @@ if __name__ == "__main__":
     beta = eval(open('beta_n%d.txt'%N).read())
     eta_g= eval(open('eta_n%d.txt'%N).read())
 
-    beta = map(lambda x: x.n, beta.gSeries.values())
-    eta_g= map(lambda x: x.n,eta_g.gSeries.values())
-    #beta_half = [0, -1.0, 1.0, -0.71617362, + 0.930764, -1.582398, 3.260219] ## NB: in fact it's beta/2
-    # eta_g = [0., 0., 0.033966148, -0.00202253, 0.01139321, -0.0137366, 0.028233]
+    #beta = map(lambda x: x.n, beta.gSeries.values())
+    #eta_g= map(lambda x: x.n,eta_g.gSeries.values())
+    beta_half = [0, -1.0, 1.0, -0.71617362, + 0.930764, -1.582398, 3.260219] ## NB: in fact it's beta/2
+    eta_g = [0., 0., 0.033966148, -0.00202253, 0.01139321, -0.0137366, 0.028233]
     #Z2 = [1, 0, -0.0084915370, -0.005323936, -0.002340342, -0.00135597, -0.0003502]
     #Z3 = [1, 1.0, 0.624930113, 0.4470878, 0.1735522, 0.283165]
 
-    beta_half = [b/2 for b in beta[:L4+2]]
-    eta_g = eta_g[:L2 + 1]
-    gStar = findZero(beta_half)
+    #beta_half = [b/2 for b in beta[:L4+2]]
+    #eta_g = eta_g[:L2 + 1]
+    gStar = findZero(beta_half, b = 4.5)
     print "g* =", gStar
 
     #print "η(g*):\n", sum(conformBorel(eta_g, 1.88))
     print "η(g*):\n", sum(conformBorel(eta_g, gStar))
     # print len(beta_half), "β(g)/2 =", beta_half
 
-
-    # FIXME
-    """
-    gamma2 = beta*Z2.diff()/Z2
-    gamma4 = beta*Z3.diff()/Z3
-    f2 = gamma2/(Series(6,{0:(2,0)})-gamma2)
-    f4 = gamma4/(Series(3,{0:(2,0)})-gamma2)
-    print "γ₂ = %s \nγ₄ = %s \nf2 = %s \nf4 = %s" %tuple(map(str,[gamma2,gamma4,f2,f4]))
-
-    #ser = 1+f4-f2
-
-    for k2, k4 in [(4, 4), (5, 5), (6, 5)]:
-        print "\nL = ", k2, k4
-        #_coeffs = ser.coeffs()[:k]
-        #print "coeffs =", _coeffs
-        _f2 = f2.coeffs()[:k2]
-        _f4 = f4.coeffs()[:k4]
-
-        gStar = 0.75
-        delta = 0.01
-        # b = 2.5
-        # b2 = b
-        # b4 = b
-        b2 = 1.
-        b4 = 2.5
-        print "b2=%s, b4=%s" % (b2,b4)
-        for i in range(1000):
-            g1 = 1+sum(conformBorel(_f4, gStar - delta, b4))-sum(conformBorel(_f2, gStar - delta, b2))
-            g2 = 1+sum(conformBorel(_f4, gStar + delta, b4))-sum(conformBorel(_f2, gStar + delta, b2))
-            #g2 = sum(conformBorel(_coeffs, gStar + delta))
-            if i%100 == 0:
-                print "β(%.2f) = %.5f, β(%.2f) = %.5f" % (gStar - delta, g1, gStar + delta, g2)
-            if abs(g1) > abs(g2):
-                gStar += delta
-            else:
-                gStar -= delta
-            if g1 * g2 < 0:
-                break
-        print "β(%.2f) = %.5f, β(%.2f) = %.5f" % (gStar - delta, g1, gStar + delta, g2)
-        print "g* (%d)=" % k4, gStar
-        _f2 = f2.coeffs()[:k2]
-        _f4 = f4.coeffs()[:k4]
-        print _f2, _f4
-        print "f2(g*) =", sum(conformBorel(_f2, gStar, b2))
-        print "f4(g*) =", sum(conformBorel(_f4, gStar, b4))
-    """
