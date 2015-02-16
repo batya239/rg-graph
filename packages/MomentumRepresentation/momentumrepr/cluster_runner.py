@@ -72,7 +72,7 @@ def calculate_diagram(graph_state_str, operation_name, task_server_dir, aggregat
 
     task_names = list()
 
-    with open("job_executable.py", "w") as f:
+    with open("job_executable", "w") as f:
         args = {'algorithm': configure_mr.Configure.integration_algorithm(),
                   'max_points': configure_mr.Configure.maximum_points_number(),
                   'abs_err': configure_mr.Configure.absolute_error(),
@@ -86,8 +86,8 @@ def calculate_diagram(graph_state_str, operation_name, task_server_dir, aggregat
 
             task_name = os.path.basename(integrator_dir)
             task_names.append(task_name)
-            task_files = [os.path.abspath("./job_executable.py")]
-            task_executable_name = "job_executable.py"
+            task_files = [os.path.abspath("./job_executable")]
+            task_executable_name = "job_executable"
 
             for f in os.listdir(integrator_dir):
                 task_files.append(os.path.join(integrator_dir, f))
@@ -122,7 +122,7 @@ def aggregation(scheduler_path, task_names):
             for f in os.listdir(task_dir):
                 if f.endswith(".run"):
                     eps = cuba_integration.get_eps_from_filename(f)
-                    log_file = os.path.join(task_dir, os.path.splitext(os.path.basename(filename))[0] + ".log")
+                    log_file = os.path.join(task_dir, os.path.splitext(os.path.basename(f))[0] + ".log")
                     if os.path.exists(log_file):
                         with open(log_file, 'r') as f:
                             content = f.read()
