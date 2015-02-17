@@ -21,6 +21,8 @@ import java.net.UnknownHostException;
  */
 @Configuration
 public class ApplicationConfig {
+    private static String hostName;
+
     private final static String SERVER_PATH = System.getProperty("user.home") + "/.server";
 
     @Bean(initMethod = "start")
@@ -45,11 +47,17 @@ public class ApplicationConfig {
     }
 
     public static void main(String[] args) {
+        if (args.length != 0) {
+            hostName = args[0];
+        }
         createFileAppender();
         new AnnotationConfigApplicationContext(ApplicationConfig.class);
     }
 
     public static String getHostName() {
+        if (hostName != null) {
+            return hostName;
+        }
         final String hostname;
         try {
             hostname = InetAddress.getLocalHost().getHostName();
