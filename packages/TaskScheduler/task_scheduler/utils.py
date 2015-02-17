@@ -8,6 +8,7 @@ __author__ = 'dima'
 import os
 import shutil
 import task
+import stat
 import log
 import master_node
 
@@ -43,7 +44,10 @@ def submit_job(server_directory, job_name, job_files_absolute_paths, job_executa
     for file_path in job_files_absolute_paths:
         file_path = os.path.expanduser(file_path)
         file_path = shutil.abspath(file_path)
-        shutil.copyfile(file_path, os.path.join(job_dir, os.path.basename(file_path)))
+        copied_path = os.path.join(job_dir, os.path.basename(file_path))
+        shutil.copyfile(file_path, copied_path)
+        if job_executable_name == os.path.basename(file_path):
+            os.chmod(copied_path, os.stat(copied_path).st_mode | stat.S_IEXEC | stat.S_IREAD | stat.S_IWRITE)
     open(os.path.join(job_dir, task.STATUS_NEW), 'a+').close()
 
 
