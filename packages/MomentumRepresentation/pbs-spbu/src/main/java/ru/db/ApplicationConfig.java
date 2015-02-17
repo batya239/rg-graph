@@ -13,6 +13,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.io.File;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 /**
  * @author dima
@@ -48,8 +50,14 @@ public class ApplicationConfig {
     }
 
     public static String getHostName() {
-        final String hostname = System.getenv("HOSTNAME");
-        return hostname == null ? "unnamed" : hostname;
+        final String hostname;
+        try {
+            hostname = InetAddress.getLocalHost().getHostName();
+            return hostname == null ? "unnamed" : hostname;
+        } catch (UnknownHostException e) {
+            Logger.getLogger(ApplicationConfig.class).error("Can't evaluate hostname");
+            return "unnamed";
+        }
     }
 
     private static void createFileAppender() {
