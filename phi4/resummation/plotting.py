@@ -17,7 +17,7 @@ def fit_hyperbola(x, a, b, c, x_0):
     #print "a = %f, b = %f, c = %f, x_0 = %f" %(a,b,c, x_0)
     return a/(x-x_0)**b + c
 
-def plot(coeffs, beta_half, name, fileName):
+def plot(coeffs, beta_half, name, fileName, b_0 = 5):
     """
     Plot resummed function f(L), where L -- number of loops.
     Syntax: plot(coeffs, g*, title, fileName_to_save)
@@ -28,16 +28,15 @@ def plot(coeffs, beta_half, name, fileName):
             'size'   : 16,
             }
     # plt.clf()
-    b_0 = 0
     n = len(coeffs)
     L = range(2,n)
     coeffs_by_loops = [coeffs[:k+1] for k in L]
     plots = []
-    gStar = findZero(beta_half,b=5)
+    gStar = findZero(beta_half,b_0)
 
     for i in range(1): ## loop over b: b=b_0+i
         # points = [sum(conformBorel(c,gStar_by_loops[j],loops = len(c)-1,b=b_0+i)) for j,c in enumerate(coeffs_by_loops)]
-        points = [sum(conformBorel(c,gStar,loops = len(c)-1,b=b_0+i,n=1)) for j,c in enumerate(coeffs_by_loops)]
+        points = [sum(conformBorel(c,gStar,loops = len(c)-1,b=b_0+i,n=2)) for j,c in enumerate(coeffs_by_loops)]
         print "i = %d, g* = %f, \t"%(i,gStar),points
         plots.append(plt.plot(L, points, 'o'))#, label = 'b = %d'%(b_0+i)))
         xn, yn = np.array(L),np.array(points, dtype = 'float32')
@@ -57,7 +56,8 @@ def plot(coeffs, beta_half, name, fileName):
     plt.grid(True)
     plt.xticks(xrange(2,20,2))
     plt.xlabel('Number of loops')
-    plt.show(fileName)
+    #plt.show(fileName)
+    return plt
 
 def plotBeta(beta_half, name, b_0):
     """
@@ -111,7 +111,7 @@ if __name__ == "__main__":
     # eps = 0.5  # d = 3
     # eps = 1.0  # d = 2
     d = 2
-    b_0 = 4.7
+    b_0 = 6.0
     L2, L4 = 6, 5
     N = 1 #-1, 0, 1
     # Z2   = eval(open('Z2.txt').read())
@@ -139,6 +139,8 @@ if __name__ == "__main__":
     #print "η(g*) =", [sum(conformBorel(eta_g, 1.4,b=0,loops=l)) for l in [1,2,3,4,5,6]]
     #print len(beta_half), "β(g)/2 =", beta_half
     #print len(eta_g), "η(g)/2 =", eta_g
-    #plt1 = plot(eta_g,beta_half, '$\eta = \eta(n),\ d = %d,\ N = %d$'%(d,N), 'pic_eta_d3_n%d.pdf'%N) ## <-- pic_eta_d3_n1.pdf
-    plt1 = plotBeta(beta_half, '$g_* = g_*(n),\ d = %d,\ N = %d$'%(d,N), b_0 = b_0) ## <-- pic_beta_d3_n1.pdf
+    plt1 = plot(eta_g,beta_half, '$\eta = \eta(n),\ d = %d,\ N = %d$'%(d,N), 'pic_eta_d3_n%d.pdf'%N,b_0 = b_0) ## <-- pic_eta_d3_n1.pdf
+    #plt1 = plotBeta(beta_half, '$g_* = g_*(n),\ d = %d,\ N = %d$'%(d,N), b_0 = b_0) ## <-- pic_beta_d3_n1.pdf
+    #for i in range(5):
+    #    plt1 = plotBeta(beta_half, '$g_* = g_*(n),\ d = %d,\ N = %d$'%(d,N), b_0 = b_0 + 0.5*i) ## <-- pic_beta_d3_n1.pdf
     plt1.show()
