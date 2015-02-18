@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
  * @author dima
  */
 public class Worker {
+    private static final String KILL_FILE = "kill";
 
     @NotNull
     private final String hostName;
@@ -55,21 +56,25 @@ public class Worker {
     }
 
     private void findAndExecuteTask() {
-        for (File file : baseDir.listFiles()) {
-            if (file.isDirectory()) {
-                TaskStatus status = TaskStatus.getOrNull(file);
-                if (status == null) {
-                    log.info("Task " + file.getName() + " status is null");
-                    continue;
-                }
-                if (status == TaskStatus.NEW) {
-                    String taskName = file.getName();
-                    int updatedRows = jdbcTemplate.update("INSERT OR IGNORE INTO tasks(task_name, worker) VALUES(?, ?)", taskName, hostName);
-                    if (updatedRows != 0) {
-                        execute(file);
+        try {
+            for (File file : baseDir.listFiles()) {
+                if (file.isDirectory()) {
+                    TaskStatus status = TaskStatus.getOrNull(file);
+                    if (status == null) {
+                        log.info("Task " + file.getName() + " status is null");
+                        continue;
+                    }
+                    if (status == TaskStatus.NEW) {
+                        String taskName = file.getName();
+                        int updatedRows = jdbcTemplate.update("INSERT OR IGNORE INTO tasks(task_name, worker) VALUES(?, ?)", taskName, hostName);
+                        if (updatedRows != 0) {
+                            execute(file);
+                        }
                     }
                 }
             }
+        } catch (Exception e) {
+            log.error(e);
         }
     }
 
@@ -80,6 +85,12 @@ public class Worker {
         try {
             process = new ProcessBuilder("./job_executable").directory(task).redirectOutput(new File(task, "output.txt")).start();
             while (process.isAlive()) {
+                if (isKilled(task)) {
+                    TaskStatus.writeStatus(task, TaskStatus.KILLED);
+                    log.info(String.format("Task %s is killed while executing on %s", task.getName(), hostName));
+                    process.destroy();
+                    return;
+                }
                 log.info(String.format("Task %s in progress on %s", task.getName(), hostName));
                 sleep();
             }
@@ -114,5 +125,9 @@ public class Worker {
             heartBeat.shutdownNow();
             throw new RuntimeException(e);
         }
+    }
+
+    private static boolean isKilled(final File task) {
+        return new File(task, KILL_FILE).exists();
     }
 }
