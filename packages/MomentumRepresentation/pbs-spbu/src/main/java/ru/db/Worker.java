@@ -85,13 +85,13 @@ public class Worker {
         try {
             process = new ProcessBuilder("./job_executable").directory(task).redirectOutput(new File(task, "output.txt")).start();
             while (process.isAlive()) {
-                log.info(String.format("Task %s in progress on %s", task.getName(), hostName));
                 if (isKilled(task)) {
                     TaskStatus.writeStatus(task, TaskStatus.KILLED);
                     log.info(String.format("Task %s is killed while executing on %s", task.getName(), hostName));
                     process.destroy();
                     return;
                 }
+                log.info(String.format("Task %s in progress on %s", task.getName(), hostName));
                 sleep();
             }
             if (process.exitValue() == 0) {
