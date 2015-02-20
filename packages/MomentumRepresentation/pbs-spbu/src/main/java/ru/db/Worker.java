@@ -43,11 +43,14 @@ public class Worker {
         if (isExist == 0) {
             jdbcTemplate.update("INSERT INTO workers (worker_name) VALUES (?)", hostName);
         }
-        heartBeat.scheduleWithFixedDelay((Runnable) () -> {
+        heartBeat.scheduleWithFixedDelay(() -> {
             log.info("Worker " + hostName + " is alive");
             jdbcTemplate.update("UPDATE workers SET ping_time = datetime('now') WHERE worker_name = ?", hostName);
         }, 0, 10, TimeUnit.SECONDS);
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> stop = true));
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            stop = true;
+            heartBeat.shutdownNow();
+        }));
         while (!stop) {
             sleep();
             findAndExecuteTask();
@@ -111,7 +114,7 @@ public class Worker {
         try {
             Thread.sleep(10000);
         } catch (InterruptedException e) {
-            heartBeat.shutdownNow();
+            log.error(e);
             throw new RuntimeException(e);
         }
     }
