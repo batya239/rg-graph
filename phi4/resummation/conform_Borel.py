@@ -79,6 +79,7 @@ if __name__ == "__main__":
 
     L2, L4 = 6, 5
     N = 1 # 1, 0 -1
+    B = 5
     Z2   = eval(open('Z2.txt').read())
     Z3   = eval(open('Z3.txt').read())
     beta = eval(open('beta_n%d.txt'%N).read())
@@ -86,17 +87,20 @@ if __name__ == "__main__":
 
     #beta = map(lambda x: x.n, beta.gSeries.values())
     #eta_g= map(lambda x: x.n,eta_g.gSeries.values())
-    beta_half = [0, -1.0, 1.0, -0.71617362, + 0.930764, -1.582398, 3.260219] ## NB: in fact it's beta/2
-    eta_g = [0., 0., 0.033966148, -0.00202253, 0.01139321, -0.0137366, 0.028233]
+    beta_half = [0, -1.0, 1.0, -0.71617362, + 0.9307664, -1.582388, 3.26018] ## NB: in fact it's beta/2
+    eta_g = [0., 0., 0.033966147, -0.002022555, 0.0113931, -0.0137359, 0.02838]
     #Z2 = [1, 0, -0.0084915370, -0.005323936, -0.002340342, -0.00135597, -0.0003502]
     #Z3 = [1, 1.0, 0.624930113, 0.4470878, 0.1735522, 0.283165]
 
     #beta_half = [b/2 for b in beta[:L4+2]]
     #eta_g = eta_g[:L2 + 1]
-    gStar = findZero(beta_half, b = 4.5)
+    gStar = findZero(beta_half, b = B)
     print "g* =", gStar
 
     #print "η(g*):\n", sum(conformBorel(eta_g, 1.88))
-    print "η(g*):\n", sum(conformBorel(eta_g, gStar))
+    resummed = conformBorel(eta_g, gStar, b = 2)
+    print "Resummed:", resummed,[sum(resummed[:j+1]) for j in range(len(resummed))]
+    print "η(g*):\n", sum(resummed)
+
     # print len(beta_half), "β(g)/2 =", beta_half
 

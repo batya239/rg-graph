@@ -11,6 +11,7 @@ public enum TaskStatus {
     RUN,
     DONE,
     FAILED,
+    KILLED,
     NEW;
 
     public static TaskStatus getOrNull(final File task) {

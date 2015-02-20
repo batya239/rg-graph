@@ -36,16 +36,16 @@ font = {'family' : 'serif',
 #x = numpy.arange(2,7,0.1) ## <-- for pic_eta_d2_with_raw.pdf
 x = numpy.arange(2,20,0.1) ## <-- for pic_eta_b_2.pdf
 A = numpy.array([-0.0, 0.0,0.104021325279375,-0.0108396290953125, 0.10685478584648438,-0.22544785060546876,0.8152851661376953])
-#S = [sum(A[2:i]) for i in range(2,7)] ## <-- for pic_eta_d2_with_raw.pdf
+S = [sum(A[2:i]) for i in range(2,7)] ## <-- for pic_eta_d2_with_raw.pdf
 plt.figure()
-#plt.plot(xn,S, 'ro--', label = "$-$ non-resumed points") ## <-- for pic_eta_d2_with_raw.pdf
+plt.plot(xn,S, 'rs', label = "$-$ non-resumed points") ## <-- for pic_eta_d2_with_raw.pdf
 plt.plot(xn, yn, 'ko', label="$\\eta = \\eta(n)$ $-$ resumed points")
 a,b,c,x_0 = popt
 plt.plot(x, fit_function(x, *popt), '-', label="$\\eta(x) = %.3f\,e^{%.3f\,(x\,%.3f)} + %.2f$"%(a,b,x_0,0.20))
 plt.legend(loc = 'lower right')
 #plt.legend(loc = 'upper left')
 plt.grid(True)
-plt.xticks()
+plt.xticks(range(1,7)+range(10,21,5))
 plt.xlabel('Number of loops')
 plt.title("$\\eta = \\eta(n)$, $D = 2$, $N = 1$", fontdict = font)
 plt.plot(1,0)
