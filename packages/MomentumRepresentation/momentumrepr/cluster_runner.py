@@ -15,7 +15,6 @@ import configure_mr
 import atexit
 import traceback
 import sys
-import cuba_integration
 
 OPERATION_NAMES = dict()
 OPERATION_NAMES[""] = kr1.kr1_log_divergence
@@ -80,19 +79,16 @@ def calculate_diagram(graph_state_str, operation_name, task_server_dir, aggregat
         f.write(JOB_EXECUTABLE.format(**args))
 
     for integrand in OPERATION_NAMES[operation_name](graph_state_str):
-        integrator_dirs = cuba_integration.cuba_generate(*integrand)
+        integrator_dir = cuba_integration.cuba_generate(*integrand)
+        task_name = os.path.basename(integrator_dir)
+        task_names.append(task_name)
+        task_files = [os.path.abspath("./job_executable")]
+        task_executable_name = "job_executable"
 
-        for integrator_dir in integrator_dirs:
-
-            task_name = os.path.basename(integrator_dir)
-            task_names.append(task_name)
-            task_files = [os.path.abspath("./job_executable")]
-            task_executable_name = "job_executable"
-
-            for f in os.listdir(integrator_dir):
-                task_files.append(os.path.join(integrator_dir, f))
-            submit_job(task_server_dir, task_name, task_files, task_executable_name, OUTPUT_FILE_NAME)
-            print "job '%s' submitted" % task_name
+        for f in os.listdir(integrator_dir):
+            task_files.append(os.path.join(integrator_dir, f))
+        submit_job(task_server_dir, task_name, task_files, task_executable_name, OUTPUT_FILE_NAME)
+        print "job '%s' submitted" % task_name
 
     aggregation_file_name = graph_state_str.replace("|", "-").replace(":", "#") + operation_name + ".py"
     aggregation_file_name = os.path.join(aggregator_dir, aggregation_file_name)
@@ -109,40 +105,19 @@ def aggregation(scheduler_path, task_names):
     scheduler_path = os.path.expanduser(scheduler_path)
     scheduler_path = os.path.abspath(scheduler_path)
     answer = zeroDict()
-    done_tasks = 0
     for task_name in task_names:
         status = check_job_status(scheduler_path, task_name)
         if status == STATUS_FAILED:
             print "job '%s' failed" % task_name
             return
         elif status == STATUS_RUN or status == STATUS_NEW:
-            current_result = zeroDict()
-            task_dir = os.path.join(scheduler_path, task_name)
-
-            for f in os.listdir(task_dir):
-                if f.endswith(".run"):
-                    eps = cuba_integration.get_eps_from_filename(f)
-                    log_file = os.path.join(task_dir, os.path.splitext(os.path.basename(f))[0] + ".log")
-                    if os.path.exists(log_file):
-                        with open(log_file, 'r') as f:
-                            content = f.read()
-                            lines = content.splitlines().reverse()
-                            for l in lines:
-                                if "[1]" in l and "chisq" in l and "\t" in l:
-                                    a, b = eval(l[3: l.index("\t")].replace("+-", ","))
-                                    value = ufloat(a, b)
-                                    current_result[eps] += value
-                                    answer[eps] += value
-                                    break
-
-            print "job '%s' in progress (%s), current result is = %s" % (task_name, status, current_result)
+            print "job '%s' in progress (%s)" % (task_name, status)
         elif status == STATUS_DONE:
             try:
                 with open(os.path.join(scheduler_path, task_name, OUTPUT_FILE_NAME), "r") as f:
                     content = f.read()
                     try:
                         d = eval(content.split("\n")[-2])
-                        done_tasks += 1
                         for k, v in d.iteritems():
                             answer[k] += ufloat(v[0], v[1])
                     except Exception as e:
@@ -154,5 +129,4 @@ def aggregation(scheduler_path, task_names):
                 print e
                 print "something wrong with job '%s'" % task_name
                 return
-    print "%s/%s done" % (done_tasks,len(task_names))
-    print "result =", answer
+    print answer

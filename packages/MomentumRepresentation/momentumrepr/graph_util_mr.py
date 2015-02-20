@@ -21,7 +21,6 @@ MAIN_GRAPH_CONFIG = graph_state.PropertiesConfig.create(graph_state.PropertyKey(
 
 
 new_edge = MAIN_GRAPH_CONFIG.new_edge
-new_graph_state = MAIN_GRAPH_CONFIG.new_graph_state
 
 
 def from_str(graph_state_str):

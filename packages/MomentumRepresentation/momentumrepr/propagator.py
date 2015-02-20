@@ -7,22 +7,8 @@ import itertools
 import graphine
 import collections
 import swiginac
-import graph_util_mr
 import scalar_product
 from rggraphenv import symbolic_functions
-
-
-def replace_psi_psi(graph):
-    new_edges = list()
-    for e in graph:
-        if e.fields != graph_util_mr.aa:
-            assert graph.fields in (graph_util_mr.Aa, graph_util_mr.aA)
-            new_edges.append(e)
-        else:
-            new_node = graph.create_vertex_index()
-            n1, n2 = e.nodes
-            new_edges.append(graph_util_mr.new_edge((n1, new_node), fields=graph_util_mr.aA))
-            new_edges.append(graph_util_mr.new_edge((new_node, n2), fields=graph_util_mr.Aa))
 
 
 def subs_external_propagators_is_zero(graph):
