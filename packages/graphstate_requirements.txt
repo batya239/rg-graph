@@ -1,2 +1,2 @@
 GraphState>=1.0.2
-Graphine>1.0.2
+Graphine>=1.0.2
