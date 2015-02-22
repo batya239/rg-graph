@@ -4,7 +4,7 @@ from distutils.core import setup
 
 setup(
     name='GraphState',
-    version='1.0.1',
+    version='1.0.2',
     author='D. Batkovich, S. Novikov',
     author_email='batya239@gmail.com, dr.snov@gmail.com',
     packages=['graph_state', 'nickel'],
