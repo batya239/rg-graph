@@ -8,10 +8,9 @@ from scipy.optimize import curve_fit
 
 from matplotlib import pyplot as plt
 
-def fit_function(x, a, b, c, x_0):
-    c = 0.2
-    print "a = %f, b = %f, c = %f, x_0 = %f" %(a,b,c, x_0)
-    return -a * np.exp( b * (x + x_0)) + c
+def fit_function(x, a, b, c):
+    print "a = %f, b = %f, c = %f" %(a,b,c)
+    return -a * np.exp(b * x) + c
 
 
 xn = numpy.array([2., 3., 4., 5., 6.])
@@ -24,9 +23,9 @@ yn = numpy.array([0.0352112221332348, 0.0683704891587855, 0.0961859612147154, 0.
 
 #print xn, yn
 
-popt, pcov = curve_fit(fit_function, xn, yn)
+popt, pcov = curve_fit(fit_function, xn, yn, p0=(0.25,-0.25,0.25))
 
-print fit_function(xn[0], *popt)
+#print fit_function(xn[0], *popt)
 
 font = {'family' : 'serif',
             #'color'  : 'darkred',
@@ -40,8 +39,9 @@ S = [sum(A[2:i]) for i in range(2,7)] ## <-- for pic_eta_d2_with_raw.pdf
 plt.figure()
 plt.plot(xn,S, 'rs', label = "$-$ non-resumed points") ## <-- for pic_eta_d2_with_raw.pdf
 plt.plot(xn, yn, 'ko', label="$\\eta = \\eta(n)$ $-$ resumed points")
-a,b,c,x_0 = popt
-plt.plot(x, fit_function(x, *popt), '-', label="$\\eta(x) = %.3f\,e^{%.3f\,(x\,%.3f)} + %.2f$"%(a,b,x_0,0.20))
+#a,b,c,x_0 = popt
+a,b,c = popt
+plt.plot(x, fit_function(x, *popt), '-', label="$\\eta(x) = %.3f\,e^{%.3f\,(x)} + %.2f$"%(a,b,c))
 plt.legend(loc = 'lower right')
 #plt.legend(loc = 'upper left')
 plt.grid(True)
