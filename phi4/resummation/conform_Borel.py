@@ -29,7 +29,7 @@ def func(t,a,b,k, eps):
     return res
 
 
-def conformBorel(coeffs, eps, b = 2, loops = 6, n = 1, dim = 2):
+def conformBorel(coeffs, eps, b = 2, loops = 6, n = 1, dim = 3):
     A = coeffs
     # print "Initial coeffs:", A
     if dim is 2:
