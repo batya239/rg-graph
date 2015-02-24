@@ -49,6 +49,7 @@ public class Worker {
             jdbcTemplate.update("UPDATE workers SET ping_time = datetime('now') WHERE worker_name = ?", hostName);
         }, 0, 10, TimeUnit.SECONDS);
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            log.info("Heartbeat thread is shutdown now on " + hostName);
             stop = true;
             heartBeat.shutdownNow();
         }));
