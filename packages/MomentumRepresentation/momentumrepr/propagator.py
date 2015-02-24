@@ -192,6 +192,8 @@ class MomentumFlow(object):
                31 ** 2 * hash(self.stretchers)
 
     def __eq__(self, other):
+        if other == 0:
+            return self._is_zero()
         if other is None:
             return False
         return self.external_momentas == other.external_momentas and self.loop_momentas == other.loop_momentas and set(self.stretchers) == set(other.stretchers)
@@ -229,6 +231,16 @@ class MomentumFlow(object):
         if c != 0:
             return c
         return cmp(self.external_momentas, other.external_momentas)
+
+    def _is_zero(self):
+        assert not len(self._stretchers)
+        for c in self._external_momentas:
+            if c != 0:
+                return False
+        for c in self._loop_momentas:
+            if c != 0:
+                return False
+        return True
 
     def _generate_expression_for_str(self, stretch_indices=None):
         if self._expr is None:
