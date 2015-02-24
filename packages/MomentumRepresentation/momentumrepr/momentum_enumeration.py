@@ -4,11 +4,9 @@ __author__ = 'dima'
 
 
 import propagator
-import graph_state
 import copy
 import graphine
 import itertools
-import graph_util_mr
 import uv
 from rggraphutil import Ref
 
@@ -16,7 +14,6 @@ from rggraphutil import Ref
 def find_momentum_enumeration_graph(graph, callback):
     loops_count = graph.loops_count
     tails_count = graph.external_edges_count
-    external_vertex = graph.external_vertex
     assert tails_count > 1
     empty_propagator = propagator.MomentumFlow.empty(tails_count, loops_count)
     graph_vertices = graph.vertices
