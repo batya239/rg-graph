@@ -21,7 +21,7 @@ class resummed(Series):
         self.gStar = gStar or self.find_gStar()
 
 
-    def plot_gStar(self):
+    def plot_eta(self):
         """
         Plotting series as a function of number of loops
         @return:
@@ -60,12 +60,51 @@ class resummed(Series):
         #plt.show()
         return plt
 
-    def plot_eta(self):
+    def plot_gStar(self):
         """
         Plotting series as a function of number of loops
         @return:
         """
-        pass
+        font = {'family' : 'serif',
+            'color'  : 'black',
+            'weight' : 'normal',
+            'size'   : 16,
+            }
+        n = len(self.coeffs)
+
+        L = range(2,n-1)
+        plots = []
+        if self.dim == 3:
+            ### TODO: refactor this
+            gStar_by_loops = [self.find_gStar(gStar=1.43) for beta!!! in [self.coeffs[:i] for i in range(4,9)]]
+        elif self.dim == 2:
+            gStar_by_loops = [findZero(beta, b = b_0) for beta in [beta_half[:i] for i in range(4,8)]]
+        points = gStar_by_loops
+        for i,p in enumerate(points):
+            if abs(p)< 1e-13:
+                points[i] = 0
+        print "n = ",L ,",  init   =",beta_half
+        print "n = ",L ,",  points =",points
+        xn, yn = np.array(L),np.array(points, dtype = 'float32')
+        x = np.arange(2,10,0.1)
+        try:
+            popt_exp, pcov = curve_fit(fit_exp, xn, yn, p0=(0.25,-0.25,1.5))
+            a,b,c = popt_exp
+            plt.plot(x, fit_exp(x, *popt_exp), '-', label="$g(x) = %.1f\,e^{%.2f\,x} + %.3f$"%(a,b,c))
+            lineType = 'o'
+        except RuntimeError:
+            print "Warning: cannot fit beta-function"
+            lineType = 'o-'
+        plots.append(plt.plot(L, points, lineType, label = '$g_* = g_*(n),\quad b=%.1f$'%b_0))
+        #plots.append(plt.plot(L, points, 'o-', label = '$g^* = g^*(n),\ b = %.1f$'%b_0))
+        title = name# + ',   $b = %s$'%b_0
+        plt.title(title, fontdict = font)
+        plt.legend(loc = "upper right")
+        plt.grid(True)
+        plt.xticks(L)
+        plt.xlabel('Number of loops')
+        return plt
+
 
     @staticmethod
     def func(t,a,b,k, g):
@@ -143,12 +182,19 @@ class resummed(Series):
 
 if __name__ == "__main__":
     N=1
-    d = 2
+    d = 3
     b_0 = 5.0
     L2, L4 = 6, 5
-    beta = eval(open('beta_n%d.txt'%N).read())
-    beta = map(lambda x: x.n, beta.gSeries.values())
-    beta_half =  [be/2 for be in beta[:L4+2]]
+    if d == 3:
+        ### For d=3, from Nickel, 1978  <-- for Fig.5 in the paper "6 loops"
+        beta_half = [0.,-1., 1., -0.4224965707, 0.3510695978, -0.3765268283, 0.49554795, -0.749689] ## d = 3
+        eta_g = [0.,0., 0.0109739369, 0.0009142223, 0.0017962229, -0.00065370, 0.00138781, -0.0016977] ## d = 3
+    elif d == 2:
+        beta = eval(open('beta_n%d.txt'%N).read())
+        beta = map(lambda x: x.n, beta.gSeries.values())
+        beta_half =  [be/2 for be in beta[:L4+2]]
+    else:
+        print "d must be either 2 or 3"
     b = resummed(beta_half, b = b_0)
-    plt = b.plot_gStar()
+    plt = b.plot_eta()
     plt.show()
