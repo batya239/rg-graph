@@ -3,16 +3,19 @@
 
 __author__ = "kirienko"
 
+import scipy.integrate as integrate
+import matplotlib.pyplot as plt
+import matplotlib.colors as colors
+import matplotlib.cm as cmx
+import numpy as np
 from uncertSeries import Series
 from sympy import gamma, binomial
-import scipy.integrate as integrate
 from math import sqrt
-import numpy as np
 from scipy.optimize import curve_fit
-import matplotlib.pyplot as plt
-
+from itertools import cycle
 
 class resummed(Series):
+    n_curves = 4 ## <-- number of curves to plot
     def __init__(self, coeffs, dim = 2, b =5, gStar = None):
         self.coeffs = coeffs
         self.dim = dim
@@ -20,6 +23,12 @@ class resummed(Series):
         self.loops = len(self.coeffs)-1
         self.gStar = gStar or self.find_gStar()
 
+    values = range(n_curves)
+    ## Possible colormaps: http://matplotlib.org/users/colormaps.html
+    jet = plt.get_cmap('cool') # good choice: 'cool', 'jet', 'brg'
+    cNorm  = colors.Normalize(vmin=0, vmax=values[-1])
+    scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=jet)
+    colors = cycle([scalarMap.to_rgba(i) for i in range(n_curves)])
 
     def plot_eta(self):
         """
@@ -32,31 +41,29 @@ class resummed(Series):
                 'size'   : 16,
                 }
         L = range(2,len(self.coeffs))
-        print "L =",L
+        # print "L =",L
         coeffs_by_loops = [resummed(self.coeffs[:k+1],gStar=self.gStar, dim = self.dim, b = self.B-3) for k in L]
-        plots = []
 
         points = [sum(c.conform_Borel(c.gStar,n=1)) for c in coeffs_by_loops]
         print "b = %d, g* = %f, \t"%(self.B-3,self.gStar),points
-        plots.append(plt.plot(L, points, 'o'))#, label = 'b = %d'%(b_0+i)))
+        color = self.colors.next()
+        plt.plot(L, points, 'o',c = color)#, label = 'b = %d'%(b_0+i)))
         xn, yn = np.array(L),np.array(points, dtype = 'float32')
         x = np.arange(2,20,0.1)
         try:
             popt, pcov = curve_fit(self.fit_exp, xn, yn, p0=(0.25,-0.25,0.20))
             a,b,c = popt
-            print "approximation: %f*exp(-%f*x) + %f"%(a,b,c)
-            plt.plot(x, self.fit_exp(x, *popt), '-', label="$\\eta(x) = %.3f\,e^{%.3f\,x} + %.4f,\ b = %.1f$"%(a,b,c,self.B-3))
+            print "approximation: %f*exp(%f*x) + %f"%(a,b,c)
+            plt.plot(x, self.fit_exp(x, *popt), '-', label="$\\eta(x) = %.3f\,e^{%.3f\,x} + %.4f,\ b = %.1f$"%(a,b,c,self.B-3),c = color)
         except RuntimeError:
             print "Error: approximation not found!"
             exit()
-        title = '$g_* = g_*(n),\ d = %d,\ N = %d$'%(self.dim,N)
+        title = '$\eta = \eta(n),\ d = %d,\ N = %d$'%(self.dim,N)
         plt.title(title, fontdict = font)
         plt.legend(loc = "lower right")
-        # plt.text(L[-2], points[0],'g* =%.2f'%gStar, fontdict = font)
         plt.grid(True)
         plt.xticks(xrange(2,20,2))
         plt.xlabel('Number of loops')
-        #plt.show()
         return plt
 
     def plot_gStar(self):
@@ -72,7 +79,6 @@ class resummed(Series):
         n = len(self.coeffs)
 
         L = range(2,n-1)
-        plots = []
         ## We know different number of terms in different dimensions
         if self.dim == 3:
             gStar_by_loops = [resummed(beta,b=self.B).find_gStar(gStar=1.43) for beta in [self.coeffs[:i] for i in range(4,9)]]
@@ -85,17 +91,16 @@ class resummed(Series):
         print "dim =",self.dim, "n = ",L ,",  points =",gStar_by_loops
         xn, yn = np.array(L),np.array(gStar_by_loops, dtype = 'float32')
         x = np.arange(2,10,0.1)
+        color = self.colors.next()
         try:
             popt_exp, pcov = curve_fit(self.fit_exp, xn, yn, p0=(0.25,-0.25,1.5))
             a,b,c = popt_exp
-            plt.plot(x, self.fit_exp(x, *popt_exp), '-', label="$g(x) = %.1f\,e^{%.2f\,x} + %.3f$"%(a,b,c))
+            plt.plot(x, self.fit_exp(x, *popt_exp), '-', label="$g(x) = %.1f\,e^{%.2f\,x} + %.3f$"%(a,b,c),c=color)
             lineType = 'o'
         except RuntimeError:
             print "Warning: cannot fit beta-function"
             lineType = 'o-'
-        # color = line.getp(color)
-        plots.append(plt.plot(L, gStar_by_loops, lineType, label = '$g_* = g_*(n),\quad b=%.1f$'%self.B))
-        #plots.append(plt.plot(L, points, 'o-', label = '$g^* = g^*(n),\ b = %.1f$'%b_0))
+        plt.plot(L, gStar_by_loops, lineType, label = '$g_* = g_*(n),\quad b=%.1f$'%self.B,c=color)
         name = '$g_* = g_*(n),\ d = %d,\ N = %d$'%(self.dim,N)
         title = name# + ',   $b = %s$'%b_0
         plt.title(title, fontdict = font)
@@ -183,6 +188,7 @@ class resummed(Series):
 if __name__ == "__main__":
     N=1
     d = 2
+    n_curves = resummed.n_curves # <-- number of curves to plot
     b_0 = 5.0
     L2, L4 = 6, 5
     if d == 3:
@@ -199,9 +205,9 @@ if __name__ == "__main__":
     else:
         print "d must be either 2 or 3"
 
-    for i in range(8):
+    for i in range(n_curves):
         b = resummed(beta_half, b = b_0+0.5*i, dim = d)
-        # plt = b.plot_gStar()
-        e = resummed(eta_g,gStar=b.gStar, b = b_0+0.5*i, dim = d)
-        plt = e.plot_eta()
+        plt = b.plot_gStar()
+        # e = resummed(eta_g,gStar=b.gStar, b = b_0+i, dim = d)
+        # plt = e.plot_eta()
     plt.show()
