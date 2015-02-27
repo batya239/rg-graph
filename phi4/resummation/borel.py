@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 
 
 class resummed(Series):
-    def __init__(self,coeffs,dim = 2, b =5, gStar = None):
+    def __init__(self, coeffs, dim = 2, b =5, gStar = None):
         self.coeffs = coeffs
         self.dim = dim
         self.B = b
@@ -32,13 +32,12 @@ class resummed(Series):
                 'size'   : 16,
                 }
         L = range(2,len(self.coeffs))
-        # coeffs_by_loops = [self.coeffs[:k+1] for k in L]
-        coeffs_by_loops = [resummed(self.coeffs[:k+1],self.dim,self.B) for k in L]
+        print "L =",L
+        coeffs_by_loops = [resummed(self.coeffs[:k+1],gStar=self.gStar, dim = self.dim, b = self.B-3) for k in L]
         plots = []
 
-        #gStar = 1.88
-        points = [sum(c.conform_Borel(self.gStar)) for j,c in enumerate(coeffs_by_loops)]
-        print "b = %d, g* = %f, \t"%(self.B,self.gStar),points
+        points = [sum(c.conform_Borel(c.gStar,n=1)) for c in coeffs_by_loops]
+        print "b = %d, g* = %f, \t"%(self.B-3,self.gStar),points
         plots.append(plt.plot(L, points, 'o'))#, label = 'b = %d'%(b_0+i)))
         xn, yn = np.array(L),np.array(points, dtype = 'float32')
         x = np.arange(2,20,0.1)
@@ -46,7 +45,7 @@ class resummed(Series):
             popt, pcov = curve_fit(self.fit_exp, xn, yn, p0=(0.25,-0.25,0.20))
             a,b,c = popt
             print "approximation: %f*exp(-%f*x) + %f"%(a,b,c)
-            plt.plot(x, self.fit_exp(x, *popt), '-', label="$\\eta(x) = %.3f\,e^{%.3f\,x} + %.4f,\ b = %.1f$"%(a,b,c,self.B))
+            plt.plot(x, self.fit_exp(x, *popt), '-', label="$\\eta(x) = %.3f\,e^{%.3f\,x} + %.4f,\ b = %.1f$"%(a,b,c,self.B-3))
         except RuntimeError:
             print "Error: approximation not found!"
             exit()
@@ -74,29 +73,30 @@ class resummed(Series):
 
         L = range(2,n-1)
         plots = []
+        ## We know different number of terms in different dimensions
         if self.dim == 3:
-            ### TODO: refactor this
-            gStar_by_loops = [self.find_gStar(gStar=1.43) for beta!!! in [self.coeffs[:i] for i in range(4,9)]]
+            gStar_by_loops = [resummed(beta,b=self.B).find_gStar(gStar=1.43) for beta in [self.coeffs[:i] for i in range(4,9)]]
         elif self.dim == 2:
-            gStar_by_loops = [findZero(beta, b = b_0) for beta in [beta_half[:i] for i in range(4,8)]]
-        points = gStar_by_loops
-        for i,p in enumerate(points):
+            gStar_by_loops = [resummed(beta,b=self.B).find_gStar(gStar=1.75) for beta in [self.coeffs[:i] for i in range(4,8)]]
+        for i,p in enumerate(gStar_by_loops):
             if abs(p)< 1e-13:
-                points[i] = 0
-        print "n = ",L ,",  init   =",beta_half
-        print "n = ",L ,",  points =",points
-        xn, yn = np.array(L),np.array(points, dtype = 'float32')
+                gStar_by_loops[i] = 0
+        print "dim =",self.dim, "n = ",L ,",  init   =",beta_half
+        print "dim =",self.dim, "n = ",L ,",  points =",gStar_by_loops
+        xn, yn = np.array(L),np.array(gStar_by_loops, dtype = 'float32')
         x = np.arange(2,10,0.1)
         try:
-            popt_exp, pcov = curve_fit(fit_exp, xn, yn, p0=(0.25,-0.25,1.5))
+            popt_exp, pcov = curve_fit(self.fit_exp, xn, yn, p0=(0.25,-0.25,1.5))
             a,b,c = popt_exp
-            plt.plot(x, fit_exp(x, *popt_exp), '-', label="$g(x) = %.1f\,e^{%.2f\,x} + %.3f$"%(a,b,c))
+            plt.plot(x, self.fit_exp(x, *popt_exp), '-', label="$g(x) = %.1f\,e^{%.2f\,x} + %.3f$"%(a,b,c))
             lineType = 'o'
         except RuntimeError:
             print "Warning: cannot fit beta-function"
             lineType = 'o-'
-        plots.append(plt.plot(L, points, lineType, label = '$g_* = g_*(n),\quad b=%.1f$'%b_0))
+        # color = line.getp(color)
+        plots.append(plt.plot(L, gStar_by_loops, lineType, label = '$g_* = g_*(n),\quad b=%.1f$'%self.B))
         #plots.append(plt.plot(L, points, 'o-', label = '$g^* = g^*(n),\ b = %.1f$'%b_0))
+        name = '$g_* = g_*(n),\ d = %d,\ N = %d$'%(self.dim,N)
         title = name# + ',   $b = %s$'%b_0
         plt.title(title, fontdict = font)
         plt.legend(loc = "upper right")
@@ -182,7 +182,7 @@ class resummed(Series):
 
 if __name__ == "__main__":
     N=1
-    d = 3
+    d = 2
     b_0 = 5.0
     L2, L4 = 6, 5
     if d == 3:
@@ -193,8 +193,15 @@ if __name__ == "__main__":
         beta = eval(open('beta_n%d.txt'%N).read())
         beta = map(lambda x: x.n, beta.gSeries.values())
         beta_half =  [be/2 for be in beta[:L4+2]]
+        eta_g= eval(open('eta_n%d.txt'%N).read())
+        eta_g= map(lambda x: x.n,eta_g.gSeries.values())
+        print "eta_g =",eta_g
     else:
         print "d must be either 2 or 3"
-    b = resummed(beta_half, b = b_0)
-    plt = b.plot_eta()
+
+    for i in range(8):
+        b = resummed(beta_half, b = b_0+0.5*i, dim = d)
+        # plt = b.plot_gStar()
+        e = resummed(eta_g,gStar=b.gStar, b = b_0+0.5*i, dim = d)
+        plt = e.plot_eta()
     plt.show()
