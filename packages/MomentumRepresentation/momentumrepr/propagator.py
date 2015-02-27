@@ -233,7 +233,6 @@ class MomentumFlow(object):
         return cmp(self.external_momentas, other.external_momentas)
 
     def _is_zero(self):
-        assert not len(self._stretchers)
         for c in self._external_momentas:
             if c != 0:
                 return False

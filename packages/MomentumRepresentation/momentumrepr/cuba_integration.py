@@ -272,6 +272,7 @@ def cuba_generate(integrand_series, integrations, scalar_products_functions):
 
 
 def cuba_execute(directory):
+    ms = time.time()
     compile_cuba(directory, chdir=True)
     exec_res = execute_cuba(directory, chdir=True)
     if configure_mr.Configure.debug():
