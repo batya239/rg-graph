@@ -191,12 +191,15 @@ def execute_cuba(directory, chdir=True):
             rel_err = str(configure_mr.Configure.relative_error())
             abs_err = str(configure_mr.Configure.absolute_error())
             os.chmod(filename, os.stat(filename).st_mode | stat.S_IEXEC | stat.S_IREAD | stat.S_IWRITE)
-            process = subprocess.Popen(["./%s" % filename, code, points, rel_err, abs_err], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            proc_comm = process.communicate()
-            # print proc_comm
-            output = proc_comm[0]
-            # print output
-            term = parse_cuba_output(output)
+            out_file = open(os.path.basename(filename) + ".log", 'a')
+            process = subprocess.Popen(["./%s" % filename, code, points, rel_err, abs_err], stdout=out_file, stderr=subprocess.STDOUT)
+            ret_code = process.wait()
+            if ret_code != 0:
+                raise ValueError("return code must be 0")
+            out_file.close()
+            with open(os.path.basename(filename) + ".log", 'r') as out_file:
+                term = parse_cuba_output(out_file.read())
+            out_file.close()
             res[get_eps_from_filename(filename)] += ufloat(*term)
     if chdir:
         os.chdir(DEFAULT_PWD)
