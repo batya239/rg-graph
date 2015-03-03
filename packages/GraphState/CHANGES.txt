@@ -23,3 +23,5 @@ v 1.0.1  14/09/2014 - no additional dependencies
 v 1.0.2  22/02/2015 - added doc strings
 
 v 1.0.3  03/03/2015 - README.txt
+
+v 1.0.4  03/03/2015 - README.txt

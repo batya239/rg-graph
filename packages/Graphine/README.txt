@@ -23,3 +23,5 @@ e11|e|
 (((0, 1), ), ((0, 1), ))
 >>> print g.external_edges
 (((0,), ), ((1,), ))
+
+4. you can see manual at https://readthedocs.org/projects/graphstate-and-graphine/
