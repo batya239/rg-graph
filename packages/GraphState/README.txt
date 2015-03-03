@@ -1,4 +1,4 @@
-1.To install in userspace run:
+1. To install in userspace run:
 
 $ python setup.py install --user
 

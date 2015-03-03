@@ -1,4 +1,4 @@
-1.to install in userspace run:
+1. To install in userspace run:
 
 $ python setup.py install --user
 
@@ -6,14 +6,14 @@ or to setup in global space
 
 $ sudo setup.py install
 
-2. run tests:
+2. Run tests:
 
 $ cd graphine/test/; python graph_operations_test.py; cd ../..
 $ cd graphine/test/; python graph_test.py; cd ../..
 
 You must see "OK" after test execution
 
-3. run simple example from python CLI interface:
+3. Run simple example from python CLI interface:
 
 >>> import graphine
 >>> g = graphine.Graph.from_str("e11|e|")
@@ -24,4 +24,5 @@ e11|e|
 >>> print g.external_edges
 (((0,), ), ((1,), ))
 
-4. you can see manual at https://readthedocs.org/projects/graphstate-and-graphine/
+4. Full documentation for this package is available here:
+http://graphstate-and-graphine.readthedocs.org/en/latest/
