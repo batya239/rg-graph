@@ -54,7 +54,7 @@ def conformBorel(coeffs, eps, b = 2, loops = 6, n = 1, dim = 3):
     # print "U =",U, " len(U)=%d, L=%d"%(len(U),L)
     return [eps**n*U[k]*integrate.quad(func, 0., np.inf, args=(a, b, k, eps), limit=100)[0] for k in range(L) ]
 
-def findZero(beta_half, gStar = 1.75, delta = 0.01, b = 2):
+def findZero(beta_half, gStar = 1.43, delta = 0.005, b = 2):
     _gStar, _b = gStar, b
     #print "β/2 =", beta_half
     for i in range(1000):

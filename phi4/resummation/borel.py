@@ -81,9 +81,9 @@ class resummed(Series):
         L = range(2,n-1)
         ## We know different number of terms in different dimensions
         if self.dim == 3:
-            gStar_by_loops = [resummed(beta,b=self.B).find_gStar(gStar=1.43) for beta in [self.coeffs[:i] for i in range(4,9)]]
+            gStar_by_loops = [resummed(beta,b=self.B,gStar=1.43,dim=3).find_gStar(gStar=1.43) for beta in [self.coeffs[:i] for i in range(4,9)]]
         elif self.dim == 2:
-            gStar_by_loops = [resummed(beta,b=self.B).find_gStar(gStar=1.75) for beta in [self.coeffs[:i] for i in range(4,8)]]
+            gStar_by_loops = [resummed(beta,b=self.B,gStar=1.43,dim=2).find_gStar(gStar=1.75) for beta in [self.coeffs[:i] for i in range(4,8)]]
         for i,p in enumerate(gStar_by_loops):
             if abs(p)< 1e-13:
                 gStar_by_loops[i] = 0
@@ -163,7 +163,7 @@ class resummed(Series):
         # print "U =",U, " len(U)=%d, L=%d"%(len(U),L)
         return [g**n*U[k]*integrate.quad(self.func, 0., np.inf, args=(a, self.B, k, g), limit=100)[0] for k in range(L) ]
 
-    def find_gStar(self, gStar = 1.75, delta = 0.01):
+    def find_gStar(self, gStar = 1.75, delta = 0.005):
         """
         @return: g* for given beta-function expansion over g
         i.e. a solution of Beta(g)=0
@@ -171,8 +171,8 @@ class resummed(Series):
         _gStar = gStar
         #print "β/2 =", beta_half
         for i in range(1000):
-            g2 = sum(self.conform_Borel(_gStar + delta, 1))
             g1 = sum(self.conform_Borel(_gStar - delta, 1))
+            g2 = sum(self.conform_Borel(_gStar + delta, 1))
             #print "β(%.2f) = %.4f, β(%.2f) = %.4f" % (_gStar - delta, g1, _gStar + delta, g2)
             if abs(g1) > abs(g2):
                 _gStar += delta
@@ -187,7 +187,7 @@ class resummed(Series):
 
 if __name__ == "__main__":
     N=1
-    d = 2
+    d = 3
     n_curves = resummed.n_curves # <-- number of curves to plot
     b_0 = 5.0
     L2, L4 = 6, 5
