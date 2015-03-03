@@ -7,7 +7,7 @@ __author__ = 'dima'
 
 import unittest
 import graph_state
-from graph import Graph, Representator
+from graphine import Graph, Representator
 
 
 class GraphTest(unittest.TestCase):

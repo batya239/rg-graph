@@ -8,8 +8,8 @@ $ sudo setup.py install
 
 2. run tests:
 
-$ cd nickel; python nickel_test.py; cd ..
-$ cd graph_state; python graph_state_test.py; cd ..
+$ cd graphine/test/; python graph_operations_test.py; cd ../..
+$ cd graphine/test/; python graph_test.py; cd ../..
 
 You must see "OK" after test execution
 

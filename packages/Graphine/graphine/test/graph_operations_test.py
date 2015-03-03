@@ -3,9 +3,9 @@
 import unittest
 
 from graph_state import graph_state as gs
-import graph as gr
-import graph_operations as go
-import filters
+from graphine import graph as gr
+from graphine import graph_operations as go
+from graphine import filters
 
 
 class GraphOperationsTestCase(unittest.TestCase):
