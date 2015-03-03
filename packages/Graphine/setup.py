@@ -4,7 +4,7 @@ from distutils.core import setup
 
 setup(
     name='PyGraphine',
-    version='1.0.3',
+    version='1.0.4',
     author='D. Batkovich',
     author_email='batya239@gmail.com',
     packages=['graphine', 'graphine.test'],
