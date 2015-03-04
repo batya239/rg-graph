@@ -15,7 +15,7 @@ from scipy.optimize import curve_fit
 from itertools import cycle
 
 class resummed(Series):
-    n_curves = 4 ## <-- number of curves to plot
+    n_curves = 9 ## <-- number of curves to plot
     def __init__(self, coeffs, dim = 2, b =5, gStar = None):
         self.coeffs = coeffs
         self.dim = dim
@@ -187,7 +187,7 @@ class resummed(Series):
 
 if __name__ == "__main__":
     N=1
-    d = 3
+    d = 2
     n_curves = resummed.n_curves # <-- number of curves to plot
     b_0 = 5.0
     L2, L4 = 6, 5
@@ -206,8 +206,9 @@ if __name__ == "__main__":
         print "d must be either 2 or 3"
 
     for i in range(n_curves):
-        b = resummed(beta_half, b = b_0+0.5*i, dim = d)
-        plt = b.plot_gStar()
-        # e = resummed(eta_g,gStar=b.gStar, b = b_0+i, dim = d)
-        # plt = e.plot_eta()
+        b_local = b_0+0.5*i
+        b = resummed(beta_half, b = b_local, dim = d)
+        # plt = b.plot_gStar()
+        e = resummed(eta_g,gStar=b.gStar, b = b_local, dim = d)
+        plt = e.plot_eta()
     plt.show()
