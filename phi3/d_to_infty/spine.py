@@ -9,6 +9,9 @@ import itertools as it
 import matplotlib.pyplot as plt
 import dynamic_diagram_generator
 
+## Convert GraphState.edge --> tuple
+edge_to_ints = lambda e: tuple(map(lambda n: n.index, e.nodes))
+
 def draw_nx_graph(G,spines,nom):
     """
     Buggy in case of MultiGraph()
@@ -118,11 +121,21 @@ def spine(G,source,sink):
         in networkx graph G
     """
     spine_pairs = []
+    # spine_pairs = set()
+    ## Find all possible path between 'source' and 'sink'
     all_paths = [p for p in nx.all_simple_paths(G,source,sink)]
+    ## for every pair of paths:
     for s in it.combinations(all_paths,2):
+        ## find all pairs that have no intersections except for edge nodes
         if set(s[0][1:-1]).intersection(set(s[1][1:-1])) == set():
             spine_pairs.append(s)
-    return spine_pairs
+            # print s,type(s)
+            # spine_pairs.update(s)
+    new_spine_pairs = []
+    for elem in spine_pairs:
+        if elem not in new_spine_pairs:
+            new_spine_pairs.append(elem)
+    return new_spine_pairs
 
 def direct(edge,graphine_edge):
         """
@@ -165,10 +178,13 @@ def filter_spines(G,spines):
             continue
         visited_vertices += [v]
         for e in [k for k in G.edges(v)]:
-            # print "try",e
+            print "try",e,
             next_node = e.co_node(v)
+            print "Next node:",next_node,
+            print direct(G.edges(edge_to_ints(e),next_node),e)
             # if str(e.fields) == 'aA' and next_node not in spi:
-            if direct(G.edges(tuple(map(lambda n: n.index, e.nodes)),next_node),e) == 'Aa' and next_node not in visited_vertices:
+            # if direct(G.edges(tuple(map(lambda n: n.index, e.nodes)),next_node),e) == 'Aa' and next_node not in visited_vertices:
+            if direct(G.edges(edge_to_ints(e),next_node),e) == 'Aa' and next_node not in visited_vertices:
                 # print "Next edge:",next_node
                 q = [next_node] + q
                 spi += [next_node]
@@ -227,12 +243,44 @@ def filter_spines(G,spines):
 
     return True
 
-
+def new_filter(G,spines):
+    for spine in spines:
+        for j,path in enumerate(spine):
+            ## walk through spine
+            chain = [(path[i],path[i+1]) for i in xrange(len(path)-1)]
+            path_fields = [ direct(e,G.edges(*e)[0]) for e in chain]
+            if path_fields.count('aA') == len(path)-1:
+            # for e in chain:
+                # if str(G.edges(*e)[0].fields) != 'aA':
+            #         break
+            #     print "\tedge:",e,G,direct(e,G.edges(*e)[0])==str(G.edges(*e)[0].fields)
+            #     print "\n",G
+            #     print "\tRail 1:",path,path_fields
+                another_path = spine[j-1]
+                chain = [(another_path[i],another_path[i+1]) for i in xrange(len(another_path)-1)]
+                path_fields = [ direct(e,G.edges(*e)[0]) for e in chain]
+                # print another_path,path_fields
+                if len(path_fields) == 1 and path_fields[0] == 'dd':
+                                # print "\t\tRail 2:",another_path, path_fields
+                                return True
+                elif len(path_fields) > 1 and path_fields[0] in ['dA','da']:
+                    if path_fields[-1] in ['Ad','ad']:
+                        if len(path_fields) == 2:
+                            return True
+                        elif len(path_fields) > 2:
+                            if path_fields.count('aA') + \
+                                    path_fields.count('Aa') + \
+                                    path_fields.count('aa') == len(path_fields)-2:
+                                # print "\t\tRail 2:",another_path, path_fields
+                                return True
+                        else:
+                            print "Something went wrong"
+                            raise
 if  __name__ == "__main__":
-    with open("../e2-2loop.txt.gs") as fd:
+    with open("../e2-3loop.txt.gs") as fd:
         diags = [d.strip() for d in fd.readlines()]
     count_all, count_good = 0,0
-    for d in diags[1:]:
+    for d in diags:
         print "\n",d
         G = nx_graph_from_str(d)
         source = 0
@@ -241,10 +289,11 @@ if  __name__ == "__main__":
         # draw_Agraph(G,spine_pairs,d.replace('|','-'))
         print "Spine pairs",spine_pairs
         for _g in dynamic_diagram_generator.generate(d, possible_fields=["aA", "aa", "ad", "dd", "dA"], possible_external_fields="Aa", possible_vertices=["adA"]):
-            print "_"*5
+            # print "_"*5
             count_all +=1
-            if filter_spines(_g,spine_pairs):
+            # if filter_spines(_g,spine_pairs):
+            if new_filter(_g,spine_pairs):
                 count_good +=1
                 print _g
-                # draw_Agraph_with_fields(_g)
+                draw_Agraph_with_fields(_g)
     print "All: %d, good: %d"%(count_all,count_good)
