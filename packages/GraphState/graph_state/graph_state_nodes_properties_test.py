@@ -1,5 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf8 -*-
+#
+# Test for GraphState objects which have nodes with some properties (see graph_state.PropertyKey).
+#
 
 __author__ = 'dima'
 

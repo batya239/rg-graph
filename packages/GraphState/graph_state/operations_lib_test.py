@@ -1,5 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf8 -*-
+#
+# Test for operations_lib.py. Provides test cases for usefule functions like determination of connected components,
+# irreducibility etc.
+#
 
 __author__ = 'dima'
 

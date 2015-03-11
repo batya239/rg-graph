@@ -1,6 +1,8 @@
 #!/usr/bin/python
+# 
+# Test for generation of Nickel index from edges
+#
 
-# NB nikel.py must be in the same directory.
 import nickel
 
 import unittest
