@@ -1,8 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf8
 #
-# Test subgraph filters from graphine.filters: testing of graph connectivity, irreducibility...,
-# and relevant subgraphs searching
+# Test of relevant subgraphs searching and subgraph filters from graphine.filters:
+# testing of graph connectivity, irreducibility...,
 #
 
 import unittest

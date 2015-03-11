@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf8 -*-
 #
-# Test for operations_lib.py. Provides test cases for usefule functions like determination of connected components,
+# Test for operations_lib.py. Provides test cases for useful util functions like determination of connected components,
 # irreducibility etc.
 #
 

@@ -1,7 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf8 -*-
 #
-# test creation (from string, by constructor) ond base methods (gettings structure information, sortings) of GraphState, Edge objects.
+# test creation of GraphState object (from string, by constructor)
+# and base methods (getting structure information, edge sortings) of GraphState and Edge objects.
 #
 
 import graph_state

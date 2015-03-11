@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf8
 #
-# Test graphine.Graph class for base operations like evaluation of internal or external vetices
+# Test graphine.Graph class for base operations like evaluation of internal or external vertices
 # calculation of loops count, shrinking to point etc.
 #
 
