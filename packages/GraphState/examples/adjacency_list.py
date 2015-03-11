@@ -1,4 +1,8 @@
 #!/usr/bin/python
+#
+# Example of getting adjacency list of graph from minimal Nickel index
+#
+#
 
 import sys
 import nickel
