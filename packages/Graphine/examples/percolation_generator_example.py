@@ -1,9 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf8
 #
-# Generation of Feynman diagrams for percolation theory in statistical physics in order of 3-loops based on "static" diagrams of \phi^3 theory
+# Generation of Feynman diagrams for percolation theory in statistical physics in order of 3-loops
+# based on "static" diagrams of \phi^3 theory.
 #
-#
+# run script:
+#   $ python percolation_generator_example.py
 # expected output of script is:
 # 1 e12|23|4|45|5|e|:0A_aA_aA|Aa_aA|aA|Aa_aA|aA|0a|
 # 2 e12|23|4|45|5|e|:0A_aA_aA|Aa_aA|aA|aA_aA|aA|0a|
@@ -22,7 +24,7 @@
 # 15 e12|34|34|5|5|e|:0A_aA_aA|Aa_aA|aA_aA|aA|aA|0a|
 # 16 e12|e3|34|5|55||:0A_aA_aA|0a_Aa|aA_aA|Aa|aA_aA||
 # 17 e12|33|44|5|5|e|:0A_aA_aA|aA_aA|aA_aA|aA|aA|0a|
-# generated in 1.16454291344 sec.
+# generated in XXX sec.
 
 __author__ = 'dima'
 

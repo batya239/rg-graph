@@ -1,4 +1,11 @@
 #!/usr/bin/python
+#
+# Script generates graph picture using pydot library (You NEED installed pydot)
+#
+# Sample input:
+#   $ python draw.py "e11|e|"
+# Output will be a file "e11|e|.png" placed in script folder
+#
 
 import nickel
 
@@ -38,7 +45,7 @@ def Cluster(nomenkl):
     fontsize = "12"
     width = "0.1"
     nodes, lines = prepare(nomenkl)
-    cluster = pydot.Cluster(nomenkl.replace('-', '_'), label=nomenkl)
+    cluster = pydot.Cluster(nomenkl.replace('|', '_'), label=nomenkl)
     for node in nodes:
         if nodes[node] == 'ext':
             cluster.add_node(pydot.Node(node, label='""', fontsize=fontsize, width=width, color='white'))
