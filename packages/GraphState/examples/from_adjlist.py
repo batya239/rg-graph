@@ -1,17 +1,17 @@
 #!/usr/bin/python
+#
+# Sciprt creates GraphState object from given adjacency list
+# For example: 
+#   $ python from_adjlist.py "[[-1, 0], [0, 1], [0, 2], [1, 2], [1, 3], [2, 3], [3, -1]]"
+# Expected output:
+#   e12|23|3|e|
 
-import nickel
-
-# [-1,x] denotes an external leg connected to vertex x
-
-adjlist = [[-1, 0], [0, 1], [0, 2], [1, 2], [1, 3], [2, 3], [3, -1]]
-
-print str(nickel.Canonicalize(adjlist))
+import graph_state
+import sys
 
 
-# no need for nodes to be ordered in some way
-# and no need for ordering lines
 
-adjlist = [[6, 4], [2, 4], [4, -1], [-1, 0], [0, 6], [0, 2], [6, 2]]
+adjlist = eval(sys.argv[1])
+adjlist = map(lambda e: graph_state.Edge(e), adjlist)
 
-print str(nickel.Canonicalize(adjlist))
+print graph_state.GraphState(adjlist)
