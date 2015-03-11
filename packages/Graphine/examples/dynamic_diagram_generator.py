@@ -1,14 +1,27 @@
 #!/usr/bin/python
 # -*- coding: utf8
+#
+# Generator of dynamical diagrams in statictical physics models. See example in "percolation_generator_example.py"
+# To use call generate() function where
+# graph_topology -- given topology in correspondent static model. 
+# possible_fields -- possible fields of model where. Each of fields must be denoted as single letter. If field has correspondent delayed field
+# then it should have different lettercases (lowercase or uppercase). 
+# possible_external_fields -- fields which are can holded by external legs
+# possible_vertices -- list of possible fields combinations in vertices.
+
 
 __author__ = 'dima'
 
 
-from rggraphutil import emptyListDict, zeroDict, emptySetDict
 import graph_state_config_with_fields
 import graph_state
 import itertools
 import graphine
+import collections
+
+emptyListDict = lambda: collections.defaultdict(list)
+zeroDict = lambda: collections.defaultdict(lambda: 0)
+emptySetDict = lambda: collections.defaultdict(set)
 
 
 def generate(graph_topology, possible_fields, possible_external_fields, possible_vertices):

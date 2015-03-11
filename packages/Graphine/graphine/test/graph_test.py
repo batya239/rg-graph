@@ -1,6 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf8
-
+#
+# Test graphine.Graph class for base operations like evaluation of internal or external vetices
+# calculation of loops count, shrinking to point etc.
+#
 
 __author__ = 'dima'
 

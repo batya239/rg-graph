@@ -1,5 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf8
+#
+# Test subgraph filters from graphine.filters: testing of graph connectivity, irreducibility
+# Test for searching of relevant subgraphs
+#
+
 import unittest
 
 from graph_state import graph_state as gs
