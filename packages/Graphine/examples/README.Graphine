@@ -1,0 +1,52 @@
+This directory contains the following examples
+that demonstrate basic usage of Graphine package:
+
+
+== dynamic_diagram_generator.py ==
+This file contains definitions and routines of generator 
+of dynamical diagrams in statistical physics models. 
+See example of usage of this routines in "percolation_generator_example.py"
+
+To use call generate() function where
+graph_topology -- given topology in correspondent static model. 
+possible_fields -- possible fields of model where. Each of fields must be denoted as single letter.
+If field has correspondent delayed field
+then it should have different lettercases (lowercase or uppercase). 
+possible_external_fields -- fields which are located on the external egdes
+possible_vertices -- list of possible fields combinations in vertices
+
+== graph_state_config_with_fields.py ==
+This is the configuration file for the following generator.
+It does not do anything by itself.
+
+== percolation_generator_example.py ==
+Generation of Feynman diagrams for percolation theory in statistical physics in order of 3-loops
+based on "static" diagrams of $\phi^3$ theory. The result of this script is the set of 
+all the diagrams of the third order of loop expansion (written in terms of extended Nickel notation).
+On percolation theory see http://iopscience.iop.org/0034-4885/43/7/001/pdf/0034-4885_43_7_001.pdf
+
+run script:
+  $ python percolation_generator_example.py
+expected output of script is:
+1 e12|23|4|45|5|e|:0A_aA_aA|Aa_aA|aA|Aa_aA|aA|0a|
+2 e12|23|4|45|5|e|:0A_aA_aA|Aa_aA|aA|aA_aA|aA|0a|
+3 e12|34|35|e|55||:0A_aA_aA|aA_Aa|aA_aA|0a|Aa_Aa||
+4 e12|e3|44|55|5||:0A_aA_aA|0a_Aa|aA_aA|Aa_Aa|aA||
+5 e12|23|4|e5|55||:0A_aA_aA|Aa_aA|aA|0a_Aa|aA_aA||
+6 e12|23|4|e5|55||:0A_aA_aA|aA_aA|aA|0a_Aa|aA_aA||
+7 e12|23|4|e5|55||:0a_Aa_Aa|Aa_Aa|Aa|0A_aA|Aa_Aa||
+8 e12|23|4|e5|55||:0a_Aa_Aa|aA_Aa|Aa|0A_aA|Aa_Aa||
+9 e12|e3|45|45|5||:0A_aA_aA|0a_Aa|aA_aA|Aa_Aa|Aa||
+10 e12|34|35|4|5|e|:0A_aA_aA|aA_aA|Aa_aA|Aa|aA|0a|
+11 e12|34|35|4|5|e|:0A_aA_aA|aA_aA|Aa_aA|aA|aA|0a|
+12 e12|34|35|4|5|e|:0A_aA_aA|Aa_aA|aA_aA|aA|aA|0a|
+13 e12|34|35|4|5|e|:0A_aA_aA|aA_aA|aA_aA|aA|aA|0a|
+14 e12|34|34|5|5|e|:0A_aA_aA|aA_aA|aA_aA|aA|aA|0a|
+15 e12|34|34|5|5|e|:0A_aA_aA|Aa_aA|aA_aA|aA|aA|0a|
+16 e12|e3|34|5|55||:0A_aA_aA|0a_Aa|aA_aA|Aa|aA_aA||
+17 e12|33|44|5|5|e|:0A_aA_aA|aA_aA|aA_aA|aA|aA|0a|
+generated in XXX sec.
+
+
+You can find additional information on this package in on-line documentation:
+http://graphstate-and-graphine.readthedocs.org/en/latest/

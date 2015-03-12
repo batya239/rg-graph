@@ -26,7 +26,7 @@
 # 17 e12|33|44|5|5|e|:0A_aA_aA|aA_aA|aA_aA|aA|aA|0a|
 # generated in XXX sec.
 
-__author__ = 'dima'
+__author__ = 'batya239@gmail.com'
 
 import dynamic_diagram_generator
 import time

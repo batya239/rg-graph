@@ -1,0 +1,27 @@
+This directory contains the following examples
+that demonstrate basic usage of GraphState package:
+
+
+== adjacency_list.py ==
+Script prints adjacency list of graph by given Nickel index. 
+Example:
+  $ python adjacency_list.py "e11|e|"
+Expected output:
+  (((0,), ), ((0, 1), ), ((0, 1), ), ((1,), ))
+
+== draw.py ==
+Script generates graph picture using pydot library (You NEED installed pydot)
+
+Sample input:
+  $ python draw.py "e11|e|"
+Output will be a file "e11|e|.png" placed in script folder
+
+== from_adjlist.py ==
+Script creates GraphState object from given adjacency list
+For example: 
+  $ python from_adjlist.py "[[-1, 0], [0, 1], [0, 2], [1, 2], [1, 3], [2, 3], [3, -1]]"
+Expected output:
+  e12|23|3|e|
+
+You can find additional information on this package in on-line documentation:
+http://graphstate-and-graphine.readthedocs.org/en/latest/

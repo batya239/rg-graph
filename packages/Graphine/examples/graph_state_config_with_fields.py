@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf8
-__author__ = 'dima'
+__author__ = 'batya239@gmail.com'
 
 import graph_state
 import graphine

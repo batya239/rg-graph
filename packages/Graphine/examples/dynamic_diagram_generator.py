@@ -7,11 +7,11 @@
 # possible_fields -- possible fields of model where. Each of fields must be denoted as single letter.
 # If field has correspondent delayed field
 # then it should have different lettercases (lowercase or uppercase). 
-# possible_external_fields -- fields which are can holded by external legs
-# possible_vertices -- list of possible fields combinations in vertices.
+# possible_external_fields -- fields which are located on the external egdes
+# possible_vertices -- list of possible fields combinations in vertices
 
 
-__author__ = 'dima'
+__author__ = 'batya239@gmail.com'
 
 
 import graph_state_config_with_fields

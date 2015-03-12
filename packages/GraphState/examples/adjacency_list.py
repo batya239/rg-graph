@@ -1,8 +1,8 @@
 #!/usr/bin/python
 #
-# Script print adjacency list of graph by given Nickel index. 
+# Script prints adjacency list of graph by given Nickel index. 
 # Example:
-#   $ python adjacency_list.py e11\|e\|
+#   $ python adjacency_list.py "e11|e|"
 # Expected output:
 #   (((0,), ), ((0, 1), ), ((0, 1), ), ((1,), ))
 
