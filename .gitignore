@@ -1,0 +1,15 @@
+# .hgignore - List of filenames hg should ignore
+
+# Filenames that should be ignored wherever they appear
+~$
+\.py(c|o)$
+\.png$
+\.swp$
+
+build/lib\.*
+
+# User files that may appear at the root
+^\.do_not_commit
+MANIFEST
+dist/*
+
