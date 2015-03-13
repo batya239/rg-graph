@@ -8,8 +8,7 @@ import itertools
 import uv
 from collections import namedtuple
 from rggraphenv import symbolic_functions
-from rggraphutil import emptyListDict
-
+from cache import cached_function
 
 AlphaRepresentationPolynomials = namedtuple("AlphaRepresentationPolynomials", ["c", "d"])
 SubGraphInfo = namedtuple("SubGraphInfo", ["idx", "alpha_params", "loops_count", "internal_momentum_idxs", "edges"])
@@ -25,9 +24,17 @@ class AlphaParameter(object):
         self._idx = idx
 
     @staticmethod
+    def reset():
+        AlphaParameter.CURRENT_FEYNMAN_PARAMETER_IDX = -1
+
+    @staticmethod
     def next():
         AlphaParameter.CURRENT_FEYNMAN_PARAMETER_IDX += 1
         return AlphaParameter(AlphaParameter.CURRENT_FEYNMAN_PARAMETER_IDX)
+
+    @staticmethod
+    def external():
+        return AlphaParameter(0)
 
     def as_var(self):
         return symbolic_functions.var(str(self))
@@ -62,24 +69,44 @@ class AlphaParameterIdentityWrapper(object):
 
 
 def introduce_feynman_parameters(graph):
-    assert graph.edges()[0].flow is not None
-    flow_to_edge = emptyListDict()
-    for e in graph:
-        flow_to_edge[AlphaParameterIdentityWrapper(e.flow)].append(e)
-
-    modified_edges = list()
-    for similar_edges in flow_to_edge.values():
-        alpha_param = AlphaParameter.next()
-        for e in similar_edges:
-            modified_edges.append(e.copy(alpha_param=alpha_param))
-
-    assert len(modified_edges) == len(graph)
-    return graphine.Graph(modified_edges)
+    AlphaParameter.reset()
+    new_edges = list()
+    external_alpha_param = AlphaParameter.next()
+    for e in graph.external_edges:
+        new_edges.append(e.copy(alpha_param=external_alpha_param))
+    new_edges += map(lambda e: e.copy(alpha_param=AlphaParameter.next()), graph.internal_edges)
+    return graphine.Graph(new_edges)
 
 
+@cached_function
+def build_determinants_tilde_static(graph):
+    assert graph.edges()[0].alpha_param is not None
+    laws = determine_conservation_laws(graph)
+    alpha_params = list(set(map(lambda e: e.alpha_param, graph)))
+
+    determinant = set()
+    for comb in itertools.combinations(alpha_params, graph.loops_count + 1):
+        comb = frozenset(comb)
+        do_continue = False
+        for l in laws:
+            if l.issubset(comb):
+                do_continue = True
+                break
+        if do_continue:
+            continue
+        determinant.add(comb)
+
+    u0 = AlphaParameter.external()
+    d = filter(lambda m: u0 in m, determinant)
+    d = map(lambda m: sorted(list(m - {u0})), d)
+
+    c = filter(lambda m: AlphaParameter.external() not in m, determinant)
+    return AlphaRepresentationPolynomials(c=c, d=d)
+
+
+@cached_function
 def determine_conservation_laws(graph):
     assert graph.edges()[0].alpha_param is not None
-    print graph
     base_conservations = set()
     for v in graph.vertices:
         if v != graph.external_vertex:
@@ -91,7 +118,9 @@ def determine_conservation_laws(graph):
             curr = set()
             for s in combination:
                 curr.symmetric_difference_update(s)
-            ret.add(frozenset(curr))
+            conversation = frozenset(curr)
+            if len(conversation) <= graph.loops_count + 1:
+                ret.add(conversation)
     ret.discard(frozenset([]))
     return ret
 
@@ -126,7 +155,7 @@ def find_sub_graphs_info(graph):
 
 class Monomial(object):
     def __init__(self, alpha_params, stretchers):
-        self.alpha_params = frozenset(alpha_params)
+        self.alpha_params = list(frozenset(alpha_params))
         self.stretchers = tuple(stretchers)
 
     def __eq__(self, other):
