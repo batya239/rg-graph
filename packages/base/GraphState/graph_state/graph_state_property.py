@@ -58,7 +58,7 @@ class Node(PropertyGetAttrTrait):
         if 'new_node' in kwargs:
             new_node = kwargs['new_node']
             return new_node if isinstance(new_node, Node) else Node(new_node, self._properties)
-        properties_is_none = self._properties.is_none(from_edge=True)
+        properties_is_none = self._properties.is_none()
         updated_properties = dict() if properties_is_none else self._properties.update(from_edge=False, **kwargs)
         return Node(self.index if new_node_index is None else new_node_index, updated_properties)
 
