@@ -228,9 +228,9 @@ def construct_feyn_repr_polynomials(graph, sub_graphs_info):
     def remove_u_external(m):
         return m - MultiIndex({u_external_var: 1})
 
-    determinant_c = filter(lambda m: m.getVarPower(u_external_var) is None, determinant)
+    determinant_c = filter(lambda m: m.getVarPower(u_external_var) == 0, determinant)
     determinant_d = map(lambda m: remove_u_external(m),
-                        filter(lambda m: m.getVarPower(u_external_var) is not None, determinant))
+                        filter(lambda m: m.getVarPower(u_external_var) != 0, determinant))
 
     raw_poly_c = dict()
     for m in determinant_c:
