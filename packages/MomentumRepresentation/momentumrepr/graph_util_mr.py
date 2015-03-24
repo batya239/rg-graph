@@ -21,20 +21,23 @@ MAIN_GRAPH_CONFIG = graph_state.PropertiesConfig.create(graph_state.PropertyKey(
 
 
 ALPHA_GRAPH_CONFIG = graph_state.PropertiesConfig.create(graph_state.PropertyKey(name="fields",
-                                                                                is_directed=True,
-                                                                                externalizer=graph_state.Fields.externalizer()),
-                                                        graph_state.PropertyKey(name="flow",
-                                                                                is_directed=True,
-                                                                                externalizer=graph_state.PropertyExternalizer()),
-                                                        graph_state.PropertyKey(name="alpha_param",
-                                                                                is_directed=False,
-                                                                                externalizer=graph_state.PropertyExternalizer()),
-                                                        graph_state.PropertyKey(name="arrow",
-                                                                                is_directed=True,
-                                                                                externalizer=graph_state.Arrow.Externalizer()),
-                                                        graph_state.PropertyKey(name="marker",
-                                                                                is_directed=False,
-                                                                                externalizer=graph_state.PropertyExternalizer()))
+                                                                                 is_directed=True,
+                                                                                 externalizer=graph_state.Fields.externalizer()),
+                                                         graph_state.PropertyKey(name="flow",
+                                                                                 is_directed=True,
+                                                                                 externalizer=graph_state.PropertyExternalizer()),
+                                                         graph_state.PropertyKey(name="alpha_param",
+                                                                                 is_directed=False,
+                                                                                 externalizer=graph_state.PropertyExternalizer()),
+                                                         graph_state.PropertyKey(name="arrow",
+                                                                                 is_directed=True,
+                                                                                 externalizer=graph_state.Arrow.Externalizer()),
+                                                         graph_state.PropertyKey(name="marker",
+                                                                                 is_directed=False,
+                                                                                 externalizer=graph_state.PropertyExternalizer()),
+                                                         graph_state.PropertyKey(name="tv_idx",
+                                                                                 is_edge_property=False,
+                                                                                 externalizer=graph_state.PropertyExternalizer()))
 
 
 new_edge = MAIN_GRAPH_CONFIG.new_edge

@@ -3,6 +3,7 @@ __author__ = 'dima'
 
 from rggraphenv import symbolic_functions
 import inject
+from polynomial.eps_number import epsNumber
 
 
 class Configure(object):
@@ -22,7 +23,7 @@ class Configure(object):
         self._maximum_points_number = 2000
         self._relative_error = 10e-4
         self._absolute_error = 10e-5
-        self._delete_integration_tmp_dir_on_shutdown = False
+        self._delete_integration_tmp_dir_on_shutdown = True
         self._do_d_tau = True
 
     def with_dimension(self, dimension):
@@ -96,6 +97,13 @@ class Configure(object):
     @classmethod
     def dimension(cls):
         return inject.instance("dimension")
+
+    @classmethod
+    def dimension_pair(cls):
+        dim = cls.dimension()
+        a = dim.subs(symbolic_functions.e == 0).to_double()
+        b = dim.coeff(symbolic_functions.e).to_double()
+        return epsNumber((a, b))
 
     @classmethod
     def space_dimension_int(cls):

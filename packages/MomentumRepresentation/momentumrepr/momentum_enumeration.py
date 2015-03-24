@@ -126,6 +126,19 @@ def size_key(graph):
     return _sum
 
 
+def choose_momentum_flow(graph):
+    result = Ref.create()
+
+    def chooser_graph_callback(g):
+        result.set(g)
+        return False
+
+    find_momentum_enumeration_graph(graph, chooser_graph_callback)
+
+    assert result.get() is not None
+    return result.get()
+
+
 def choose_minimal_momentum_flow(graph):
     minimal_suitable_graph = Ref.create()
     graphs = list()

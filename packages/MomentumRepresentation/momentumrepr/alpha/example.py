@@ -4,19 +4,20 @@
 __author__ = 'dima'
 
 
-import time_versions
 import graph_util_mr
-import alpha_representation
-import sector_decomposition
+import configure_mr
+import integration
+from rggraphenv import symbolic_functions
 
-g = graph_util_mr.from_str_alpha("e12|23|3|e|:0A_aA_aA|aA_aA|aA|0a|::::")
-g = alpha_representation.introduce_feynman_parameters(g)
-d = alpha_representation.build_determinants_tilde_static(g).d
-laws = alpha_representation.determine_conservation_laws(g)
+configure_mr.Configure().with_dimension(symbolic_functions.cln(4) - symbolic_functions.e).with_target_loops_count(3).\
+    with_maximum_points_number(5000000).\
+    with_absolute_error(10e-10).\
+    with_relative_error(10e-10).\
+    with_integration_algorithm("vegas").\
+    with_debug(True).configure()
 
-for x in sector_decomposition.apply_sector_decomposition(g, laws, d, to_expr=True):
-    print x
-# for tv in time_versions.find_time_versions(g):
-#     print "---"
-#     for cs in tv.edges_cross_sections:
-#         print cs
+g = graph_util_mr.from_str_alpha("e12|e3|33||:0A_aA_aA|0a_Aa|aA_aA||:::::")
+print integration.integrate(g, "iw")
+
+# g = graph_util_mr.from_str_alpha("e12|e2|e|:0A_aA_aA|0a_Aa|0a|:::::")
+# print integration.integrate(g, "log")

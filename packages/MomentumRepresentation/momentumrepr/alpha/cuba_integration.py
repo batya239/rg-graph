@@ -7,12 +7,12 @@ import shutil
 import subprocess
 import time
 from uncertainties import ufloat
-import configure_mr
-import atexit
-import stat
 from rggraphutil import zeroDict
+import configure_mr
+import stat
+import polynomial
 
-__author__ = 'mkompan'
+__author__ = 'dima'
 
 maxFunctionLength = 1000000
 
@@ -21,7 +21,6 @@ double func_t_{fileIdx}(double k[DIMENSION])
 {{
 double f=0;
 {resultingFunctions}
-//printf(\"w1->%.8f, k1->%.8f, k0->%.8f, a0->%.8f = %.8f\\n\", k[0], k[1], k[2], k[3], f);
 return f;
 }}
 """
@@ -29,8 +28,12 @@ return f;
 functionBodyTemplate = """
 {comments}
 {vars}
+//if({zero_condition}){{
+//    return 0;
+//}}
 {supplementary_definitions}
 double f=0;
+double aux;
 {expr}
 return f;
 """
@@ -104,37 +107,80 @@ class FunctionsFile(object):
 
 
 funcFileInfo = collections.namedtuple("funcFileInfo", ["eps_order", "dimension"])
-integrandInfo = collections.namedtuple("integrandInfo", ["integrand", "variables", "supp_defs", "comments"])
+integrandInfo = collections.namedtuple("integrandInfo", ["eps_order", "integrands", "variables", "supp_defs", "supp_conditions", "comments"])
 
 
-def generate_function_body(expr_string, variables_list, supplementary_definitions, comments=""):
+def transformate(expr):
+    polynomials = zeroDict()
+    for a, _ in expr:
+        for p in a.polynomials:
+            polynomials[p] += 1
+    polynomials = filter(lambda (p, c): len(p.monomials) > 1 and c > 1, polynomials.iteritems())
+
+    def next_aux(aux_index=[-1]):
+        aux_index[0] += 1
+        return polynomial.poly([(1, ("aux%s" % aux_index[0],))])
+    polynomials = dict(map(lambda p: (p[0], next_aux()), polynomials))
+
+    new_exprs = list()
+    for a, b in expr:
+        new_a = list()
+        for p in a.polynomials:
+            if p in polynomials:
+                new_a.append(polynomials[p])
+            else:
+                new_a.append(p)
+        new_exprs.append((polynomial.polynomial_product.PolynomialProduct(new_a), b))
+    return new_exprs, polynomials
+
+
+
+def generate_function_body(expr, variables_list, supplementary_definitions, zero_conditions, comments=""):
     vars_string = ""
     for i in range(len(variables_list)):
         variable = variables_list[i]
         vars_string += "double %s=k[%s];\n" % (variable, i)
     supplementary_definitions_string = ""
-    for sup in supplementary_definitions:
+    for sup in (supplementary_definitions if isinstance(supplementary_definitions, (tuple, list, set)) else (supplementary_definitions, )):
         supplementary_definitions_string += "double %s;\n" % sup
+    expr_str = ""
+    expr, aux_vars = transformate(expr)
+    for p, a_var in aux_vars.iteritems():
+        supplementary_definitions_string += "double %s = %s;\n" % (tuple(a_var.getVarsIndexes())[0], polynomial.formatter.format(p, polynomial.formatter.CPP))
+    for a, b in expr:
+        a = polynomial.formatter.format(a, polynomial.formatter.CPP)
+        b = polynomial.formatter.format(b, polynomial.formatter.CPP)
+        if a != "0" and b != ["0"]:
+            expr_str += "aux = %s;\n" % ("+".join(map(lambda x: "(%s)" % x, b)))
+            expr_str += "f += aux * %s;\n" % a
     return functionBodyTemplate.format(comments=comments,
                                        vars=vars_string,
+                                       zero_condition=" || ".join(zero_conditions),
                                        supplementary_definitions=supplementary_definitions_string,
-                                       expr="f += %s;" % expr_string)
+                                       expr=expr_str)
 
 
 def generate_func_files(integrand_iterator, generate_function_body_=generate_function_body, max_function_length=maxFunctionLength):
     files = collections.defaultdict(lambda: FunctionsFile(0))
     for integrand_info in integrand_iterator:
-        for eps_order in integrand_info.integrand:
-            file_info = funcFileInfo(eps_order, len(integrand_info.variables))
-            function_file = files[file_info]
-            function_file.add_function(generate_function_body_(integrand_info.integrand[eps_order],
-                                                               integrand_info.variables,
-                                                               integrand_info.supp_defs,
-                                                               integrand_info.comments))
-            if len(function_file) > max_function_length:
-                function_file.set_file_info(file_info)
-                files[file_info] = function_file.get_next()
-                yield function_file
+        eps_order = integrand_info.eps_order
+        file_info = funcFileInfo(eps_order, len(integrand_info.variables) - 1)
+        function_file = files[file_info]
+        all_variables = integrand_info.variables
+
+        def filter_according_order(_integrand):
+            return _integrand.factor, _integrand.main_expansion[eps_order]
+
+        for integrand, removed_arg, theta_condition in zip(integrand_info.integrands, integrand_info.supp_defs, integrand_info.supp_conditions):
+            integrand = map(filter_according_order, integrand)
+            curr_variables = map(lambda v: str(v), filter(lambda v: v != removed_arg, all_variables))
+            supp_defs = [str(removed_arg) + " = 1./(" + polynomial.formatter.format(theta_condition, polynomial.formatter.CPP) + ")"]
+            supp_conditions = [polynomial.formatter.format(theta_condition, polynomial.formatter.CPP) + " < 1."]
+            function_file.add_function(generate_function_body_(integrand, curr_variables, supp_defs, supp_conditions, ""))
+        if len(function_file) > max_function_length:
+            function_file.set_file_info(file_info)
+            files[file_info] = function_file.get_next()
+            yield function_file
     for file_info, function_file in files.items():
         if len(function_file) != 0:
             function_file.set_file_info(file_info)
@@ -150,6 +196,8 @@ def get_eps_from_filename(filename):
 
 
 def parse_cuba_output(output):
+    if configure_mr.Configure.debug():
+        print output
     """SUAVE RESULT:	6.99999999999988 +- 0.00000004572840	p = -999.000"""
     regex = re.match(".*RESULT:.(.*) \+- (.*).p.*", output.splitlines()[-1])
     # print "---"
@@ -183,7 +231,7 @@ def generate_integrands(integrand_iterator, directory, graph_name):
 def execute_cuba(directory, chdir=True):
     if chdir:
         os.chdir(directory)
-    res = collections.defaultdict(lambda: 0)
+    res = dict()
     for filename in os.listdir("."):
         if filename.endswith("run") and filename != ".run":
             code = str(configure_mr.Configure.integration_algorithm())
@@ -195,12 +243,13 @@ def execute_cuba(directory, chdir=True):
             process = subprocess.Popen(["./%s" % filename, code, points, rel_err, abs_err], stdout=out_file, stderr=subprocess.STDOUT)
             ret_code = process.wait()
             if ret_code != 0:
-                raise ValueError("return code must be 0")
+                raise ValueError("return code must be 0, but " + str(ret_code) + " in file " + filename)
             out_file.close()
             with open(os.path.basename(filename) + ".log", 'r') as out_file:
                 term = parse_cuba_output(out_file.read())
             out_file.close()
-            res[get_eps_from_filename(filename)] += ufloat(*term)
+            assert get_eps_from_filename(filename) not in res
+            res[get_eps_from_filename(filename)] = ufloat(*term)
     if chdir:
         os.chdir(DEFAULT_PWD)
     return res
@@ -237,40 +286,17 @@ def set_default_pwd(pwd=None):
 
 set_default_pwd()
 
-@atexit.register
-def on_shutdown():
-    if configure_mr.Configure.delete_integration_tmp_dir_on_shutdown():
-        subprocess.call(["rm", "-rf", "tmp/"])
 
-
-def cuba_generate(integrand_series, integrations, scalar_products_functions):
-    an_id = id(integrand_series)
-    # for i in integrations:
-    #     if "a" in str(i.var):
-    #         return {0: 0}
-
-    # has_a = False
-    # for i in integrations:
-    #     if "a" in str(i.var):
-    #         has_a = True
-    #         break
-    # if not has_a:
-    #     return {0: 0}
-
+def cuba_generate(integrand_series_list, all_integrations, theta_arg_list, theta_removed_parameter_list):
     time_id = int(round(time.time() * 1000))
     directory = os.path.join("tmp/", str(time_id))
     directory = os.path.abspath(directory)
-    if configure_mr.Configure.debug():
-        print "Integration ID: %s" % an_id
-        print "Start integration: %s\nIntegration: %s\nScalar functions: %s" % (integrand_series, integrations, scalar_products_functions)
-    sps = list()
-    for sp_function in scalar_products_functions:
-        sps.append("%s = %s" % (sp_function.sign, sp_function.body))
-    _vars = map(lambda v: str(v.var), integrations)
 
-    integrand_series_c = dict(map(lambda (p, v): (p, v.printc()), integrand_series.items()))
-    term = integrandInfo(integrand_series_c, _vars, sps, '')
-    generate_integrands([term], directory, time_id)
+    terms = list()
+    for i in xrange(max(integrand_series_list[0][0].main_expansion) + 1):
+        term = integrandInfo(i, integrand_series_list, all_integrations, theta_removed_parameter_list, theta_arg_list, '')
+        terms.append(term)
+    generate_integrands(terms, directory, time_id)
     return directory
 
 
@@ -280,10 +306,10 @@ def cuba_execute(directory):
     exec_res = execute_cuba(directory, chdir=True)
     if configure_mr.Configure.debug():
         print "Integration done in %s s" % (time.time() - ms)
-        print "Result", exec_res
+        print "Result", exec_res, "\n\n"
     return exec_res
 
 
-def cuba_integrate(integrand_series, integrations, scalar_products_functions):
-    directory = cuba_generate(integrand_series, integrations, scalar_products_functions)
+def cuba_integrate(integrand_series_list, all_integrations, theta_arg_list, theta_removed_parameter_list):
+    directory = cuba_generate(integrand_series_list, all_integrations, theta_arg_list, theta_removed_parameter_list)
     return cuba_execute(directory)

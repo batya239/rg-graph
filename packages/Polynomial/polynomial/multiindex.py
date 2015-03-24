@@ -66,8 +66,8 @@ class MultiIndex(object):
         else:
             return 0, CONST
 
-    def getVarPower(self, varIndex):
-        return self.vars.get(varIndex, None)
+    def getVarPower(self, varIndex, defaultValue=0):
+        return self.vars.get(varIndex, defaultValue)
 
     def stretch(self, sVar, varList):
         deltaDegree = 0
@@ -86,6 +86,14 @@ class MultiIndex(object):
 
     def split(self):
         return map(lambda i: (MultiIndex(zeroDict({i[0]: 1})), i[1]), self.vars.items())
+
+    def linearSubtraction(self, other):
+        res = zeroDict()
+        for v, p in self.vars.iteritems():
+            res[v] += p
+        for v, p in other.vars.iteritems():
+            res[v] -= p
+        return MultiIndex(res, doPrepare=False)
 
     def __mul__(self, other):
         nVars = self.vars.copy()
@@ -112,11 +120,14 @@ class MultiIndex(object):
             self.hash = dict_hash1(self.vars)
         return self.hash
 
+    def get_var_name(self, v):
+        return ("u_%s" % v) if isinstance(v, int) else str(v)
+
     def __repr__(self):
         if len(self.vars) == 0:
             return '1'
         else:
-            return '*'.join(map(lambda v: 'x_%s^%s' % (v[0], v[1]) if v[1] <> 1 else 'x_%s' % v[0], self.vars.items()))
+            return '*'.join(map(lambda v: '%s^%s' % (self.get_var_name(v[0]), v[1]) if v[1] <> 1 else self.get_var_name(v[0]), self.vars.items()))
 
 
 CONST = MultiIndex()
