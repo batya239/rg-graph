@@ -13,6 +13,11 @@ from math import factorial
 import util
 import collections
 import pickle
+try:
+    import swiginac
+    from rggraphenv import symbolic_functions
+except:
+    pass
 
 
 def _preparePolynomials(polynomials):
@@ -54,6 +59,9 @@ class PolynomialProduct(object):
 
     def __init__(self, polynomials):
         self.polynomials = _preparePolynomials(polynomials)
+
+    def asSwiginac(self, varToSwiginacVar):
+        return reduce(lambda r, p: r * p.asSwiginac(varToSwiginacVar), self.polynomials, symbolic_functions.CLN_ONE)
 
     def set1toVar(self, varIndex):
         return PolynomialProduct(map(lambda p: p.set1toVar(varIndex), self.polynomials))

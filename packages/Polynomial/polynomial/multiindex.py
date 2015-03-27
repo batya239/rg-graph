@@ -5,6 +5,11 @@ immutable MultiIndex, represent by dictionary
 ex: (3, 0, 1) --> x_1^3 * x_3 -->  {1: 3, 3: 1}
 """
 from util import dict_hash1, zeroDict
+try:
+    import swiginac
+    from rggraphenv import symbolic_functions
+except:
+    pass
 
 
 def _prepareVars(_vars):
@@ -30,6 +35,9 @@ class MultiIndex(object):
         """
         self.vars = _prepareVars(_vars) if doPrepare else _vars
         self.hash = None
+
+    def asSwiginac(self, varToSwiginacVar):
+        return reduce(lambda r, v: r * varToSwiginacVar(v[0]) ** v[1], self.vars.iteritems(), symbolic_functions.CLN_ONE)
 
     def hasVar(self, varIndex):
         return self.vars.has_key(varIndex)

@@ -19,6 +19,11 @@ import polynomial_product
 import multiindex
 import rggraphutil.variable_aware_number as v_number
 from util import dict_hash1, zeroDict
+try:
+    import swiginac
+    from rggraphenv import symbolic_functions
+except:
+    pass
 
 
 def _prepareMonomials(monomials):
@@ -47,6 +52,12 @@ class Polynomial(object):
             self.c = eps_number.epsNumber(0)
         self.hash = None
         self._monomialsWithHash = None
+
+    def asSwiginac(self, varToSwiginacVar):
+        deg = self.degree.subs(symbolic_functions.e)
+        c = self.c.subs(symbolic_functions.e)
+        res = reduce(lambda r, m: r + m[1] * m[0].asSwiginac(varToSwiginacVar), self.monomials.iteritems(), symbolic_functions.CLN_ZERO)
+        return c * res ** deg
 
     def integrate(self, varIndex):
         """
