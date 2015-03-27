@@ -212,7 +212,7 @@ def compile_cuba(directory, chdir=True):
         path_to_code = __file__.replace("cuba_integration.pyc", "scons/")
     else:
         path_to_code = __file__.replace("cuba_integration.py", "scons/")
-    for filename in ["SConstruct.cuba", "common.py", "scons_config.py", "cuba_code_template.py"]:
+    for filename in ["SConstruct.cuba", "common.py", "scons_config.py", "cubaCodeTemplate.py"]:
         shutil.copyfile("%s%s" %(path_to_code, filename), "%s/%s" % (directory, filename))
     if chdir:
         os.chdir(directory)
