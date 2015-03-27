@@ -159,8 +159,8 @@ def get_eps_from_filename(filename):
 
 
 def parse_cuba_output(output):
-    if configure_mr.Configure.debug():
-        print output
+    # if configure_mr.Configure.debug():
+    #     print output
     """SUAVE RESULT:	6.99999999999988 +- 0.00000004572840	p = -999.000"""
     regex = re.match(".*RESULT:.(.*) \+- (.*).p.*", output.splitlines()[-1])
     # print "---"
