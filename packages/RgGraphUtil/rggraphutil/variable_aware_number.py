@@ -68,7 +68,16 @@ class VariableAwareNumber(object):
     #     return VariableAwareNumber(self._varName, 0, 0)
 
     def subs(self, variable):
-        return swiginac.numeric(str(self._a)) + variable * swiginac.numeric(str(self._b))
+        return VariableAwareNumber.trySimplify(self.a) + variable * VariableAwareNumber.trySimplify(self.b)
+
+    @staticmethod
+    def trySimplify(value):
+        valueStr = str(value)
+        if valueStr.endswith(".0"):
+            return swiginac.numeric(str(int(value)))
+        elif valueStr.endswith(".5"):
+            return swiginac.numeric(str(int(value * 2))) / swiginac.numeric("2")
+        return swiginac.numeric(str(value))
 
     def multiplyOnInt(self, other):
         if isinstance(other, int):
