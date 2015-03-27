@@ -62,6 +62,7 @@ def integrate_time_version(graph, operation):
         print "BaseC:", base_c
 
     dl2_pair = configure_mr.Configure.dimension_pair() * l / 2.
+    d2_pair = configure_mr.Configure.dimension_pair() / 2.
 
     def tau_omega_multiplier():
         if operation == "iw":
@@ -73,16 +74,17 @@ def integrate_time_version(graph, operation):
             ret = tau_c.changeDegree(dl2_pair - alpha)
         if configure_mr.Configure.debug():
             print "Tau-omega multiplier:", ret
+            print "Tau-omega base const:", _base_c
         return ret, _base_c
 
-    _d = _d.changeDegree((-dl2_pair - 1) if operation == "p2" else (- dl2_pair))
+    _d = _d.changeDegree((-d2_pair - 1) if operation == "p2" else (- d2_pair))
 
     c = c if operation == "p2" else polynomial.poly([(1, tuple())])
 
     multiplier = tau_omega_multiplier()
     exprs = multiplier[0] * c * _d
-    base_c *= multiplier[1]
 
+    base_c *= multiplier[1]
 
     def subs_u(expr):
         for u, p in v_substitutor.iteritems():
@@ -92,6 +94,9 @@ def integrate_time_version(graph, operation):
             raw_multiplier += [v] * (p - 1)
         return expr * polynomial.poly([(1, raw_multiplier)])
     exprs = subs_u(exprs)
+    exprs = exprs.simplify()
+    if configure_mr.Configure.debug():
+        print "Expression:", exprs
 
     sub_graph_infos = feyn_representation.find_sub_graphs_info(graph)[1]
     exprs = [exprs]
@@ -100,33 +105,59 @@ def integrate_time_version(graph, operation):
     conditions = list()
     removed_vars = list()
     delta_arg_base = construct_delta(v_params)
+    if configure_mr.Configure.debug():
+        print "Base delta:", delta_arg_base
     for subs in sectors:
         es, delta_arg = polynomial.sd_lib.sectorDiagram(exprs, subs, delta_arg_base, False)
-        multiplier, theta_arg = resolve_delta(delta_arg, subs[0][0])
+        multiplier, theta_arg, additional_v_subs = resolve_delta(delta_arg, subs[0][0])
         conditions.append(theta_arg)
         removed_vars.append(subs[0][0])
-        sector_exprs.append(map(lambda e: (e * multiplier).simplify(), es))
+        es = map(lambda e: (e * multiplier).simplify().asSwiginac(lambda v: v.as_var()), es)
+        es = reduce(lambda a, b: a + b, es, symbolic_functions.CLN_ZERO)
+        if configure_mr.Configure.debug():
+            print "Delta multiplier:", multiplier
         for sg_info in sub_graph_infos:
             a = feyn_representation.AlphaParameter(sg_info.idx, "a")
             assert sg_info.divergence in (0, 2)
             if configure_mr.Configure.debug():
                 print "Stretcher: %s, Divergence: %s" % (a, sg_info.divergence)
-            es = reduce(lambda e1, e: e1 + e.diff(a, sg_info.divergence / 2 + 1), es, list())
+            dv_da = additional_v_subs.asSwiginac(lambda v: v.as_var()).diff(a.as_var())
+            for _ in xrange(1 + sg_info.divergence / 2):
+                es = diff_a(es, a.as_var(), list(multiplier.getVarsIndexes())[0].as_var(), dv_da)
             if sg_info.divergence == 2:
-                a_multiplier = polynomial.poly([(1, tuple()), (-1, (a, ))])
-                es = map(lambda e: e * a_multiplier, es)
-        sector_exprs.append(es)
+                a_multiplier = (symbolic_functions.CLN_ONE + a.as_var())
+                es *= a_multiplier
+        sector_exprs.append(es.normal())
 
     all_params = reduce(lambda s, e: s | e.getVarsIndexes(), exprs, set())
 
     if configure_mr.Configure.debug():
-        print "Expression:", exprs
+        print "Expression:", sector_exprs
         print "Substitutions:", v_substitutor
 
-    sector_exprs = map(lambda sector_e: map(lambda e: e.epsExpansion(configure_mr.Configure.target_loops_count() - graph.loops_count), sector_e), sector_exprs)
+    sector_exprs = map(lambda e: eps_expansion(e, configure_mr.Configure.target_loops_count() - graph.loops_count + 1), sector_exprs)
 
     integration_result = cuba_integration.cuba_integrate(sector_exprs, all_params, conditions, removed_vars)
     return multiply(integration_result, base_c, graph)
+
+
+def eps_expansion(expr, order):
+    expr_series = expr.series(symbolic_functions.e == symbolic_functions.CLN_ZERO, order)
+    result = dict()
+    for i in xrange(order):
+        if i == 0:
+            result[0] = expr.subs(symbolic_functions.e == symbolic_functions.CLN_ZERO).normal()
+        else:
+            result[i] = expr_series.coeff(symbolic_functions.e ** symbolic_functions.cln(i)).normal()
+    return result
+
+
+def diff_a(exprs, a_var, reduced_var, reduced_var_jacobian):
+    new_exprs = symbolic_functions.CLN_ZERO
+    new_exprs += exprs.diff(a_var)
+    if str(reduced_var_jacobian) != "0":
+        new_exprs += reduced_var_jacobian * exprs.diff(reduced_var)
+    return new_exprs.normal()
 
 
 def multiply(integration_result, base_c, graph):
@@ -143,7 +174,7 @@ def resolve_delta(delta_arg, primary_var):
     delta_arg = delta_arg.toPolyProd().simplify()
     multiplier = polynomial.poly([(1, (primary_var, ))])
     delta_arg = (delta_arg * multiplier.changeDegree(-1)).simplify()
-    return multiplier, delta_arg
+    return multiplier, delta_arg, polynomial.polynomial_product.PolynomialProduct(map(lambda p: p ** (-1), delta_arg.polynomials))
 
 
 def construct_delta(vs):

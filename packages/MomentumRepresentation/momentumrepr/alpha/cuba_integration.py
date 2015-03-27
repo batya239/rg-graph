@@ -110,31 +110,6 @@ funcFileInfo = collections.namedtuple("funcFileInfo", ["eps_order", "dimension"]
 integrandInfo = collections.namedtuple("integrandInfo", ["eps_order", "integrands", "variables", "supp_defs", "supp_conditions", "comments"])
 
 
-def transformate(expr):
-    polynomials = zeroDict()
-    for a, _ in expr:
-        for p in a.polynomials:
-            polynomials[p] += 1
-    polynomials = filter(lambda (p, c): len(p.monomials) > 1 and c > 1, polynomials.iteritems())
-
-    def next_aux(aux_index=[-1]):
-        aux_index[0] += 1
-        return polynomial.poly([(1, ("aux%s" % aux_index[0],))])
-    polynomials = dict(map(lambda p: (p[0], next_aux()), polynomials))
-
-    new_exprs = list()
-    for a, b in expr:
-        new_a = list()
-        for p in a.polynomials:
-            if p in polynomials:
-                new_a.append(polynomials[p])
-            else:
-                new_a.append(p)
-        new_exprs.append((polynomial.polynomial_product.PolynomialProduct(new_a), b))
-    return new_exprs, polynomials
-
-
-
 def generate_function_body(expr, variables_list, supplementary_definitions, zero_conditions, comments=""):
     vars_string = ""
     for i in range(len(variables_list)):
@@ -143,16 +118,7 @@ def generate_function_body(expr, variables_list, supplementary_definitions, zero
     supplementary_definitions_string = ""
     for sup in (supplementary_definitions if isinstance(supplementary_definitions, (tuple, list, set)) else (supplementary_definitions, )):
         supplementary_definitions_string += "double %s;\n" % sup
-    expr_str = ""
-    expr, aux_vars = transformate(expr)
-    for p, a_var in aux_vars.iteritems():
-        supplementary_definitions_string += "double %s = %s;\n" % (tuple(a_var.getVarsIndexes())[0], polynomial.formatter.format(p, polynomial.formatter.CPP))
-    for a, b in expr:
-        a = polynomial.formatter.format(a, polynomial.formatter.CPP)
-        b = polynomial.formatter.format(b, polynomial.formatter.CPP)
-        if a != "0" and b != ["0"]:
-            expr_str += "aux = %s;\n" % ("+".join(map(lambda x: "(%s)" % x, b)))
-            expr_str += "f += aux * %s;\n" % a
+    expr_str = "f+=" + expr.printc() + ";"
     return functionBodyTemplate.format(comments=comments,
                                        vars=vars_string,
                                        zero_condition=" || ".join(zero_conditions),
@@ -168,11 +134,8 @@ def generate_func_files(integrand_iterator, generate_function_body_=generate_fun
         function_file = files[file_info]
         all_variables = integrand_info.variables
 
-        def filter_according_order(_integrand):
-            return _integrand.factor, _integrand.main_expansion[eps_order]
-
         for integrand, removed_arg, theta_condition in zip(integrand_info.integrands, integrand_info.supp_defs, integrand_info.supp_conditions):
-            integrand = map(filter_according_order, integrand)
+            integrand = integrand[eps_order]
             curr_variables = map(lambda v: str(v), filter(lambda v: v != removed_arg, all_variables))
             supp_defs = [str(removed_arg) + " = 1./(" + polynomial.formatter.format(theta_condition, polynomial.formatter.CPP) + ")"]
             supp_conditions = [polynomial.formatter.format(theta_condition, polynomial.formatter.CPP) + " < 1."]
@@ -293,7 +256,7 @@ def cuba_generate(integrand_series_list, all_integrations, theta_arg_list, theta
     directory = os.path.abspath(directory)
 
     terms = list()
-    for i in xrange(max(integrand_series_list[0][0].main_expansion) + 1):
+    for i in xrange(max(integrand_series_list[0].keys()) + 1):
         term = integrandInfo(i, integrand_series_list, all_integrations, theta_removed_parameter_list, theta_arg_list, '')
         terms.append(term)
     generate_integrands(terms, directory, time_id)

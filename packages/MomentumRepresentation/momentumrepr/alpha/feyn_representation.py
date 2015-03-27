@@ -8,6 +8,7 @@ import configure_mr
 import momentum_enumeration
 from collections import namedtuple
 from rggraphutil import emptyListDict, zeroDict
+from rggraphenv import symbolic_functions
 from cache import cached_function
 from polynomial.multiindex import MultiIndex
 from polynomial.polynomial import Polynomial
@@ -40,6 +41,9 @@ class AlphaParameter(object):
     @staticmethod
     def external():
         return AlphaParameter(0)
+
+    def as_var(self):
+        return symbolic_functions.var(str(self))
 
     def __hash__(self):
         return hash(self._idx) + 37 * hash(self._letter)
