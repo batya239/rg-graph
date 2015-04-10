@@ -6,11 +6,12 @@ from rggraphutil import zeroDict
 
 
 class IntegralRepresentation(object):
-    def __init__(self, integrand, loop_momentas, scalar_products, stretchers):
+    def __init__(self, integrand, loop_momentas, scalar_products, stretchers, graph_representator):
         self.integrand = integrand
         self.loop_momentas = loop_momentas
         self.stretchers = stretchers
         self.scalar_products = scalar_products
+        self.graph_representator = graph_representator
 
     def __hash__(self):
         return 1

@@ -44,11 +44,12 @@ def kr1_with_some_additional_lambda_operation(graph_state_as_str,
         base_integrand, angles = integration.get_base_integrand_and_angles(graph_with_tv)
         loop_momentum_vars = integration.get_loop_momentum_vars(graph_with_tv)
         stretch_vars = integration.get_stretch_vars(graph_with_tv)
-        return integrations_merger.IntegralRepresentation(base_integrand, loop_momentum_vars, angles, stretch_vars)
+        return integrations_merger.IntegralRepresentation(base_integrand, loop_momentum_vars, angles, stretch_vars, graph_with_tv)
 
     def integral_producer_lambda(integral_representation, coeff):
         if configure_mr.Configure.debug():
             print "Coefficient:", coeff
+            print "Graph Representator:", integral_representation.graph_representator
         return integration.construct_integrand(integral_representation.integrand,
                                                integral_representation.loop_momentas,
                                                integral_representation.stretchers,
@@ -132,7 +133,8 @@ def add_stretching(graph, uv_sub_graph, cross_sections, stretchers_for_edges):
             intersect_cross_sections.append(cross_sections_conj)
 
     assert cross_sections_number - cross_sections_base_number >= 0
-    uv_index = base_uv_index - 2 * (cross_sections_number - cross_sections_base_number)
+    # uv_index = base_uv_index - 2 * (cross_sections_number - cross_sections_base_number)
+    uv_index = base_uv_index
     if uv_index < 0:
         return graph
 

@@ -68,11 +68,23 @@ class GraphAndTimeVersion(object):
     __repr__ = __str__
 
 
+def find_constraints(graph):
+    order = list()
+    for v in graph.vertices:
+        if v.tv_idx is not None:
+            assert v not in order
+            order.append(v)
+    if not len(order):
+        return tuple()
+    return sorted(order, key=lambda v: v.tv_idx)
+
+
 def find_time_versions(graph):
-    return sorted(map(lambda tv: GraphAndTimeVersion(graph, tv), find_raw_time_versions(graph)))
+    constraints = find_constraints(graph)
+    return sorted(map(lambda tv: GraphAndTimeVersion(graph, tv), find_raw_time_versions(graph, constraints)))
 
 
-def find_raw_time_versions(graph):
+def find_raw_time_versions(graph, constraints):
     def find_restrictions(g):
         restrictions = list()
         for e in g:
@@ -85,6 +97,10 @@ def find_raw_time_versions(graph):
         return restrictions
 
     def is_acceptable(restrictions, time_sequence):
+        if len(constraints):
+            constraint_indices = filter(lambda i: i is not None, map(lambda v: None if v not in constraints else constraints.index(v), time_sequence))
+            if constraint_indices != sorted(constraint_indices):
+                return False
         for restriction in restrictions:
             if time_sequence.index(restriction[0]) < time_sequence.index(restriction[1]):
                 return False

@@ -15,7 +15,7 @@ import dynamics
 model = _phi4_dyn("phi4_dyn_test")
 methodName = "simpleSDT"
 
-gs = gs_builder.graph_state_from_str(sys.argv[1])
+gs = gs_builder.graph_state_from_str("e12|23|4|e5|55||:0A_aA_aA|Aa_aA|aA|0a_Aa|aA_aA||")
 print str(gs)
 
 dG = dynamics.DynGraph(gs)
@@ -33,6 +33,9 @@ model = _phi4_dyn("phi4_dyn_test")
 
 for tVersion in dynamics.TVersions(dG):
     print
+
+    if tVersion != (0, 2, 4, 5, 1, 3):
+        continue
     print "tVersion = ", tVersion
     name = dynamics.Replace("%s_%s" % (gs, tVersion))
     dirName = '%s/%s/%s/' % (model.workdir, methodName, name)

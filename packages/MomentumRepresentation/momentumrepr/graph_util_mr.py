@@ -17,6 +17,9 @@ MAIN_GRAPH_CONFIG = graph_state.PropertiesConfig.create(graph_state.PropertyKey(
                                                                                 externalizer=graph_state.Arrow.Externalizer()),
                                                         graph_state.PropertyKey(name="marker",
                                                                                 is_directed=False,
+                                                                                externalizer=graph_state.PropertyExternalizer()),
+                                                        graph_state.PropertyKey(name="tv_idx",
+                                                                                is_edge_property=False,
                                                                                 externalizer=graph_state.PropertyExternalizer()))
 
 

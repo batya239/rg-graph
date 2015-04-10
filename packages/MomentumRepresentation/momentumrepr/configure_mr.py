@@ -101,8 +101,8 @@ class Configure(object):
     @classmethod
     def dimension_pair(cls):
         dim = cls.dimension()
-        a = dim.subs(symbolic_functions.e == 0).to_double()
-        b = dim.coeff(symbolic_functions.e).to_double()
+        a = dim.subs(symbolic_functions.e == 0).to_int()
+        b = 0#dim.coeff(symbolic_functions.e).to_int()
         return epsNumber((a, b))
 
     @classmethod

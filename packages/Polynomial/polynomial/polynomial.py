@@ -56,8 +56,13 @@ class Polynomial(object):
     def asSwiginac(self, varToSwiginacVar):
         deg = self.degree.subs(symbolic_functions.e)
         c = self.c.subs(symbolic_functions.e)
-        res = reduce(lambda r, m: r + m[1] * m[0].asSwiginac(varToSwiginacVar), self.monomials.iteritems(), symbolic_functions.CLN_ZERO)
+        res = reduce(lambda r, m: r + self.trySimplify(m[1]) * m[0].asSwiginac(varToSwiginacVar), self.monomials.iteritems(), symbolic_functions.CLN_ZERO)
         return c * res ** deg
+
+    @staticmethod
+    def trySimplify(value):
+        assert "." not in str(value)
+        return swiginac.numeric(str(value))
 
     def integrate(self, varIndex):
         """
@@ -209,7 +214,9 @@ class Polynomial(object):
         """
         if not self.c.isRealNumber():
             return None
-        if self.degree == 0 or len(self.monomials) == 1 and self.monomials.has_key(multiindex.CONST) and self.degree.isRealNumber():
+        if self.degree == 0:
+            return self.c.a
+        if len(self.monomials) == 1 and self.monomials.has_key(multiindex.CONST) and self.degree.isRealNumber():
             return self.c.a * self.monomials[multiindex.CONST] ** self.degree.a
         return None
 
@@ -256,6 +263,10 @@ class Polynomial(object):
 
     @staticmethod
     def _merge(p1, p2):
+        if p1.isOne():
+            return [p2]
+        if p2.isOne():
+            return [p1]
         if p1.c.isRealNumber() or p2.c.isRealNumber():
             degree = p1.degree + p2.degree
             if degree.isRealNumber() and degree.a == 0:
@@ -264,6 +275,8 @@ class Polynomial(object):
             else:
                 if p1.isConst():
                     return [Polynomial(p2.monomials, degree=p2.degree, c=p1.c * p2.c)]
+                elif p2.isConst():
+                    return [Polynomial(p1.monomials, degree=p1.degree, c=p1.c * p2.c)]
                 else:
                     return [Polynomial(p1.monomials, degree=p1.degree + p2.degree, c=p1.c * p2.c)]
         else:

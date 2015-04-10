@@ -6,11 +6,12 @@ import itertools
 import uv
 import configure_mr
 import momentum_enumeration
+import polynomial
 from collections import namedtuple
 from rggraphutil import emptyListDict, zeroDict
 from rggraphenv import symbolic_functions
 from cache import cached_function
-from polynomial.multiindex import MultiIndex
+from polynomial.multiindex import MultiIndex, CONST
 from polynomial.polynomial import Polynomial
 
 __author__ = 'dima'
@@ -56,22 +57,6 @@ class AlphaParameter(object):
 
     __repr__ = __str__
 
-
-class AlphaParameterIdentityWrapper(object):
-    def __init__(self, flow):
-        self._flow = flow
-
-    @property
-    def flow(self):
-        return self._flow
-
-    def __hash__(self):
-        return 0
-
-    def __eq__(self, other):
-        s_flow = self.flow
-        o_flow = other.flow
-        return s_flow - o_flow == 0 or s_flow + o_flow == 0
 
 
 def introduce_feynman_parameters(graph):
@@ -149,8 +134,10 @@ def find_sub_graphs_info(graph):
     return graph, infos
 
 
-def cross_sections_substitutions(graph, sub_graph_infos):
+def cross_sections_substitutions(graph, sub_graph_infos, p2=False):
     graph = momentum_enumeration.choose_momentum_flow(graph)
+    if not p2:
+        graph = graphine.Graph(map(lambda e: e.copy(flow=e.flow.subs_external_momenta_is_zero()), graph))
     edge_cs = time_versions.find_edges_cross_sections(graph)
     index = 0
     v_params = set()
@@ -158,38 +145,64 @@ def cross_sections_substitutions(graph, sub_graph_infos):
 
     flow_to_index = dict()
     index_rate = zeroDict()
+    tau_rate = dict()
+
+    tau_multiplier = emptyListDict()
+
+    omega_terms = list()
 
     for cs in edge_cs:
         cs_flow = frozenset(map(lambda e: frozenset([e.flow, -e.flow]), cs))
         if cs_flow in flow_to_index:
+            add_tau_multiplier = False
             index = flow_to_index[cs_flow]
         else:
+            add_tau_multiplier = True
             flow_to_index[cs_flow] = index
         index_rate[index] += 1
         cs_alpha_params = set(map(lambda e: e.alpha_param, cs))
         stretch_multipliers = emptyListDict()
+
+        if index not in tau_rate:
+            stretchers = list()
+            for sg_info in sub_graph_infos:
+                sg_alphas = set(sg_info.alpha_params)
+                if len(sg_alphas & cs_alpha_params):
+                    stretchers.append(AlphaParameter(sg_info.idx, "a"))
+            tau_rate[index] = (len(cs), stretchers)
+
+        omega_term = list()
+        omega_terms.append(omega_term)
+        omega_term.append(AlphaParameter(index, letter="v"))
         for sg_info in sub_graph_infos:
-            co_sub_graph_alphas = set(cs_alpha_params) - set(sg_info.alpha_params)
+            sg_alphas = set(sg_info.alpha_params)
+            if len(sg_alphas & cs_alpha_params):
+                omega_term.append(AlphaParameter(sg_info.idx, "a"))
+            co_sub_graph_alphas = set(cs_alpha_params) - sg_alphas
             if len(co_sub_graph_alphas) != len(cs_alpha_params):
                 for param in co_sub_graph_alphas:
                     stretch_multipliers[param].append(sg_info.idx)
         for u in cs_alpha_params:
+            if add_tau_multiplier:
+                tau_multiplier[index].append(stretch_multipliers.get(u, None))
             raw_substitutors[u].append((index, stretch_multipliers.get(u, tuple())))
         index = max(index_rate.keys()) + 1
     substitutors = dict()
+    index_rate = dict(map(lambda (k, v): (AlphaParameter(k, letter="v"), v), index_rate.iteritems()))
+    tau_rate = dict(map(lambda (k, v): (AlphaParameter(k, letter="v"), v), tau_rate.iteritems()))
     for k, raw_subs in raw_substitutors.iteritems():
         raw_polynomial = zeroDict()
         for v_idx, stretcher in raw_subs:
             v_param = AlphaParameter(v_idx, letter="v")
             v_params.add(v_param)
-
             raw_multi_index = {v_param: 1}
+            coefficient = 1
             for a in stretcher:
                 raw_multi_index[AlphaParameter(a, "a")] = 1
-            raw_polynomial[MultiIndex(raw_multi_index)] += 1
+            raw_polynomial[MultiIndex(raw_multi_index)] += coefficient
         substitutors[k] = Polynomial(raw_polynomial)
-    index_rate = dict(map(lambda (k, v): (AlphaParameter(k, letter="v"), v), index_rate.iteritems()))
-    return substitutors, tuple(v_params), index_rate
+
+    return substitutors, tuple(v_params), index_rate, tau_rate, omega_terms
 
 
 def construct_monomial(alpha_params, sub_graphs_info):
@@ -251,20 +264,22 @@ def construct_feyn_repr_polynomials(graph, sub_graphs_info):
     return AlphaRepresentationPolynomials(c=determinant_c, d=determinant_d)
 
 
-def get_polynomials(graph):
+def get_polynomials(graph, p2=False):
     graph = introduce_feynman_parameters(graph)
     graph, sub_graph_infos = find_sub_graphs_info(graph)
     c, d = construct_feyn_repr_polynomials(graph, sub_graph_infos)
     c_tau = tau_factor(graph)
-    c_omega = minus_i_omega_factor(graph)
-    substitutor, v_params, v_power = cross_sections_substitutions(graph, sub_graph_infos)
+    c_d_tau = d_tau_factor(graph, sub_graph_infos)
+    substitutor, v_params, v_power, tau_rate, c_omega = cross_sections_substitutions(graph, sub_graph_infos, p2)
     if configure_mr.Configure.debug():
         print "C:", c
         print "D:", d
         print "C_tau:", c_tau
+        print "C_diff_tau:", c_d_tau
         print "C_omega:", c_omega
         print "Time version substitutors:", substitutor
-    return c, d, c_tau, c_omega, substitutor, v_params, v_power, graph
+        print "Tau crossection size:", tau_rate
+    return c, d, c_tau, c_d_tau, c_omega, substitutor, v_params, v_power, tau_rate, graph
 
 
 def minus_i_omega_factor(graph):
@@ -274,3 +289,17 @@ def minus_i_omega_factor(graph):
 
 def tau_factor(graph):
     return tuple(map(lambda e: e.alpha_param, filter(lambda e: not e.is_external(), graph)))
+
+
+def d_tau_factor(graph, sub_graph_infos):
+    monomials = zeroDict()
+    for e in graph:
+        if not e.is_external():
+            raw_multi_index = dict()
+            raw_multi_index[e.alpha_param] = 1
+            for sg_info in sub_graph_infos:
+                if e.alpha_param in sg_info.alpha_params:
+                    idx = sg_info.idx
+                    raw_multi_index[AlphaParameter(idx, "a")] = 1
+            monomials[MultiIndex(raw_multi_index)] +=1
+    return Polynomial(monomials)

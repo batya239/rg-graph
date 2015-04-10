@@ -15,7 +15,7 @@ import dynamics
 model = _phi4_dyn("phi4_dyn_test")
 methodName = "simpleSDT"
 
-gs = gs_builder.graph_state_from_str(sys.argv[1])
+gs = gs_builder.graph_state_from_str("e12|23|4|e5|55||:0A_aA_aA|Aa_aA|aA|0a_Aa|aA_aA||")
 print str(gs)
 
 dG = dynamics.DynGraph(gs)
@@ -24,6 +24,7 @@ FeynmanSubgraphs(dG, model)
 #subgraphs.RemoveTadpoles(dG)
 
 staticCDET = dynamics.generateStaticCDET(dG, model)
+print staticCDET[0]
 print "lines:"
 for line in dG._lines:
     print line

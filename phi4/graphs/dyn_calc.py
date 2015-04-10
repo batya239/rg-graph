@@ -28,7 +28,9 @@ if len(sys.argv) == 4:
     tVersions = [eval(sys.argv[3])]
 else:
     tVersions = dynamics.TVersions(dG)
-pwd = os.environ['PWD']
+# pwd = os.environ['PWD']
+import os
+pwd = os.path.dirname(os.path.realpath(__file__))
 
 for tVersion_ in tVersions:
     print

@@ -33,8 +33,8 @@ model = _phi4_dyn("phi4_dyn_test")
 methodName = "simpleSDT"
 dynamics.method_name = methodName
 
-graphName_ = sys.argv[1]
-gs = gs_builder.graph_state_from_str(graphName_)
+# graphName_ = sys.argv[1]
+gs = gs_builder.graph_state_from_str("e12|e3|33||:0A_aA_aA|0a_Aa|aA_aA||")
 
 print str(gs)
 dG = dynamics.DynGraph(gs)
@@ -43,7 +43,7 @@ if len(sys.argv) == 3:
     tVersions = [eval(sys.argv[2])]
 else:
     tVersions = dynamics.TVersions(dG)
-pwd = os.environ['PWD']
+pwd = os.path.dirname(__file__)
 
 for tVersion_ in tVersions:
     print
