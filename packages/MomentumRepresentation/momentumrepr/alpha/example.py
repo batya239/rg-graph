@@ -13,8 +13,8 @@ import time
 t = time.time()
 configure_mr.Configure().with_dimension(symbolic_functions.cln(4) - symbolic_functions.cln(2) * symbolic_functions.e).with_target_loops_count(3).\
     with_maximum_points_number(1300000).\
-    with_absolute_error(10e-10).\
-    with_relative_error(10e-10).\
+    with_absolute_error(10e-5).\
+    with_relative_error(10e-5).\
     with_integration_algorithm("suave").\
     with_debug(True).configure()
 
@@ -48,7 +48,7 @@ configure_mr.Configure().with_dimension(symbolic_functions.cln(4) - symbolic_fun
 
 # g = graph_util_mr.from_str_alpha("e12|34|34|e|e|:0A_aA_aA|aA_aA|Aa_aA|0a|0a|:::::")
 # print integration.integrate(g, "log")
-# TODO sign {0: 0.01798016026694+/-5.24144665e-07}
+# {0: 0.01798016026694+/-5.24144665e-07}
 
 # g = graph_util_mr.from_str_alpha("e12|e3|33||:0A_aA_aA|0a_Aa|aA_aA||:::::")
 # print integration.integrate(g, "iw")
@@ -76,7 +76,7 @@ configure_mr.Configure().with_dimension(symbolic_functions.cln(4) - symbolic_fun
 # {0: -7.215709162e-05+/-1.6204245125e-06}}
 
 
-g = graph_util_mr.from_str_alpha("e12|33|44|5|5|e|:0A_aA_aA|aA_aA|aA_aA|aA|aA|0a|:::::")
+g = graph_util_mr.from_str_alpha("e12|23|4|45|5|e|:0A_aA_aA|Aa_aA|aA|Aa_aA|aA|0a|:::::")
 print integration.integrate(g, "iw")
 
 # graphs = list()
