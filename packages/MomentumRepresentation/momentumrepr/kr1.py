@@ -22,6 +22,9 @@ no_tadpoles = graphine.filters.no_tadpoles
 one_irreducible = graphine.filters.one_irreducible
 
 
+BATCH = False
+
+
 def kr1_log_divergence(graph_state_as_str, integration_operation=None):
     return kr1_with_some_additional_lambda_operation(graph_state_as_str, integration_operation=integration_operation)
 
@@ -37,11 +40,15 @@ def kr1_d_iw(graph_state_as_str, integration_operation=None):
 def kr1_with_some_additional_lambda_operation(graph_state_as_str,
                                               additional_lambda=None,
                                               integration_operation=None):
+    assert integration_operation is not None
+
     def integral_preparer_lambda(graph_with_tv):
         if configure_mr.Configure.debug():
             print "Graph: %s" % graph_with_tv.graph
             print "Time version: %s" % (graph_with_tv.time_version,)
-        base_integrand, angles = integration.get_base_integrand_and_angles(graph_with_tv)
+        #TODO
+        base_integrand, angles = integration.get_base_integrand_and_angles(graph_with_tv, additional_lambda == diff_util_mr.D_i_omega)
+        # base_integrand, angles = integration.get_base_integrand_and_angles(graph_with_tv, False)
         loop_momentum_vars = integration.get_loop_momentum_vars(graph_with_tv)
         stretch_vars = integration.get_stretch_vars(graph_with_tv)
         return integrations_merger.IntegralRepresentation(base_integrand, loop_momentum_vars, angles, stretch_vars, graph_with_tv)
@@ -55,34 +62,32 @@ def kr1_with_some_additional_lambda_operation(graph_state_as_str,
                                                integral_representation.stretchers,
                                                integral_representation.scalar_products, coeff)
 
-    graph = graph_util_mr.from_str(graph_state_as_str)
-    graph = map_reduce_wrapper.MapReduceAlgebraWrapper(graph)
+    all_graph = graph_util_mr.from_str(graph_state_as_str)
+    all_graph = map_reduce_wrapper.MapReduceAlgebraWrapper(all_graph)
 
     if configure_mr.Configure.do_d_tau():
-        graph = graph.apply(diff_util_mr.D_minus_tau)
+        all_graph = all_graph.apply(diff_util_mr.D_minus_tau)
 
-    # for k in graph._mappings.keys():
-    #     if not str(k).startswith("e12|e3|45|46|5|6||:0a_Aa_Aa|0A_aA|Aa_Aa|aA_aA|aA|Aa||:::"):
-    #         del graph._mappings[k]
-
-    if additional_lambda is not None:
-        graph = graph.apply(additional_lambda)
-
-
-    graph = graph.apply(momentum_enumeration.choose_minimal_momentum_flow)
-    graph = graph.apply(propagator.subs_external_propagators_is_zero)
-    graph = graph.apply(kr1_stretching)
-    graph = graph.apply(integral_preparer_lambda)
-    integrals = graph.map_with_coefficients(integral_producer_lambda)
-
-    if integration_operation is None:
-        return integrals
+    BATCH = True
 
     answer_dict = zeroDict()
-    for i in integrals:
-        integration_answer = integration_operation(*i)
-        for d, a in integration_answer.items():
-            answer_dict[d] += a
+    for graph, c in all_graph.x_items():
+        graph = map_reduce_wrapper.MapReduceAlgebraWrapper(graph)
+        graph = graph.apply(momentum_enumeration.choose_minimal_momentum_flow)
+        graph = graph.apply(propagator.subs_external_propagators_is_zero)
+        graph = graph.apply(kr1_stretching)
+        graph = graph.apply(integral_preparer_lambda)
+
+        if BATCH:
+            integrals = [integration.construct_integrand_batch(graph._mappings.items())]
+        else:
+            integrals = graph.map_with_coefficients(integral_producer_lambda)
+
+        for i in integrals:
+            integration_answer = integration_operation(*i)
+            for d, a in integration_answer.items():
+                answer_dict[d] += a * c.to_int()
+
     return answer_dict
 
 
@@ -93,9 +98,12 @@ def kr1_stretching(graph):
     with_stretching = list()
     for graph_and_tv in graphs_and_time_versions:
         stretchers_for_edges = emptyListDict()
+        additional_regularizer = dict()
         g = graph_and_tv.graph
+        uv_idx = 0
         for uv_graph in uv_subgraphs:
-            add_stretching(g, uv_graph, graph_and_tv.edges_cross_sections, stretchers_for_edges)
+            add_stretching(g, uv_graph, graph_and_tv.edges_cross_sections, stretchers_for_edges, additional_regularizer, uv_idx)
+            uv_idx += 1
 
         new_edges = list()
         for e in g.edges():
@@ -108,12 +116,13 @@ def kr1_stretching(graph):
 
         new_graph_with_stretching = graphine.Graph(new_edges, g.external_vertex)
 
-        with_stretching.append(graph_and_tv.set_graph(new_graph_with_stretching))
+        additional_regularizer = tuple(sorted(additional_regularizer.items(), key=lambda (k, v): k))
+        with_stretching.append(graph_and_tv.set_graph(new_graph_with_stretching).set_regularizer(additional_regularizer))
 
     return with_stretching
 
 
-def add_stretching(graph, uv_sub_graph, cross_sections, stretchers_for_edges):
+def add_stretching(graph, uv_sub_graph, cross_sections, stretchers_for_edges, additional_regularizer, uv_idx):
     cross_sections_base_number = len(uv_sub_graph.vertices) - 2
     base_uv_index = uv.uv_index(uv_sub_graph)
 
@@ -133,6 +142,7 @@ def add_stretching(graph, uv_sub_graph, cross_sections, stretchers_for_edges):
             intersect_cross_sections.append(cross_sections_conj)
 
     assert cross_sections_number - cross_sections_base_number >= 0
+    additional_regularizer_count = cross_sections_number - cross_sections_base_number
     # uv_index = base_uv_index - 2 * (cross_sections_number - cross_sections_base_number)
     uv_index = base_uv_index
     if uv_index < 0:
@@ -147,7 +157,10 @@ def add_stretching(graph, uv_sub_graph, cross_sections, stretchers_for_edges):
             if c != 0:
                 stretcher_indices.add(i)
     assert len(stretcher_indices)
-    stretcher_index = propagator.MomentumFlow.get_next_stretcher_index()
+    # stretcher_index = propagator.MomentumFlow.get_next_stretcher_index()
+    stretcher_index = uv_idx
+    assert stretcher_index not in additional_regularizer, str(additional_regularizer) + " " + str(stretcher_index)
+    additional_regularizer[stretcher_index] = additional_regularizer_count
 
     for e in uv_sub_graph.internal_edges:
         stretchers_for_edges[RefEqualityWrapper(e)].append(propagator.Stretcher(False, frozenset(stretcher_indices), stretcher_index, uv_index))

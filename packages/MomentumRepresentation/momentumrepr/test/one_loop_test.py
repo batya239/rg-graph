@@ -31,17 +31,17 @@ class OneLoopTest(unittest.TestCase):
         inject.clear()
 
     def test_triangle(self):
-        res = self._kr1(kr1.kr1_log_divergence, "e12|e2|e|:0A_aA_aA|00_aA|00|:::")
+        res = self._kr1(kr1.kr1_log_divergence, "e12|e2|e|:0A_aA_aA|00_aA|00|::::")
         self.assertTrue(abs(res[0] - 0.125) < 1E-3, res[0])
         self.assertTrue(abs(res[1] + 0.0625) < 1E-4, res[1])
 
     def test_bubble_d_iw(self):
-        res = self._kr1(kr1.kr1_d_iw, "e11|e|:0A_aA_aA|00|:::")
+        res = self._kr1(kr1.kr1_d_iw, "e11|e|:0A_aA_aA|00|::::")
         self.assertTrue(abs(res[0] - 0.125) < 1E-3, res)
         self.assertTrue(abs(res[1] + 0.0625) < 1E-4, res)
 
     def test_bubble_d_p2(self):
-        graph_state_str = "e11|e|:0A_aA_aA|00|:::"
+        graph_state_str = "e11|e|:0A_aA_aA|00|::::"
         res = self._kr1(kr1.kr1_d_p2, graph_state_str)
         self.assertTrue(abs(res[0] + 0.0625) < 1E-3, res)
         self.assertTrue(abs(res[1] - 0.03125) < 1E-3, res)

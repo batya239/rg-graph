@@ -127,6 +127,9 @@ def size_key(graph):
 
 
 def choose_momentum_flow(graph):
+    if graph.edges()[0].flow is not None:
+        return graph
+
     result = Ref.create()
 
     def chooser_graph_callback(g):

@@ -34,8 +34,7 @@ class ScalarProductEnumerator(object):
 
     @staticmethod
     def next_fake_variable_index():
-        ScalarProductEnumerator.FAKE_VARIABLE_INDEX += 1
-        return ScalarProductEnumerator.FAKE_VARIABLE_INDEX
+        raise AssertionError()
 
     def __init__(self, loops_count, dimension):
         self._dimension = dimension
@@ -91,8 +90,7 @@ class ScalarProductEnumerator(object):
                     if i != index:
                         other_index = i
                 used_vars = enumerator.used_variables[order][index_mapping[other_index]]
-
-                fake_var = "sp%s" % ScalarProductEnumerator.next_fake_variable_index()
+                fake_var = 'sp' + ''.join(map(str, sorted(p)))
                 fake_var = symbolic_functions.var(fake_var)
 
                 substitutor[p] = SubstitutedScalarProduct(expression=enumerator.scalar_products[order][index_mapping[other_index]],

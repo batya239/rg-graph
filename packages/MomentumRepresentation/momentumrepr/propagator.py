@@ -29,8 +29,9 @@ class MomentumFlow(object):
 
     @staticmethod
     def get_next_stretcher_index():
-        MomentumFlow.STRETCHER_INDEX += 1
-        return MomentumFlow.STRETCHER_INDEX
+        raise AssertionError()
+        # MomentumFlow.STRETCHER_INDEX += 1
+        # return MomentumFlow.STRETCHER_INDEX
 
     def __init__(self, external_momentas, loop_momentas, stretchers=None):
         if stretchers:

@@ -16,7 +16,7 @@ import spherical_coordinats
 from rggraphenv import symbolic_functions
 
 
-def substitute(graph_with_time_version):
+def substitute(graph_with_time_version, d_iw=False):
     _scalar_product = scalar_product.extract_scalar_products(graph_with_time_version.graph)
 
     sps = set() if _scalar_product is None else _scalar_product.momentum_pairs()
@@ -32,13 +32,31 @@ def substitute(graph_with_time_version):
     if _scalar_product is not None:
         v *= _scalar_product.substitute(substitutor)
 
+    assert graph_with_time_version.additional_regulizer is not None
+    reg = symbolic_functions.CLN_ONE
+    for (idx, c) in graph_with_time_version.additional_regulizer:
+        reg *= symbolic_functions.var("a%s" % idx) ** symbolic_functions.cln(c)
+    v *= reg ** symbolic_functions.CLN_TWO
+
+    if d_iw:
+        iw_tv = symbolic_functions.CLN_ZERO
+        for cs in graph_with_time_version.edges_cross_sections:
+            c = symbolic_functions.CLN_ONE
+            indices = reduce(lambda s, e: s | e.flow.get_not_all_propagators_stretchers_indices(), cs, set())
+            for _v in indices:
+                c *= symbolic_functions.var("a%s" % _v) ** symbolic_functions.CLN_TWO
+            iw_tv += c / reduce(lambda _v,  e: _v + e.flow.energy_expression(indices, substitutor), cs, symbolic_functions.CLN_ZERO)
+        print v
+        v *= iw_tv
+
     return v, substitutor.values()
 
 
 class GraphAndTimeVersion(object):
-    def __init__(self, graph, time_version):
+    def __init__(self, graph, time_version, additional_regularizer=None):
         self._graph = graph
         self._time_version = time_version
+        self._additional_regularizer = additional_regularizer
 
     @property
     def graph(self):
@@ -49,21 +67,28 @@ class GraphAndTimeVersion(object):
         return self._time_version
 
     @property
+    def additional_regulizer(self):
+        return self._additional_regularizer
+
+    @property
     def edges_cross_sections(self):
         return find_cross_sections_for_time_version(self.time_version, self.graph)
 
     def set_graph(self, graph):
-        return GraphAndTimeVersion(graph, self.time_version)
+        return GraphAndTimeVersion(graph, self.time_version, self.additional_regulizer)
+
+    def set_regularizer(self, additional_regularizer):
+        return GraphAndTimeVersion(self.graph, self.time_version, additional_regularizer)
 
     def __eq__(self, other):
         assert isinstance(other, GraphAndTimeVersion)
-        return self.graph == other.graph and self.time_version == other.time_version
+        return self.graph == other.graph and self.time_version == other.time_version and self.additional_regulizer == other.additional_regulizer
 
     def __hash__(self):
-        return hash(self.graph) * 37 + hash(self.time_version)
+        return (37 * hash(self.additional_regulizer) + hash(self.graph)) * 37 + hash(self.time_version)
 
     def __str__(self):
-        return "graph=%s, time_version=%s" % (self.graph, self.time_version)
+        return "graph=%s, time_version=%s, additional_regularizer=%s" % (self.graph, self.time_version, self.additional_regulizer)
 
     __repr__ = __str__
 

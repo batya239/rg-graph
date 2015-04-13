@@ -195,7 +195,7 @@ def execute_cuba(directory, chdir=True):
             process = subprocess.Popen(["./%s" % filename, code, points, rel_err, abs_err], stdout=out_file, stderr=subprocess.STDOUT)
             ret_code = process.wait()
             if ret_code != 0:
-                raise ValueError("return code must be 0")
+                raise ValueError("return code must be 0 but %s" % ret_code)
             out_file.close()
             with open(os.path.basename(filename) + ".log", 'r') as out_file:
                 term = parse_cuba_output(out_file.read())
@@ -265,7 +265,7 @@ def cuba_generate(integrand_series, integrations, scalar_products_functions):
         print "Start integration: %s\nIntegration: %s\nScalar functions: %s" % (integrand_series, integrations, scalar_products_functions)
     sps = list()
     for sp_function in scalar_products_functions:
-        sps.append("%s = %s" % (sp_function.sign, sp_function.body))
+        sps.append("%s = %s" % (sp_function.sign, sp_function.body.printc()))
     _vars = map(lambda v: str(v.var), integrations)
 
     integrand_series_c = dict(map(lambda (p, v): (p, v.printc()), integrand_series.items()))
