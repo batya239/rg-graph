@@ -92,11 +92,14 @@ def calculate_diagram(graph_state_str, operation_name, task_server_dir, aggregat
         submit_job(task_server_dir, task_name, task_files, task_executable_name, OUTPUT_FILE_NAME)
         print "job '%s' submitted" % task_name
 
-    aggregation_file_name = str(graph_state_str).replace("|", "-").replace(":", "#") + operation_name + ".py"
+    print graph_state_str
+    print type(graph_state_str)
+    aggregation_file_name = graph_state_str.replace("|", "_").replace(":", "").replace("A", "z") + operation_name + ".py"
     aggregation_file_name = os.path.join(aggregator_dir, aggregation_file_name)
     aggregation_file_name = os.path.expanduser(aggregation_file_name)
     aggregation_file_name = os.path.abspath(aggregation_file_name)
 
+    assert not os.path.exists(aggregation_file_name)
     with open(aggregation_file_name, 'w') as f:
         f.write(AGGREGATION_FILE_TEMPLATE.format(**{"scheduler_dir": task_server_dir, "task_names": task_names}))
 
@@ -122,6 +125,7 @@ def aggregation(scheduler_path, task_names):
                         d = eval(content.split("\n")[-2])
                         for k, v in d.iteritems():
                             answer[k] += ufloat(v[0], v[1])
+                        print "job '%s' done res = %s" % (task_name, ufloat(v[0], v[1]))
                     except Exception as e:
                         print "\n" + "".join(traceback.format_tb(sys.exc_info()[2]))
                         print e
