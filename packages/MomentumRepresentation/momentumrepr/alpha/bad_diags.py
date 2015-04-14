@@ -21,7 +21,7 @@ SubGraphInfo = namedtuple("SubGraphInfo", ["idx", "alpha_params", "loops_count",
 no_tadpoles = graphine.filters.no_tadpoles
 one_irreducible = graphine.filters.one_irreducible
 configure_mr.Configure().with_dimension(symbolic_functions.cln(4) - symbolic_functions.cln(2) * symbolic_functions.e).with_target_loops_count(3).\
-    with_maximum_points_number(1300000).\
+    with_maximum_points_number(10000000).\
     with_absolute_error(10e-10).\
     with_relative_error(10e-10).\
     with_integration_algorithm("suave").\
@@ -276,7 +276,7 @@ def is_bad(graphs):
         g = graph_util_mr.from_str_alpha(g)
         if check(g):
             pass
-            print "OK", g
+            print "graphs.append(\"%s\")" % g
         else:
             print "BADDD", g
 

@@ -46,9 +46,8 @@ def substitute(graph_with_time_version, d_iw=False):
             for _v in indices:
                 c *= symbolic_functions.var("a%s" % _v) ** symbolic_functions.CLN_TWO
             iw_tv += c / reduce(lambda _v,  e: _v + e.flow.energy_expression(indices, substitutor), cs, symbolic_functions.CLN_ZERO)
-        print v
         v *= iw_tv
-
+    v = v.expand()
     return v, substitutor.values()
 
 

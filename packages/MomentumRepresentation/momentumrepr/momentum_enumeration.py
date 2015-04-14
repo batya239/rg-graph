@@ -146,8 +146,12 @@ def choose_minimal_momentum_flow(graph):
     minimal_suitable_graph = Ref.create()
     graphs = list()
 
+    suitable_count = Ref.create(100)
     def chooser_graph_callback(g):
         if is_suitable(g):
+            suitable_count.set(suitable_count.get() - 1)
+            if suitable_count.get() == 0:
+                return True
             minimal_suitable_graph.set(g)
             return False
         else:

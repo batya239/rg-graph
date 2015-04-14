@@ -12,9 +12,9 @@ import time
 
 t = time.time()
 configure_mr.Configure().with_dimension(symbolic_functions.cln(4) - symbolic_functions.cln(2) * symbolic_functions.e).with_target_loops_count(3).\
-    with_maximum_points_number(1300000).\
-    with_absolute_error(10e-5).\
-    with_relative_error(10e-5).\
+    with_maximum_points_number(10000000).\
+    with_absolute_error(10e-10).\
+    with_relative_error(10e-10).\
     with_integration_algorithm("suave").\
     with_debug(True).configure()
 
@@ -76,8 +76,8 @@ configure_mr.Configure().with_dimension(symbolic_functions.cln(4) - symbolic_fun
 # {0: -7.215709162e-05+/-1.6204245125e-06}}
 
 
-g = graph_util_mr.from_str_alpha("e12|23|4|45|5|e|:0A_aA_aA|Aa_aA|aA|Aa_aA|aA|0a|:::::")
-print integration.integrate(g, "iw")
+g = graph_util_mr.from_str_alpha("e12|e3|45|46|e|66||:0a_Aa_Aa|0a_Aa|Aa_Aa|Aa_aA|0A|Aa_Aa||:::::")
+print integration.integrate(g, "log")
 
 # graphs = list()
 # graphs.append("e12|23|4|45|5|e|:0A_aA_aA|Aa_aA|aA|Aa_aA|aA|0a|")

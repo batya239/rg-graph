@@ -98,21 +98,15 @@ def construct_integrand_batch(integrands):
             integrand_e *= loop_var ** (dimension - symbolic_functions.CLN_ONE)
             integrand_e = integrand_e.subs(loop_var == ((symbolic_functions.CLN_ONE - loop_var) / loop_var))
 
-        main_integrand_a += (base_integrand * coeff)#.normal()
+        main_integrand_a += (base_integrand * coeff)
     if configure_mr.Configure.debug():
         print "Union to main integrand"
     main_integrand_a = main_integrand_a#.normal()
 
-    for loop_var in loop_momentum_vars:
-            main_integrand_a *= (symbolic_functions.CLN_ONE + loop_var) ** 2
-            main_integrand_a = main_integrand_a.subs(loop_var == ((symbolic_functions.CLN_ONE - loop_var) / loop_var))
-            #TODO
-            # new_loop_var = symbolic_functions.var("_" + str(loop_var))
-            # scalar_products_functions.append(ScalarProductFunction(sign=loop_var, body=(symbolic_functions.CLN_ONE - new_loop_var) / new_loop_var))
-            # integrations.append(Integration(var=new_loop_var, a=symbolic_functions.CLN_ZERO, b=symbolic_functions.CLN_ONE))
-            integrations.append(Integration(var=loop_var, a=symbolic_functions.CLN_ZERO, b=symbolic_functions.CLN_ONE))
-    if configure_mr.Configure.debug():
-        print "Integrand(a):", main_integrand_a
+    # print main_integrand_a
+    # print main_integrand_a.simplify_indexed()
+    # print main_integrand_a.normal()
+    # exit(1)
 
     for s_v in stretch_vars:
         var = s_v.var
@@ -121,6 +115,16 @@ def construct_integrand_batch(integrands):
                       (symbolic_functions.CLN_ONE - var) ** divergence \
                       * main_integrand_a.diff(var, divergence + 1)
         integrations.append(Integration(var=var, a=symbolic_functions.CLN_ZERO, b=symbolic_functions.CLN_ONE))
+
+    for loop_var in loop_momentum_vars:
+            main_integrand_a *= (symbolic_functions.CLN_ONE + loop_var) ** 2
+            main_integrand_a = main_integrand_a.subs(loop_var == ((symbolic_functions.CLN_ONE - loop_var) / loop_var))
+            # new_loop_var = symbolic_functions.var("k" + str(loop_var))
+            # scalar_products_functions.append(ScalarProductFunction(sign=loop_var, body=(symbolic_functions.CLN_ONE - new_loop_var) / new_loop_var))
+            # integrations.append(Integration(var=new_loop_var, a=symbolic_functions.CLN_ZERO, b=symbolic_functions.CLN_ONE))
+            integrations.append(Integration(var=loop_var, a=symbolic_functions.CLN_ZERO, b=symbolic_functions.CLN_ONE))
+    if configure_mr.Configure.debug():
+        print "Integrand(a):", main_integrand_a
 
     # if configure_mr.Configure.debug():
     #     print "Integrand(e):", integrand_e

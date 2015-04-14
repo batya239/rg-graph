@@ -64,6 +64,7 @@ def kr1_with_some_additional_lambda_operation(graph_state_as_str,
 
     all_graph = graph_util_mr.from_str(graph_state_as_str)
     all_graph = map_reduce_wrapper.MapReduceAlgebraWrapper(all_graph)
+    all_graph = all_graph.apply(momentum_enumeration.choose_minimal_momentum_flow)
 
     if configure_mr.Configure.do_d_tau():
         all_graph = all_graph.apply(diff_util_mr.D_minus_tau)
@@ -71,9 +72,10 @@ def kr1_with_some_additional_lambda_operation(graph_state_as_str,
     BATCH = True
 
     answer_dict = zeroDict()
+    print "Integrals count:", len(all_graph._mappings)
     for graph, c in all_graph.x_items():
+        print "Start integrate", graph
         graph = map_reduce_wrapper.MapReduceAlgebraWrapper(graph)
-        graph = graph.apply(momentum_enumeration.choose_minimal_momentum_flow)
         graph = graph.apply(propagator.subs_external_propagators_is_zero)
         graph = graph.apply(kr1_stretching)
         graph = graph.apply(integral_preparer_lambda)
