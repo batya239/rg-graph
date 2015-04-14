@@ -4,14 +4,13 @@
 __author__ = 'dima'
 
 
-import kr1
 import cuba_integration
 import os
 import subprocess
 from task_scheduler import submit_job, check_job_status, STATUS_DONE, STATUS_NEW, STATUS_RUN, STATUS_FAILED
 from rggraphutil import zeroDict
 from uncertainties import ufloat
-import configure_mr
+from momentumrepr import configure_mr
 import atexit
 import traceback
 import sys

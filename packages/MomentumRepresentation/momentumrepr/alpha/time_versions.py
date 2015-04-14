@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf8
 
-import graph_util_mr
+from momentumrepr import graph_util_mr
 import rggraphutil
 import itertools
 import graphine

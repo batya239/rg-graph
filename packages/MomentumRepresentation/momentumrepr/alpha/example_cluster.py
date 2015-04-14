@@ -4,8 +4,8 @@
 __author__ = 'dima'
 
 
-import graph_util_mr
-import configure_mr
+from momentumrepr import graph_util_mr
+from momentumrepr import configure_mr
 from rggraphenv import symbolic_functions
 import time
 
@@ -41,4 +41,4 @@ graphs.append("e12|e3|34|5|e6|66||:0A_aA_aA|0a_Aa|aA_aA|aA|0a_Aa|aA_aA||")
 graphs.append("e12|e3|34|5|e6|66||:0a_Aa_Aa|0A_aA|Aa_Aa|aA|0a_Aa|aA_aA||")
 
 for g in graphs:
-    print cluster_runner.calculate_diagram(g, "", "~/.server", "~/.aggregator")
+    print cluster_runner.calculate_diagram(g + ":::::", "", "~/.server", "~/.aggregator")

@@ -8,7 +8,7 @@ import subprocess
 import time
 from uncertainties import ufloat
 from rggraphutil import zeroDict
-import configure_mr
+from momentumrepr import configure_mr
 import stat
 import polynomial
 

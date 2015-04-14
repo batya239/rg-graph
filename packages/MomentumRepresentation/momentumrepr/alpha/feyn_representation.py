@@ -3,9 +3,9 @@
 import time_versions
 import graphine
 import itertools
-import uv
-import configure_mr
-import momentum_enumeration
+from momentumrepr import uv
+from momentumrepr import configure_mr
+from momentumrepr import momentum_enumeration
 import polynomial
 from collections import namedtuple
 from rggraphutil import emptyListDict, zeroDict

@@ -11,8 +11,8 @@ OPERATIONS.add("iw")
 from rggraphenv import symbolic_functions
 from rggraphutil import zeroDict
 
-import configure_mr
-import spherical_coordinats
+from momentumrepr import configure_mr
+from momentumrepr import spherical_coordinats, graph_util_mr
 import feyn_representation
 import cuba_integration
 import time_versions
@@ -37,6 +37,7 @@ def integrate(graph, operation):
 
 
 def integrands(graph, operation):
+    graph = graph_util_mr.from_str_alpha(graph)
     tvs = time_versions.find_time_versions(graph)
     print "Time version count:", len(tvs)
     for g in tvs:
