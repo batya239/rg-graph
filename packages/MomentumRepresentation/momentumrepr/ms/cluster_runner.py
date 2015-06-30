@@ -104,15 +104,15 @@ if __name__ == "__main__":
 
     for g in all_graphs:
         job_name = g.replace("|", "-").replace(":", "#").replace("A", 'z').replace("(", "").replace(")", "") + operation
-        with open("start.py", "w") as f:
+        with open("job_executable", "w") as f:
             f.write(TASK_TEMPLATE.format(**{'maxpoints': configure_mr.Configure.maximum_points_number(),
                              'abse': configure_mr.Configure.absolute_error(),
                              'rele': configure_mr.Configure.relative_error(),
                              'algorithm': configure_mr.Configure.integration_algorithm(),
                              'graph_source': g,
                              'operation': operation}))
-        submit_job("~/.server", job_name, [os.path.join(os.getcwd(), "start.py")], ["start.py"], job_output_file="job.log")
-        os.remove("start.py")
+        submit_job("~/.server", job_name, [os.path.join(os.getcwd(), "job_executable")], ["job_executable"], job_output_file="job.log")
+        os.remove("job_executable")
 
         with open(os.path.join(os.path.expanduser("~/.aggregator"), job_name + ".py"), 'w+') as f:
             f.write(AGGREGATION_TEMPLATE.format(**{'job_name': job_name}))
