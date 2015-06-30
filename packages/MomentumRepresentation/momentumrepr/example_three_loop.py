@@ -14,9 +14,9 @@ from rggraphutil import zeroDict
 
 
 configure_mr.Configure().with_dimension(symbolic_functions.cln(4) - symbolic_functions.e).with_target_loops_count(3).\
-    with_maximum_points_number(2000000).\
-    with_absolute_error(10e-9).\
-    with_relative_error(10e-6).\
+    with_maximum_points_number(100000000).\
+    with_absolute_error(10e-10).\
+    with_relative_error(10e-8).\
     with_integration_algorithm("suave").\
     with_debug(True).configure()
 

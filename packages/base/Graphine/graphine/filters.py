@@ -49,6 +49,14 @@ def has_n_borders(n):
     return _has_n_borders
 
 
+def has_n_legs(n):
+    """
+    Filter graphs only with :attr:`n` count of legs
+    """
+    @graph_filter
+    def _has_n_legs(edges_list, super_graph):
+        return n == filter(lambda e: e.is_external(), edges_list)
+
 def _graph_state_wrapper1(fun):
     def wrapper(edges_list, super_graph):
         return fun(edges_list)

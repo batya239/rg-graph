@@ -253,7 +253,7 @@ class Graph(object):
             g, new_vertex, vertex_transformation = g._shrink_to_point(all_edges, vertex_transformation)
             new_vertices.append(new_vertex)
         assert g
-        return (g, new_vertices) if with_aux_info else g
+        return (g, new_vertices, vertex_transformation) if with_aux_info else g
 
     def shrink_to_point(self, edges, with_aux_info=False):
         """
@@ -430,5 +430,9 @@ class VertexTransformation(object):
             return index_mapping
         return vertex_index
 
+    def __str__(self):
+        return str(self.mapping)
+
+    __repr__ = __str__
 
 ID_VERTEX_TRANSFORMATION = VertexTransformation()

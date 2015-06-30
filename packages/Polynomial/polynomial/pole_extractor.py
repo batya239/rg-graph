@@ -39,6 +39,7 @@ VarInfo = collections.namedtuple("VarInfo", ["var_index", "a", "b"])
 
 
 def _create_var_info(var_index, eps_number):
+    assert eps_number.b is not None
     return VarInfo(var_index, -eps_number.a, eps_number.b)
 
 
@@ -80,7 +81,7 @@ def _extract_poles(poly_prod, order):
             var_name = multi_index[0]
             mi = multi_index[1] * p.degree
             if mi.a < 0:
-                c = p.c * (m[1] ** p.degree) if p.degree.isRealNumber() else p.c * m[1]
+                c = p.c * (m[1] ** p.degree.a) if p.degree.isRealNumber() else p.c * m[1]
                 pole_parameters.append((_create_var_info(var_name, mi), p, c))
     result = {0: [poly_prod]}
     _order = order + len(pole_parameters) + 1
@@ -125,7 +126,7 @@ def _ac_part(poly_prod, var_info, order):
 
 
 def tail_part(poly_prod, var_info):
-    stretch_var_name = "t%d" % var_info.var_index
+    stretch_var_name = "t%s" % var_info.var_index
     poly_prod = poly_prod.stretch(stretch_var_name, (var_info.var_index,))
     stretched_diff = poly_prod.diff(stretch_var_name, var_info.a)
     # stretched_diff = map(lambda _pp: _pp.stretch(stretch_var_name, (var_info.var_index,)), stretched_diff)

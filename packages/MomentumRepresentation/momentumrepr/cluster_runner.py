@@ -90,7 +90,7 @@ def calculate_diagram(graph_state_str, operation_name, task_server_dir, aggregat
         submit_job(task_server_dir, task_name, task_files, task_executable_name, OUTPUT_FILE_NAME)
         print "job '%s' submitted" % task_name
 
-    aggregation_file_name = graph_state_str.replace("|", "-").replace(":", "#") + operation_name + ".py"
+    aggregation_file_name = graph_state_str.replace("|", "-").replace(":", "#").replace("A", 'z') + operation_name + ".py"
     aggregation_file_name = os.path.join(aggregator_dir, aggregation_file_name)
     aggregation_file_name = os.path.expanduser(aggregation_file_name)
     aggregation_file_name = os.path.abspath(aggregation_file_name)

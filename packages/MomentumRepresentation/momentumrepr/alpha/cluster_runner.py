@@ -135,4 +135,4 @@ def aggregation(scheduler_path, task_names):
                 print e
                 print "something wrong with job '%s'" % task_name
                 return
-    print answer
+    print dict(answer)

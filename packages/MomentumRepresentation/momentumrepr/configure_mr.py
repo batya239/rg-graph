@@ -40,12 +40,10 @@ class Configure(object):
         return self
 
     def with_integration_algorithm(self, integration_algorithm):
-        code = Configure.INTEGRATION_ALGORITHM_CODES.get(integration_algorithm, None)
-        if code is None:
-            try:
-                code = eval(integration_algorithm)
-            except:
-                pass
+        if isinstance(integration_algorithm, int):
+            code = integration_algorithm
+        else:
+            code = Configure.INTEGRATION_ALGORITHM_CODES.get(integration_algorithm, None)
         if code is None:
             raise Exception("no integration algorithm for name - %s" % integration_algorithm)
         self._integration_algorithm = code
@@ -102,7 +100,7 @@ class Configure(object):
     def dimension_pair(cls):
         dim = cls.dimension()
         a = dim.subs(symbolic_functions.e == 0).to_int()
-        b = 0#dim.coeff(symbolic_functions.e).to_int()
+        b = dim.coeff(symbolic_functions.e).to_int()
         return epsNumber((a, b))
 
     @classmethod
