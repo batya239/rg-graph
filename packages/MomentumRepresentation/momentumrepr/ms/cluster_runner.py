@@ -5,7 +5,10 @@ __author__ = 'dima'
 
 from task_scheduler import submit_job, check_job_status, STATUS_DONE, STATUS_FAILED, STATUS_NEW, STATUS_RUN
 from rggraphenv import symbolic_functions
-import configure_mr
+try:
+    import configure_mr
+except:
+    from momentumrepr import configure_mr
 
 configure_mr.Configure().with_dimension(symbolic_functions.cln(4) - symbolic_functions.CLN_TWO * symbolic_functions.e).with_target_loops_count(3).\
     with_maximum_points_number(50000000).\
