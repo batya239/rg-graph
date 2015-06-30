@@ -19,8 +19,7 @@ configure_mr.Configure().with_dimension(symbolic_functions.cln(4) - symbolic_fun
 
 operation = "iw"
 
-TASK_TEMPLATE = """
-#!/usr/bin/python
+TASK_TEMPLATE = """#!/usr/bin/env python
 # -*- coding: utf8
 
 from rggraphenv import symbolic_functions
@@ -64,15 +63,14 @@ for t in op(graphs):
     for k, v in multiply(diag_res, multiplier_res).items():
         r1[k] += v
 with open("result.log", "w") as f:
-    f.write("{graph_source}\\n")
+    f.write('{graph_source}' + "\\n")
     f.write(str(symbolic_functions.pole_part(r, remove_order=False).evalf()) + "\\n")
     f.write(str(integration.K(r1)) + "\\n")
 print "RESULT TAU", symbolic_functions.pole_part(r, remove_order=False).evalf()
 print "RESULT DICT", integration.K(r1)
 """
 
-AGGREGATION_TEMPLATE = """
-#!/usr/bin/python
+AGGREGATION_TEMPLATE = """#!/usr/bin/python
 # -*- coding: utf8
 
 import os
@@ -102,11 +100,11 @@ if __name__ == "__main__":
     pure_graphs = graphs[0]
     compound_graphs = graphs[1]
 
-    all_graphs = map(lambda g: "graph_util_ms.from_str(%s)" % g, pure_graphs) + \
+    all_graphs = map(lambda g: "graph_util_ms.from_str(\"%s\")" % g, pure_graphs) + \
                  map(lambda f: ("t_3_groups" if operation == "log" else "t_2_groups") + "." + f + "()", compound_graphs)
 
     for g in all_graphs:
-        job_name = g.replace("|", "-").replace(":", "#").replace("A", 'z').replace("(", "").replace(")", "") + operation
+        job_name = g.replace("\"", "").replace("|", "-").replace(":", "#").replace("A", 'z').replace("(", "").replace(")", "") + operation
         with open("job_executable", "w") as f:
             f.write(TASK_TEMPLATE.format(**{'maxpoints': configure_mr.Configure.maximum_points_number(),
                              'abse': configure_mr.Configure.absolute_error(),
