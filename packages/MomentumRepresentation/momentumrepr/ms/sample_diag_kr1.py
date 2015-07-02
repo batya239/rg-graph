@@ -12,7 +12,7 @@ from kr1 import compound_kr1, kr1_with_rules, kr1
 
 from rggraphenv import symbolic_functions
 configure_mr.Configure().with_dimension(symbolic_functions.cln(4) - symbolic_functions.CLN_TWO * symbolic_functions.e).with_target_loops_count(3).\
-    with_maximum_points_number(5000000).\
+    with_maximum_points_number(20000000).\
     with_absolute_error(10e-10).\
     with_relative_error(10e-8).\
     with_integration_algorithm("suave").\
@@ -64,31 +64,39 @@ def multiply(dict_a, dict_b):
 
 import t_2_groups
 import t_3_groups
-graphs = t_2_groups.get_group3()
+# graphs = t_2_groups.get_group3()
 # graphs = t_3_groups.get_group3()
+# f = open('log3l_2t_w','w')
+with open('log3l_3t','w') as f:
+    graphs = t_3_groups.get_all()
+    for g in graphs:
+        r = symbolic_functions.CLN_ZERO
+        from rggraphutil import zeroDict
+        r1 = zeroDict()
+        op = compound_kr1 if isinstance(g, list) else kr1
+        for t in op(g):
+            p2_dotes = 0
+            if len(t) == 3:
+                p2_dotes = t[2]
+            k = t[0]
+            v = t[1]
+            # r += integration.calculate_with_tau(k, "iw", p2_dotes) * v.eval_with_tau()
+            dia_vl = integration.calculate(k, None, p2_dotes)
+            r += integration.apply_tau(dia_vl, k) * v.eval_with_tau()
+            diag_res = dia_vl
+            multiplier_res = v.eval_with_error()
+            for k, v in multiply(diag_res, multiplier_res).items():
+                r1[k] += v
+        #ith open('log20kk2','wa+') as f:
+        f.write(str(g) + "\n")
+        f.write(str(symbolic_functions.pole_part(r, remove_order=False).evalf()) + "\n")
+        f.write(str(integration.K(r1)) + "\n")
+        f.flush()
+        print "RESULT", symbolic_functions.pole_part(r, remove_order=False).evalf()
+        print "RESULT", integration.K(r1)
 
-for t in compound_kr1(graphs):
-    p2_dotes = 0
-    if len(t) == 3:
-        p2_dotes = t[2]
-    k = t[0]
-    v = t[1]
-    print k
-    print v
-    print p2_dotes
-    print "------"
-    # r += integration.calculate_with_tau(k, "iw", p2_dotes) * v.eval_with_tau()
-    r += integration.calculate_with_tau(k, None, p2_dotes) * v.eval_with_tau()
-    # diag_res = integration.calculate(k, None, p2_dotes)
-    # multiplier_res = v.eval_with_error()
-    # for k, v in multiply(diag_res, multiplier_res).items():
-    #     r1[k] += v
-    print "---"
-print "RESULT", symbolic_functions.pole_part(r, remove_order=False).evalf()
-print "RESULT", r1
 
-
-
+# f.close()
 # # ggg = graph_util_ms.from_str("e12|23|4|e5|56|6|e|:0A_aA_aA|Aa_aA|aA|0a_aA|aA_aA|aA|0a|::::")
 # ggg = graph_util_ms.from_str("e12|e3|44|55|6|6|e|:0A_aA_aA|0a_Aa|aA_aA|Aa_Aa|aA|Aa|0a|::::")
 # r = symbolic_functions.CLN_ZERO

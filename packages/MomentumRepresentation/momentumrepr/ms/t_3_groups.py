@@ -167,6 +167,7 @@ graphs.append("e12|34|35|6|e5|6|e|:0A_aA_aA|aA_aA|aA_aA|aA|0a_Aa|aA|0a|::::")
 graphs.append("e12|34|35|6|e5|6|e|:0a_Aa_Aa|Aa_Aa|aA_Aa|aA|0A_aA|aA|0a|::::")
 graphs.append("e12|34|35|6|e5|6|e|:0A_aA_aA|Aa_aA|aA_aA|aA|0a_Aa|aA|0a|::::")
 graphs.append("e12|34|35|6|e5|6|e|:0A_aA_aA|aA_aA|Aa_aA|aA|0a_Aa|aA|0a|::::")
+graphs = map(lambda g: graph_util_ms.from_str(g), graphs)
 
 
 def get_group1():
