@@ -203,7 +203,8 @@ def get_group4():
 
 
 def get_all():
-    return graphs + [get_group1(), get_group2(), get_group3(), get_group4()]
+    # return graphs + [get_group1(), get_group2(), get_group3(), get_group4()]
+    return [get_group2()]
 
 
 def get_all_sources():
