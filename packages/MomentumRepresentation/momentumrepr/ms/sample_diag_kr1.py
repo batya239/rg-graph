@@ -12,7 +12,7 @@ from kr1 import compound_kr1, kr1_with_rules, kr1
 
 from rggraphenv import symbolic_functions
 configure_mr.Configure().with_dimension(symbolic_functions.cln(4) - symbolic_functions.CLN_TWO * symbolic_functions.e).with_target_loops_count(3).\
-    with_maximum_points_number(2000000).\
+    with_maximum_points_number(20000000).\
     with_absolute_error(10e-10).\
     with_relative_error(10e-8).\
     with_integration_algorithm("suave").\
