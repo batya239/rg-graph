@@ -133,7 +133,7 @@ def integrate_time_version(graph, operation, insert_p2_dotes=0):
         base_c *= symbolic_functions.CLN_MINUS_ONE
     if insert_p2_dotes != 0:
         assert insert_p2_dotes in (1, 2)
-        pow = ((configure_mr.Configure.dimension() * graph.loops_count) / symbolic_functions.CLN_TWO + graph.loops_count - symbolic_functions.CLN_TWO) if operation == "p2" else ((configure_mr.Configure.dimension() * graph.loops_count) / symbolic_functions.CLN_TWO)
+        pow = ((configure_mr.Configure.dimension() * graph.loops_count) / symbolic_functions.CLN_TWO - symbolic_functions.CLN_ONE) if operation == "p2" else ((configure_mr.Configure.dimension() * graph.loops_count) / symbolic_functions.CLN_TWO)
         base_c *= pow
         #TODO replace with -1 in kr1
         base_c *= (-1) ** insert_p2_dotes

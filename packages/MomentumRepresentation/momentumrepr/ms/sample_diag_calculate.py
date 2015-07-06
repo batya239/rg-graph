@@ -43,15 +43,15 @@ configure_mr.Configure().with_dimension(symbolic_functions.cln(4) - symbolic_fun
 # g = graph_util_ms.from_str("e12|34|35|e|e5||:00_aA_aA|aA_Aa|aA_aA|00|00_Aa||::::")  # 4
 
 # g = graph_util_ms.from_str("e12|e3|44|55|6|6|e|:0A_aA_aA|0a_Aa|aA_aA|Aa_Aa|aA|Aa|0a|::::")
-g = graph_util_ms.from_str("e12|e3|33||:00_aA_aA|00_Aa|aA_aA||::::")
-# g = graph_util_ms.from_str("e11|e|:00_aA_aA|00|::::")
+# g = graph_util_ms.from_str("e12|e3|33||:00_aA_aA|00_Aa|aA_aA||::::")
+g = graph_util_ms.from_str("e11|e|:00_aA_aA|00|::::")
 # g = graph_util_ms.from_str("e12|e2||:00_aA_aA|00_Aa||::::")
 # g = graph_util_ms.from_str("e12|23|3|e|:00_aA_aA|aA_aA|aA|00|::::")
 # g = graph_util_ms.from_str("e12|3|3|e|:00_aA_aA|aA|aA|00|::::")
 # g = graph_util_ms.from_str("e12|e3|3||:00_aA_aA|00_Aa|aA||::::")
 # g = graph_util_ms.from_str("e12|e3|e4|44||:00_Aa_aA|00_aA|00_Aa|aA_aA||::::")
-result = calculate(g, None)
-print "RES", result
+# result = calculate(g, "p2", insert_p2_dotes=0)
+# print "RES", result
 # # # RES defaultdict(<function <lambda> at 0x10d896398>, {-2: -0.01073181850492+/-9.757746033333332e-07, -3: -0.0039062503956583325+/-1.6870322e-07, -1: -0.0204877902347116+/-3.895274636080001e-06})
 # # # # RES defaultdict(<function <lambda> at 0x108ef6398>, {-2: -0.010732024139191667+/-8.487505999999999e-08, -3: -0.003906252204265+/-1.4819028333333333e-08, -1: -0.020486770992769424+/-4.331757293854968e-07})
 # # #

@@ -8,6 +8,7 @@ import collections
 import feyn_repr
 import graph_state
 import itertools
+import configure_mr
 from rggraphutil import emptyListDict
 
 
@@ -43,7 +44,7 @@ def strategy_a(node):
 
     for primary in decomposition_space:
         secondary = decomposition_space - {primary}
-        if DEBUG:
+        if configure_mr.Configure.debug():
             print "\t" * (len(node._previous_primaries) + 1) + "p: " + str(primary) + ", s: " + str(secondary)
         new_node = SectorNode(primary, secondary, node._previous_primaries + (primary, ), node.alpha_params)
         new_node.d = d.stretch(primary, [list(secondary)[0]])
@@ -150,7 +151,7 @@ class SectorsTree(object):
 
         for primary in primaries:
             secondary = set(primaries) - {primary}
-            if DEBUG:
+            if configure_mr.Configure.debug():
                 print "p: " + str(primary) + ", s: " + str(secondary)
             node = SectorNode(primary, secondary, tuple(), alpha_params)
             node.graph = self.graph
@@ -280,7 +281,7 @@ MAIN_GRAPH_CONFIG = graph_state.PropertiesConfig.create(graph_state.PropertyKey(
                                                                                 externalizer=graph_state.Fields.externalizer()))
 
 def calculate_sectors(strategy, _d, graph):
-    conv_laws = feyn_repr.determine_conservation_laws(graph)
+    conv_laws = set() #feyn_repr.determine_conservation_laws(graph)
     tree = SectorsTree(graph, conv_laws, _d)
     tree.build_tree(strategy)
     return tree

@@ -12,7 +12,7 @@ from kr1 import compound_kr1, kr1_with_rules, kr1
 
 from rggraphenv import symbolic_functions
 configure_mr.Configure().with_dimension(symbolic_functions.cln(4) - symbolic_functions.CLN_TWO * symbolic_functions.e).with_target_loops_count(3).\
-    with_maximum_points_number(20000000).\
+    with_maximum_points_number(2000000).\
     with_absolute_error(10e-10).\
     with_relative_error(10e-8).\
     with_integration_algorithm("suave").\
@@ -62,38 +62,38 @@ def multiply(dict_a, dict_b):
             dict_c[k + k2] += v * v2
     return dict_c
 
-import t_2_groups
-import t_3_groups
-# graphs = t_2_groups.get_group3()
-# graphs = t_3_groups.get_group3()
-# f = open('log3l_2t_w','w')
-with open('log3l_3t','w') as f:
-    graphs = t_3_groups.get_all()
-    for g in graphs:
-        r = symbolic_functions.CLN_ZERO
-        from rggraphutil import zeroDict
-        r1 = zeroDict()
-        op = compound_kr1 if isinstance(g, list) else kr1
-        for t in op(g):
-            p2_dotes = 0
-            if len(t) == 3:
-                p2_dotes = t[2]
-            k = t[0]
-            v = t[1]
-            # r += integration.calculate_with_tau(k, "iw", p2_dotes) * v.eval_with_tau()
-            dia_vl = integration.calculate(k, None, p2_dotes)
-            r += integration.apply_tau(dia_vl, k) * v.eval_with_tau()
-            diag_res = dia_vl
-            multiplier_res = v.eval_with_error()
-            for k, v in multiply(diag_res, multiplier_res).items():
-                r1[k] += v
-        #ith open('log20kk2','wa+') as f:
-        f.write(str(g) + "\n")
-        f.write(str(symbolic_functions.pole_part(r, remove_order=False).evalf()) + "\n")
-        f.write(str(integration.K(r1)) + "\n")
-        f.flush()
-        print "RESULT", symbolic_functions.pole_part(r, remove_order=False).evalf()
-        print "RESULT", integration.K(r1)
+# import t_2_groups
+# import t_3_groups
+# # graphs = t_2_groups.get_group3()
+# # graphs = t_3_groups.get_group3()
+# # f = open('log3l_2t_w','w')
+# with open('log3l_3t_9','w') as f:
+#     graphs = t_3_groups.get_all()
+#     for g in graphs:
+#         r = symbolic_functions.CLN_ZERO
+#         from rggraphutil import zeroDict
+#         r1 = zeroDict()
+#         op = compound_kr1 if isinstance(g, list) else kr1
+#         for t in op(g):
+#             p2_dotes = 0
+#             if len(t) == 3:
+#                 p2_dotes = t[2]
+#             k = t[0]
+#             v = t[1]
+#             # r += integration.calculate_with_tau(k, "iw", p2_dotes) * v.eval_with_tau()
+#             dia_vl = integration.calculate(k, None, p2_dotes)
+#             r += integration.apply_tau(dia_vl, k) * v.eval_with_tau()
+#             diag_res = dia_vl
+#             multiplier_res = v.eval_with_error()
+#             for k, v in multiply(diag_res, multiplier_res).items():
+#                 r1[k] += v
+#         #ith open('log20kk2','wa+') as f:
+#         f.write(str(g) + "\n")
+#         f.write(str(symbolic_functions.pole_part(r, remove_order=False).evalf()) + "\n")
+#         f.write(str(integration.K(r1)) + "\n")
+#         f.flush()
+#         print "RESULT", symbolic_functions.pole_part(r, remove_order=False).evalf()
+#         print "RESULT", integration.K(r1)
 
 
 # f.close()
@@ -116,23 +116,33 @@ with open('log3l_3t','w') as f:
 # print "RESULT", symbolic_functions.pole_part(r, remove_order=False).coeff(symbolic_functions.e ** (-2)).simplify_indexed()
 #{-2: 0.011939545030540554+/-1.312745711111111e-07, -3: 0.0029296875+/-0, -1: 0.004361881644797129+/-7.004578744444444e-07}
 
-# ggg = graph_util_ms.from_str("e12|e3|4|55|e5||:00_aA_aA|00_Aa|aA|Aa_Aa|00_aA||::::")
-# r = symbolic_functions.CLN_ZERO
-# for t in k1_with_rules(ggg):
-#     k = t[0]
-#     print "loops", k.loops_count
-#     print k
-#     v = t[1]
-#     print v
-#     print v.eval_with_tau()
-#     diag_val = integration.calculate_with_tau(k, None)
-#     print "diag_val", k, diag_val
-#     r += diag_val * v.eval_with_tau()
-#     print "---"
-# print "RESULT", symbolic_functions.pole_part(r, remove_order=False)
-# print "RESULT", symbolic_functions.pole_part(r, remove_order=False).coeff(symbolic_functions.e ** (-1)).simplify_indexed()
-# print "RESULT", symbolic_functions.pole_part(r, remove_order=False).coeff(symbolic_functions.e ** (-2)).simplify_indexed()
-# #{-2: 0.011939545030540554+/-1.312745711111111e-07, -3: 0.0029296875+/-0, -1: 0.004361881644797129+/-7.004578744444444e-07}
+# ggg = graph_util_ms.from_str("e12|23|3|e|:00_aA_aA|aA_aA|aA|00|::::")
+import t_2_groups
+ggg = t_2_groups.get_group3()
+import hardcoded
+r = symbolic_functions.CLN_ZERO
+for t in compound_kr1(ggg):
+    k = t[0]
+    p2_dotes = 0
+    if len(t) == 3:
+        p2_dotes = t[2]
+    print "loops", k.loops_count
+    print "dotes", p2_dotes
+    print "graph", k
+    v = t[1]
+    print v
+    print v.eval_with_tau()
+    diag_val = integration.calculate_with_tau(k, "p2", p2_dotes)
+    print "diag_val", k, diag_val
+    r += diag_val * v.eval_with_tau()
+    print "---"
+print "RESULT", symbolic_functions.pole_part(r, remove_order=False).evalf()
+print "RESULT", symbolic_functions.pole_part(r, remove_order=False).coeff(symbolic_functions.e ** (-1)).simplify_indexed().evalf()
+print "RESULT", symbolic_functions.pole_part(r, remove_order=False).coeff(symbolic_functions.e ** (-2)).simplify_indexed().evalf()
+print "RESULT", symbolic_functions.pole_part(r, remove_order=False).coeff(symbolic_functions.e ** (-3)).simplify_indexed().evalf()
+# print "REAL -1", hardcoded.kr1(ggg, "p2")[-1].evalf()
+# print "REAL -2", hardcoded.kr1(ggg, "p2")[-2].evalf()
+#{-2: 0.011939545030540554+/-1.312745711111111e-07, -3: 0.0029296875+/-0, -1: 0.004361881644797129+/-7.004578744444444e-07}
 
 
 # graphs = list()
