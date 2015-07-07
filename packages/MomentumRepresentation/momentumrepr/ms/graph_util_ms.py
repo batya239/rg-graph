@@ -34,3 +34,5 @@ MS_GRAPH_CONFIG = graph_state.PropertiesConfig.create(graph_state.PropertyKey(na
 
 def from_str(gs):
     return graphine.Graph(MS_GRAPH_CONFIG.graph_state_from_str(gs))
+
+new_edge = MS_GRAPH_CONFIG.new_edge

@@ -202,6 +202,10 @@ def get_group4():
     return result
 
 
+def get_all_flat():
+    return graphs + map(lambda gs: graph_util_ms.from_str(gs), group1 + group2 + group3 + group4)
+
+
 def get_all():
     return graphs + [get_group1(), get_group2(), get_group3(), get_group4()]
 

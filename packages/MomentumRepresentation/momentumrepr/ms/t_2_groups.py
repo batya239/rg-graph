@@ -70,7 +70,7 @@ def get_all_sources():
 # import uncertainties
 # import sym_coef
 # lines = list()
-# with open("log3l_2t_w", "r") as f:
+# with open("log3l_2t_tau", "r") as f:
 #     for l in f:
 #         lines.append(l[:-1])
 #
@@ -78,6 +78,8 @@ def get_all_sources():
 # for g in get_all():
 #     idx = lines.index(str(g)) + 2
 #     raw_answer = lines[idx]
+#     if "}" not in raw_answer:
+#         raw_answer += "}"
 #     line = raw_answer[raw_answer.index("-1:") +3:]
 #     try:
 #         answer = uncertainties.ufloat(*eval(line[:line.index(",")].replace("+/-", ",")))
