@@ -65,3 +65,26 @@ def get_all():
 
 def get_all_sources():
     return graphs, ["get_group1", "get_group2", "get_group3"]
+
+
+# import uncertainties
+# import sym_coef
+# lines = list()
+# with open("log3l_2t_w", "r") as f:
+#     for l in f:
+#         lines.append(l[:-1])
+#
+# res = 0
+# for g in get_all():
+#     idx = lines.index(str(g)) + 2
+#     raw_answer = lines[idx]
+#     line = raw_answer[raw_answer.index("-1:") +3:]
+#     try:
+#         answer = uncertainties.ufloat(*eval(line[:line.index(",")].replace("+/-", ",")))
+#     except:
+#         answer = uncertainties.ufloat(*eval(line[:line.index("}")].replace("+/-", ",")))
+#     if isinstance(g, list):
+#         res += answer
+#     else:
+#         res += answer * sym_coef.sc(g).evalf().to_double()
+# print res
