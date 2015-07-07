@@ -67,7 +67,7 @@ import t_3_groups
 graphs = t_2_groups.get_all()
 # graphs = t_3_groups.get_group3()
 # f = open('log3l_2t_w','w')
-with open('log3l_3t_p2','w') as f:
+with open('log3l_2t_tau','w') as f:
     # graphs = t_3_groups.get_all()
     for g in graphs:
         r = symbolic_functions.CLN_ZERO
@@ -81,7 +81,7 @@ with open('log3l_3t_p2','w') as f:
             k = t[0]
             v = t[1]
             # r += integration.calculate_with_tau(k, "iw", p2_dotes) * v.eval_with_tau()
-            dia_vl = integration.calculate(k, "p2", p2_dotes)
+            dia_vl = integration.calculate(k, None, p2_dotes)
             r += integration.apply_tau(dia_vl, k) * v.eval_with_tau()
             diag_res = dia_vl
             multiplier_res = v.eval_with_error()
@@ -116,10 +116,10 @@ with open('log3l_3t_p2','w') as f:
 # print "RESULT", symbolic_functions.pole_part(r, remove_order=False).coeff(symbolic_functions.e ** (-2)).simplify_indexed()
 #{-2: 0.011939545030540554+/-1.312745711111111e-07, -3: 0.0029296875+/-0, -1: 0.004361881644797129+/-7.004578744444444e-07}
 
-# ggg = graph_util_ms.from_str("e12|23|3|e|:00_aA_aA|aA_aA|aA|00|::::")
-import t_2_groups
-ggg = t_2_groups.get_group3()
-import hardcoded
+# ggg = graph_util_ms.from_str("e12|e3|33||:00_aA_aA|00_Aa|aA_aA||::::")
+# import t_2_groups
+# ggg = t_2_groups.get_group3()
+# import hardcoded
 # r = symbolic_functions.CLN_ZERO
 # for t in compound_kr1(ggg):
 #     k = t[0]
@@ -132,17 +132,17 @@ import hardcoded
 #     v = t[1]
 #     print v
 #     print v.eval_with_tau()
-#     diag_val = integration.calculate_with_tau(k, "p2", p2_dotes)
+#     diag_val = integration.calculate_with_tau(k, None, p2_dotes)
 #     print "diag_val", k, diag_val
 #     r += diag_val * v.eval_with_tau()
 #     print "---"
 # print "RESULT", symbolic_functions.pole_part(r, remove_order=False).evalf()
 # print "RESULT", symbolic_functions.pole_part(r, remove_order=False).coeff(symbolic_functions.e ** (-1)).simplify_indexed().evalf()
 # print "RESULT", symbolic_functions.pole_part(r, remove_order=False).coeff(symbolic_functions.e ** (-2)).simplify_indexed().evalf()
-# print "RESULT", symbolic_functions.pole_part(r, remove_order=False).coeff(symbolic_functions.e ** (-3)).simplify_indexed().evalf()
-# # print "REAL -1", hardcoded.kr1(ggg, "p2")[-1].evalf()
-# # print "REAL -2", hardcoded.kr1(ggg, "p2")[-2].evalf()
-# #{-2: 0.011939545030540554+/-1.312745711111111e-07, -3: 0.0029296875+/-0, -1: 0.004361881644797129+/-7.004578744444444e-07}
+# # print "RESULT", symbolic_functions.pole_part(r, remove_order=False).coeff(symbolic_functions.e ** (-3)).simplify_indexed().evalf()
+# # print "REAL -1", hardcoded.kr1(ggg, "tau").get(-1, symbolic_functions.CLN_ZERO).evalf()
+# # print "REAL -2", hardcoded.kr1(ggg, "tau").get(-2, symbolic_functions.CLN_ZERO).evalf()
+#{-2: 0.011939545030540554+/-1.312745711111111e-07, -3: 0.0029296875+/-0, -1: 0.004361881644797129+/-7.004578744444444e-07}
 
 
 # graphs = list()
