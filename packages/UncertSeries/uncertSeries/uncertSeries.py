@@ -175,6 +175,7 @@ class Series():
     #    return self.gSeries
 
 
+
     def __str__(self):
         """
         Вывод результата, обрезанного с учётом погрешности, с указанием точности последней значащей цифры
@@ -192,7 +193,9 @@ class Series():
                     res += " %s * %s**%s + " % (c.format('S'), self.name, str(g))
             elif c != 0 and g <= self.n and isinstance(c, (int, float)):
                 res += "%s * %s**%s + " % (str(c), self.name, str(g))
-        return res[:-2]
+        return res[:-2] + (" + Order(%s**%s)" % (self.name, self.n))
+
+    __repr__ = __str__
 
     def coeffs(self):
         """
