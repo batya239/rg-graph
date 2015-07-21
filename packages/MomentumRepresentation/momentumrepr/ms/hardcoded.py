@@ -26,7 +26,8 @@ TWO_LOOPS[graph_util_ms.from_str("e12|e3|e4|44||:00_Aa_Aa|00_Aa|00_aA|Aa_Aa||:::
 
 
 TWO_LOOPS[graph_util_ms.from_str("e12|34|34|e|e|:00_aA_aA|aA_aA|aA_aA|00|00|::::").to_graph_state()] = {"log": {-1: ln43*cln(3)/cln(8)}}
-TWO_LOOPS[graph_util_ms.from_str("e12|34|34|e|e|:00_Aa_Aa|Aa_Aa|Aa_Aa|00|00|::::").to_graph_state()] = {"log": {-1: ln43*cln(3)/cln(8)}}
+# delete
+# TWO_LOOPS[graph_util_ms.from_str("e12|34|34|e|e|:00_Aa_Aa|Aa_Aa|Aa_Aa|00|00|::::").to_graph_state()] = {"log": {-1: ln43*cln(3)/cln(8)}}
 
 TWO_LOOPS[graph_util_ms.from_str("e12|34|34|e|e|:00_aA_aA|aA_aA|Aa_aA|00|00|::::").to_graph_state()] = {"log": {-1: ln43/cln(8)}}
 
@@ -36,10 +37,12 @@ TWO_LOOPS[graph_util_ms.from_str("e12|e3|34|4|e|:00_Aa_Aa|00_Aa|Aa_Aa|Aa|00|::::
 TWO_LOOPS[graph_util_ms.from_str("e12|e3|34|4|e|:00_aA_aA|00_aA|Aa_aA|aA|00|::::").to_graph_state()] = {"log": {-2: -cln(1)/cln(32), -1: (cln(1)-3*ln43)/cln(32)}}
 TWO_LOOPS[graph_util_ms.from_str("e12|e3|34|4|e|:00_Aa_Aa|00_Aa|aA_Aa|Aa|00|::::").to_graph_state()] = {"log": {-2: -cln(1)/cln(32), -1: (cln(1)-3*ln43)/cln(32)}}
 
-TWO_LOOPS[graph_util_ms.from_str("e12|e3|34|4|e|:00_aA_aA|00_Aa|aA_aA|Aa|00|::::").to_graph_state()] = {"log": {-2: -cln(1)/cln(32), -1: (ln43-cln(1))/cln(32)}}
+# delete
+# TWO_LOOPS[graph_util_ms.from_str("e12|e3|34|4|e|:00_aA_aA|00_Aa|aA_aA|Aa|00|::::").to_graph_state()] = {"log": {-2: -cln(1)/cln(32), -1: (ln43-cln(1))/cln(32)}}
 TWO_LOOPS[graph_util_ms.from_str("e12|e3|34|4|e|:00_Aa_Aa|00_aA|Aa_Aa|aA|00|::::").to_graph_state()] = {"log": {-2: -cln(1)/cln(32), -1: (ln43-cln(1))/cln(32)}}
 
-TWO_LOOPS[graph_util_ms.from_str("e12|e3|34|4|e|:00_aA_aA|00_Aa|aA_aA|aA|00|::::").to_graph_state()] = {"log": {-2: -cln(1)/cln(32), -1: (cln(1)-3*ln43)/cln(32)}}
+# delete
+# TWO_LOOPS[graph_util_ms.from_str("e12|e3|34|4|e|:00_aA_aA|00_Aa|aA_aA|aA|00|::::").to_graph_state()] = {"log": {-2: -cln(1)/cln(32), -1: (cln(1)-3*ln43)/cln(32)}}
 TWO_LOOPS[graph_util_ms.from_str("e12|e3|34|4|e|:00_Aa_Aa|00_aA|Aa_Aa|Aa|00|::::").to_graph_state()] = {"log": {-2: -cln(1)/cln(32), -1: (cln(1)-3*ln43)/cln(32)}}
 # assert len(TWO_LOOPS) == 9
 
@@ -74,6 +77,13 @@ def kr1(graph, operation):
     elif graph.loops_count == 2:
         return TWO_LOOPS[graph.to_graph_state()][operation]
     assert False
+
+
+def kr1_eps(graph, operation):
+    result = symbolic_functions.CLN_ZERO
+    for k, v in kr1(graph, operation).iteritems():
+        result += v * symbolic_functions.e ** k
+    return result
 
 
 def value(graph, operation):
