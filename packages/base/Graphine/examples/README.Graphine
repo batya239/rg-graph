@@ -2,24 +2,9 @@ This directory contains the following examples
 that demonstrate basic usage of Graphine package:
 
 
-== dynamic_diagram_generator.py ==
-This file contains definitions and routines of generator 
-of dynamical diagrams in statistical physics models. 
-See example of usage of this routines in "percolation_generator_example.py"
+== YURA TODO ==
 
-To use call generate() function where
-graph_topology -- given topology in correspondent static model. 
-possible_fields -- possible fields of model where. Each of fields must be denoted as single letter.
-If field has correspondent delayed field
-then it should have different lettercases (lowercase or uppercase). 
-possible_external_fields -- fields which are located on the external egdes
-possible_vertices -- list of possible fields combinations in vertices
-
-== graph_state_config_with_fields.py ==
-This is the configuration file for the following generator.
-It does not do anything by itself.
-
-== percolation_generator_example.py ==
+== generate_percolation.py ==
 Generation of Feynman diagrams for percolation theory in statistical physics in order of 3-loops
 based on "static" diagrams of $\phi^3$ theory. The result of this script is the set of 
 all the diagrams of the third order of loop expansion (written in terms of extended Nickel notation).
