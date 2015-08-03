@@ -7,7 +7,7 @@ setup(
     version='1.0.6',
     author='D. Batkovich',
     author_email='batya239@gmail.com',
-    packages=['graphine', 'graphine.test', 'graphine.generator.test', 'graphine.generator.test'],
+    packages=['graphine', 'graphine.test', 'graphine.generator'],
     url='http://pypi.python.org/pypi/PyGraphine/',
     license='LICENSE.txt',
     description='Graph manipulation package based on GraphState',
