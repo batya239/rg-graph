@@ -31,8 +31,8 @@
 
 __author__ = 'batya239@gmail.com'
 
-import diagram_generator
-import sym_coef
+from graphine.generator import diagram_generator
+from graphine.generator import sym_coef
 
 three_loops = list()
 

@@ -20,8 +20,8 @@ The number next to graph means symmetries coefficient.
 __author__ = 'dima'
 
 
-import topology
-import sym_coef
+from graphine.generator import topology
+from graphine.generator import sym_coef
 
 for g in topology.get_topologies(valencies_to_num_nodes={4: 4},
                                  external_nodes_count=4,

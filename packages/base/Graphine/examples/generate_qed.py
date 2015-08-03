@@ -16,9 +16,9 @@ This output means 3 graphs where 'f' and 'F are fermion fields,
 __author__ = 'dima'
 
 
-import topology
-import diagram_generator
-import sym_coef
+from graphine.generator import topology
+from graphine.generator import diagram_generator
+from graphine.generator import sym_coef
 
 for gs in topology.get_topologies({3: 4}, external_nodes_count=2, with_tadpoles=False, is_one_particle_irreducible=True):
     for _g in diagram_generator.generate_fields(gs,
