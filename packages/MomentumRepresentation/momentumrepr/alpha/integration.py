@@ -30,8 +30,6 @@ def integrate(graph, operation):
     tvs = time_versions.find_time_versions(graph)
     print "Time version count:", len(tvs)
     for g in tvs:
-        if str(g) != "e12|e3|34|4|e|:0A_aA_aA|0a_aA|aA_aA|aA|0a|:::::0|2|1|3|4":
-            continue
         print "Time Version:", g
         for o, v in integrate_time_version(g, operation).iteritems():
             result[o] += v
