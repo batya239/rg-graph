@@ -12,7 +12,7 @@ import time
 
 t = time.time()
 configure_mr.Configure().with_dimension(symbolic_functions.cln(4) - symbolic_functions.cln(2) * symbolic_functions.e).with_target_loops_count(3).\
-    with_maximum_points_number(100000).\
+    with_maximum_points_number(5000000).\
     with_absolute_error(10e-10).\
     with_relative_error(10e-10).\
     with_integration_algorithm("suave").\
@@ -22,7 +22,7 @@ configure_mr.Configure().with_dimension(symbolic_functions.cln(4) - symbolic_fun
 # print integration.integrate(g, "log")
 # {0: -0.0111299458087675+/-2.877601825e-07}
 
-g = graph_util_mr.from_str_alpha("e12|e3|34|4|e|:0A_aA_aA|0a_aA|aA_aA|aA|0a|:::::")
+g = graph_util_mr.from_str_alpha("e12|e3|44|55|6|6|e|:0A_aA_aA|0a_Aa|aA_aA|Aa_Aa|aA|Aa|0a|:::::")
 print integration.integrate(g, "log")
 # {0: 0.02012006289966+/-6.83725747429863e-07}
 
