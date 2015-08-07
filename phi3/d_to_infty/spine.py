@@ -8,6 +8,7 @@ import networkx as nx
 import itertools as it
 #import matplotlib.pyplot as plt
 import dynamic_diagram_generator
+import os, sys
 
 ## Convert GraphState.edge --> tuple
 edge_to_ints = lambda e: tuple(map(lambda n: n.index, e.nodes))
@@ -176,41 +177,49 @@ def filter_spines(G,spines):
                     if path_fields[-1] in ['Ad','ad']:
                         if len(path_fields) == 2:
                             return True
-                        elif len(path_fields) > 2:
+                        else:# len(path_fields) > 2:
                             if path_fields.count('aA') + \
                                     path_fields.count('Aa') + \
                                     path_fields.count('aa') == len(path_fields)-2:
                                 # print "\t\tRail 2:",another_path, path_fields
                                 return True
-                        else:
-                            print "Something went wrong"
-                            raise
+                        #else:
+                        #    print "Something went wrong"
+                        #    raise
 if  __name__ == "__main__":
     Loops = 5
-    with open("../e2-%dloop.txt.gs"%Loops) as fd:
-        diags = [d.strip() for d in fd.readlines()]
-    count_all = 0
-    good_list = []
+    if len(sys.argv)<2:
+        with open("../e2-%dloop.txt.gs"%Loops) as fd:
+            diags = [d.strip() for d in fd.readlines()]
+    else:
+        diags = [sys.argv[1]]
+        if len(sys.argv) == 3:
+            Loops = int(sys.argv[2])
+    count_all, count_good = 0,0
+    #good_list = []
     for d in diags:
-        print "\n",d
+        # print "\n",d
         G = nx_graph_from_str(d)
         source = 0
         sink = max([g for g in G.edges() if g[1] < 0])[0]
-        print "Sink:",sink, [g for g in G.edges() if g[1] < 0]
+        # print "Sink:",sink, [g for g in G.edges() if g[1] < 0]
         spine_pairs = spine(G,source,sink)+spine(G,sink,source)
         # draw_Agraph(G,spine_pairs,d.replace('|','-'))
-        print "Spine pairs",spine_pairs
+        # print "Spine pairs",spine_pairs
         
         for _g in dynamic_diagram_generator.generate(d, possible_fields=["aA", "aa", "ad", "dd", "dA"], possible_external_fields="Aa", possible_vertices=["adA"]):
             # print "_"*5
             count_all +=1
             if filter_spines(_g,spine_pairs):
                 print _g
-                good_list += [_g]
+                count_good += 1
                 #draw_Agraph_with_fields(_g)
-    print "All: %d, good: %d"%(count_all,len(good_list))
+    #print "All: %d, good: %d"%(count_all,len(good_list))
+    with open("diags_%d_loops/count"%Loops,'a') as fd:
+        fd.write( "%s\t%d\t%d\n"%(d,count_all,count_good))
+        
     
-    with open('%dloop_all.txt'%Loops,'w') as fd:
-        for g in good_list:
-            fd.write(str(g)+'\n')
+    #with open('%dloop_all.txt'%Loops,'w') as fd:
+    #    for g in good_list:
+    #        fd.write(str(g)+'\n')
 
