@@ -1,0 +1,230 @@
+#! /usr/bin/python
+#! encoding: utf8
+
+__author__ = 'kirienko'
+
+
+from d_to_infty_class import D_to_infty_graph as D
+from sympy import var, factor, ln, prod
+from copy import deepcopy
+from sign_account import sign_account
+
+#vasya_counter = set()
+
+def cut_edges(G,sub1,sub2):
+    """
+
+    :param nx_graph: initial networkx graph G
+    :param sub1: list of nodes of the subgraph 1 of G
+    :param sub2: list of nodes of the subgraph 1 of G
+    :return: list of the internal edges of G such that are cut
+    """
+    edges = G.subgraph(sub1).edges(keys=True) + G.subgraph(sub2).edges(keys=True)
+    # ans = [e for e in G.edges_iter() if (e not in edges and -1 not in e and -2 not in e)]
+    # return [(a,ans.count(a)) for a in set(ans)]
+    return [e for e in G.edges_iter(keys=True) if (e not in edges and -1 not in e and -2 not in e)]
+
+
+def integrand_maple(graph_obj,tv_num,dn,order = 0):
+    """
+    
+    :param graph_obj: instance of D_to_infty_graph class
+    :param tv_num: number of time version to produce integrand
+    :param dn: number of the diagram (some unique number)
+    :return: integrand as a string
+    """
+    # diag_number = diag_dict[graph_obj.nickel]
+    # if int(diag_number) in [9,43,45,47,54,79,81]: return ''
+    tv = graph_obj.get_time_versions()
+    v = tv[tv_num][0]
+    var(['k%d'%j for j in range(graph_obj.Loops)])
+    var(['a%d'%j for j in range(graph_obj.Loops-1)])
+    sq = lambda x: x**2
+    local_vasya_counter = False
+    denominator = 1
+    for l in xrange(len(v)-1): # <-- loop over cuts
+        all_momenta = [var('k%i'%i) for i in xrange(graph_obj.Loops)]
+        stretch_factors = dict(zip(all_momenta,[1 for i in xrange(len(all_momenta))]))
+        edges = cut_edges(graph_obj.U,v[:l+1],v[l+1:]) # <-- edges of the cut
+        # print "\nMomenta in the cut",v[:l+1],"|",v[l+1:],":",map(graph_obj.momenta_in_edge,edges)
+        ## Check if edges are in some significant subgraph
+        for j,sub in enumerate(tv[tv_num][1]):
+            sg_nodes = [n for n in sub.vertices if n>-1]
+            sg = graph_obj.U.subgraph(sg_nodes)
+            ## If the cut shares edges with subgraph, do stretches
+            if set(sg.edges(keys=True)).intersection(set(edges)):
+                ## Find simple momenta in this subgraph
+                sg_simple_mom = [graph_obj.momenta_in_edge(e)[0] for e in sg.edges(keys=True) if len(graph_obj.momenta_in_edge(e)) == 1]
+                # print "Subgraph:",sub," simple momenta:",sg_simple_mom
+                for k in stretch_factors:
+                    if str(k) not in sg_simple_mom:
+                        stretch_factors[k] *= var('a%d'%j)
+        # print "Stretching factors:",stretch_factors
+        den = []
+        for e in edges:
+            # print "Edge:",e
+            m = [var(x) for x in graph_obj.momenta_in_edge(e)]
+            # print m,stretch_factors[m[0]]
+            # print var(graph_obj.momenta_in_edge(e))
+            den += factor(map(sq,map(lambda x: stretch_factors[x]*x,m)))
+        denominator *= sum(den)
+    
+    numerator = 1
+    numerator *= reduce(lambda x,y: x*y, var(['k%d'%j for j in range(graph_obj.Loops)])) # <-- Jacobian
+    for b in graph_obj.bridges:
+        test = map(lambda x: int(graph_obj.flow_near_node(x),2),b)
+        shared_mom_bin = bin(test[0]&test[1])[2:]
+        shared_mom     = [var("k%d"%j) for j,k in enumerate(shared_mom_bin[::-1]) if int(k) and j < graph_obj.Loops]
+        if len(shared_mom) == 0:
+            continue
+        else:
+            num = 0
+            for m in shared_mom:
+                term = sq(m)
+                for j,sub in enumerate(tv[tv_num][1]):
+                    ext_nodes = set([e.nodes[1] for e in sub.external_edges])
+                    all_nodes = set([x for x in sub.vertices if x>-1])
+                    int_nodes = all_nodes.difference(ext_nodes)
+                    internal_mom = graph_obj.subgraph_simple_momenta(sub)
+                    if str(m) not in internal_mom and b[0] in int_nodes and b[1] in int_nodes:
+                        # num += sq(var('a%d'%j)*m)#FIXME
+                        term *= sq(var('a%d'%j))    #FIXME
+                    elif str(m) not in internal_mom and b[0] in int_nodes and b[1] not in int_nodes:
+                        # num += sq(var('a%d'%j)*m)#FIXME
+                        term *= var('a%d'%j)    #FIXME
+                    elif str(m) not in internal_mom and b[0] not in int_nodes and b[1] in int_nodes:
+                        local_vasya_counter = True
+                        # num += sq(var('a%d'%j)*m)#FIXME
+                        term *= var('a%d'%j)    #FIXME
+                    # else:
+                    #     num += sq(m)
+                num += term
+            numerator *= (num)
+    # print "\nDiagram: J%s, time version #%d"%(diag_number,tv_num)
+    # print "numerator:\t",numerator
+    # print "denominator:\t",denominator
+    # print numerator/factor(denominator)
+    _integrand = (numerator/denominator)
+    ## taking partial with respect to m
+    ans = []
+    for l in xrange(graph_obj.Loops):
+        # print "k%d --> 1:"%l
+        __int = deepcopy(_integrand)
+        for j,sub in enumerate(tv[tv_num][1]):
+            # print "Simple momenta for sub#%d"%j,graph_obj.subgraph_simple_momenta(sub)
+            if "k%d"%l in graph_obj.subgraph_simple_momenta(sub):
+                __int = __int.subs(var("a%d"%j),1)
+                # print "\ta%d --> 1"%j
+        ans += [factor(__int.subs(var("k%d"%l),1))]
+    ## Add Integrate[] and partial derivative D[]
+    str_ans = []
+    for a in ans:
+        # print "\na =",a
+        letters_k = [var("k%d"%j) for j in xrange(graph_obj.Loops) if a.has(var("k%d"%j))]
+        if order == 1:
+            a *= ln(prod(letters_k))
+        tmp = ''
+        letters_a = []
+        for j,sub in enumerate(tv[tv_num][1]):
+            if a.has(var("a%d"%j)):
+                letters_a += ["a%d"%j]
+                if tmp == '':
+                    # if analytic:
+                    tmp = 'int(diff(%s,a%d)'%(str(a),j)
+                    # else:
+                    #     tmp = 'Int(diff(%s,a%d)'%(str(a),j)
+                    # print "1)",tmp
+                else:#
+                    tmp = tmp[:-1]+',a%d)'%j
+                    # print "2)",tmp
+        if letters_a:
+            tmp = tmp+',[%s])'%",".join(['%s=0..1'%l for l in letters_a])
+            for letter in letters_a:
+                tmp = tmp.replace("%s**2"%letter,letter)
+        # if letters_a and letters_k:
+        #     tmp = tmp[:-1]+",Assumptions->{%s}]"%",".join(["%s>1"%letter for letter in letters_k])
+        for j in xrange(graph_obj.Loops):
+            if a.has(var("k%d"%j)):
+                if tmp == '':
+                    if analytic:
+                        tmp = 'int(%s,[k%d = 1..infinity])'%(str(a),j)
+                    else:
+                        tmp = 'Int(%s,[k%d = 1..infinity])'%(str(a),j)
+                    # print "3)",tmp
+                elif tmp[:9]=='int(diff(':
+                    if analytic:
+                        tmp = 'int(%s,[k%d =1..infinity])'%(tmp,j)
+                    else:
+                        # print "4)",tmp
+                        tmp = 'Int(%s,[k%d =1..infinity])'%(tmp,j)
+                else:
+                    tmp = tmp[:-2]+', k%d =1..infinity])'%j
+                    # print "5)",tmp
+
+        str_ans += [tmp.replace("**","^")]
+    # dn = diag_number
+    # if local_vasya_counter:
+    #     global vasya_counter
+    #     vasya_counter.add(dn)
+    if analytic:
+        return 'j%sv%d := simplify(%s):'%(dn,tv_num,' + '.join(str_ans))
+    else:
+        return ('j%sv%d := (%s):'%(dn,tv_num,' + '.join(str_ans)))
+
+if  __name__ == "__main__":
+    analytic = True
+    loops = 1
+    order = 0
+    if loops == 3:
+        from ours_VS_vasya import diag_dict
+
+    vasya = 'e12|e3|34|5|55||:0A_aA_dA|0a_dA|dd_aA|aa|aA_dd||' # 5/32+5/8*Log(2) (No 1)
+    one   = 'e12|e3|34|5|55||:0A_dd_aA|0a_Aa|dd_aA|Aa|aA_dd||' # 0, one time version (No 18)
+    z     = 'e12|e3|45|45|5||:0A_dd_aA|0a_Aa|aA_da|Aa_dA|dd||' # -π²/24+1/4*Log(2)+1/4, two time versions (No 32)
+    d5  = 'e12|e3|34|5|55||:0A_aA_dA|0a_dA|dd_aA|aA|aa_dd||'
+    d25   = 'e12|e3|45|45|5||:0A_aA_dA|0a_dA|aa_dd|dd_aA|Aa||'
+    d40 = 'e12|e3|44|55|5||:0A_dd_aA|0a_Aa|aA_dd|Aa_dd|aA||' # -π²/24, one time version
+    d48 = 'e12|23|4|45|5|e|:0A_aA_dA|dd_aA|aA|dd_aA|ad|0a|'
+    d77 = 'e12|23|4|e5|55||:0A_aA_dA|dd_aA|aA|0a_dA|aa_dd||'
+
+    with open('%dloop_nonzero.txt'%loops) as fd:
+        str_diags = [d.strip() for d in fd.readlines()]
+    # str_diags = [d25]#, vasya, one,z,d5,d25,d48,d77] # <-- for test purposes
+    diags = [D(x) for x in str_diags]
+    # one_tv = [x for x in diags if len(x.get_time_versions())==1]
+    # tvs = 20
+    # tv = [x for x in diags if len(x.get_time_versions()) == tvs]
+    for diag_num,x in enumerate(diags):
+        print "pg := 8:"
+        print "assume(%s):"%", ".join(["k%s>1"%i for i in xrange(loops)])
+        sign = sign_account(x)
+        if loops == 3:
+            diag_num = diag_dict[x.nickel]
+
+        tv_num = len(x.get_time_versions())
+        for ver_num in xrange(tv_num):
+            print integrand_maple(x,ver_num,diag_num,order)
+        if sign_account(x) == 1:
+            if analytic:
+                print "j%s := simplify("%(diag_num)+\
+                  " + ".join(["j%sv%d"%(diag_num,i) for i in xrange(tv_num)])+"):"
+            else:
+                print "j%s := %s:"%(diag_num," + ".join(["j%sv%d"%(diag_num,i) for i in xrange(tv_num)]))
+        else:
+            if analytic:
+                print "j%s := simplify(-("%(diag_num)+\
+                  " + ".join(["j%sv%d"%(diag_num,i) for i in xrange(tv_num)])+")):"
+            else:
+                print "j%s := -(%s):"%(diag_num, " + ".join(["j%sv%d"%(diag_num,i) for i in xrange(tv_num)]))
+        print 'printf("\\n%%d) %%s --> %%e",%s,"%s",Re(j%s));'%(diag_num,x.nickel,diag_num)
+        """
+        if loops == 3:
+            if analytic:
+                print 'If[Abs[N[J%s - 32*j%s]] < 10^-8, Print["%s -- OK (Num)"],' \
+                    'Print["Err: %s --> ", j%s]]'%(tuple([diag_num]*5))
+            else:
+                print 'If[J%s - 32*j%s < 10^-8, Print["%s -- OK (Num)"],' \
+                    'Print["Err: %s --> ", j%s]]'%(tuple([diag_num]*5))
+        """
+    # print "vasya_counter :=", vasya_counter
+    # print "len(vasya_counter) :=", len(vasya_counter)
