@@ -8,8 +8,8 @@ from d_to_infty_class import D_to_infty_graph as D
 from sympy import var, factor, ln, prod
 from copy import deepcopy
 from sign_account import sign_account
+import os, sys
 
-#vasya_counter = set()
 
 def cut_edges(G,sub1,sub2):
     """
@@ -20,8 +20,6 @@ def cut_edges(G,sub1,sub2):
     :return: list of the internal edges of G such that are cut
     """
     edges = G.subgraph(sub1).edges(keys=True) + G.subgraph(sub2).edges(keys=True)
-    # ans = [e for e in G.edges_iter() if (e not in edges and -1 not in e and -2 not in e)]
-    # return [(a,ans.count(a)) for a in set(ans)]
     return [e for e in G.edges_iter(keys=True) if (e not in edges and -1 not in e and -2 not in e)]
 
 
@@ -163,17 +161,14 @@ def integrand_maple(graph_obj,tv_num,dn,order = 0):
 
         str_ans += [tmp.replace("**","^")]
     # dn = diag_number
-    # if local_vasya_counter:
-    #     global vasya_counter
-    #     vasya_counter.add(dn)
     if analytic:
         return 'j%sv%d := simplify(%s):'%(dn,tv_num,' + '.join(str_ans))
     else:
         return ('j%sv%d := (%s):'%(dn,tv_num,' + '.join(str_ans)))
 
 if  __name__ == "__main__":
-    analytic = True
-    loops = 1
+    analytic = False
+    loops = 3
     order = 0
     if loops == 3:
         from ours_VS_vasya import diag_dict
@@ -181,20 +176,24 @@ if  __name__ == "__main__":
     vasya = 'e12|e3|34|5|55||:0A_aA_dA|0a_dA|dd_aA|aa|aA_dd||' # 5/32+5/8*Log(2) (No 1)
     one   = 'e12|e3|34|5|55||:0A_dd_aA|0a_Aa|dd_aA|Aa|aA_dd||' # 0, one time version (No 18)
     z     = 'e12|e3|45|45|5||:0A_dd_aA|0a_Aa|aA_da|Aa_dA|dd||' # -π²/24+1/4*Log(2)+1/4, two time versions (No 32)
-    d5  = 'e12|e3|34|5|55||:0A_aA_dA|0a_dA|dd_aA|aA|aa_dd||'
+    d5    = 'e12|e3|34|5|55||:0A_aA_dA|0a_dA|dd_aA|aA|aa_dd||'
     d25   = 'e12|e3|45|45|5||:0A_aA_dA|0a_dA|aa_dd|dd_aA|Aa||'
-    d40 = 'e12|e3|44|55|5||:0A_dd_aA|0a_Aa|aA_dd|Aa_dd|aA||' # -π²/24, one time version
-    d48 = 'e12|23|4|45|5|e|:0A_aA_dA|dd_aA|aA|dd_aA|ad|0a|'
-    d77 = 'e12|23|4|e5|55||:0A_aA_dA|dd_aA|aA|0a_dA|aa_dd||'
-
-    with open('%dloop_nonzero.txt'%loops) as fd:
+    d40   = 'e12|e3|44|55|5||:0A_dd_aA|0a_Aa|aA_dd|Aa_dd|aA||' # -π²/24, one time version
+    d48   = 'e12|23|4|45|5|e|:0A_aA_dA|dd_aA|aA|dd_aA|ad|0a|'
+    d77   = 'e12|23|4|e5|55||:0A_aA_dA|dd_aA|aA|0a_dA|aa_dd||'
+    new   = 'e12|23|4|e5|67|89|89|89|||:0A_aA_da|dd_aA|Aa|0a_dA|Aa_dd|aA_dd|dd_Aa|Aa_aA|||'
+    
+    #name = sys.argv[1]
+    #with open('diags_%d_loops/nonzero/%s'%(loops,name.replace('|','-'))) as fd:
         str_diags = [d.strip() for d in fd.readlines()]
-    # str_diags = [d25]#, vasya, one,z,d5,d25,d48,d77] # <-- for test purposes
+
+    #str_diags = [z]#, vasya, one,z,d5,d25,d48,d77] # <-- for test purposes
     diags = [D(x) for x in str_diags]
     # one_tv = [x for x in diags if len(x.get_time_versions())==1]
     # tvs = 20
     # tv = [x for x in diags if len(x.get_time_versions()) == tvs]
     for diag_num,x in enumerate(diags):
+        print "restart:"
         print "pg := 8:"
         print "assume(%s):"%", ".join(["k%s>1"%i for i in xrange(loops)])
         sign = sign_account(x)

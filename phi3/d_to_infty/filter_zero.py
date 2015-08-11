@@ -8,6 +8,8 @@ from numpy import array
 from itertools import product
 from copy import deepcopy
 import dynamic_diagram_generator
+import sys
+import fileinput
 
 from spine import nx_graph_from_str
 
@@ -225,32 +227,40 @@ def is_zero(name):
 
 if  __name__ == "__main__":
     Loops = 5
-    with open('%dloop_all.txt'%Loops) as fd:
-    #with open("../e2-%dloop.txt.gs"%Loops) as fd:
-        diags = [d.strip() for d in fd.readlines()]
-    vasya = 'e12|e3|34|5|55||:0A_aA_dA|0a_dA|dd_aA|aa|aA_dd||'
-    zero = []
-    nonzero = []
-    
-    #for d in diags:
-    for j,name in enumerate(diags):
-            name = str(name)
-            #print "%d) %s "%(j, name),
-            try:
-                zz = is_zero(name)
-            except:
-                zz = True
-            #if is_zero(name):
-            if zz:
-                #print "has zero value"
-                zero += [name]
-            else:
-                #print
-                nonzero += [name]
-    types = list(set([d.split(':')[0] for d in nonzero]))
-    for t in types:
-        print t,len([d for d in nonzero if t==d.split(':')[0]])
+    diags = []
+    with open("diags_%d_loops/count"%Loops) as fd:
+        static_diags = [d.strip().split("\t")[0] for d in fd.readlines() if len(d.strip().split("\t")) == 3]
+    for sd in static_diags:
+        with open("diags_%d_loops/%s"%(Loops,sd.replace('|','-'))) as fd:
+            diags = [d.strip() for d in fd.readlines()]
+        zero = []
+        nonzero = []
+        
+        #for d in diags:
+        for j,name in enumerate(diags):
+                name = str(name)
+                #print "%d) %s "%(j, name),
+                try:
+                    zz = is_zero(name)
+                except:
+                    zz = True
+                #if is_zero(name):
+                if zz:
+                    #print "has zero value"
+                    zero += [name]
+                else:
+                    #print
+                    nonzero += [name]
+        types = list(set([d.split(':')[0] for d in nonzero]))
+        print sd," nonzero:",len(nonzero)
 
-    with open('%dloop_nonzero.txt'%Loops,'w') as fd:
-        for d in nonzero:
-            fd.write(d+'\n')
+        with open("diags_%d_loops/nonzero/%s"%(Loops,sd.replace('|','-')),'w') as fd:
+            for d in nonzero:
+                fd.write(d+'\n')
+        for line in fileinput.input("diags_%d_loops/count"%(Loops), inplace=True):
+                if sd in line:
+                    print line[:-1]+"\t"+str(len(nonzero))
+                else:
+                    print line,
+
+
