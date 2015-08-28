@@ -11,14 +11,7 @@ from os import system
 
 outFile = 'diagTable_5loops.tex'
 resFile = 'res_new.txt'
-KR1File = 'KR1_6loops_new.out'
-
-# def multiply(ans1, ans2):
-#     r1 = ufloat(ans1[0][0],ans1[1][0])
-#     r2 = ufloat(ans2[0][0],ans2[1][0])
-#     r = r1* r2
-#     return (r.n,), (r.s,)
-
+KR1File = 'KR1_6loops.out'
 
 def symmetryCoefficient(graph):
     edges = graph.edges()
@@ -84,7 +77,6 @@ res["ee11|23|334|4|55|ee|"] = res["ee11|ee|"] * res["ee11|23|334|4|ee|"]
 
 
 diagList = KR1.keys()
-diagList.sort()
 
 print "len(diagList) = %d, len(res) = %d, len(KR1) = %d"%(len(diagList), len(res), len(KR1))
 
@@ -109,25 +101,28 @@ head = ["\\begin{longtable}{|c|l|l|l|c|l|}\n \
 tail ="\\end{document}"
 
 toSort = []
+## Sorting by contribution into the answer
+"""
 for i,diag in enumerate(diagList):
     graph = graphine.Graph(graph_state.GraphState.from_str(diag.replace("-","|")))
     graphLoopCount = graph.loops_count
     if graphLoopCount > 5:
         continue
     try:
-        # r = ufloat(res[diag.replace('|','-')][0][0],res[diag.replace('|','-')][1][0])
         kr = ufloat(KR1[diag])
     except KeyError:
         print("No result for",diag)
-        # print KR1[diag]
         raise
-        # continue
     C = symmetryCoefficient(graph)
     coeff = -(-2. / 3) ** graphLoopCount * C[0]/C[1]
     toSort.append([abs(kr.n*coeff),diag])
+"""
+## Sorting alphabetically ('e' == 0)
+for i,diag in enumerate(diagList):
+    toSort.append([diag.replace('|','').replace('e','0'),diag])
 
-diagList = [d[1] for d in toSort]
-__diagList = [[d for d in diagList if d.count('e')==4],[d for d in diagList if d.count('e')==2]]
+diagList = [d[1] for d in sorted(toSort)]
+__diagList = [[d for d in diagList if d.count('e')==4],[d for d in diagList if d.count('e')==2 and '5' not in d]]
 
 n = var('n')
 f = open(outFile,'w')
@@ -137,7 +132,6 @@ f.write(title)
 current_loop_count = 1
 f.write(head[0])
 for i,diag in enumerate(sorted(__diagList[0],key = lambda x: len(x))):
-    # r = ufloat(res[diag.replace('|','-')][0][0],res[diag.replace('|','-')][1][0])
     r = res[diag]
     kr = ufloat(KR1[diag])
     graph = graphine.Graph(graph_state.GraphState.from_str(diag.replace("-","|")))
@@ -160,7 +154,6 @@ f.write("\\end{longtable}\n")
 current_loop_count = 2
 f.write(head[1])
 for i,diag in enumerate(sorted(__diagList[1],key = lambda x: len(x))):
-    # r = ufloat(res[diag.replace('|','-')][0][0],res[diag.replace('|','-')][1][0])
     r = res[diag]
     kr = ufloat(KR1[diag])
     graph = graphine.Graph(graph_state.GraphState.from_str(diag.replace("-","|")))
