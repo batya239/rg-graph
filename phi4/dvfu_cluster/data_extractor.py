@@ -9,9 +9,8 @@ from sympy import latex, var, simplify
 from os import system
 
 outFile = 'diagTable.tex'
-resFile = 'res_new.txt'
+resFile = 'res_final.txt'
 # resFile = 'res_5best_6cuhre.txt'
-# KR1File = 'KR1_6loops.out'
 KR1File = 'KR1_6loops.out'
 
 def symmetryCoefficient(graph):
@@ -75,7 +74,7 @@ f = open(outFile,'w')
 f.write(head)
 n = var('n')
 for i,diag in enumerate(diagList):
-    r = ufloat(-res[diag][0][0],res[diag][1][0])
+    r = ufloat(-res[diag][0],res[diag][1])
     kr = ufloat(KR1[diag])
     graph = graphine.Graph(graph_state.GraphState.from_str(diag))
     graphLoopCount = graph.loops_count
