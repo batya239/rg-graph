@@ -21,7 +21,6 @@ phi4 = RelevanceCondition()
 ## Filters
 no_tadpoles = graphine.filters.no_tadpoles
 oneIR = graphine.filters.one_irreducible
-# vertexIR = graphine.filters.vertex_irreducible
 is_phi4 = graphine.filters.is_relevant(phi4)
 
 subgraphUVFilters = (oneIR + no_tadpoles  + is_phi4)
@@ -31,7 +30,7 @@ try:
     fileName = sys.argv[1]
 except IndexError:
     print "Usage:\n$ python %s <fileName>\n where <fileName> = source file that contains diags\n \
-    in a dict {'diag1':[[res1],[err1]], 'diag2':[[res2],[err2]], ...}"%sys.argv[0]
+    in a dict {'diag1':[res1,err1,somedata1], 'diag2':[res2,err2,somedata2], ...}"%sys.argv[0]
     exit(0)
 
 ## Get source data:
@@ -39,7 +38,7 @@ data = eval(open(fileName).read())
 results = {}
 
 for k,v in data.items():
-    results.update({k.replace('-','|'):ufloat( - v[0][0],v[1][0])})
+    results.update({k:ufloat( - v[0],v[1])})
 
 # Process factorizable diagrams.
 # We assume the error of, e.g., diag^2 as correlated  
@@ -161,11 +160,11 @@ def symmetryCoefficient(graph):
     return C
 
 
-maxNLoops = 2
+maxNLoops = 6
 
 resultsKR1 = dict()
 print "{"
-for index in results:
+for index in sorted(results):
     graph = graphine.Graph.from_str(index)
     if graph.loops_count > maxNLoops:
         continue
@@ -176,5 +175,6 @@ for index in results:
     except ZeroDivisionError:
         err = 0
     print '"%s": \t%s, \t# %s, \t%s \t err_rel: %.3e' % \
-        (str(graph), (res.n,res.s), results[str(graph)], symmetryCoefficient(graph), err)
+        (str(graph), (res.n,res.s), results[str(graph)].format('S'), symmetryCoefficient(graph), err)
 print "}"
+
