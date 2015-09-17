@@ -62,7 +62,6 @@ def spine(G,source,sink):
         in networkx graph G
     """
     spine_pairs = []
-    # spine_pairs = set()
     ## Find all possible path between 'source' and 'sink'
     all_paths = [p for p in nx.all_simple_paths(G,source,sink)]
     ## for every pair of paths:
@@ -71,7 +70,6 @@ def spine(G,source,sink):
         if set(s[0][1:-1]).intersection(set(s[1][1:-1])) == set():
             spine_pairs.append(s)
             # print s,type(s)
-            # spine_pairs.update(s)
     new_spine_pairs = []
     for elem in spine_pairs:
         if elem not in new_spine_pairs:
@@ -142,7 +140,7 @@ def get_dyn_diags(diag_str):
     return local_counter_all, len(local_good)
     
 if  __name__ == "__main__":
-    Loops = 4
+    Loops = 2
     with open("../e2-%dloop.txt.gs"%Loops) as fd:
         diags = [d.strip() for d in fd.readlines()]
     path = os.path.expanduser('~')+'/rg-graph/phi3/d_to_infty/'
