@@ -121,6 +121,8 @@ def integrand_maple(graph_obj,tv_num,dn,order = 0):
         letters_k = [var("k%d"%j) for j in xrange(graph_obj.Loops) if a.has(var("k%d"%j))]
         if order == 1:
             a *= ln(prod(letters_k))
+        elif order == 2:
+            a *= (ln(prod(letters_k)))**2/2
         tmp = ''
         letters_a = []
         for j,sub in enumerate(tv[tv_num][1]):
@@ -168,8 +170,8 @@ def integrand_maple(graph_obj,tv_num,dn,order = 0):
 
 if  __name__ == "__main__":
     analytic = False
-    loops = 3
-    order = 0
+    loops = 4
+    order = 1
     if loops == 3:
         from ours_VS_vasya import diag_dict
 
@@ -183,8 +185,8 @@ if  __name__ == "__main__":
     d77   = 'e12|23|4|e5|55||:0A_aA_dA|dd_aA|aA|0a_dA|aa_dd||'
     new   = 'e12|23|4|e5|67|89|89|89|||:0A_aA_da|dd_aA|Aa|0a_dA|Aa_dd|aA_dd|dd_Aa|Aa_aA|||'
     
-    #name = sys.argv[1]
-    #with open('diags_%d_loops/nonzero/%s'%(loops,name.replace('|','-'))) as fd:
+    name = sys.argv[1]
+    with open('diags_%d_loops/nonzero/%s'%(loops,name.replace('|','-'))) as fd:
         str_diags = [d.strip() for d in fd.readlines()]
 
     #str_diags = [z]#, vasya, one,z,d5,d25,d48,d77] # <-- for test purposes
@@ -194,7 +196,7 @@ if  __name__ == "__main__":
     # tv = [x for x in diags if len(x.get_time_versions()) == tvs]
     for diag_num,x in enumerate(diags):
         print "restart:"
-        print "pg := 8:"
+        print "pg := 10:"
         print "assume(%s):"%", ".join(["k%s>1"%i for i in xrange(loops)])
         sign = sign_account(x)
         if loops == 3:
