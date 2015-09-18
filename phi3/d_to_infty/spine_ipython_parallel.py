@@ -3,12 +3,14 @@
 
 __author__ = "kirienko"
 
+import os
+
 import graph_state as gs
 import networkx as nx
-import itertools as it
-import dynamic_diagram_generator
 from IPython.parallel import Client
-import os, sys
+
+import itertools as it
+
 
 ## Convert GraphState.edge --> tuple
 edge_to_ints = lambda e: tuple(map(lambda n: n.index, e.nodes))
@@ -120,53 +122,66 @@ def filter_spines(G,spines):
                             raise
 
 def get_dyn_diags(diag_str):
+    """
+    For input static diagram (Nickel string) generates all possible dynamic variants with no time cycles.
+    Then diagrams that have no both 'spine' and 'half-spine' are filtering out.
+    Then good diagrams are listed in separate file in ./diags_N_loops/ directory.
+
+    This function is intended to be executed at some ipcluster engine.
+    :param diag_str: static diagram string
+    :return: element of the future dictionary:
+        (diag_str : (number_of_possible_variants,number_of_good_diagrams)
+    """
     import os
     os.chdir(os.path.expanduser('~')+'/rg-graph/phi3/d_to_infty/')
     from spine_ipython_parallel import nx_graph_from_str, spine, filter_spines,dynamic_diagram_generator
-    print "\n",diag_str
+
     G = nx_graph_from_str(diag_str)
     source = 0
     sink = max([g for g in G.edges() if g[1] < 0])[0]
     spine_pairs = spine(G,source,sink)+spine(G,sink,source)
-    
+
     local_counter_all = 0
     local_good        = []
-    for _g in dynamic_diagram_generator.generate(diag_str, possible_fields=["aA", "aa", "ad", "dd", "dA"], possible_external_fields="Aa", possible_vertices=["adA"]):
+    for _g in dynamic_diagram_generator.generate(diag_str, possible_fields=["aA", "aa", "ad", "dd", "dA"],
+                                                 possible_external_fields="Aa", possible_vertices=["adA"]):
         local_counter_all +=1
         if filter_spines(_g,spine_pairs):
-            local_good += [_g]
-    #print "All: %d, good:dd %d"%(local_counter_all,len(local_good))
+            local_good += [str(_g)]
 
-    return local_counter_all, len(local_good)
-    
+    ## quick and dirty number of loops (works only for this model!)
+    loop_num = (max(map(int,[c for c in diag_str if c in '0123456789']))+1)/2
+
+    with open('diags_%d_loops/%s'%(loop_num,diag_str.replace('|','-')),'w') as local_fd:
+        for d in local_good:
+            local_fd.write('%s\n'% d)
+
+    return diag_str,(local_counter_all, len(local_good))
+
 if  __name__ == "__main__":
-    Loops = 2
+    Loops = 3
+
     with open("../e2-%dloop.txt.gs"%Loops) as fd:
         diags = [d.strip() for d in fd.readlines()]
     path = os.path.expanduser('~')+'/rg-graph/phi3/d_to_infty/'
     loop_path = path + 'diags_%d_loops'%Loops
     if not os.path.exists(loop_path):
-        os.mkdir(loop_path) 
+        os.mkdir(loop_path)
         print "Created: %s"%loop_path
-    
+
     rc = Client() # <-- ipcluster MUST be started at this moment
-    print rc.ids
+    print "Active engines:",rc.ids
+
     lview = rc.load_balanced_view() # default load-balanced view
 
-    res = lview.map(get_dyn_diags,diags,block=True)
-    print res
+    res = dict(lview.map(get_dyn_diags,diags,block=True))
+    # print res
 
-    count_all = sum([i[0] for i in res])
-    count_good= sum([i[1] for i in res])
-    """
-        for _g in dynamic_diagram_generator.generate(d, possible_fields=["aA", "aa", "ad", "dd", "dA"], possible_external_fields="Aa", possible_vertices=["adA"]):
-            # print "_"*5
-            count_all +=1
-            if filter_spines(_g,spine_pairs):
-                print _g
-                good_list += [_g]
-    """
+    count_all = sum([v[0] for v in res.values()])
+    count_good= sum([v[1] for v in res.values()])
+
     print "_"*30+"\nAll: %d, good: %d"%(count_all, count_good)
-    #with open('%dloop_all.txt'%Loops,'w') as fd:
-    #    for g in good_list:
-    #        fd.write(str(g)+'\n')
+
+    with open("diags_%d_loops/count"%Loops,'w') as fd:
+        for d,v in res.items():
+            fd.write( "%s\t%d\t%d\n"%(d,v[0],v[1]))
