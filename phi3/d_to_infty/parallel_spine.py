@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#! /usr/bin/ipython
 #! encoding: utf8
 
 __author__ = "kirienko"
@@ -134,7 +134,8 @@ def get_dyn_diags(diag_str):
     """
     import os
     os.chdir(os.path.expanduser('~')+'/rg-graph/phi3/d_to_infty/')
-    from spine_ipython_parallel import nx_graph_from_str, spine, filter_spines,dynamic_diagram_generator
+    from parallel_spine import nx_graph_from_str, spine, filter_spines
+    import dynamic_diagram_generator
 
     G = nx_graph_from_str(diag_str)
     source = 0
@@ -159,7 +160,7 @@ def get_dyn_diags(diag_str):
     return diag_str,(local_counter_all, len(local_good))
 
 if  __name__ == "__main__":
-    Loops = 3
+    Loops = 2
 
     with open("../e2-%dloop.txt.gs"%Loops) as fd:
         diags = [d.strip() for d in fd.readlines()]
