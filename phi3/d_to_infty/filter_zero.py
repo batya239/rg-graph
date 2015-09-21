@@ -3,15 +3,16 @@
 
 __author__ = "kirienko"
 
-from networkx import MultiGraph
-from numpy import array
 from itertools import product
 from copy import deepcopy
-import dynamic_diagram_generator
-import sys
+import os
 import fileinput
 
+from networkx import MultiGraph
+from numpy import array
+
 from spine import nx_graph_from_str
+
 
 def find_simple_momenta(G):
     """
@@ -226,7 +227,7 @@ def is_zero(name):
 
 
 if  __name__ == "__main__":
-    Loops = 5
+    Loops = 3
     diags = []
     with open("diags_%d_loops/count"%Loops) as fd:
         static_diags = [d.strip().split("\t")[0] for d in fd.readlines() if len(d.strip().split("\t")) == 3]
@@ -252,8 +253,12 @@ if  __name__ == "__main__":
                     #print
                     nonzero += [name]
         types = list(set([d.split(':')[0] for d in nonzero]))
-        print sd," nonzero:",len(nonzero)
-
+        # print sd," nonzero:",len(nonzero)
+        path_nonzero = "diags_%d_loops/nonzero/"%Loops
+        if not os.path.exists(path_nonzero) or \
+                (os.path.exists(path_nonzero) and os.path.isfile(path_nonzero)):
+            os.mkdir(path_nonzero)
+            print "Created: %s"%path_nonzero
         with open("diags_%d_loops/nonzero/%s"%(Loops,sd.replace('|','-')),'w') as fd:
             for d in nonzero:
                 fd.write(d+'\n')
