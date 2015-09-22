@@ -31,12 +31,12 @@ def find_simple_momenta(G):
             for f in fields:
                 if is_phiphi([str(f[1])]):
                     ans.add(((e1,e2,f[0]),f))
-                    if counter <= Loops:
-                        G.add_edge(e1,e2,f[0],mom=int("0"*counter+"1"+"0"*(Loops-counter),2))
-                        #print "Add mom","0"*counter+"1"+"0"*(Loops-counter)," at",(e1,e2,f[0])
+                    if counter <= loops:
+                        G.add_edge(e1,e2,f[0],mom=int("0"*counter+"1"+"0"*(loops-counter),2))
+                        #print "Add mom","0"*counter+"1"+"0"*(loops-counter)," at",(e1,e2,f[0])
                     counter += 1
         elif e1<0 or e2<0:
-            G.add_edge(e1,e2,0,mom=int("1"+"0"*Loops,2))
+            G.add_edge(e1,e2,0,mom=int("1"+"0"*loops,2))
     return list(ans)
 
 def get_fields(G,ee):
@@ -227,12 +227,15 @@ def is_zero(name):
 
 
 if  __name__ == "__main__":
-    Loops = 3
+    try:
+        from config import loops
+    except:
+        loops = 2
     diags = []
-    with open("diags_%d_loops/count"%Loops) as fd:
+    with open("diags_%d_loops/count"%loops) as fd:
         static_diags = [d.strip().split("\t")[0] for d in fd.readlines() if len(d.strip().split("\t")) == 3]
     for sd in static_diags:
-        with open("diags_%d_loops/%s"%(Loops,sd.replace('|','-'))) as fd:
+        with open("diags_%d_loops/%s"%(loops,sd.replace('|','-'))) as fd:
             diags = [d.strip() for d in fd.readlines()]
         zero = []
         nonzero = []
@@ -254,15 +257,15 @@ if  __name__ == "__main__":
                     nonzero += [name]
         types = list(set([d.split(':')[0] for d in nonzero]))
         # print sd," nonzero:",len(nonzero)
-        path_nonzero = "diags_%d_loops/nonzero/"%Loops
+        path_nonzero = "diags_%d_loops/nonzero/"%loops
         if not os.path.exists(path_nonzero) or \
                 (os.path.exists(path_nonzero) and os.path.isfile(path_nonzero)):
             os.mkdir(path_nonzero)
             print "Created: %s"%path_nonzero
-        with open("diags_%d_loops/nonzero/%s"%(Loops,sd.replace('|','-')),'w') as fd:
+        with open("diags_%d_loops/nonzero/%s"%(loops,sd.replace('|','-')),'w') as fd:
             for d in nonzero:
                 fd.write(d+'\n')
-        for line in fileinput.input("diags_%d_loops/count"%(Loops), inplace=True):
+        for line in fileinput.input("diags_%d_loops/count"%(loops), inplace=True):
                 if sd in line:
                     print line[:-1]+"\t"+str(len(nonzero))
                 else:

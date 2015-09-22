@@ -160,17 +160,24 @@ def get_dyn_diags(diag_str):
     return diag_str,(local_counter_all, len(local_good))
 
 if  __name__ == "__main__":
-    Loops = 2
 
-    with open("../e2-%dloop.txt.gs"%Loops) as fd:
+
+    ## get variables 'loops' and 'ipython_profile'
+    try:
+        from config import *
+    except:
+        loops = 2
+        ipython_profile = 'default'
+
+    with open("../e2-%dloop.txt.gs"%loops) as fd:
         diags = [d.strip() for d in fd.readlines()]
     path = os.path.expanduser('~')+'/rg-graph/phi3/d_to_infty/'
-    loop_path = path + 'diags_%d_loops'%Loops
+    loop_path = path + 'diags_%d_loops'%loops
     if not os.path.exists(loop_path):
         os.mkdir(loop_path)
         print "Created: %s"%loop_path
 
-    rc = Client() # <-- ipcluster MUST be started at this moment
+    rc = Client(profile = ipython_profile) # <-- ipcluster MUST be started at this moment
     print "Active engines:",rc.ids
 
     lview = rc.load_balanced_view() # default load-balanced view
@@ -183,6 +190,6 @@ if  __name__ == "__main__":
 
     print "_"*30+"\nAll: %d, good: %d"%(count_all, count_good)
 
-    with open("diags_%d_loops/count"%Loops,'w') as fd:
+    with open("diags_%d_loops/count"%loops,'w') as fd:
         for d,v in res.items():
             fd.write( "%s\t%d\t%d\n"%(d,v[0],v[1]))
