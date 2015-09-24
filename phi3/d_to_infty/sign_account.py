@@ -5,8 +5,9 @@ __author__ = 'kirienko'
 
 import networkx as nx
 from networkx import dijkstra_path_length as dijkstra
+
 from d_to_infty_class import D_to_infty_graph as D
-from ours_VS_vasya import diag_dict
+
 
 def get_fields(obj,ee):
         """
@@ -88,6 +89,7 @@ def sign_account(graph_obj):
 
 if  __name__ == "__main__":
     Loops = 3
+    from ours_VS_vasya import diag_dict
     with open('%dloop_nonzero.txt'%Loops) as fd:
        str_diags = [d.strip() for d in fd.readlines()]
 
