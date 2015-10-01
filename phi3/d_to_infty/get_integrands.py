@@ -98,6 +98,7 @@ def integrand_maple(graph_obj,tv_num,dn,order = 0):
     # print "denominator:\t",denominator
     # print numerator/factor(denominator)
     _integrand = (numerator/denominator)
+
     ## taking partial with respect to m
     ans = []
     for l in xrange(graph_obj.Loops):
@@ -109,11 +110,17 @@ def integrand_maple(graph_obj,tv_num,dn,order = 0):
                 __int = __int.subs(var("a%d"%j),1)
                 # print "\ta%d --> 1"%j
         ans += [factor(__int.subs(var("k%d"%l),1))]
-    ## Add Integrate[] and partial derivative D[]
+    
+
+    ## Add integration and partial derivative
     str_ans = []
     for a in ans:
-        # print "\na =",a
         letters_k = [var("k%d"%j) for j in xrange(graph_obj.Loops) if a.has(var("k%d"%j))]
+        
+        ## variable substitution: k² --> k
+        a = a/prod(letters_k)/2**len(letters_k)                     # Jacobian
+        a = a.subs([(i**2,i) for i in letters_k],simultaneous=True) # k² --> k
+
         if order == 1:
             a *= ln(prod(letters_k))
         elif order == 2:
