@@ -14,17 +14,21 @@ def comm(command):
 
 if  __name__ == "__main__":
     try:
-        Loops = sys.argv[1]
+        loops = sys.argv[1]
     except IndexError:
-        print "usage:\n\t$ python %s number_of_loops" % os.path.relpath(sys.argv[0])
-        # exit(1)
-        Loops = 2
+        try: 
+            from config import *
+        except ImportError:
+            print "usage:\n\t$ python %s number_of_loops" % os.path.relpath(sys.argv[0])
+            exit(1)
+    
     rc = Client() # <-- ipcluster MUST be started at this moment
     print rc.ids
     lview = rc.load_balanced_view() # default load-balanced view
     abspath = os.path.expanduser('~')+'/rg-graph/phi3/d_to_infty/'
-    diags = os.listdir('diags_%s_loops/nonzero'%Loops)
-    cmd = ['python %sintegrand_maple.py %s > %sdiags_%s_loops/ints/%s'%(abspath,d,abspath,loops,d) for d in diags]
+    diags = os.listdir('diags_%s_loops/nonzero'%loops)
+    #cmd = ['python %sget_integrands_reference.py %s > %sdiags_%s_loops/ints/%s'%(abspath,d,abspath,loops,d) for d in diags]
+    cmd = ['python %sget_integrands.py %s > %sdiags_%s_loops/ints/%s'%(abspath,d,abspath,loops,d) for d in diags]
     #cmd = ['echo %d'%rc.ids[i] for i in xrange(4)]
     print cmd
     lview.map(comm,cmd,block=True)

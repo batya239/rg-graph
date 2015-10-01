@@ -26,3 +26,9 @@ Result:
 * directory ./diags_N_loops/nonzero created – contains lists of all nonzero dynamic diagrams
 
 3) Writing down integrands:
+
+    $ ipython parallel_scheduler.py <loops>
+
+4) Computations:
+
+    $ ipython parallel_scheduler_maple.py

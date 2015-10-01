@@ -8,20 +8,24 @@ import os, sys
 
 def comm(command):
     import os
-    path = '/home/kirienko/rg-graph/phi3/d_to_infty/diags_4_loops/ints/'
-    os.chdir(path)
+    from config import abspath, loops
+    os.chdir(abspath+'diags_%d_loops/ints/' % loops)
     os.system(command)
 
 if  __name__ == "__main__":
-    rc = Client() # <-- ipcluster MUST be started at this moment
+    rc = Client()       # <-- ipcluster MUST be started at this moment
+    #rc.block = True     # use synchronous computations (for direct view)
     print rc.ids
     lview = rc.load_balanced_view() # default load-balanced view
-    abspath = '/home/kirienko/rg-graph/phi3/d_to_infty/'
-    diags = os.listdir('diags_4_loops/ints')
-    cmd = ['maple -q < "%s" > %sdiags_4_loops/ans/%s'%(d,abspath,d) for d in diags]
-    #cmd = ['echo %d'%rc.ids[i] for i in xrange(4)]
+    from config import abspath, loops
+    diags = os.listdir('diags_%d_loops/ints' % loops)
+    cmd = ['maple -q < "%s" > %sdiags_%d_loops/ans/%s'%(d,abspath,loops,d) for d in diags]
     print cmd
-    lview.map(comm,cmd,block=True)
+    res = lview.map(comm,cmd,block=True)
+    #res = lview.map(comm,cmd)
     #print res
-
+    #import time
+    #while not res.ready():
+    #    time.sleep(1)
+    #    print res.progress
 
