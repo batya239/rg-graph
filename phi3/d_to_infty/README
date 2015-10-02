@@ -27,8 +27,16 @@ Result:
 
 3) Writing down integrands:
 
-    $ ipython parallel_scheduler.py <loops>
+    $ ipython parallel_scheduler.py
+
+Results will be stored in ./diags_N_loops/ints/
 
 4) Computations:
+The following command will start Maple computations using parallel cluster. The name of the cluster profile
+should be specified in config.py.
 
     $ ipython parallel_scheduler_maple.py
+
+Results of computation will be stored in ./diags_N_loops/ans/ grouped by static diag name, as usual.
+You can merge these results as simple as:
+    $ cat ./diags_N_loops/ans/* Nloops_eO.ans
