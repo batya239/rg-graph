@@ -13,15 +13,12 @@ def comm(command):
     os.system(command)
 
 if  __name__ == "__main__":
-    try:
-        loops = sys.argv[1]
-    except IndexError:
-        try: 
-            from config import *
-        except ImportError:
-            print "usage:\n\t$ python %s number_of_loops" % os.path.relpath(sys.argv[0])
-            exit(1)
-    
+    try: 
+        from config import *
+    except ImportError:
+        print "ERROR: cannot import config.py"
+        exit(1)
+
     rc = Client() # <-- ipcluster MUST be started at this moment
     print rc.ids
     lview = rc.load_balanced_view() # default load-balanced view

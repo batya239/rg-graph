@@ -122,9 +122,9 @@ def integrand_maple(graph_obj,tv_num,dn,order = 0):
         a = a.subs([(i**2,i) for i in letters_k],simultaneous=True) # k² --> k
 
         if order == 1:
-            a *= ln(prod(letters_k)) / 2**(len(letters_k))
+            a *= ln(prod(letters_k)) / 2
         elif order == 2:
-            a *= (ln(prod(letters_k))/ 2**(len(letters_k)))**2/2
+            a *= (ln(prod(letters_k))/ 2)**2/2
         tmp = ''
         letters_a = []
         for j,sub in enumerate(tv[tv_num][1]):
@@ -190,16 +190,16 @@ if  __name__ == "__main__":
     d77   = 'e12|23|4|e5|55||:0A_aA_dA|dd_aA|aA|0a_dA|aa_dd||'
     new   = 'e12|23|4|e5|67|89|89|89|||:0A_aA_da|dd_aA|Aa|0a_dA|Aa_dd|aA_dd|dd_Aa|Aa_aA|||'
 
-    name = sys.argv[1]
-    with open('diags_%d_loops/nonzero/%s'%(loops,name.replace('|','-'))) as fd:
-        str_diags = [d.strip() for d in fd.readlines()]
+    #name = sys.argv[1]
+    #with open('diags_%d_loops/nonzero/%s'%(loops,name.replace('|','-'))) as fd:
+    #    str_diags = [d.strip() for d in fd.readlines()]
 
-    #str_diags = [z]  # , vasya, one,z,d5,d25,d48,d77] # <-- for test purposes
+    str_diags = [z]  # , vasya, one,z,d5,d25,d48,d77] # <-- for test purposes
     diags = [D(x) for x in str_diags]
     # one_tv = [x for x in diags if len(x.get_time_versions())==1]
     # tvs = 20
     # tv = [x for x in diags if len(x.get_time_versions()) == tvs]
-    pg = 5
+    pg = 10
     for diag_num,x in enumerate(diags):
         print "restart:"
         print "pg:=%d:" % pg
