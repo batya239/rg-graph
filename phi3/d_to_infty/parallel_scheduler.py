@@ -25,10 +25,12 @@ if  __name__ == "__main__":
     abspath = os.path.expanduser('~')+'/rg-graph/phi3/d_to_infty/'
     diags = os.listdir('diags_%s_loops/nonzero'%loops)
     #cmd = ['python %sget_integrands_reference.py %s > %sdiags_%s_loops/ints/%s'%(abspath,d,abspath,loops,d) for d in diags]
-    cmd = ['python %sget_integrands.py %s > %sdiags_%s_loops/ints/%s'%(abspath,d,abspath,loops,d) for d in diags]
+    #TODO: use .format here
+    cmd = ['python %sget_integrands.py %s > %sdiags_%s_loops/ints/order_%d/%s'%(abspath,d,abspath,loops,order,d) for d in diags]
     #cmd = ['echo %d'%rc.ids[i] for i in xrange(4)]
     print cmd
-    lview.map(comm,cmd,block=True)
+    #lview.map(comm,cmd,block=True)
+    lview.map(comm,cmd)
     #print res
 
 
