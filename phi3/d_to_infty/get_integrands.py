@@ -14,7 +14,7 @@ import os, sys
 
 def cut_edges(G,sub1,sub2):
     """
-    :param nx_graph: initial networkx graph G
+    :param G: initial networkx graph
     :param sub1: list of nodes of the subgraph 1 of G
     :param sub2: list of nodes of the subgraph 1 of G
     :return: list of the internal edges of G such that are cut
@@ -26,9 +26,6 @@ def integrand(graph_object, time_ver_number):
     """
     Returns integrand ( = numerator/denominator) that corresponds certain time version tv.
     No integral sign, no differentiantion and integration of stretching parameters.
-    TODO:   tv  --> graph_obj.tv
-            ver --> version
-        tv_num  --> time_ver_number
     """
     version = graph_object.tv[time_ver_number]
     v = version[0]
@@ -54,10 +51,7 @@ def integrand(graph_object, time_ver_number):
         # print "Stretching factors:",stretch_factors
         den = []
         for e in edges:
-            # print "Edge:",e
             m = [var(x) for x in graph_object.momenta_in_edge(e)]
-            # print m,stretch_factors[m[0]]
-            # print var(graph_object.momenta_in_edge(e))
             den += factor(map(sq,map(lambda x: stretch_factors[x]*x,m)))
         denominator *= sum(den)/2 ## NB: 1/2 is for eliminating all len(v)-1 powers of 2 in the denominator
     
@@ -89,42 +83,29 @@ def integrand(graph_object, time_ver_number):
             numerator *= (num)
     # print "numerator:\t",numerator
     # print "denominator:\t",denominator
-    # print numerator/factor(denominator)
     return numerator/denominator
     
 
 
-#def integrand_maple(graph_obj,tv_num,dn,order = 0):
 def integrand_maple(graph_obj,dn,order = 0):
     """
     
     :param graph_obj: instance of D_to_infty_graph class
-    :param tv_num: number of time version to produce integrand
     :param dn: number of the diagram (some unique number)
     :return: integrand as a string
     """
-    #tv_num = len(x.get_time_versions())
-    #for ver_num in xrange(tv_num):
-    #    print integrand_maple(x,ver_num,diag_num,order)
 
     # diag_number = diag_dict[graph_obj.nickel]
     tv = graph_obj.get_time_versions()
     integrands = defaultdict(list)
-    #for ver in xrange(len(tv)):       ## Loop over time versions
     for tv_num,ver in enumerate(tv):       ## Loop over time versions
-    #v = tv[tv_num][0] ## current time_version number
-        v = ver[0] # TODO: do we use this outside integrand()?
-        ## ===================================
-        _integrand = integrand(graph_obj, tv_num)
-        ## ===================================
-
+        _integrand = integrand(graph_obj, tv_num) ## this is a composition pf sympy variables
+        
         ## taking partial with respect to m
         ans = []
         for l in xrange(graph_obj.Loops):
-            # print "k%d --> 1:"%l
             __int = deepcopy(_integrand)
             for j,sub in enumerate(tv[tv_num][1]):
-                # print "Simple momenta for sub#%d"%j,graph_obj.subgraph_simple_momenta(sub)
                 if "k%d"%l in graph_obj.subgraph_simple_momenta(sub):
                     __int = __int.subs(var("a%d"%j),1)
             ans += [factor(__int.subs(var("k%d"%l),1))]
@@ -168,7 +149,7 @@ def integrand_maple(graph_obj,dn,order = 0):
                 print "TEST: before integration",tmp
                 #tmp = tmp+',[%s])'%",".join(['%s=0..1'%l for l in letters_a])
                 #tmp = simplify(integrate(tmp,*map(lambda l:(l,0,1), letters_a)))
-                tmp = integrate(tmp,*map(lambda l:(l,0,1), letters_a))
+                tmp = integrate(tmp,*map(lambda l:(l,0,1), letters_a)) #TODO: sympy.integrate is sooo sloooow!
                 print "TEST: after integration",tmp
                 #for letter in letters_a:
                 #    tmp = str(tmp).replace("%s**2"%letter,letter)
@@ -239,11 +220,6 @@ if  __name__ == "__main__":
         print "pg:=%d:" % pg
         print "assume(%s):"%", ".join(["k%s>1"%i for i in xrange(loops)])
         sign = sign_account(x)
-
-        ## LEGACY:
-        #tv_num = len(x.get_time_versions())
-        #for ver_num in xrange(tv_num):
-        #    print integrand_maple(x,ver_num,diag_num,order)
 
         print integrand_maple(x,diag_num,order)
         if sign_account(x) == 1:
