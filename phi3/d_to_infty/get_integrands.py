@@ -51,7 +51,6 @@ def integrand_maple(graph_obj,dn,order = 0):
             all_momenta = [var('k%i'%i) for i in xrange(graph_obj.Loops)]
             stretch_factors = dict(zip(all_momenta,[1 for i in xrange(len(all_momenta))]))
             edges = cut_edges(graph_obj.U,v[:l+1],v[l+1:]) # <-- edges of the cut
-            # print "\nMomenta in the cut",v[:l+1],"|",v[l+1:],":",map(graph_obj.momenta_in_edge,edges)
             ## Check if edges are in some significant subgraph
             for j,sub in enumerate(tv[tv_num][1]):
                 sg_nodes = [n for n in sub.vertices if n>-1]
@@ -128,40 +127,47 @@ def integrand_maple(graph_obj,dn,order = 0):
                 a *= ln(prod(letters_k)) / 2
             elif order == 2:
                 a *= (ln(prod(letters_k))/ 2)**2/2
-            key = "".join(sorted(map(str,letters_k)))
-            integrands[key].append(a)
+            #key = "".join(sorted(map(str,letters_k)))
+            #integrands[key].append(a)
 
-    #TODO: move down (see MARK)
-    ## sum up all time versions
-    ans = []
-    for k,v in integrands.items():
-        print k,simplify(sum(v))
-        ans += [simplify(sum(v))]
-
-    ## sp.simplify(sp.integrate(sp.diff(eq,a0),(a0,0,1)))
-    ## Add integration and partial derivative
-    str_ans = []
-    for a in ans:
-        tmp = ''
-        letters_a = []
-        for j,sub in enumerate(tv[tv_num][1]):
-            if a.has(var("a%d"%j)):
-                letters_a += ["a%d"%j]
-                if tmp == '':
-                    # if analytic:
-                    tmp = 'int(diff(%s,a%d)'%(str(a),j)#TODO: use sympy, Luke!
-                    # else:
-                    #     tmp = 'Int(diff(%s,a%d)'%(str(a),j)
-                    # print "1)",tmp
-                else:#
-                    tmp = tmp[:-1]+',a%d)'%j
-                    # print "2)",tmp
-        if letters_a:
-            tmp = tmp+',[%s])'%",".join(['%s=0..1'%l for l in letters_a])
-            for letter in letters_a:
-                tmp = tmp.replace("%s**2"%letter,letter)
+        #print "integrands:\n",integrands
+        ## sp.simplify(sp.integrate(sp.diff(eq,a0),(a0,0,1)))
+        ## Add integration and partial derivative
+        str_ans = []
+        for a in ans:
+            tmp = ''
+            letters_a = []
+            for j,sub in enumerate(tv[tv_num][1]):
+                if a.has(var("a%d"%j)): # if there's an 'a' --> differentiate
+                    letters_a += ["a%d"%j]
+                    if tmp == '':
+                        # if analytic:
+                        # tmp = 'int(diff(%s,a%d)'%(str(a),j)#TODO: use sympy, Luke!
+                        #print "TEST:",var('a%d'%j) #TODO: remove this line
+                        tmp = diff(a,letters_a[-1])
+                        # else:
+                        #     tmp = 'Int(diff(%s,a%d)'%(str(a),j)
+                        # print "1)",tmp
+                    else:#
+                        tmp = diff(tmp,letters_a[-1])
+                        # print "2)",tmp
+            if letters_a:
+                print "TEST: before integration",tmp
+                #tmp = tmp+',[%s])'%",".join(['%s=0..1'%l for l in letters_a])
+                #tmp = simplify(integrate(tmp,*map(lambda l:(l,0,1), letters_a)))
+                tmp = integrate(tmp,*map(lambda l:(l,0,1), letters_a))
+                print "TEST: after integration",tmp
+                #for letter in letters_a:
+                #    tmp = str(tmp).replace("%s**2"%letter,letter)
 
         #TODO: MARK
+        ## sum up all time versions
+        ans = []
+        for k,v in integrands.items():
+            print k,simplify(sum(v))
+            ans += [simplify(sum(v))]
+
+
         for j in xrange(graph_obj.Loops):
             if a.has(var("k%d"%j)):
                 if tmp == '':
@@ -214,7 +220,7 @@ if  __name__ == "__main__":
     str_diags = [z]  # , vasya, one,z,d5,d25,d48,d77] # <-- for test purposes
     diags = [D(x) for x in str_diags]
     # one_tv = [x for x in diags if len(x.get_time_versions())==1]
-    pg = 10
+    pg = 10 #TODO: unused at the moment!
     for diag_num,x in enumerate(diags):
         print "restart:"
         print "pg:=%d:" % pg
