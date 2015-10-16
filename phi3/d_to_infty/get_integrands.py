@@ -22,6 +22,77 @@ def cut_edges(G,sub1,sub2):
     edges = G.subgraph(sub1).edges(keys=True) + G.subgraph(sub2).edges(keys=True)
     return [e for e in G.edges_iter(keys=True) if (e not in edges and -1 not in e and -2 not in e)]
 
+def integrand(graph_object, time_ver_number):
+    """
+    Returns integrand ( = numerator/denominator) that corresponds certain time version tv.
+    No integral sign, no differentiantion and integration of stretching parameters.
+    TODO:   tv  --> graph_obj.tv
+            ver --> version
+        tv_num  --> time_ver_number
+    """
+    version = graph_object.tv[time_ver_number]
+    v = version[0]
+    var(['k%d'%j for j in range(graph_object.Loops)])
+    var(['a%d'%j for j in range(graph_object.Loops-1)])
+    sq = lambda x: x**2
+    denominator = 1
+    for l in xrange(len(v)-1): # <-- loop over cuts
+        all_momenta = [var('k%i'%i) for i in xrange(graph_object.Loops)]
+        stretch_factors = dict(zip(all_momenta,[1 for i in xrange(len(all_momenta))]))
+        edges = cut_edges(graph_object.U,v[:l+1],v[l+1:]) # <-- edges of the v
+        ## Check if edges are in some significant subgraph
+        for j,sub in enumerate(graph_object.tv[time_ver_number][1]):
+            sg_nodes = [n for n in sub.vertices if n>-1]
+            sg = graph_object.U.subgraph(sg_nodes)
+            ## If the cut shares edges with subgraph, do stretches
+            if set(sg.edges(keys=True)).intersection(set(edges)):
+                ## Find simple momenta in this subgraph
+                sg_simple_mom = [graph_object.momenta_in_edge(e)[0] for e in sg.edges(keys=True) if len(graph_object.momenta_in_edge(e)) == 1]
+                for k in stretch_factors:
+                    if str(k) not in sg_simple_mom:
+                        stretch_factors[k] *= var('a%d'%j)
+        # print "Stretching factors:",stretch_factors
+        den = []
+        for e in edges:
+            # print "Edge:",e
+            m = [var(x) for x in graph_object.momenta_in_edge(e)]
+            # print m,stretch_factors[m[0]]
+            # print var(graph_object.momenta_in_edge(e))
+            den += factor(map(sq,map(lambda x: stretch_factors[x]*x,m)))
+        denominator *= sum(den)/2 ## NB: 1/2 is for eliminating all len(v)-1 powers of 2 in the denominator
+    
+    numerator = 1
+    numerator *= reduce(lambda x,y: x*y, var(['k%d'%j for j in range(graph_object.Loops)])) # <-- Jacobian
+    for b in graph_object.bridges:
+        test = map(lambda x: int(graph_object.flow_near_node(x),2),b)
+        shared_mom_bin = bin(test[0]&test[1])[2:]
+        shared_mom     = [var("k%d"%j) for j,k in enumerate(shared_mom_bin[::-1]) if int(k) and j < graph_object.Loops]
+        if len(shared_mom) == 0:
+            continue
+        else:
+            num = 0
+            for m in shared_mom:
+                term = sq(m)
+                for j,sub in enumerate(graph_object.tv[time_ver_number][1]):
+                    ext_nodes = set([e.nodes[1] for e in sub.external_edges])
+                    all_nodes = set([x for x in sub.vertices if x>-1])
+                    int_nodes = all_nodes.difference(ext_nodes)
+                    internal_mom = graph_object.subgraph_simple_momenta(sub)
+                    if str(m) not in internal_mom and b[0] in int_nodes and b[1] in int_nodes:
+                        term *= sq(var('a%d'%j))
+                    elif str(m) not in internal_mom and b[0] in int_nodes and b[1] not in int_nodes:
+                        term *= var('a%d'%j)
+                    elif str(m) not in internal_mom and b[0] not in int_nodes and b[1] in int_nodes:
+                        local_vasya_counter = True
+                        term *= var('a%d'%j)
+                num += term
+            numerator *= (num)
+    # print "numerator:\t",numerator
+    # print "denominator:\t",denominator
+    # print numerator/factor(denominator)
+    return numerator/denominator
+    
+
 
 #def integrand_maple(graph_obj,tv_num,dn,order = 0):
 def integrand_maple(graph_obj,dn,order = 0):
@@ -42,68 +113,10 @@ def integrand_maple(graph_obj,dn,order = 0):
     #for ver in xrange(len(tv)):       ## Loop over time versions
     for tv_num,ver in enumerate(tv):       ## Loop over time versions
     #v = tv[tv_num][0] ## current time_version number
-        v = ver[0]
-        var(['k%d'%j for j in range(graph_obj.Loops)])
-        var(['a%d'%j for j in range(graph_obj.Loops-1)])
-        sq = lambda x: x**2
-        denominator = 1
-        for l in xrange(len(v)-1): # <-- loop over cuts
-            all_momenta = [var('k%i'%i) for i in xrange(graph_obj.Loops)]
-            stretch_factors = dict(zip(all_momenta,[1 for i in xrange(len(all_momenta))]))
-            edges = cut_edges(graph_obj.U,v[:l+1],v[l+1:]) # <-- edges of the cut
-            ## Check if edges are in some significant subgraph
-            for j,sub in enumerate(tv[tv_num][1]):
-                sg_nodes = [n for n in sub.vertices if n>-1]
-                sg = graph_obj.U.subgraph(sg_nodes)
-                ## If the cut shares edges with subgraph, do stretches
-                if set(sg.edges(keys=True)).intersection(set(edges)):
-                    ## Find simple momenta in this subgraph
-                    sg_simple_mom = [graph_obj.momenta_in_edge(e)[0] for e in sg.edges(keys=True) if len(graph_obj.momenta_in_edge(e)) == 1]
-                    # print "Subgraph:",sub," simple momenta:",sg_simple_mom
-                    for k in stretch_factors:
-                        if str(k) not in sg_simple_mom:
-                            stretch_factors[k] *= var('a%d'%j)
-            # print "Stretching factors:",stretch_factors
-            den = []
-            for e in edges:
-                # print "Edge:",e
-                m = [var(x) for x in graph_obj.momenta_in_edge(e)]
-                # print m,stretch_factors[m[0]]
-                # print var(graph_obj.momenta_in_edge(e))
-                den += factor(map(sq,map(lambda x: stretch_factors[x]*x,m)))
-            denominator *= sum(den)/2 ## NB: 1/2 is for eliminating all len(v)-1 powers of 2 in the denominator
-        
-        numerator = 1
-        numerator *= reduce(lambda x,y: x*y, var(['k%d'%j for j in range(graph_obj.Loops)])) # <-- Jacobian
-        for b in graph_obj.bridges:
-            test = map(lambda x: int(graph_obj.flow_near_node(x),2),b)
-            shared_mom_bin = bin(test[0]&test[1])[2:]
-            shared_mom     = [var("k%d"%j) for j,k in enumerate(shared_mom_bin[::-1]) if int(k) and j < graph_obj.Loops]
-            if len(shared_mom) == 0:
-                continue
-            else:
-                num = 0
-                for m in shared_mom:
-                    term = sq(m)
-                    for j,sub in enumerate(tv[tv_num][1]):
-                        ext_nodes = set([e.nodes[1] for e in sub.external_edges])
-                        all_nodes = set([x for x in sub.vertices if x>-1])
-                        int_nodes = all_nodes.difference(ext_nodes)
-                        internal_mom = graph_obj.subgraph_simple_momenta(sub)
-                        if str(m) not in internal_mom and b[0] in int_nodes and b[1] in int_nodes:
-                            term *= sq(var('a%d'%j))
-                        elif str(m) not in internal_mom and b[0] in int_nodes and b[1] not in int_nodes:
-                            term *= var('a%d'%j)
-                        elif str(m) not in internal_mom and b[0] not in int_nodes and b[1] in int_nodes:
-                            local_vasya_counter = True
-                            term *= var('a%d'%j)
-                    num += term
-                numerator *= (num)
-        # print "\nDiagram: J%s, time version #%d"%(diag_number,tv_num)
-        # print "numerator:\t",numerator
-        # print "denominator:\t",denominator
-        # print numerator/factor(denominator)
-        _integrand = (numerator/denominator)
+        v = ver[0] # TODO: do we use this outside integrand()?
+        ## ===================================
+        _integrand = integrand(graph_obj, tv_num)
+        ## ===================================
 
         ## taking partial with respect to m
         ans = []
