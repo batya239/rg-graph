@@ -77,7 +77,6 @@ def integrand(graph_object, time_ver_number):
                     elif str(m) not in internal_mom and b[0] in int_nodes and b[1] not in int_nodes:
                         term *= var('a%d'%j)
                     elif str(m) not in internal_mom and b[0] not in int_nodes and b[1] in int_nodes:
-                        local_vasya_counter = True
                         term *= var('a%d'%j)
                 num += term
             numerator *= (num)
@@ -85,8 +84,16 @@ def integrand(graph_object, time_ver_number):
     # print "denominator:\t",denominator
     return numerator/denominator
     
+def integrate_diff_sympy(eq,var):
+    #print "Integrate:\n",eq
+    return integrate(diff(eq,var),(var,0,1))
 
+def integrate_over_a_maple():
+    pass
 
+def get_letters_k(eq,L):
+    return [var("k%d"%j) for j in xrange(L) if eq.has(var("k%d"%j))]
+    
 def integrand_maple(graph_obj,dn,order = 0):
     """
     
@@ -112,7 +119,8 @@ def integrand_maple(graph_obj,dn,order = 0):
         
         ## Add log() and posible variable substitution
         for a in ans:
-            letters_k = [var("k%d"%j) for j in xrange(graph_obj.Loops) if a.has(var("k%d"%j))]
+            # letters_k = [var("k%d"%j) for j in xrange(graph_obj.Loops) if a.has(var("k%d"%j))]
+            letters_k = get_letters_k(a, graph_obj.Loops)
             
             a = a/prod(letters_k)/2**len(letters_k)                     # Jacobian
             a = a.subs([(i**2,i) for i in letters_k],simultaneous=True) # k² --> k
@@ -121,71 +129,32 @@ def integrand_maple(graph_obj,dn,order = 0):
                 a *= ln(prod(letters_k)) / 2
             elif order == 2:
                 a *= (ln(prod(letters_k))/ 2)**2/2
-            #key = "".join(sorted(map(str,letters_k)))
-            #integrands[key].append(a)
 
-        #print "integrands:\n",integrands
         ## sp.simplify(sp.integrate(sp.diff(eq,a0),(a0,0,1)))
         ## Add integration and partial derivative
         str_ans = []
         for a in ans:
-            tmp = ''
+            tmp = a
             letters_a = []
             for j,sub in enumerate(tv[tv_num][1]):
                 if a.has(var("a%d"%j)): # if there's an 'a' --> differentiate
                     letters_a += ["a%d"%j]
-                    if tmp == '':
-                        # if analytic:
-                        # tmp = 'int(diff(%s,a%d)'%(str(a),j)#TODO: use sympy, Luke!
-                        #print "TEST:",var('a%d'%j) #TODO: remove this line
-                        tmp = diff(a,letters_a[-1])
-                        # else:
-                        #     tmp = 'Int(diff(%s,a%d)'%(str(a),j)
-                        # print "1)",tmp
-                    else:#
-                        tmp = diff(tmp,letters_a[-1])
-                        # print "2)",tmp
-            if letters_a:
-                print "TEST: before integration",tmp
-                #tmp = tmp+',[%s])'%",".join(['%s=0..1'%l for l in letters_a])
-                #tmp = simplify(integrate(tmp,*map(lambda l:(l,0,1), letters_a)))
-                tmp = integrate(tmp,*map(lambda l:(l,0,1), letters_a)) #TODO: sympy.integrate is sooo sloooow!
-                print "TEST: after integration",tmp
-                #for letter in letters_a:
-                #    tmp = str(tmp).replace("%s**2"%letter,letter)
+                    tmp = integrate_diff_sympy(tmp,letters_a[-1])
+            key = "/".join(sorted(map(str,get_letters_k(a,graph_obj.Loops))))
+            integrands[key].append(tmp)
 
         #TODO: MARK
-        ## sum up all time versions
-        ans = []
-        for k,v in integrands.items():
-            print k,simplify(sum(v))
-            ans += [simplify(sum(v))]
+    ## sum up all time versions
+    ans = []
+    for k,v in integrands.items():
+        integrands[k] = sum(v)
 
+    str_ans = []
+    for k,v in integrands.items():
+        k_vars = "["+",".join(map(lambda x:"%s=1..infinity"%x,k.split('/')))+"]"
+        str_ans += [("Int(%s,%s)"% (str(v),k_vars)).replace("**","^")]
 
-        for j in xrange(graph_obj.Loops):
-            if a.has(var("k%d"%j)):
-                if tmp == '':
-                    if analytic:
-                        tmp = 'int(%s,[k%d = 1..infinity])'%(str(a),j)
-                    else:
-                        tmp = 'Int(%s,[k%d = 1..infinity])'%(str(a),j)
-                    # print "3)",tmp
-                elif tmp[:9]=='int(diff(':
-                    if analytic:
-                        tmp = 'int(%s,[k%d =1..infinity])'%(tmp,j)
-                    else:
-                        # print "4)",tmp
-                        tmp = 'Int(%s,[k%d =1..infinity])'%(tmp,j)
-                else:
-                    tmp = tmp[:-2]+',k%d =1..infinity])'%j
-                    # print "5)",tmp
-
-        str_ans += [tmp.replace("**","^")]
-    # dn = diag_number
-    if analytic:
-        return 'j%sv%d:=simplify(%s):'%(dn,tv_num,'+'.join(str_ans))
-    else:
-        return ('j%sv%d:=(%s):'%(dn,tv_num,'+'.join(str_ans)))
+    return ('j%s:=(%s):'%(dn,'+'.join(str_ans)))
 
 if  __name__ == "__main__":
     analytic = False
@@ -207,32 +176,20 @@ if  __name__ == "__main__":
     d77   = 'e12|23|4|e5|55||:0A_aA_dA|dd_aA|aA|0a_dA|aa_dd||'
     new   = 'e12|23|4|e5|67|89|89|89|||:0A_aA_da|dd_aA|Aa|0a_dA|Aa_dd|aA_dd|dd_Aa|Aa_aA|||'
 
-    #name = sys.argv[1]
-    #with open('diags_%d_loops/nonzero/%s'%(loops,name.replace('|','-'))) as fd:
-    #    str_diags = [d.strip() for d in fd.readlines()]
+    name = sys.argv[1]
+    with open('diags_%d_loops/nonzero/%s'%(loops,name.replace('|','-'))) as fd:
+        str_diags = [d.strip() for d in fd.readlines()]
 
-    str_diags = [z]  # , vasya, one,z,d5,d25,d48,d77] # <-- for test purposes
+    #str_diags = [one]  # , vasya, one,z,d5,d25,d48,d77] # <-- for test purposes
     diags = [D(x) for x in str_diags]
     # one_tv = [x for x in diags if len(x.get_time_versions())==1]
     pg = 10 #TODO: unused at the moment!
     for diag_num,x in enumerate(diags):
         print "restart:"
-        print "pg:=%d:" % pg
+        print "Digits:=%d:" % pg
         print "assume(%s):"%", ".join(["k%s>1"%i for i in xrange(loops)])
         sign = sign_account(x)
 
         print integrand_maple(x,diag_num,order)
-        if sign_account(x) == 1:
-            if analytic:
-                print "j%s:=simplify("%(diag_num)+\
-                  " + ".join(["j%sv%d"%(diag_num,i) for i in xrange(tv_num)])+"):"
-            else:
-                print "j%s:=%s:"%(diag_num,"+".join(["j%sv%d"%(diag_num,i) for i in xrange(tv_num)]))
-        else:
-            if analytic:
-                print "j%s := simplify(-("%(diag_num)+\
-                  "+".join(["j%sv%d"%(diag_num,i) for i in xrange(tv_num)])+")):"
-            else:
-                print "j%s:=-(%s):"%(diag_num, "+".join(["j%sv%d"%(diag_num,i) for i in xrange(tv_num)]))
         print 'printf("\\n%%d) %%s --> %%.9e",%s,"%s",Re(j%s));'%(diag_num,x.nickel,diag_num)
 
