@@ -202,10 +202,10 @@ if  __name__ == "__main__":
     # one_tv = [x for x in diags if len(x.get_time_versions())==1]
     # tvs = 20
     # tv = [x for x in diags if len(x.get_time_versions()) == tvs]
-    pg = 14
+    pg = 10
     for diag_num,x in enumerate(diags):
         print "restart:"
-        print "pg:=%d:" % pg
+        print "Digits:=%d:" % pg
         print "assume(%s):"%", ".join(["k%s>1"%i for i in xrange(loops)])
         sign = sign_account(x)
 
