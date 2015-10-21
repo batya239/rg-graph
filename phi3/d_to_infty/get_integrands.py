@@ -94,11 +94,10 @@ def integrate_over_a_maple():
 def get_letters_k(eq,L):
     return [var("k%d"%j) for j in xrange(L) if eq.has(var("k%d"%j))]
     
-def integrand_maple(graph_obj,dn,order = 0):
+def integrand_maple(graph_obj,order = 0):
     """
     
     :param graph_obj: instance of D_to_infty_graph class
-    :param dn: number of the diagram (some unique number)
     :return: integrand as a string
     """
 
@@ -156,9 +155,9 @@ def integrand_maple(graph_obj,dn,order = 0):
 
     sign = sign_account(graph_obj)
     if sign == 1:
-        return ('j%s:=%s:'%(dn,'+'.join(str_ans)))
+        return ('j:=%s:'%('+'.join(str_ans)))
     else:
-        return ('j%s:=-(%s):'%(dn,'+'.join(str_ans)))
+        return ('j:=-(%s):'%('+'.join(str_ans)))
 
 if  __name__ == "__main__":
     analytic = False
@@ -180,19 +179,21 @@ if  __name__ == "__main__":
     d77   = 'e12|23|4|e5|55||:0A_aA_dA|dd_aA|aA|0a_dA|aa_dd||'
     new   = 'e12|23|4|e5|67|89|89|89|||:0A_aA_da|dd_aA|Aa|0a_dA|Aa_dd|aA_dd|dd_Aa|Aa_aA|||'
 
-    name = sys.argv[1]
-    with open('diags_%d_loops/nonzero/%s'%(loops,name.replace('|','-'))) as fd:
-        str_diags = [d.strip() for d in fd.readlines()]
+    name = D(sys.argv[1])
+    #name = sys.argv[1]
+    #with open('diags_%d_loops/nonzero/%s'%(loops,name.replace('|','-'))) as fd:
+    #    str_diags = [d.strip() for d in fd.readlines()]
 
     #str_diags = [one]  # , vasya, one,z,d5,d25,d48,d77] # <-- for test purposes
-    diags = [D(x) for x in str_diags]
+    #diags = [D(x) for x in str_diags]
     # one_tv = [x for x in diags if len(x.get_time_versions())==1]
-    pg = 10 #TODO: unused at the moment!
-    for diag_num,x in enumerate(diags):
-        print "restart:"
-        print "Digits:=%d:" % pg
-        print "assume(%s):"%", ".join(["k%s>1"%i for i in xrange(loops)])
+    pg = 10 
+    #for diag_num,x in enumerate(diags):
+    print "restart:"
+    print "Digits:=%d:" % pg
+    print "assume(%s):"%", ".join(["k%s>1"%i for i in xrange(loops)])
 
-        print integrand_maple(x,diag_num,order)
-        print 'printf("\\n%%d) %%s --> %%.9e",%s,"%s",Re(j%s));'%(diag_num,x.nickel,diag_num)
+    print integrand_maple(name,order)
+    #print 'printf("\\n%%d) %%s --> %%.9e",%s,"%s",Re(j%s));'%(diag_num,x.nickel,diag_num)
+    print 'printf("%%s --> %%.9e","%s",Re(j));'%(name.nickel)
 

@@ -20,15 +20,18 @@ if  __name__ == "__main__":
         exit(1)
 
     rc = Client() # <-- ipcluster MUST be started at this moment
-    print rc.ids
+    print "Number of engines:",len(rc.ids)
     lview = rc.load_balanced_view() # default load-balanced view
     abspath = os.path.expanduser('~')+'/rg-graph/phi3/d_to_infty/'
-    diags = os.listdir('diags_%s_loops/nonzero'%loops)
-    #cmd = ['python %sget_integrands_reference.py %s > %sdiags_%s_loops/ints/%s'%(abspath,d,abspath,loops,d) for d in diags]
-    cmd = ['python %sget_integrands.py %s > %sdiags_%s_loops/ints/%s'%(abspath,d,abspath,loops,d) for d in diags]
-    #cmd = ['echo %d'%rc.ids[i] for i in xrange(4)]
-    print cmd
+    static_diags = os.listdir('diags_%s_loops/nonzero'%loops)
+    dyn_diags = []
+    for d in static_diags:
+        with open(abspath + 'diags_%d_loops/nonzero/'%loops + d) as fd:
+            dyn_diags += [dd.strip() for dd in fd.readlines()]
+    cmd = ['python %sget_integrands.py "%s" > %sdiags_%s_loops/ints/%s' \
+                % (abspath,d,abspath,loops,d.replace('|','-')) for d in dyn_diags]
+    print "The first 3 cmd-s:"
+    for j in range(3): print cmd[j]
     lview.map(comm,cmd,block=True)
-    #print res
 
 
