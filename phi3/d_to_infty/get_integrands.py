@@ -154,7 +154,11 @@ def integrand_maple(graph_obj,dn,order = 0):
         k_vars = "["+",".join(map(lambda x:"%s=1..infinity"%x,k.split('/')))+"]"
         str_ans += [("Int(%s,%s)"% (str(v),k_vars)).replace("**","^")]
 
-    return ('j%s:=(%s):'%(dn,'+'.join(str_ans)))
+    sign = sign_account(graph_obj)
+    if sign == 1:
+        return ('j%s:=%s:'%(dn,'+'.join(str_ans)))
+    else:
+        return ('j%s:=-(%s):'%(dn,'+'.join(str_ans)))
 
 if  __name__ == "__main__":
     analytic = False
@@ -171,7 +175,7 @@ if  __name__ == "__main__":
     z     = 'e12|e3|45|45|5||:0A_dd_aA|0a_Aa|aA_da|Aa_dA|dd||' # -π²/24+1/4*Log(2)+1/4 ≈ 0.0120532784279297182362, two time versions (No 32)
     d5    = 'e12|e3|34|5|55||:0A_aA_dA|0a_dA|dd_aA|aA|aa_dd||'
     d25   = 'e12|e3|45|45|5||:0A_aA_dA|0a_dA|aa_dd|dd_aA|Aa||'
-    d40   = 'e12|e3|44|55|5||:0A_dd_aA|0a_Aa|aA_dd|Aa_dd|aA||' # -π²/24, one time version
+    d40   = 'e12|e3|44|55|5||:0A_dd_aA|0a_Aa|aA_dd|Aa_dd|aA||' # -π²/24, one time version ≈ -0.411233516712 
     d48   = 'e12|23|4|45|5|e|:0A_aA_dA|dd_aA|aA|dd_aA|ad|0a|'
     d77   = 'e12|23|4|e5|55||:0A_aA_dA|dd_aA|aA|0a_dA|aa_dd||'
     new   = 'e12|23|4|e5|67|89|89|89|||:0A_aA_da|dd_aA|Aa|0a_dA|Aa_dd|aA_dd|dd_Aa|Aa_aA|||'
@@ -188,7 +192,6 @@ if  __name__ == "__main__":
         print "restart:"
         print "Digits:=%d:" % pg
         print "assume(%s):"%", ".join(["k%s>1"%i for i in xrange(loops)])
-        sign = sign_account(x)
 
         print integrand_maple(x,diag_num,order)
         print 'printf("\\n%%d) %%s --> %%.9e",%s,"%s",Re(j%s));'%(diag_num,x.nickel,diag_num)
