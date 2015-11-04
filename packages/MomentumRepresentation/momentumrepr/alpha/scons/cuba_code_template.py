@@ -94,7 +94,7 @@ else if (METHOD == 1) {{
 
   llSuave(NDIM, NCOMP, Integrand, USERDATA, NVEC,
     EPSREL, EPSABS, verbose | LAST, SEED,
-    MINEVAL, MAXEVAL, NNEW, FLATNESS, STATEFILE, SPIN,
+    MINEVAL, MAXEVAL, NNEW, 10, FLATNESS, STATEFILE, SPIN,
     &nregions, &neval, &fail, integral, error, prob);
 
   printf("SUAVE RESULT:\tnregions %d\tneval %d\tfail %d\\n",

@@ -208,7 +208,7 @@ def integrate_time_version(graph, operation):
     tau_c = polynomial.poly(map(lambda u: (1, (u,)), c_tau))
     omega_c = polynomial.poly(map(lambda u: (1, u), c_omega))
 
-    c_d_tau = tau_multiplier(tau_rate, v_rate)
+    c_d_tau = tau_multiplier(tau_rate)
 
     __d = _d
     __c = c
@@ -343,12 +343,14 @@ def integrate_time_version(graph, operation):
     return multiply(integration_result, base_c, graph)
 
 
-def tau_multiplier(tau_rate, v_rate):
+def tau_multiplier(tau_rate):
     monomials = dict()
     # alpha_prod = reduce(lambda x, y: x * y, v_rate.values(), 1)
 
     for v, (c, stretchers) in tau_rate.iteritems():
         # coeff = c * alpha_prod
+        # if str(v) == "v0":
+        #     continue
         coeff = c
         raw_monomial = {v: 1}
         for stretcher in stretchers:
