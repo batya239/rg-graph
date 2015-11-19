@@ -3,8 +3,10 @@
 
 __author__ = "kirienko"
 
-from IPython.parallel import Client
-import os, sys
+from ipyparallel import Client
+from os import system, listdir, mkdir
+from os.path import exists, expanduser
+from os.path import join as pjoin
 
 def comm(command):
     import os
@@ -22,15 +24,23 @@ if  __name__ == "__main__":
     rc = Client() # <-- ipcluster MUST be started at this moment
     print rc.ids
     lview = rc.load_balanced_view() # default load-balanced view
-    abspath = os.path.expanduser('~')+'/rg-graph/phi3/d_to_infty/'
-    diags = os.listdir('diags_%s_loops/nonzero'%loops)
-    #cmd = ['python %sget_integrands_reference.py %s > %sdiags_%s_loops/ints/%s'%(abspath,d,abspath,loops,d) for d in diags]
-    #TODO: use .format here
-    cmd = ['python %sget_integrands.py %s > %sdiags_%s_loops/ints/order_%d/%s'%(abspath,d,abspath,loops,order,d) for d in diags]
-    #cmd = ['echo %d'%rc.ids[i] for i in xrange(4)]
-    print cmd
-    #lview.map(comm,cmd,block=True)
-    lview.map(comm,cmd)
-    #print res
+    abspath = pjoin(expanduser('~'), 'rg-graph', 'phi3', 'd_to_infty')
+    diags = listdir(pjoin('diags_%s_loops'%loops, 'nonzero'))
+    ints_dir = pjoin(abspath, 'diags_%s_loops'%loops, 'ints')
+    if not exists(ints_dir):
+        mkdir(ints_dir)
+        print "Created: %s" % ints_dir
+    ints_order_dir = pjoin(ints_dir, 'order_%d' % order)
+    if not exists(ints_order_dir):
+        mkdir(ints_order_dir)
+        print "Created: %s"%ints_order_dir
+    cmd = ['python %s %s > %s' % 
+            (pjoin(abspath,'get_integrands.py'), d, 
+            pjoin(ints_order_dir, d)) 
+            for d in diags]
+    print "First 3 commands:"
+    for i in xrange(3):
+        print cmd[i]
+    lview.map(comm, cmd)
 
 
