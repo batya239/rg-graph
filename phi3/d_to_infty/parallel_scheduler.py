@@ -3,8 +3,10 @@
 
 __author__ = "kirienko"
 
-from IPython.parallel import Client
-import os, sys
+from ipyparallel import Client
+from os import system, listdir, mkdir
+from os.path import exists, expanduser
+from os.path import join as pjoin
 
 def comm(command):
     import os
@@ -22,16 +24,23 @@ if  __name__ == "__main__":
     rc = Client() # <-- ipcluster MUST be started at this moment
     print "Number of engines:",len(rc.ids)
     lview = rc.load_balanced_view() # default load-balanced view
-    abspath = os.path.expanduser('~')+'/rg-graph/phi3/d_to_infty/'
-    static_diags = os.listdir('diags_%s_loops/nonzero'%loops)
-    dyn_diags = []
-    for d in static_diags:
-        with open(abspath + 'diags_%d_loops/nonzero/'%loops + d) as fd:
-            dyn_diags += [dd.strip() for dd in fd.readlines()]
-    cmd = ['python %sget_integrands.py "%s" > %sdiags_%s_loops/ints/%s' \
-                % (abspath,d,abspath,loops,d.replace('|','-')) for d in dyn_diags]
-    print "The first 3 cmd-s:"
-    for j in range(3): print cmd[j]
-    lview.map(comm,cmd,block=True)
+    abspath = pjoin(expanduser('~'), 'rg-graph', 'phi3', 'd_to_infty')
+    diags = listdir(pjoin('diags_%s_loops'%loops, 'nonzero'))
+    ints_dir = pjoin(abspath, 'diags_%s_loops'%loops, 'ints')
+    if not exists(ints_dir):
+        mkdir(ints_dir)
+        print "Created: %s" % ints_dir
+    ints_order_dir = pjoin(ints_dir, 'order_%d' % order)
+    if not exists(ints_order_dir):
+        mkdir(ints_order_dir)
+        print "Created: %s"%ints_order_dir
+    cmd = ['python %s %s > %s' % 
+            (pjoin(abspath,'get_integrands.py'), d, 
+            pjoin(ints_order_dir, d)) 
+            for d in diags]
+    print "First 3 commands:"
+    for i in xrange(3):
+        print cmd[i]
+    lview.map(comm, cmd)
 
 
