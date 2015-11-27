@@ -5,7 +5,7 @@ import pexpect  # <-- see docs here: http://pexpect.readthedocs.org/en/stable/
 __author__ = 'kirienko'
 
 
-def maple(expr):
+def maple(expr, Digits=10):
     """
     Quick and dirty Maple interface.
     Executes expression 'expr' in Maple and returns the result as a string.
@@ -21,6 +21,9 @@ def maple(expr):
     assumption = "assume(%s):" % ", ".join(["k%s>1" % i for i in xrange(5)])
     child.sendline(assumption)
     child.expect('#-->')
+    if Digits != 10:
+        child.sendline('Digits = %d:' % Digits)
+        child.expect('#-->')
     child.sendline(expr)
     child.expect('#-->', timeout=None)
     out = child.before
