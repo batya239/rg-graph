@@ -4,7 +4,7 @@ How it works
 This README contains manual for generating and calculating answers
 to the "Theory without divergences" in turbulence in *d_to_infty* case.
 
-1. Generating all the diagrams in N loops, such that satisfy the requirement of existence of "spine" and "half-spine":
+###### Generating all the diagrams in N loops, such that satisfy the requirement of existence of "spine" and "half-spine"
 ```bash
 $ python spine.py
 ```
@@ -22,7 +22,8 @@ Results:
 * file `./diags_N_loops/count` created
 * files `./diags_N_loops/diag` created – contain lists of dynamic diags that correspond to this static diag
 
-2. Filtering zero diagrams: (it works fast enough, no need to parallelize).
+
+###### Filtering zero diagrams: (it works fast enough, no need to parallelize).
 ```bash
 $ python filter_zero.py
 ```
@@ -30,12 +31,12 @@ $ python filter_zero.py
 Result:
 * directory `./diags_N_loops/nonzero` created – contains lists of all nonzero dynamic diagrams
 
-3. Writing down integrands:
+###### Writing down integrands:
 ```bash
 $ ipython parallel_scheduler.py <loops>
 ```
 
-4. Computations:
+###### Computations:
 ```bash
 $ ipython parallel_scheduler_maple.py
 ```
