@@ -7,7 +7,10 @@ import os
 
 import graph_state as gs
 import networkx as nx
-from IPython.parallel import Client
+try:
+    from ipyparallel import Client
+except ImportError:
+    from IPython.parallel import Client
 
 import itertools as it
 
