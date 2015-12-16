@@ -3,7 +3,10 @@
 
 __author__ = "kirienko"
 
-from ipyparallel import Client
+try:
+    from ipyparallel import Client
+except ImportError:
+    from IPython.parallel import Client
 from os import system, listdir, mkdir
 from os.path import exists, expanduser
 from os.path import join as pjoin
