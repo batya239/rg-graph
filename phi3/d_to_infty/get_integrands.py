@@ -23,7 +23,7 @@ def cut_edges(G,sub1,sub2):
     return [e for e in G.edges_iter(keys=True) if (e not in edges and -1 not in e and -2 not in e)]
 
 
-def integrand_maple(graph_obj,tv_num,dn,order = 0):
+def integrand_maple(graph_obj, tv_num, dn, order=0):
     """
     
     :param graph_obj: instance of D_to_infty_graph class
@@ -32,13 +32,11 @@ def integrand_maple(graph_obj,tv_num,dn,order = 0):
     :return: integrand as a string
     """
     # diag_number = diag_dict[graph_obj.nickel]
-    # if int(diag_number) in [9,43,45,47,54,79,81]: return ''
     tv = graph_obj.get_time_versions()
     v = tv[tv_num][0]
     var(['k%d'%j for j in range(graph_obj.Loops)])
     var(['a%d'%j for j in range(graph_obj.Loops-1)])
     sq = lambda x: x**2
-    local_vasya_counter = False
     denominator = 1
     for l in xrange(len(v)-1): # <-- loop over cuts
         all_momenta = [var('k%i'%i) for i in xrange(graph_obj.Loops)]
@@ -66,7 +64,7 @@ def integrand_maple(graph_obj,tv_num,dn,order = 0):
             # print var(graph_obj.momenta_in_edge(e))
             den += factor(map(sq,map(lambda x: stretch_factors[x]*x,m)))
         denominator *= sum(den)/2 ## NB: 1/2 is for eliminating all len(v)-1 powers of 2 in the denominator
-    
+
     numerator = 1
     numerator *= reduce(lambda x,y: x*y, var(['k%d'%j for j in range(graph_obj.Loops)])) # <-- Jacobian
     for b in graph_obj.bridges:
@@ -89,7 +87,6 @@ def integrand_maple(graph_obj,tv_num,dn,order = 0):
                     elif str(m) not in internal_mom and b[0] in int_nodes and b[1] not in int_nodes:
                         term *= var('a%d'%j)
                     elif str(m) not in internal_mom and b[0] not in int_nodes and b[1] in int_nodes:
-                        local_vasya_counter = True
                         term *= var('a%d'%j)
                 num += term
             numerator *= (num)
@@ -110,13 +107,13 @@ def integrand_maple(graph_obj,tv_num,dn,order = 0):
                 __int = __int.subs(var("a%d"%j),1)
                 # print "\ta%d --> 1"%j
         ans += [factor(__int.subs(var("k%d"%l),1))]
-    
+
 
     ## Add integration and partial derivative
     str_ans = []
     for a in ans:
         letters_k = [var("k%d"%j) for j in xrange(graph_obj.Loops) if a.has(var("k%d"%j))]
-        
+
         ## variable substitution: k² --> k
         if order == 0:
             a = a/prod(letters_k)/2**len(letters_k)                     # Jacobian
@@ -167,7 +164,6 @@ def integrand_maple(graph_obj,tv_num,dn,order = 0):
                     # print "5)",tmp
 
         str_ans += [tmp.replace("**","^")]
-    # dn = diag_number
     if analytic:
         return 'j%sv%d:=simplify(%s):'%(dn,tv_num,'+'.join(str_ans))
     else:
@@ -180,7 +176,8 @@ if  __name__ == "__main__":
         from config import *
     except ImportError:
         loops = 3
-        order = 0  ##
+        order = 0
+        digits = 10
         ipython_profile = 'default'
 
     vasya = 'e12|e3|34|5|55||:0A_aA_dA|0a_dA|dd_aA|aa|aA_dd||' # 5/32+5/8*Log(2) (No 1)
@@ -197,12 +194,11 @@ if  __name__ == "__main__":
     with open('diags_%d_loops/nonzero/%s'%(loops,name.replace('|','-'))) as fd:
         str_diags = [d.strip() for d in fd.readlines()]
 
-    #str_diags = [z]  # , vasya, one,z,d5,d25,d48,d77] # <-- for test purposes
     diags = [D(x) for x in str_diags]
     # one_tv = [x for x in diags if len(x.get_time_versions())==1]
     # tvs = 20
     # tv = [x for x in diags if len(x.get_time_versions()) == tvs]
-    pg = 10
+    pg = digits
     for diag_num,x in enumerate(diags):
         print "restart:"
         print "Digits:=%d:" % pg
@@ -217,20 +213,11 @@ if  __name__ == "__main__":
                 print "j%s:=simplify("%(diag_num)+\
                   " + ".join(["j%sv%d"%(diag_num,i) for i in xrange(tv_num)])+"):"
             else:
-                print "j%s:=%s:"%(diag_num,"+".join(["j%sv%d"%(diag_num,i) for i in xrange(tv_num)]))
+                print "j%s:=%s:"%(diag_num,"+".join(["j%sv%d" % (diag_num, i) for i in xrange(tv_num)]))
         else:
             if analytic:
                 print "j%s := simplify(-("%(diag_num)+\
                   "+".join(["j%sv%d"%(diag_num,i) for i in xrange(tv_num)])+")):"
             else:
                 print "j%s:=-(%s):"%(diag_num, "+".join(["j%sv%d"%(diag_num,i) for i in xrange(tv_num)]))
-        print 'printf("\\n%%d) %%s --> %%.%de",%s,"%s",Re(j%s));'%(pg,diag_num,x.nickel,diag_num)
-        """
-        if loops == 3:
-            if analytic:
-                print 'If[Abs[N[J%s - 32*j%s]] < 10^-8, Print["%s -- OK (Num)"],' \
-                    'Print["Err: %s --> ", j%s]]'%(tuple([diag_num]*5))
-            else:
-                print 'If[J%s - 32*j%s < 10^-8, Print["%s -- OK (Num)"],' \
-                    'Print["Err: %s --> ", j%s]]'%(tuple([diag_num]*5))
-        """
+        print 'printf("\\n%%s --> %%.%de","%s",Re(j%s));'%(pg, x.nickel, diag_num)

@@ -13,7 +13,13 @@ def comm(command):
     os.system(command)
 
 if  __name__ == "__main__":
-    rc = Client()       # <-- ipcluster MUST be started at this moment
+    try: 
+        from config import *
+    except ImportError:
+        print "ERROR: cannot import config.py"
+        exit(1)
+
+    rc = Client(profile=ipython_profile)       # <-- ipcluster MUST be started at this moment
     #rc.block = True     # use synchronous computations (for direct view)
     print rc.ids
     lview = rc.load_balanced_view() # default load-balanced view
@@ -24,8 +30,4 @@ if  __name__ == "__main__":
     #res = lview.map(comm,cmd,block=True)
     res = lview.map(comm,cmd)
     #print res
-    #import time
-    #while not res.ready():
-    #    time.sleep(1)
-    #    print res.progress
 
