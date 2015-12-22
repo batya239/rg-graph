@@ -8,8 +8,11 @@ import os, sys
 
 def comm(command):
     import os
-    from config import abspath, loops, order
-    os.chdir(abspath+'diags_%d_loops/ints/order_%d/' % (loops,order))
+    path = os.path.expanduser('~')+'/rg-graph/phi3/d_to_infty/'
+    os.chdir(path)
+    import config as c
+    reload(c)   # to be sure that we have updated values
+    os.chdir(c.abspath+'diags_%d_loops/ints/order_%d/' % (c.loops, c.order))
     os.system(command)
 
 if  __name__ == "__main__":
@@ -27,7 +30,7 @@ if  __name__ == "__main__":
     diags = os.listdir('diags_%d_loops/ints/order_%d/' % (loops,order))
     cmd = ['maple -q < "%s" > %sdiags_%d_loops/ans/order_%d/%s'%(d,abspath,loops,order,d) for d in diags]
     print cmd
-    #res = lview.map(comm,cmd,block=True)
+    # res = lview.map(comm,cmd,block=True)
     res = lview.map(comm,cmd)
-    #print res
+    # print res
 

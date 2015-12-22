@@ -34,7 +34,7 @@ if  __name__ == "__main__":
     if not exists(ints_order_dir):
         mkdir(ints_order_dir)
         print "Created: %s"%ints_order_dir
-    cmd = ['python %s %s > %s' % 
+    cmd = ['python %s %s > %s' %
             (pjoin(abspath,'get_integrands.py'), d, 
             pjoin(ints_order_dir, d)) 
             for d in diags]
