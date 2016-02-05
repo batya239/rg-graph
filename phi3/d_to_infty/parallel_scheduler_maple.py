@@ -6,7 +6,7 @@ __author__ = "kirienko"
 from IPython.parallel import Client
 # from ipyparallel import Client
 from random import shuffle
-import os, sys
+import os
 
 
 def comm(diag):
@@ -23,15 +23,16 @@ def comm(diag):
         if integrand[j] == ']':
             integrand = integrand[:j+1] + ',numeric,method=_CubaCuhre,epsilon=1e-%d'%(digits-1) + integrand[j+1:]
     command = "evalf[%d](%s);" % (digits, integrand)
+    # command = "eval(%s);" % (integrand.replace('Int','int'))
+    maple('_EnvIntMaxPoints = 10000000000:')
     res = maple(command, Digits=digits)
     with open(abspath+"diags_%d_loops/ans/order_%d/short/%s" % (loops, order, diag), 'w') as fd:
         fd.write(res)
-    # os.system(command)
 
 
 if __name__ == "__main__":
     from config import abspath, loops, order, ipython_profile
-    from minimal_diag_set_l3e1 import *
+    from minimal_diag_set_l3 import *
 
     rc = Client(profile=ipython_profile)  # <-- ipcluster MUST be started at this moment
     # rc.block = True     # use synchronous computations (for direct view)
@@ -39,7 +40,7 @@ if __name__ == "__main__":
     lview = rc.load_balanced_view()  # default load-balanced view
 
     diags = os.listdir('diags_%d_loops/ints/order_%d/short/' % (loops, order))
-    diags = final
+    #diags = final
     
     # skip diagram if already existed
     path_to_diags = abspath+'diags_%d_loops/ans/order_%d/short/' % (loops, order)
@@ -52,4 +53,4 @@ if __name__ == "__main__":
 
     # cmd = ['maple -q < "%s" > %sdiags_%d_loops/order_%d/ans/%s' %
     #        (d, abspath, loops, order, d) for d in diags]
-    res = lview.map(comm, diags)
+    res = lview.map(comm, diags, block=True)

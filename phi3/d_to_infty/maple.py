@@ -27,9 +27,15 @@ def maple(expr, Digits=10):
     child.sendline(expr)
     child.expect('#-->', timeout=None)
     out = child.before
-    out = out[out.find(';') + 1:].strip()
-    out = ''.join(out.split('\r\n'))
-    return out
+    if len(out.split(';')) > 1:
+        out = out[out.find(';') + 1:].strip()
+        out = ''.join(out.split('\r\n'))
+        return out
+    elif len(out.split(';')) == 1 and expr[:9] == 'simplify(':
+        print "\t\t*** Simplification E R R O R ***\nExpression:\n"+expr+"\n*** END OF ERROR LOG"
+        return expr[8:-1]
+    else:
+        return "\n\t\t*** M A P L E ()  E R R O R ***\nExpression:\n"+expr+"\nResult:\n"+out+"\n*** END OF ERROR LOG"
 
 
 if __name__ == "__main__":
