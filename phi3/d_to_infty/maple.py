@@ -6,9 +6,10 @@ import pexpect  # <-- see docs here: http://pexpect.readthedocs.org/en/stable/
 import tempfile
 
 __author__ = 'kirienko'
+Gb = 2 ** 20    # Gb in kB
+hours = 3600    # hour in sec
 
-
-def maple(expr, Digits=10):
+def maple(expr, Digits=10, memLimit=4, timeLimit=2):
     """
     Quick and dirty Maple interface.
     Executes expression 'expr' in Maple and returns the result as a string.
@@ -21,6 +22,8 @@ def maple(expr, Digits=10):
     MW = 'maple -t -c "interface({})"'.format(','.join(__maple_iface_opts))
     k_s = ", ".join(["k%s>1" % i for i in xrange(5)])
     a_s = ", ".join(["a%s>0" % i for i in xrange(5)])
+    cpu_time_limit = "kernelopts(cpulimit=%d):" % (timeLimit * hours)
+    memory_limit = "kernelopts(datalimit=%d):" % (memLimit * Gb)
     assumption = "assume(%s, %s):" % (k_s, a_s)
 
     ###
@@ -30,6 +33,8 @@ def maple(expr, Digits=10):
     fd_source = tempfile.NamedTemporaryFile(prefix='tmp_rggraph_maple', delete=False)
     fd_dest = tempfile.NamedTemporaryFile(prefix='tmp_rggraph_maple', delete=False)
     fd_source.write(assumption + "\n")
+    fd_source.write(cpu_time_limit + "\n")
+    fd_source.write(memory_limit + "\n")
     if Digits != 10:
         fd_source.write('Digits = %d:' % Digits)
     fd_source.write(expr + '\n')
@@ -62,8 +67,8 @@ def maple(expr, Digits=10):
         else:
             return "\n\t\t*** M A P L E ()  E R R O R ***\nExpression:\n"+expr+"\nResult:\n"+out+"\n*** END OF ERROR LOG"
     """
-    #if len(expr) - 10 < len(out) and expr[:9] == 'simplify(':
-    #    out = expr[8:-1]
+    if len(out) == 0 or "Error" in out:
+        return None
     return out
 
 if __name__ == "__main__":
